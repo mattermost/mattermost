@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import Banner from 'components/admin_console/banner.jsx';
 import LineChart from './line_chart.jsx';
 import StatisticCount from './statistic_count.jsx';
 import TableChart from './table_chart.jsx';
@@ -14,7 +15,7 @@ import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
 
 import {formatPostsPerDayData, formatUsersWithPostsPerDayData} from './system_analytics.jsx';
-import {FormattedMessage, FormattedDate} from 'react-intl';
+import {FormattedMessage, FormattedDate, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
 
@@ -95,6 +96,79 @@ export default class TeamAnalytics extends React.Component {
         const stats = this.state.stats;
         const postCountsDay = formatPostsPerDayData(stats[StatTypes.POST_PER_DAY]);
         const userCountsWithPostsDay = formatUsersWithPostsPerDayData(stats[StatTypes.USERS_WITH_POSTS_PER_DAY]);
+
+        let banner;
+        let totalPostsCount;
+        let postTotalGraph;
+        let userActiveGraph;
+        if (stats[StatTypes.TOTAL_POSTS] === -1) {
+            banner = (
+                <Banner
+                    description={
+                        <FormattedHTMLMessage
+                            id='analytics.system.skippedIntensiveQueries'
+                            defaultMessage="Some statistics have been omitted because they put too much load on the system to calculate. See <a href='https://docs.mattermost.com/administration/statistics.html' target='_blank'>https://docs.mattermost.com/administration/statistics.html</a> for more details."
+                        />
+                    }
+                />
+            );
+        } else {
+            totalPostsCount = (
+                <StatisticCount
+                    title={
+                        <FormattedMessage
+                            id='analytics.team.totalPosts'
+                            defaultMessage='Total Posts'
+                        />
+                    }
+                    icon='fa-comment'
+                    count={stats[StatTypes.TOTAL_POSTS]}
+                />
+            );
+
+            postTotalGraph = (
+                <div className='row'>
+                    <LineChart
+                        title={
+                            <FormattedMessage
+                                id='analytics.team.totalPosts'
+                                defaultMessage='Total Posts'
+                            />
+                        }
+                        data={postCountsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
+                        width='740'
+                        height='225'
+                    />
+                </div>
+            );
+
+            userActiveGraph = (
+                <div className='row'>
+                    <LineChart
+                        title={
+                            <FormattedMessage
+                                id='analytics.team.activeUsers'
+                                defaultMessage='Active Users With Posts'
+                            />
+                        }
+                        data={userCountsWithPostsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
+                        width='740'
+                        height='225'
+                    />
+                </div>
+            );
+        }
+
         const recentActiveUsers = formatRecentUsersData(stats[StatTypes.RECENTLY_ACTIVE_USERS]);
         const newlyCreatedUsers = formatNewUsersData(stats[StatTypes.NEWLY_CREATED_USERS]);
 
@@ -109,6 +183,7 @@ export default class TeamAnalytics extends React.Component {
                         }}
                     />
                 </h3>
+                {banner}
                 <div className='row'>
                     <StatisticCount
                         title={
@@ -140,53 +215,10 @@ export default class TeamAnalytics extends React.Component {
                         icon='fa-globe'
                         count={stats[StatTypes.TOTAL_PRIVATE_GROUPS]}
                     />
-                    <StatisticCount
-                        title={
-                            <FormattedMessage
-                                id='analytics.team.totalPosts'
-                                defaultMessage='Total Posts'
-                            />
-                        }
-                        icon='fa-comment'
-                        count={stats[StatTypes.TOTAL_POSTS]}
-                    />
+                    {totalPostsCount}
                 </div>
-                <div className='row'>
-                    <LineChart
-                        title={
-                            <FormattedMessage
-                                id='analytics.team.totalPosts'
-                                defaultMessage='Total Posts'
-                            />
-                        }
-                        data={postCountsDay}
-                        options={{
-                            legend: {
-                                display: false
-                            }
-                        }}
-                        width='740'
-                        height='225'
-                    />
-                </div>
-                <div className='row'>
-                    <LineChart
-                        title={
-                            <FormattedMessage
-                                id='analytics.team.activeUsers'
-                                defaultMessage='Active Users With Posts'
-                            />
-                        }
-                        data={userCountsWithPostsDay}
-                        options={{
-                            legend: {
-                                display: false
-                            }
-                        }}
-                        width='740'
-                        height='225'
-                    />
-                </div>
+                {postTotalGraph}
+                {userActiveGraph}
                 <div className='row'>
                     <TableChart
                         title={

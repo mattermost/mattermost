@@ -81,10 +81,23 @@ class SystemAnalytics extends React.Component {
     render() {
         const stats = this.state.stats;
 
+        let banner;
+        if (stats[StatTypes.TOTAL_POSTS] === -1) {
+            banner = (
+                <Banner
+                    description={
+                        <FormattedHTMLMessage
+                            id='analytics.system.skippedIntensiveQueries'
+                            defaultMessage="Some statistics have been omitted because they put too much load on the system to calculate. See <a href='https://docs.mattermost.com/administration/statistics.html' target='_blank'>https://docs.mattermost.com/administration/statistics.html</a> for more details."
+                        />
+                    }
+                />
+            );
+        }
+
         let advancedCounts;
         let advancedStats;
         let advancedGraphs;
-        let banner;
         if (global.window.mm_license.IsLicensed === 'true') {
             advancedCounts = (
                 <div className='row'>
@@ -169,6 +182,23 @@ class SystemAnalytics extends React.Component {
             const channelTypeData = formatChannelDoughtnutData(stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS], this.props.intl);
             const postTypeData = formatPostDoughtnutData(stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS], this.props.intl);
 
+            let postTypeGraph;
+            if (stats[StatTypes.TOTAL_POSTS] !== -1) {
+                postTypeGraph = (
+                    <DoughnutChart
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.postTypes'
+                                defaultMessage='Posts, Files and Hashtags'
+                            />
+                        }
+                        data={postTypeData}
+                        width='300'
+                        height='225'
+                    />
+                );
+            }
+
             advancedGraphs = (
                 <div className='row'>
                     <DoughnutChart
@@ -182,17 +212,7 @@ class SystemAnalytics extends React.Component {
                         width='300'
                         height='225'
                     />
-                    <DoughnutChart
-                        title={
-                            <FormattedMessage
-                                id='analytics.system.postTypes'
-                                defaultMessage='Posts, Files and Hashtags'
-                            />
-                        }
-                        data={postTypeData}
-                        width='300'
-                        height='225'
-                    />
+                    {postTypeGraph}
                 </div>
             );
 
@@ -230,6 +250,66 @@ class SystemAnalytics extends React.Component {
         const postCountsDay = formatPostsPerDayData(stats[StatTypes.POST_PER_DAY]);
         const userCountsWithPostsDay = formatUsersWithPostsPerDayData(stats[StatTypes.USERS_WITH_POSTS_PER_DAY]);
 
+        let totalPostsCount;
+        let postTotalGraph;
+        let activeUserGraph;
+        if (stats[StatTypes.TOTAL_POSTS] !== -1) {
+            totalPostsCount = (
+                <StatisticCount
+                    title={
+                        <FormattedMessage
+                            id='analytics.system.totalPosts'
+                            defaultMessage='Total Posts'
+                        />
+                    }
+                    icon='fa-comment'
+                    count={stats[StatTypes.TOTAL_POSTS]}
+                />
+            );
+
+            postTotalGraph = (
+                <div className='row'>
+                    <LineChart
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.totalPosts'
+                                defaultMessage='Total Posts'
+                            />
+                        }
+                        data={postCountsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
+                        width='740'
+                        height='225'
+                    />
+                </div>
+            );
+
+            activeUserGraph = (
+                <div className='row'>
+                    <LineChart
+                        title={
+                            <FormattedMessage
+                                id='analytics.system.activeUsers'
+                                defaultMessage='Active Users With Posts'
+                            />
+                        }
+                        data={userCountsWithPostsDay}
+                        options={{
+                            legend: {
+                                display: false
+                            }
+                        }}
+                        width='740'
+                        height='225'
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className='wrapper--fixed team_statistics'>
                 <h3>
@@ -260,16 +340,7 @@ class SystemAnalytics extends React.Component {
                         icon='fa-users'
                         count={stats[StatTypes.TOTAL_TEAMS]}
                     />
-                    <StatisticCount
-                        title={
-                            <FormattedMessage
-                                id='analytics.system.totalPosts'
-                                defaultMessage='Total Posts'
-                            />
-                        }
-                        icon='fa-comment'
-                        count={stats[StatTypes.TOTAL_POSTS]}
-                    />
+                    {totalPostsCount}
                     <StatisticCount
                         title={
                             <FormattedMessage
@@ -284,42 +355,8 @@ class SystemAnalytics extends React.Component {
                 {advancedCounts}
                 {advancedStats}
                 {advancedGraphs}
-                <div className='row'>
-                    <LineChart
-                        title={
-                            <FormattedMessage
-                                id='analytics.system.totalPosts'
-                                defaultMessage='Total Posts'
-                            />
-                        }
-                        data={postCountsDay}
-                        options={{
-                            legend: {
-                                display: false
-                            }
-                        }}
-                        width='740'
-                        height='225'
-                    />
-                </div>
-                <div className='row'>
-                    <LineChart
-                        title={
-                            <FormattedMessage
-                                id='analytics.system.activeUsers'
-                                defaultMessage='Active Users With Posts'
-                            />
-                        }
-                        data={userCountsWithPostsDay}
-                        options={{
-                            legend: {
-                                display: false
-                            }
-                        }}
-                        width='740'
-                        height='225'
-                    />
-                </div>
+                {postTotalGraph}
+                {activeUserGraph}
             </div>
         );
     }
