@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/spf13/cobra"
 )
@@ -38,4 +39,7 @@ func initDBCommandContext(configFileLocation string) {
 
 	api.NewServer()
 	api.InitStores()
+	if model.BuildEnterpriseReady == "true" {
+		api.LoadLicense()
+	}
 }
