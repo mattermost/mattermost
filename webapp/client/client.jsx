@@ -1496,6 +1496,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannelMember', success, error));
     }
 
+    getChannelMembersByIds(channelId, userIds, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/members/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getChannelMembersByIds', success, error));
+    }
+
     addChannelMember(channelId, userId, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/add`).

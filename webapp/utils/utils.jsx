@@ -54,6 +54,14 @@ export function isInRole(roles, inRole) {
     return false;
 }
 
+export function isChannelAdmin(roles) {
+    if (isInRole(roles, 'channel_admin')) {
+        return true;
+    }
+
+    return false;
+}
+
 export function isAdmin(roles) {
     if (isInRole(roles, 'team_admin')) {
         return true;
