@@ -4424,13 +4424,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains modified portions of Prometheus (‘client_golang’, ‘clinet_model’, ‘common’, ‘procfs’), a systems and service monitoring system, started by Matt T. Proud and Julius Volz.
+This product contains modified portions of Prometheus ‘client_golang’, which is the Go library for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
-* HOMEPAGES: 
-  * github.com/prometheus/client_golang
- * github.com/prometheus/client_model
-  * github.com/prometheus/common
- * github.com/prometheus/procfs
+* HOMEPAGE: 
+  * https://github.com/prometheus/client_golang
 
 * LICENSE: 
 
@@ -4448,3 +4445,71 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+---
+
+This product contains modified portions of Prometheus ‘clinet_model’, which provides data model artifacts for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
+
+* HOMEPAGE: 
+  * https://github.com/prometheus/client_model
+
+* LICENSE: 
+
+# Code licensed under the Apache 2.0 License:
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+This product contains modified portions of Prometheus ‘common’, which is the part of the Prometheus project that contains Go libraries that are shared across Prometheus components and libraries. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
+
+* HOMEPAGE: 
+  * https://github.com/prometheus/common
+
+* LICENSE: 
+
+# Code licensed under the Apache 2.0 License:
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+This product contains modified portions of Prometheus ‘procfs’, which is the part of the Prometheus project that provides functions to retrieve system, kernel and process metrics from the pseudo-filesystem proc. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
+
+* HOMEPAGE: 
+  * https://github.com/prometheus/procfs
+
+* LICENSE: 
+
+# Code licensed under the Apache 2.0 License:
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
