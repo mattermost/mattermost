@@ -4447,7 +4447,7 @@ limitations under the License.
 
 ---
 
-This product contains modified portions of Prometheus ‘clinet_model’, which provides data model artifacts for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
+This product contains modified portions of Prometheus ‘client_model’, which provides data model artifacts for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
 * HOMEPAGE: 
   * https://github.com/prometheus/client_model
