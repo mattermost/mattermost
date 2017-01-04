@@ -20,7 +20,10 @@ import (
 //
 
 func ImportPost(post *model.Post) {
-	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0; messageRuneCount = utf8.RuneCountInString(post.Message) {
+	// Workaround for empty messages, which may be the case if they are webhook posts.
+	firstIteration := true
+	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
+		firstIteration = false
 		var remainder string
 		if messageRuneCount > model.POST_MESSAGE_MAX_RUNES {
 			remainder = string(([]rune(post.Message))[model.POST_MESSAGE_MAX_RUNES:])
