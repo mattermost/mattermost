@@ -195,9 +195,7 @@ export default class MoreDirectChannels extends React.Component {
 
     render() {
         let teamToggle;
-        let memberClass = '';
         if (global.window.mm_config.RestrictDirectMessage === 'any') {
-            memberClass = 'more-system-members';
             teamToggle = (
                 <div className='member-select__container'>
                     <select
@@ -228,7 +226,7 @@ export default class MoreDirectChannels extends React.Component {
 
         return (
             <Modal
-                dialogClassName={'more-modal more-direct-channels ' + memberClass}
+                dialogClassName='more-modal more-direct-channels'
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}

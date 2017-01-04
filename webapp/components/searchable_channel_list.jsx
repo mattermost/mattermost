@@ -180,9 +180,7 @@ export default class SearchableChannelList extends React.Component {
                     ref='channelList'
                     className='more-modal__list'
                 >
-                    <div>
-                        {listContent}
-                    </div>
+                    {listContent}
                 </div>
                 <div className='filter-controls'>
                     {previousButton}
