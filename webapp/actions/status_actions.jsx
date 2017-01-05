@@ -4,6 +4,7 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
@@ -65,6 +66,12 @@ export function loadStatusesForChannelAndSidebar() {
         if (value === 'true') {
             statusesToLoad[key] = true;
         }
+    }
+
+    // Add the current user to the list
+    const currentUser = UserStore.getCurrentUser();
+    if (currentUser) {
+        statusesToLoad[UserStore.getCurrentUser().id] = true;
     }
 
     loadStatusesByIds(Object.keys(statusesToLoad));
