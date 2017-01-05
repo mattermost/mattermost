@@ -261,7 +261,7 @@ func inviteUser(email string, team *model.Team, teamArg string) {
 		CommandPrintErrorln("Can't find team '" + teamArg + "'")
 		return
 	}
-	api.InviteMembers(team, "Administrator", invites)
+	api.InviteMembers(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 }
 

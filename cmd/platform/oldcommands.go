@@ -319,7 +319,8 @@ func cmdInviteUser() {
 		}
 
 		invites := []string{flagEmail}
-		api.InviteMembers(team, user.GetDisplayName(), invites)
+		c := getMockContext()
+		api.InviteMembers(team, user.GetDisplayName(), invites, c.GetSiteURL())
 
 		os.Exit(0)
 	}
