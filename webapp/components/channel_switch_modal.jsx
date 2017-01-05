@@ -82,11 +82,11 @@ export default class SwitchChannelModal extends React.Component {
         this.setState(newState);
 
         if (e.keyCode === Constants.KeyCodes.ENTER) {
-            this.handleSubmit(selectionText);
+            this.handleSubmit(null, selectionText);
         }
     }
 
-    handleSubmit(selectionText) {
+    handleSubmit(e, selectionText) {
         const name = selectionText || this.state.text.trim();
         let channel = null;
 
