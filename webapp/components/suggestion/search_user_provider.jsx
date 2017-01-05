@@ -41,7 +41,7 @@ class SearchUserSuggestion extends Suggestion {
                 <i className='fa fa fa-plus-square'/>
                 <img
                     className='profile-img rounded'
-                    src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
+                    src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.last_picture_update}
                 />
                 <div className='mention--align'>
                     <span>

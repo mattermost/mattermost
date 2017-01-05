@@ -150,10 +150,10 @@ export default class Post extends React.Component {
         }
 
         let timestamp = 0;
-        if (!this.props.user || this.props.user.update_at == null) {
-            timestamp = this.props.currentUser.update_at;
+        if (!this.props.user || this.props.user.last_picture_update == null) {
+            timestamp = this.props.currentUser.last_picture_update;
         } else {
-            timestamp = this.props.user.update_at;
+            timestamp = this.props.user.last_picture_update;
         }
 
         let sameUserClass = '';

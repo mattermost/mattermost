@@ -70,7 +70,7 @@ class AtMentionSuggestion extends Suggestion {
             icon = (
                 <img
                     className='mention__image'
-                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.update_at}
+                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
                 />
             );
         }
