@@ -245,38 +245,37 @@
 
     .more-modal__list {
         .filtered-user-list {
-           .filter-controls {
-            padding-bottom: 1em;
+            .filter-controls {
+                padding-bottom: 1em;
+            }
+        }
+
+        .filter-row {
+            margin: 10px 0;
         }
     }
 
-    .filter-row {
-        margin: 10px 0;
-        overflow: hidden;
-    }
-}
-
-.member-list-holder {
-    background: $white;
-    margin-bottom: 4em;
-    overflow: visible;
-    padding: 5px 0;
-
-    .more-modal__list {
+    .member-list-holder {
+        background: $white;
+        margin-bottom: 4em;
         overflow: visible;
-    }
+        padding: 5px 0;
 
-    .more-modal__row {
-        &:last-child {
-            border: none;
+        .more-modal__list {
+            overflow: visible;
+        }
+
+        .more-modal__row {
+            &:last-child {
+                border: none;
+            }
         }
     }
-}
 
-.member-count {
-    @include opacity(.7);
-    margin-top: 8px;
-}
+    .member-count {
+        @include opacity(.7);
+        margin-top: 8px;
+    }
 }
 
 .brand-img {
@@ -469,13 +468,13 @@
 }
 
 .cluster-status {
-    width: 24px;
     height: 24px;
+    width: 24px;
 }
 
 .config-hash {
-    width: 130px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 130px;
 }
