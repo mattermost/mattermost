@@ -487,10 +487,9 @@ export function clientLogout(redirectTo = '/') {
     UserStore.clear();
     TeamStore.clear();
     ChannelStore.clear();
-    newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
     stopPeriodicStatusUpdates();
     WebsocketActions.close();
-    browserHistory.push(redirectTo);
+    window.location.href = redirectTo;
 }
 
 export function emitSearchMentionsEvent(user) {
