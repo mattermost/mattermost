@@ -26,6 +26,11 @@ body {
     word-break: break-all;
 }
 
+.overflow--ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .fa {
     &.fa-margin--left {
         margin-left: 2px;
