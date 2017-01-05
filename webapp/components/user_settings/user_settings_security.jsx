@@ -375,6 +375,11 @@ export default class SecurityTab extends React.Component {
     createPasswordSection() {
         let updateSectionStatus;
 
+        // don't display the password section if the auth_service is saml
+        if (this.props.user.auth_service === Constants.SAML_SERVICE) {
+            return null;
+        }
+
         if (this.props.activeSection === 'password') {
             const inputs = [];
             let submit;
@@ -984,13 +989,13 @@ export default class SecurityTab extends React.Component {
                     </h3>
                     <div className='divider-dark first'/>
                     {passwordSection}
-                    <div className='divider-light'/>
+                    {passwordSection && <div className='divider-light'/>}
                     {mfaSection}
-                    <div className='divider-light'/>
+                    {mfaSection && <div className='divider-light'/>}
                     {oauthSection}
-                    <div className='divider-light'/>
+                    {oauthSection && <div className='divider-light'/>}
                     {signInSection}
-                    <div className='divider-dark'/>
+                    {signInSection && <div className='divider-light'/>}
                     <br/>
                     <ToggleModalButton
                         className='security-links theme'
