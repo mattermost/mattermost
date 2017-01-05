@@ -1652,6 +1652,7 @@
   "sidebar.channels": "Channels",
   "sidebar.createChannel": "Create new channel",
   "sidebar.createGroup": "Create new group",
+  "sidebar.createDirectMessage": "Create new direct message",
   "sidebar.direct": "Direct Messages",
   "sidebar.favorite": "Favorites",
   "sidebar.more": "More",
