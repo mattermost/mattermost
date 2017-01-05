@@ -395,7 +395,13 @@ function parseSearchTerms(searchTerm) {
     }
 
     // remove punctuation from each term
-    terms = terms.map((term) => term.replace(puncStart, '').replace(puncEnd, ''));
+    terms = terms.map((term) => {
+        term.replace(puncStart, '');
+        if (term.charAt(term.length - 1) !== '*') {
+            term.replace(puncEnd, '');
+        }
+        return term;
+    });
 
     return terms;
 }
