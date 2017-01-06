@@ -826,47 +826,42 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf(c.T("api.channel.delete_channel.archived"), user.Username),
+			Type:      model.POST_CHANNEL_DELETED,
+			UserId:    c.Session.UserId,
+		}
+
+		if _, err := CreatePost(c, post, false); err != nil {
+			l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
+		}
+
 		now := model.GetMillis()
 		for _, hook := range incomingHooks {
-			go func() {
-				if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
-					l4g.Error(utils.T("api.channel.delete_channel.incoming_webhook.error"), hook.Id)
-				}
-			}()
+			if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+				l4g.Error(utils.T("api.channel.delete_channel.incoming_webhook.error"), hook.Id)
+			}
 		}
 
 		for _, hook := range outgoingHooks {
-			go func() {
-				if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
-					l4g.Error(utils.T("api.channel.delete_channel.outgoing_webhook.error"), hook.Id)
-				}
-			}()
+			if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
+				l4g.Error(utils.T("api.channel.delete_channel.outgoing_webhook.error"), hook.Id)
+			}
 		}
 
-		InvalidateCacheForChannel(channel.Id)
 		if dresult := <-Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
 			c.Err = dresult.Err
 			return
 		}
+		InvalidateCacheForChannel(channel.Id)
 
 		c.LogAudit("name=" + channel.Name)
 
-		go func() {
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, c.TeamId, "", "", nil)
-			message.Add("channel_id", channel.Id)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, c.TeamId, "", "", nil)
+		message.Add("channel_id", channel.Id)
 
-			go Publish(message)
-
-			post := &model.Post{
-				ChannelId: channel.Id,
-				Message:   fmt.Sprintf(c.T("api.channel.delete_channel.archived"), user.Username),
-				Type:      model.POST_CHANNEL_DELETED,
-				UserId:    c.Session.UserId,
-			}
-			if _, err := CreatePost(c, post, false); err != nil {
-				l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
-			}
-		}()
+		Publish(message)
 
 		result := make(map[string]string)
 		result["id"] = channel.Id
