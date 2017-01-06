@@ -624,9 +624,10 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 				list := result.Data.(*model.PostList)
 
 				for _, threadPost := range list.Posts {
-					profile := profileMap[threadPost.UserId]
-					if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
-						mentionedUserIds[threadPost.UserId] = true
+					if profile, ok := profileMap[threadPost.UserId]; ok {
+						if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
+							mentionedUserIds[threadPost.UserId] = true
+						}
 					}
 				}
 			}
