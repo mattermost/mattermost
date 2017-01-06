@@ -4,7 +4,6 @@
 import LoadingScreen from 'components/loading_screen.jsx';
 
 import UserStore from 'stores/user_store.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -28,30 +27,6 @@ export default class LoggedIn extends React.Component {
 
         this.onUserChanged = this.onUserChanged.bind(this);
         this.setupUser = this.setupUser.bind(this);
-
-        // Force logout of all tabs if one tab is logged out
-        $(window).bind('storage', (e) => {
-            // when one tab on a browser logs out, it sets __logout__ in localStorage to trigger other tabs to log out
-            if (e.originalEvent.key === '__logout__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
-                // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
-                if (BrowserStore.isSignallingLogout(e.originalEvent.newValue)) {
-                    return;
-                }
-
-                console.log('detected logout from a different tab'); //eslint-disable-line no-console
-                GlobalActions.emitUserLoggedOutEvent('/', false);
-            }
-
-            if (e.originalEvent.key === '__login__' && e.originalEvent.storageArea === localStorage && e.originalEvent.newValue) {
-                // make sure it isn't this tab that is sending the logout signal (only necessary for IE11)
-                if (BrowserStore.isSignallingLogin(e.originalEvent.newValue)) {
-                    return;
-                }
-
-                console.log('detected login from a different tab'); //eslint-disable-line no-console
-                location.reload();
-            }
-        });
 
         // Because current CSS requires the root tag to have specific stuff
         $('#root').attr('class', 'channel-view');
