@@ -61,31 +61,31 @@ export default class FilePreview extends React.Component {
             );
         });
 
-        this.props.uploadsInProgress
-            .forEach((clientId) => {
-                let percent, fileName;
-                if (this.props.uploadsProgressPercent[clientId]) {
-                    percent = this.props.uploadsProgressPercent[clientId].percent;
-                    fileName = this.props.uploadsProgressPercent[clientId].fileName;
-                }
-                previews.push(
-                    <div
-                        ref={clientId}
-                        key={clientId}
-                        className='file-preview'
-                        data-client-id={clientId}
+        this.props.uploadsInProgress.forEach((clientId) => {
+            let percent;
+            let fileName;
+            if (this.props.uploadsProgressPercent[clientId]) {
+                percent = this.props.uploadsProgressPercent[clientId].percent;
+                fileName = this.props.uploadsProgressPercent[clientId].fileName;
+            }
+            previews.push(
+                <div
+                    ref={clientId}
+                    key={clientId}
+                    className='file-preview'
+                    data-client-id={clientId}
+                >
+                    <FileUploadProgress percent={Math.min(percent, 98)}/>
+                    <p>{fileName}</p>
+                    <a
+                        className='file-preview__remove'
+                        onClick={this.handleRemove.bind(this, clientId)}
                     >
-                        <FileUploadProgress percent={Math.min(percent, 98)}/>
-                        <p>{fileName}</p>
-                        <a
-                            className='file-preview__remove'
-                            onClick={this.handleRemove.bind(this, clientId)}
-                        >
-                            <i className='fa fa-remove'/>
-                        </a>
-                    </div>
-                );
-            });
+                        <i className='fa fa-remove'/>
+                    </a>
+                </div>
+            );
+        });
 
         return (
             <div
