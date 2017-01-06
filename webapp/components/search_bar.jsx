@@ -104,6 +104,7 @@ export default class SearchBar extends React.Component {
         SearchStore.storeSearchTerm(term);
         SearchStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
+        this.refs.searchOverlay.hide();
     }
 
     handleUserBlur() {
@@ -179,11 +180,6 @@ export default class SearchBar extends React.Component {
             isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
         }
 
-        let helpClass = 'search-help-popover';
-        if (!this.state.searchTerm && this.state.focused) {
-            helpClass += ' visible';
-        }
-
         const recentMentionsTooltip = (
             <Tooltip id='recentMentionsTooltip'>
                 <FormattedMessage
@@ -197,7 +193,7 @@ export default class SearchBar extends React.Component {
             <Popover
                 id='searchbar-help-popup'
                 placement='bottom'
-                className={helpClass}
+                className='search-help-popover'
             >
                 <FormattedHTMLMessage
                     id='search_bar.usage'
@@ -290,12 +286,12 @@ export default class SearchBar extends React.Component {
                 >
                     <span className='fa fa-search sidebar__search-icon'/>
                     <OverlayTrigger
+                        ref='searchOverlay'
                         delayShow={Constants.OVERLAY_TIME_DELAY_SMALL}
                         placement='bottom'
                         overlay={searchPopover}
-                        trigger='focus'
+                        trigger='click'
                         rootClose={true}
-                        className={helpClass}
                     >
                         <SuggestionBox
                             ref='search'

@@ -94,9 +94,12 @@
 
 .search-help-popover {
     font-size: em(13px);
-    margin-top: 17px !important;
     max-width: 300px;
     width: 100%;
+
+    &:not(.autocomplete) {
+        margin-top: 17px !important;
+    }
 
     &.autocomplete {
         display: block;
