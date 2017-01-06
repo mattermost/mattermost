@@ -104,7 +104,6 @@ export default class SearchBar extends React.Component {
         SearchStore.storeSearchTerm(term);
         SearchStore.emitSearchTermChange(false);
         this.setState({searchTerm: term});
-        this.refs.searchOverlay.hide();
     }
 
     handleUserBlur() {
@@ -112,9 +111,8 @@ export default class SearchBar extends React.Component {
     }
 
     handleUserFocus() {
-        $('.search-bar__container').addClass('focused');
-
         this.setState({focused: true});
+        $('.search-bar__container').addClass('focused');
     }
 
     performSearch(terms, isMentionSearch) {
@@ -180,6 +178,11 @@ export default class SearchBar extends React.Component {
             isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
         }
 
+        let helpClass = 'search-help-popover';
+        if (!this.state.searchTerm && this.state.focused) {
+            helpClass += ' visible';
+        }
+
         const recentMentionsTooltip = (
             <Tooltip id='recentMentionsTooltip'>
                 <FormattedMessage
@@ -187,19 +190,6 @@ export default class SearchBar extends React.Component {
                     defaultMessage='Recent Mentions'
                 />
             </Tooltip>
-        );
-
-        const searchPopover = (
-            <Popover
-                id='searchbar-help-popup'
-                placement='bottom'
-                className='search-help-popover'
-            >
-                <FormattedHTMLMessage
-                    id='search_bar.usage'
-                    defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
-                />
-            </Popover>
         );
 
         const flaggedTooltip = (
@@ -285,28 +275,29 @@ export default class SearchBar extends React.Component {
                     autoComplete='off'
                 >
                     <span className='fa fa-search sidebar__search-icon'/>
-                    <OverlayTrigger
-                        ref='searchOverlay'
-                        delayShow={Constants.OVERLAY_TIME_DELAY_SMALL}
-                        placement='bottom'
-                        overlay={searchPopover}
-                        trigger='click'
-                        rootClose={true}
-                    >
-                        <SuggestionBox
-                            ref='search'
-                            className='form-control search-bar'
-                            placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
-                            value={this.state.searchTerm}
-                            onFocus={this.handleUserFocus}
-                            onBlur={this.handleUserBlur}
-                            onChange={this.handleChange}
-                            listComponent={SearchSuggestionList}
-                            providers={this.suggestionProviders}
-                            type='search'
-                        />
-                    </OverlayTrigger>
+                    <SuggestionBox
+                        ref='search'
+                        className='form-control search-bar'
+                        placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
+                        value={this.state.searchTerm}
+                        onFocus={this.handleUserFocus}
+                        onBlur={this.handleUserBlur}
+                        onChange={this.handleChange}
+                        listComponent={SearchSuggestionList}
+                        providers={this.suggestionProviders}
+                        type='search'
+                    />
                     {isSearching}
+                    <Popover
+                        id='searchbar-help-popup'
+                        placement='bottom'
+                        className={helpClass}
+                    >
+                        <FormattedHTMLMessage
+                            id='search_bar.usage'
+                            defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
+                        />
+                    </Popover>
                 </form>
 
                 {mentionBtn}
