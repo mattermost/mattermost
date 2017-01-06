@@ -134,7 +134,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			} else {
 				team = tr.Data.(*model.Team)
-
 			}
 
 			var user *model.User
@@ -247,23 +246,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		}
 	}
 
-	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
-		post.Message = response.Text
-		post.UserId = c.Session.UserId
-		if _, err := CreatePost(c, post, true); err != nil {
-			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
-		}
-	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL && response.Text != "" {
-		post.Message = response.Text
-		post.CreateAt = model.GetMillis()
-		post.UserId = c.Session.UserId
-		post.ParentId = ""
-		SendEphemeralPost(
-			c.TeamId,
-			c.Session.UserId,
-			post,
-		)
-	}
+	CreateCommandPost(c, post, response)
 
 	w.Write([]byte(response.ToJson()))
 }
