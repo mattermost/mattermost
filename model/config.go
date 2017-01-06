@@ -42,6 +42,8 @@ const (
 	PERMISSIONS_TEAM_ADMIN   = "team_admin"
 	PERMISSIONS_SYSTEM_ADMIN = "system_admin"
 
+	PERMISSIONS_CHANNEL_CREATOR = "channel_creator"
+
 	FAKE_SETTING = "********************************"
 
 	RESTRICT_EMOJI_CREATION_ALL          = "all"
@@ -1061,7 +1063,10 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
 	}
 
-	if !(*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_ALL || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_TEAM_ADMIN || *o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_SYSTEM_ADMIN) {
+	if !(*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_ALL ||
+		*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_TEAM_ADMIN ||
+		*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_SYSTEM_ADMIN ||
+		*o.TeamSettings.RestrictChannelDeletion == PERMISSIONS_CHANNEL_CREATOR) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_channel_deletion.app_error", nil, "")
 	}
 

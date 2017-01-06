@@ -3349,7 +3349,7 @@
   },
   {
     "id": "model.config.is_valid.restrict_channel_deletion.app_error",
-    "translation": "Invalid channel deletion restriction. Must be 'all', 'team_admin', or 'system_admin'"
+    "translation": "Invalid channel deletion restriction. Must be 'all', 'team_admin', 'system_admin', or 'channel_creator'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",

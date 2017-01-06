@@ -230,13 +230,17 @@ export default class ChannelHeader extends React.Component {
         return true;
     }
 
-    showDeleteOption(channel, isAdmin, isSystemAdmin) {
+    showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelCreator) {
         const {RestrictChannelDeletion} = global.window.mm_config;
         if (global.window.mm_license.IsLicensed !== 'true') {
             return true;
         }
         if (this.state.userCount === 1) {
             return true;
+        }
+        if (RestrictChannelDeletion === Constants.PERMISSIONS_CHANNEL_CREATOR &&
+            !isChannelCreator && !isSystemAdmin && !isAdmin) {
+            return false;
         }
         if (RestrictChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
@@ -311,6 +315,7 @@ export default class ChannelHeader extends React.Component {
         let channelTitle = channel.display_name;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+        const isChannelCreator = UserStore.getCurrentId() === channel.creator_id;
         const isDirect = (this.state.channel.type === 'D');
         let webrtc;
 
@@ -593,7 +598,7 @@ export default class ChannelHeader extends React.Component {
                     </li>
                 );
 
-                const canDelete = this.showDeleteOption(channel, isAdmin, isSystemAdmin);
+                const canDelete = this.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelCreator);
                 if (!ChannelStore.isDefault(channel) && canDelete) {
                     dropdownContents.push(deleteOption);
                 }

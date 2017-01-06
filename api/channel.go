@@ -788,12 +788,17 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Allow delete if user is the only member left in channel
 		if memberCount > 1 {
-			if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
-				return
+			teamMember := c.Session.GetTeamByTeamId(channel.TeamId)
+			if channel.Type == model.CHANNEL_OPEN && !HasPermissionToTeam(user, teamMember, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
+				if *utils.Cfg.TeamSettings.RestrictChannelDeletion != model.PERMISSIONS_CHANNEL_CREATOR || c.Session.UserId != channel.CreatorId {
+					return
+				}
 			}
 
 			if channel.Type == model.CHANNEL_PRIVATE && !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
-				return
+				if *utils.Cfg.TeamSettings.RestrictChannelDeletion != model.PERMISSIONS_CHANNEL_CREATOR || c.Session.UserId != channel.CreatorId {
+					return
+				}
 			}
 		}
 

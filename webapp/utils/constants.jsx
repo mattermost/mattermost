@@ -896,6 +896,7 @@ export const Constants = {
     PERMISSIONS_ALL: 'all',
     PERMISSIONS_TEAM_ADMIN: 'team_admin',
     PERMISSIONS_SYSTEM_ADMIN: 'system_admin',
+    PERMISSIONS_CHANNEL_CREATOR: 'channel_creator',
     MENTION_CHANNELS: 'mention.channels',
     MENTION_MORE_CHANNELS: 'mention.morechannels',
     MENTION_MEMBERS: 'mention.members',
