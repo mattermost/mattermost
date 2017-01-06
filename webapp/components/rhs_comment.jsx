@@ -239,7 +239,7 @@ export default class RhsComment extends React.Component {
             currentUserCss = 'current--user';
         }
 
-        var timestamp = this.props.currentUser.update_at;
+        var timestamp = this.props.currentUser.last_picture_update;
 
         let status = this.props.status;
         if (post.props && post.props.from_webhook === 'true') {

@@ -35,7 +35,7 @@ class SwitchChannelSuggestion extends Suggestion {
                 <div className='pull-left'>
                     <img
                         className='mention__image'
-                        src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.update_at}
+                        src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.last_picture_update}
                     />
                 </div>
             );

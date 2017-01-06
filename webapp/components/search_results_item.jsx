@@ -62,7 +62,7 @@ export default class SearchResultsItem extends React.Component {
     render() {
         let channelName = null;
         const channel = this.props.channel;
-        const timestamp = UserStore.getCurrentUser().update_at;
+        const timestamp = UserStore.getCurrentUser().last_picture_update;
         const user = this.props.user || {};
         const post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
