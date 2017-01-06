@@ -1331,7 +1331,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Scale profile image
-	img = imaging.Resize(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Lanczos)
+	img = imaging.Fill(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Center, imaging.Lanczos)
 
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)

@@ -95,7 +95,7 @@ export default class SettingPicture extends React.Component {
         var helpText = (
             <FormattedMessage
                 id='setting_picture.help'
-                defaultMessage='Upload a profile picture in either JPG or PNG format, at least {width}px in width and {height}px height.'
+                defaultMessage='Upload a profile picture in either JPG or PNG format, at least {width}px in width and {height}px height. For best results, please use a square image.'
                 values={{
                     width: global.window.mm_config.ProfileWidth,
                     height: global.window.mm_config.ProfileHeight
