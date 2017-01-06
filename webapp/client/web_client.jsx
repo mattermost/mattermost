@@ -13,6 +13,11 @@ import request from 'superagent';
 
 const HTTP_UNAUTHORIZED = 401;
 
+const mfaPaths = [
+    '/mfa/setup',
+    '/mfa/confirm'
+];
+
 class WebClientClass extends Client {
     constructor() {
         super();
@@ -39,7 +44,9 @@ class WebClientClass extends Client {
 
     handleError(err, res) {
         if (res && res.body && res.body.id === 'api.context.mfa_required.app_error') {
-            window.location.reload();
+            if (mfaPaths.indexOf(window.location.pathname) === -1) {
+                window.location.reload();
+            }
             return;
         }
 
