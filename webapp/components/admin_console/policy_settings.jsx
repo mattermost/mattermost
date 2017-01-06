@@ -146,7 +146,11 @@ export default class PolicySettings extends AdminSettings {
                             defaultMessage='Set policy on who can delete public channels. Deleted channels can be recovered from the database using a {commandLineToolLink}.'
                             values={{
                                 commandLineToolLink: (
-                                    <a href='https://docs.mattermost.com/administration/command-line-tools.html'>
+                                    <a
+                                        href='https://docs.mattermost.com/administration/command-line-tools.html'
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                    >
                                         <FormattedMessage
                                             id='admin.general.policy.restrictPublicChannelDeletionCommandLineToolLink'
                                             defaultMessage='command line tool'
@@ -222,7 +226,11 @@ export default class PolicySettings extends AdminSettings {
                             defaultMessage='Set policy on who can delete private groups. Deleted groups can be recovered from the database using a {commandLineToolLink}.'
                             values={{
                                 commandLineToolLink: (
-                                    <a href='https://docs.mattermost.com/administration/command-line-tools.html'>
+                                    <a
+                                        href='https://docs.mattermost.com/administration/command-line-tools.html'
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                    >
                                         <FormattedMessage
                                             id='admin.general.policy.restrictPrivateChannelDeletionCommandLineToolLink'
                                             defaultMessage='command line tool'
