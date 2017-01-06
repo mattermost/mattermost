@@ -185,34 +185,34 @@ export default class ProfilePopover extends React.Component {
         const fullname = Utils.getFullName(this.props.user);
         if (fullname) {
             dataContent.push(
-                <div
-                    data-toggle='tooltip'
-                    title={fullname}
-                    key='user-popover-fullname'
+                <OverlayTrigger
+                    delayShow={Constants.WEBRTC_TIME_DELAY}
+                    placement='top'
+                    overlay={<Tooltip id='fullNameTooltip'>{fullname}</Tooltip>}
                 >
-                    <p
-                        className='text-nowrap'
+                    <div
+                        className='overflow--ellipsis text-nowrap padding-bottom'
                     >
                         {fullname}
-                    </p>
-                </div>
+                    </div>
+                </OverlayTrigger>
             );
         }
 
         if (this.props.user.position) {
             const position = this.props.user.position.substring(0, Constants.MAX_POSITION_LENGTH);
             dataContent.push(
-                <div
-                    data-toggle='tooltip'
-                    title={position}
-                    key='user-popover-position'
+                <OverlayTrigger
+                    delayShow={Constants.WEBRTC_TIME_DELAY}
+                    placement='top'
+                    overlay={<Tooltip id='positionTooltip'>{position}</Tooltip>}
                 >
-                    <p
-                        className='text-nowrap'
+                    <div
+                        className='overflow--ellipsis text-nowrap padding-bottom'
                     >
                         {position}
-                    </p>
-                </div>
+                    </div>
+                </OverlayTrigger>
             );
         }
 

@@ -73,7 +73,7 @@ export default class SettingPicture extends React.Component {
                 />
             );
         } else {
-            var confirmButtonClass = 'btn btn-sm';
+            var confirmButtonClass = 'btn btn-sm pull-right';
             if (this.props.submitActive) {
                 confirmButtonClass += ' btn-primary';
             } else {
@@ -132,7 +132,7 @@ export default class SettingPicture extends React.Component {
                             </span>
                             {confirmButton}
                             <a
-                                className='btn btn-sm theme'
+                                className='btn btn-sm theme pull-right'
                                 href='#'
                                 onClick={self.props.updateSection}
                             >
