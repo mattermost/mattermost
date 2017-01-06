@@ -72,7 +72,7 @@ func (me *InvitePeopleProvider) DoCommand(c *Context, args *model.CommandArgs, m
 		user = result.Data.(*model.User)
 	}
 
-	go InviteMembers(team, user.GetDisplayName(), emailList)
+	go InviteMembers(team, user.GetDisplayName(), emailList, c.GetSiteURL())
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.sent")}
 }
