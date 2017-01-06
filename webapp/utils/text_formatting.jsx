@@ -452,6 +452,11 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
 
                 output = output.replace(alias, newAlias);
             }
+
+            // The pattern regexes are global, so calling pattern.test() above alters their
+            // state. Reset lastIndex to 0 between calls to test() to ensure it returns the
+            // same result every time it is called with the same value of token.originalText.
+            pattern.lastIndex = 0;
         }
 
         // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
