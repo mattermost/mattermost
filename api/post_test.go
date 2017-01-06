@@ -1389,3 +1389,33 @@ func TestGetPostById(t *testing.T) {
 		t.Fatal(respMetadata.Error)
 	}
 }
+
+func TestGetPermalinkTmp(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
+
+	etag := Client.Must(Client.GetPost(channel1.Id, post1.Id, "")).Etag
+
+	// test etag caching
+	if cache_result, respMetadata := Client.GetPermalink(channel1.Id, post1.Id, etag); respMetadata.Error != nil {
+		t.Fatal(respMetadata.Error)
+	} else if cache_result != nil {
+		t.Log(cache_result)
+		t.Fatal("cache should be empty")
+	}
+
+	if results, respMetadata := Client.GetPermalink(channel1.Id, post1.Id, ""); respMetadata.Error != nil {
+		t.Fatal(respMetadata.Error)
+	} else if results == nil {
+		t.Fatal("should not be empty")
+	}
+}
