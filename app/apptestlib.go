@@ -153,6 +153,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
+		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
 	}

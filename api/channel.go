@@ -530,7 +530,7 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 		}
 
 		if channel.Type == model.CHANNEL_OPEN {
-			if _, err := AddUserToChannel(user, channel); err != nil {
+			if _, err := app.AddUserToChannel(user, channel); err != nil {
 				return err, nil
 			}
 			go PostUserAddRemoveMessage(c, channel.Id, fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username), model.POST_JOIN_LEAVE)
@@ -551,58 +551,6 @@ func PostUserAddRemoveMessage(c *Context, channelId string, message, postType st
 	if _, err := app.CreatePost(post, c.TeamId, false); err != nil {
 		l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 	}
-}
-
-func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	if channel.DeleteAt > 0 {
-		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
-	}
-
-	if channel.Type != model.CHANNEL_OPEN && channel.Type != model.CHANNEL_PRIVATE {
-		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "")
-	}
-
-	tmchan := app.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
-	cmchan := app.Srv.Store.Channel().GetMember(channel.Id, user.Id)
-
-	if result := <-tmchan; result.Err != nil {
-		return nil, result.Err
-	} else {
-		teamMember := result.Data.(model.TeamMember)
-		if teamMember.DeleteAt > 0 {
-			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
-		}
-	}
-
-	if result := <-cmchan; result.Err != nil {
-		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
-			return nil, result.Err
-		}
-	} else {
-		channelMember := result.Data.(model.ChannelMember)
-		return &channelMember, nil
-	}
-
-	newMember := &model.ChannelMember{
-		ChannelId:   channel.Id,
-		UserId:      user.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
-	}
-	if result := <-app.Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
-		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
-		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
-	}
-
-	app.InvalidateCacheForUser(user.Id)
-	app.InvalidateCacheForChannel(channel.Id)
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
-	message.Add("user_id", user.Id)
-	message.Add("team_id", channel.TeamId)
-	go app.Publish(message)
-
-	return newMember, nil
 }
 
 func leave(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -946,7 +894,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			oUser := oresult.Data.(*model.User)
 
-			cm, err := AddUserToChannel(nUser, channel)
+			cm, err := app.AddUserToChannel(nUser, channel)
 			if err != nil {
 				c.Err = err
 				return

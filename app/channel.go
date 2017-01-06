@@ -8,6 +8,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -160,4 +161,56 @@ func CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *mod
 
 		return sc, nil
 	}
+}
+
+func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	if channel.DeleteAt > 0 {
+		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
+	}
+
+	if channel.Type != model.CHANNEL_OPEN && channel.Type != model.CHANNEL_PRIVATE {
+		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "")
+	}
+
+	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
+	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id)
+
+	if result := <-tmchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		teamMember := result.Data.(model.TeamMember)
+		if teamMember.DeleteAt > 0 {
+			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
+		}
+	}
+
+	if result := <-cmchan; result.Err != nil {
+		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
+			return nil, result.Err
+		}
+	} else {
+		channelMember := result.Data.(model.ChannelMember)
+		return &channelMember, nil
+	}
+
+	newMember := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		Roles:       model.ROLE_CHANNEL_USER.Id,
+	}
+	if result := <-Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
+		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
+		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
+	}
+
+	InvalidateCacheForUser(user.Id)
+	InvalidateCacheForChannel(channel.Id)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
+	message.Add("user_id", user.Id)
+	message.Add("team_id", channel.TeamId)
+	go Publish(message)
+
+	return newMember, nil
 }

@@ -200,7 +200,7 @@ func addUserToChannel(channel *model.Channel, user *model.User, userArg string) 
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, err := api.AddUserToChannel(user, channel); err != nil {
+	if _, err := app.AddUserToChannel(user, channel); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }

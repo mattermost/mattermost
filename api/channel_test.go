@@ -1068,7 +1068,7 @@ func TestJoinChannelByNameDisabledUser(t *testing.T) {
 
 	Client.Must(th.BasicClient.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser.Id))
 
-	if _, err := AddUserToChannel(th.BasicUser, channel1); err == nil {
+	if _, err := app.AddUserToChannel(th.BasicUser, channel1); err == nil {
 		t.Fatal("shoudn't be able to join channel")
 	} else {
 		if err.Id != "api.channel.add_user.to.channel.failed.deleted.app_error" {
@@ -1888,7 +1888,7 @@ func TestViewChannel(t *testing.T) {
 func TestGetChannelMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if _, err := AddUserToChannel(th.BasicUser2, th.BasicChannel); err != nil {
+	if _, err := app.AddUserToChannel(th.BasicUser2, th.BasicChannel); err != nil {
 		t.Fatal("Could not add second user to channel")
 	}
 

@@ -486,7 +486,7 @@ func cmdJoinChannel() {
 			channel = result.Data.(*model.Channel)
 		}
 
-		_, err := api.AddUserToChannel(user, channel)
+		_, err := app.AddUserToChannel(user, channel)
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)

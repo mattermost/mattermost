@@ -376,7 +376,7 @@ func addSlackUsersToChannel(members []string, users map[string]*model.User, chan
 		if user, ok := users[member]; !ok {
 			log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": "?"}))
 		} else {
-			if _, err := AddUserToChannel(user, channel); err != nil {
+			if _, err := app.AddUserToChannel(user, channel); err != nil {
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.failed_to_add_user", map[string]interface{}{"Username": user.Username}))
 			}
 		}
