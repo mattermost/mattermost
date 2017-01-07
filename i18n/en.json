@@ -2733,7 +2733,7 @@
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "Invalid permissions to delete outcoming webhook"
+    "translation": "Invalid permissions to delete outgoing webhook"
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
@@ -2761,7 +2761,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Invalid permissions to regenerate outcoming webhook token"
+    "translation": "Invalid permissions to regenerate outgoing webhook token"
   },
   {
     "id": "api.webrtc.disabled.app_error",
