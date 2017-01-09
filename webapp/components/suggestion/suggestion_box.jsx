@@ -64,7 +64,10 @@ export default class SuggestionBox extends React.Component {
             // Delay this slightly so that we don't clear the suggestions before we run click handlers on SuggestionList
             GlobalActions.emitClearSuggestions(this.suggestionId);
         }, 100);
-        this.props.onBlur();
+
+        if (this.props.onBlur) {
+            this.props.onBlur();
+        }
     }
 
     handleChange(e) {
