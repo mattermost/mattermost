@@ -57,7 +57,7 @@ export default class TeamButton extends React.Component {
                     placement={this.props.placement}
                     overlay={
                         <Tooltip id={`tooltip-${this.props.url}`}>
-                            {this.props.displayName}
+                            {this.props.tip}
                         </Tooltip>
                     }
                 >
