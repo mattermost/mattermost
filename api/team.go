@@ -48,7 +48,7 @@ func InitTeam() {
 
 	// These should be moved to the global admin console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
+	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequiredMfa(addUserToTeamFromInvite)).Methods("POST")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
