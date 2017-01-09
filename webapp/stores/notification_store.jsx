@@ -111,7 +111,7 @@ class NotificationStoreClass extends EventEmitter {
             // the window itself is not active
             const activeChannel = ChannelStore.getCurrent();
             const channelId = channel ? channel.id : null;
-            const notify = activeChannel.id !== channelId || !this.inFocus;
+            const notify = (activeChannel && activeChannel.id !== channelId) || !this.inFocus;
 
             if (notify) {
                 Utils.notifyMe(title, body, channel, teamId, duration, !sound);
