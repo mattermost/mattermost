@@ -20,6 +20,12 @@
         }
     }
 
+    .settings-modal {
+        .modal-body {
+            overflow: auto;
+        }
+    }
+
     #header-popover {
         @include single-transition(all, .35s, ease);
         @include translate3d(0, 100%, 0);
@@ -344,10 +350,6 @@
                 }
 
                 .post__img {
-                    .status-wrapper {
-                        display: inline-block;
-                    }
-
                     img {
                         display: block;
                     }
