@@ -124,6 +124,12 @@ export default class SearchResults extends React.Component {
         window.removeEventListener('resize', this.handleResize);
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.searchTerm !== prevState.searchTerm) {
+            this.resize();
+        }
+    }
+
     handleResize() {
         this.setState({
             windowWidth: Utils.windowWidth(),
