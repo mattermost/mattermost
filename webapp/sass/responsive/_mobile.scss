@@ -427,14 +427,8 @@
     }
 
     .search-help-popover {
-        left: 0 !important;
-        margin-left: 10px;
+        left: 55px;
         max-width: calc(100% - 80px);
-
-        .focused & {
-            left: 45px !important;
-            margin-top: 50px;
-        }
     }
 
     .modal-direct-channels,

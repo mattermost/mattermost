@@ -12,7 +12,6 @@
 
     .modal-body {
         max-height: calc(90vh - 62px);
-        overflow: auto;
         padding: 20px 15px;
     }
 
@@ -22,10 +21,6 @@
         .custom-textarea {
             max-height: 60vh;
             min-height: 8em;
-        }
-
-        .suggestion-list {
-            bottom: -149px;
         }
 
         .suggestion-list__content {

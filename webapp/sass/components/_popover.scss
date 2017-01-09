@@ -93,21 +93,20 @@
 }
 
 .search-help-popover {
+    @include single-transition(opacity, .3s, ease-in);
     font-size: em(13px);
-    max-width: 300px;
+    max-width: 350px;
+    top: 36px;
+    visibility: hidden;
     width: 100%;
-
-    &:not(.autocomplete) {
-        margin-top: 17px !important;
-    }
 
     &.autocomplete {
         display: block;
 
         .popover-content {
-            -webkit-overflow-scrolling: touch;
             padding: 10px;
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
     }
 
@@ -205,6 +204,11 @@
 
     .tooltip-inner {
         max-width: 100%;
+    }
+
+    &.visible {
+        @include opacity(1);
+        visibility: visible;
     }
 }
 
