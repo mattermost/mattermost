@@ -76,9 +76,10 @@ export default class CreatePost extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
-            showPostDeletedModal: false,
-            lastBlurAt: 0
+            showPostDeletedModal: false
         };
+
+        this.lastBlurAt = 0;
     }
 
     handlePostError(postError) {
@@ -154,7 +155,8 @@ export default class CreatePost extends React.Component {
         this.setState({message: '', submitting: false, postError: null, fileInfos: [], serverError: null});
 
         const fasterThanHumanWillClick = 150;
-        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
+
         this.focusTextbox(forceFocus);
     }
 
@@ -438,7 +440,7 @@ export default class CreatePost extends React.Component {
     }
 
     handleBlur() {
-        this.setState({lastBlurAt: Date.now()});
+        this.lastBlurAt = Date.now();
     }
 
     showPostDeletedModal() {

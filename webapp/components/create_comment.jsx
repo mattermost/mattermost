@@ -67,9 +67,10 @@ export default class CreateComment extends React.Component {
             fileInfos: draft.fileInfos,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            showPostDeletedModal: false,
-            lastBlurAt: 0
+            showPostDeletedModal: false
         };
+
+        this.lastBlurAt = 0;
     }
 
     componentDidMount() {
@@ -145,7 +146,7 @@ export default class CreateComment extends React.Component {
         });
 
         const fasterThanHumanWillClick = 150;
-        const forceFocus = (Date.now() - this.state.lastBlurAt < fasterThanHumanWillClick);
+        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
         this.focusTextbox(forceFocus);
     }
 
@@ -405,7 +406,7 @@ export default class CreateComment extends React.Component {
     }
 
     handleBlur() {
-        this.setState({lastBlurAt: Date.now()});
+        this.lastBlurAt = Date.now();
     }
 
     render() {
