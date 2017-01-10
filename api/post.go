@@ -787,23 +787,18 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		}
 
 		if hereNotification {
-			if result := <-Srv.Store.Status().GetOnline(); result.Err != nil {
-				l4g.Warn(utils.T("api.post.notification.here.warn"), result.Err)
-				return nil
-			} else {
-				statuses := result.Data.([]*model.Status)
-				for _, status := range statuses {
-					if status.UserId == post.UserId {
-						continue
-					}
+			statuses := GetAllStatuses()
+			for _, status := range statuses {
+				if status.UserId == post.UserId {
+					continue
+				}
 
-					_, profileFound := profileMap[status.UserId]
-					_, alreadyMentioned := mentionedUserIds[status.UserId]
+				_, profileFound := profileMap[status.UserId]
+				_, alreadyMentioned := mentionedUserIds[status.UserId]
 
-					if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
-						mentionedUsersList = append(mentionedUsersList, status.UserId)
-						updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
-					}
+				if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
+					mentionedUsersList = append(mentionedUsersList, status.UserId)
+					updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
 				}
 			}
 		}

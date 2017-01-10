@@ -44,3 +44,14 @@ func StatusFromJson(data io.Reader) *Status {
 		return nil
 	}
 }
+
+func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {
+	interfaceMap := map[string]interface{}{}
+	for _, s := range statusMap {
+		// Omitted statues mean offline
+		if s.Status != STATUS_OFFLINE {
+			interfaceMap[s.UserId] = s.Status
+		}
+	}
+	return interfaceMap
+}
