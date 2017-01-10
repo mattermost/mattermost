@@ -905,15 +905,18 @@ func sendNotificationEmail(c *Context, post *model.Post, user *model.User, chann
 			for i := range teams {
 				if teams[i].Id == team.Id {
 					found = true
+					team = teams[i]
 					break
 				}
 			}
 
-			if !found && len(teams) > 0 {
-				team = teams[0]
-			} else {
-				// in case the user hasn't joined any teams we send them to the select_team page
-				team = &model.Team{Name: "select_team", DisplayName: utils.Cfg.TeamSettings.SiteName}
+			if !found {
+				if len(teams) > 0 {
+					team = teams[0]
+				} else {
+					// in case the user hasn't joined any teams we send them to the select_team page
+					team = &model.Team{Name: "select_team", DisplayName: utils.Cfg.TeamSettings.SiteName}
+				}
 			}
 		}
 	}
