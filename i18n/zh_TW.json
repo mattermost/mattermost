@@ -1174,6 +1174,10 @@
     "translation": "正在初始化一般 API 路徑"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "附加檔案於文章時錯誤：postId=%v, fileIds=%v, message=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "儲存訊息時遇到錯誤。user=%v, message=%v"
   },
