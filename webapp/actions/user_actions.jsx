@@ -449,3 +449,18 @@ export function updateActive(userId, active, success, error) {
         }
     );
 }
+
+export function updatePassword(userId, currentPassword, newPassword, success, error) {
+    Client.updatePassword(userId, currentPassword, newPassword,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

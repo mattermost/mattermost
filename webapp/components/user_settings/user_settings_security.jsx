@@ -14,6 +14,8 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
+import {updatePassword} from 'actions/user_actions.jsx';
+
 import $ from 'jquery';
 import React from 'react';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
@@ -91,7 +93,7 @@ export default class SecurityTab extends React.Component {
             return;
         }
 
-        Client.updatePassword(
+        updatePassword(
             user.id,
             currentPassword,
             newPassword,
