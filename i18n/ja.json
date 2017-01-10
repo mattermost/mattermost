@@ -1174,6 +1174,10 @@
     "translation": "全般APIルートを初期化しています"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "投稿へのファイル添付エラー。 postId=%v, fileIds=%v, message=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "投稿の保存エラー user=%v, message=%v"
   },

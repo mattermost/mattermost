@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initialisatie van de admin-api-routes"
+    "translation": "Initialisatie van de admin API routes"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "U moet de api-service createDirectChallel gebruiken voor het creëren van een direct kanaal"
+    "translation": "U moet de 'createDirectChannel' API service gebruiken om een direct kanaal aan te maken"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -205,7 +205,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
+    "translation": "Kan niet meer dan {{.MaxChannelsPerTeam}} kanalen aanmaken voor het huidige team"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Initialisatie van de kanaal-api-routes"
+    "translation": "Initialisatie van de kanaal API routes"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Failed to post displayname update message %v"
+    "translation": "Fout bij het weergeven van het bericht over de bijgewerkte weergavenaam %v"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
+    "translation": "%s heeft de kanaalkoptekst veranderd van: %s naar: %s"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Initialisatie van de opdracht api routes"
+    "translation": "Initialisatie van de opdracht API routes"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -457,7 +457,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Cannot update commands across teams"
+    "translation": "Fout bij het bijwerken van commando's voor meerdere teams"
   },
   {
     "id": "api.command.update.app_error",
@@ -485,7 +485,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Image links now collapse by default"
+    "translation": "Afbeelding links klappen nu standaard in"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command_echo.message.app_error",
-    "translation": "A message must be provided with the /echo command."
+    "translation": "Een bericht moet worden opgegeven met het /echo commando."
   },
   {
     "id": "api.command_echo.name",
@@ -525,7 +525,7 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Image links now expand by default"
+    "translation": "Afbeelding links klappen nu standaard uit"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -593,7 +593,7 @@
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Er is een foute upgetreden tijdens het sturen van een bericht naar de gebruiker."
+    "translation": "Er is een fout opgetreden tijdens het sturen van een bericht naar de gebruiker."
   },
   {
     "id": "api.command_msg.hint",
@@ -641,11 +641,11 @@
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
+    "translation": "{{.ChannelNextCmd}}: Volgende kanaal uit je geschiedenis\n"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RIGHT"
+    "translation": "ALT+RECHTS"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
@@ -653,11 +653,11 @@
   },
   {
     "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+    "translation": "{{.ChannelPrevCmd}}: Vorige kanaal in je geschiedenis\n"
   },
   {
     "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
+    "translation": "ALT+LINKS"
   },
   {
     "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
@@ -701,7 +701,7 @@
   },
   {
     "id": "api.command_shortcuts.files.header",
-    "translation": "#### Files\n\n"
+    "translation": "#### Bestanden\n\n"
   },
   {
     "id": "api.command_shortcuts.files.upload",
@@ -729,7 +729,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Messages\n\n"
+    "translation": "#### Berichten\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs.mark_as_read",
@@ -753,19 +753,19 @@
   },
   {
     "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+    "translation": "ALT+OMLAAG: Volgende kanaal of direct bericht in linker zijbalk\n"
   },
   {
     "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+    "translation": "ALT+OMHOOG: Vorige kanaal of direct bericht in linker zijbalk\n"
   },
   {
     "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recente vermeldingen\n\n"
   },
   {
     "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account instellingen\n"
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
@@ -927,7 +927,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 64 KB groot zijn."
+    "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 1MB groot zijn."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
@@ -951,7 +951,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Initialiseer emoji api routes"
+    "translation": "Initialiseer emoji API routes"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Initialisatie bestand api routes"
+    "translation": "Initialisatie bestand API routes"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -1059,11 +1059,11 @@
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.info.app_error",
-    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, path=%v, err=%v"
+    "translation": "Niet mogelijk om bestand te vinden wanneer een bericht gemigreerd word met FileInfos, post_id=%v, filename=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.migrating_post.debug",
-    "translation": "Migrating post to use FileInfos, post_id=%v, err=%v"
+    "translation": "Migreren van bericht naar FileInfos, post_id=%v, err=%v"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.mismatched_filename.warn",
@@ -1174,6 +1174,10 @@
     "translation": "Initialisatie van algemene api routes"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "Error attaching files to post. postId=%v, fileIds=%v, message=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "Fout bij het opslaan van bericht. user=%v, bericht=%v"
   },
@@ -1231,7 +1235,7 @@
   },
   {
     "id": "api.license.init.debug",
-    "translation": "Initialisatie van licentie api routes"
+    "translation": "Initialisatie van licentie API routes"
   },
   {
     "id": "api.license.remove_license.remove.app_error",
@@ -1383,7 +1387,7 @@
   },
   {
     "id": "api.post.create_post.attach_files.error",
-    "translation": "Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v"
+    "translation": "Een fout trad op bij het bijvoegen van de bestanden bij bericht, post_id=%s, user_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.post.create_post.bad_filename.error",
@@ -1423,7 +1427,7 @@
   },
   {
     "id": "api.post.delete_post_files.app_error.warn",
-    "translation": "Encountered error when deleting files for post, post_id=%v, err=%v"
+    "translation": "Er gebeurde een fout bij het verwijderen van de bestanden van het bericht, post_id=%v, err=%v"
   },
   {
     "id": "api.post.disabled_all",
@@ -1446,7 +1450,7 @@
   },
   {
     "id": "api.post.get_message_for_notification.get_files.error",
-    "translation": "Encountered error when getting files for notification message, post_id=%v, err=%v"
+    "translation": "Een fout trad op bij het ophalen van de bestanden voor het notificatiebericht, post_id=%v, err=%v"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -1497,7 +1501,7 @@
   },
   {
     "id": "api.post.init.debug",
-    "translation": "Initialisatie van de berichten api"
+    "translation": "Initialisatie van de berichten API routes"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1533,7 +1537,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
-    "translation": "Failed to get files for post notification post_id=%v, err=%v"
+    "translation": "Bestanden voor de berichtmelding post_id=%v, err=%v konden niet worden opgehaald "
   },
   {
     "id": "api.post.send_notifications_and_forget.get_teams.error",
@@ -1629,7 +1633,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Initialisatie van de voorkeurs api"
+    "translation": "Initialisatie van de voorkeurs API routes"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1649,7 +1653,7 @@
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "Initialisatie van de admin-api-routes"
+    "translation": "Initialisatie van de reactie API routes"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
@@ -1685,11 +1689,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting."
+    "translation": "Kon de geheugenopslag limitatie niet laden. Controleer uw MemoryStoreSize configuratie instellingen. "
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Unable to initialize rate limiting."
+    "translation": "Kan de snelheidsregeling niet laden"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -1733,7 +1737,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack importeerder: Kon het kanaal niet inladen: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1741,7 +1745,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Encountered error attaching files to post, post_id=%s, file_ids=%v, err=%v"
+    "translation": "Een error trad op bij het attachen van de bestanden bij post, post_id=%s, file_ids=%v, err=%v"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -1749,11 +1753,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Importer: Not importing bot message as the bot-importing user does not exist."
+    "translation": "Slack Importeerder: Bot berichten worden niet ingeladen aangezien de bot-importerende gebruiker niet bestaat. "
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "File comment undefined"
+    "translation": "Bestandsomschrijving werd niet opgegeven"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",

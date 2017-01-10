@@ -1174,6 +1174,10 @@
     "translation": "Inicializando as rotas de API general"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "Error ao anexar arquivos para postar. postId=%v, fileIds=%v, message=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "Erro ao salvar o post. usuário=%v, mensagem=%v"
   },
