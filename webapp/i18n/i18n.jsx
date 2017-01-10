@@ -64,7 +64,7 @@ const languages = {
     },
     nl: {
         value: 'nl',
-        name: 'Nederlands (Beta)',
+        name: 'Nederlands (Alpha)',
         order: 4,
         url: nl
     },
