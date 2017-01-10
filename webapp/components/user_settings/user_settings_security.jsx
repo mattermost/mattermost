@@ -427,6 +427,34 @@ export default class SecurityTab extends React.Component {
                         </div>
                     </div>
                 );
+            } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.passwordGoogleCantUpdate'
+                                defaultMessage='Login occurs through Google Apps. Password cannot be updated.'
+                            />
+                        </div>
+                    </div>
+                );
+            } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+                inputs.push(
+                    <div
+                        key='oauthEmailInfo'
+                        className='form-group'
+                    >
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.passwordOffice365CantUpdate'
+                                defaultMessage='Login occurs through Office 365. Password cannot be updated.'
+                            />
+                        </div>
+                    </div>
+                );
             }
 
             updateSectionStatus = function resetSection(e) {
@@ -502,6 +530,20 @@ export default class SecurityTab extends React.Component {
                 <FormattedMessage
                     id='user.settings.security.loginSaml'
                     defaultMessage='Login done through SAML'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginGoogle'
+                    defaultMessage='Login done through Google Apps'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.OFFICE365_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginOffice365'
+                    defaultMessage='Login done through Office 365'
                 />
             );
         }
