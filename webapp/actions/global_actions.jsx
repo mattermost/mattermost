@@ -55,6 +55,10 @@ export function emitChannelClickEvent(channel) {
             trackPage();
         });
 
+        // Mark previous and next channel as read
+        ChannelStore.resetCounts(ChannelStore.getCurrentId());
+        ChannelStore.resetCounts(chan.id);
+
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
 
         AppDispatcher.handleViewAction({
