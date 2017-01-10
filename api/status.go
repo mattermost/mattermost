@@ -42,38 +42,31 @@ func InitStatus() {
 }
 
 func getStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
-	statusMap, err := GetAllStatuses()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
+	statusMap := model.StatusMapToInterfaceMap(GetAllStatuses())
 	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
 }
 
 func getStatusesWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	statusMap, err := GetAllStatuses()
-	if err != nil {
-		return nil, err
-	}
-
-	return statusMap, nil
+	statusMap := GetAllStatuses()
+	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
-// Only returns 300 statuses max
-func GetAllStatuses() (map[string]interface{}, *model.AppError) {
-	if result := <-Srv.Store.Status().GetOnlineAway(); result.Err != nil {
-		return nil, result.Err
-	} else {
-		statuses := result.Data.([]*model.Status)
+func GetAllStatuses() map[string]*model.Status {
+	userIds := statusCache.Keys()
+	statusMap := map[string]*model.Status{}
 
-		statusMap := map[string]interface{}{}
-		for _, s := range statuses {
-			statusMap[s.UserId] = s.Status
+	for _, userId := range userIds {
+		if id, ok := userId.(string); !ok {
+			continue
+		} else {
+			status := GetStatusFromCache(id)
+			if status != nil {
+				statusMap[id] = status
+			}
 		}
-
-		return statusMap, nil
 	}
+
+	return statusMap
 }
 
 func getStatusesByIdsHttp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -268,12 +261,21 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 	go Publish(event)
 }
 
-func GetStatus(userId string) (*model.Status, *model.AppError) {
+func GetStatusFromCache(userId string) *model.Status {
 	if result, ok := statusCache.Get(userId); ok {
 		status := result.(*model.Status)
 		statusCopy := &model.Status{}
 		*statusCopy = *status
-		return statusCopy, nil
+		return statusCopy
+	}
+
+	return nil
+}
+
+func GetStatus(userId string) (*model.Status, *model.AppError) {
+	status := GetStatusFromCache(userId)
+	if status != nil {
+		return status, nil
 	}
 
 	if result := <-Srv.Store.Status().Get(userId); result.Err != nil {
