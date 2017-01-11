@@ -659,6 +659,8 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) StoreChannel 
 			result.Data = member
 		}
 
+		s.InvalidateAllChannelMembersForUser(member.UserId)
+
 		storeChannel <- result
 		close(storeChannel)
 	}()
