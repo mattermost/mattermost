@@ -289,7 +289,8 @@ endif
 
 	@# Make osx package
 	@# Copy binary
-	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin
+	@# cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
@@ -305,7 +306,8 @@ endif
 
 	@# Make linux package
 	@# Copy binary
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
+	@# cp $(GOPATH)/bin/platform $(DIST_PATH)/bin
+	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
 	@# Don't cleanup linux package so dev machines will have an unziped linux package avalilable
