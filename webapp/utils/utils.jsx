@@ -533,14 +533,12 @@ export function applyTheme(theme) {
         changeCss('.app__body .status .online--icon', 'fill:' + theme.onlineIndicator);
         changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator);
         changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator);
-        changeCss('.status-wrapper.status-online:after', 'background:' + theme.onlineIndicator);
     }
 
     if (theme.awayIndicator) {
         changeCss('.app__body .status .away--icon', 'fill:' + theme.awayIndicator);
         changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator);
         changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator);
-        changeCss('.status-wrapper.status-away:after', 'background:' + theme.awayIndicator);
     }
 
     if (theme.mentionBj) {

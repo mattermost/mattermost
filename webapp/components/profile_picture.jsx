@@ -4,6 +4,7 @@ import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
+import StatusIcon from './status_icon.jsx';
 import {OverlayTrigger} from 'react-bootstrap';
 
 export default class ProfilePicture extends React.Component {
@@ -45,10 +46,6 @@ export default class ProfilePicture extends React.Component {
     }
 
     render() {
-        let statusClass = '';
-        if (this.props.status) {
-            statusClass = 'status-' + this.props.status;
-        }
         if (this.props.user) {
             return (
                 <OverlayTrigger
@@ -66,25 +63,27 @@ export default class ProfilePicture extends React.Component {
                         />
                 }
                 >
-                    <span className={`status-wrapper ${statusClass}`}>
+                    <span className='status-wrapper'>
                         <img
                             className='more-modal__image'
                             width={this.props.width}
                             height={this.props.width}
                             src={this.props.src}
                         />
+                        <StatusIcon status={this.props.status}/>
                     </span>
                 </OverlayTrigger>
             );
         }
         return (
-            <span className={`status-wrapper ${statusClass}`}>
+            <span className='status-wrapper'>
                 <img
                     className='more-modal__image'
                     width={this.props.width}
                     height={this.props.width}
                     src={this.props.src}
                 />
+                <StatusIcon status={this.props.status}/>
             </span>
         );
     }
