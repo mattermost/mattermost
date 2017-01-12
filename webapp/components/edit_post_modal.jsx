@@ -9,7 +9,7 @@ import MessageHistoryStore from 'stores/message_history_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {loadPosts, updatePost} from 'actions/post_actions.jsx';
+import {updatePost} from 'actions/post_actions.jsx';
 
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -92,7 +92,6 @@ export default class EditPostModal extends React.Component {
         updatePost(
             updatedPost,
             () => {
-                loadPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
             });
 
