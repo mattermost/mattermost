@@ -363,6 +363,15 @@ export function createPost(post, doLoadPost, success, error) {
     );
 }
 
+export function updatePost(post, success) {
+    Client.updatePost(
+        post,
+        success,
+        (err) => {
+            AsyncClient.dispatchError(err, 'updatePost');
+        });
+}
+
 export function removePostFromStore(post) {
     PostStore.removePost(post);
     PostStore.emitChange();
