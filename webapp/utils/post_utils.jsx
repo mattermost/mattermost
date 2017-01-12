@@ -15,6 +15,10 @@ export function isComment(post) {
     return false;
 }
 
+export function isEdited(post) {
+    return post.edit_at > 0;
+}
+
 export function getProfilePicSrcForPost(post, timestamp) {
     let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {

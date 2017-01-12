@@ -2,14 +2,16 @@
 // See License.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 
 export default class PostMessageView extends React.Component {
     static propTypes = {
         options: React.PropTypes.object.isRequired,
-        message: React.PropTypes.string.isRequired,
+        post: React.PropTypes.object.isRequired,
         emojis: React.PropTypes.object.isRequired,
         enableFormatting: React.PropTypes.bool.isRequired,
         mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
@@ -23,7 +25,7 @@ export default class PostMessageView extends React.Component {
             return true;
         }
 
-        if (nextProps.message !== this.props.message) {
+        if (nextProps.post.message !== this.props.post.message) {
             return true;
         }
 
@@ -47,9 +49,28 @@ export default class PostMessageView extends React.Component {
         return false;
     }
 
+    editedIndicator() {
+        return (
+            PostUtils.isEdited(this.props.post) ?
+                <span className='edited'>
+                    <FormattedMessage
+                        id='post_message_view.edited'
+                        defaultMessage='(edited)'
+                    />
+                </span> :
+                ''
+        );
+    }
+
     render() {
         if (!this.props.enableFormatting) {
-            return <span>{this.props.message}</span>;
+            return (
+                <span>
+                    {this.props.post.message}
+                    &nbsp;
+                    {this.editedIndicator()}
+                </span>
+            );
         }
 
         const options = Object.assign({}, this.props.options, {
@@ -62,10 +83,13 @@ export default class PostMessageView extends React.Component {
         });
 
         return (
-            <span
-                onClick={Utils.handleFormattedTextClick}
-                dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.message, options)}}
-            />
+            <div>
+                <span
+                    onClick={Utils.handleFormattedTextClick}
+                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
+                />
+                {this.editedIndicator()}
+            </div>
         );
     }
 }

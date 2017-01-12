@@ -285,7 +285,7 @@ export default class SearchResultsItem extends React.Component {
                                 </li>
                                 {rhsControls}
                             </ul>
-                            <div className='search-item-snippet'>
+                            <div className='search-item-snippet post__body'>
                                 {message}
                             </div>
                         </div>

@@ -560,9 +560,9 @@
         }
 
         blockquote {
-            display: inline-block;
             font-size: 1em;
             margin-left: 0;
+            margin-top: 1.3em;
             padding: 3px 0 0 25px;
             vertical-align: top;
 
@@ -570,6 +570,11 @@
                 font-size: 15px;
                 left: 4px;
                 top: 2px;
+            }
+        }
+        .search-item-snippet {
+            blockquote {
+                margin-top: 0;
             }
         }
 
@@ -598,7 +603,15 @@
             }
 
             p + p {
-                margin-top: 1em;
+                margin: 1em 0;
+                &:last-of-type {
+                    margin-bottom: 0;
+                }
+            }
+            span {
+                > p:first-child {
+                    margin-bottom: 1em;
+                }
             }
 
             ol,
@@ -978,12 +991,24 @@
         width: 100%;
         word-wrap: break-word;
 
-        p {
+        div {
             margin: 0 0 .4em;
         }
 
         p + p {
-            margin-top: 1.4em;
+            margin: 1.4em 0;
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+
+        span {
+            > p:last-child {
+                display: inline;
+            }
+            > p:first-child {
+                margin-bottom: 1.4em;
+            }
         }
 
         li {
@@ -1062,6 +1087,12 @@
             a {
                 color: $white;
             }
+        }
+
+        span.edited {
+            color: #A3A3A3;
+            font-size: 0.87em;
+            opacity: 0.6;
         }
     }
 
