@@ -7,9 +7,6 @@ import React from 'react';
 import {Link} from 'react-router/es6';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {isMobile} from 'utils/utils.jsx';
-import {isMobileApp} from 'utils/user_agent.jsx';
-
 export default class TeamButton extends React.Component {
     constructor(props) {
         super(props);
@@ -50,7 +47,14 @@ export default class TeamButton extends React.Component {
                 </div>
             );
         }
-        if (!isMobile() && !isMobileApp()) {
+        if (this.props.isMobile) {
+            btn = (
+                <div className={'team-btn ' + btnClass}>
+                    {badge}
+                    {content}
+                </div>
+            );
+        } else {
             btn = (
                 <OverlayTrigger
                     delayShow={Constants.OVERLAY_TIME_DELAY}
@@ -66,13 +70,6 @@ export default class TeamButton extends React.Component {
                         {content}
                     </div>
                 </OverlayTrigger>
-            );
-        } else {
-            btn = (
-                <div className={'team-btn ' + btnClass}>
-                    {badge}
-                    {content}
-                </div>
             );
         }
 
@@ -110,6 +107,7 @@ TeamButton.propTypes = {
     tip: React.PropTypes.node.isRequired,
     active: React.PropTypes.bool,
     disabled: React.PropTypes.bool,
+    isMobile: React.PropTypes.bool,
     unread: React.PropTypes.bool,
     mentions: React.PropTypes.number,
     placement: React.PropTypes.oneOf(['left', 'right', 'top', 'bottom'])

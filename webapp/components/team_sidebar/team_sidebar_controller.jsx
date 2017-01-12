@@ -34,7 +34,8 @@ export default class TeamSidebar extends React.Component {
             teamListings: TeamStore.getTeamListings(),
             teamMembers,
             currentTeamId,
-            show: teamMembers && teamMembers.length > 1
+            show: teamMembers && teamMembers.length > 1,
+            isMobile: Utils.isMobile()
         };
     }
 
@@ -53,12 +54,16 @@ export default class TeamSidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        $('.team-wrapper').perfectScrollbar();
+        if (!this.state.isMobile) {
+            $('.team-wrapper').perfectScrollbar();
+        }
 
         // reset the scrollbar upon switching teams
         if (this.state.currentTeam !== prevState.currentTeam) {
             this.refs.container.scrollTop = 0;
-            $('.team-wrapper').perfectScrollbar('update');
+            if (!this.state.isMobile) {
+                $('.team-wrapper').perfectScrollbar('update');
+            }
         }
     }
 
@@ -121,6 +126,7 @@ export default class TeamSidebar extends React.Component {
                     url={`/${team.name}`}
                     tip={team.display_name}
                     active={team.id === this.state.currentTeamId}
+                    isMobile={this.state.isMobile}
                     displayName={team.display_name}
                     unread={team.unread}
                     mentions={team.mentions}
@@ -134,6 +140,7 @@ export default class TeamSidebar extends React.Component {
                     btnClass='team-btn__add'
                     key='more_teams'
                     url='/select_team'
+                    isMobile={this.state.isMobile}
                     tip={
                         <FormattedMessage
                             id='team_sidebar.join'
@@ -149,6 +156,7 @@ export default class TeamSidebar extends React.Component {
                     btnClass='team-btn__add'
                     key='more_teams'
                     url='/create_team'
+                    isMobile={this.state.isMobile}
                     tip={
                         <FormattedMessage
                             id='navbar_dropdown.create'
