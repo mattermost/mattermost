@@ -67,7 +67,7 @@ export default class Setup extends React.Component {
         }
 
         let mfaRequired;
-        if (global.window.mm_config.EnforceMultifactorAuthentication) {
+        if (global.window.mm_config.EnforceMultifactorAuthentication === 'true') {
             mfaRequired = (
                 <p>
                     <FormattedHTMLMessage
