@@ -636,6 +636,10 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		bname = "unknown"
 	}
 
+	if strings.Contains(r.UserAgent(), "Mattermost") {
+		bname = "Desktop App"
+	}
+
 	if bversion == "" {
 		bversion = "0.0"
 	}

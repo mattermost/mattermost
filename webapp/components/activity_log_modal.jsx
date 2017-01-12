@@ -134,6 +134,17 @@ export default class ActivityLogModal extends React.Component {
                 } else {
                     devicePicture = 'fa fa-linux';
                 }
+            } else if (currentSession.props.os.indexOf('Linux') !== -1) {
+                devicePicture = 'fa fa-linux';
+            }
+
+            if (currentSession.props.browser.indexOf('Desktop App') !== -1) {
+                devicePlatform = (
+                    <FormattedMessage
+                        id='activity_log_modal.desktop'
+                        defaultMessage='Native Desktop App'
+                    />
+                );
             }
 
             let moreInfo;
