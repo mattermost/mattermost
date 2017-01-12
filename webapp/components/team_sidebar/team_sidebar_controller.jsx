@@ -8,7 +8,6 @@ import UserStore from 'stores/user_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {isMobileApp} from 'utils/user_agent.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -36,7 +35,7 @@ export default class TeamSidebar extends React.Component {
             teamMembers,
             currentTeamId,
             show: teamMembers && teamMembers.length > 1,
-            isMobile: (Utils.isMobile() || !isMobileApp())
+            isMobile: Utils.isMobile()
         };
     }
 
