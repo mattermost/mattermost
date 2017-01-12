@@ -174,6 +174,8 @@ func CreatePost(c *Context, post *model.Post, triggerWebhooks bool) (*model.Post
 	return rpost, nil
 }
 
+var linkWithTextRegex *regexp.Regexp = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+
 func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
 	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
@@ -192,10 +194,12 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 		}
 	}
 
+	post.Message = parseSlackLinksToMarkdown(post.Message)
+
 	if len(props) > 0 {
 		for key, val := range props {
 			if key == "attachments" {
-				createSlackPost(post, val)
+				parseSlackAttachment(post, val)
 			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)
 			}
@@ -210,12 +214,12 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 }
 
 func CreateCommandPost(c *Context, post *model.Post, response *model.CommandResponse) {
-	post.Message = response.Text
+	post.Message = parseSlackLinksToMarkdown(response.Text)
 	post.UserId = c.Session.UserId
 	post.CreateAt = model.GetMillis()
 
 	if response.Attachments != nil {
-		createSlackPost(post, response.Attachments)
+		parseSlackAttachment(post, response.Attachments)
 	}
 
 	switch response.ResponseType {
@@ -235,12 +239,8 @@ func CreateCommandPost(c *Context, post *model.Post, response *model.CommandResp
 
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
-func createSlackPost(post *model.Post, attachments interface{}) {
+func parseSlackAttachment(post *model.Post, attachments interface{}) {
 	post.Type = model.POST_SLACK_ATTACHMENT
-
-	// parse links into Markdown format
-	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
-	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
 
 	if list, success := attachments.([]interface{}); success {
 		for i, aInt := range list {
@@ -273,6 +273,10 @@ func createSlackPost(post *model.Post, attachments interface{}) {
 		}
 		post.AddProp("attachments", list)
 	}
+}
+
+func parseSlackLinksToMarkdown(text string) string {
+	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
 func handlePostEvents(c *Context, post *model.Post, triggerWebhooks bool) {
