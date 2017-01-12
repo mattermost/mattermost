@@ -8,6 +8,7 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
+import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
 import {getDirectChannelName} from 'utils/utils.jsx';
@@ -180,7 +181,7 @@ export function loadChannelMembersForProfilesMap(profiles, channelId = ChannelSt
         return;
     }
 
-    loadChannelMembersForProfiles(list, channelId, success, error);
+    getChannelMembersForUserIds(channelId, list, success, error);
 }
 
 export function loadTeamMembersAndChannelMembersForProfilesList(profiles, teamId = TeamStore.getCurrentId(), channelId = ChannelStore.getCurrentId(), success, error) {
@@ -207,37 +208,7 @@ export function loadChannelMembersForProfilesList(profiles, channelId = ChannelS
         return;
     }
 
-    loadChannelMembersForProfiles(list, channelId, success, error);
-}
-
-function loadChannelMembersForProfiles(userIds, channelId, success, error) {
-    Client.getChannelMembersByIds(
-        channelId,
-        userIds,
-        (data) => {
-            const memberMap = {};
-            for (let i = 0; i < data.length; i++) {
-                memberMap[data[i].user_id] = data[i];
-            }
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL,
-                channel_id: channelId,
-                channel_members: memberMap
-            });
-
-            if (success) {
-                success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getChannelMembersByIds');
-
-            if (error) {
-                error(err);
-            }
-        }
-    );
+    getChannelMembersForUserIds(channelId, list, success, error);
 }
 
 function populateDMChannelsWithProfiles(userIds) {
