@@ -368,7 +368,7 @@ export function updatePost(post, success) {
         post,
         () => {
             loadPosts(post.channel_id);
-            
+
             if (success) {
                 success();
             }
