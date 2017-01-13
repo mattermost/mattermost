@@ -6,16 +6,25 @@
     position: relative;
 
     .status {
-        bottom: -3px;
+        border-radius: 100px;
+        bottom: -4px;
+        height: 15px;
         line-height: 0;
         margin: 0;
         position: absolute;
         right: -3px;
         top: auto;
+        width: 15px;
+
+        .modal & {
+            bottom: -6px;
+        }
 
 
         svg {
             max-height: 11px;
+            position: relative;
+            top: 2px;
         }
     }
 }
