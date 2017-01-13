@@ -366,7 +366,13 @@ export function createPost(post, doLoadPost, success, error) {
 export function updatePost(post, success) {
     Client.updatePost(
         post,
-        success,
+        () => {
+            loadPosts(post.channel_id);
+            
+            if (success) {
+                success();
+            }
+        },
         (err) => {
             AsyncClient.dispatchError(err, 'updatePost');
         });
