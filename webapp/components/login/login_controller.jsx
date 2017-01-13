@@ -394,7 +394,7 @@ export default class LoginController extends React.Component {
                                     <span className='fa fa-refresh icon--rotate'/>
                                     <FormattedMessage
                                         id='login.signInLoading'
-                                        defaultMessage='Sign in...'
+                                        defaultMessage='Signing in...'
                                     />
                                 </span> : <FormattedMessage
                                     id='login.signIn'
