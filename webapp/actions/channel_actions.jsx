@@ -48,7 +48,14 @@ export function executeCommand(message, args, success, error) {
             msg = '/shortcuts';
         }
     }
-    Client.executeCommand(msg, args, success, error);
+    Client.executeCommand(msg, args, success,
+        (err) => {
+            AsyncClient.dispatchError(err, 'executeCommand');
+
+            if (error) {
+                error(err);
+            }
+        });
 }
 
 export function setChannelAsRead(channelIdParam) {
