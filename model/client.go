@@ -2334,3 +2334,26 @@ func (c *Client) ListReactions(channelId string, postId string) ([]*Reaction, *A
 		return ReactionsFromJson(r.Body), nil
 	}
 }
+
+// Updates the user's roles in the channel by replacing them with the roles provided.
+func (c *Client) UpdateChannelRoles(channelId string, userId string, roles string) (map[string]string, *ResponseMetadata) {
+	data := make(map[string]string)
+	data["new_roles"] = roles
+	data["user_id"] = userId
+
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_member_roles", MapToJson(data)); err != nil {
+		metadata := ResponseMetadata{Error: err}
+		if r != nil {
+			metadata.StatusCode = r.StatusCode
+		}
+		return nil, &metadata
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body),
+			&ResponseMetadata{
+				StatusCode: r.StatusCode,
+				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
+				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
+			}
+	}
+}

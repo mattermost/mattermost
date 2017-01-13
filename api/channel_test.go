@@ -1920,3 +1920,76 @@ func TestGetChannelMembersByIds(t *testing.T) {
 		t.Fatal("should have errored - empty user ids")
 	}
 }
+
+func TestUpdateChannelRoles(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+	th.SystemAdminClient.SetTeamId(th.BasicTeam.Id)
+	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+
+	const CHANNEL_ADMIN = "channel_admin channel_user"
+	const CHANNEL_MEMBER = "channel_user"
+
+	// User 1 creates a channel, making them channel admin by default.
+	createChannel := model.Channel{
+		DisplayName: "Test API Name",
+		Name:        "a" + model.NewId() + "a",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	}
+
+	rchannel, err := th.BasicClient.CreateChannel(&createChannel)
+	if err != nil {
+		t.Fatal("Failed to create channel:", err)
+	}
+	channel := rchannel.Data.(*model.Channel)
+
+	// User 1 adds User 2 to the channel, making them a channel member by default.
+	if _, err := th.BasicClient.AddChannelMember(channel.Id, th.BasicUser2.Id); err != nil {
+		t.Fatal("Failed to add user 2 to the channel:", err)
+	}
+
+	// System Admin can demote User 1 (channel admin).
+	if data, meta := th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER); data == nil {
+		t.Fatal("System Admin failed to demote channel admin to channel member:", meta)
+	}
+
+	// User 1 (channel_member) cannot promote user 2 (channel_member).
+	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN); data != nil {
+		t.Fatal("Channel member should not be able to promote another channel member to channel admin:", meta)
+	}
+
+	// System Admin can promote user 1 (channel member).
+	if data, meta := th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN); data == nil {
+		t.Fatal("System Admin failed to promote channel member to channel admin:", meta)
+	}
+
+	// User 1 (channel_admin) can promote User 2 (channel member).
+	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN); data == nil {
+		t.Fatal("Channel admin failed to promote channel member to channel admin:", meta)
+	}
+
+	// User 1 (channel admin) can demote User 2 (channel admin).
+	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_MEMBER); data == nil {
+		t.Fatal("Channel admin failed to demote channel admin to channel member:", meta)
+	}
+
+	// User 1 (channel admin) can demote itself.
+	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER); data == nil {
+		t.Fatal("Channel admin failed to demote itself to channel member:", meta)
+	}
+
+	// Promote User2 again for next test.
+	if data, meta := th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN); data == nil {
+		t.Fatal("System Admin failed to promote channel member to channel admin:", meta)
+	}
+
+	// User 1 (channel member) cannot demote user 2 (channel admin).
+	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_MEMBER); data != nil {
+		t.Fatal("Channel member should not be able to demote another channel admin to channel member:", meta)
+	}
+
+	// User 1 (channel member) cannot promote itself.
+	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN); data != nil {
+		t.Fatal("Channel member should not be able to promote itself to channel admin:", meta)
+	}
+}

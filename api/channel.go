@@ -45,6 +45,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/add", ApiUserRequired(addMember)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/update_member_roles", ApiUserRequired(updateChannelMemberRoles)).Methods("POST")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1319,4 +1320,50 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		w.Write([]byte(members.ToJson()))
 		return
 	}
+}
+
+func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+
+	props := model.MapFromJson(r.Body)
+
+	userId := props["user_id"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("updateChannelMemberRoles", "user_id")
+		return
+	}
+
+	mchan := Srv.Store.Channel().GetMember(channelId, userId)
+
+	newRoles := props["new_roles"]
+	if !(model.IsValidUserRoles(newRoles)) {
+		c.SetInvalidParam("updateChannelMemberRoles", "new_roles")
+		return
+	}
+
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_MANAGE_CHANNEL_ROLES) {
+		return
+	}
+
+	var member model.ChannelMember
+	if result := <-mchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		member = result.Data.(model.ChannelMember)
+	}
+
+	member.Roles = newRoles
+
+	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
+		c.Err = result.Err
+		return
+	}
+
+	InvalidateCacheForUser(userId)
+
+	rdata := map[string]string{}
+	rdata["status"] = "ok"
+	w.Write([]byte(model.MapToJson(rdata)))
 }

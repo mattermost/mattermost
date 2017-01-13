@@ -27,6 +27,7 @@ var PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS *Permission
 var PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE *Permission
 var PERMISSION_MANAGE_ROLES *Permission
+var PERMISSION_MANAGE_CHANNEL_ROLES *Permission
 var PERMISSION_CREATE_DIRECT_CHANNEL *Permission
 var PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES *Permission
@@ -122,6 +123,11 @@ func InitalizePermissions() {
 		"manage_roles",
 		"authentication.permissions.manage_roles.name",
 		"authentication.permissions.manage_roles.description",
+	}
+	PERMISSION_MANAGE_CHANNEL_ROLES = &Permission{
+		"manage_channel_roles",
+		"authentication.permissions.manage_channel_roles.name",
+		"authentication.permissions.manage_channel_roles.description",
 	}
 	PERMISSION_MANAGE_SYSTEM = &Permission{
 		"manage_system",
@@ -264,7 +270,9 @@ func InitalizeRoles() {
 		"channel_admin",
 		"authentication.roles.channel_admin.name",
 		"authentication.roles.channel_admin.description",
-		[]string{},
+		[]string{
+			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+		},
 	}
 	BuiltInRoles[ROLE_CHANNEL_ADMIN.Id] = ROLE_CHANNEL_ADMIN
 	ROLE_CHANNEL_GUEST = &Role{
@@ -296,6 +304,7 @@ func InitalizeRoles() {
 			PERMISSION_MANAGE_TEAM.Id,
 			PERMISSION_IMPORT_TEAM.Id,
 			PERMISSION_MANAGE_ROLES.Id,
+			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 			PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
 			PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
