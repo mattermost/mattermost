@@ -272,7 +272,7 @@ export default class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
-                                        placeholder={Utils.localizeMessage('channel_modal.purpose', 'Purpose')}
+                                        placeholder={Utils.localizeMessage('channel_modal.purposeEx', 'E.g.: "A channel to file bugs and improvements"')}
                                         maxLength='250'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
@@ -309,7 +309,7 @@ export default class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_header'
                                         rows='4'
-                                        placeholder={Utils.localizeMessage('channel_modal.header', 'Header')}
+                                        placeholder={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
                                         maxLength='128'
                                         value={this.props.channelData.header}
                                         onChange={this.handleChange}
