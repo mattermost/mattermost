@@ -322,10 +322,14 @@ class FileUpload extends React.Component {
             accept = 'image/*';
         }
 
+        const channelId = this.props.channelId || ChannelStore.getCurrentId();
+
+        const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
+
         return (
             <span
                 ref='input'
-                className='btn btn-file'
+                className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
                 <span
                     className='icon'

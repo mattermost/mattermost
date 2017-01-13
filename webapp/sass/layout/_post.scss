@@ -437,6 +437,15 @@
                 @include opacity(.9);
                 box-shadow: none;
             }
+
+            &.btn-file__disabled {
+                @include opacity(.1);
+                
+                &:hover,
+                &:active {
+                    @include opacity(.1);
+                }
+            }
         }
 
         textarea {
