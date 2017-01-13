@@ -297,6 +297,9 @@ export default class CreatePost extends React.Component {
         const fileInfos = Object.assign([], this.state.fileInfos);
         const uploadsInProgress = this.state.uploadsInProgress;
 
+        // Clear previous errors
+        this.handleUploadError(null);
+
         // id can either be the id of an uploaded file or the client id of an in progress upload
         let index = fileInfos.findIndex((info) => info.id === id);
         if (index === -1) {
