@@ -8,7 +8,7 @@ import marked from 'marked';
 import katex from 'katex';
 
 function markdownImageLoaded(image) {
-    if (image.hasAttribute('height')) {
+    if (image.hasAttribute('height') && image.attributes.height.value !== 'auto') {
         image.style.height = image.attributes.height.value + 'px';
     } else {
         image.style.height = 'auto';
