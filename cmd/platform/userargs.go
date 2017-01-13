@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -18,18 +18,18 @@ func getUsersFromUserArgs(userArgs []string) []*model.User {
 
 func getUserFromUserArg(userArg string) *model.User {
 	var user *model.User
-	if result := <-api.Srv.Store.User().GetByEmail(userArg); result.Err == nil {
+	if result := <-app.Srv.Store.User().GetByEmail(userArg); result.Err == nil {
 		user = result.Data.(*model.User)
 	}
 
 	if user == nil {
-		if result := <-api.Srv.Store.User().GetByUsername(userArg); result.Err == nil {
+		if result := <-app.Srv.Store.User().GetByUsername(userArg); result.Err == nil {
 			user = result.Data.(*model.User)
 		}
 	}
 
 	if user == nil {
-		if result := <-api.Srv.Store.User().Get(userArg); result.Err == nil {
+		if result := <-app.Srv.Store.User().Get(userArg); result.Err == nil {
 			user = result.Data.(*model.User)
 		}
 	}

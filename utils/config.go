@@ -32,6 +32,15 @@ var CfgHash = ""
 var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
+var siteURL = ""
+
+func GetSiteURL() string {
+	return siteURL
+}
+
+func SetSiteURL(url string) {
+	siteURL = url
+}
 
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("./config/" + fileName); err == nil {
@@ -215,6 +224,7 @@ func LoadConfig(fileName string) {
 	}
 
 	SetDefaultRolesBasedOnConfig()
+	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 }
 
 func RegenerateClientConfig() {

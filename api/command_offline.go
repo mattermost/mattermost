@@ -4,6 +4,7 @@
 package api
 
 import (
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -36,7 +37,7 @@ func (me *OfflineProvider) DoCommand(c *Context, args *model.CommandArgs, messag
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
 	}
-	SetStatusOffline(c.Session.UserId, true)
+	app.SetStatusOffline(c.Session.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
 }

@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/spf13/cobra"
@@ -26,5 +26,5 @@ func printVersion() {
 	CommandPrintln("Build Date: " + model.BuildDate)
 	CommandPrintln("Build Hash: " + model.BuildHash)
 	CommandPrintln("Build Enterprise Ready: " + model.BuildEnterpriseReady)
-	CommandPrintln("DB Version: " + api.Srv.Store.(*store.SqlStore).SchemaVersion)
+	CommandPrintln("DB Version: " + app.Srv.Store.(*store.SqlStore).SchemaVersion)
 }

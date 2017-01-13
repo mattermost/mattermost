@@ -18,6 +18,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -46,7 +47,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Emoji().GetAll(); result.Err != nil {
+	if result := <-app.Srv.Store.Emoji().GetAll(); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -114,7 +115,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
+	if result := <-app.Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
 		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
@@ -128,7 +129,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Emoji().Save(emoji); result.Err != nil {
+	if result := <-app.Srv.Store.Emoji().Save(emoji); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -210,7 +211,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var emoji *model.Emoji
-	if result := <-Srv.Store.Emoji().Get(id); result.Err != nil {
+	if result := <-app.Srv.Store.Emoji().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -223,7 +224,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := (<-Srv.Store.Emoji().Delete(id, model.GetMillis())).Err; err != nil {
+	if err := (<-app.Srv.Store.Emoji().Delete(id, model.GetMillis())).Err; err != nil {
 		c.Err = err
 		return
 	}
@@ -241,7 +242,7 @@ func deleteEmojiImage(id string) {
 }
 
 func deleteReactionsForEmoji(emojiName string) {
-	if result := <-Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
+	if result := <-app.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
 		l4g.Warn(utils.T("api.emoji.delete.delete_reactions.app_error"), emojiName)
 		l4g.Warn(result.Err)
 	}
@@ -268,7 +269,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Emoji().Get(id); result.Err != nil {
+	if result := <-app.Srv.Store.Emoji().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"fmt"
@@ -156,7 +156,7 @@ func InvalidateWebConnSessionCacheForUser(userId string) {
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
-	if webConn.isAuthenticated() {
+	if webConn.IsAuthenticated() {
 		webConn.SendHello()
 	}
 }

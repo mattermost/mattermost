@@ -4,16 +4,18 @@
 package manualtesting
 
 import (
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/api"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type TestEnvironment struct {
@@ -27,7 +29,7 @@ type TestEnvironment struct {
 }
 
 func InitManualTesting() {
-	api.Srv.Router.Handle("/manualtest", api.AppHandler(manualTest)).Methods("GET")
+	app.Srv.Router.Handle("/manualtest", api.AppHandler(manualTest)).Methods("GET")
 }
 
 func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -70,7 +72,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		if result := <-api.Srv.Store.Team().Save(team); result.Err != nil {
+		if result := <-app.Srv.Store.Team().Save(team); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -78,7 +80,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			createdTeam := result.Data.(*model.Team)
 
 			channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
-			if _, err := api.CreateChannel(c, channel, false); err != nil {
+			if _, err := app.CreateChannel(channel, false); err != nil {
 				c.Err = err
 				return
 			}
@@ -98,8 +100,8 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		<-api.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
-		<-api.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: result.Data.(*model.User).Id})
+		<-app.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+		<-app.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: result.Data.(*model.User).Id})
 
 		newuser := result.Data.(*model.User)
 		userID = newuser.Id
@@ -153,7 +155,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelID(channelname string, teamid string, userid string) (id string, err bool) {
 	// Grab all the channels
-	result := <-api.Srv.Store.Channel().GetChannels(teamid, userid)
+	result := <-app.Srv.Store.Channel().GetChannels(teamid, userid)
 	if result.Err != nil {
 		l4g.Debug(utils.T("manaultesting.get_channel_id.unable.debug"))
 		return "", false

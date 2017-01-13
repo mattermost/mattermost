@@ -6,22 +6,34 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
 
-func ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) *webSocketHandler {
-	return &webSocketHandler{wh}
+func ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+	return webSocketHandler{wh}
 }
 
 type webSocketHandler struct {
 	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
 }
 
-func (wh *webSocketHandler) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
+func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	l4g.Debug("/api/v3/users/websocket:%s", r.Action)
 
-	r.Session = *GetSession(conn.SessionToken)
+	session, sessionErr := app.GetSession(conn.SessionToken)
+	if sessionErr != nil {
+		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
+		sessionErr.DetailedError = ""
+		errResp := model.NewWebSocketError(r.Seq, sessionErr)
+		errResp.DoPreComputeJson()
+
+		conn.Send <- errResp
+		return
+	}
+
+	r.Session = *session
 	r.T = conn.T
 	r.Locale = conn.Locale
 

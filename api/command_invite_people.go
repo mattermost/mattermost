@@ -6,6 +6,7 @@ package api
 import (
 	"strings"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -40,8 +41,8 @@ func (me *InvitePeopleProvider) DoCommand(c *Context, args *model.CommandArgs, m
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.email_off")}
 	}
 
-	tchan := Srv.Store.Team().Get(c.TeamId)
-	uchan := Srv.Store.User().Get(c.Session.UserId)
+	tchan := app.Srv.Store.Team().Get(c.TeamId)
+	uchan := app.Srv.Store.User().Get(c.Session.UserId)
 
 	emailList := strings.Fields(message)
 

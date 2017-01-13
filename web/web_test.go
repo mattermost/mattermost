@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -19,28 +20,28 @@ var ApiClient *model.Client
 var URL string
 
 func Setup() {
-	if api.Srv == nil {
+	if app.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		api.NewServer()
-		api.InitStores()
+		app.NewServer()
+		app.InitStores()
 		api.InitRouter()
-		api.StartServer()
+		app.StartServer()
 		api.InitApi()
 		InitWeb()
 		URL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
 
-		api.Srv.Store.MarkSystemRanUnitTests()
+		app.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 }
 
 func TearDown() {
-	if api.Srv != nil {
-		api.StopServer()
+	if app.Srv != nil {
+		app.StopServer()
 	}
 }
 
@@ -69,13 +70,13 @@ func TestGetAccessToken(t *testing.T) {
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "passwd1"}
 	ruser := ApiClient.Must(ApiClient.CreateUser(&user, "")).Data.(*model.User)
-	api.JoinUserToTeam(rteam.Data.(*model.Team), ruser)
-	store.Must(api.Srv.Store.User().VerifyEmail(ruser.Id))
+	app.JoinUserToTeam(rteam.Data.(*model.Team), ruser)
+	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
 
-	app := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
-	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{app.CallbackUrls[0]}}
+	data := url.Values{"grant_type": []string{"junk"}, "client_id": []string{"12345678901234567890123456"}, "client_secret": []string{"12345678901234567890123456"}, "code": []string{"junk"}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
 	if _, err := ApiClient.GetAccessToken(data); err == nil {
 		t.Fatal("should have failed - oauth providing turned off")
@@ -86,18 +87,18 @@ func TestGetAccessToken(t *testing.T) {
 	ApiClient.SetTeamId(rteam.Data.(*model.Team).Id)
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
 	utils.SetDefaultRolesBasedOnConfig()
-	app = ApiClient.Must(ApiClient.RegisterApp(app)).Data.(*model.OAuthApp)
+	oauthApp = ApiClient.Must(ApiClient.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
 	utils.SetDefaultRolesBasedOnConfig()
 
-	redirect := ApiClient.Must(ApiClient.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, app.Id, app.CallbackUrls[0], "all", "123")).Data.(map[string]string)["redirect"]
+	redirect := ApiClient.Must(ApiClient.AllowOAuth(model.AUTHCODE_RESPONSE_TYPE, oauthApp.Id, oauthApp.CallbackUrls[0], "all", "123")).Data.(map[string]string)["redirect"]
 	rurl, _ := url.Parse(redirect)
 
 	teamId := rteam.Data.(*model.Team).Id
 
 	ApiClient.Logout()
 
-	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{app.Id}, "client_secret": []string{app.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{app.CallbackUrls[0]}}
+	data = url.Values{"grant_type": []string{"junk"}, "client_id": []string{oauthApp.Id}, "client_secret": []string{oauthApp.ClientSecret}, "code": []string{rurl.Query().Get("code")}, "redirect_uri": []string{oauthApp.CallbackUrls[0]}}
 
 	if _, err := ApiClient.GetAccessToken(data); err == nil {
 		t.Fatal("should have failed - bad grant type")
@@ -113,7 +114,7 @@ func TestGetAccessToken(t *testing.T) {
 		t.Fatal("should have failed - bad client id")
 	}
 
-	data.Set("client_id", app.Id)
+	data.Set("client_id", oauthApp.Id)
 	data.Set("client_secret", "")
 	if _, err := ApiClient.GetAccessToken(data); err == nil {
 		t.Fatal("should have failed - missing client secret")
@@ -124,7 +125,7 @@ func TestGetAccessToken(t *testing.T) {
 		t.Fatal("should have failed - bad client secret")
 	}
 
-	data.Set("client_secret", app.ClientSecret)
+	data.Set("client_secret", oauthApp.ClientSecret)
 	data.Set("code", "")
 	if _, err := ApiClient.GetAccessToken(data); err == nil {
 		t.Fatal("should have failed - missing code")
@@ -143,10 +144,10 @@ func TestGetAccessToken(t *testing.T) {
 
 	// reset data for successful request
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
-	data.Set("client_id", app.Id)
-	data.Set("client_secret", app.ClientSecret)
+	data.Set("client_id", oauthApp.Id)
+	data.Set("client_secret", oauthApp.ClientSecret)
 	data.Set("code", rurl.Query().Get("code"))
-	data.Set("redirect_uri", app.CallbackUrls[0])
+	data.Set("redirect_uri", oauthApp.CallbackUrls[0])
 
 	token := ""
 	if result, err := ApiClient.GetAccessToken(data); err != nil {
@@ -205,8 +206,8 @@ func TestIncomingWebhook(t *testing.T) {
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
-	store.Must(api.Srv.Store.User().VerifyEmail(user.Id))
-	api.JoinUserToTeam(team, user)
+	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
+	app.JoinUserToTeam(team, user)
 
 	api.UpdateUserRoles(user, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.Login(user.Email, "passwd1")

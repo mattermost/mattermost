@@ -27,6 +27,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -84,7 +85,7 @@ func InitUser() {
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
 	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
 
-	BaseRoutes.WebSocket.Handle("user_typing", ApiWebSocketHandler(userTyping))
+	app.Srv.WebSocketRouter.Handle("user_typing", ApiWebSocketHandler(userTyping))
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -125,7 +126,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		teamId = props["id"]
 
 		// try to load the team to make sure it exists
-		if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+		if result := <-app.Srv.Store.Team().Get(teamId); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -139,7 +140,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	inviteId := r.URL.Query().Get("iid")
 	if len(inviteId) > 0 {
-		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -149,8 +150,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	firstAccount := false
-	if sessionCache.Len() == 0 {
-		if cr := <-Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
+	if app.SessionCacheLength() == 0 {
+		if cr := <-app.Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
 			c.Err = cr.Err
 			return
 		} else {
@@ -171,14 +172,14 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ruser, err := CreateUser(user)
+	ruser, err := app.CreateUser(user)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if len(teamId) > 0 {
-		err := JoinUserToTeam(team, ruser)
+		err := app.JoinUserToTeam(team, ruser)
 		if err != nil {
 			c.Err = err
 			return
@@ -238,56 +239,6 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateUser(user *model.User) (*model.User, *model.AppError) {
-
-	user.Roles = model.ROLE_SYSTEM_USER.Id
-
-	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	if result := <-Srv.Store.User().GetTotalUsersCount(); result.Err != nil {
-		return nil, result.Err
-	} else {
-		count := result.Data.(int64)
-		if count <= 0 {
-			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
-		}
-	}
-
-	user.MakeNonNil()
-	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
-
-	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
-		return nil, err
-	}
-
-	if result := <-Srv.Store.User().Save(user); result.Err != nil {
-		l4g.Error(utils.T("api.user.create_user.save.error"), result.Err)
-		return nil, result.Err
-	} else {
-		ruser := result.Data.(*model.User)
-
-		if user.EmailVerified {
-			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-				l4g.Error(utils.T("api.user.create_user.verified.error"), cresult.Err)
-			}
-		}
-
-		pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-		if presult := <-Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
-			l4g.Error(utils.T("api.user.create_user.tutorial.error"), presult.Err.Message)
-		}
-
-		ruser.Sanitize(map[string]bool{})
-
-		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
-		message.Add("user_id", ruser.Id)
-		go Publish(message)
-
-		return ruser, nil
-	}
-}
-
 func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, teamId string) *model.User {
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
@@ -303,8 +254,8 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 		return nil
 	}
 
-	suchan := Srv.Store.User().GetByAuth(user.AuthData, service)
-	euchan := Srv.Store.User().GetByEmail(user.Email)
+	suchan := app.Srv.Store.User().GetByAuth(user.AuthData, service)
+	euchan := app.Srv.Store.User().GetByEmail(user.Email)
 
 	found := true
 	count := 0
@@ -335,14 +286,14 @@ func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service
 
 	user.EmailVerified = true
 
-	ruser, err := CreateUser(user)
+	ruser, err := app.CreateUser(user)
 	if err != nil {
 		c.Err = err
 		return nil
 	}
 
 	if len(teamId) > 0 {
-		err = JoinUserToTeamById(teamId, user)
+		err = app.JoinUserToTeamById(teamId, user)
 		if err != nil {
 			c.Err = err
 			return nil
@@ -390,7 +341,7 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 
 func addDirectChannels(teamId string, user *model.User) {
 	var profiles map[string]*model.User
-	if result := <-Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
 		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 		return
 	} else {
@@ -420,7 +371,7 @@ func addDirectChannels(teamId string, user *model.User) {
 		}
 	}
 
-	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().Save(&preferences); result.Err != nil {
 		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 	}
 }
@@ -467,7 +418,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(id) != 0 {
 		c.LogAuditWithUserId(id, "attempt")
 
-		if result := <-Srv.Store.User().Get(id); result.Err != nil {
+		if result := <-app.Srv.Store.User().Get(id); result.Err != nil {
 			c.LogAuditWithUserId(id, "failure")
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusBadRequest
@@ -521,7 +472,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
 	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed && *utils.License.Features.LDAP
 
-	if result := <-Srv.Store.User().GetForLogin(
+	if result := <-app.Srv.Store.User().GetForLogin(
 		loginId,
 		*utils.Cfg.EmailSettings.EnableSignInWithUsername && !onlyLdap,
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail && !onlyLdap,
@@ -570,7 +521,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByAuth(&authData, service); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByAuth(&authData, service); result.Err != nil {
 		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
 			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), "")
 		}
@@ -598,7 +549,7 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 		// A special case where we logout of all other sessions with the same Id
-		if result := <-Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
+		if result := <-app.Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
 			c.Err = result.Err
 			c.Err.StatusCode = http.StatusInternalServerError
 			return
@@ -648,13 +599,13 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
 
-	if result := <-Srv.Store.Session().Save(session); result.Err != nil {
+	if result := <-app.Srv.Store.Session().Save(session); result.Err != nil {
 		c.Err = result.Err
 		c.Err.StatusCode = http.StatusInternalServerError
 		return
 	} else {
 		session = result.Data.(*model.Session)
-		AddSessionToCache(session)
+		app.AddSessionToCache(session)
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
@@ -702,7 +653,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// A special case where we logout of all other sessions with the same Id
-	if result := <-Srv.Store.Session().GetSessions(c.Session.UserId); result.Err != nil {
+	if result := <-app.Srv.Store.Session().GetSessions(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		c.Err.StatusCode = http.StatusInternalServerError
 		return
@@ -720,7 +671,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	RemoveAllSessionsForUserId(c.Session.UserId)
+	app.RemoveAllSessionsForUserId(c.Session.UserId)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
@@ -743,7 +694,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, sessionCookie)
 
-	if result := <-Srv.Store.Session().UpdateDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); result.Err != nil {
+	if result := <-app.Srv.Store.Session().UpdateDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -752,7 +703,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func RevokeSessionById(c *Context, sessionId string) {
-	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
+	if result := <-app.Srv.Store.Session().Get(sessionId); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		session := result.Data.(*model.Session)
@@ -761,19 +712,19 @@ func RevokeSessionById(c *Context, sessionId string) {
 		if session.IsOAuth {
 			RevokeAccessToken(session.Token)
 		} else {
-			if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+			if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
 				c.Err = result.Err
 			}
 		}
 
 		RevokeWebrtcToken(session.Id)
-		RemoveAllSessionsForUserId(session.UserId)
+		app.RemoveAllSessionsForUserId(session.UserId)
 	}
 }
 
 // IF YOU UPDATE THIS PLEASE UPDATE BELOW
 func RevokeAllSession(c *Context, userId string) {
-	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+	if result := <-app.Srv.Store.Session().GetSessions(userId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -784,7 +735,7 @@ func RevokeAllSession(c *Context, userId string) {
 			if session.IsOAuth {
 				RevokeAccessToken(session.Token)
 			} else {
-				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					c.Err = result.Err
 					return
 				}
@@ -794,13 +745,13 @@ func RevokeAllSession(c *Context, userId string) {
 		}
 	}
 
-	RemoveAllSessionsForUserId(userId)
+	app.RemoveAllSessionsForUserId(userId)
 }
 
 // UGH...
 // If you update this please update above
 func RevokeAllSessionsNoContext(userId string) *model.AppError {
-	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+	if result := <-app.Srv.Store.Session().GetSessions(userId); result.Err != nil {
 		return result.Err
 	} else {
 		sessions := result.Data.([]*model.Session)
@@ -809,7 +760,7 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 			if session.IsOAuth {
 				RevokeAccessToken(session.Token)
 			} else {
-				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					return result.Err
 				}
 			}
@@ -818,7 +769,7 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 		}
 	}
 
-	RemoveAllSessionsForUserId(userId)
+	app.RemoveAllSessionsForUserId(userId)
 
 	return nil
 }
@@ -832,7 +783,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Session().GetSessions(id); result.Err != nil {
+	if result := <-app.Srv.Store.Session().GetSessions(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -865,7 +816,7 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 		c.RemoveSessionCookie(w, r)
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
@@ -886,17 +837,17 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var cchan store.StoreChannel
 
-	if sessionCache.Len() == 0 {
+	if app.SessionCacheLength() == 0 {
 		// Below is a special case when intializating a new server
 		// Lets check to make sure the server is really empty
 
-		cchan = Srv.Store.User().GetTotalUsersCount()
+		cchan = app.Srv.Store.User().GetTotalUsersCount()
 	}
 
 	if len(c.Session.UserId) != 0 {
-		uchan := Srv.Store.User().Get(c.Session.UserId)
-		pchan := Srv.Store.Preference().GetAll(c.Session.UserId)
-		tchan := Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
+		uchan := app.Srv.Store.User().Get(c.Session.UserId)
+		pchan := app.Srv.Store.Preference().GetAll(c.Session.UserId)
+		tchan := app.Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
 
 		il.TeamMembers = c.Session.TeamMembers
 
@@ -954,7 +905,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if result := <-Srv.Store.User().Get(id); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get User", w, r) {
@@ -972,7 +923,7 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	username := params["username"]
 
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByUsername(username); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
@@ -990,7 +941,7 @@ func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	email := params["email"]
 
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
@@ -1019,12 +970,12 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
+	etag := (<-app.Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
 	if HandleEtag(etag, "Get Profiles", w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1061,12 +1012,12 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
+	etag := (<-app.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
 	if HandleEtag(etag, "Get Profiles In Team", w, r) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1107,7 +1058,7 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1147,7 +1098,7 @@ func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfilesNotInChannel(c.TeamId, channelId, offset, limit); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetProfilesNotInChannel(c.TeamId, channelId, offset, limit); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1169,8 +1120,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userChan := Srv.Store.User().Get(id)
-	auditChan := Srv.Store.Audit().Get(id, 20)
+	userChan := app.Srv.Store.User().Get(id)
+	auditChan := app.Srv.Store.Audit().Get(id, 20)
 
 	if c.Err = (<-userChan).Err; c.Err != nil {
 		return
@@ -1278,7 +1229,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var etag string
 
-	if result := <-Srv.Store.User().Get(id); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1407,9 +1358,9 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
+	app.Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
 
-	if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 	} else {
 		user := result.Data.(*model.User)
@@ -1419,7 +1370,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", user)
 
-		go Publish(message)
+		go app.Publish(message)
 	}
 
 	c.LogAudit("")
@@ -1445,7 +1396,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().Update(user, false); result.Err != nil {
+	if result := <-app.Srv.Store.User().Update(user, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1465,7 +1416,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
 		}
 
-		InvalidateCacheForUser(user.Id)
+		app.InvalidateCacheForUser(user.Id)
 
 		updatedUser := rusers[0]
 		updatedUser = sanitizeProfile(c, updatedUser)
@@ -1474,7 +1425,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		omitUsers[user.Id] = true
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", updatedUser)
-		go Publish(message)
+		go app.Publish(message)
 
 		rusers[0].Password = ""
 		rusers[0].AuthData = new(string)
@@ -1514,7 +1465,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var result store.StoreResult
 
-	if result = <-Srv.Store.User().Get(userId); result.Err != nil {
+	if result = <-app.Srv.Store.User().Get(userId); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -1544,7 +1495,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if uresult := <-Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
+	if uresult := <-app.Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.failed.app_error", nil, uresult.Err.Error())
 		return
 	} else {
@@ -1579,7 +1530,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1600,8 +1551,8 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.AppError) {
 
 	user.Roles = newRoles
-	uchan := Srv.Store.User().Update(user, true)
-	schan := Srv.Store.Session().UpdateRoles(user.Id, newRoles)
+	uchan := app.Srv.Store.User().Update(user, true)
+	schan := app.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
 
 	var ruser *model.User
 	if result := <-uchan; result.Err != nil {
@@ -1615,7 +1566,7 @@ func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.App
 		l4g.Error(result.Err)
 	}
 
-	RemoveAllSessionsForUserId(user.Id)
+	app.RemoveAllSessionsForUserId(user.Id)
 
 	return ruser, nil
 }
@@ -1632,7 +1583,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := props["active"] == "true"
 
 	var user *model.User
-	if result := <-Srv.Store.User().Get(user_id); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(user_id); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1658,7 +1609,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 	} else {
 		if !active {
-			SetStatusOffline(ruser.Id, false)
+			app.SetStatusOffline(ruser.Id, false)
 		}
 
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
@@ -1673,14 +1624,14 @@ func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) 
 		user.DeleteAt = model.GetMillis()
 	}
 
-	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
+	if result := <-app.Srv.Store.User().Update(user, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		if user.DeleteAt > 0 {
 			RevokeAllSessionsNoContext(user.Id)
 		}
 
-		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
+		if extra := <-app.Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
 			return nil, extra.Err
 		}
 
@@ -1702,51 +1653,51 @@ func PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
+	if result := <-app.Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
 		return result.Err
 	}
 
@@ -1756,7 +1707,7 @@ func PermanentDeleteUser(user *model.User) *model.AppError {
 }
 
 func PermanentDeleteAllUsers() *model.AppError {
-	if result := <-Srv.Store.User().GetAll(); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetAll(); result.Err != nil {
 		return result.Err
 	} else {
 		users := result.Data.([]*model.User)
@@ -1778,7 +1729,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		w.Write([]byte(model.MapToJson(props)))
 		return
 	} else {
@@ -1793,7 +1744,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	recovery := &model.PasswordRecovery{}
 	recovery.UserId = user.Id
 
-	if result := <-Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
+	if result := <-app.Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -1838,7 +1789,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := ""
 
-	if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+	if result := <-app.Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
 		c.LogAuditWithUserId(userId, "fail - bad code")
 		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
 		return
@@ -1854,7 +1805,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		go func() {
-			if result := <-Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
+			if result := <-app.Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
 				l4g.Error("%v", result.Err)
 			}
 		}()
@@ -1874,7 +1825,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 	var user *model.User
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
 		return result.Err
 	} else {
 		user = result.Data.(*model.User)
@@ -1885,7 +1836,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 
 	}
 
-	if result := <-Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
+	if result := <-app.Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
 		return result.Err
 	}
 
@@ -1992,7 +1943,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uchan := Srv.Store.User().Get(user_id)
+	uchan := app.Srv.Store.User().Get(user_id)
 
 	if !HasPermissionToUser(c, user_id) {
 		return
@@ -2034,12 +1985,12 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user.NotifyProps = props
 
-	if result := <-Srv.Store.User().Update(user, false); result.Err != nil {
+	if result := <-app.Srv.Store.User().Update(user, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
 		c.LogAuditWithUserId(user.Id, "")
-		InvalidateCacheForUser(user.Id)
+		app.InvalidateCacheForUser(user.Id)
 
 		ruser := result.Data.([2]*model.User)[0]
 		options := utils.Cfg.GetSanitizeOptions()
@@ -2056,7 +2007,7 @@ func IsUsernameTaken(name string) bool {
 		return false
 	}
 
-	if result := <-Srv.Store.User().GetByUsername(name); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByUsername(name); result.Err != nil {
 		return false
 	} else {
 		return true
@@ -2091,7 +2042,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2144,7 +2095,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2159,7 +2110,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(password)); result.Err != nil {
+	if result := <-app.Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(password)); result.Err != nil {
 		c.LogAudit("fail - database issue")
 		c.Err = result.Err
 		return
@@ -2212,7 +2163,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2280,7 +2231,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		c.LogAudit("fail - couldn't get user")
 		c.Err = result.Err
 		return
@@ -2312,7 +2263,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(emailPassword)); result.Err != nil {
+	if result := <-app.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(emailPassword)); result.Err != nil {
 		c.LogAudit("fail - database issue")
 		c.Err = result.Err
 		return
@@ -2364,7 +2315,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
-		if c.Err = (<-Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+		if c.Err = (<-app.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
 			return
 		} else {
 			c.LogAudit("Email Verified")
@@ -2389,7 +2340,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = error
 		return
 	} else {
-		if _, err := GetStatus(user.Id); err != nil {
+		if _, err := app.GetStatus(user.Id); err != nil {
 			go SendVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
 		} else {
 			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
@@ -2398,7 +2349,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
-	uchan := Srv.Store.User().Get(c.Session.UserId)
+	uchan := app.Srv.Store.User().Get(c.Session.UserId)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -2467,7 +2418,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		var user *model.User
-		if result := <-Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+		if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 			l4g.Warn(result.Err)
 		} else {
 			user = result.Data.(*model.User)
@@ -2490,7 +2441,7 @@ func ActivateMfa(userId, token string) *model.AppError {
 	}
 
 	var user *model.User
-	if result := <-Srv.Store.User().Get(userId); result.Err != nil {
+	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
 		return result.Err
 	} else {
 		user = result.Data.(*model.User)
@@ -2540,7 +2491,7 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// we don't need to worry about contacting the ldap server to get this user because
 	// only users already in the system could have MFA enabled
-	uchan := Srv.Store.User().GetForLogin(
+	uchan := app.Srv.Store.User().GetForLogin(
 		loginId,
 		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
@@ -2680,7 +2631,7 @@ func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.App
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
 	event.Add("parent_id", parentId)
 	event.Add("user_id", req.Session.UserId)
-	go Publish(event)
+	go app.Publish(event)
 
 	return nil, nil
 }
@@ -2740,11 +2691,11 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var uchan store.StoreChannel
 	if props.InChannelId != "" {
-		uchan = Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+		uchan = app.Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
 	} else if props.NotInChannelId != "" {
-		uchan = Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
+		uchan = app.Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
 	} else {
-		uchan = Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
+		uchan = app.Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
 	}
 
 	if result := <-uchan; result.Err != nil {
@@ -2769,7 +2720,7 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -2810,8 +2761,8 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
-	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
+	uchan := app.Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
+	nuchan := app.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -2866,7 +2817,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := Srv.Store.User().Search(teamId, term, searchOptions)
+	uchan := app.Srv.Store.User().Search(teamId, term, searchOptions)
 
 	autocomplete := &model.UserAutocompleteInTeam{}
 
@@ -2899,7 +2850,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := Srv.Store.User().Search("", term, searchOptions)
+	uchan := app.Srv.Store.User().Search("", term, searchOptions)
 
 	var profiles []*model.User
 

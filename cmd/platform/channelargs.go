@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -42,7 +42,7 @@ func getChannelFromChannelArg(channelArg string) *model.Channel {
 			return nil
 		}
 
-		if result := <-api.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart); result.Err == nil {
+		if result := <-app.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart); result.Err == nil {
 			channel = result.Data.(*model.Channel)
 		} else {
 			fmt.Println(result.Err.Error())
@@ -50,7 +50,7 @@ func getChannelFromChannelArg(channelArg string) *model.Channel {
 	}
 
 	if channel == nil {
-		if result := <-api.Srv.Store.Channel().Get(channelPart, true); result.Err == nil {
+		if result := <-app.Srv.Store.Channel().Get(channelPart, true); result.Err == nil {
 			channel = result.Data.(*model.Channel)
 		}
 	}

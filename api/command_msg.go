@@ -6,6 +6,7 @@ package api
 import (
 	"strings"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -48,7 +49,7 @@ func (me *msgProvider) DoCommand(c *Context, args *model.CommandArgs, message st
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
 	var userProfile *model.User
-	if result := <-Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
+	if result := <-app.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
 		c.Err = result.Err
 		return &model.CommandResponse{Text: c.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
@@ -63,7 +64,7 @@ func (me *msgProvider) DoCommand(c *Context, args *model.CommandArgs, message st
 	channelName := model.GetDMNameFromIds(c.Session.UserId, userProfile.Id)
 
 	targetChannelId := ""
-	if channel := <-Srv.Store.Channel().GetByName(c.TeamId, channelName); channel.Err != nil {
+	if channel := <-app.Srv.Store.Channel().GetByName(c.TeamId, channelName); channel.Err != nil {
 		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 			if directChannel, err := CreateDirectChannel(c.Session.UserId, userProfile.Id); err != nil {
 				c.Err = err
@@ -79,13 +80,13 @@ func (me *msgProvider) DoCommand(c *Context, args *model.CommandArgs, message st
 		targetChannelId = channel.Data.(*model.Channel).Id
 	}
 
-	makeDirectChannelVisible(targetChannelId)
+	app.MakeDirectChannelVisible(targetChannelId)
 	if len(parsedMessage) > 0 {
 		post := &model.Post{}
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = c.Session.UserId
-		if _, err := CreatePost(c, post, true); err != nil {
+		if _, err := app.CreatePost(post, c.TeamId, true); err != nil {
 			return &model.CommandResponse{Text: c.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}

@@ -6,6 +6,7 @@ package api
 import (
 	"strconv"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -67,13 +68,13 @@ func setCollapsePreference(c *Context, isCollapse bool) *model.CommandResponse {
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
-	if result := <-Srv.Store.Preference().Save(&model.Preferences{pref}); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().Save(&model.Preferences{pref}); result.Err != nil {
 		return &model.CommandResponse{Text: c.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	socketMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", c.Session.UserId, nil)
 	socketMessage.Add("preference", pref.ToJson())
-	go Publish(socketMessage)
+	go app.Publish(socketMessage)
 
 	var rmsg string
 

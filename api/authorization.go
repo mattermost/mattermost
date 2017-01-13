@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -66,7 +67,7 @@ func HasPermissionToTeam(user *model.User, teamMember *model.TeamMember, permiss
 }
 
 func HasPermissionToChannelContext(c *Context, channelId string, permission *model.Permission) bool {
-	cmc := Srv.Store.Channel().GetAllChannelMembersForUser(c.Session.UserId, true)
+	cmc := app.Srv.Store.Channel().GetAllChannelMembersForUser(c.Session.UserId, true)
 
 	var channelRoles []string
 	if cmcresult := <-cmc; cmcresult.Err == nil {
@@ -79,7 +80,7 @@ func HasPermissionToChannelContext(c *Context, channelId string, permission *mod
 		}
 	}
 
-	cc := Srv.Store.Channel().Get(channelId, true)
+	cc := app.Srv.Store.Channel().Get(channelId, true)
 	if ccresult := <-cc; ccresult.Err == nil {
 		channel := ccresult.Data.(*model.Channel)
 
@@ -117,7 +118,7 @@ func HasPermissionToChannel(user *model.User, teamMember *model.TeamMember, chan
 }
 
 func HasPermissionToChannelByPostContext(c *Context, postId string, permission *model.Permission) bool {
-	cmc := Srv.Store.Channel().GetMemberForPost(postId, c.Session.UserId)
+	cmc := app.Srv.Store.Channel().GetMemberForPost(postId, c.Session.UserId)
 
 	var channelRoles []string
 	if cmcresult := <-cmc; cmcresult.Err == nil {
@@ -129,7 +130,7 @@ func HasPermissionToChannelByPostContext(c *Context, postId string, permission *
 		}
 	}
 
-	cc := Srv.Store.Channel().GetForPost(postId)
+	cc := app.Srv.Store.Channel().GetForPost(postId)
 	if ccresult := <-cc; ccresult.Err == nil {
 		channel := ccresult.Data.(*model.Channel)
 

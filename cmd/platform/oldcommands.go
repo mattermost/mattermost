@@ -13,6 +13,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -69,8 +70,8 @@ func doLegacyCommands() {
 	doLoadConfig(flagConfigFile)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	utils.ConfigureCmdLineLog()
-	api.NewServer()
-	api.InitStores()
+	app.NewServer()
+	app.InitStores()
 	api.InitRouter()
 	api.InitApi()
 	web.InitWeb()
@@ -187,9 +188,9 @@ func runCmds() {
 func cmdRunClientTests() {
 	if flagCmdRunWebClientTests {
 		setupClientTests()
-		api.StartServer()
+		app.StartServer()
 		runWebClientTests()
-		api.StopServer()
+		app.StopServer()
 	}
 }
 
@@ -220,9 +221,8 @@ func cmdCreateTeam() {
 		team.Email = flagEmail
 		team.Type = model.TEAM_OPEN
 
-		api.CreateTeam(c, team)
-		if c.Err != nil {
-			if c.Err.Id != "store.sql_team.save.domain_exists.app_error" {
+		if _, err := app.CreateTeam(team); err != nil {
+			if err.Id != "store.sql_team.save.domain_exists.app_error" {
 				l4g.Error("%v", c.Err)
 				flushLogAndExit(1)
 			}
@@ -257,7 +257,7 @@ func cmdCreateUser() {
 		}
 
 		if len(flagTeamName) > 0 {
-			if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+			if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 				l4g.Error("%v", result.Err)
 				flushLogAndExit(1)
 			} else {
@@ -265,7 +265,7 @@ func cmdCreateUser() {
 			}
 		}
 
-		ruser, err := api.CreateUser(user)
+		ruser, err := app.CreateUser(user)
 		if err != nil {
 			if err.Id != "store.sql_user.save.email_exists.app_error" {
 				l4g.Error("%v", err)
@@ -274,7 +274,7 @@ func cmdCreateUser() {
 		}
 
 		if team != nil {
-			err = api.JoinUserToTeam(team, ruser)
+			err = app.JoinUserToTeam(team, ruser)
 			if err != nil {
 				l4g.Error("%v", err)
 				flushLogAndExit(1)
@@ -303,7 +303,7 @@ func cmdInviteUser() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -311,7 +311,7 @@ func cmdInviteUser() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(team.Email); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(team.Email); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -333,7 +333,7 @@ func cmdVersion() {
 		fmt.Fprintln(os.Stderr, "Build Date: "+model.BuildDate)
 		fmt.Fprintln(os.Stderr, "Build Hash: "+model.BuildHash)
 		fmt.Fprintln(os.Stderr, "Build Enterprise Ready: "+model.BuildEnterpriseReady)
-		fmt.Fprintln(os.Stderr, "DB Version: "+api.Srv.Store.(*store.SqlStore).SchemaVersion)
+		fmt.Fprintln(os.Stderr, "DB Version: "+app.Srv.Store.(*store.SqlStore).SchemaVersion)
 
 		os.Exit(0)
 	}
@@ -361,7 +361,7 @@ func cmdAssignRole() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -404,7 +404,7 @@ func cmdCreateChannel() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v %v", utils.T(result.Err.Message), result.Err.DetailedError)
 			flushLogAndExit(1)
 		} else {
@@ -412,7 +412,7 @@ func cmdCreateChannel() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v %v", utils.T(result.Err.Message), result.Err.DetailedError)
 			flushLogAndExit(1)
 		} else {
@@ -431,7 +431,7 @@ func cmdCreateChannel() {
 		channel.Header = flagChannelHeader
 		channel.Purpose = flagChannelPurpose
 
-		if _, err := api.CreateChannel(c, channel, true); err != nil {
+		if _, err := app.CreateChannel(channel, true); err != nil {
 			l4g.Error("%v %v", utils.T(err.Message), err.DetailedError)
 			flushLogAndExit(1)
 		}
@@ -463,7 +463,7 @@ func cmdJoinChannel() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -471,7 +471,7 @@ func cmdJoinChannel() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -479,14 +479,14 @@ func cmdJoinChannel() {
 		}
 
 		var channel *model.Channel
-		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
+		if result := <-app.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			channel = result.Data.(*model.Channel)
 		}
 
-		_, err := api.AddUserToChannel(user, channel)
+		_, err := app.AddUserToChannel(user, channel)
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
@@ -524,7 +524,7 @@ func cmdLeaveChannel() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -532,7 +532,7 @@ func cmdLeaveChannel() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -540,7 +540,7 @@ func cmdLeaveChannel() {
 		}
 
 		var channel *model.Channel
-		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
+		if result := <-app.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -570,14 +570,14 @@ func cmdListChannels() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			team = result.Data.(*model.Team)
 		}
 
-		if result := <-api.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if result := <-app.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -615,7 +615,7 @@ func cmdRestoreChannel() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -623,7 +623,7 @@ func cmdRestoreChannel() {
 		}
 
 		var channel *model.Channel
-		if result := <-api.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if result := <-app.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -637,7 +637,7 @@ func cmdRestoreChannel() {
 			}
 		}
 
-		if result := <-api.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
+		if result := <-app.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		}
@@ -659,7 +659,7 @@ func cmdJoinTeam() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -667,14 +667,14 @@ func cmdJoinTeam() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			user = result.Data.(*model.User)
 		}
 
-		err := api.JoinUserToTeam(team, user)
+		err := app.JoinUserToTeam(team, user)
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
@@ -697,7 +697,7 @@ func cmdLeaveTeam() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -705,7 +705,7 @@ func cmdLeaveTeam() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -741,14 +741,14 @@ func cmdResetPassword() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
 			user = result.Data.(*model.User)
 		}
 
-		if result := <-api.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(flagPassword)); result.Err != nil {
+		if result := <-app.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(flagPassword)); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		}
@@ -766,14 +766,14 @@ func cmdResetMfa() {
 
 		var user *model.User
 		if len(flagEmail) > 0 {
-			if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+			if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 				l4g.Error("%v", result.Err)
 				flushLogAndExit(1)
 			} else {
 				user = result.Data.(*model.User)
 			}
 		} else {
-			if result := <-api.Srv.Store.User().GetByUsername(flagUsername); result.Err != nil {
+			if result := <-app.Srv.Store.User().GetByUsername(flagUsername); result.Err != nil {
 				l4g.Error("%v", result.Err)
 				flushLogAndExit(1)
 			} else {
@@ -798,7 +798,7 @@ func cmdPermDeleteUser() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -841,7 +841,7 @@ func cmdPermDeleteTeam() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -927,7 +927,7 @@ func cmdResetDatabase() {
 			flushLogAndExit(1)
 		}
 
-		api.Srv.Store.DropAllTables()
+		app.Srv.Store.DropAllTables()
 		fmt.Print("SUCCESS: Database reset.")
 		flushLogAndExit(0)
 	}
@@ -1022,7 +1022,7 @@ func cmdActivateUser() {
 		}
 
 		var user *model.User
-		if result := <-api.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
+		if result := <-app.Srv.Store.User().GetByEmail(flagEmail); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -1054,7 +1054,7 @@ func cmdSlackImport() {
 		}
 
 		var team *model.Team
-		if result := <-api.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
+		if result := <-app.Srv.Store.Team().GetByName(flagTeamName); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {

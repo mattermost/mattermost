@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"crypto/tls"
@@ -23,13 +23,48 @@ import (
 )
 
 type Server struct {
-	Store          store.Store
-	Router         *mux.Router
-	GracefulServer *graceful.Server
+	Store           store.Store
+	WebSocketRouter *WebSocketRouter
+	Router          *mux.Router
+	GracefulServer  *graceful.Server
+}
+
+var allowedMethods []string = []string{
+	"POST",
+	"GET",
+	"OPTIONS",
+	"PUT",
+	"PATCH",
+	"DELETE",
 }
 
 type CorsWrapper struct {
 	router *mux.Router
+}
+
+func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
+		origin := r.Header.Get("Origin")
+		if *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+
+			if r.Method == "OPTIONS" {
+				w.Header().Set(
+					"Access-Control-Allow-Methods",
+					strings.Join(allowedMethods, ", "))
+
+				w.Header().Set(
+					"Access-Control-Allow-Headers",
+					r.Header.Get("Access-Control-Request-Headers"))
+			}
+		}
+	}
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	cw.router.ServeHTTP(w, r)
 }
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
@@ -46,15 +81,10 @@ func InitStores() {
 	Srv.Store = store.NewSqlStore()
 }
 
-func InitRouter() {
-	Srv.Router = mux.NewRouter()
-	Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
-}
-
 type VaryBy struct{}
 
 func (m *VaryBy) Key(r *http.Request) string {
-	return GetIpAddress(r)
+	return utils.GetIpAddress(r)
 }
 
 func initalizeThrottledVaryBy() *throttled.VaryBy {
@@ -116,7 +146,7 @@ func StartServer() {
 			RateLimiter: rateLimiter,
 			VaryBy:      &VaryBy{},
 			DeniedHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				l4g.Error("%v: Denied due to throttling settings code=429 ip=%v", r.URL.Path, GetIpAddress(r))
+				l4g.Error("%v: Denied due to throttling settings code=429 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 				throttled.DefaultDeniedHandler.ServeHTTP(w, r)
 			}),
 		}

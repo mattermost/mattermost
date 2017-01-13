@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -18,12 +18,12 @@ func getTeamsFromTeamArgs(teamArgs []string) []*model.Team {
 
 func getTeamFromTeamArg(teamArg string) *model.Team {
 	var team *model.Team
-	if result := <-api.Srv.Store.Team().GetByName(teamArg); result.Err == nil {
+	if result := <-app.Srv.Store.Team().GetByName(teamArg); result.Err == nil {
 		team = result.Data.(*model.Team)
 	}
 
 	if team == nil {
-		if result := <-api.Srv.Store.Team().Get(teamArg); result.Err == nil {
+		if result := <-app.Srv.Store.Team().Get(teamArg); result.Err == nil {
 			team = result.Data.(*model.Team)
 		}
 	}

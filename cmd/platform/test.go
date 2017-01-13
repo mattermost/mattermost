@@ -10,6 +10,7 @@ import (
 	"os/exec"
 
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/utils"
 	"github.com/spf13/cobra"
 )
@@ -38,9 +39,9 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	api.InitRouter()
 	api.InitApi()
 	setupClientTests()
-	api.StartServer()
+	app.StartServer()
 	runWebClientTests()
-	api.StopServer()
+	app.StopServer()
 
 	return nil
 }

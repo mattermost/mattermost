@@ -184,17 +184,19 @@ test-server: start-docker prepare-enterprise
 	echo "mode: count" > cover.out
 
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s -covermode=count -coverprofile=capi.out ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=capp.out ./app || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s -covermode=count -coverprofile=cstore.out ./store || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cutils.out ./utils || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cweb.out ./web || exit 1
 
 	tail -n +2 capi.out >> cover.out
+	tail -n +2 capp.out >> cover.out
 	tail -n +2 cmodel.out >> cover.out
 	tail -n +2 cstore.out >> cover.out
 	tail -n +2 cutils.out >> cover.out
 	tail -n +2 cweb.out >> cover.out
-	rm -f capi.out cmodel.out cstore.out cutils.out cweb.out
+	rm -f capi.out capp.out cmodel.out cstore.out cutils.out cweb.out
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running Enterprise tests

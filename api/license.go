@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -29,7 +30,7 @@ func InitLicense() {
 
 func LoadLicense() {
 	licenseId := ""
-	if result := <-Srv.Store.System().Get(); result.Err == nil {
+	if result := <-app.Srv.Store.System().Get(); result.Err == nil {
 		props := result.Data.(model.StringMap)
 		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
 	}
@@ -39,7 +40,7 @@ func LoadLicense() {
 		return
 	}
 
-	if result := <-Srv.Store.License().Get(licenseId); result.Err == nil {
+	if result := <-app.Srv.Store.License().Get(licenseId); result.Err == nil {
 		record := result.Data.(*model.LicenseRecord)
 		utils.LoadLicense([]byte(record.Bytes))
 	} else {
@@ -104,7 +105,7 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	if success, licenseStr := utils.ValidateLicense(licenseBytes); success {
 		license = model.LicenseFromJson(strings.NewReader(licenseStr))
 
-		if result := <-Srv.Store.User().AnalyticsUniqueUserCount(""); result.Err != nil {
+		if result := <-app.Srv.Store.User().AnalyticsUniqueUserCount(""); result.Err != nil {
 			return nil, model.NewLocAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, result.Err.Error())
 		} else {
 			uniqueUserCount := result.Data.(int64)
@@ -121,12 +122,12 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 		record := &model.LicenseRecord{}
 		record.Id = license.Id
 		record.Bytes = string(licenseBytes)
-		rchan := Srv.Store.License().Save(record)
+		rchan := app.Srv.Store.License().Save(record)
 
 		sysVar := &model.System{}
 		sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 		sysVar.Value = license.Id
-		schan := Srv.Store.System().SaveOrUpdate(sysVar)
+		schan := app.Srv.Store.System().SaveOrUpdate(sysVar)
 
 		if result := <-rchan; result.Err != nil {
 			RemoveLicense()
@@ -164,7 +165,7 @@ func RemoveLicense() *model.AppError {
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = ""
 
-	if result := <-Srv.Store.System().SaveOrUpdate(sysVar); result.Err != nil {
+	if result := <-app.Srv.Store.System().SaveOrUpdate(sysVar); result.Err != nil {
 		utils.RemoveLicense()
 		return result.Err
 	}
