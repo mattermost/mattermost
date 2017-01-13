@@ -1024,7 +1024,7 @@
         ul,
         ol {
             font-size: .97em;
-            margin-bottom: .4em;
+            margin-bottom: 16px;
             padding-left: 20px;
 
             p {
@@ -1086,6 +1086,12 @@
 
             a {
                 color: $white;
+            }
+        }
+
+        .post-message {
+            *:last-child {
+                margin-bottom: 0;
             }
         }
 

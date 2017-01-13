@@ -85,6 +85,7 @@ export default class PostMessageView extends React.Component {
         return (
             <div>
                 <span
+                    className='post-message'
                     onClick={Utils.handleFormattedTextClick}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
                 />
