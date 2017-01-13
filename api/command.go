@@ -187,6 +187,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 					req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
 					req.Header.Set("Accept", "application/json")
+					req.Header.Set("Token", cmd.Token)
 					if cmd.Method == model.COMMAND_METHOD_POST {
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 					}
