@@ -7,16 +7,12 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
-	"hash/fnv"
 	"html/template"
 	"image"
-	"image/color"
-	"image/draw"
 	_ "image/gif"
 	_ "image/jpeg"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -25,7 +21,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
-	"github.com/golang/freetype"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
@@ -102,94 +97,50 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := r.URL.Query().Get("h")
-	teamId := ""
-	var team *model.Team
-	shouldSendWelcomeEmail := true
 	user.EmailVerified = false
 
-	if len(hash) > 0 {
-		data := r.URL.Query().Get("d")
-		props := model.MapFromJson(strings.NewReader(data))
+	shouldSendWelcomeEmail := true
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-			c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_link_invalid.app_error", nil, "")
-			return
-		}
-
-		t, err := strconv.ParseInt(props["time"], 10, 64)
-		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-			c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_link_expired.app_error", nil, "")
-			return
-		}
-
-		teamId = props["id"]
-
-		// try to load the team to make sure it exists
-		if result := <-app.Srv.Store.Team().Get(teamId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			team = result.Data.(*model.Team)
-		}
-
-		user.Email = props["email"]
-		user.EmailVerified = true
-		shouldSendWelcomeEmail = false
-	}
-
+	hash := r.URL.Query().Get("h")
 	inviteId := r.URL.Query().Get("iid")
-	if len(inviteId) > 0 {
-		if result := <-app.Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			team = result.Data.(*model.Team)
-			teamId = team.Id
-		}
-	}
-
-	firstAccount := false
-	if app.SessionCacheLength() == 0 {
-		if cr := <-app.Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
-			c.Err = cr.Err
-			return
-		} else {
-			count := cr.Data.(int64)
-			if count <= 0 {
-				firstAccount = true
-			}
-		}
-	}
-
-	if !firstAccount && !*utils.Cfg.TeamSettings.EnableOpenServer && len(teamId) == 0 {
-		c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
-		return
-	}
 
 	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 		return
 	}
 
-	ruser, err := app.CreateUser(user)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if len(teamId) > 0 {
-		err := app.JoinUserToTeam(team, ruser)
+	var ruser *model.User
+	var err *model.AppError
+	if len(hash) > 0 {
+		data := r.URL.Query().Get("d")
+		ruser, err = app.CreateUserWithHash(user, hash, data)
 		if err != nil {
 			c.Err = err
 			return
 		}
 
-		go addDirectChannels(team.Id, ruser)
+		shouldSendWelcomeEmail = false
+	} else if len(inviteId) > 0 {
+		ruser, err = app.CreateUserWithInviteId(user, inviteId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	} else {
+		if !app.IsFirstUserAccount() && !*utils.Cfg.TeamSettings.EnableOpenServer {
+			c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
+			return
+		}
+
+		ruser, err = app.CreateUser(user)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	if shouldSendWelcomeEmail {
-		go sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
+		sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -239,77 +190,6 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	return shouldVerifyHash
 }
 
-func CreateOAuthUser(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader, teamId string) *model.User {
-	var user *model.User
-	provider := einterfaces.GetOauthProvider(service)
-	if provider == nil {
-		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": strings.Title(service)}, "")
-		return nil
-	} else {
-		user = provider.GetUserFromJson(userData)
-	}
-
-	if user == nil {
-		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, "")
-		return nil
-	}
-
-	suchan := app.Srv.Store.User().GetByAuth(user.AuthData, service)
-	euchan := app.Srv.Store.User().GetByEmail(user.Email)
-
-	found := true
-	count := 0
-	for found {
-		if found = IsUsernameTaken(user.Username); found {
-			user.Username = user.Username + strconv.Itoa(count)
-			count += 1
-		}
-	}
-
-	if result := <-suchan; result.Err == nil {
-		c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_used.app_error",
-			map[string]interface{}{"Service": service}, "email="+user.Email)
-		return nil
-	}
-
-	if result := <-euchan; result.Err == nil {
-		authService := result.Data.(*model.User).AuthService
-		if authService == "" {
-			c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
-				map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email)
-		} else {
-			c.Err = model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
-				map[string]interface{}{"Service": service, "Auth": authService}, "email="+user.Email)
-		}
-		return nil
-	}
-
-	user.EmailVerified = true
-
-	ruser, err := app.CreateUser(user)
-	if err != nil {
-		c.Err = err
-		return nil
-	}
-
-	if len(teamId) > 0 {
-		err = app.JoinUserToTeamById(teamId, user)
-		if err != nil {
-			c.Err = err
-			return nil
-		}
-
-		go addDirectChannels(teamId, user)
-	}
-
-	doLogin(c, w, r, ruser, "")
-	if c.Err != nil {
-		return nil
-	}
-
-	return ruser
-}
-
 func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, verified bool) {
 	rawUrl, _ := url.Parse(siteURL)
 
@@ -336,43 +216,6 @@ func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, v
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
 		l4g.Error(utils.T("api.user.send_welcome_email_and_forget.failed.error"), err)
-	}
-}
-
-func addDirectChannels(teamId string, user *model.User) {
-	var profiles map[string]*model.User
-	if result := <-app.Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
-		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
-		return
-	} else {
-		profiles = result.Data.(map[string]*model.User)
-	}
-
-	var preferences model.Preferences
-
-	for id := range profiles {
-		if id == user.Id {
-			continue
-		}
-
-		profile := profiles[id]
-
-		preference := model.Preference{
-			UserId:   user.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-			Name:     profile.Id,
-			Value:    "true",
-		}
-
-		preferences = append(preferences, preference)
-
-		if len(preferences) >= 10 {
-			break
-		}
-	}
-
-	if result := <-app.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		l4g.Error(utils.T("api.user.add_direct_channels_and_forget.failed.error"), user.Id, teamId, result.Err.Error())
 	}
 }
 
@@ -418,21 +261,19 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(id) != 0 {
 		c.LogAuditWithUserId(id, "attempt")
 
-		if result := <-app.Srv.Store.User().Get(id); result.Err != nil {
+		if user, err = app.GetUser(id); err != nil {
 			c.LogAuditWithUserId(id, "failure")
-			c.Err = result.Err
+			c.Err = err
 			c.Err.StatusCode = http.StatusBadRequest
 			if einterfaces.GetMetricsInterface() != nil {
 				einterfaces.GetMetricsInterface().IncrementLoginFail()
 			}
 			return
-		} else {
-			user = result.Data.(*model.User)
 		}
 	} else {
 		c.LogAudit("attempt")
 
-		if user, err = getUserForLogin(loginId, ldapOnly); err != nil {
+		if user, err = app.GetUserForLogin(loginId, ldapOnly); err != nil {
 			c.LogAudit("failure")
 			c.Err = err
 			if einterfaces.GetMetricsInterface() != nil {
@@ -469,37 +310,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(user.ToJson()))
 }
 
-func getUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed && *utils.License.Features.LDAP
-
-	if result := <-app.Srv.Store.User().GetForLogin(
-		loginId,
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername && !onlyLdap,
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail && !onlyLdap,
-		ldapAvailable,
-	); result.Err != nil && result.Err.Id == "store.sql_user.get_for_login.multiple_users" {
-		// don't fall back to LDAP in this case since we already know there's an LDAP user, but that it shouldn't work
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	} else if result.Err != nil {
-		if !ldapAvailable {
-			// failed to find user and no LDAP server to fall back on
-			result.Err.StatusCode = http.StatusBadRequest
-			return nil, result.Err
-		}
-
-		// fall back to LDAP server to see if we can find a user
-		if ldapUser, ldapErr := einterfaces.GetLdapInterface().GetUser(loginId); ldapErr != nil {
-			ldapErr.StatusCode = http.StatusBadRequest
-			return nil, ldapErr
-		} else {
-			return ldapUser, nil
-		}
-	} else {
-		return result.Data.(*model.User), nil
-	}
-}
-
 func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
 	buf := bytes.Buffer{}
 	buf.ReadFrom(userData)
@@ -521,20 +331,23 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	}
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByAuth(&authData, service); result.Err != nil {
-		if result.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			return CreateOAuthUser(c, w, r, service, bytes.NewReader(buf.Bytes()), "")
+	var err *model.AppError
+	if user, err = app.GetUserByAuth(&authData, service); err != nil {
+		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
+			if user, err = app.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), ""); err != nil {
+				c.Err = err
+				return nil
+			}
 		}
-		c.Err = result.Err
+		c.Err = err
 		return nil
-	} else {
-		user = result.Data.(*model.User)
-		doLogin(c, w, r, user, "")
-		if c.Err != nil {
-			return nil
-		}
-		return user
 	}
+
+	doLogin(c, w, r, user, "")
+	if c.Err != nil {
+		return nil
+	}
+	return user
 }
 
 // User MUST be authenticated completely before calling Login
@@ -558,9 +371,8 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 			for _, session := range sessions {
 				if session.DeviceId == deviceId {
 					l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, user.Id)
-					RevokeSessionById(c, session.Id)
-					if c.Err != nil {
-						c.LogError(c.Err)
+					if err := app.RevokeSessionById(session.Id); err != nil {
+						c.LogError(err)
 						c.Err = nil
 					}
 				}
@@ -634,7 +446,12 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	id := props["id"]
-	RevokeSessionById(c, id)
+
+	if err := app.RevokeSessionById(id); err != nil {
+		c.Err = err
+		return
+	}
+
 	w.Write([]byte(model.MapToJson(props)))
 }
 
@@ -652,23 +469,11 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// A special case where we logout of all other sessions with the same Id
-	if result := <-app.Srv.Store.Session().GetSessions(c.Session.UserId); result.Err != nil {
-		c.Err = result.Err
+	// A special case where we logout of all other sessions with the same device id
+	if err := app.RevokeSessionsForDeviceId(c.Session.UserId, deviceId, c.Session.Id); err != nil {
+		c.Err = err
 		c.Err.StatusCode = http.StatusInternalServerError
 		return
-	} else {
-		sessions := result.Data.([]*model.Session)
-		for _, session := range sessions {
-			if session.DeviceId == deviceId && session.Id != c.Session.Id {
-				l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, c.Session.UserId)
-				RevokeSessionById(c, session.Id)
-				if c.Err != nil {
-					c.LogError(c.Err)
-					c.Err = nil
-				}
-			}
-		}
 	}
 
 	app.RemoveAllSessionsForUserId(c.Session.UserId)
@@ -694,32 +499,12 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, sessionCookie)
 
-	if result := <-app.Srv.Store.Session().UpdateDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); result.Err != nil {
-		c.Err = result.Err
+	if err := app.AttachDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); err != nil {
+		c.Err = err
 		return
 	}
 
 	w.Write([]byte(model.MapToJson(props)))
-}
-
-func RevokeSessionById(c *Context, sessionId string) {
-	if result := <-app.Srv.Store.Session().Get(sessionId); result.Err != nil {
-		c.Err = result.Err
-	} else {
-		session := result.Data.(*model.Session)
-		c.LogAudit("session_id=" + session.Id)
-
-		if session.IsOAuth {
-			RevokeAccessToken(session.Token)
-		} else {
-			if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-				c.Err = result.Err
-			}
-		}
-
-		RevokeWebrtcToken(session.Id)
-		app.RemoveAllSessionsForUserId(session.UserId)
-	}
 }
 
 // IF YOU UPDATE THIS PLEASE UPDATE BELOW
@@ -733,7 +518,7 @@ func RevokeAllSession(c *Context, userId string) {
 		for _, session := range sessions {
 			c.LogAuditWithUserId(userId, "session_id="+session.Id)
 			if session.IsOAuth {
-				RevokeAccessToken(session.Token)
+				app.RevokeAccessToken(session.Token)
 			} else {
 				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					c.Err = result.Err
@@ -741,7 +526,7 @@ func RevokeAllSession(c *Context, userId string) {
 				}
 			}
 
-			RevokeWebrtcToken(session.Id)
+			app.RevokeWebrtcToken(session.Id)
 		}
 	}
 
@@ -758,14 +543,14 @@ func RevokeAllSessionsNoContext(userId string) *model.AppError {
 
 		for _, session := range sessions {
 			if session.IsOAuth {
-				RevokeAccessToken(session.Token)
+				app.RevokeAccessToken(session.Token)
 			} else {
 				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
 					return result.Err
 				}
 			}
 
-			RevokeWebrtcToken(session.Id)
+			app.RevokeWebrtcToken(session.Id)
 		}
 	}
 
@@ -810,23 +595,26 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
 	if c.Session.Id != "" {
-		RevokeSessionById(c, c.Session.Id)
+		if err := app.RevokeSessionById(c.Session.Id); err != nil {
+			c.Err = err
+			return
+		}
 	}
 }
 
 func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-		c.Err = result.Err
+	if user, err := app.GetUser(c.Session.UserId); err != nil {
+		c.Err = err
 		c.RemoveSessionCookie(w, r)
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
+	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
 		return
 	} else {
-		result.Data.(*model.User).Sanitize(map[string]bool{})
-		w.Header().Set(model.HEADER_ETAG_SERVER, result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
-		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		user.Sanitize(map[string]bool{})
+		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
+		w.Write([]byte(user.ToJson()))
 		return
 	}
 }
@@ -835,59 +623,36 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	il := model.InitialLoad{}
 
-	var cchan store.StoreChannel
+	if len(c.Session.UserId) != 0 {
+		var err *model.AppError
+
+		il.User, err = app.GetUser(c.Session.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		il.User.Sanitize(map[string]bool{})
+
+		il.Preferences, err = app.GetPreferencesForUser(c.Session.Id)
+
+		il.Teams, err = app.GetTeamsForUser(c.Session.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		for _, team := range il.Teams {
+			team.Sanitize()
+		}
+
+		il.TeamMembers = c.Session.TeamMembers
+	}
 
 	if app.SessionCacheLength() == 0 {
 		// Below is a special case when intializating a new server
 		// Lets check to make sure the server is really empty
 
-		cchan = app.Srv.Store.User().GetTotalUsersCount()
-	}
-
-	if len(c.Session.UserId) != 0 {
-		uchan := app.Srv.Store.User().Get(c.Session.UserId)
-		pchan := app.Srv.Store.Preference().GetAll(c.Session.UserId)
-		tchan := app.Srv.Store.Team().GetTeamsByUserId(c.Session.UserId)
-
-		il.TeamMembers = c.Session.TeamMembers
-
-		if ru := <-uchan; ru.Err != nil {
-			c.Err = ru.Err
-			return
-		} else {
-			il.User = ru.Data.(*model.User)
-			il.User.Sanitize(map[string]bool{})
-		}
-
-		if rp := <-pchan; rp.Err != nil {
-			c.Err = rp.Err
-			return
-		} else {
-			il.Preferences = rp.Data.(model.Preferences)
-		}
-
-		if rt := <-tchan; rt.Err != nil {
-			c.Err = rt.Err
-			return
-		} else {
-			il.Teams = rt.Data.([]*model.Team)
-
-			for _, team := range il.Teams {
-				team.Sanitize()
-			}
-		}
-	}
-
-	if cchan != nil {
-		if cr := <-cchan; cr.Err != nil {
-			c.Err = cr.Err
-			return
-		} else {
-			count := cr.Data.(int64)
-			if count <= 0 {
-				il.NoAccounts = true
-			}
-		}
+		il.NoAccounts = app.IsFirstUserAccount()
 	}
 
 	il.ClientCfg = utils.ClientCfg
@@ -905,16 +670,19 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if result := <-app.Srv.Store.User().Get(id); result.Err != nil {
-		c.Err = result.Err
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUser(id); err != nil {
+		c.Err = err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get User", w, r) {
+	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get User", w, r) {
 		return
 	} else {
-		user := sanitizeProfile(c, result.Data.(*model.User))
+		sanitizeProfile(c, user)
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
-		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		w.Write([]byte(user.ToJson()))
 		return
 	}
 }
@@ -923,16 +691,19 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	username := params["username"]
 
-	if result := <-app.Srv.Store.User().GetByUsername(username); result.Err != nil {
-		c.Err = result.Err
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUserByUsername(username); err != nil {
+		c.Err = err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
+	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
 		return
 	} else {
-		user := sanitizeProfile(c, result.Data.(*model.User))
+		sanitizeProfile(c, user)
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
-		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		w.Write([]byte(user.ToJson()))
 		return
 	}
 }
@@ -941,16 +712,19 @@ func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	email := params["email"]
 
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
-		c.Err = result.Err
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUserByEmail(email); err != nil {
+		c.Err = err
 		return
-	} else if HandleEtag(result.Data.(*model.User).Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
+	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
 		return
 	} else {
-		user := sanitizeProfile(c, result.Data.(*model.User))
+		sanitizeProfile(c, user)
 
 		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
-		w.Write([]byte(result.Data.(*model.User).ToJson()))
+		w.Write([]byte(user.ToJson()))
 		return
 	}
 }
@@ -970,17 +744,18 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := (<-app.Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
+	etag := app.GetUsersEtag()
 	if HandleEtag(etag, "Get Profiles", w, r) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
-		c.Err = result.Err
+	var profiles map[string]*model.User
+	var profileErr *model.AppError
+
+	if profiles, profileErr = app.GetUsers(offset, limit); profileErr != nil {
+		c.Err = profileErr
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for k, p := range profiles {
 			profiles[k] = sanitizeProfile(c, p)
 		}
@@ -1012,17 +787,18 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := (<-app.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
+	etag := app.GetUsersInTeamEtag(teamId)
 	if HandleEtag(etag, "Get Profiles In Team", w, r) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
-		c.Err = result.Err
+	var profiles map[string]*model.User
+	var profileErr *model.AppError
+
+	if profiles, profileErr = app.GetUsersInTeam(teamId, offset, limit); profileErr != nil {
+		c.Err = profileErr
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for k, p := range profiles {
 			profiles[k] = sanitizeProfile(c, p)
 		}
@@ -1058,12 +834,13 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
-		c.Err = result.Err
+	var profiles map[string]*model.User
+	var profileErr *model.AppError
+
+	if profiles, err = app.GetUsersInChannel(channelId, offset, limit); profileErr != nil {
+		c.Err = profileErr
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for k, p := range profiles {
 			profiles[k] = sanitizeProfile(c, p)
 		}
@@ -1098,12 +875,13 @@ func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetProfilesNotInChannel(c.TeamId, channelId, offset, limit); result.Err != nil {
-		c.Err = result.Err
+	var profiles map[string]*model.User
+	var profileErr *model.AppError
+
+	if profiles, err = app.GetUsersNotInChannel(c.TeamId, channelId, offset, limit); profileErr != nil {
+		c.Err = profileErr
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for k, p := range profiles {
 			profiles[k] = sanitizeProfile(c, p)
 		}
@@ -1120,18 +898,10 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userChan := app.Srv.Store.User().Get(id)
-	auditChan := app.Srv.Store.Audit().Get(id, 20)
-
-	if c.Err = (<-userChan).Err; c.Err != nil {
-		return
-	}
-
-	if result := <-auditChan; result.Err != nil {
-		c.Err = result.Err
+	if audits, err := app.GetAudits(id, 20); err != nil {
+		c.Err = err
 		return
 	} else {
-		audits := result.Data.(model.Audits)
 		etag := audits.Etag()
 
 		if HandleEtag(etag, "Get Audits", w, r) {
@@ -1147,128 +917,29 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createProfileImage(username string, userId string) ([]byte, *model.AppError) {
-	colors := []color.NRGBA{
-		{197, 8, 126, 255},
-		{227, 207, 18, 255},
-		{28, 181, 105, 255},
-		{35, 188, 224, 255},
-		{116, 49, 196, 255},
-		{197, 8, 126, 255},
-		{197, 19, 19, 255},
-		{250, 134, 6, 255},
-		{227, 207, 18, 255},
-		{123, 201, 71, 255},
-		{28, 181, 105, 255},
-		{35, 188, 224, 255},
-		{116, 49, 196, 255},
-		{197, 8, 126, 255},
-		{197, 19, 19, 255},
-		{250, 134, 6, 255},
-		{227, 207, 18, 255},
-		{123, 201, 71, 255},
-		{28, 181, 105, 255},
-		{35, 188, 224, 255},
-		{116, 49, 196, 255},
-		{197, 8, 126, 255},
-		{197, 19, 19, 255},
-		{250, 134, 6, 255},
-		{227, 207, 18, 255},
-		{123, 201, 71, 255},
-	}
-
-	h := fnv.New32a()
-	h.Write([]byte(userId))
-	seed := h.Sum32()
-
-	initial := string(strings.ToUpper(username)[0])
-
-	fontBytes, err := ioutil.ReadFile(utils.FindDir("fonts") + utils.Cfg.FileSettings.InitialFont)
-	if err != nil {
-		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
-	}
-	font, err := freetype.ParseFont(fontBytes)
-	if err != nil {
-		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
-	}
-
-	width := int(utils.Cfg.FileSettings.ProfileWidth)
-	height := int(utils.Cfg.FileSettings.ProfileHeight)
-	color := colors[int64(seed)%int64(len(colors))]
-	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
-	srcImg := image.White
-	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
-	size := float64((width + height) / 4)
-
-	c := freetype.NewContext()
-	c.SetFont(font)
-	c.SetFontSize(size)
-	c.SetClip(dstImg.Bounds())
-	c.SetDst(dstImg)
-	c.SetSrc(srcImg)
-
-	pt := freetype.Pt(width/6, height*2/3)
-	_, err = c.DrawString(initial, pt)
-	if err != nil {
-		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error())
-	}
-
-	buf := new(bytes.Buffer)
-
-	if imgErr := png.Encode(buf, dstImg); imgErr != nil {
-		return nil, model.NewLocAppError("createProfileImage", "api.user.create_profile_image.encode.app_error", nil, imgErr.Error())
-	} else {
-		return buf.Bytes(), nil
-	}
-}
-
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
-	readFailed := false
 
 	var etag string
 
-	if result := <-app.Srv.Store.User().Get(id); result.Err != nil {
-		c.Err = result.Err
+	if user, err := app.GetUser(id); err != nil {
+		c.Err = err
 		return
 	} else {
-		var img []byte
-		etag = strconv.FormatInt(result.Data.(*model.User).LastPictureUpdate, 10)
+		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
 		if HandleEtag(etag, "Profile Image", w, r) {
 			return
 		}
 
-		if len(utils.Cfg.FileSettings.DriverName) == 0 {
-			var err *model.AppError
-			if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
-				c.Err = err
-				return
-			}
-		} else {
-			path := "users/" + id + "/profile.png"
-
-			if data, err := ReadFile(path); err != nil {
-				readFailed = true
-
-				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
-					c.Err = err
-					return
-				}
-
-				if result.Data.(*model.User).LastPictureUpdate == 0 {
-					if err := WriteFile(img, path); err != nil {
-						c.Err = err
-						return
-					}
-				}
-
-			} else {
-				img = data
-			}
+		var img []byte
+		img, err = app.GetProfileImage(user)
+		if err != nil {
+			c.Err = err
+			return
 		}
 
-		if c.Session.UserId == id || readFailed {
+		if c.Session.UserId == id {
 			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
 		} else {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
@@ -1353,7 +1024,7 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	path := "users/" + c.Session.UserId + "/profile.png"
 
-	if err := WriteFile(buf.Bytes(), path); err != nil {
+	if err := app.WriteFile(buf.Bytes(), path); err != nil {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 		return
 	}
@@ -2000,22 +1671,6 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Check if the username is already used by another user. Return false if the username is invalid.
-func IsUsernameTaken(name string) bool {
-
-	if !model.IsValidUsername(name) {
-		return false
-	}
-
-	if result := <-app.Srv.Store.User().GetByUsername(name); result.Err != nil {
-		return false
-	} else {
-		return true
-	}
-
-	return false
-}
-
 func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
@@ -2336,7 +1991,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, error := getUserForLogin(email, false); error != nil {
+	if user, error := app.GetUserForLogin(email, false); error != nil {
 		c.Err = error
 		return
 	} else {
@@ -2403,13 +2058,13 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	if activate {
-		if err := ActivateMfa(c.Session.UserId, token); err != nil {
+		if err := app.ActivateMfa(c.Session.UserId, token); err != nil {
 			c.Err = err
 			return
 		}
 		c.LogAudit("success - activated")
 	} else {
-		if err := DeactivateMfa(c.Session.UserId); err != nil {
+		if err := app.DeactivateMfa(c.Session.UserId); err != nil {
 			c.Err = err
 			return
 		}
@@ -2430,47 +2085,6 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
 	w.Write([]byte(model.MapToJson(rdata)))
-}
-
-func ActivateMfa(userId, token string) *model.AppError {
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
-		err := model.NewLocAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return err
-	}
-
-	var user *model.User
-	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		return result.Err
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-		return model.NewLocAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "")
-	}
-
-	if err := mfaInterface.Activate(user, token); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DeactivateMfa(userId string) *model.AppError {
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
-		err := model.NewLocAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return err
-	}
-
-	if err := mfaInterface.Deactivate(userId); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2592,7 +2206,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_SIGNUP:
 			teamId := relayProps["team_id"]
 			if len(teamId) > 0 {
-				go addDirectChannels(teamId, user)
+				go app.AddDirectChannels(teamId, user)
 			}
 			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:

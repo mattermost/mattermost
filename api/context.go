@@ -469,7 +469,7 @@ func (c *Context) CheckTeamId() {
 				return
 			}
 		} else {
-			// just return because it fail on the HasPermissionToContext and the error is already on the Context c.Err
+			// HasPermissionToContext automatically fills the Context error
 			return
 		}
 	}

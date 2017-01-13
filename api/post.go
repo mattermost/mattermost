@@ -362,13 +362,18 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		post := list.Posts[list.Order[0]]
 
-		// Because we confuse permissions and membership in Mattermost's model, we have to just
-		// try to join the channel without checking if we already have permission to it. This is
-		// because system admins have permissions to every channel but are not nessisary a member
-		// of every channel. If we checked here then system admins would skip joining the channel and
-		// error when they tried to view it.
-		if err, _ := JoinChannelById(c, c.Session.UserId, post.ChannelId); err != nil {
-			// On error just return with permissions error
+		var channel *model.Channel
+		var err *model.AppError
+		if channel, err = app.GetChannel(post.ChannelId); err != nil {
+			c.Err = err
+			return
+		}
+
+		if !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+			return
+		}
+
+		if err = app.JoinChannel(channel, c.Session.UserId); err != nil {
 			c.Err = err
 			return
 		}
@@ -611,7 +616,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if len(post.Filenames) > 0 {
 			// The post has Filenames that need to be replaced with FileInfos
-			infos = migrateFilenamesToFileInfos(post)
+			infos = app.MigrateFilenamesToFileInfos(post)
 		}
 	}
 

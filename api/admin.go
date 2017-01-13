@@ -665,7 +665,7 @@ func adminResetMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := DeactivateMfa(userId); err != nil {
+	if err := app.DeactivateMfa(userId); err != nil {
 		c.Err = err
 		return
 	}

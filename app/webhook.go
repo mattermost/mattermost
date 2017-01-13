@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -118,6 +119,10 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 }
 
 func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
+	// parse links into Markdown format
+	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
+
 	post := &model.Post{UserId: userId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
@@ -135,12 +140,41 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 		}
 	}
 
-	post.Message = parseSlackLinksToMarkdown(post.Message)
-
 	if len(props) > 0 {
 		for key, val := range props {
 			if key == "attachments" {
-				parseSlackAttachment(post, val)
+				if list, success := val.([]interface{}); success {
+					// parse attachment links into Markdown format
+					for i, aInt := range list {
+						attachment := aInt.(map[string]interface{})
+						if aText, ok := attachment["text"].(string); ok {
+							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
+							attachment["text"] = aText
+							list[i] = attachment
+						}
+						if aText, ok := attachment["pretext"].(string); ok {
+							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
+							attachment["pretext"] = aText
+							list[i] = attachment
+						}
+						if fVal, ok := attachment["fields"]; ok {
+							if fields, ok := fVal.([]interface{}); ok {
+								// parse attachment field links into Markdown format
+								for j, fInt := range fields {
+									field := fInt.(map[string]interface{})
+									if fValue, ok := field["value"].(string); ok {
+										fValue = linkWithTextRegex.ReplaceAllString(fValue, "[${2}](${1})")
+										field["value"] = fValue
+										fields[j] = field
+									}
+								}
+								attachment["fields"] = fields
+								list[i] = attachment
+							}
+						}
+					}
+					post.AddProp(key, list)
+				}
 			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)
 			}
