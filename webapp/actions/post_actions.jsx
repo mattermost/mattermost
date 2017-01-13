@@ -363,6 +363,21 @@ export function createPost(post, doLoadPost, success, error) {
     );
 }
 
+export function updatePost(post, success) {
+    Client.updatePost(
+        post,
+        () => {
+            loadPosts(post.channel_id);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'updatePost');
+        });
+}
+
 export function removePostFromStore(post) {
     PostStore.removePost(post);
     PostStore.emitChange();

@@ -9,11 +9,9 @@ import MessageHistoryStore from 'stores/message_history_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {loadPosts} from 'actions/post_actions.jsx';
+import {updatePost} from 'actions/post_actions.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 const KeyCodes = Constants.KeyCodes;
@@ -91,16 +89,11 @@ export default class EditPostModal extends React.Component {
             return;
         }
 
-        Client.updatePost(
+        updatePost(
             updatedPost,
             () => {
-                loadPosts(updatedPost.channel_id);
                 window.scrollTo(0, 0);
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'updatePost');
-            }
-        );
+            });
 
         $('#edit_post').modal('hide');
     }
