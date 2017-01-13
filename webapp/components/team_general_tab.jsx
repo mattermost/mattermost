@@ -8,59 +8,8 @@ import SettingItemMax from './setting_item_max.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {updateTeam} from 'actions/team_actions.jsx';
-
-const holders = defineMessages({
-    dirDisabled: {
-        id: 'general_tab.dirDisabled',
-        defaultMessage: 'Team Directory has been disabled.  Please ask a System Admin to enable the Team Directory in the System Console team settings.'
-    },
-    required: {
-        id: 'general_tab.required',
-        defaultMessage: 'This field is required'
-    },
-    chooseName: {
-        id: 'general_tab.chooseName',
-        defaultMessage: 'Please choose a new name for your team'
-    },
-    includeDirTitle: {
-        id: 'general_tab.includeDirTitle',
-        defaultMessage: 'Include this team in the Team Directory'
-    },
-    yes: {
-        id: 'general_tab.yes',
-        defaultMessage: 'Yes'
-    },
-    no: {
-        id: 'general_tab.no',
-        defaultMessage: 'No'
-    },
-    dirOff: {
-        id: 'general_tab.dirOff',
-        defaultMessage: 'Team directory is turned off for this system.'
-    },
-    openInviteTitle: {
-        id: 'general_tab.openInviteTitle',
-        defaultMessage: 'Allow any user with an account on this server to join this team'
-    },
-    codeTitle: {
-        id: 'general_tab.codeTitle',
-        defaultMessage: 'Invite Code'
-    },
-    codeDesc: {
-        id: 'general_tab.codeDesc',
-        defaultMessage: "Click 'Edit' to regenerate Invite Code."
-    },
-    teamNameInfo: {
-        id: 'general_tab.teamNameInfo',
-        defaultMessage: 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.'
-    },
-    teamDescriptionInfo: {
-        id: 'general_tab.teamDescriptionInfo',
-        defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'
-    }
-});
 
 import React from 'react';
 
@@ -156,13 +105,12 @@ class GeneralTab extends React.Component {
         var state = {serverError: '', clientError: ''};
         let valid = true;
 
-        const {formatMessage} = this.props.intl;
         const name = this.state.name.trim();
         if (!name) {
-            state.clientError = formatMessage(holders.required);
+            state.clientError = Utils.localizeMessage('general_tab.required', 'This field is required');
             valid = false;
         } else if (name === this.props.team.display_name) {
-            state.clientError = formatMessage(holders.chooseName);
+            state.clientError = Utils.localizeMessage('general_tab.chooseName', 'Please choose a new name for your team');
             valid = false;
         } else {
             state.clientError = '';
@@ -197,7 +145,7 @@ class GeneralTab extends React.Component {
         if (inviteId) {
             state.clientError = '';
         } else {
-            state.clientError = this.props.intl.fromatMessage(holders.required);
+            state.clientError = Utils.localizeMessage('general_tab.required', 'This field is required');
             valid = false;
         }
 
@@ -230,10 +178,9 @@ class GeneralTab extends React.Component {
         var state = {serverError: '', clientError: ''};
         let valid = true;
 
-        const {formatMessage} = this.props.intl;
         const description = this.state.description.trim();
         if (description === this.props.team.description) {
-            state.clientError = formatMessage(holders.chooseName);
+            state.clientError = Utils.localizeMessage('general_tab.chooseDescription', 'Please choose a new description for your team');
             valid = false;
         } else {
             state.clientError = '';
@@ -324,8 +271,6 @@ class GeneralTab extends React.Component {
             serverError = this.state.serverError;
         }
 
-        const {formatMessage} = this.props.intl;
-
         let openInviteSection;
         if (this.props.activeSection === 'open_invite') {
             const inputs = [
@@ -372,7 +317,7 @@ class GeneralTab extends React.Component {
 
             openInviteSection = (
                 <SettingItemMax
-                    title={formatMessage(holders.openInviteTitle)}
+                    title={Utils.localizeMessage('general_tab.openInviteTitle', 'Allow any user with an account on this server to join this team')}
                     inputs={inputs}
                     submit={this.handleOpenInviteSubmit}
                     server_error={serverError}
@@ -382,14 +327,14 @@ class GeneralTab extends React.Component {
         } else {
             let describe = '';
             if (this.state.allow_open_invite === true) {
-                describe = formatMessage(holders.yes);
+                describe = Utils.localizeMessage('general_tab.yes', 'Yes');
             } else {
-                describe = formatMessage(holders.no);
+                describe = Utils.localizeMessage('general_tab.no', 'No');
             }
 
             openInviteSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.openInviteTitle)}
+                    title={Utils.localizeMessage('general_tab.openInviteTitle', 'Allow any user with an account on this server to join this team')}
                     describe={describe}
                     updateSection={this.onUpdateOpenInviteSection}
                 />
@@ -427,9 +372,19 @@ class GeneralTab extends React.Component {
                         </div>
                     </div>
                     <div className='setting-list__hint'>
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='general_tab.codeLongDesc'
-                            defaultMessage='The Invite Code is used as part of the URL in the team invitation link created by <strong>Get Team Invite Link</strong> in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.'
+                            defaultMessage='The Invite Code is used as part of the URL in the team invitation link created by {getTeamInviteLink} in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.'
+                            values={{
+                                getTeamInviteLink: (
+                                    <strong>
+                                        <FormattedMessage
+                                            id='general_tab.getTeamInviteLink'
+                                            defaultMessage='Get Team Invite Link'
+                                        />
+                                    </strong>
+                                )
+                            }}
                         />
                     </div>
                 </div>
@@ -437,7 +392,7 @@ class GeneralTab extends React.Component {
 
             inviteSection = (
                 <SettingItemMax
-                    title={formatMessage(holders.codeTitle)}
+                    title={Utils.localizeMessage('general_tab.codeTitle', 'Invite Code')}
                     inputs={inputs}
                     submit={this.handleInviteIdSubmit}
                     server_error={serverError}
@@ -448,8 +403,8 @@ class GeneralTab extends React.Component {
         } else {
             inviteSection = (
                 <SettingItemMin
-                    title={formatMessage(holders.codeTitle)}
-                    describe={formatMessage(holders.codeDesc)}
+                    title={Utils.localizeMessage('general_tab.codeTitle', 'Invite Code')}
+                    describe={Utils.localizeMessage('general_tab.codeDesc', "Click 'Edit' to regenerate Invite Code.")}
                     updateSection={this.onUpdateInviteIdSection}
                 />
             );
@@ -488,11 +443,11 @@ class GeneralTab extends React.Component {
                 </div>
             );
 
-            const nameExtraInfo = <span>{formatMessage(holders.teamNameInfo)}</span>;
+            const nameExtraInfo = <span>{Utils.localizeMessage('general_tab.teamNameInfo', 'Set the name of the team as it appears on your sign-in screen and at the top of the left-hand sidebar.')}</span>;
 
             nameSection = (
                 <SettingItemMax
-                    title={formatMessage({id: 'general_tab.teamName'})}
+                    title={Utils.localizeMessage('general_tab.teamName', 'Team Name')}
                     inputs={inputs}
                     submit={this.handleNameSubmit}
                     server_error={serverError}
@@ -506,7 +461,7 @@ class GeneralTab extends React.Component {
 
             nameSection = (
                 <SettingItemMin
-                    title={formatMessage({id: 'general_tab.teamName'})}
+                    title={Utils.localizeMessage('general_tab.teamName', 'Team Name')}
                     describe={describe}
                     updateSection={this.onUpdateNameSection}
                 />
@@ -546,11 +501,11 @@ class GeneralTab extends React.Component {
                 </div>
             );
 
-            const descriptionExtraInfo = <span>{formatMessage(holders.teamDescriptionInfo)}</span>;
+            const descriptionExtraInfo = <span>{Utils.localizeMessage('general_tab.teamDescriptionInfo', 'Team description provides additional information to help users select the right team. Maximum of 50 characters.')}</span>;
 
             descriptionSection = (
                 <SettingItemMax
-                    title={formatMessage({id: 'general_tab.teamDescription'})}
+                    title={Utils.localizeMessage('general_tab.teamDescription', 'Team Description')}
                     inputs={inputs}
                     submit={this.handleDescriptionSubmit}
                     server_error={serverError}
@@ -574,7 +529,7 @@ class GeneralTab extends React.Component {
 
             descriptionSection = (
                 <SettingItemMin
-                    title={formatMessage({id: 'general_tab.teamDescription'})}
+                    title={Utils.localizeMessage('general_tab.teamDescription', 'Team Description')}
                     describe={describemsg}
                     updateSection={this.onUpdateDescriptionSection}
                 />
@@ -633,10 +588,9 @@ class GeneralTab extends React.Component {
 }
 
 GeneralTab.propTypes = {
-    intl: intlShape.isRequired,
     updateSection: React.PropTypes.func.isRequired,
     team: React.PropTypes.object.isRequired,
     activeSection: React.PropTypes.string.isRequired
 };
 
-export default injectIntl(GeneralTab);
+export default GeneralTab;
