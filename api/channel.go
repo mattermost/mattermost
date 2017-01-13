@@ -1177,7 +1177,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	mchan := Srv.Store.Channel().GetMember(channelId, userId)
+	mchan := app.Srv.Store.Channel().GetMember(channelId, userId)
 
 	newRoles := props["new_roles"]
 	if !(model.IsValidUserRoles(newRoles)) {
@@ -1199,12 +1199,12 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 
 	member.Roles = newRoles
 
-	if result := <-Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
+	if result := <-app.Srv.Store.Channel().UpdateMember(&member); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
 
-	InvalidateCacheForUser(userId)
+	app.InvalidateCacheForUser(userId)
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
