@@ -421,6 +421,11 @@ export default class PostList extends React.Component {
                     this.scrollToBottom();
                 }
             });
+
+            // This avoids the scroll jumping from top to bottom after the page has rendered (PLT-5025).
+            if (!this.refs.newMessageSeparator) {
+                this.scrollToBottom();
+            }
         } else if (this.props.scrollType === ScrollTypes.POST && this.props.scrollPostId) {
             window.requestAnimationFrame(() => {
                 const postNode = ReactDOM.findDOMNode(this.refs[this.props.scrollPostId]);
