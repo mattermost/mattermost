@@ -48,7 +48,7 @@ func InitTeam() {
 
 	// These should be moved to the global admin console
 	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequired(addUserToTeamFromInvite)).Methods("POST")
+	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequiredMfa(addUserToTeamFromInvite)).Methods("POST")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -378,7 +378,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList = append(emailList, invite["email"])
 	}
 
-	InviteMembers(team, user.GetDisplayName(), emailList)
+	InviteMembers(team, user.GetDisplayName(), emailList, c.GetSiteURL())
 
 	w.Write([]byte(invites.ToJson()))
 }
@@ -640,7 +640,7 @@ func getMyTeamsUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func InviteMembers(team *model.Team, senderName string, invites []string) {
+func InviteMembers(team *model.Team, senderName string, invites []string, siteURL string) {
 	for _, invite := range invites {
 		if len(invite) > 0 {
 			senderRole := utils.T("api.team.invite_members.member")
@@ -649,13 +649,13 @@ func InviteMembers(team *model.Team, senderName string, invites []string) {
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
 
 			bodyPage := utils.NewHTMLTemplate("invite_body", model.DEFAULT_LOCALE)
-			bodyPage.Props["SiteURL"] = *utils.Cfg.ServiceSettings.SiteURL
+			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.invite_body.info",
 				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName}))
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Html["ExtraInfo"] = template.HTML(utils.T("api.templates.invite_body.extra_info",
-				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": *utils.Cfg.ServiceSettings.SiteURL + "/" + team.Name}))
+				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": siteURL + "/" + team.Name}))
 
 			props := make(map[string]string)
 			props["email"] = invite
@@ -665,7 +665,7 @@ func InviteMembers(team *model.Team, senderName string, invites []string) {
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
 			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
-			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", *utils.Cfg.ServiceSettings.SiteURL, url.QueryEscape(data), url.QueryEscape(hash))
+			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
 
 			if !utils.Cfg.EmailSettings.SendEmailNotifications {
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])

@@ -737,11 +737,11 @@
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+HOCH (im leeren Eingabefeld): Die letzte Nachricht oder den letzten Slash-Befehl anzeigen\n"
+    "translation": "{{.CmdOrCtrl}}+RUNTER (im leeren Eingabefeld): Die nächste Nachricht oder den nächsten Slash-Befehl anzeigen\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+HOCH (im leeren Eingabefeld): Die letzte Nachricht oder den letzten Slash-Befehl anzeigen\n"
+    "translation": "{{.CmdOrCtrl}}+HOCH (im leeren Eingabefeld): Die vorherige Nachricht oder den vorherigen Slash-Befehl anzeigen\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -1172,6 +1172,10 @@
   {
     "id": "api.general.init.debug",
     "translation": "Initialisiere allgemeine API-Routen"
+  },
+  {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "Fehler beim Anfügen der Dateien an Nachricht. postId=%v, fileIds=%v, message=%v"
   },
   {
     "id": "api.import.import_post.saving.debug",

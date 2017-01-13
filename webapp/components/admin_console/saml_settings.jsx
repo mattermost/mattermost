@@ -296,9 +296,9 @@ export default class SamlSettings extends AdminSettings {
             <SettingsGroup>
                 <div className='banner'>
                     <div className='banner__content'>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.saml.bannerDesc'
-                            defaultMessage='If a user attribute changes on the SAML server it will be updated the next time the user enters their credentials to log in to Mattermost. This includes if a user is made inactive or removed from a SAML Identity Provider. Remote logout with SAML servers is considered in a future release.'
+                            defaultMessage='User attributes in SAML server, including user deactivation or removal, are updated in Mattermost during user login. Learn more at: <a href=\"https://docs.mattermost.com/deployment/sso-saml.html\">https://docs.mattermost.com/deployment/sso-saml.html</a>'
                         />
                     </div>
                 </div>

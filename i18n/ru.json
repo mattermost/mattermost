@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Инициализация административных маршрутов api"
+    "translation": "Инициализация административных маршрутов API"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Нужно использовать createDirectChannel сервис API для создания канала личных сообщений"
+    "translation": "Нужно использовать createDirectChannel из API для создания канала личных сообщений"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Недопустимый идентификатор другого пользователя "
+    "translation": "Неверный идентификатор другого пользователя "
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.init.debug",
-    "translation": "Инициализация канала маршрутов api"
+    "translation": "Инициализация API каналов"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -381,7 +381,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "Несоответствующие права для команды удаления"
+    "translation": "Отсутствуют права на команду удаления"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command.init.debug",
-    "translation": "Инициализация маршрутов api комманд"
+    "translation": "Инициализация API команд"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -485,7 +485,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Image links now collapse by default"
+    "translation": "Теперь ссылки на изображения сокращаются"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command_echo.message.app_error",
-    "translation": "A message must be provided with the /echo command."
+    "translation": "Перед сообщение должна быть команда /echo."
   },
   {
     "id": "api.command_echo.name",
@@ -525,11 +525,11 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Image links now expand by default"
+    "translation": "Теперь ссылки на изображения показываются полностью"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Произошла ошибка при расширении предварительного просмотра"
+    "translation": "Произошла ошибка при открытии превью"
   },
   {
     "id": "api.command_join.desc",
@@ -589,11 +589,11 @@
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "При создании персонального сообщения произошла ошибка."
+    "translation": "При создании канала личных сообщений произошла ошибка."
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Ошибка при передачи сообщения пользователю."
+    "translation": "Произошла ошибка при передаче сообщения пользователю."
   },
   {
     "id": "api.command_msg.hint",
@@ -601,7 +601,7 @@
   },
   {
     "id": "api.command_msg.list.app_error",
-    "translation": "При перечислении пользователей произошла ошибка."
+    "translation": "Произошла ошибка при перечислении пользователей."
   },
   {
     "id": "api.command_msg.missing.app_error",
@@ -641,11 +641,11 @@
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
+    "translation": "{{.ChannelNextCmd}}: Следующий канал в вашей истории\n"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RIGHT"
+    "translation": "ALT+ВПРАВО"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
@@ -653,11 +653,11 @@
   },
   {
     "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
+    "translation": "{{.ChannelPrevCmd}}: Предыдущий канал в вашей истории\n"
   },
   {
     "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
+    "translation": "ALT+ВЛЕВО"
   },
   {
     "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
@@ -665,27 +665,27 @@
   },
   {
     "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
+    "translation": "{{.CmdOrCtrl}}+МИНУС: Уменьшить размер шрифта (отдалить)\n"
   },
   {
     "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
+    "translation": "{{.CmdOrCtrl}}+ПЛЮС: Увеличить размер шрифта (приблизить)\n"
   },
   {
     "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Built-in Browser Commands\n\n"
+    "translation": "#### Встроенные команды\n\n"
   },
   {
     "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
+    "translation": "SHIFT+ВНИЗ (в поле ввода): Выделить текст до следующей строки\n"
   },
   {
     "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
+    "translation": "SHIFT+ВВЕРХ (в поле ввода): Выделить текст до предыдущей строки\n"
   },
   {
     "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
+    "translation": "SHIFT+ВВОД (в поле ввода): Создать новую строку\n"
   },
   {
     "id": "api.command_shortcuts.cmd",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
+    "translation": "{{.CmdOrCtrl}}+U: Загрузить файл(ы)\n\n"
   },
   {
     "id": "api.command_shortcuts.header",
@@ -713,19 +713,19 @@
   },
   {
     "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
+    "translation": "~[character]+TAB: Автодополнение названия канала, начинающегося с символа [character]\n"
   },
   {
     "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
+    "translation": ":[character]+TAB: Автодополнение эмодзи, начинающегося с символа [character]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
+    "translation": "@[character]+TAB: Автодополнение @имени пользователя, начинающегося с символа [character]\n"
   },
   {
     "id": "api.command_shortcuts.msgs.edit",
-    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
+    "translation": "ВВЕРХ (в пустом поле ввода): Редактировать ваше последнее сообщение в этом канале\n"
   },
   {
     "id": "api.command_shortcuts.msgs.header",
@@ -733,15 +733,15 @@
   },
   {
     "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Mark all messages in the current channel as read\n"
+    "translation": "ESC: Пометить все сообщения в текущем канале как прочитанные\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
+    "translation": "{{.CmdOrCtrl}}+ВНИЗ (в пустом поле ввода): Ввести следующее сообщение или команду\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
+    "translation": "{{.CmdOrCtrl}}+ВВЕРХ (в пустом поле ввода): Ввести предыдущее сообщение или команду\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -753,31 +753,31 @@
   },
   {
     "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+    "translation": "ALT+ВНИЗ: Следующий канал или диалог в левом боковом меню\n"
   },
   {
     "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+    "translation": "ALT+ВВЕРХ: Предыдущий канал или диалог в левом боковом меню\n"
   },
   {
     "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Открыть недавние упоминания\n\n"
   },
   {
     "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Открыть настройки аккаунта\n"
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+    "translation": "{{.CmdOrCtrl}}+K: Открыть диалог переключения между каналами\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+    "translation": "ALT+SHIFT+ВВЕРХ: Следующий канал или диалог в левом боковом меню с непрочитанными сообщениями\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
+    "translation": "ALT+SHIFT+ВВЕРХ: Предыдущий канал или диалог в левом боковом меню с непрочитанными сообщениями\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.context.invalid_team_url.debug",
-    "translation": "URL сайта команды доступен, но не действителен. URL сайта команды не должны использоваться в функциях API."
+    "translation": "Адрес команды доступен, но не корректен. Он не должен использоваться в API или в тех функциях, что независимы от неё."
   },
   {
     "id": "api.context.invalid_token.error",
@@ -923,7 +923,7 @@
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Несоответствующие права для создания смайлика."
+    "translation": "Отсутствуют права на создание эмодзи."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
@@ -931,11 +931,11 @@
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
+    "translation": "Не удалось удалить реакции при удалении эмодзи с именем %v"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
-    "translation": "Несоответствующие права для удаления смайлика."
+    "translation": "Отсутствуют права на удаление эмодзи."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -951,7 +951,7 @@
   },
   {
     "id": "api.emoji.init.debug",
-    "translation": "Инициализация маршрутов api смайликов"
+    "translation": "Инициализация API эмодзи"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1039,7 +1039,7 @@
   },
   {
     "id": "api.file.init.debug",
-    "translation": "Инициализация маршрутов файлового api"
+    "translation": "Инициализация API файлов"
   },
   {
     "id": "api.file.migrate_filenames_to_file_infos.channel.app_error",
@@ -1171,7 +1171,11 @@
   },
   {
     "id": "api.general.init.debug",
-    "translation": "Инициализация основных маршрутов api"
+    "translation": "Инициализация API основных маршрутов"
+  },
+  {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "Ошибка добавления вложения к сообщению. postId=%v, fileIds=%v, message=%v"
   },
   {
     "id": "api.import.import_post.saving.debug",
@@ -1343,7 +1347,7 @@
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
-    "translation": "Несоответствующие права для восстановления секрета приложения OAuth2"
+    "translation": "Несоответствующие права для создания новой секретной строки приложения OAuth2"
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1629,7 +1633,7 @@
   },
   {
     "id": "api.preference.init.debug",
-    "translation": "Инициализация API"
+    "translation": "Инициализация API настроек"
   },
   {
     "id": "api.preference.save_preferences.decode.app_error",
@@ -1645,23 +1649,23 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
+    "translation": "Не удалось удалить реакцию, так как в адресе идентификатор канала не совпал с идентификатором сообщения"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "Инициализация административных маршрутов api"
+    "translation": "Инициализация API реакций"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
+    "translation": "Не удалось получить реакции, так как в адресе идентификатор канала не совпал с идентификатором сообщения"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
+    "translation": "Не удалось сохранить реакцию, так как в адресе идентификатор канала не совпал с идентификатором сообщения"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
-    "translation": "Failed to get post when sending websocket event for reaction"
+    "translation": "Не удалось получить сообщение при отправке websocket-события реакции"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -1805,7 +1809,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+    "translation": "При слиянии с существующим аккаунтом: {{.Email}}, {{.Username}}, возникла ошибка добавления пользователя в команду.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1885,7 +1889,7 @@
   },
   {
     "id": "api.status.init.debug",
-    "translation": "Инициализация API"
+    "translation": "Инициализация API статусов"
   },
   {
     "id": "api.status.last_activity.error",
@@ -1949,11 +1953,11 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present."
+    "translation": "Неправильный запрос: отсутствует поле \"filesize\"."
   },
   {
     "id": "api.team.init.debug",
-    "translation": "Инициализация API"
+    "translation": "Инициализация API команд"
   },
   {
     "id": "api.team.invite_members.admin",
@@ -2105,23 +2109,23 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Многофакторная проверка подлинности была активирована для вашего аккаунта на {{ .SiteURL }}.<br>Если данное изменение сделано не вами, пожалуйста, обратитесь к администратору системы."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "Многофакторная проверка подлинности активирована"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "Ваша МПП обновлена на {{ .SiteName }}"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Многофакторная проверка подлинности отключена для вашего аккаунта на {{ .SiteURL }}.<br>Если данное изменение сделано не вами, пожалуйста, обратитесь к администратору системы."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "Многофакторная проверка подлинности отключена"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2441,7 +2445,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "Must provide either user ID, or team name and user email"
+    "translation": "Необходимо указать либо идентификатор пользователя, либо имя команды и электронную почту пользователя"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2677,7 +2681,7 @@
   },
   {
     "id": "api.web_socket.init.debug",
-    "translation": "Инициализация API сокетов"
+    "translation": "Инициализация API веб-сокетов"
   },
   {
     "id": "api.web_socket_handler.log.error",
@@ -2749,7 +2753,7 @@
   },
   {
     "id": "api.webhook.init.debug",
-    "translation": "Инициализация API webhook"
+    "translation": "Инициализация API вебхуков"
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
@@ -2757,7 +2761,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Несоответствующие права для генерации нового токена для исходящего вебхука"
+    "translation": "Несоответствующие права для генерации нового токена исходящего вебхука"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2765,7 +2769,7 @@
   },
   {
     "id": "api.webrtc.init.debug",
-    "translation": "Инициализация API WebRTC"
+    "translation": "Инициализация WebRTC API"
   },
   {
     "id": "api.webrtc.register_token.app_error",
@@ -2949,11 +2953,11 @@
   },
   {
     "id": "ent.metrics.starting.info",
-    "translation": "Metrics and profiling server is listening on %v"
+    "translation": "Сервер метрик и профилирования запускается на %v"
   },
   {
     "id": "ent.metrics.stopping.info",
-    "translation": "Metrics and profiling server is stopping on %v"
+    "translation": "Сервер метрик и профилирования останавливается на %v"
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
@@ -3113,7 +3117,7 @@
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
-    "translation": "Невозможно найти канал %v, %v возможностей просмотрено"
+    "translation": "Невозможно найти канал: %v, найдено похожих %v "
   },
   {
     "id": "manaultesting.get_channel_id.unable.debug",
@@ -3133,7 +3137,7 @@
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
-    "translation": "Нет uid в url"
+    "translation": "Отсутствует uid в URL"
   },
   {
     "id": "manaultesting.test_autolink.info",
@@ -3161,7 +3165,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "License key from https://mattermost.com required to unlock enterprise features."
+    "translation": "Требуется лицензионный ключ от https://mattermost.com для доступа к возможностям корпоративной редакции."
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -3361,7 +3365,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Invalid URL"
+    "translation": "Неверный URL"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3757,7 +3761,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Некорректный адрес обратного вызова"
+    "translation": "Неверный адрес колбэка"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -3853,7 +3857,7 @@
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Вы не имеете требуемого допуска"
+    "translation": "Должен быть установлен неверный корневой идентификатор, если установлен родительский"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -4001,7 +4005,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Invalid position: must not be longer than 35 characters."
+    "translation": "Неверная позиция: должно быть не более 35 символов."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -4161,11 +4165,11 @@
   },
   {
     "id": "store.sql.open_conn.critical",
-    "translation": "Не удалось открыть sql-соединение с err:%v"
+    "translation": "Не удалось открыть SQL соединение с err:%v"
   },
   {
     "id": "store.sql.open_conn.panic",
-    "translation": "Не удалось открыть sql-соединение %v"
+    "translation": "Не удалось открыть SQL соединение %v"
   },
   {
     "id": "store.sql.ping.critical",
@@ -4309,7 +4313,7 @@
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "Ни одного участника канала не было найдено для данных идентификаторов пользователя и канала"
+    "translation": "Не найдено ни одного участника канала по данному идентификатору пользователя и канала"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -4325,7 +4329,7 @@
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Не удалось получить участников канала"
+    "translation": "Не удалось получить список участников канала"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
@@ -4785,43 +4789,43 @@
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction"
+    "translation": "Не удалось открыть транзакцию при удалении реакции"
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction"
+    "translation": "Не удалось совершить транзакцию при удалении реакции"
   },
   {
     "id": "store.sql_reaction.delete.save.app_error",
-    "translation": "Unable to delete reaction"
+    "translation": "Не удалось удалить реакцию"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
-    "translation": "Unable to delete reactions with the given emoji name"
+    "translation": "Не удалось удалить реакцию с данным именем эмодзи"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
-    "translation": "Unable to get reactions with the given emoji name"
+    "translation": "Не удалось получить реакцию с данным именем эмодзи"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
-    "translation": "Unable to update Post.HasReactions while removing reactions post_id=%v, error=%v"
+    "translation": "Не удалось обновить Post.HasReactions во время удаления реакции post_id=%v, error=%v"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "Не удалось получить реакции для данного сообщения"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Unable to open transaction while saving reaction"
+    "translation": "Не удалось открыть транзакцию при сохранении реакции"
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Unable to commit transaction while saving reaction"
+    "translation": "Не удалось совершить транзакцию при сохранении реакции"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Unable to save reaction"
+    "translation": "Не удалось сохранить реакцию"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -4973,7 +4977,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Ни одного участника канала не было найдено для данных идентификаторов пользователя и команды"
+    "translation": "Не найдено ни одного участника команды по данному идентификатору пользователя и канала"
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
@@ -4993,7 +4997,7 @@
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "We couldn't get the teams unread messages"
+    "translation": "Не удалось получить список непрочтённых сообщений для команды"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
@@ -5405,7 +5409,7 @@
   },
   {
     "id": "web.check_browser_compatibility.app_error",
-    "translation": "Ваш текущий браузер не поддерживается, пожалуйста, используйте один из следующих браузеров: Google Chrome 21 или новее, Internet Explorer 11 или новее, FireFox 14 или новее, Safari 9 или более новый"
+    "translation": "Ваш текущий браузер не поддерживается, пожалуйста, используйте один из следующих браузеров: Google Chrome 21 или новее, Internet Explorer 11 или новее, Firefox 14 или новее, Safari 9 или более новый"
   },
   {
     "id": "web.claim_account.team.error",
@@ -5449,7 +5453,7 @@
   },
   {
     "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
+    "translation": "Максимальный размер вложения {{.Max}} символов, полученный размер {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -5477,7 +5481,7 @@
   },
   {
     "id": "web.incoming_webhook.text.length.app_error",
-    "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
+    "translation": "Максимальная длина текста {{.Max}} символов, получено {{.Actual}}"
   },
   {
     "id": "web.incoming_webhook.user.app_error",

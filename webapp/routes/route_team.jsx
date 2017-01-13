@@ -61,6 +61,11 @@ function doChannelChange(state, replace, callback) {
 }
 
 function preNeedsTeam(nextState, replace, callback) {
+    if (RouteUtils.checkIfMFARequired(nextState)) {
+        browserHistory.push('/mfa/setup');
+        return;
+    }
+
     // First check to make sure you're in the current team
     // for the current url.
     const teamName = nextState.params.team;

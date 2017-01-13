@@ -1174,6 +1174,10 @@
     "translation": "Inicializando rutas generales del API"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "Error de adjuntar archivos al mensaje. postId=%v, fileIds=%v, mensaje=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "Error guardando el mensaje. user=%v, message=%v"
   },
@@ -2729,7 +2733,7 @@
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "Permisos inapropiados para eliminar el webhook de salida"
+    "translation": "Permisos no válidos para eliminar el webhook de salida"
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
@@ -2757,7 +2761,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Permisos inapropiados para regenerar un token para el webhook de salida"
+    "translation": "Permisos no válidos para regenerar un token para el webhook de salida"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -5185,7 +5189,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "No se puede cambiar la cuenta a {{.Servicio}}. Ya existe una cuenta con el correo electrónico {{.Email}}."
+    "translation": "No se puede cambiar la cuenta a {{.Service}}. Ya existe una cuenta con el correo electrónico {{.Email}}."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

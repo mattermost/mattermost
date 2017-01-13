@@ -1283,6 +1283,10 @@
     min-width: 320px;
 }
 
+.post-reaction-list {
+    min-height: 30px;
+}
+
 .post-reaction {
     @include user-select(none);
     @include border-radius(3px);

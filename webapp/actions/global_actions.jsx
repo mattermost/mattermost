@@ -55,6 +55,10 @@ export function emitChannelClickEvent(channel) {
             trackPage();
         });
 
+        // Mark previous and next channel as read
+        ChannelStore.resetCounts(ChannelStore.getCurrentId());
+        ChannelStore.resetCounts(chan.id);
+
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
 
         AppDispatcher.handleViewAction({
@@ -487,10 +491,9 @@ export function clientLogout(redirectTo = '/') {
     UserStore.clear();
     TeamStore.clear();
     ChannelStore.clear();
-    newLocalizationSelected(global.window.mm_config.DefaultClientLocale);
     stopPeriodicStatusUpdates();
     WebsocketActions.close();
-    browserHistory.push(redirectTo);
+    window.location.href = redirectTo;
 }
 
 export function emitSearchMentionsEvent(user) {

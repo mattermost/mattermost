@@ -1174,6 +1174,10 @@
     "translation": "일반 API 경로 초기화 중"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "Error attaching files to post. postId=%v, fileIds=%v, message=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "글 저장 오류. 사용자=%v, 메시지=%v"
   },

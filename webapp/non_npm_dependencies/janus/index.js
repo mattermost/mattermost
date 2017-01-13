@@ -1,31 +1,4 @@
 /*
-	The MIT License (MIT)
-
-	Copyright (c) 2016 Meetecho
-
-	Permission is hereby granted, free of charge, to any person obtaining
-	a copy of this software and associated documentation files (the "Software"),
-	to deal in the Software without restriction, including without limitation
-	the rights to use, copy, modify, merge, publish, distribute, sublicense,
-	and/or sell copies of the Software, and to permit persons to whom the
-	Software is furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included
-	in all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-	THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-	OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-	ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-	OTHER DEALINGS IN THE SOFTWARE.
- */
-
-var adapter = require('webrtc-adapter');
-
-// List of sessions
-/*
  The MIT License (MIT)
 
  Copyright (c) 2016 Meetecho
@@ -48,6 +21,8 @@ var adapter = require('webrtc-adapter');
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
  */
+
+var adapter = require('webrtc-adapter');
 
 // List of sessions
 Janus.sessions = {};
@@ -849,6 +824,7 @@ function Janus(gatewayCallbacks) {
         callbacks.consentDialog = (typeof callbacks.consentDialog == "function") ? callbacks.consentDialog : Janus.noop;
         callbacks.mediaState = (typeof callbacks.mediaState == "function") ? callbacks.mediaState : Janus.noop;
         callbacks.webrtcState = (typeof callbacks.webrtcState == "function") ? callbacks.webrtcState : Janus.noop;
+        callbacks.slowLink = (typeof callbacks.slowLink == "function") ? callbacks.slowLink : Janus.noop;
         callbacks.onmessage = (typeof callbacks.onmessage == "function") ? callbacks.onmessage : Janus.noop;
         callbacks.onlocalstream = (typeof callbacks.onlocalstream == "function") ? callbacks.onlocalstream : Janus.noop;
         callbacks.onremotestream = (typeof callbacks.onremotestream == "function") ? callbacks.onremotestream : Janus.noop;
@@ -929,6 +905,7 @@ function Janus(gatewayCallbacks) {
                         consentDialog : callbacks.consentDialog,
                         mediaState : callbacks.mediaState,
                         webrtcState : callbacks.webrtcState,
+                        slowLink : callbacks.slowLink,
                         onmessage : callbacks.onmessage,
                         createOffer : function(callbacks) { prepareWebrtc(handleId, callbacks); },
                         createAnswer : function(callbacks) { prepareWebrtc(handleId, callbacks); },
@@ -1010,6 +987,7 @@ function Janus(gatewayCallbacks) {
                         consentDialog : callbacks.consentDialog,
                         mediaState : callbacks.mediaState,
                         webrtcState : callbacks.webrtcState,
+                        slowLink : callbacks.slowLink,
                         onmessage : callbacks.onmessage,
                         createOffer : function(callbacks) { prepareWebrtc(handleId, callbacks); },
                         createAnswer : function(callbacks) { prepareWebrtc(handleId, callbacks); },

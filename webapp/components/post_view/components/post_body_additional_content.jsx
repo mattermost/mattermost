@@ -136,7 +136,7 @@ export default class PostBodyAdditionalContent extends React.Component {
     }
 
     generateStaticEmbed() {
-        if (this.props.post.type === Constants.POST_TYPE_ATTACHMENT) {
+        if (this.props.post.props && this.props.post.props.attachments) {
             return this.getSlackAttachment();
         }
 

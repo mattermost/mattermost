@@ -432,10 +432,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
             );
         }
 
-        if (global.window.mm_config.EnableSignInWithEmail !== 'true') {
-            passwordReset = null;
-        }
-
         let makeDemoteModal = null;
         if (this.props.user.id === me.id) {
             const title = (
