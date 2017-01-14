@@ -602,3 +602,25 @@ func UpdateUser(user *model.User) (*model.User, *model.AppError) {
 		return rusers[0], nil
 	}
 }
+
+func UpdatePassword(user *model.User, hashedPassword string) *model.AppError {
+	if result := <-Srv.Store.User().UpdatePassword(user.Id, hashedPassword); result.Err != nil {
+		return model.NewLocAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error())
+	}
+
+	return nil
+}
+
+func UpdatePasswordSendEmail(user *model.User, hashedPassword, method string) *model.AppError {
+	if err := UpdatePassword(user, hashedPassword); err != nil {
+		return err
+	}
+
+	go func() {
+		if err := SendPasswordChangeEmail(user.Email, method, user.Locale); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
+
+	return nil
+}
