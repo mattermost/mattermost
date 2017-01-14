@@ -10,7 +10,7 @@ import * as Utils from 'utils/utils.jsx';
 import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {Preferences, TutorialSteps, OVERLAY_TIME_DELAY} from 'utils/constants.jsx';
+import {Preferences, TutorialSteps, Constants} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 export default class SidebarHeader extends React.Component {
@@ -78,7 +78,7 @@ export default class SidebarHeader extends React.Component {
             teamNameWithToolTip = (
                 <OverlayTrigger
                     trigger={['hover', 'focus']}
-                    delayShow={OVERLAY_TIME_DELAY}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement='bottom'
                     overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDescription}</Tooltip>}
                     ref='descriptionOverlay'
