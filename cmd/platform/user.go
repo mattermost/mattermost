@@ -227,7 +227,7 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if system_admin {
-		api.UpdateUserRoles(ruser, "system_user system_admin")
+		app.UpdateUserRoles(ruser.Id, "system_user system_admin")
 	}
 
 	CommandPrettyPrintln("Created User")
@@ -335,7 +335,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := api.PermanentDeleteUser(user); err != nil {
+		if err := app.PermanentDeleteUser(user); err != nil {
 			return err
 		}
 	}
@@ -365,7 +365,7 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := api.PermanentDeleteAllUsers(); err != nil {
+	if err := app.PermanentDeleteAllUsers(); err != nil {
 		return err
 	} else {
 		CommandPrettyPrintln("Sucsessfull. All users deleted.")
