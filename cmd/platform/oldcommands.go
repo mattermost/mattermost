@@ -1095,9 +1095,5 @@ func getMockContext() *api.Context {
 	c.T = utils.TfuncWithFallback(model.DEFAULT_LOCALE)
 	c.Locale = model.DEFAULT_LOCALE
 
-	if *utils.Cfg.ServiceSettings.SiteURL != "" {
-		c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
-	}
-
 	return c
 }

@@ -566,3 +566,39 @@ func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) 
 		return ruser, nil
 	}
 }
+
+func UpdateUser(user *model.User) (*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().Update(user, false); result.Err != nil {
+		return nil, result.Err
+	} else {
+		rusers := result.Data.([2]*model.User)
+
+		if rusers[0].Email != rusers[1].Email {
+			go func() {
+				if err := SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale); err != nil {
+					l4g.Error(err.Error())
+				}
+			}()
+
+			if utils.Cfg.EmailSettings.RequireEmailVerification {
+				go func() {
+					if err := SendEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, rusers[0].Locale); err != nil {
+						l4g.Error(err.Error())
+					}
+				}()
+			}
+		}
+
+		if rusers[0].Username != rusers[1].Username {
+			go func() {
+				if err := SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale); err != nil {
+					l4g.Error(err.Error())
+				}
+			}()
+		}
+
+		InvalidateCacheForUser(user.Id)
+
+		return rusers[0], nil
+	}
+}
