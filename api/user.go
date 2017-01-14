@@ -947,20 +947,19 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result store.StoreResult
+	var user *model.User
+	var err *model.AppError
 
-	if result = <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
 		return
 	}
 
-	if result.Data == nil {
+	if user == nil {
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
-
-	user := result.Data.(*model.User)
 
 	if user.AuthData != nil && *user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
@@ -979,20 +978,14 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if uresult := <-app.Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.failed.app_error", nil, uresult.Err.Error())
+	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.update_password.menu")); err != nil {
+		c.Err = err
 		return
 	} else {
 		c.LogAudit("completed")
 
-		go func() {
-			if err := app.SendPasswordChangeEmail(user.Email, c.T("api.user.update_password.menu"), user.Locale); err != nil {
-				l4g.Error(err.Error())
-			}
-		}()
-
 		data := make(map[string]string)
-		data["user_id"] = uresult.Data.(string)
+		data["user_id"] = c.Session.UserId
 		w.Write([]byte(model.MapToJson(data)))
 	}
 }
@@ -1298,15 +1291,9 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 
 	}
 
-	if result := <-app.Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
-		return result.Err
+	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.reset_password.method")); err != nil {
+		return err
 	}
-
-	go func() {
-		if err := app.SendPasswordChangeEmail(user.Email, c.T("api.user.reset_password.method"), user.Locale); err != nil {
-			l4g.Error(err.Error())
-		}
-	}()
 
 	return nil
 }
@@ -1456,12 +1443,11 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if user.Id != c.Session.UserId {
@@ -1471,9 +1457,9 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(password)); result.Err != nil {
+	if err := app.UpdatePassword(user, model.HashPassword(password)); err != nil {
 		c.LogAudit("fail - database issue")
-		c.Err = result.Err
+		c.Err = err
 		return
 	}
 
@@ -1610,12 +1596,11 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if user.AuthService != model.USER_AUTH_SERVICE_LDAP {
@@ -1642,9 +1627,9 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(emailPassword)); result.Err != nil {
+	if err := app.UpdatePassword(user, model.HashPassword(emailPassword)); err != nil {
 		c.LogAudit("fail - database issue")
-		c.Err = result.Err
+		c.Err = err
 		return
 	}
 
