@@ -351,7 +351,10 @@ export default class SidebarHeaderDropdown extends React.Component {
         if (moreTeams) {
             teams.push(
                 <li key='joinTeam_li'>
-                    <Link to='/select_team'>
+                    <Link
+                        onClick={this.handleClick}
+                        to='/select_team'
+                    >
                         <FormattedMessage
                             id='navbar_dropdown.join'
                             defaultMessage='Join Another Team'
