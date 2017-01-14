@@ -28,7 +28,6 @@ type Context struct {
 	Err          *model.AppError
 	teamURLValid bool
 	teamURL      string
-	siteURL      string
 	T            goi18n.TranslateFunc
 	Locale       string
 	TeamId       string
@@ -143,7 +142,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if utils.GetSiteURL() == "" {
 		protocol := GetProtocol(r)
-		c.SetSiteURL(protocol + "://" + r.Host)
+		utils.SetSiteURL(protocol + "://" + r.Host)
 	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
@@ -389,10 +388,6 @@ func (c *Context) SetTeamURLFromSession() {
 	}
 }
 
-func (c *Context) SetSiteURL(url string) {
-	c.siteURL = strings.TrimRight(url, "/")
-}
-
 func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
 	return c.GetSiteURL() + "/" + team.Name
 }
@@ -408,7 +403,7 @@ func (c *Context) GetTeamURL() string {
 }
 
 func (c *Context) GetSiteURL() string {
-	return c.siteURL
+	return utils.GetSiteURL()
 }
 
 func (c *Context) GetCurrentTeamMember() *model.TeamMember {
