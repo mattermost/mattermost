@@ -209,7 +209,7 @@ func TestIncomingWebhook(t *testing.T) {
 	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
 	app.JoinUserToTeam(team, user)
 
-	api.UpdateUserRoles(user, model.ROLE_SYSTEM_ADMIN.Id)
+	app.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.Login(user.Email, "passwd1")
 	ApiClient.SetTeamId(team.Id)
 

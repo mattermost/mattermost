@@ -369,7 +369,7 @@ func cmdAssignRole() {
 		}
 
 		if !user.IsInRole(flagRole) {
-			api.UpdateUserRoles(user, flagRole)
+			app.UpdateUserRoles(user.Id, flagRole)
 		}
 
 		os.Exit(0)
@@ -823,7 +823,7 @@ func cmdPermDeleteUser() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteUser(user); err != nil {
+		if err := app.PermanentDeleteUser(user); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -896,7 +896,7 @@ func cmdPermDeleteAllUsers() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteAllUsers(); err != nil {
+		if err := app.PermanentDeleteAllUsers(); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {

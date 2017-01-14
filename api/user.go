@@ -1010,18 +1010,10 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
+	if _, err := app.UpdateUserRoles(userId, newRoles); err != nil {
 		return
 	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if _, err := UpdateUserRoles(user, newRoles); err != nil {
-		return
-	} else {
-		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
+		c.LogAuditWithUserId(userId, "roles="+newRoles)
 	}
 
 	rdata := map[string]string{}
@@ -1029,34 +1021,11 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(rdata)))
 }
 
-func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.AppError) {
-
-	user.Roles = newRoles
-	uchan := app.Srv.Store.User().Update(user, true)
-	schan := app.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
-
-	var ruser *model.User
-	if result := <-uchan; result.Err != nil {
-		return nil, result.Err
-	} else {
-		ruser = result.Data.([2]*model.User)[0]
-	}
-
-	if result := <-schan; result.Err != nil {
-		// soft error since the user roles were still updated
-		l4g.Error(result.Err)
-	}
-
-	app.ClearSessionCacheForUser(user.Id)
-
-	return ruser, nil
-}
-
 func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	user_id := props["user_id"]
-	if len(user_id) != 26 {
+	userId := props["user_id"]
+	if len(userId) != 26 {
 		c.SetInvalidParam("updateActive", "user_id")
 		return
 	}
@@ -1064,24 +1033,23 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := props["active"] == "true"
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().Get(user_id); result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	// true when you're trying to de-activate yourself
-	isSelfDeactive := !active && user_id == c.Session.UserId
+	isSelfDeactive := !active && userId == c.Session.UserId
 
 	if !isSelfDeactive && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
-		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+user_id)
+		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+userId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if user.IsLDAPUser() {
-		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user_id)
+		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+userId)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -1089,89 +1057,9 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	if ruser, err := app.UpdateActive(user, active); err != nil {
 		c.Err = err
 	} else {
-		if !active {
-			app.SetStatusOffline(ruser.Id, false)
-		}
-
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
 		w.Write([]byte(ruser.ToJson()))
 	}
-}
-
-func PermanentDeleteUser(user *model.User) *model.AppError {
-	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
-	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
-		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
-	}
-
-	if _, err := app.UpdateActive(user, false); err != nil {
-		return err
-	}
-
-	if result := <-app.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
-
-	return nil
-}
-
-func PermanentDeleteAllUsers() *model.AppError {
-	if result := <-app.Srv.Store.User().GetAll(); result.Err != nil {
-		return result.Err
-	} else {
-		users := result.Data.([]*model.User)
-		for _, user := range users {
-			PermanentDeleteUser(user)
-		}
-	}
-
-	return nil
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1184,11 +1072,10 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		w.Write([]byte(model.MapToJson(props)))
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if user.AuthData != nil && len(*user.AuthData) != 0 {
@@ -1196,11 +1083,9 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recovery := &model.PasswordRecovery{}
-	recovery.UserId = user.Id
-
-	if result := <-app.Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
-		c.Err = result.Err
+	var recovery *model.PasswordRecovery
+	if recovery, err = app.CreatePasswordRecovery(user.Id); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -1244,13 +1129,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := ""
 
-	if result := <-app.Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+	if recovery, err := app.GetPasswordRecovery(code); err != nil {
 		c.LogAuditWithUserId(userId, "fail - bad code")
-		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
+		c.Err = err
 		return
 	} else {
-		recovery := result.Data.(*model.PasswordRecovery)
-
 		if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
 			userId = recovery.UserId
 		} else {
@@ -1259,11 +1142,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		go func() {
-			if result := <-app.Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
-				l4g.Error("%v", result.Err)
-			}
-		}()
+		if err := app.DeletePasswordRecoveryForUser(userId); err != nil {
+			l4g.Error(err.Error())
+		}
 	}
 
 	if err := ResetPassword(c, userId, newPassword); err != nil {
@@ -1280,10 +1161,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 	var user *model.User
-	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		return result.Err
-	} else {
-		user = result.Data.(*model.User)
+	var err *model.AppError
+	if user, err = app.GetUser(userId); err != nil {
+		return err
 	}
 
 	if user.AuthData != nil && len(*user.AuthData) != 0 && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
@@ -1301,15 +1181,13 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	user_id := props["user_id"]
-	if len(user_id) != 26 {
+	userId := props["user_id"]
+	if len(userId) != 26 {
 		c.SetInvalidParam("updateUserNotify", "user_id")
 		return
 	}
 
-	uchan := app.Srv.Store.User().Get(user_id)
-
-	if !HasPermissionToUser(c, user_id) {
+	if !HasPermissionToUser(c, userId) {
 		return
 	}
 
@@ -1340,28 +1218,26 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	user.NotifyProps = props
 
-	if result := <-app.Srv.Store.User().Update(user, false); result.Err != nil {
-		c.Err = result.Err
+	var ruser *model.User
+	if ruser, err = app.UpdateUser(user); err != nil {
+		c.Err = err
 		return
-	} else {
-		c.LogAuditWithUserId(user.Id, "")
-		app.InvalidateCacheForUser(user.Id)
-
-		ruser := result.Data.([2]*model.User)[0]
-		options := utils.Cfg.GetSanitizeOptions()
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
-		w.Write([]byte(ruser.ToJson()))
 	}
+
+	c.LogAuditWithUserId(user.Id, "")
+
+	options := utils.Cfg.GetSanitizeOptions()
+	options["passwordupdate"] = false
+	ruser.Sanitize(options)
+	w.Write([]byte(ruser.ToJson()))
 }
 
 func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1390,12 +1266,11 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
@@ -1519,12 +1394,11 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if err := checkPasswordAndAllCriteria(user, emailPassword, token); err != nil {
@@ -1673,7 +1547,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
-		if c.Err = (<-app.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
 			return
 		} else {
 			c.LogAudit("Email Verified")
@@ -1707,14 +1581,11 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
-	uchan := app.Srv.Store.User().Get(c.Session.UserId)
-
 	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(c.Session.UserId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	mfaInterface := einterfaces.GetMfaInterface()
@@ -1776,10 +1647,10 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		var user *model.User
-		if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-			l4g.Warn(result.Err)
-		} else {
-			user = result.Data.(*model.User)
+		var err *model.AppError
+		if user, err = app.GetUser(c.Session.UserId); err != nil {
+			l4g.Warn(err.Error())
+			return
 		}
 
 		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale); err != nil {
@@ -1808,20 +1679,11 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// we don't need to worry about contacting the ldap server to get this user because
-	// only users already in the system could have MFA enabled
-	uchan := app.Srv.Store.User().GetForLogin(
-		loginId,
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
-		*utils.Cfg.LdapSettings.Enable,
-	)
-
 	rdata := map[string]string{}
-	if result := <-uchan; result.Err != nil {
+	if user, err := app.GetUserForLogin(loginId, false); err != nil {
 		rdata["mfa_required"] = "false"
 	} else {
-		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
+		rdata["mfa_required"] = strconv.FormatBool(user.MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
 }
@@ -2016,27 +1878,26 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = nil
 	}
 
-	var uchan store.StoreChannel
+	var profiles []*model.User
+	var err *model.AppError
 	if props.InChannelId != "" {
-		uchan = app.Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions)
 	} else if props.NotInChannelId != "" {
-		uchan = app.Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
 	} else {
-		uchan = app.Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions)
 	}
 
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
-
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		w.Write([]byte(model.UserListToJson(profiles)))
 	}
+
+	for _, p := range profiles {
+		sanitizeProfile(c, p)
+	}
+
+	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
 func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2047,12 +1908,10 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
-		c.Err = result.Err
+	if profiles, err := app.GetUsersByIds(userIds); err != nil {
+		c.Err = err
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for _, p := range profiles {
 			sanitizeProfile(c, p)
 		}
@@ -2088,35 +1947,18 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
-	nuchan := app.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
-
-	autocomplete := &model.UserAutocompleteInChannel{}
-
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
-
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.InChannel = profiles
 	}
 
-	if result := <-nuchan; result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		profiles := result.Data.([]*model.User)
+	for _, p := range autocomplete.InChannel {
+		sanitizeProfile(c, p)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.OutOfChannel = profiles
+	for _, p := range autocomplete.OutOfChannel {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -2144,21 +1986,14 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().Search(teamId, term, searchOptions)
-
-	autocomplete := &model.UserAutocompleteInTeam{}
-
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.InTeam = profiles
+	for _, p := range autocomplete.InTeam {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -2177,19 +2012,16 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().Search("", term, searchOptions)
-
 	var profiles []*model.User
+	var err *model.AppError
 
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	if profiles, err = app.SearchUsersInTeam("", term, searchOptions); err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles = result.Data.([]*model.User)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
+	for _, p := range profiles {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(model.UserListToJson(profiles)))
