@@ -5,6 +5,7 @@ import ProfilePicture from 'components/profile_picture.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamMembersModal from './team_members_modal.jsx';
 
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 
@@ -22,10 +23,16 @@ export default class PopoverListMembers extends React.Component {
     constructor(props) {
         super(props);
 
+        this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
+        this.hideTeamMembersModal = this.hideTeamMembersModal.bind(this);
+
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.closePopover = this.closePopover.bind(this);
 
-        this.state = {showPopover: false};
+        this.state = {
+            showPopover: false,
+            showTeamMembersModal: false
+        };
     }
 
     componentDidUpdate() {
@@ -53,11 +60,30 @@ export default class PopoverListMembers extends React.Component {
         this.setState({showPopover: false});
     }
 
+    showTeamMembersModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showPopover: false,
+            showTeamMembersModal: true
+        });
+    }
+
+    hideTeamMembersModal() {
+        this.setState({
+            showPopover: true,
+            showTeamMembersModal: false
+        });
+    }
+
     render() {
         const popoverHtml = [];
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
+        let isAdmin = false;
         const currentUserId = UserStore.getCurrentId();
+
+        isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
 
         if (members && teamMembers) {
             members.sort((a, b) => {
@@ -127,7 +153,12 @@ export default class PopoverListMembers extends React.Component {
                         <div
                             className='more-modal__name'
                         >
-                            {'...'}
+                            <a
+                                href='#'
+                                onClick={this.showTeamMembersModal}
+                            >
+                                {'...'}
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -146,6 +177,17 @@ export default class PopoverListMembers extends React.Component {
                 defaultMessage='Members'
             />
         );
+
+        let teamMembersModal;
+        if (this.state.showTeamMembersModal) {
+            teamMembersModal = (
+                <TeamMembersModal
+                    onHide={this.hideTeamMembersModal}
+                    isAdmin={isAdmin}
+                />
+            );
+        }
+
         return (
             <div>
                 <div
@@ -181,6 +223,7 @@ export default class PopoverListMembers extends React.Component {
                         <div className='more-modal__list'>{popoverHtml}</div>
                     </Popover>
                 </Overlay>
+                {teamMembersModal}
             </div>
         );
     }
