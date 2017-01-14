@@ -31,12 +31,13 @@ export default class ChannelSelect extends React.Component {
         super(props);
 
         this.handleChannelChange = this.handleChannelChange.bind(this);
+        this.filterChannels = this.filterChannels.bind(this);
         this.compareByDisplayName = this.compareByDisplayName.bind(this);
 
         AsyncClient.getMoreChannels(true);
 
         this.state = {
-            channels: ChannelStore.getAll().sort(this.compareByDisplayName)
+            channels: ChannelStore.getAll().filter(this.filterChannels).sort(this.compareByDisplayName)
         };
     }
 
@@ -50,8 +51,17 @@ export default class ChannelSelect extends React.Component {
 
     handleChannelChange() {
         this.setState({
-            channels: ChannelStore.getAll().concat(ChannelStore.getMoreAll()).sort(this.compareByDisplayName)
+            channels: ChannelStore.getAll().concat(ChannelStore.getMoreAll()).
+                filter(this.filterChannels).sort(this.compareByDisplayName)
         });
+    }
+
+    filterChannels(channel) {
+        if (channel.display_name) {
+            return true;
+        }
+
+        return false;
     }
 
     compareByDisplayName(channelA, channelB) {
