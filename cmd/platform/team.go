@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/spf13/cobra"
@@ -125,7 +124,7 @@ func removeUserFromTeam(team *model.Team, user *model.User, userArg string) {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := api.LeaveTeam(team, user); err != nil {
+	if err := app.LeaveTeam(team, user); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
 	}
 }
@@ -200,5 +199,5 @@ func deleteTeamsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeam(team *model.Team) *model.AppError {
-	return api.PermanentDeleteTeam(team)
+	return app.PermanentDeleteTeam(team)
 }

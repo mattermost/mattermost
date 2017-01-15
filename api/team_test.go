@@ -244,7 +244,7 @@ func TestTeamPermDelete(t *testing.T) {
 	c.RequestId = model.NewId()
 	c.IpAddress = "test"
 
-	err := PermanentDeleteTeam(team)
+	err := app.PermanentDeleteTeam(team)
 	if err != nil {
 		t.Fatal(err)
 	}
