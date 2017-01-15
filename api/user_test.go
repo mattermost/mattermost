@@ -508,7 +508,7 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't have accss")
 	}
 
-	UpdateUserRoles(ruser.Data.(*model.User), model.ROLE_SYSTEM_ADMIN.Id)
+	app.UpdateUserRoles(ruser.Data.(*model.User).Id, model.ROLE_SYSTEM_ADMIN.Id)
 
 	Client.Login(user.Email, "passwd1")
 
@@ -1226,7 +1226,7 @@ func TestUserPermDelete(t *testing.T) {
 	c.RequestId = model.NewId()
 	c.IpAddress = "test"
 
-	err := PermanentDeleteUser(user1)
+	err := app.PermanentDeleteUser(user1)
 	if err != nil {
 		t.Fatal(err)
 	}

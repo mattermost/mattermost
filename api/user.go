@@ -1262,12 +1262,11 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
@@ -1391,12 +1390,11 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if err := checkPasswordAndAllCriteria(user, emailPassword, token); err != nil {
@@ -1545,7 +1543,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
-		if c.Err = (<-app.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
 			return
 		} else {
 			c.LogAudit("Email Verified")
@@ -1579,14 +1577,11 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
-	uchan := app.Srv.Store.User().Get(c.Session.UserId)
-
 	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(c.Session.UserId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	mfaInterface := einterfaces.GetMfaInterface()
@@ -1648,10 +1643,10 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		var user *model.User
-		if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-			l4g.Warn(result.Err)
-		} else {
-			user = result.Data.(*model.User)
+		var err *model.AppError
+		if user, err = app.GetUser(c.Session.UserId); err != nil {
+			l4g.Warn(err.Error())
+			return
 		}
 
 		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale); err != nil {
@@ -1680,20 +1675,11 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// we don't need to worry about contacting the ldap server to get this user because
-	// only users already in the system could have MFA enabled
-	uchan := app.Srv.Store.User().GetForLogin(
-		loginId,
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
-		*utils.Cfg.LdapSettings.Enable,
-	)
-
 	rdata := map[string]string{}
-	if result := <-uchan; result.Err != nil {
+	if user, err := app.GetUserForLogin(loginId, false); err != nil {
 		rdata["mfa_required"] = "false"
 	} else {
-		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
+		rdata["mfa_required"] = strconv.FormatBool(user.MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
 }
@@ -1888,27 +1874,26 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = nil
 	}
 
-	var uchan store.StoreChannel
+	var profiles []*model.User
+	var err *model.AppError
 	if props.InChannelId != "" {
-		uchan = app.Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions)
 	} else if props.NotInChannelId != "" {
-		uchan = app.Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
 	} else {
-		uchan = app.Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions)
 	}
 
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
-
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		w.Write([]byte(model.UserListToJson(profiles)))
 	}
+
+	for _, p := range profiles {
+		sanitizeProfile(c, p)
+	}
+
+	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
 func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1919,12 +1904,10 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
-		c.Err = result.Err
+	if profiles, err := app.GetUsersByIds(userIds); err != nil {
+		c.Err = err
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for _, p := range profiles {
 			sanitizeProfile(c, p)
 		}
@@ -1960,35 +1943,18 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
-	nuchan := app.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
-
-	autocomplete := &model.UserAutocompleteInChannel{}
-
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
-
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.InChannel = profiles
 	}
 
-	if result := <-nuchan; result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		profiles := result.Data.([]*model.User)
+	for _, p := range autocomplete.InChannel {
+		sanitizeProfile(c, p)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.OutOfChannel = profiles
+	for _, p := range autocomplete.OutOfChannel {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -2016,21 +1982,14 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().Search(teamId, term, searchOptions)
-
-	autocomplete := &model.UserAutocompleteInTeam{}
-
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.InTeam = profiles
+	for _, p := range autocomplete.InTeam {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -2049,19 +2008,16 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().Search("", term, searchOptions)
-
 	var profiles []*model.User
+	var err *model.AppError
 
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	if profiles, err = app.SearchUsersInTeam("", term, searchOptions); err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles = result.Data.([]*model.User)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
+	for _, p := range profiles {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(model.UserListToJson(profiles)))

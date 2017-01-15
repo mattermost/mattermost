@@ -134,8 +134,8 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser := result.Data.(*model.User)
 
 		if user.EmailVerified {
-			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-				l4g.Error(utils.T("api.user.create_user.verified.error"), cresult.Err)
+			if err := VerifyUserEmail(ruser.Id); err != nil {
+				l4g.Error(utils.T("api.user.create_user.verified.error"), err)
 			}
 		}
 
@@ -330,6 +330,14 @@ func GetUsersInChannel(channelId string, offset int, limit int) (map[string]*mod
 
 func GetUsersNotInChannel(teamId string, channelId string, offset int, limit int) (map[string]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(map[string]*model.User), nil
+	}
+}
+
+func GetUsersByIds(userIds []string) (map[string]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(map[string]*model.User), nil
@@ -760,4 +768,69 @@ func PermanentDeleteAllUsers() *model.AppError {
 	}
 
 	return nil
+}
+
+func VerifyUserEmail(userId string) *model.AppError {
+	if err := (<-Srv.Store.User().VerifyEmail(userId)).Err; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SearchUsersInChannel(channelId string, term string, searchOptions map[string]bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchInChannel(channelId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
+func SearchUsersNotInChannel(teamId string, channelId string, term string, searchOptions map[string]bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
+func SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
+func AutocompleteUsersInChannel(teamId string, channelId string, term string, searchOptions map[string]bool) (*model.UserAutocompleteInChannel, *model.AppError) {
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
+
+	autocomplete := &model.UserAutocompleteInChannel{}
+
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		autocomplete.InChannel = result.Data.([]*model.User)
+	}
+
+	if result := <-nuchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		autocomplete.OutOfChannel = result.Data.([]*model.User)
+	}
+
+	return autocomplete, nil
+}
+
+func AutocompleteUsersInTeam(teamId string, term string, searchOptions map[string]bool) (*model.UserAutocompleteInTeam, *model.AppError) {
+	autocomplete := &model.UserAutocompleteInTeam{}
+
+	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		autocomplete.InTeam = result.Data.([]*model.User)
+	}
+
+	return autocomplete, nil
 }
