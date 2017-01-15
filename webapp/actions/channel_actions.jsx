@@ -108,6 +108,9 @@ export function removeUserFromChannel(channelId, userId, success, error) {
             }
             UserStore.emitInChannelChange();
 
+            ChannelStore.removeMemberInChannel(channelId, userId);
+            ChannelStore.emitChange();
+
             if (success) {
                 success(data);
             }

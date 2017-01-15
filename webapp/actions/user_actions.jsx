@@ -58,6 +58,34 @@ export function loadProfilesAndTeamMembers(offset, limit, teamId = TeamStore.get
     );
 }
 
+export function loadProfilesAndTeamMembersAndChannelMembers(offset, limit, teamId = TeamStore.getCurrentId(), channelId = ChannelStore.getCurrentId(), success, error) {
+    Client.getProfilesInChannel(
+        channelId,
+        offset,
+        limit,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_IN_CHANNEL,
+                profiles: data,
+                channel_id: channelId,
+                offset,
+                count: Object.keys(data).length
+            });
+
+            loadTeamMembersForProfilesMap(
+                data,
+                teamId,
+                () => {
+                    loadChannelMembersForProfilesMap(data, channelId, success, error);
+                    loadStatusesForProfilesMap(data);
+                });
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getProfilesInChannel');
+        }
+    );
+}
+
 export function loadTeamMembersForProfilesMap(profiles, teamId = TeamStore.getCurrentId(), success, error) {
     const membersToLoad = {};
     for (const pid in profiles) {
@@ -124,6 +152,86 @@ function loadTeamMembersForProfiles(userIds, teamId, success, error) {
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getTeamMembersByIds');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function loadChannelMembersForProfilesMap(profiles, channelId = ChannelStore.getCurrentId(), success, error) {
+    const membersToLoad = {};
+    for (const pid in profiles) {
+        if (!profiles.hasOwnProperty(pid)) {
+            continue;
+        }
+
+        if (!ChannelStore.hasActiveMemberInChannel(channelId, pid)) {
+            membersToLoad[pid] = true;
+        }
+    }
+
+    const list = Object.keys(membersToLoad);
+    if (list.length === 0) {
+        if (success) {
+            success({});
+        }
+        return;
+    }
+
+    loadChannelMembersForProfiles(list, channelId, success, error);
+}
+
+export function loadTeamMembersAndChannelMembersForProfilesList(profiles, teamId = TeamStore.getCurrentId(), channelId = ChannelStore.getCurrentId(), success, error) {
+    loadTeamMembersForProfilesList(profiles, teamId, () => {
+        loadChannelMembersForProfilesList(profiles, channelId, success, error);
+    }, error);
+}
+
+export function loadChannelMembersForProfilesList(profiles, channelId = ChannelStore.getCurrentId(), success, error) {
+    const membersToLoad = {};
+    for (let i = 0; i < profiles.length; i++) {
+        const pid = profiles[i].id;
+
+        if (!ChannelStore.hasActiveMemberInChannel(channelId, pid)) {
+            membersToLoad[pid] = true;
+        }
+    }
+
+    const list = Object.keys(membersToLoad);
+    if (list.length === 0) {
+        if (success) {
+            success({});
+        }
+        return;
+    }
+
+    loadChannelMembersForProfiles(list, channelId, success, error);
+}
+
+function loadChannelMembersForProfiles(userIds, channelId, success, error) {
+    Client.getChannelMembersByIds(
+        channelId,
+        userIds,
+        (data) => {
+            const memberMap = {};
+            for (let i = 0; i < data.length; i++) {
+                memberMap[data[i].user_id] = data[i];
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL,
+                channel_id: channelId,
+                channel_members: memberMap
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getChannelMembersByIds');
 
             if (error) {
                 error(err);

@@ -5,6 +5,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
@@ -25,6 +26,7 @@ class ChannelStoreClass extends EventEmitter {
         this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
         this.channels = [];
+        this.members_in_channel = {};
         this.myChannelMembers = {};
         this.moreChannels = {};
         this.stats = {};
@@ -241,6 +243,29 @@ class ChannelStoreClass extends EventEmitter {
         return this.myChannelMembers;
     }
 
+    saveMembersInChannel(channelId = this.getCurrentId(), members) {
+        const oldMembers = this.members_in_channel[channelId] || {};
+        this.members_in_channel[channelId] = Object.assign({}, oldMembers, members);
+    }
+
+    removeMemberInChannel(channelId = this.getCurrentId(), userId) {
+        if (this.members_in_channel[channelId]) {
+            Reflect.deleteProperty(this.members_in_channel[channelId], userId);
+        }
+    }
+
+    getMembersInChannel(channelId = this.getCurrentId()) {
+        return Object.assign({}, this.members_in_channel[channelId]) || {};
+    }
+
+    hasActiveMemberInChannel(channelId = this.getCurrentId(), userId) {
+        if (this.members_in_channel[channelId] && this.members_in_channel[channelId][userId]) {
+            return true;
+        }
+
+        return false;
+    }
+
     storeMoreChannels(channels, teamId = TeamStore.getCurrentId()) {
         const newChannels = {};
         for (let i = 0; i < channels.length; i++) {
@@ -343,6 +368,25 @@ class ChannelStoreClass extends EventEmitter {
 
         return channelNamesMap;
     }
+
+    isChannelAdminForCurrentChannel() {
+        return this.isChannelAdmin(UserStore.getCurrentId(), this.getCurrentId());
+    }
+
+    isChannelAdmin(userId, channelId) {
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        const channelMembers = this.getMembersInChannel(channelId);
+        const channelMember = channelMembers[userId];
+
+        if (channelMember) {
+            return Utils.isChannelAdmin(channelMember.roles);
+        }
+
+        return false;
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
@@ -409,7 +453,10 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         ChannelStore.storeMoreChannels(action.channels);
         ChannelStore.emitChange();
         break;
-
+    case ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL:
+        ChannelStore.saveMembersInChannel(action.channel_id, action.channel_members);
+        ChannelStore.emitChange();
+        break;
     case ActionTypes.RECEIVED_CHANNEL_STATS:
         var stats = Object.assign({}, ChannelStore.getStats());
         stats[action.stats.channel_id] = action.stats;
