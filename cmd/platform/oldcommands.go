@@ -319,8 +319,7 @@ func cmdInviteUser() {
 		}
 
 		invites := []string{flagEmail}
-		c := getMockContext()
-		api.InviteMembers(team, user.GetDisplayName(), invites, c.GetSiteURL())
+		app.SendInviteEmails(team, user.GetDisplayName(), invites)
 
 		os.Exit(0)
 	}
@@ -712,7 +711,7 @@ func cmdLeaveTeam() {
 			user = result.Data.(*model.User)
 		}
 
-		err := api.LeaveTeam(team, user)
+		err := app.LeaveTeam(team, user)
 
 		if err != nil {
 			l4g.Error("%v", err)
@@ -866,7 +865,7 @@ func cmdPermDeleteTeam() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteTeam(team); err != nil {
+		if err := app.PermanentDeleteTeam(team); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {

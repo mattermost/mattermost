@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/url"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -194,4 +195,42 @@ func SendMfaChangeEmail(email string, activated bool, locale string) *model.AppE
 	}
 
 	return nil
+}
+
+func SendInviteEmails(team *model.Team, senderName string, invites []string) {
+	for _, invite := range invites {
+		if len(invite) > 0 {
+			senderRole := utils.T("api.team.invite_members.member")
+
+			subject := utils.T("api.templates.invite_subject",
+				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
+
+			bodyPage := utils.NewHTMLTemplate("invite_body", model.DEFAULT_LOCALE)
+			bodyPage.Props["SiteURL"] = utils.GetSiteURL()
+			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
+			bodyPage.Html["Info"] = template.HTML(utils.T("api.templates.invite_body.info",
+				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName}))
+			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
+			bodyPage.Html["ExtraInfo"] = template.HTML(utils.T("api.templates.invite_body.extra_info",
+				map[string]interface{}{"TeamDisplayName": team.DisplayName, "TeamURL": utils.GetSiteURL() + "/" + team.Name}))
+
+			props := make(map[string]string)
+			props["email"] = invite
+			props["id"] = team.Id
+			props["display_name"] = team.DisplayName
+			props["name"] = team.Name
+			props["time"] = fmt.Sprintf("%v", model.GetMillis())
+			data := model.MapToJson(props)
+			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", utils.GetSiteURL(), url.QueryEscape(data), url.QueryEscape(hash))
+
+			if !utils.Cfg.EmailSettings.SendEmailNotifications {
+				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
+			}
+
+			if err := utils.SendMail(invite, subject, bodyPage.Render()); err != nil {
+				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
+			}
+		}
+	}
 }

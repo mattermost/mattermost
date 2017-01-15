@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -262,7 +261,7 @@ func inviteUser(email string, team *model.Team, teamArg string) {
 		CommandPrintErrorln("Can't find team '" + teamArg + "'")
 		return
 	}
-	api.InviteMembers(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
+	app.SendInviteEmails(team, "Administrator", invites)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 }
 

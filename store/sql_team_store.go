@@ -301,7 +301,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query); err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
 		}
 
 		for _, team := range data {
@@ -438,7 +438,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
 				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
 			}
 		} else {
-			result.Data = member
+			result.Data = &member
 		}
 
 		storeChannel <- result
