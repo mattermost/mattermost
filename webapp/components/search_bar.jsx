@@ -124,8 +124,8 @@ export default class SearchBar extends React.Component {
                 isMentionSearch,
                 (data) => {
                     this.setState({isSearching: false});
-                    if (Utils.isMobile()) {
-                        ReactDOM.findDOMNode(this.refs.search).value = '';
+                    if (Utils.isMobile() && this.search) {
+                        this.search.value = '';
                     }
 
                     AppDispatcher.handleServerAction({
@@ -147,7 +147,7 @@ export default class SearchBar extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
         this.performSearch(this.state.searchTerm.trim());
-        $(ReactDOM.findDOMNode(this.refs.search)).find('input').blur();
+        $(this.search).find('input').blur();
         this.clearFocus();
     }
 
@@ -276,7 +276,9 @@ export default class SearchBar extends React.Component {
                 >
                     <span className='fa fa-search sidebar__search-icon'/>
                     <SuggestionBox
-                        ref='search'
+                        ref={(search) => {
+                            this.search = search;
+                        }}
                         className='form-control search-bar'
                         placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
                         value={this.state.searchTerm}
