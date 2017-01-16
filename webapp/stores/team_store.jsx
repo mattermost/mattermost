@@ -379,5 +379,7 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     }
 });
 
+TeamStore.setMaxListeners(15);
+
 window.TeamStore = TeamStore;
 export default TeamStore;
