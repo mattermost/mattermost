@@ -633,7 +633,11 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		il.User.Sanitize(map[string]bool{})
 
-		il.Preferences, err = app.GetPreferencesForUser(c.Session.Id)
+		il.Preferences, err = app.GetPreferencesForUser(c.Session.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
 
 		il.Teams, err = app.GetTeamsForUser(c.Session.UserId)
 		if err != nil {
