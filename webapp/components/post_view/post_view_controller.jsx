@@ -229,8 +229,16 @@ export default class PostViewController extends React.Component {
 
     onPostListScroll(atBottom) {
         if (atBottom) {
+            let lastViewedBottom;
             const lastPost = PostStore.getLatestPost(this.state.channel.id);
-            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom: lastPost.create_at || new Date().getTime()});
+
+            if (lastPost && lastPost.create_at) {
+                lastViewedBottom = lastPost.create_at;
+            } else {
+                lastViewedBottom = new Date().getTime();
+            }
+
+            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom});
         } else {
             this.setState({scrollType: ScrollTypes.FREE});
         }
