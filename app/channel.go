@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
@@ -190,6 +191,128 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	}
 }
 
+func UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	if result := <-Srv.Store.Channel().Update(channel); result.Err != nil {
+		return nil, result.Err
+	} else {
+		InvalidateCacheForChannel(channel.Id)
+		return channel, nil
+	}
+}
+
+func UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
+	var member *model.ChannelMember
+	var err *model.AppError
+	if member, err = GetChannelMember(channelId, userId); err != nil {
+		return nil, err
+	}
+
+	member.Roles = newRoles
+
+	if result := <-Srv.Store.Channel().UpdateMember(member); result.Err != nil {
+		return nil, result.Err
+	}
+
+	InvalidateCacheForUser(userId)
+	return member, nil
+}
+
+func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError) {
+	var member *model.ChannelMember
+	var err *model.AppError
+	if member, err = GetChannelMember(channelId, userId); err != nil {
+		return nil, err
+	}
+
+	// update whichever notify properties have been provided, but don't change the others
+	if markUnread, exists := data["mark_unread"]; exists {
+		member.NotifyProps["mark_unread"] = markUnread
+	}
+
+	if desktop, exists := data["desktop"]; exists {
+		member.NotifyProps["desktop"] = desktop
+	}
+
+	if result := <-Srv.Store.Channel().UpdateMember(member); result.Err != nil {
+		return nil, result.Err
+	} else {
+		InvalidateCacheForUser(userId)
+		return member, nil
+	}
+}
+
+func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
+	uc := Srv.Store.User().Get(userId)
+	scm := Srv.Store.Channel().GetMember(channel.Id, userId)
+	ihc := Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
+	ohc := Srv.Store.Webhook().GetOutgoingByChannel(channel.Id)
+
+	if uresult := <-uc; uresult.Err != nil {
+		return uresult.Err
+	} else if scmresult := <-scm; scmresult.Err != nil {
+		return scmresult.Err
+	} else if ihcresult := <-ihc; ihcresult.Err != nil {
+		return ihcresult.Err
+	} else if ohcresult := <-ohc; ohcresult.Err != nil {
+		return ohcresult.Err
+	} else {
+		user := uresult.Data.(*model.User)
+		incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
+		outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
+		// Don't need to do anything with channel member, just wanted to confirm it exists
+
+		if channel.DeleteAt > 0 {
+			err := model.NewLocAppError("deleteChannel", "api.channel.delete_channel.deleted.app_error", nil, "")
+			err.StatusCode = http.StatusBadRequest
+			return err
+		}
+
+		if channel.Name == model.DEFAULT_CHANNEL {
+			err := model.NewLocAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
+			err.StatusCode = http.StatusBadRequest
+			return err
+		}
+
+		T := utils.GetUserTranslations(user.Locale)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
+			Type:      model.POST_CHANNEL_DELETED,
+			UserId:    userId,
+		}
+
+		if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+			l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
+		}
+
+		now := model.GetMillis()
+		for _, hook := range incomingHooks {
+			if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+				l4g.Error(utils.T("api.channel.delete_channel.incoming_webhook.error"), hook.Id)
+			}
+		}
+
+		for _, hook := range outgoingHooks {
+			if result := <-Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
+				l4g.Error(utils.T("api.channel.delete_channel.outgoing_webhook.error"), hook.Id)
+			}
+		}
+
+		if dresult := <-Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
+			return dresult.Err
+		}
+		InvalidateCacheForChannel(channel.Id)
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
+		message.Add("channel_id", channel.Id)
+
+		Publish(message)
+	}
+
+	return nil
+}
+
 func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.DeleteAt > 0 {
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
@@ -216,8 +339,8 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 			return nil, result.Err
 		}
 	} else {
-		channelMember := result.Data.(model.ChannelMember)
-		return &channelMember, nil
+		channelMember := result.Data.(*model.ChannelMember)
+		return channelMember, nil
 	}
 
 	newMember := &model.ChannelMember{
@@ -361,6 +484,62 @@ func GetChannelByName(channelName, teamId string) (*model.Channel, *model.AppErr
 	}
 }
 
+func GetChannelsForUser(teamId string, userId string) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetChannels(teamId, userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
+func GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
+func GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMember(channelId, userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelMember), nil
+	}
+}
+
+func GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMembersByIds(channelId, userIds); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelMembers), nil
+	}
+}
+
+func GetChannelMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMembersForUser(teamId, userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelMembers), nil
+	}
+}
+
+func GetChannelMemberCount(channelId string) (int64, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMemberCount(channelId, true); result.Err != nil {
+		return 0, result.Err
+	} else {
+		return result.Data.(int64), nil
+	}
+}
+
+func GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetChannelCounts(teamId, userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelCounts), nil
+	}
+}
+
 func JoinChannel(channel *model.Channel, userId string) *model.AppError {
 	userChan := Srv.Store.User().Get(userId)
 	memberChan := Srv.Store.Channel().GetMember(channel.Id, userId)
@@ -386,6 +565,76 @@ func JoinChannel(channel *model.Channel, userId string) *model.AppError {
 	return nil
 }
 
+func LeaveChannel(channelId string, userId string) *model.AppError {
+	sc := Srv.Store.Channel().Get(channelId, true)
+	uc := Srv.Store.User().Get(userId)
+	ccm := Srv.Store.Channel().GetMemberCount(channelId, false)
+
+	if cresult := <-sc; cresult.Err != nil {
+		return cresult.Err
+	} else if uresult := <-uc; uresult.Err != nil {
+		return cresult.Err
+	} else if ccmresult := <-ccm; ccmresult.Err != nil {
+		return ccmresult.Err
+	} else {
+		channel := cresult.Data.(*model.Channel)
+		user := uresult.Data.(*model.User)
+		membersCount := ccmresult.Data.(int64)
+
+		if channel.Type == model.CHANNEL_DIRECT {
+			err := model.NewLocAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "")
+			err.StatusCode = http.StatusBadRequest
+			return err
+		}
+
+		if channel.Type == model.CHANNEL_PRIVATE && membersCount == 1 {
+			err := model.NewLocAppError("LeaveChannel", "api.channel.leave.last_member.app_error", nil, "userId="+user.Id)
+			err.StatusCode = http.StatusBadRequest
+			return err
+		}
+
+		if err := RemoveUserFromChannel(userId, userId, channel); err != nil {
+			return err
+		}
+
+		go PostUserAddRemoveMessage(userId, channel.Id, channel.TeamId, fmt.Sprintf(utils.T("api.channel.leave.left"), user.Username), model.POST_JOIN_LEAVE)
+	}
+
+	return nil
+}
+
+func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	if channel.DeleteAt > 0 {
+		err := model.NewLocAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "")
+		err.StatusCode = http.StatusBadRequest
+		return err
+	}
+
+	if channel.Name == model.DEFAULT_CHANNEL {
+		return model.NewLocAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
+	}
+
+	if cmresult := <-Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
+		return cmresult.Err
+	}
+
+	InvalidateCacheForUser(userIdToRemove)
+	InvalidateCacheForChannel(channel.Id)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
+	message.Add("user_id", userIdToRemove)
+	message.Add("remover_id", removerUserId)
+	go Publish(message)
+
+	// because the removed user no longer belongs to the channel we need to send a separate websocket event
+	userMsg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", "", userIdToRemove, nil)
+	userMsg.Add("channel_id", channel.Id)
+	userMsg.Add("remover_id", removerUserId)
+	go Publish(userMsg)
+
+	return nil
+}
+
 func PostUserAddRemoveMessage(userId, channelId, teamId, message, postType string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channelId,
@@ -396,6 +645,91 @@ func PostUserAddRemoveMessage(userId, channelId, teamId, message, postType strin
 	if _, err := CreatePost(post, teamId, false); err != nil {
 		return model.NewLocAppError("PostUserAddRemoveMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
 	}
+
+	return nil
+}
+
+func GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
+	// Get total number of channels on current team
+	if result := <-Srv.Store.Channel().GetTeamChannels(teamId); result.Err != nil {
+		return 0, result.Err
+	} else {
+		return len(*result.Data.(*model.ChannelList)), nil
+	}
+}
+
+func SetActiveChannel(userId string, channelId string) *model.AppError {
+	status, err := GetStatus(userId)
+	if err != nil {
+		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
+	} else {
+		status.ActiveChannel = channelId
+		if !status.Manual {
+			status.Status = model.STATUS_ONLINE
+		}
+		status.LastActivityAt = model.GetMillis()
+	}
+
+	AddStatusCache(status)
+
+	return nil
+}
+
+func UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError {
+	if result := <-Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}
+
+func SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().SearchInTeam(teamId, term); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
+func SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().SearchMore(userId, teamId, term); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
+func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPushNotifications bool) *model.AppError {
+	channelIds := []string{view.ChannelId}
+
+	var pchan store.StoreChannel
+	if len(view.PrevChannelId) > 0 {
+		channelIds = append(channelIds, view.PrevChannelId)
+
+		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications {
+			pchan = Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
+		}
+	}
+
+	uchan := Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
+
+	if pchan != nil {
+		if result := <-pchan; result.Err != nil {
+			return result.Err
+		} else {
+			if result.Data.(int64) > 0 {
+				ClearPushNotification(userId, view.ChannelId)
+			}
+		}
+	}
+
+	if result := <-uchan; result.Err != nil {
+		return result.Err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, teamId, "", userId, nil)
+	message.Add("channel_id", view.ChannelId)
+	go Publish(message)
 
 	return nil
 }
