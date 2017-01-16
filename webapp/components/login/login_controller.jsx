@@ -351,6 +351,23 @@ export default class LoginController extends React.Component {
                 errorClass = ' has-error';
             }
 
+            let loginButton =
+                (<FormattedMessage
+                    id='login.signIn'
+                    defaultMessage='Sign in'
+                 />);
+
+            if (this.state.loading) {
+                loginButton =
+                (<span>
+                    <span className='fa fa-refresh icon--rotate'/>
+                    <FormattedMessage
+                        id='login.signInLoading'
+                        defaultMessage='Signing in...'
+                    />
+                </span>);
+            }
+
             loginControls.push(
                 <form
                     key='loginBoxes'
@@ -390,16 +407,7 @@ export default class LoginController extends React.Component {
                                 type='submit'
                                 className='btn btn-primary'
                             >
-                                {this.state.loading ? <span>
-                                    <span className='fa fa-refresh icon--rotate'/>
-                                    <FormattedMessage
-                                        id='login.signInLoading'
-                                        defaultMessage='Signing in...'
-                                    />
-                                </span> : <FormattedMessage
-                                    id='login.signIn'
-                                    defaultMessage='Sign in'
-                                          />}
+                                { loginButton }
                             </button>
                         </div>
                     </div>
