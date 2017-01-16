@@ -167,6 +167,7 @@ export function loadPostsPage(channelId = ChannelStore.getCurrentId(), max = Con
                 before: true,
                 numRequested: numPosts,
                 checkLatest: true,
+                checkEarliest: true,
                 post_list: data
             });
 
@@ -195,6 +196,7 @@ export function loadPostsBefore(postId, offset, numPost, isPost) {
                 type: ActionTypes.RECEIVED_POSTS,
                 id: channelId,
                 before: true,
+                checkEarliest: true,
                 numRequested: numPost,
                 post_list: data,
                 isPost
