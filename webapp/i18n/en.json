@@ -1556,6 +1556,7 @@
   "login.passwordChanged": " Password updated successfully",
   "login.session_expired": " Your session has expired. Please login again.",
   "login.signIn": "Sign in",
+  "login.signInLoading": "Signing in...",
   "login.signInWith": "Sign in with:",
   "login.userNotFound": "We couldn't find an account matching your login credentials.",
   "login.username": "Username",
