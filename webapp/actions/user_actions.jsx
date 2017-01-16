@@ -456,10 +456,10 @@ export function updateUser(username, type, success, error) {
             }
         },
         (err) => {
-            AsyncClient.dispatchError(err, 'updateUser');
-
             if (error) {
                 error(err);
+            } else {
+                AsyncClient.dispatchError(err, 'updateUser');
             }
         }
     );
