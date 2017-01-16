@@ -256,7 +256,7 @@ export function emitLoadMorePostsFocusedTopEvent() {
 }
 
 export function loadMorePostsTop(id, isFocusPost) {
-    const earliestPostId = PostStore.getEarliestPost(id).id;
+    const earliestPostId = PostStore.getEarliestPostFromPage(id).id;
     if (PostStore.requestVisibilityIncrease(id, Constants.POST_CHUNK_SIZE)) {
         loadPostsBefore(earliestPostId, 0, Constants.POST_CHUNK_SIZE, isFocusPost);
     }
