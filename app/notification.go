@@ -156,7 +156,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
-				sendNotificationEmail(post, profileMap[id], channel, team, senderName[id], sender)
+				go sendNotificationEmail(post, profileMap[id], channel, team, senderName[id], sender)
 			}
 		}
 	}
@@ -253,7 +253,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
+				go sendPushNotification(post, profileMap[id], channel, senderName[id], true)
 			}
 		}
 
@@ -266,7 +266,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
+					go sendPushNotification(post, profileMap[id], channel, senderName[id], false)
 				}
 			}
 		}
