@@ -546,7 +546,7 @@ func cmdLeaveChannel() {
 			channel = result.Data.(*model.Channel)
 		}
 
-		err := api.RemoveUserFromChannel(user.Id, user.Id, channel)
+		err := app.RemoveUserFromChannel(user.Id, user.Id, channel)
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
