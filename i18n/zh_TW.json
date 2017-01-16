@@ -312,8 +312,8 @@
     "translation": "%s 將原頻道標題由 %s 改為 %s"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "張貼 加入/退出 訊息 %v 失敗"
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Failed to post update channel header message"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -800,12 +800,16 @@
     "translation": "無效的 {{.Name}} 參數"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "團隊網址在不正確的時機被存取。團隊網址不應於在 API 函式或與團隊無關的用途中被使用"
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "無效的工作階段 token=%v, err=%v"
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1468,24 +1472,8 @@
     "translation": "您沒有適當的權限"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "取得頻道時遇到錯誤 channel_id=%s, err=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "取得頻道成員失敗 channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "取得使用者資訊失敗 team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "取得團隊時遇到錯誤 team_id=%s, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "取得使用者時遇到錯誤 user_id=%s, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1494,10 +1482,6 @@
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
     "translation": "POST 事件失敗 err=%s"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "團隊取得 Webhook 時遇到錯誤 err=%v"
   },
   {
     "id": "api.post.init.debug",
@@ -1520,20 +1504,16 @@
     "translation": "更新直接訊息頻道的偏好設定失敗 user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "無法寄送 @here 通知給在線使用者 err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "無法取得頻道成員資訊 user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "正在清除至 %v 的推播通知，channel_id %v"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "在發送通知時取得註解文章失敗 root_post_id=%v err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "正在清除至 %v 的推播通知，channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1581,23 +1561,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "無法發送推播 device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "提及通知電子郵件傳送失敗 email=%v err=%v"
+    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} 已送出"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "於通知中取得工作階段失敗 id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "GetProfiles 找不到資料的 user_id 貼文 user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2273,7 +2241,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "為使用者新增直接頻道偏好設定失敗 user_id=%s, team_id=%s, err=%v"
+    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2774,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "嘗試註冊 WebRTC Token時發生錯誤"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",

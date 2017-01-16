@@ -312,8 +312,8 @@
     "translation": "%s atualizou o nome de exibição do canal de: %s para: %s"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "Não foi possível postar mensagem juntar/deixar %v"
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Failed to post update channel header message"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Não foi possível postar mensagem de juntar/deixar %v"
+    "translation": "Não foi possível postar mensagem juntar/deixar %v"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -800,12 +800,16 @@
     "translation": "Parâmetro {{.Name}} inválido"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "A URL da equipe foi acessada de forma inválida. A URL da equipe não deve ser utilizada em funções de API ou aquelas funções que são independente da equipe."
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Sessão inválida token=%v, err=%v"
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1015,7 +1019,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Não foi possível obter o link publico para o arquivo. Arquivo deve ser anexado a um post que pode ser lido pelo usuário atual."
+    "translation": "Não foi possível obter o link público para o arquivo. O arquivo deve ser anexado a um post que pode ser lido pelo usuário atual."
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
@@ -1468,24 +1472,8 @@
     "translation": "Você não tem a permissão apropriada"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "Encontrado um erro ao obter o canal, channel_id=%s, err=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "Não foi possível obter os membros do channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "Não foi possível obter perfis de usuário team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "Encontrado um erro ao obter a equipe, equipe_id=%s, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "Encontrado um erro ao obter o usuário, user_id=%s, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1494,10 +1482,6 @@
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
     "translation": "Falha no Evento POST, err=%s"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "Encontrado um erro ao obter webhooks pela equipe, err=%v"
   },
   {
     "id": "api.post.init.debug",
@@ -1520,20 +1504,16 @@
     "translation": "Falha ao atualizar as preferencias do canal direto user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "Não foi possível enviar a notificação para os usuários conectados usando @here, err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "Não foi possível obter o perfil do membro do canal, user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Limpando notificação push para %v com channel_id %v"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Falha ao obter os comentários da mensagem em notificações root_post_id=%v, err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Limpando notificação push para %v com channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1581,23 +1561,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Falha ao enviar notificação push device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "Falha ao enviar uma menção por email email=%v err=%v"
+    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} enviado"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "Falha ao obter as notificações na sessão id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "Post user_id not returned by GetProfiles user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2149,7 +2117,7 @@
   },
   {
     "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} de {{.TeamDisplayName}} ({{.ChannelName}}) em {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "{{.SubjectText}} em {{.TeamDisplayName}} ({{.ChannelName}}) de {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
@@ -2273,7 +2241,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Falha ao adicionar preferencias diretas ao canal para o usuário user_id=%s, team_id=%s, err=%v"
+    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2774,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "Encontrado um erro ao tentar registrar o Token WebRTC"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",

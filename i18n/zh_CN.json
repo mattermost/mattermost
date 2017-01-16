@@ -312,8 +312,8 @@
     "translation": "%s 将频道显示名从 %s 更新为 %s"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "发布添加/退出消息失败 %v"
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Failed to post update channel header message"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "发布添加或者退出消息失败 %v"
+    "translation": "发布添加/退出消息失败 %v"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -800,12 +800,16 @@
     "translation": "无效 {{.Name}} 参数"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "团队URL访问无效。团队URL不能在API函数或者和不相干的团队中使用"
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "无效的会话令牌=%v，err=%v"
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1468,24 +1472,8 @@
     "translation": "您没有对应的权限"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "获取频道时遇到错误, channel_id=%s, err=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "未获取到频道成员 channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "检索用户配置文件失败 team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "获取团队时遇到错误, team_id=%s, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "获取用户时遇到错误, user_id=%s, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1494,10 +1482,6 @@
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
     "translation": "事件发布失败, err=%s"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "通过团队获取webhooks遇到错误, err=%v"
   },
   {
     "id": "api.post.init.debug",
@@ -1520,20 +1504,16 @@
     "translation": "更新私信频道设置失败 user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "无法发送通知到的用户在线@here, err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "无法获取频道成员个人资料，user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "清除 %v 拥有 channel_id %v 的通知中"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "在发送通知时获取注解内容时失败 root_post_id=%v, err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "清除 %v 拥有 channel_id %v 的通知中"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1581,23 +1561,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "发送推送失败 device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "发送电子邮件失败 email=%v err=%v"
+    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} 发送"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "未能检索通知中的会话 id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "通过GetProfiles请求user_id没有返回值 user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2273,7 +2241,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "添加用户私聊频道偏好设置失败 user_id=%s, team_id=%s, err=%v"
+    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2774,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "我们在注册 WebRTC 令牌时遇到个错误"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",

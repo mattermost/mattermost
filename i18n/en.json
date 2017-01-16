@@ -800,20 +800,16 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "Team URL accessed when not valid. Team URL should not be used in API functions or those that are team independent"
   },
   {
     "id": "api.context.invalid_token.error",
     "translation": "Invalid session token={{.Token}}, err={{.Error}}"
-  },
-  {
-    "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
-  },
-  {
-    "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1512,6 +1508,10 @@
     "translation": "Unable to get profile for channel member, user_id=%v"
   },
   {
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
     "translation": "Clearing push notification to %v with channel_id %v"
   },
@@ -1566,10 +1566,6 @@
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} sent"
-  },
-  {
-    "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2746,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "We encountered an error trying to register the WebRTC Token"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",

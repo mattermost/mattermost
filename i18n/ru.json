@@ -241,11 +241,11 @@
   },
   {
     "id": "api.channel.delete_channel.incoming_webhook.error",
-    "translation": "Обнаружена ошибка при удалении входящего webhook'a, id=%v"
+    "translation": "Обнаружена ошибка при удалении входящего вебхукa, id=%v"
   },
   {
     "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "Обнаружена ошибка при удалении исходящего webhook'a, id=%v"
+    "translation": "Обнаружена ошибка при удалении исходящего вебхукa, id=%v"
   },
   {
     "id": "api.channel.delete_channel.permissions.app_error",
@@ -312,8 +312,8 @@
     "translation": "%s обновил отображаемое имя канала с: %s на: %s"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "Не удалось отправить join/leave сообщение %v"
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Failed to post update channel header message"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Не удалось отправить сообщение о присоединении/выходе %v"
+    "translation": "Не удалось отправить join/leave сообщение %v"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command.regen.app_error",
-    "translation": "Несоответствующие права для генерации нового токена"
+    "translation": "Отсутствуют права на пересоздание токена"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -800,12 +800,16 @@
     "translation": "Неверный параметр {{.Name}}"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "Адрес команды доступен, но не корректен. Он не должен использоваться в API или в тех функциях, что независимы от неё."
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Неверный токен сессии %v, ошибка=%v"
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1468,24 +1472,8 @@
     "translation": "У вас нет соответствующих прав"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "Возникла ошибка получения канала, channel_id=%s, err=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "Не удалось получить членов канала channel_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "Не удалось извлечь профили пользователей team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "Возникла ошибка получения команды, team_id=%s, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "Возникла ошибка получения пользователя, user_id=%s, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1494,10 +1482,6 @@
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
     "translation": "Ошибка отправки события, err=%s"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "Ошибка получения вебхуков для команды, err=%v"
   },
   {
     "id": "api.post.init.debug",
@@ -1520,20 +1504,16 @@
     "translation": "Ошибка обновления настроек канала user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "Невозможно отправить уведомление активным @пользователям, err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "Невозможно получить профиль участников канала, user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Очистка push-уведомлений для %v в channel_id %v"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Ошибка получения уведомлений о комментариях к теме обсуждения root_post_id=%v err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Очистка push-уведомлений для %v в channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1581,23 +1561,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Ошибка отправки push device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "Не удалось отправить приглашение по электронной почте email=%v err=%v"
+    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} отправлен"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "Не удалось получить сеанс в уведомлении id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "Пост user_id не возвращён GetProfiles user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2273,7 +2241,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Не удалось добавить предпочтения прямого канала для пользователя user_id=%s, team_id=%s, err=%v"
+    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2697,11 +2665,11 @@
   },
   {
     "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "Команды были отключены системным администратором."
+    "translation": "Входящие вебхуки были отключены системным администратором."
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "Команды были отключены системным администратором."
+    "translation": "Исходящие вебхуки были отключены системным администратором."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2709,7 +2677,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Исходящие webhooks могут быть созданы только для общественных каналов."
+    "translation": "Исходящие вебхуки могут быть созданы только для общественных каналов."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
@@ -2721,35 +2689,35 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_errror",
-    "translation": "Входящие webhooks отключены системным администратором."
+    "translation": "Входящие вебхуки отключены системным администратором."
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_errror",
-    "translation": "Несоответствующие права для удаления входящего вебхука"
+    "translation": "Отсутствуют права на удаление входящего вебхука"
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "Исходящие webhooks отключены системным администратором."
+    "translation": "Исходящие вебхуки отключены системным администратором."
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
-    "translation": "Несоответствующие права для удаления исходящего вебхука"
+    "translation": "Отсутствуют права на удаление исходящего вебхука"
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Входящие webhooks отключены системным администратором."
+    "translation": "Входящие вебхуки отключены системным администратором."
   },
   {
     "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Исходящие webhooks отключены системным администратором."
+    "translation": "Исходящие вебхуки отключены системным администратором."
   },
   {
     "id": "api.webhook.incoming.debug",
-    "translation": "Входящий webhook получен. Содержание="
+    "translation": "Входящий вебхук получен. Содержание="
   },
   {
     "id": "api.webhook.incoming.debug.error",
-    "translation": "Не удалось прочитать полезную нагрузку входящего webhook."
+    "translation": "Не удалось прочитать полезную нагрузку входящего вебхука."
   },
   {
     "id": "api.webhook.init.debug",
@@ -2757,11 +2725,11 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "Исходящие webhooks отключены системным администратором."
+    "translation": "Исходящие вебхуки отключены системным администратором."
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Несоответствующие права для генерации нового токена исходящего вебхука"
+    "translation": "Отсутствуют права на пересоздание токена для исходящего вебхука"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2774,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "Мы столкнулись с неожиданной ошибкой при попытке зарегистрировать токен WebRTC"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
