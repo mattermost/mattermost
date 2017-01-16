@@ -869,7 +869,7 @@ func TestEmailMention(t *testing.T) {
 	data["comments"] = "any"
 	Client.Must(Client.UpdateUserNotify(data))
 
-	store.Must(Srv.Store.Preference().Save(&model.Preferences{{
+	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser2.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
