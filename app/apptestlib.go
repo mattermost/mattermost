@@ -53,6 +53,7 @@ func Setup() *TestHelper {
 		NewServer()
 		InitStores()
 		StartServer()
+		utils.InitHTML()
 		utils.EnableDebugLogForTest()
 		Srv.Store.MarkSystemRanUnitTests()
 

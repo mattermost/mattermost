@@ -178,6 +178,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 }
 
 func TestGetMentionKeywords(t *testing.T) {
+	Setup()
 	// user with username or custom mentions enabled
 	user1 := &model.User{
 		Id:        model.NewId(),
