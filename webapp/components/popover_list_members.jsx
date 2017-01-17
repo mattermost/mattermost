@@ -5,7 +5,11 @@ import ProfilePicture from 'components/profile_picture.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
+
 import TeamMembersModal from './team_members_modal.jsx';
+import ChannelMembersModal from './channel_members_modal.jsx';
+import ChannelInviteModal from './channel_invite_modal.jsx';
 
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 
@@ -23,15 +27,16 @@ export default class PopoverListMembers extends React.Component {
     constructor(props) {
         super(props);
 
-        this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
-        this.hideTeamMembersModal = this.hideTeamMembersModal.bind(this);
+        this.showMembersModal = this.showMembersModal.bind(this);
 
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
         this.closePopover = this.closePopover.bind(this);
 
         this.state = {
             showPopover: false,
-            showTeamMembersModal: false
+            showTeamMembersModal: false,
+            showChannelMembersModal: false,
+            showChannelInviteModal: false
         };
     }
 
@@ -60,20 +65,20 @@ export default class PopoverListMembers extends React.Component {
         this.setState({showPopover: false});
     }
 
-    showTeamMembersModal(e) {
+    showMembersModal(e) {
         e.preventDefault();
 
-        this.setState({
-            showPopover: false,
-            showTeamMembersModal: true
-        });
-    }
-
-    hideTeamMembersModal() {
-        this.setState({
-            showPopover: true,
-            showTeamMembersModal: false
-        });
+        if (ChannelStore.isDefault(this.props.channel)) {
+            this.setState({
+                showPopover: false,
+                showTeamMembersModal: true
+            });
+        } else {
+            this.setState({
+                showPopover: false,
+                showChannelMembersModal: true
+            });
+        }
     }
 
     render() {
@@ -143,21 +148,36 @@ export default class PopoverListMembers extends React.Component {
                 }
             });
 
+            let membersName = (
+                <FormattedMessage
+                    id='members_popover.manageMembers'
+                    defaultMessage='Manage Members'
+                />
+            );
+            if (!isAdmin) {
+                membersName = (
+                    <FormattedMessage
+                        id='members_popover.viewMembers'
+                        defaultMessage='View Members'
+                    />
+                );
+            }
+
             popoverHtml.push(
                 <div
                     className='more-modal__row'
                     key={'popover-member-more'}
                 >
-                    <div className='col-sm-5'/>
+                    <div className='col-sm-3'/>
                     <div className='more-modal__details'>
                         <div
                             className='more-modal__name'
                         >
                             <a
                                 href='#'
-                                onClick={this.showTeamMembersModal}
+                                onClick={this.showMembersModal}
                             >
-                                {'...'}
+                                {membersName}
                             </a>
                         </div>
                     </div>
@@ -178,12 +198,33 @@ export default class PopoverListMembers extends React.Component {
             />
         );
 
+        let channelMembersModal;
+        if (this.state.showChannelMembersModal) {
+            channelMembersModal = (
+                <ChannelMembersModal
+                    onModalDismissed={() => this.setState({showChannelMembersModal: false})}
+                    showInviteModal={() => this.setState({showChannelInviteModal: true})}
+                    channel={this.props.channel}
+                />
+            );
+        }
+
         let teamMembersModal;
         if (this.state.showTeamMembersModal) {
             teamMembersModal = (
                 <TeamMembersModal
-                    onHide={this.hideTeamMembersModal}
+                    onHide={() => this.setState({showTeamMembersModal: false})}
                     isAdmin={isAdmin}
+                />
+            );
+        }
+
+        let channelInviteModal;
+        if (this.state.showChannelInviteModal) {
+            channelInviteModal = (
+                <ChannelInviteModal
+                    onHide={() => this.setState({showChannelInviteModal: false})}
+                    channel={this.props.channel}
                 />
             );
         }
@@ -223,7 +264,9 @@ export default class PopoverListMembers extends React.Component {
                         <div className='more-modal__list'>{popoverHtml}</div>
                     </Popover>
                 </Overlay>
+                {channelMembersModal}
                 {teamMembersModal}
+                {channelInviteModal}
             </div>
         );
     }
