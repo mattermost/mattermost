@@ -85,6 +85,14 @@ start-docker:
         docker start mattermost-webrtc > /dev/null; \
     fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
+		echo starting mattermost-inbucket; \
+		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:latest > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-inbucket) -eq 0 ]; then \
+		echo restarting mattermost-inbucket; \
+		docker start mattermost-inbucket > /dev/null; \
+	fi
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
@@ -132,6 +140,11 @@ stop-docker:
 		docker stop mattermost-webrtc > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
+		echo stopping mattermost-inbucket; \
+		docker stop mattermost-inbucket > /dev/null; \
+	fi
+
 clean-docker:
 	@echo Removing docker containers
 
@@ -157,6 +170,12 @@ clean-docker:
 		echo removing mattermost-webrtc; \
 		docker stop mattermost-webrtc > /dev/null; \
 		docker rm -v mattermost-webrtc > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
+		echo removing mattermost-inbucket; \
+		docker stop mattermost-inbucket > /dev/null; \
+		docker rm -v mattermost-inbucket > /dev/null; \
 	fi
 
 check-client-style:
@@ -302,6 +321,12 @@ package: build build-client
 
 	@# Disable developer settings
 	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
+
+	@# Reset email sending to original configuration
+	sed -i'' -e 's|"SendEmailNotifications": true,|"SendEmailNotifications": false,|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"FeedbackEmail": "test@example.com",|"FeedbackEmail": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"SMTPServer": "dockerhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/webapp/dist

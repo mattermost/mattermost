@@ -1284,6 +1284,9 @@ func TestResetPassword(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
 
+	//Delete all the messages before check the reset password
+	utils.DeleteMailBox(user.Email)
+
 	Client.Must(Client.SendPasswordReset(user.Email))
 
 	var recovery *model.PasswordRecovery
@@ -1291,6 +1294,19 @@ func TestResetPassword(t *testing.T) {
 		t.Fatal(result.Err)
 	} else {
 		recovery = result.Data.(*model.PasswordRecovery)
+	}
+
+	//Check if the email was send to the rigth email address and the recovery key match
+	if resultsMailbox, err := utils.GetMailBox(user.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
+		t.Fatal("Wrong To recipient")
+	} else {
+		if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			if !strings.Contains(resultsEmail.Body.Text, recovery.Code) {
+				t.Log(resultsEmail.Body.Text)
+				t.Log(recovery.Code)
+				t.Fatal("Received wrong recovery code")
+			}
+		}
 	}
 
 	if _, err := Client.ResetPassword(recovery.Code, ""); err == nil {

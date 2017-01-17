@@ -857,11 +857,45 @@ func TestEmailMention(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
+	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: th.BasicUser.Username}
+	th.LoginBasic2()
+	//Set the notification properties
+	data := make(map[string]string)
+	data["user_id"] = th.BasicUser2.Id
+	data["email"] = "true"
+	data["desktop"] = "all"
+	data["desktop_sound"] = "false"
+	data["comments"] = "any"
+	Client.Must(Client.UpdateUserNotify(data))
+
+	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
+		UserId:   th.BasicUser2.Id,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "0",
+	}}))
+
+	//Delete all the messages before create a mention post
+	utils.DeleteMailBox(th.BasicUser2.Email)
+
+	//Send a mention message from user1 to user2
+	th.LoginBasic()
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "@" + th.BasicUser2.Username + " this is a test"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
-	// No easy way to verify the email was sent, but this will at least cause the server to throw errors if the code is broken
+	//Check if the email was send to the rigth email address and the mention
+	if resultsMailbox, err := utils.GetMailBox(th.BasicUser2.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
+		t.Fatal("Wrong To recipient")
+	} else {
+		if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
+			if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
+				t.Log(resultsEmail.Body.Text)
+				t.Fatal("Received wrong Message")
+			}
+		}
+	}
 
 }
 
