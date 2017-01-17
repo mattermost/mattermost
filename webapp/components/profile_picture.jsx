@@ -71,7 +71,8 @@ export default class ProfilePicture extends React.Component {
                             className='more-modal__image'
                             width={this.props.width}
                             height={this.props.width}
-                            src={this.props.src}
+			    style={{backgroundImage:'url(' + this.props.src + ')', backgroundSize:'cover'}}
+                            src='/images/1x1.png'
                         />
                     </span>
                 </OverlayTrigger>
@@ -83,7 +84,8 @@ export default class ProfilePicture extends React.Component {
                     className='more-modal__image'
                     width={this.props.width}
                     height={this.props.width}
-                    src={this.props.src}
+                    style={{backgroundImage:'url(' + this.props.src + ')', backgroundSize:'cover'}}
+                    src='/images/1x1.png'
                 />
             </span>
         );

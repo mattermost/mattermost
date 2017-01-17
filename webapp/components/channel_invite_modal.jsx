@@ -117,25 +117,19 @@ export default class ChannelInviteModal extends React.Component {
 
         clearTimeout(this.searchTimeoutId);
 
-        const searchTimeoutId = setTimeout(
+        this.searchTimeoutId = setTimeout(
             () => {
                 searchUsers(
                     term,
                     TeamStore.getCurrentId(),
                     {not_in_channel_id: this.props.channel.id},
                     (users) => {
-                        if (searchTimeoutId !== this.searchTimeoutId) {
-                            return;
-                        }
-
                         this.setState({search: true, users});
                     }
                 );
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
-
-        this.searchTimeoutId = searchTimeoutId;
     }
 
     render() {

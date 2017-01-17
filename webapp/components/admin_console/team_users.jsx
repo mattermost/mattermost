@@ -158,17 +158,13 @@ export default class UserList extends React.Component {
 
         clearTimeout(this.searchTimeoutId);
 
-        const searchTimeoutId = setTimeout(
+        this.searchTimeoutId = setTimeout(
             () => {
                 searchUsers(
                     term,
                     this.props.params.team,
                     options,
                     (users) => {
-                        if (searchTimeoutId !== this.searchTimeoutId) {
-                            return;
-                        }
-
                         this.setState({loading: true, search: true, users});
                         loadTeamMembersForProfilesList(users, this.props.params.team, this.loadComplete);
                     }
@@ -176,8 +172,6 @@ export default class UserList extends React.Component {
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
-
-        this.searchTimeoutId = searchTimeoutId;
     }
 
     render() {

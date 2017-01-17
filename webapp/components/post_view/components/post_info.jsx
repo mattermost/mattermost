@@ -139,7 +139,7 @@ export default class PostInfo extends React.Component {
             </li>
         );
 
-        if (isOwner || isAdmin) {
+        if (isAdmin) {
             dropdownContents.push(
                 <li
                     key='deletePost'
@@ -161,7 +161,7 @@ export default class PostInfo extends React.Component {
                 </li>
             );
         }
-
+/*
         if (isOwner && !isSystemMessage) {
             dropdownContents.push(
                 <li
@@ -189,7 +189,7 @@ export default class PostInfo extends React.Component {
                 </li>
             );
         }
-
+*/
         if (dropdownContents.length === 0) {
             return '';
         }

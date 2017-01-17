@@ -140,9 +140,9 @@ export function showManagementOptions(channel, isAdmin, isSystemAdmin) {
 }
 
 export function showDeleteOption(channel, isAdmin, isSystemAdmin) {
-    if (global.window.mm_license.IsLicensed !== 'true') {
-        return true;
-    }
+//    if (global.window.mm_license.IsLicensed !== 'true') {
+//        return true;
+//    }
 
     if (channel.type === Constants.OPEN_CHANNEL) {
         if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {

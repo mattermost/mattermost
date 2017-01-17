@@ -175,13 +175,21 @@ export default class ProfilePopover extends React.Component {
         }
 
         var dataContent = [];
+//            <img
+//                className='user-popover__image'
+//                src={this.props.src}
+//                height='128'
+//                width='128'
+//                key='user-popover-image'
+//            />
         dataContent.push(
             <img
                 className='user-popover__image'
-                src={this.props.src}
+                style={{backgroundImage:'url(' + this.props.src + ')'}}
                 height='128'
                 width='128'
                 key='user-popover-image'
+                src='/images/1x1.png'
             />
         );
 
@@ -203,7 +211,8 @@ export default class ProfilePopover extends React.Component {
         }
 
         if (this.props.user.position) {
-            const position = this.props.user.position.substring(0, Constants.MAX_POSITION_LENGTH);
+//            const position = this.props.user.position.substring(0, Constants.MAX_POSITION_LENGTH);
+            const position = this.props.user.position;
             dataContent.push(
                 <OverlayTrigger
                     delayShow={Constants.WEBRTC_TIME_DELAY}
@@ -211,7 +220,7 @@ export default class ProfilePopover extends React.Component {
                     overlay={<Tooltip id='positionTooltip'>{position}</Tooltip>}
                 >
                     <div
-                        className='overflow--ellipsis text-nowrap padding-bottom'
+                        className='overflow--ellipsis padding-bottom'
                     >
                         {position}
                     </div>
