@@ -14,7 +14,7 @@ const MIN_EMOTICON_LENGTH = 2;
 class EmoticonSuggestion extends Suggestion {
     render() {
         const text = this.props.term;
-        const emoticon = this.props.item;
+        const emoji = this.props.item.emoji;
 
         let className = 'emoticon-suggestion';
         if (this.props.isSelection) {
@@ -30,7 +30,7 @@ class EmoticonSuggestion extends Suggestion {
                     <img
                         alt={text}
                         className='emoticon-suggestion__image'
-                        src={EmojiStore.getEmojiImageUrl(emoticon)}
+                        src={EmojiStore.getEmojiImageUrl(emoji)}
                         title={text}
                     />
                 </div>
@@ -73,15 +73,24 @@ export default class EmoticonProvider {
 
             // check for named emoji
             for (const [name, emoji] of EmojiStore.getEmojis()) {
-                if (name.indexOf(partialName) !== -1) {
-                    matched.push(emoji);
+                if (emoji.aliases) {
+                    // This is a system emoji so it may have multiple names
+                    for (const alias of emoji.aliases) {
+                        if (alias.indexOf(partialName) !== -1) {
+                            matched.push({name: alias, emoji});
+                            break;
+                        }
+                    }
+                } else if (name.indexOf(partialName) !== -1) {
+                    // This is a custom emoji so it only has one name
+                    matched.push({name, emoji});
                 }
             }
 
             // sort the emoticons so that emoticons starting with the entered text come first
             matched.sort((a, b) => {
-                const aName = a.name || a.aliases[0];
-                const bName = b.name || b.aliases[0];
+                const aName = a.name;
+                const bName = b.name;
 
                 const aPrefix = aName.startsWith(partialName);
                 const bPrefix = bName.startsWith(partialName);
@@ -95,7 +104,7 @@ export default class EmoticonProvider {
                 return 1;
             });
 
-            const terms = matched.map((emoticon) => ':' + (emoticon.name || emoticon.aliases[0]) + ':');
+            const terms = matched.map((item) => ':' + item.name + ':');
 
             SuggestionStore.clearSuggestions(suggestionId);
             if (terms.length > 0) {
