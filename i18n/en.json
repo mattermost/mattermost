@@ -2497,19 +2497,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Failed to send email change notification email successfully err=%v"
+    "translation": "Failed to send email change notification email successfully"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Failed to send username change notification email successfully err=%v"
+    "translation": "Failed to send username change notification email successfully"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Failed to send email change verification email successfully err=%v"
+    "translation": "Failed to send email change verification email successfully"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Failed to send update password email successfully err=%v"
+    "translation": "Failed to send update password email successfully"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2525,15 +2525,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Failed to send update password email successfully err=%v"
+    "translation": "Failed to send update password email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Failed to send verification email successfully err=%v"
+    "translation": "Failed to send verification email successfully"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Failed to send welcome email successfully err=%v"
+    "translation": "Failed to send welcome email successfully"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",

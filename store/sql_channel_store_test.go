@@ -446,7 +446,7 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("Member update time incorrect on delete")
 	}
 
-	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId)).Data.(model.ChannelMember)
+	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId)).Data.(*model.ChannelMember)
 	if member.ChannelId != o1.ChannelId {
 		t.Fatal("should have go member")
 	}
@@ -918,7 +918,7 @@ func TestGetMember(t *testing.T) {
 
 	if result := <-store.Channel().GetMember(c1.Id, userId); result.Err != nil {
 		t.Fatal("shouldn't have errored when getting member", result.Err)
-	} else if member := result.Data.(model.ChannelMember); member.ChannelId != c1.Id {
+	} else if member := result.Data.(*model.ChannelMember); member.ChannelId != c1.Id {
 		t.Fatal("should've gotten member of channel 1")
 	} else if member.UserId != userId {
 		t.Fatal("should've gotten member for user")
@@ -926,7 +926,7 @@ func TestGetMember(t *testing.T) {
 
 	if result := <-store.Channel().GetMember(c2.Id, userId); result.Err != nil {
 		t.Fatal("shouldn't have errored when getting member", result.Err)
-	} else if member := result.Data.(model.ChannelMember); member.ChannelId != c2.Id {
+	} else if member := result.Data.(*model.ChannelMember); member.ChannelId != c2.Id {
 		t.Fatal("should've gotten member of channel 2")
 	} else if member.UserId != userId {
 		t.Fatal("should've gotten member for user")
@@ -1313,7 +1313,7 @@ func TestChannelStoreGetMembersByIds(t *testing.T) {
 	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId}); r.Err != nil {
 		t.Fatal(r.Err)
 	} else {
-		rm1 := r.Data.(model.ChannelMembers)[0]
+		rm1 := (*r.Data.(*model.ChannelMembers))[0]
 
 		if rm1.ChannelId != m1.ChannelId {
 			t.Fatal("bad team id")
@@ -1330,7 +1330,7 @@ func TestChannelStoreGetMembersByIds(t *testing.T) {
 	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()}); r.Err != nil {
 		t.Fatal(r.Err)
 	} else {
-		rm := r.Data.(model.ChannelMembers)
+		rm := (*r.Data.(*model.ChannelMembers))
 
 		if len(rm) != 2 {
 			t.Fatal("return wrong number of results")

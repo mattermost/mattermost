@@ -41,9 +41,6 @@ func (me *InvitePeopleProvider) DoCommand(c *Context, args *model.CommandArgs, m
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.email_off")}
 	}
 
-	tchan := app.Srv.Store.Team().Get(c.TeamId)
-	uchan := app.Srv.Store.User().Get(c.Session.UserId)
-
 	emailList := strings.Fields(message)
 
 	for i := len(emailList) - 1; i >= 0; i-- {
@@ -57,23 +54,10 @@ func (me *InvitePeopleProvider) DoCommand(c *Context, args *model.CommandArgs, m
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.no_email")}
 	}
 
-	var team *model.Team
-	if result := <-tchan; result.Err != nil {
-		c.Err = result.Err
+	if err := app.InviteNewUsersToTeam(emailList, c.TeamId, c.Session.UserId); err != nil {
+		c.Err = err
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.fail")}
-	} else {
-		team = result.Data.(*model.Team)
 	}
-
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.fail")}
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	go InviteMembers(team, user.GetDisplayName(), emailList, c.GetSiteURL())
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.sent")}
 }

@@ -15,11 +15,13 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -132,8 +134,8 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		ruser := result.Data.(*model.User)
 
 		if user.EmailVerified {
-			if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
-				l4g.Error(utils.T("api.user.create_user.verified.error"), cresult.Err)
+			if err := VerifyUserEmail(ruser.Id); err != nil {
+				l4g.Error(utils.T("api.user.create_user.verified.error"), err)
 			}
 		}
 
@@ -334,6 +336,14 @@ func GetUsersNotInChannel(teamId string, channelId string, offset int, limit int
 	}
 }
 
+func GetUsersByIds(userIds []string) (map[string]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(map[string]*model.User), nil
+	}
+}
+
 func ActivateMfa(userId, token string) *model.AppError {
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
@@ -478,4 +488,349 @@ func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
 	}
 
 	return img, nil
+}
+
+func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
+	file, err := imageData.Open()
+	defer file.Close()
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error())
+	}
+
+	// Decode image config first to check dimensions before loading the whole thing into memory later on
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error())
+	} else if config.Width*config.Height > model.MaxImageSize {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, err.Error())
+	}
+
+	file.Seek(0, 0)
+
+	// Decode image into Image object
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
+	}
+
+	// Scale profile image
+	img = imaging.Resize(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Lanczos)
+
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error())
+	}
+
+	path := "users/" + userId + "/profile.png"
+
+	if err := WriteFile(buf.Bytes(), path); err != nil {
+		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
+	}
+
+	Srv.Store.User().UpdateLastPictureUpdate(userId)
+
+	if user, err := GetUser(userId); err != nil {
+		l4g.Error(utils.T("api.user.get_me.getting.error"), userId)
+	} else {
+		options := utils.Cfg.GetSanitizeOptions()
+		user.SanitizeProfile(options)
+
+		omitUsers := make(map[string]bool, 1)
+		omitUsers[userId] = true
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+		message.Add("user", user)
+
+		Publish(message)
+	}
+
+	return nil
+}
+
+func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
+	if active {
+		user.DeleteAt = 0
+	} else {
+		user.DeleteAt = model.GetMillis()
+	}
+
+	if result := <-Srv.Store.User().Update(user, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		if user.DeleteAt > 0 {
+			if err := RevokeAllSessions(user.Id); err != nil {
+				return nil, err
+			}
+		}
+
+		if extra := <-Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
+			return nil, extra.Err
+		}
+
+		ruser := result.Data.([2]*model.User)[0]
+		options := utils.Cfg.GetSanitizeOptions()
+		options["passwordupdate"] = false
+		ruser.Sanitize(options)
+
+		if !active {
+			SetStatusOffline(ruser.Id, false)
+		}
+
+		return ruser, nil
+	}
+}
+
+func UpdateUser(user *model.User) (*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().Update(user, false); result.Err != nil {
+		return nil, result.Err
+	} else {
+		rusers := result.Data.([2]*model.User)
+
+		if rusers[0].Email != rusers[1].Email {
+			go func() {
+				if err := SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale); err != nil {
+					l4g.Error(err.Error())
+				}
+			}()
+
+			if utils.Cfg.EmailSettings.RequireEmailVerification {
+				go func() {
+					if err := SendEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, rusers[0].Locale); err != nil {
+						l4g.Error(err.Error())
+					}
+				}()
+			}
+		}
+
+		if rusers[0].Username != rusers[1].Username {
+			go func() {
+				if err := SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale); err != nil {
+					l4g.Error(err.Error())
+				}
+			}()
+		}
+
+		InvalidateCacheForUser(user.Id)
+
+		return rusers[0], nil
+	}
+}
+
+func UpdatePassword(user *model.User, hashedPassword string) *model.AppError {
+	if result := <-Srv.Store.User().UpdatePassword(user.Id, hashedPassword); result.Err != nil {
+		return model.NewLocAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error())
+	}
+
+	return nil
+}
+
+func UpdatePasswordSendEmail(user *model.User, hashedPassword, method string) *model.AppError {
+	if err := UpdatePassword(user, hashedPassword); err != nil {
+		return err
+	}
+
+	go func() {
+		if err := SendPasswordChangeEmail(user.Email, method, user.Locale); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
+
+	return nil
+}
+
+func CreatePasswordRecovery(userId string) (*model.PasswordRecovery, *model.AppError) {
+	recovery := &model.PasswordRecovery{}
+	recovery.UserId = userId
+
+	if result := <-Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
+		return nil, result.Err
+	}
+
+	return recovery, nil
+}
+
+func GetPasswordRecovery(code string) (*model.PasswordRecovery, *model.AppError) {
+	if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+		return nil, model.NewLocAppError("GetPasswordRecovery", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
+	} else {
+		return result.Data.(*model.PasswordRecovery), nil
+	}
+}
+
+func DeletePasswordRecoveryForUser(userId string) *model.AppError {
+	if result := <-Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}
+
+func UpdateUserRoles(userId string, newRoles string) (*model.User, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
+	}
+
+	user.Roles = newRoles
+	uchan := Srv.Store.User().Update(user, true)
+	schan := Srv.Store.Session().UpdateRoles(user.Id, newRoles)
+
+	var ruser *model.User
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		ruser = result.Data.([2]*model.User)[0]
+	}
+
+	if result := <-schan; result.Err != nil {
+		// soft error since the user roles were still updated
+		l4g.Error(result.Err)
+	}
+
+	ClearSessionCacheForUser(user.Id)
+
+	return ruser, nil
+}
+
+func PermanentDeleteUser(user *model.User) *model.AppError {
+	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
+	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
+		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
+	}
+
+	if _, err := UpdateActive(user, false); err != nil {
+		return err
+	}
+
+	if result := <-Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
+		return result.Err
+	}
+
+	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
+
+	return nil
+}
+
+func PermanentDeleteAllUsers() *model.AppError {
+	if result := <-Srv.Store.User().GetAll(); result.Err != nil {
+		return result.Err
+	} else {
+		users := result.Data.([]*model.User)
+		for _, user := range users {
+			PermanentDeleteUser(user)
+		}
+	}
+
+	return nil
+}
+
+func VerifyUserEmail(userId string) *model.AppError {
+	if err := (<-Srv.Store.User().VerifyEmail(userId)).Err; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SearchUsersInChannel(channelId string, term string, searchOptions map[string]bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchInChannel(channelId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
+func SearchUsersNotInChannel(teamId string, channelId string, term string, searchOptions map[string]bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
+func SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
+func AutocompleteUsersInChannel(teamId string, channelId string, term string, searchOptions map[string]bool) (*model.UserAutocompleteInChannel, *model.AppError) {
+	uchan := Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
+	nuchan := Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
+
+	autocomplete := &model.UserAutocompleteInChannel{}
+
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		autocomplete.InChannel = result.Data.([]*model.User)
+	}
+
+	if result := <-nuchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		autocomplete.OutOfChannel = result.Data.([]*model.User)
+	}
+
+	return autocomplete, nil
+}
+
+func AutocompleteUsersInTeam(teamId string, term string, searchOptions map[string]bool) (*model.UserAutocompleteInTeam, *model.AppError) {
+	autocomplete := &model.UserAutocompleteInTeam{}
+
+	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		autocomplete.InTeam = result.Data.([]*model.User)
+	}
+
+	return autocomplete, nil
 }

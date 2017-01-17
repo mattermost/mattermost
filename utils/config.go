@@ -39,7 +39,7 @@ func GetSiteURL() string {
 }
 
 func SetSiteURL(url string) {
-	siteURL = url
+	siteURL = strings.TrimRight(url, "/")
 }
 
 func FindConfigFile(fileName string) string {

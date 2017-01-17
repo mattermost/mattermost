@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -175,7 +174,7 @@ func changeUserActiveStatus(user *model.User, userArg string, activate bool) {
 		CommandPrintErrorln(utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
 		return
 	}
-	if _, err := api.UpdateActive(user, activate); err != nil {
+	if _, err := app.UpdateActive(user, activate); err != nil {
 		CommandPrintErrorln("Unable to change activation status of user: " + userArg)
 	}
 }
@@ -227,7 +226,7 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if system_admin {
-		api.UpdateUserRoles(ruser, "system_user system_admin")
+		app.UpdateUserRoles(ruser.Id, "system_user system_admin")
 	}
 
 	CommandPrettyPrintln("Created User")
@@ -262,7 +261,7 @@ func inviteUser(email string, team *model.Team, teamArg string) {
 		CommandPrintErrorln("Can't find team '" + teamArg + "'")
 		return
 	}
-	api.InviteMembers(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
+	app.SendInviteEmails(team, "Administrator", invites)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 }
 
@@ -335,7 +334,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := api.PermanentDeleteUser(user); err != nil {
+		if err := app.PermanentDeleteUser(user); err != nil {
 			return err
 		}
 	}
@@ -365,7 +364,7 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := api.PermanentDeleteAllUsers(); err != nil {
+	if err := app.PermanentDeleteAllUsers(); err != nil {
 		return err
 	} else {
 		CommandPrettyPrintln("Sucsessfull. All users deleted.")

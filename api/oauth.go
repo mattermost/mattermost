@@ -830,17 +830,22 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 		user = result.Data.(*model.User)
 	}
 
-	RevokeAllSession(c, user.Id)
-	if c.Err != nil {
+	if err := app.RevokeAllSessions(user.Id); err != nil {
+		c.Err = err
 		return
 	}
+	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 
 	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
 
-	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), strings.Title(service)+" SSO")
+	go func() {
+		if err := app.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
 }
 
 func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
