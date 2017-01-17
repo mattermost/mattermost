@@ -305,7 +305,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Failed to retrieve user while trying to save update channel displayname message"
+    "translation": "Failed to retrieve user while updating channel DisplayName field"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Failed to retrieve user while trying to save update channel header message %v"
+    "translation": "Failed to retrieve user while updating channel header message %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -341,7 +341,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "Failed to retrieve user while trying to save update channel purpose message %v"
+    "translation": "Failed to retrieve user while updating channel purpose message %v"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
