@@ -56,6 +56,18 @@ export default class ChannelMentionProvider extends Provider {
         if (captured) {
             const prefix = captured[3];
 
+            if ((/\s/).test(prefix)) {
+                // If there's a space, there's a chance that we've already completed this mention
+                const firstWordOfPrefix = prefix.split(' ')[0];
+
+                for (const channel of ChannelStore.getChannels()) {
+                    if (firstWordOfPrefix === channel.name) {
+                        // We've already mentioned this channel so there's nothing else to look for
+                        return;
+                    }
+                }
+            }
+
             this.startNewRequest(prefix);
 
             autocompleteChannels(
