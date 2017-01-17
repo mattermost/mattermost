@@ -23,7 +23,7 @@ import LocalizationStore from 'stores/localization_store.jsx';
 export function buildDisplayableChannelList(persistentChannels) {
     const missingDMChannels = createMissingDirectChannels(persistentChannels);
 
-    const channels = persistentChannels.concat(missingDMChannels).map(completeDirectChannelInfo);
+    const channels = persistentChannels.concat(missingDMChannels).map(completeDirectChannelInfo).filter(isNotDeletedChannel);
     channels.sort(sortChannelsByDisplayName);
 
     const favoriteChannels = channels.filter(isFavoriteChannel);
@@ -41,6 +41,10 @@ export function buildDisplayableChannelList(persistentChannels) {
 
 export function isFavoriteChannel(channel) {
     return PreferenceStore.getBool(Preferences.CATEGORY_FAVORITE_CHANNEL, channel.id);
+}
+
+export function isNotDeletedChannel(channel) {
+    return channel.delete_at === 0;
 }
 
 export function isOpenChannel(channel) {
