@@ -2,13 +2,12 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {updateChannelHeader} from 'actions/channel_actions.jsx';
 
 import {Modal} from 'react-bootstrap';
 
@@ -64,17 +63,12 @@ class EditChannelHeaderModal extends React.Component {
     handleSubmit() {
         this.setState({submitted: true});
 
-        Client.updateChannelHeader(
+        updateChannelHeader(
             this.props.channel.id,
             this.state.header,
-            (channel) => {
+            () => {
                 this.setState({serverError: ''});
                 this.onHide();
-
-                AppDispatcher.handleServerAction({
-                    type: Constants.ActionTypes.RECEIVED_CHANNEL,
-                    channel
-                });
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {

@@ -321,3 +321,25 @@ export function createChannel(channel, success, error) {
         }
     );
 }
+
+export function updateChannelHeader(channelId, header, success, error) {
+    Client.updateChannelHeader(
+        channelId,
+        header,
+        (channelData) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CHANNEL,
+                channel: channelData
+            });
+
+            if (success) {
+                success(channelData);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
