@@ -842,7 +842,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale); err != nil {
+		if err := app.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()

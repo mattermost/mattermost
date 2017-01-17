@@ -324,7 +324,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	return nil
 }
 
-func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
+func InviteNewUsersToTeam(emailList []string, teamId, senderId, siteURL string) *model.AppError {
 	tchan := Srv.Store.Team().Get(teamId)
 	uchan := Srv.Store.User().Get(senderId)
 
@@ -342,7 +342,7 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.Ap
 		user = result.Data.(*model.User)
 	}
 
-	SendInviteEmails(team, user.GetDisplayName(), emailList)
+	SendInviteEmails(team, user.GetDisplayName(), emailList, siteURL)
 
 	return nil
 }

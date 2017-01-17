@@ -135,7 +135,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shouldSendWelcomeEmail {
-		if err := app.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale); err != nil {
+		if err := app.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}
@@ -896,7 +896,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := app.UpdateUser(user); err != nil {
+	if ruser, err := app.UpdateUser(user, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -978,7 +978,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.update_password.menu")); err != nil {
+	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.update_password.menu"), c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -1171,7 +1171,7 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 
 	}
 
-	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.reset_password.method")); err != nil {
+	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.reset_password.method"), c.GetSiteURL()); err != nil {
 		return err
 	}
 
@@ -1227,7 +1227,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.NotifyProps = props
 
 	var ruser *model.User
-	if ruser, err = app.UpdateUser(user); err != nil {
+	if ruser, err = app.UpdateUser(user, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}
@@ -1339,7 +1339,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale); err != nil {
+		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()
@@ -1432,7 +1432,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale); err != nil {
+		if err := app.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()
@@ -1519,7 +1519,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale); err != nil {
+		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()
@@ -1573,9 +1573,9 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if _, err := app.GetStatus(user.Id); err != nil {
-			go app.SendVerifyEmail(user.Id, user.Email, user.Locale)
+			go app.SendVerifyEmail(user.Id, user.Email, user.Locale, c.GetSiteURL())
 		} else {
-			go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale)
+			go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale, c.GetSiteURL())
 		}
 	}
 }
@@ -1653,7 +1653,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale); err != nil {
+		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()
@@ -1783,7 +1783,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 			go func() {
-				if err := app.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale); err != nil {
+				if err := app.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.GetSiteURL()); err != nil {
 					l4g.Error(err.Error())
 				}
 			}()

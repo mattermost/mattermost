@@ -197,7 +197,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList = append(emailList, invite["email"])
 	}
 
-	if err := app.InviteNewUsersToTeam(emailList, c.TeamId, c.Session.UserId); err != nil {
+	if err := app.InviteNewUsersToTeam(emailList, c.TeamId, c.Session.UserId, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}

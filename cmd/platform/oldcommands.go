@@ -319,7 +319,7 @@ func cmdInviteUser() {
 		}
 
 		invites := []string{flagEmail}
-		app.SendInviteEmails(team, user.GetDisplayName(), invites)
+		app.SendInviteEmails(team, user.GetDisplayName(), invites, *utils.Cfg.ServiceSettings.SiteURL)
 
 		os.Exit(0)
 	}
@@ -1093,6 +1093,10 @@ func getMockContext() *api.Context {
 	c.IpAddress = "cmd_line"
 	c.T = utils.TfuncWithFallback(model.DEFAULT_LOCALE)
 	c.Locale = model.DEFAULT_LOCALE
+
+	if *utils.Cfg.ServiceSettings.SiteURL != "" {
+		c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
+	}
 
 	return c
 }

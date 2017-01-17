@@ -4,7 +4,6 @@
 package api
 
 import (
-	"github.com/mattermost/platform/utils"
 	"testing"
 )
 
@@ -19,16 +18,11 @@ func TestSiteURL(t *testing.T) {
 		{"http://mattermost.com", "http://mattermost.com"},
 	}
 
-	siteURL := utils.GetSiteURL()
-	defer func() {
-		utils.SetSiteURL(siteURL)
-	}()
-
 	for _, tc := range testCases {
-		utils.SetSiteURL(tc.url)
+		c.SetSiteURL(tc.url)
 
-		if c.GetSiteURL() != tc.want {
-			t.Fatalf("expected %s, got %s", tc.want, c.GetSiteURL())
+		if c.siteURL != tc.want {
+			t.Fatalf("expected %s, got %s", tc.want, c.siteURL)
 		}
 	}
 
