@@ -23,23 +23,26 @@ export default class PostInfo extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleDropdownClick = this.handleDropdownClick.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
         this.removePost = this.removePost.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
     }
 
-    handleDropdownClick(e) {
-        var position = $('#post-list').height() - $(e.target).offset().top;
-        var dropdown = $(e.target).closest('.col__reply').find('.dropdown-menu');
+    handleDropdownOpened() {
+        this.props.handleDropdownOpened(true);
+
+        const position = $('#post-list').height() - $(this.refs.dropdownToggle).offset().top;
+        const dropdown = $(this.refs.dropdown);
+
         if (position < dropdown.height()) {
             dropdown.addClass('bottom');
         }
     }
 
     componentDidMount() {
-        $('#post_dropdown' + this.props.post.id).on('shown.bs.dropdown', () => this.props.handleDropdownOpened(true));
+        $('#post_dropdown' + this.props.post.id).on('shown.bs.dropdown', this.handleDropdownOpened);
         $('#post_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
 
@@ -199,15 +202,16 @@ export default class PostInfo extends React.Component {
                 id={'post_dropdown' + this.props.post.id}
             >
                 <a
+                    ref='dropdownToggle'
                     href='#'
                     className='dropdown-toggle post__dropdown theme'
                     type='button'
                     data-toggle='dropdown'
                     aria-expanded='false'
-                    onClick={this.handleDropdownClick}
                 />
                 <div className='dropdown-menu__content'>
                     <ul
+                        ref='dropdown'
                         className='dropdown-menu'
                         role='menu'
                     >
