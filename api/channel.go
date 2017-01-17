@@ -262,6 +262,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
+
 	props := model.MapFromJson(r.Body)
 	channelId := props["channel_id"]
 	if len(channelId) != 26 {
@@ -292,6 +293,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		oldChannelPurpose := channel.Purpose
 		channel.Purpose = channelPurpose
 
 		app.InvalidateCacheForChannel(channel.Id)
@@ -299,6 +301,9 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = ucresult.Err
 			return
 		} else {
+			if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose); err != nil {
+				l4g.Error(err.Error())
+			}
 			c.LogAudit("name=" + channel.Name)
 			w.Write([]byte(channel.ToJson()))
 		}

@@ -630,6 +630,17 @@ func TestUpdateChannelPurpose(t *testing.T) {
 		upChannel1 = result.Data.(*model.Channel)
 	}
 
+	time.Sleep(100 * time.Millisecond)
+
+	r1 := Client.Must(Client.GetPosts(channel1.Id, 0, 1, "")).Data.(*model.PostList)
+	if len(r1.Order) != 1 {
+		t.Fatal("Purpose update system message was not found")
+	} else if val, ok := r1.Posts[r1.Order[0]].Props["old_purpose"]; !ok || val != "" {
+		t.Fatal("Props should contain old_header with old purpose value")
+	} else if val, ok := r1.Posts[r1.Order[0]].Props["new_purpose"]; !ok || val != "new purpose" {
+		t.Fatal("Props should contain new_header with new purpose value")
+	}
+
 	if upChannel1.Purpose != data["channel_purpose"] {
 		t.Fatal("Failed to update purpose")
 	}
