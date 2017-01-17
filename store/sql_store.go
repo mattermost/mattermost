@@ -557,7 +557,7 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
 
-		if count > 0 {
+		if count <= 0 {
 			return
 		}
 
