@@ -316,6 +316,41 @@ func PostUpdateChannelHeaderMessage(userId string, channelId string, teamId stri
 	return nil
 }
 
+func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId string, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+	uc := Srv.Store.User().Get(userId)
+
+	if uresult := <-uc; uresult.Err != nil {
+		return model.NewLocAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, uresult.Err.Error())
+	} else {
+		user := uresult.Data.(*model.User)
+
+		var message string
+		if oldChannelPurpose == "" {
+			message = fmt.Sprintf(utils.T("app.channel.post_update_channel_purpose_message.updated_to"), user.Username, newChannelPurpose)
+		} else if newChannelPurpose == "" {
+			message = fmt.Sprintf(utils.T("app.channel.post_update_channel_purpose_message.removed"), user.Username, oldChannelPurpose)
+		} else {
+			message = fmt.Sprintf(utils.T("app.channel.post_update_channel_purpose_message.updated_from"), user.Username, oldChannelPurpose, newChannelPurpose)
+		}
+
+		post := &model.Post{
+			ChannelId: channelId,
+			Message:   message,
+			Type:      model.POST_PURPOSE_CHANGE,
+			UserId:    userId,
+			Props: model.StringInterface{
+				"old_purpose": oldChannelPurpose,
+				"new_purpose": newChannelPurpose,
+			},
+		}
+		if _, err := CreatePost(post, teamId, false); err != nil {
+			return model.NewLocAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, err.Error())
+		}
+	}
+
+	return nil
+}
+
 func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId string, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 

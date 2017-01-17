@@ -332,6 +332,26 @@
     "translation": "%s updated the channel header to: %s"
   },
   {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Failed to post channel purpose message"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s removed the channel purpose (was: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Failed to retrieve user while trying to save update channel purpose message %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s updated the channel purpose from: %s to: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s updated the channel purpose to: %s"
+  },
+  {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "Failed to post join/leave message"
   },
