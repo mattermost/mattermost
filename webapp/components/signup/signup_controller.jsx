@@ -79,11 +79,16 @@ export default class SignupController extends React.Component {
                             }
                         );
                     },
-                    (e) => {
+                    () => {
                         this.setState({ // eslint-disable-line react/no-did-mount-set-state
                             noOpenServerError: true,
                             loading: false,
-                            serverError: e.message
+                            serverError: (
+                                <FormattedMessage
+                                    id='signup_user_completed.invalid_invite'
+                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                                />
+                            )
                         });
                     }
                 );
