@@ -64,6 +64,7 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     onExited() {
+        this.selected = null;
         setTimeout(() => {
             $('#post_textbox').get(0).focus();
         });
@@ -71,6 +72,7 @@ export default class SwitchChannelModal extends React.Component {
 
     onChange(e) {
         this.setState({text: e.target.value});
+        this.selected = null;
     }
 
     onItemSelected(item) {
@@ -88,6 +90,15 @@ export default class SwitchChannelModal extends React.Component {
 
     handleSubmit() {
         let channel = null;
+
+        if (!this.selected) {
+            if (this.state.text !== '') {
+                this.setState({
+                    error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+                });
+            }
+            return;
+        }
 
         if (this.selected.type === Constants.DM_CHANNEL) {
             const user = UserStore.getProfileByUsername(this.selected.name);
@@ -117,7 +128,7 @@ export default class SwitchChannelModal extends React.Component {
             this.onHide();
         } else if (this.state.text !== '') {
             this.setState({
-                error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+                error: Utils.localizeMessage('channel_switch_modal.failed_to_open', 'Failed to open channel.')
             });
         }
     }
