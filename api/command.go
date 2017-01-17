@@ -233,8 +233,6 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 			post.AddProp("override_username", cmd.Username)
 		} else if len(response.Username) != 0 {
 			post.AddProp("override_username", response.Username)
-		} else {
-			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
 		}
 	}
 
