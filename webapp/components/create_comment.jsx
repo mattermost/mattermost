@@ -331,6 +331,9 @@ export default class CreateComment extends React.Component {
         draft.fileInfos = draft.fileInfos.concat(fileInfos);
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
+        // Focus on preview if needed
+        this.refs.preview.refs.container.scrollIntoViewIfNeeded();
+
         this.setState({uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
     }
 
@@ -354,6 +357,9 @@ export default class CreateComment extends React.Component {
     removePreview(id) {
         const fileInfos = this.state.fileInfos;
         const uploadsInProgress = this.state.uploadsInProgress;
+
+        // Clear previous errors
+        this.handleUploadError(null);
 
         // id can either be the id of an uploaded file or the client id of an in progress upload
         let index = fileInfos.findIndex((info) => info.id === id);
@@ -432,6 +438,7 @@ export default class CreateComment extends React.Component {
                     fileInfos={this.state.fileInfos}
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress}
+                    ref='preview'
                 />
             );
         }

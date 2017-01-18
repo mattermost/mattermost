@@ -47,6 +47,7 @@ class FileUpload extends React.Component {
         this.cancelUpload = this.cancelUpload.bind(this);
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
+        this.handleMaxUploadReached = this.handleMaxUploadReached.bind(this);
 
         this.state = {
             requests: {}
@@ -309,6 +310,16 @@ class FileUpload extends React.Component {
         }
     }
 
+    handleMaxUploadReached(e) {
+        e.preventDefault();
+
+        const {formatMessage} = this.props.intl;
+
+        this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
+
+        return false;
+    }
+
     render() {
         let multiple = true;
         if (UserAgent.isMobileApp()) {
@@ -322,10 +333,14 @@ class FileUpload extends React.Component {
             accept = 'image/*';
         }
 
+        const channelId = this.props.channelId || ChannelStore.getCurrentId();
+
+        const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
+
         return (
             <span
                 ref='input'
-                className='btn btn-file'
+                className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
                 <span
                     className='icon'
@@ -335,7 +350,7 @@ class FileUpload extends React.Component {
                     ref='fileInput'
                     type='file'
                     onChange={this.handleChange}
-                    onClick={this.props.onClick}
+                    onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
                     multiple={multiple}
                     accept={accept}
                 />
