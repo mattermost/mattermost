@@ -66,6 +66,7 @@ func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
 		table.ColMap("Header").SetMaxSize(1024)
 		table.ColMap("Purpose").SetMaxSize(250)
 		table.ColMap("CreatorId").SetMaxSize(26)
+		table.ColMap("Props").SetMaxSize(4000)
 
 		tablem := db.AddTableWithName(model.ChannelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
 		tablem.ColMap("ChannelId").SetMaxSize(26)
