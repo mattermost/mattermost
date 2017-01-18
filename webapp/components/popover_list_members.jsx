@@ -154,7 +154,7 @@ export default class PopoverListMembers extends React.Component {
                     defaultMessage='Manage Members'
                 />
             );
-            if (!isAdmin) {
+            if (!isAdmin && ChannelStore.isDefault(this.props.channel)) {
                 membersName = (
                     <FormattedMessage
                         id='members_popover.viewMembers'
