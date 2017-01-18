@@ -1094,6 +1094,8 @@
   "channel_loader.wrote": " wrote: ",
   "channel_members_dropdown.channel_admin": "Channel Admin",
   "channel_members_dropdown.channel_member": "Channel Member",
+  "channel_members_dropdown.make_channel_admin": "Make Channel Admin",
+  "channel_members_dropdown.make_channel_member": "Make Channel Member",
   "channel_members_dropdown.remove_from_channel": "Remove From Channel",
   "channel_members_dropdown.remove_member": "Remove Member",
   "channel_members_modal.addNew": " Add New Members",

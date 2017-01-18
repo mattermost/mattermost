@@ -1530,6 +1530,21 @@ export default class Client {
         this.track('api', 'api_channels_remove_member');
     }
 
+    updateChannelMemberRoles(channelId, userId, newRoles, success, error) {
+        var data = {
+            user_id: userId,
+            new_roles: newRoles
+        };
+
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/update_member_roles`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateChannelMemberRoles', success, error));
+    }
+
     // Routes for Commands
 
     listCommands(success, error) {
