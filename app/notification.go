@@ -24,7 +24,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel) ([]string, *model.AppError) {
+func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, -1, -1, true)
 	fchan := Srv.Store.FileInfo().GetForPost(post.Id)
 
@@ -36,7 +36,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	}
 
 	// If the user who made the post isn't in the channel, don't send a notification
-	if _, ok := profileMap[post.UserId]; !ok {
+	if _, ok := profileMap[post.UserId]; !ok && post.Props["from_webhook"] != "true" {
 		l4g.Debug(utils.T("api.post.send_notifications.user_id.debug"), post.Id, channel.Id, post.UserId)
 		return []string{}, nil
 	}
@@ -90,7 +90,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		if len(potentialOtherMentions) > 0 {
 			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.(map[string]*model.User)
-				go sendOutOfChannelMentions(post, team.Id, outOfChannelMentions)
+				go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
 			}
 		}
 
@@ -110,25 +110,23 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
-	var sender *model.User
 	senderName := make(map[string]string)
 	for _, id := range mentionedUsersList {
 		senderName[id] = ""
 		if post.IsSystemMessage() {
 			senderName[id] = utils.T("system.message.name")
-		} else if profile, ok := profileMap[post.UserId]; ok {
+		} else {
 			if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
 				senderName[id] = value.(string)
 			} else {
 				// Get the Display name preference from the receiver
 				if result := <-Srv.Store.Preference().Get(id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
 					// Show default sender's name if user doesn't set display settings.
-					senderName[id] = profile.Username
+					senderName[id] = sender.Username
 				} else {
-					senderName[id] = profile.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
+					senderName[id] = sender.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
 				}
 			}
-			sender = profile
 		}
 	}
 
@@ -136,7 +134,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
 		senderUsername = value.(string)
 	} else {
-		senderUsername = profileMap[post.UserId].Username
+		senderUsername = sender.Username
 	}
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
@@ -161,7 +159,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		}
 	}
 
-	T := utils.GetUserTranslations(profileMap[post.UserId].Locale)
+	T := utils.GetUserTranslations(sender.Locale)
 
 	// If the channel has more than 1K users then @here is disabled
 	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
@@ -569,7 +567,7 @@ func getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
 	}
 }
 
-func sendOutOfChannelMentions(post *model.Post, teamId string, profiles map[string]*model.User) *model.AppError {
+func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, profiles map[string]*model.User) *model.AppError {
 	if len(profiles) == 0 {
 		return nil
 	}
@@ -580,7 +578,7 @@ func sendOutOfChannelMentions(post *model.Post, teamId string, profiles map[stri
 	}
 	sort.Strings(usernames)
 
-	T := utils.GetUserTranslations(profiles[post.UserId].Locale)
+	T := utils.GetUserTranslations(sender.Locale)
 
 	var message string
 	if len(usernames) == 1 {
