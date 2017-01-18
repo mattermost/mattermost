@@ -9,7 +9,14 @@ import katex from 'katex';
 
 function markdownImageLoaded(image) {
     if (image.hasAttribute('height') && image.attributes.height.value !== 'auto') {
-        image.style.height = image.attributes.height.value + 'px';
+        const maxHeight = parseInt(global.getComputedStyle(image).maxHeight);
+
+        if (image.attributes.height.value > maxHeight) {
+            image.style.height = maxHeight + 'px';
+            image.style.width = (maxHeight * image.attributes.width.value / image.attributes.height.value) + 'px';
+        } else {
+            image.style.height = image.attributes.height.value + 'px';
+        }
     } else {
         image.style.height = 'auto';
     }
