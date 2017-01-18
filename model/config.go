@@ -73,6 +73,7 @@ type ServiceSettings struct {
 	EnableInsecureOutgoingConnections *bool
 	EnableMultifactorAuthentication   *bool
 	AllowCorsFrom                     *string
+	AllowCorsCredentials              *bool
 	SessionLengthWebInDays            *int
 	SessionLengthMobileInDays         *int
 	SessionLengthSSOInDays            *int
@@ -719,6 +720,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.AllowCorsFrom == nil {
 		o.ServiceSettings.AllowCorsFrom = new(string)
 		*o.ServiceSettings.AllowCorsFrom = ""
+	}
+
+	if o.ServiceSettings.AllowCorsCredentials == nil {
+		o.ServiceSettings.AllowCorsCredentials = new(bool)
+		*o.ServiceSettings.AllowCorsCredentials = false
 	}
 
 	if o.ServiceSettings.WebserverMode == nil {

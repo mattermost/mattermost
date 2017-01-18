@@ -18,6 +18,7 @@
         "EnableInsecureOutgoingConnections": false,
         "EnableMultifactorAuthentication": false,
         "AllowCorsFrom": "",
+        "AllowCorsCredentials": false,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,

@@ -22,6 +22,7 @@ export default class ConnectionSettings extends AdminSettings {
 
     getConfigFromState(config) {
         config.ServiceSettings.AllowCorsFrom = this.state.allowCorsFrom;
+        config.ServiceSettings.AllowCorsCredentials = this.state.AllowCorsCredentials;
         config.ServiceSettings.EnableInsecureOutgoingConnections = this.state.enableInsecureOutgoingConnections;
 
         return config;
@@ -30,6 +31,7 @@ export default class ConnectionSettings extends AdminSettings {
     getStateFromConfig(config) {
         return {
             allowCorsFrom: config.ServiceSettings.AllowCorsFrom,
+            AllowCorsCredentials: config.ServiceSettings.AllowCorsCredentials,
             enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections
         };
     }
