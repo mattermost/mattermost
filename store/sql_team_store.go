@@ -44,7 +44,7 @@ func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
 
 func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
-	s.CreateIndexIfNotExists("idx_teams_description", "Teams", "Description")
+	s.RemoveIndexIfExists("idx_teams_description", "Teams")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
 	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")
