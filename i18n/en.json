@@ -1608,6 +1608,14 @@
     "translation": "Already deleted id={{.PostId}}"
   },
   {
+  "id": "api.post.update_post.permissions_denied.app_error",
+  "translation": "Post edit has been disabled. Please ask your systems administrator for details."
+  },
+  {
+  "id": "api.post.update_post.permissions_time_limit.app_error",
+  "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+  },
+  {
     "id": "api.post.update_post.system_message.app_error",
     "translation": "Unable to update system message"
   },

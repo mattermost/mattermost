@@ -47,6 +47,8 @@ var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_EDIT_POST *Permission
 var PERMISSION_EDIT_OTHERS_POSTS *Permission
+var PERMISSION_DELETE_POST *Permission
+var PERMISSION_DELETE_OTHERS_POSTS *Permission
 var PERMISSION_REMOVE_USER_FROM_TEAM *Permission
 var PERMISSION_MANAGE_TEAM *Permission
 var PERMISSION_IMPORT_TEAM *Permission
@@ -229,6 +231,16 @@ func InitalizePermissions() {
 		"authentication.permissions.edit_others_posts.name",
 		"authentication.permissions.edit_others_posts.description",
 	}
+	PERMISSION_DELETE_POST = &Permission{
+		"delete_post",
+		"authentication.permissions.delete_post.name",
+		"authentication.permissions.delete_post.description",
+	}
+	PERMISSION_DELETE_OTHERS_POSTS = &Permission{
+		"delete_others_posts",
+		"authentication.permissions.delete_others_posts.name",
+		"authentication.permissions.delete_others_posts.description",
+	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{
 		"remove_user_from_team",
 		"authentication.permissions.remove_user_from_team.name",
@@ -349,6 +361,8 @@ func InitalizeRoles() {
 							PERMISSION_EDIT_OTHER_USERS.Id,
 							PERMISSION_MANAGE_OAUTH.Id,
 							PERMISSION_INVITE_USER.Id,
+							PERMISSION_DELETE_POST.Id,
+							PERMISSION_DELETE_OTHERS_POSTS.Id,
 						},
 						ROLE_TEAM_USER.Permissions...,
 					),

@@ -49,6 +49,14 @@ const (
 	RESTRICT_EMOJI_CREATION_ADMIN        = "admin"
 	RESTRICT_EMOJI_CREATION_SYSTEM_ADMIN = "system_admin"
 
+	PERMISSIONS_DELETE_POST_ALL          = "all"
+	PERMISSIONS_DELETE_POST_TEAM_ADMIN   = "team_admin"
+	PERMISSIONS_DELETE_POST_SYSTEM_ADMIN = "system_admin"
+
+	ALLOW_EDIT_POST_ALWAYS     = "always"
+	ALLOW_EDIT_POST_NEVER      = "never"
+	ALLOW_EDIT_POST_TIME_LIMIT = "time_limit"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -92,6 +100,9 @@ type ServiceSettings struct {
 	WebserverMode                     *string
 	EnableCustomEmoji                 *bool
 	RestrictCustomEmojiCreation       *string
+	RestrictPostDelete                *string
+	AllowEditPost                     *string
+	PostEditTimeLimit                 *int
 }
 
 type ClusterSettings struct {
@@ -825,6 +836,21 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.RestrictCustomEmojiCreation == nil {
 		o.ServiceSettings.RestrictCustomEmojiCreation = new(string)
 		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
+	}
+
+	if o.ServiceSettings.RestrictPostDelete == nil {
+		o.ServiceSettings.RestrictPostDelete = new(string)
+		*o.ServiceSettings.RestrictPostDelete = PERMISSIONS_DELETE_POST_ALL
+	}
+
+	if o.ServiceSettings.AllowEditPost == nil {
+		o.ServiceSettings.AllowEditPost = new(string)
+		*o.ServiceSettings.AllowEditPost = ALLOW_EDIT_POST_TIME_LIMIT
+	}
+
+	if o.ServiceSettings.PostEditTimeLimit == nil {
+		o.ServiceSettings.PostEditTimeLimit = new(int)
+		*o.ServiceSettings.PostEditTimeLimit = 300
 	}
 
 	if o.ClusterSettings.InterNodeListenAddress == nil {

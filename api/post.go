@@ -91,6 +91,16 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if utils.IsLicensed {
+		if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER {
+			c.Err = model.NewLocAppError("updatePost", "api.post.update_post.permissions.app_error", nil,
+				c.T("api.post.update_post.permissions_denied.app_error"))
+			c.Err.StatusCode = http.StatusForbidden
+			return
+		}
+	}
+
 	post := model.PostFromJson(r.Body)
 
 	if post == nil {
@@ -134,6 +144,15 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewLocAppError("updatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id)
 			c.Err.StatusCode = http.StatusForbidden
 			return
+		}
+
+		if utils.IsLicensed {
+			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*utils.Cfg.ServiceSettings.PostEditTimeLimit*1000) {
+				c.Err = model.NewLocAppError("updatePost", "api.post.update_post.permissions.app_error", nil,
+					c.T("api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}))
+				c.Err.StatusCode = http.StatusForbidden
+				return
+			}
 		}
 	}
 
@@ -402,7 +421,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_EDIT_POST) {
+	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_DELETE_POST) {
 		return
 	}
 
@@ -426,7 +445,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+		if post.UserId != c.Session.UserId && !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
 			c.Err = model.NewLocAppError("deletePost", "api.post.delete_post.permissions.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return

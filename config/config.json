@@ -35,7 +35,10 @@
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
-        "RestrictCustomEmojiCreation": "all"
+        "RestrictCustomEmojiCreation": "all",
+        "RestrictPostDelete": "all",
+        "AllowEditPost": "always",
+        "PostEditTimeLimit": 300
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
