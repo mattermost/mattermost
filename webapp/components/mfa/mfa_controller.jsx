@@ -1,6 +1,8 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {emitUserLoggedOutEvent} from 'actions/global_actions.jsx';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -16,13 +18,32 @@ export default class MFAController extends React.Component {
 
     render() {
         let backButton;
-        if (window.mm_config.EnforceMultifactorAuthentication !== 'true') {
+        if (window.mm_config.EnforceMultifactorAuthentication === 'true') {
+            backButton = (
+                <div className='signup-header'>
+                    <a
+                        href='#'
+                        onClick={(e) => {
+                            e.preventDefault();
+                            emitUserLoggedOutEvent('/login');
+                        }}
+                    >
+                        <span className='fa fa-chevron-left'/>
+                        <FormattedMessage
+                            id='web.header.logout'
+                            defaultMessage='Logout'
+                        />
+                    </a>
+                </div>
+            );
+        } else {
             backButton = (
                 <div className='signup-header'>
                     <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
+                            defaultMessage='Back'
                         />
                     </Link>
                 </div>
