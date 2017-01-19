@@ -12,7 +12,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
+import {addUserToTeamFromInvite, getInviteInfo} from 'actions/team_actions.jsx';
 
 import logoImage from 'images/logo.png';
 import ErrorBar from 'components/error_bar.jsx';
@@ -98,7 +98,7 @@ export default class SignupController extends React.Component {
             }
 
             if (inviteId) {
-                Client.getInviteInfo(
+                getInviteInfo(
                     inviteId,
                     (inviteData) => {
                         if (!inviteData) {
