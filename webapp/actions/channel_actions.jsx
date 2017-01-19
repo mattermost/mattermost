@@ -364,6 +364,25 @@ export function createChannel(channel, success, error) {
     );
 }
 
+export function updateChannelPurpose(channelId, purposeValue, success, error) {
+    Client.updateChannelPurpose(
+        channelId,
+        purposeValue,
+        () => {
+            AsyncClient.getChannel(channelId);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function updateChannelHeader(channelId, header, success, error) {
     Client.updateChannelHeader(
         channelId,
