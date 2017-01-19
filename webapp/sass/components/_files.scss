@@ -325,7 +325,9 @@
 }
 
 .file-upload-progress__circle {
-    margin: 10px 30px 5px 30px;
+    margin-top: 5px;
+    width: 100%;
+    height: 70%;
     .file-upload-progress__inside-text {
         font-size: 20px;
     }
