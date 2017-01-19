@@ -434,3 +434,29 @@ export function getChannelMembersForUserIds(channelId, userIds, success, error) 
         }
     );
 }
+
+export function leaveChannel(channelId, isFavorite, success, error) {
+    Client.leaveChannel(channelId,
+        () => {
+            loadChannelsForCurrentUser();
+
+            if (isFavorite) {
+                unmarkFavorite(channelId);
+            }
+
+            const townsquare = ChannelStore.getByName('town-square');
+            browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'handleLeave');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
