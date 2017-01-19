@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -35,12 +34,12 @@ func ImportPost(post *model.Post) {
 
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-		if result := <-app.Srv.Store.Post().Save(post); result.Err != nil {
+		if result := <-Srv.Store.Post().Save(post); result.Err != nil {
 			l4g.Debug(utils.T("api.import.import_post.saving.debug"), post.UserId, post.Message)
 		}
 
 		for _, fileId := range post.FileIds {
-			if result := <-app.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+			if result := <-Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
 				l4g.Error(utils.T("api.import.import_post.attach_files.error"), post.Id, post.FileIds, result.Err)
 			}
 		}
@@ -56,17 +55,17 @@ func ImportUser(team *model.Team, user *model.User) *model.User {
 
 	user.Roles = model.ROLE_SYSTEM_USER.Id
 
-	if result := <-app.Srv.Store.User().Save(user); result.Err != nil {
+	if result := <-Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error(utils.T("api.import.import_user.saving.error"), result.Err)
 		return nil
 	} else {
 		ruser := result.Data.(*model.User)
 
-		if cresult := <-app.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+		if cresult := <-Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
 			l4g.Error(utils.T("api.import.import_user.set_email.error"), cresult.Err)
 		}
 
-		if err := app.JoinUserToTeam(team, user); err != nil {
+		if err := JoinUserToTeam(team, user); err != nil {
 			l4g.Error(utils.T("api.import.import_user.join_team.error"), err)
 		}
 
@@ -75,7 +74,7 @@ func ImportUser(team *model.Team, user *model.User) *model.User {
 }
 
 func ImportChannel(channel *model.Channel) *model.Channel {
-	if result := <-app.Srv.Store.Channel().Save(channel); result.Err != nil {
+	if result := <-Srv.Store.Channel().Save(channel); result.Err != nil {
 		return nil
 	} else {
 		sc := result.Data.(*model.Channel)
@@ -89,7 +88,7 @@ func ImportFile(file io.Reader, teamId string, channelId string, userId string, 
 	io.Copy(buf, file)
 	data := buf.Bytes()
 
-	fileInfo, err := doUploadFile(teamId, channelId, userId, fileName, data)
+	fileInfo, err := DoUploadFile(teamId, channelId, userId, fileName, data)
 	if err != nil {
 		return nil, err
 	}
