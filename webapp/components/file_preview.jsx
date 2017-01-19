@@ -63,7 +63,8 @@ export default class FilePreview extends React.Component {
         });
 
         this.props.uploadsInProgress.forEach((clientId) => {
-            let percent, fileName;
+            let percent;
+            let fileName;
             if (this.props.uploadsProgressPercent[clientId]) {
                 percent = this.props.uploadsProgressPercent[clientId].percent;
                 fileName = this.props.uploadsProgressPercent[clientId].fileName;
