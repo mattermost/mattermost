@@ -92,3 +92,21 @@ export function updateTeamMemberRoles(teamId, userId, newRoles, success, error) 
         }
     );
 }
+
+export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
+    Client.addUserToTeamFromInvite(
+        data,
+        hash,
+        inviteId,
+        (team) => {
+            if (success) {
+                success(team);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

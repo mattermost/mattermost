@@ -6,6 +6,7 @@ import ErrorBar from 'components/error_bar.jsx';
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
@@ -146,12 +147,14 @@ export default class LoginController extends React.Component {
             token,
             () => {
                 // check for query params brought over from signup_user_complete
-                const query = this.props.location.query;
-                if (query.id || query.h) {
-                    Client.addUserToTeamFromInvite(
-                        query.d,
-                        query.h,
-                        query.id,
+                const hash = this.props.location.query.h;
+                const data = this.props.location.query.d;
+                const inviteId = this.props.location.query.id;
+                if (inviteId || hash) {
+                    addUserToTeamFromInvite(
+                        data,
+                        hash,
+                        inviteId,
                         (team) => {
                             this.finishSignin(team);
                         },
