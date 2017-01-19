@@ -250,9 +250,9 @@ export default class CreatePost extends React.Component {
         this.focusTextbox();
     }
 
-    handleUploadProgress(clientId, fileName, percent){
+    handleUploadProgress(clientId, fileName, percent) {
         const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: {percent, fileName}};
-        
+
         this.setState({uploadsProgressPercent});
     }
 
