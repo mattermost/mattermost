@@ -3,13 +3,9 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import Client from 'client/web_client.jsx';
-import PostStore from 'stores/post_store.jsx';
-import ModalStore from 'stores/modal_store.jsx';
 import {Modal} from 'react-bootstrap';
-import * as AsyncClient from 'utils/async_client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import {removePostFromStore} from 'actions/post_actions.jsx';
+import ModalStore from 'stores/modal_store.jsx';
+import {deletePost} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -51,24 +47,16 @@ export default class DeletePostModal extends React.Component {
     }
 
     handleDelete() {
-        Client.deletePost(
+        deletePost(
             this.state.post.channel_id,
-            this.state.post.id,
+            this.state.post,
             () => {
-                removePostFromStore(this.state.post);
-                if (this.state.post.id === PostStore.getSelectedPostId()) {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_POST_SELECTED,
-                        postId: null
-                    });
-                }
+                this.handleHide();
             },
             (err) => {
-                AsyncClient.dispatchError(err, 'deletePost');
+                this.setState({error: err.message});
             }
         );
-
-        this.handleHide();
     }
 
     handleToggle(value, args) {
