@@ -702,7 +702,7 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 				result.Err = model.NewLocAppError("SqlChannelStore.GetMember", "store.sql_channel.get_member.app_error", nil, "channel_id="+channelId+"user_id="+userId+","+err.Error())
 			}
 		} else {
-			result.Data = member
+			result.Data = &member
 		}
 
 		storeChannel <- result
@@ -1361,7 +1361,7 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) Sto
 		if _, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId IN ("+idQuery+")", props); err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.app_error", nil, "channelId="+channelId+" "+err.Error())
 		} else {
-			result.Data = members
+			result.Data = &members
 		}
 
 		storeChannel <- result

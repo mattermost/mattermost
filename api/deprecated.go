@@ -72,7 +72,7 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		if err := SetActiveChannel(c.Session.UserId, id); err != nil {
+		if err := app.SetActiveChannel(c.Session.UserId, id); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()
@@ -155,7 +155,7 @@ func setActiveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := SetActiveChannel(c.Session.UserId, channelId); err != nil {
+	if err := app.SetActiveChannel(c.Session.UserId, channelId); err != nil {
 		c.Err = err
 		return
 	}

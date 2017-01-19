@@ -26,9 +26,9 @@ type Context struct {
 	IpAddress    string
 	Path         string
 	Err          *model.AppError
+	siteURL      string
 	teamURLValid bool
 	teamURL      string
-	siteURL      string
 	T            goi18n.TranslateFunc
 	Locale       string
 	TeamId       string

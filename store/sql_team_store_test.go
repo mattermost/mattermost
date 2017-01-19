@@ -415,7 +415,7 @@ func TestGetTeamMember(t *testing.T) {
 	if r := <-store.Team().GetMember(m1.TeamId, m1.UserId); r.Err != nil {
 		t.Fatal(r.Err)
 	} else {
-		rm1 := r.Data.(model.TeamMember)
+		rm1 := r.Data.(*model.TeamMember)
 
 		if rm1.TeamId != m1.TeamId {
 			t.Fatal("bad team id")
