@@ -478,6 +478,11 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT {
+		c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelId": id, "TeamId": c.TeamId}, "")
+		return
+	}
+
 	var member *model.ChannelMember
 	if member, err = app.GetChannelMember(id, c.Session.UserId); err != nil {
 		c.Err = err
@@ -487,11 +492,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	data := &model.ChannelData{}
 	data.Channel = channel
 	data.Member = member
-
-	if data.Channel.TeamId != c.TeamId && data.Channel.Type != model.CHANNEL_DIRECT {
-		c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelId": id, "TeamId": c.TeamId}, "")
-		return
-	}
 
 	if HandleEtag(data.Etag(), "Get Channel", w, r) {
 		return
