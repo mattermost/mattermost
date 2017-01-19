@@ -6,6 +6,19 @@ export default class FileUploadProgress extends React.Component {
         return this.props.percent !== nextProps.percent;
     }
 
+    computePathString(radius, percent) {
+        const len = Math.PI * 2 * radius;
+        return {
+            pathString: `M 50,        50 m 0,            -${radius}
+                         a ${radius}, ${radius} 0 1 1 0,  ${2 * radius}
+                         a ${radius}, ${radius} 0 1 1 0, -${2 * radius}`,
+            pathStyle: {
+                strokeDasharray: `${len}px ${len}px`,
+                strokeDashoffset: `${((100 - percent) / 100) * len}px`
+            }
+        };
+    }
+
     render() {
         const {
             prefixClass,
@@ -52,20 +65,6 @@ export default class FileUploadProgress extends React.Component {
         </text>
             </svg>
         );
-    }
-
-    computePathString(radius, percent) {
-        const len = Math.PI * 2 * radius;
-        return {
-            pathString: `M 50,        50 m 0,            -${radius}
-                         a ${radius}, ${radius} 0 1 1 0,  ${2 * radius}
-                         a ${radius}, ${radius} 0 1 1 0, -${2 * radius}`,
-            pathStyle: {
-                strokeDasharray: `${len}px ${len}px`,
-                strokeDashoffset: `${((100 - percent) / 100) * len}px`,
-                transition: 'stroke-dashoffset 0.2s ease 0s, stroke 0.2s ease'
-            }
-        };
     }
 }
 

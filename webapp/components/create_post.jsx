@@ -251,6 +251,7 @@ export default class CreatePost extends React.Component {
     }
 
     handleUploadProgress(clientId, fileName, percent) {
+        console.log('percent: ', percent);
         const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: {percent, fileName}};
 
         this.setState({uploadsProgressPercent});

@@ -47,6 +47,7 @@ export default class CreateComment extends React.Component {
         this.handleBlur = this.handleBlur.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
+        this.handleUploadProgress = this.handleUploadProgress.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
         this.removePreview = this.removePreview.bind(this);
@@ -63,6 +64,7 @@ export default class CreateComment extends React.Component {
         const draft = PostStore.getCommentDraft(this.props.rootId);
         this.state = {
             message: draft.message,
+            uploadsProgressPercent: {},
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
             submitting: false,
@@ -316,6 +318,11 @@ export default class CreateComment extends React.Component {
         this.focusTextbox();
     }
 
+    handleUploadProgress(clientId, fileName, percent) {
+        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: {percent, fileName}};
+        this.setState({uploadsProgressPercent});
+    }
+
     handleFileUploadComplete(fileInfos, clientIds) {
         const draft = PostStore.getCommentDraft(this.props.rootId);
 
@@ -432,6 +439,7 @@ export default class CreateComment extends React.Component {
                     fileInfos={this.state.fileInfos}
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress}
+                    uploadsProgressPercent={this.state.uploadsProgressPercent}
                 />
             );
         }
@@ -482,6 +490,7 @@ export default class CreateComment extends React.Component {
                                 onClick={this.handleUploadClick}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
+                                onUploadProgress={this.handleUploadProgress}
                                 onUploadError={this.handleUploadError}
                                 postType='comment'
                                 channelId={this.props.channelId}
