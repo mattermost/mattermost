@@ -811,6 +811,14 @@ export const Constants = {
         OAUTH_APP: 'oauth2-apps'
     },
     FeatureTogglePrefix: 'feature_enabled_',
+    FileUploadProgress: {
+        prefixClass: 'file-upload-progress',
+        strokeWidth: 7,
+        strokeColor: '#B5BBC0',
+        trailWidth: 7,
+        trailColor: '#6C7783',
+        strokeLinecap: 'round'
+    },
     PRE_RELEASE_FEATURES: {
         MARKDOWN_PREVIEW: {
             label: 'markdown_preview', // github issue: https://github.com/mattermost/platform/pull/1389

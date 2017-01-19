@@ -48,6 +48,7 @@ export default class CreatePost extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleUploadClick = this.handleUploadClick.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
+        this.handleUploadProgress = this.handleUploadProgress.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
         this.removePreview = this.removePreview.bind(this);
@@ -71,6 +72,7 @@ export default class CreatePost extends React.Component {
             channelId: ChannelStore.getCurrentId(),
             message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
+            uploadsProgressPercent: {},
             fileInfos: draft.fileInfos,
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
@@ -246,6 +248,11 @@ export default class CreatePost extends React.Component {
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
         this.focusTextbox();
+    }
+
+    handleUploadProgress(clientId, fileName, percent){
+        const uploadsProgressPercent = {...this.state.uploadsProgressPercent, [clientId]: {percent, fileName}};
+        this.setState({uploadsProgressPercent});
     }
 
     handleFileUploadComplete(fileInfos, clientIds, channelId) {
@@ -499,6 +506,7 @@ export default class CreatePost extends React.Component {
                     fileInfos={this.state.fileInfos}
                     onRemove={this.removePreview}
                     uploadsInProgress={this.state.uploadsInProgress}
+                    uploadsProgressPercent={this.state.uploadsProgressPercent}
                 />
             );
         }
@@ -549,6 +557,7 @@ export default class CreatePost extends React.Component {
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
+                            onUploadProgress={this.handleUploadProgress}
                             postType='post'
                             channelId=''
                         />
