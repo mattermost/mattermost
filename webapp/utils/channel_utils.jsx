@@ -43,6 +43,10 @@ export function isFavoriteChannel(channel) {
     return PreferenceStore.getBool(Preferences.CATEGORY_FAVORITE_CHANNEL, channel.id);
 }
 
+export function isFavoriteChannelId(channelId) {
+    return PreferenceStore.getBool(Preferences.CATEGORY_FAVORITE_CHANNEL, channelId);
+}
+
 export function isNotDeletedChannel(channel) {
     return channel.delete_at === 0;
 }

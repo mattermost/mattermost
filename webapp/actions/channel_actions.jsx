@@ -6,6 +6,7 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
@@ -435,12 +436,12 @@ export function getChannelMembersForUserIds(channelId, userIds, success, error) 
     );
 }
 
-export function leaveChannel(channelId, isFavorite, success, error) {
+export function leaveChannel(channelId, success, error) {
     Client.leaveChannel(channelId,
         () => {
             loadChannelsForCurrentUser();
 
-            if (isFavorite) {
+            if (ChannelUtils.isFavoriteChannelId(channelId)) {
                 unmarkFavorite(channelId);
             }
 

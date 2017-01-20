@@ -109,7 +109,7 @@ export default class Navbar extends React.Component {
     }
 
     handleLeave() {
-        ChannelActions.leaveChannel(this.state.channel.id, this.state.isFavorite);
+        ChannelActions.leaveChannel(this.state.channel.id);
     }
 
     hideSidebars(e) {
