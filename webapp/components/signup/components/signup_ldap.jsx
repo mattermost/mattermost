@@ -5,6 +5,7 @@ import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
+import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
@@ -69,11 +70,15 @@ export default class SignupLdap extends React.Component {
     }
 
     handleLdapSignupSuccess() {
-        if (this.props.location.query.id || this.props.location.query.h) {
-            Client.addUserToTeamFromInvite(
-                this.props.location.query.d,
-                this.props.location.query.h,
-                this.props.location.query.id,
+        const hash = this.props.location.query.h;
+        const data = this.props.location.query.d;
+        const inviteId = this.props.location.query.id;
+
+        if (inviteId || hash) {
+            addUserToTeamFromInvite(
+                data,
+                hash,
+                inviteId,
                 () => {
                     this.finishSignup();
                 },
