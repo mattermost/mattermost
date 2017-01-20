@@ -146,6 +146,9 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_LOCALE: null,
 
+    UPDATE_OPEN_GRAPH_METADATA: null,
+    RECIVED_OPEN_GRAPH_METADATA: null,
+
     SHOW_SEARCH: null,
 
     USER_TYPING: null,

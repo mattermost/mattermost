@@ -188,6 +188,7 @@ export default class PostBody extends React.Component {
                     message={messageWrapper}
                     compactDisplay={this.props.compactDisplay}
                     previewCollapsed={this.props.previewCollapsed}
+                    childComponentDidUpdateFunction={this.props.childComponentDidUpdateFunction}
                 />
             );
         }
@@ -221,5 +222,6 @@ PostBody.propTypes = {
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
-    isCommentMention: React.PropTypes.bool
+    isCommentMention: React.PropTypes.bool,
+    childComponentDidUpdateFunction: React.PropTypes.func
 };

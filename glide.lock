@@ -1,5 +1,5 @@
-hash: a8fe20af467bdf57b944108bb00f8b410d73ad13a2cc5616ae2c410d510e5d90
-updated: 2016-11-23T19:38:17.926223307-05:00
+hash: 67ac70374ac7d1acb02736f628409e406cb55f343a260ccf78c4f324ec2df45a
+updated: 2016-12-25T21:59:49.671116871+05:30
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -11,6 +11,10 @@ imports:
   version: 96977cbd42e27be71f9f731db6634123de7e861a
 - name: github.com/disintegration/imaging
   version: 5b7e22645c93e3f3911b36b7d66bf8799f3eddfd
+- name: github.com/dyatlov/go-opengraph
+  version: 41a3523719dfbe7e8f853fbd4061867543db5270
+  subpackages:
+  - opengraph
 - name: github.com/go-gorp/gorp
   version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - name: github.com/go-ldap/ldap
@@ -136,6 +140,8 @@ imports:
   version: 4971afdc2f162e82d185353533d3cf16188a9f4e
   subpackages:
   - context
+  - html
+  - html/atom
   - publicsuffix
 - name: golang.org/x/sys
   version: 30237cf4eefd639b184d1f2cb77a581ea0be8947

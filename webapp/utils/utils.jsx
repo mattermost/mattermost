@@ -1324,3 +1324,15 @@ export function handleFormattedTextClick(e) {
         browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
 }
+
+export function isEmptyObject(object) {
+    if (!object) {
+        return true;
+    }
+
+    if (Object.keys(object).length === 0) {
+        return true;
+    }
+
+    return false;
+}

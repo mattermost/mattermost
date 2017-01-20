@@ -68,6 +68,9 @@
             &.attachment__container--danger {
                 border-left-color: #e40303;
             }
+            .sitename {
+                color: #A3A3A3;
+            }
         }
 
         .attachment__body {
@@ -79,6 +82,14 @@
 
             &.attachment__body--no_thumb {
                 width: 100%;
+            }
+            .attachment__image {
+                margin-bottom: 0;
+                max-height: 150px;
+                max-width: 150px;
+                &.loading {
+                    height: 150px;
+                }
             }
         }
 
@@ -103,6 +114,13 @@
             line-height: 18px;
             margin: 5px 0;
             padding: 0;
+
+            &.has-link {
+                color: #2f81b7;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+            }
         }
 
         .attachment-link-more {

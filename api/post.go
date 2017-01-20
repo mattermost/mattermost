@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
@@ -17,6 +18,8 @@ import (
 
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
+
+	BaseRoutes.ApiRoot.Handle("/get_opengraph_metadata", ApiUserRequired(getOpenGraphMetadata)).Methods("POST")
 
 	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequiredActivity(searchPosts, true)).Methods("POST")
 	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getFlaggedPosts)).Methods("GET")
@@ -648,4 +651,30 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
+}
+
+func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	og := opengraph.NewOpenGraph()
+
+	res, err := http.Get(props["url"].(string))
+	if err != nil {
+		writeOpenGraphToResponse(w, og)
+		return
+	}
+
+	if err := og.ProcessHTML(res.Body); err != nil {
+		writeOpenGraphToResponse(w, og)
+		return
+	}
+
+	writeOpenGraphToResponse(w, og)
+}
+
+func writeOpenGraphToResponse(w http.ResponseWriter, og *opengraph.OpenGraph) {
+	ogJson, err := og.ToJSON()
+	if err != nil {
+		w.Write([]byte(`{"url": ""}`))
+	}
+	w.Write(ogJson)
 }
