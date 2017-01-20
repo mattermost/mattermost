@@ -945,6 +945,8 @@
   "analytics.system.textPosts": "Posts with Text-only",
   "analytics.system.title": "System Statistics",
   "analytics.system.totalChannels": "Total Channels",
+  "analytics.system.dailyActiveUsers": "Daily Active Users",
+  "analytics.system.monthlyActiveUsers": "Monthly Active Users",
   "analytics.system.totalCommands": "Total Commands",
   "analytics.system.totalFilePosts": "Posts with Files",
   "analytics.system.totalHashtagPosts": "Posts with Hashtags",

@@ -1039,6 +1039,14 @@ export function getStandardAnalytics(teamId) {
                 if (data[index].name === 'total_read_db_connections') {
                     stats[StatTypes.TOTAL_READ_DB_CONNECTIONS] = data[index].value;
                 }
+
+                if (data[index].name === 'daily_active_users') {
+                    stats[StatTypes.DAILY_ACTIVE_USERS] = data[index].value;
+                }
+
+                if (data[index].name === 'monthly_active_users') {
+                    stats[StatTypes.MONTHLY_ACTIVE_USERS] = data[index].value;
+                }
             }
 
             AppDispatcher.handleServerAction({
