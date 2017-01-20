@@ -5,6 +5,7 @@ import LoadingScreen from 'components/loading_screen.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
+import {getInviteInfo} from 'actions/team_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 
@@ -58,7 +59,7 @@ export default class SignupEmail extends React.Component {
             loading = false;
         } else if (inviteId && inviteId.length > 0) {
             loading = true;
-            Client.getInviteInfo(
+            getInviteInfo(
                 inviteId,
                 (inviteData) => {
                     if (!inviteData) {

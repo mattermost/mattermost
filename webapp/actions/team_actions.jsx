@@ -110,3 +110,19 @@ export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
         }
     );
 }
+
+export function getInviteInfo(inviteId, success, error) {
+    Client.getInviteInfo(
+        inviteId,
+        (inviteData) => {
+            if (success) {
+                success(inviteData);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
