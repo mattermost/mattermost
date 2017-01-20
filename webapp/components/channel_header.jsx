@@ -421,7 +421,7 @@ export default class ChannelHeader extends React.Component {
                             dialogProps={{channel, currentUser: this.state.currentUser}}
                         >
                             <FormattedMessage
-                                id='chanel_header.addMembers'
+                                id='channel_header.addMembers'
                                 defaultMessage='Add Members'
                             />
                         </ToggleModalButton>
