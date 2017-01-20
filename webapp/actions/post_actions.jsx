@@ -384,3 +384,30 @@ export function removePostFromStore(post) {
     PostStore.removePost(post);
     PostStore.emitChange();
 }
+
+export function deletePost(channelId, post, success, error) {
+    Client.deletePost(
+        channelId,
+        post.id,
+        () => {
+            removePostFromStore(post);
+            if (post.id === PostStore.getSelectedPostId()) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_POST_SELECTED,
+                    postId: null
+                });
+            }
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'deletePost');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
