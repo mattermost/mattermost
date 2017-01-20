@@ -358,6 +358,32 @@ class SystemAnalytics extends React.Component {
             />
         );
 
+        const dailyActiveUsers = (
+            <StatisticCount
+                title={
+                    <FormattedMessage
+                        id='analytics.system.dailyActiveUsers'
+                        defaultMessage='Daily Active Users'
+                    />
+                }
+                icon='fa-users'
+                count={stats[StatTypes.DAILY_ACTIVE_USERS]}
+            />
+        );
+
+        const monthlyActiveUsers = (
+            <StatisticCount
+                title={
+                    <FormattedMessage
+                        id='analytics.system.monthlyActiveUsers'
+                        defaultMessage='Monthly Active Users'
+                    />
+                }
+                icon='fa-users'
+                count={stats[StatTypes.MONTHLY_ACTIVE_USERS]}
+            />
+        );
+
         let firstRow;
         let secondRow;
         if (isLicensed && skippedIntensiveQueries) {
@@ -406,6 +432,13 @@ class SystemAnalytics extends React.Component {
             );
         }
 
+        const thirdRow = (
+            <div className='row'>
+                {dailyActiveUsers}
+                {monthlyActiveUsers}
+            </div>
+        );
+
         return (
             <div className='wrapper--fixed team_statistics'>
                 <h3>
@@ -417,6 +450,7 @@ class SystemAnalytics extends React.Component {
                 {banner}
                 {firstRow}
                 {secondRow}
+                {thirdRow}
                 {advancedStats}
                 {advancedGraphs}
                 {postTotalGraph}

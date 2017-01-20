@@ -260,7 +260,9 @@ export const Constants = {
         NEWLY_CREATED_USERS: null,
         TOTAL_WEBSOCKET_CONNECTIONS: null,
         TOTAL_MASTER_DB_CONNECTIONS: null,
-        TOTAL_READ_DB_CONNECTIONS: null
+        TOTAL_READ_DB_CONNECTIONS: null,
+        DAILY_ACTIVE_USERS: null,
+        MONTHLY_ACTIVE_USERS: null
     }),
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
