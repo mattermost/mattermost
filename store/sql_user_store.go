@@ -1129,6 +1129,31 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 	return storeChannel
 }
 
+func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		time := model.GetMillis() - timePeriod
+
+		query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+
+		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

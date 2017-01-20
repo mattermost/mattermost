@@ -24,6 +24,11 @@ import (
 	"github.com/mssola/user_agent"
 )
 
+const (
+	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
+	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
+)
+
 func InitAdmin() {
 	l4g.Debug(utils.T("api.admin.init.debug"))
 
@@ -381,7 +386,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 8)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 10)
 		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
 		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
 		rows[2] = &model.AnalyticsRow{"post_count", 0}
@@ -390,6 +395,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		rows[5] = &model.AnalyticsRow{"total_websocket_connections", 0}
 		rows[6] = &model.AnalyticsRow{"total_master_db_connections", 0}
 		rows[7] = &model.AnalyticsRow{"total_read_db_connections", 0}
+		rows[8] = &model.AnalyticsRow{"daily_active_users", 0}
+		rows[9] = &model.AnalyticsRow{"monthly_active_users", 0}
 
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
@@ -404,6 +411,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		if !skipIntensiveQueries {
 			postChan = Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
 		}
+
+		dailyActiveChan := Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		monthlyActiveChan := Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
 
 		if r := <-openChan; r.Err != nil {
 			c.Err = r.Err
@@ -474,6 +484,20 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 			rows[5].Value = float64(TotalWebsocketConnections())
 			rows[6].Value = float64(Srv.Store.TotalMasterDbConnections())
 			rows[7].Value = float64(Srv.Store.TotalReadDbConnections())
+		}
+
+		if r := <-dailyActiveChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[8].Value = float64(r.Data.(int64))
+		}
+
+		if r := <-monthlyActiveChan; r.Err != nil {
+			c.Err = r.Err
+			return
+		} else {
+			rows[9].Value = float64(r.Data.(int64))
 		}
 
 		w.Write([]byte(rows.ToJson()))
