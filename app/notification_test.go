@@ -24,7 +24,7 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(postErr)
 	}
 
-	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel)
+	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser)
 	if err != nil {
 		t.Fatal(err)
 	} else if mentions == nil {

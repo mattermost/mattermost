@@ -99,15 +99,15 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 		channel = result.Data.(*model.Channel)
 	}
 
-	if _, err := SendNotifications(post, team, channel); err != nil {
-		return err
-	}
-
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
 		return result.Err
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	if _, err := SendNotifications(post, team, channel, user); err != nil {
+		return err
 	}
 
 	if triggerWebhooks {
