@@ -332,7 +332,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             return (
                 <FormattedMessage
                     id='user.settings.advance.embed_preview'
-                    defaultMessage='Show experimental previews of link content, when available'
+                    defaultMessage='For the first web link in a message, display a preview of website content below the message, if available'
                 />
             );
         case 'WEBRTC_PREVIEW':
