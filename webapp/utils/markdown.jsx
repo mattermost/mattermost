@@ -8,7 +8,18 @@ import marked from 'marked';
 import katex from 'katex';
 
 function markdownImageLoaded(image) {
-    image.style.height = 'auto';
+    if (image.hasAttribute('height') && image.attributes.height.value !== 'auto') {
+        const maxHeight = parseInt(global.getComputedStyle(image).maxHeight, 10);
+
+        if (image.attributes.height.value > maxHeight) {
+            image.style.height = maxHeight + 'px';
+            image.style.width = ((maxHeight * image.attributes.width.value) / image.attributes.height.value) + 'px';
+        } else {
+            image.style.height = image.attributes.height.value + 'px';
+        }
+    } else {
+        image.style.height = 'auto';
+    }
 }
 global.markdownImageLoaded = markdownImageLoaded;
 
@@ -117,9 +128,28 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     image(href, title, text) {
-        let out = '<img src="' + href + '" alt="' + text + '"';
+        let src = href;
+        let dimensions = [];
+        const parts = href.split(' ');
+        if (parts.length > 1) {
+            const lastPart = parts.pop();
+            src = parts.join(' ');
+            if (lastPart[0] === '=') {
+                dimensions = lastPart.substr(1).split('x');
+                if (dimensions.length === 2 && dimensions[1] === '') {
+                    dimensions[1] = 'auto';
+                }
+            }
+        }
+        let out = '<img src="' + src + '" alt="' + text + '"';
         if (title) {
             out += ' title="' + title + '"';
+        }
+        if (dimensions.length > 0) {
+            out += ' width="' + dimensions[0] + '"';
+        }
+        if (dimensions.length > 1) {
+            out += ' height="' + dimensions[1] + '"';
         }
         out += ' onload="window.markdownImageLoaded(this)" onerror="window.markdownImageLoaded(this)" class="markdown-inline-img"';
         out += this.options.xhtml ? '/>' : '>';
