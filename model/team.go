@@ -48,6 +48,14 @@ func InvitesFromJson(data io.Reader) *Invites {
 	}
 }
 
+func (o *Invites) ToEmailList() []string {
+	emailList := make([]string, len(o.Invites))
+	for _, invite := range o.Invites {
+		emailList = append(emailList, invite["email"])
+	}
+	return emailList
+}
+
 func (o *Invites) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {

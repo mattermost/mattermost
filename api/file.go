@@ -65,7 +65,8 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_UPLOAD_FILE) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return
 	}
 
@@ -254,7 +255,8 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 		}
 
 		if requireFileVisible {
-			if !HasPermissionToChannelByPostContext(c, info.PostId, model.PERMISSION_READ_CHANNEL) {
+			if !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 				return nil, c.Err
 			}
 		}

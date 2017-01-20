@@ -2788,6 +2788,22 @@
     "translation": "Invite User"
   },
   {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
+  },
+  {
     "id": "authentication.permissions.team_use_slash_commands.description",
     "translation": "Ability to use slash commands"
   },

@@ -23,19 +23,20 @@ describe('Client.Team', function() {
     });
 
     it('createTeam', function(done) {
-        var client = TestHelper.createClient();
         var team = TestHelper.fakeTeam();
-        client.createTeam(
-            team,
-            function(data) {
-                assert.equal(data.id.length > 0, true);
-                assert.equal(data.name, team.name);
-                done();
-            },
-            function(err) {
-                done(new Error(err.message));
-            }
-        );
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().createTeam(
+                team,
+                function(data) {
+                    assert.equal(data.id.length > 0, true);
+                    assert.equal(data.name, team.name);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
     });
 
     it('getAllTeams', function(done) {

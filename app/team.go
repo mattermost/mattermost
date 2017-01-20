@@ -29,6 +29,57 @@ func CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	}
 }
 
+func CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		return nil, err
+	} else {
+		team.Email = user.Email
+	}
+
+	if !isTeamEmailAllowed(user) {
+		return nil, model.NewLocAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "")
+	}
+
+	var rteam *model.Team
+	if rteam, err = CreateTeam(team); err != nil {
+		return nil, err
+	}
+
+	if err = JoinUserToTeam(rteam, user); err != nil {
+		return nil, err
+	}
+
+	return rteam, nil
+}
+
+func isTeamEmailAllowed(user *model.User) bool {
+	email := strings.ToLower(user.Email)
+
+	if len(user.AuthService) > 0 && len(*user.AuthData) > 0 {
+		return true
+	}
+
+	// commas and @ signs are optional
+	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
+	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(utils.Cfg.TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domains {
+		if strings.HasSuffix(email, "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	if len(utils.Cfg.TeamSettings.RestrictCreationToDomains) > 0 && !matched {
+		return false
+	}
+
+	return true
+}
+
 func UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	var oldTeam *model.Team
 	var err *model.AppError
@@ -46,6 +97,12 @@ func UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	if result := <-Srv.Store.Team().Update(oldTeam); result.Err != nil {
 		return nil, result.Err
 	}
+
+	oldTeam.Sanitize()
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
+	message.Add("team", oldTeam.ToJson())
+	go Publish(message)
 
 	return oldTeam, nil
 }
@@ -80,7 +137,32 @@ func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*mode
 	return member, nil
 }
 
-func JoinUserToTeamById(teamId string, user *model.User) *model.AppError {
+func AddUserToTeam(teamId string, userId string) (*model.Team, *model.AppError) {
+	tchan := Srv.Store.Team().Get(teamId)
+	uchan := Srv.Store.User().Get(userId)
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if err := JoinUserToTeam(team, user); err != nil {
+		return nil, err
+	}
+
+	return team, nil
+}
+
+func AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
 	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
 		return result.Err
 	} else {
@@ -88,7 +170,7 @@ func JoinUserToTeamById(teamId string, user *model.User) *model.AppError {
 	}
 }
 
-func JoinUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
+func AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
 	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
@@ -100,15 +182,21 @@ func JoinUserToTeamByHash(userId string, hash string, data string) (*model.Team,
 		return nil, model.NewLocAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_expired.app_error", nil, "")
 	}
 
+	tchan := Srv.Store.Team().Get(props["id"])
+	uchan := Srv.Store.User().Get(userId)
+
 	var team *model.Team
-	var err *model.AppError
-	if team, err = GetTeam(props["id"]); err != nil {
-		return nil, err
+	if result := <-tchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		team = result.Data.(*model.Team)
 	}
 
 	var user *model.User
-	if user, err = GetUser(userId); err != nil {
-		return nil, err
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		user = result.Data.(*model.User)
 	}
 
 	if err := JoinUserToTeam(team, user); err != nil {
@@ -118,16 +206,22 @@ func JoinUserToTeamByHash(userId string, hash string, data string) (*model.Team,
 	return team, nil
 }
 
-func JoinUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
+func AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
+	tchan := Srv.Store.Team().GetByInviteId(inviteId)
+	uchan := Srv.Store.User().Get(userId)
+
 	var team *model.Team
-	var err *model.AppError
-	if team, err = GetTeamByInviteId(inviteId); err != nil {
-		return nil, err
+	if result := <-tchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		team = result.Data.(*model.Team)
 	}
 
 	var user *model.User
-	if user, err = GetUser(userId); err != nil {
-		return nil, err
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		user = result.Data.(*model.User)
 	}
 
 	if err := JoinUserToTeam(team, user); err != nil {
@@ -266,6 +360,31 @@ func GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, 
 	}
 }
 
+func RemoveUserFromTeam(teamId string, userId string) *model.AppError {
+	tchan := Srv.Store.Team().Get(teamId)
+	uchan := Srv.Store.User().Get(userId)
+
+	var team *model.Team
+	if result := <-tchan; result.Err != nil {
+		return result.Err
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		return result.Err
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if err := LeaveTeam(team, user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	var teamMember *model.TeamMember
 	var err *model.AppError
@@ -325,6 +444,12 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 }
 
 func InviteNewUsersToTeam(emailList []string, teamId, senderId, siteURL string) *model.AppError {
+	if len(emailList) == 0 {
+		err := model.NewLocAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "")
+		err.StatusCode = http.StatusBadRequest
+		return err
+	}
+
 	tchan := Srv.Store.Team().Get(teamId)
 	uchan := Srv.Store.User().Get(senderId)
 

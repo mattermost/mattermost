@@ -48,7 +48,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cchan := app.Srv.Store.Channel().Get(post.ChannelId, true)
 
-	if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_CREATE_POST) {
+	if !app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_CREATE_POST) {
+		c.SetPermissionError(model.PERMISSION_CREATE_POST)
 		return
 	}
 
@@ -67,7 +68,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.CreateAt != 0 && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+	if post.CreateAt != 0 && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		post.CreateAt = 0
 	}
 
@@ -113,7 +114,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pchan := app.Srv.Store.Post().Get(post.Id)
 
-	if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_EDIT_POST) {
+	if !app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_EDIT_POST) {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
 
@@ -233,7 +235,8 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	etagChan := app.Srv.Store.Post().GetEtag(id, true)
 
-	if !HasPermissionToChannelContext(c, id, model.PERMISSION_CREATE_POST) {
+	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_EDIT_POST) {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
 
@@ -274,7 +277,8 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pchan := app.Srv.Store.Post().GetPostsSince(id, time, true)
 
-	if !HasPermissionToChannelContext(c, id, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -306,7 +310,8 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pchan := app.Srv.Store.Post().Get(postId)
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -350,7 +355,8 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		post := list.Posts[list.Order[0]]
 
-		if !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		if !app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
@@ -391,7 +397,8 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !HasPermissionToTeamContext(c, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+		if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+			c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
 			return
 		}
 
@@ -424,7 +431,8 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_DELETE_POST) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_DELETE_POST) {
+		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
 
@@ -448,7 +456,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if post.UserId != c.Session.UserId && !HasPermissionToChannelContext(c, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+		if post.UserId != c.Session.UserId && !app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
 			c.Err = model.NewLocAppError("deletePost", "api.post.delete_post.permissions.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return
@@ -529,7 +537,8 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 	// We can do better than this etag in this situation
 	etagChan := app.Srv.Store.Post().GetEtag(id, true)
 
-	if !HasPermissionToChannelContext(c, id, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -614,7 +623,8 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	pchan := app.Srv.Store.Post().Get(postId)
 	fchan := app.Srv.Store.FileInfo().GetForPost(postId)
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 

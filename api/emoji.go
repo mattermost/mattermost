@@ -217,7 +217,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		emoji = result.Data.(*model.Emoji)
 
-		if c.Session.UserId != emoji.CreatorId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		if c.Session.UserId != emoji.CreatorId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			c.Err = model.NewLocAppError("deleteEmoji", "api.emoji.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			c.Err.StatusCode = http.StatusUnauthorized
 			return

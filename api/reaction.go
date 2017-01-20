@@ -41,7 +41,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -99,7 +100,8 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -179,7 +181,8 @@ func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	pchan := app.Srv.Store.Post().Get(postId)
 
-	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 

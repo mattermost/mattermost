@@ -20,7 +20,7 @@ func TestCreateChannel(t *testing.T) {
 	Client := th.BasicClient
 	SystemAdminClient := th.SystemAdminClient
 	team := th.BasicTeam
-	Client.Must(Client.Logout())
+	th.LoginBasic2()
 	team2 := th.CreateTeam(th.BasicClient)
 	th.LoginBasic()
 	th.BasicClient.SetTeamId(team.Id)
@@ -126,6 +126,7 @@ func TestCreateChannel(t *testing.T) {
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
 
+	th.LoginBasic2()
 	channel2.Name = "a" + model.NewId() + "a"
 	channel3.Name = "a" + model.NewId() + "a"
 	if _, err := Client.CreateChannel(channel2); err == nil {
