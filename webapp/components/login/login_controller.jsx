@@ -63,6 +63,14 @@ export default class LoginController extends React.Component {
         AsyncClient.checkVersion();
     }
 
+    componentWillMount() {
+        if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
+            this.setState({
+                loginId: this.props.location.query.email
+            });
+        }
+    }
+
     preSubmit(e) {
         e.preventDefault();
 
