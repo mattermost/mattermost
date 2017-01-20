@@ -118,6 +118,17 @@ export default class EditPostModal extends React.Component {
     }
 
     handleEditPostEvent(options) {
+        var post = PostStore.getPost(options.channelId, options.postId);
+        if (global.window.mm_license.IsLicensed === 'true') {
+            if (global.window.mm_config.AllowEditPost === Constants.ALLOW_EDIT_POST_NEVER) {
+                return;
+            }
+            if (global.window.mm_config.AllowEditPost === Constants.ALLOW_EDIT_POST_TIME_LIMIT) {
+                if ((post.create_at + (global.window.mm_config.PostEditTimeLimit * 1000)) < Utils.getTimestamp()) {
+                    return;
+                }
+            }
+        }
         this.setState({
             editText: options.message || '',
             originalText: options.message || '',

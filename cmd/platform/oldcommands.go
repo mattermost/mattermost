@@ -319,8 +319,7 @@ func cmdInviteUser() {
 		}
 
 		invites := []string{flagEmail}
-		c := getMockContext()
-		api.InviteMembers(team, user.GetDisplayName(), invites, c.GetSiteURL())
+		app.SendInviteEmails(team, user.GetDisplayName(), invites, *utils.Cfg.ServiceSettings.SiteURL)
 
 		os.Exit(0)
 	}
@@ -369,7 +368,7 @@ func cmdAssignRole() {
 		}
 
 		if !user.IsInRole(flagRole) {
-			api.UpdateUserRoles(user, flagRole)
+			app.UpdateUserRoles(user.Id, flagRole)
 		}
 
 		os.Exit(0)
@@ -547,7 +546,7 @@ func cmdLeaveChannel() {
 			channel = result.Data.(*model.Channel)
 		}
 
-		err := api.RemoveUserFromChannel(user.Id, user.Id, channel)
+		err := app.RemoveUserFromChannel(user.Id, user.Id, channel)
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
@@ -712,7 +711,7 @@ func cmdLeaveTeam() {
 			user = result.Data.(*model.User)
 		}
 
-		err := api.LeaveTeam(team, user)
+		err := app.LeaveTeam(team, user)
 
 		if err != nil {
 			l4g.Error("%v", err)
@@ -823,7 +822,7 @@ func cmdPermDeleteUser() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteUser(user); err != nil {
+		if err := app.PermanentDeleteUser(user); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -866,7 +865,7 @@ func cmdPermDeleteTeam() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteTeam(team); err != nil {
+		if err := app.PermanentDeleteTeam(team); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -896,7 +895,7 @@ func cmdPermDeleteAllUsers() {
 			flushLogAndExit(1)
 		}
 
-		if err := api.PermanentDeleteAllUsers(); err != nil {
+		if err := app.PermanentDeleteAllUsers(); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {
@@ -1033,7 +1032,7 @@ func cmdActivateUser() {
 			l4g.Error("%v", utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
 		}
 
-		if _, err := api.UpdateActive(user, !flagUserSetInactive); err != nil {
+		if _, err := app.UpdateActive(user, !flagUserSetInactive); err != nil {
 			l4g.Error("%v", err)
 		}
 

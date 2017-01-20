@@ -8,12 +8,10 @@ import PostTime from './post_time.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as PostActions from 'actions/post_actions.jsx';
 
-import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
+import DelayedAction from 'utils/delayed_action.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import React from 'react';
@@ -28,6 +26,10 @@ export default class PostInfo extends React.Component {
         this.removePost = this.removePost.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
+
+        this.canEdit = false;
+        this.canDelete = false;
+        this.editDisableAction = new DelayedAction(this.handleEditDisable);
     }
 
     handleDropdownClick(e) {
@@ -38,6 +40,10 @@ export default class PostInfo extends React.Component {
         }
     }
 
+    handleEditDisable() {
+        this.canEdit = false;
+    }
+
     componentDidMount() {
         $('#post_dropdown' + this.props.post.id).on('shown.bs.dropdown', () => this.props.handleDropdownOpened(true));
         $('#post_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
@@ -45,9 +51,9 @@ export default class PostInfo extends React.Component {
 
     createDropdown() {
         var post = this.props.post;
-        var isOwner = this.props.currentUser.id === post.user_id;
-        var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
+
+        this.canDelete = PostUtils.canDeletePost(post);
+        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
             return '';
@@ -139,7 +145,7 @@ export default class PostInfo extends React.Component {
             </li>
         );
 
-        if (isOwner || isAdmin) {
+        if (this.canDelete) {
             dropdownContents.push(
                 <li
                     key='deletePost'
@@ -162,12 +168,12 @@ export default class PostInfo extends React.Component {
             );
         }
 
-        if (isOwner && !isSystemMessage) {
+        if (this.canEdit) {
             dropdownContents.push(
                 <li
                     key='editPost'
                     role='presentation'
-                    className='dropdown-submenu'
+                    className={this.canEdit ? 'dropdown-submenu' : 'dropdown-submenu hide'}
                 >
                     <a
                         href='#'

@@ -6,6 +6,8 @@ import React from 'react';
 import AdminSettings from './admin_settings.jsx';
 import SettingsGroup from './settings_group.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
+import RadioSetting from './radio_setting.jsx';
+import PostEditSetting from './post_edit_setting.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -22,6 +24,9 @@ export default class PolicySettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
+        config.ServiceSettings.RestrictPostDelete = this.state.restrictPostDelete;
+        config.ServiceSettings.AllowEditPost = this.state.allowEditPost;
+        config.ServiceSettings.PostEditTimeLimit = this.parseIntNonZero(this.state.postEditTimeLimit, Constants.DEFAULT_POST_EDIT_TIME_LIMIT);
         config.TeamSettings.RestrictTeamInvite = this.state.restrictTeamInvite;
         config.TeamSettings.RestrictPublicChannelCreation = this.state.restrictPublicChannelCreation;
         config.TeamSettings.RestrictPrivateChannelCreation = this.state.restrictPrivateChannelCreation;
@@ -35,6 +40,9 @@ export default class PolicySettings extends AdminSettings {
 
     getStateFromConfig(config) {
         return {
+            restrictPostDelete: config.ServiceSettings.RestrictPostDelete,
+            allowEditPost: config.ServiceSettings.AllowEditPost,
+            postEditTimeLimit: config.ServiceSettings.PostEditTimeLimit,
             restrictTeamInvite: config.TeamSettings.RestrictTeamInvite,
             restrictPublicChannelCreation: config.TeamSettings.RestrictPublicChannelCreation,
             restrictPrivateChannelCreation: config.TeamSettings.RestrictPrivateChannelCreation,
@@ -238,6 +246,47 @@ export default class PolicySettings extends AdminSettings {
                                     </a>
                                 )
                             }}
+                        />
+                    }
+                />
+                <RadioSetting
+                    id='restrictPostDelete'
+                    values={[
+                        {value: Constants.PERMISSIONS_DELETE_POST_ALL, text: Utils.localizeMessage('admin.general.policy.permissionsDeletePostAll', 'Message authors can delete their own messages, and Administrators can delete any message')},
+                        {value: Constants.PERMISSIONS_DELETE_POST_TEAM_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsDeletePostAdmin', 'Team Admins and System Admins')},
+                        {value: Constants.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsDeletePostSystemAdmin', 'System Admins')}
+                    ]}
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.restrictPostDeleteTitle'
+                            defaultMessage='Allow which users to delete messages:'
+                        />
+                    }
+                    value={this.state.restrictPostDelete}
+                    onChange={this.handleChange}
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.general.policy.restrictPostDeleteDescription'
+                            defaultMessage='Set policy on who has permission to delete messages.'
+                        />
+                    }
+                />
+                <PostEditSetting
+                    id='allowEditPost'
+                    timeLimitId='postEditTimeLimit'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.allowEditPostTitle'
+                            defaultMessage='Allow users to edit their messages:'
+                        />
+                    }
+                    value={this.state.allowEditPost}
+                    timeLimitValue={this.state.postEditTimeLimit}
+                    onChange={this.handleChange}
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.general.policy.allowEditPostDescription'
+                            defaultMessage='Set policy on the length of time authors have to edit their messages after posting.'
                         />
                     }
                 />

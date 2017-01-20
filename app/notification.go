@@ -542,7 +542,6 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 }
 
 func sendToPushProxy(msg model.PushNotification) *model.AppError {
-
 	msg.ServerId = utils.CfgDiagnosticId
 
 	tr := &http.Transport{

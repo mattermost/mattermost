@@ -82,6 +82,9 @@ func trackConfig() {
 		"restrict_custom_emoji_creation":       *Cfg.ServiceSettings.RestrictCustomEmojiCreation,
 		"enable_testing":                       Cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                     *Cfg.ServiceSettings.EnableDeveloper,
+		"restrict_post_delete":                 *Cfg.ServiceSettings.RestrictPostDelete,
+		"allow_edit_post":                      *Cfg.ServiceSettings.AllowEditPost,
+		"post_edit_time_limit":                 *Cfg.ServiceSettings.PostEditTimeLimit,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{

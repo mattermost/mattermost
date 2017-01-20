@@ -5,7 +5,7 @@ package main
 import (
 	"errors"
 
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +49,7 @@ func makeSystemAdminCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if _, err := api.UpdateUserRoles(user, "system_admin system_user"); err != nil {
+		if _, err := app.UpdateUserRoles(user.Id, "system_admin system_user"); err != nil {
 			return err
 		}
 	}
@@ -69,7 +69,7 @@ func makeMemberCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if _, err := api.UpdateUserRoles(user, "system_user"); err != nil {
+		if _, err := app.UpdateUserRoles(user.Id, "system_user"); err != nil {
 			return err
 		}
 	}

@@ -576,7 +576,7 @@ class UserStoreClass extends EventEmitter {
         var current = this.getCurrentUser();
 
         if (current) {
-            return Utils.isAdmin(current.roles);
+            return Utils.isSystemAdmin(current.roles);
         }
 
         return false;

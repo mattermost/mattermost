@@ -250,7 +250,11 @@ export default class Post extends React.Component {
         }
 
         return (
-            <div>
+            <div
+                ref={(div) => {
+                    this.domNode = div;
+                }}
+            >
                 <div
                     id={'post_' + post.id}
                     className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls + ' ' + dropdownOpenedClass}

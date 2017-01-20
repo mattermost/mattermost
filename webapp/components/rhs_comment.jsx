@@ -9,9 +9,6 @@ import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
 
-import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
@@ -19,6 +16,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
+import DelayedAction from 'utils/delayed_action.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
@@ -36,12 +34,20 @@ export default class RhsComment extends React.Component {
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
 
+        this.canEdit = false;
+        this.canDelete = false;
+        this.editDisableAction = new DelayedAction(this.handleEditDisable);
+
         this.state = {};
     }
 
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
+    }
+
+    handleEditDisable() {
+        this.canEdit = false;
     }
 
     removePost() {
@@ -110,8 +116,8 @@ export default class RhsComment extends React.Component {
             return '';
         }
 
-        const isOwner = this.props.currentUser.id === post.user_id;
-        var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        this.canDelete = PostUtils.canDeletePost(post);
+        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
 
         var dropdownContents = [];
 
@@ -170,7 +176,7 @@ export default class RhsComment extends React.Component {
             </li>
         );
 
-        if (isOwner || isAdmin) {
+        if (this.canDelete) {
             dropdownContents.push(
                 <li
                     role='presentation'
@@ -193,11 +199,12 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        if (isOwner) {
+        if (this.canEdit) {
             dropdownContents.push(
                 <li
                     role='presentation'
                     key='edit-button'
+                    className={this.canEdit ? '' : 'hide'}
                 >
                     <a
                         href='#'

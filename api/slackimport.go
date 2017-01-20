@@ -331,6 +331,54 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
 			ImportPost(&newPost)
+		case sPost.Type == "message" && sPost.SubType == "channel_topic":
+			if sPost.User == "" {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
+				continue
+			} else if users[sPost.User] == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
+				continue
+			}
+			newPost := model.Post{
+				UserId:    users[sPost.User].Id,
+				ChannelId: channel.Id,
+				Message:   sPost.Text,
+				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
+				Type:      model.POST_HEADER_CHANGE,
+			}
+			ImportPost(&newPost)
+		case sPost.Type == "message" && sPost.SubType == "channel_purpose":
+			if sPost.User == "" {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
+				continue
+			} else if users[sPost.User] == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
+				continue
+			}
+			newPost := model.Post{
+				UserId:    users[sPost.User].Id,
+				ChannelId: channel.Id,
+				Message:   sPost.Text,
+				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
+				Type:      model.POST_PURPOSE_CHANGE,
+			}
+			ImportPost(&newPost)
+		case sPost.Type == "message" && sPost.SubType == "channel_name":
+			if sPost.User == "" {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
+				continue
+			} else if users[sPost.User] == nil {
+				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
+				continue
+			}
+			newPost := model.Post{
+				UserId:    users[sPost.User].Id,
+				ChannelId: channel.Id,
+				Message:   sPost.Text,
+				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
+				Type:      model.POST_DISPLAYNAME_CHANGE,
+			}
+			ImportPost(&newPost)
 		default:
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.unsupported.warn"), sPost.Type, sPost.SubType)
 		}
@@ -365,7 +413,7 @@ func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId strin
 }
 
 func deactivateSlackBotUser(user *model.User) {
-	_, err := UpdateActive(user, false)
+	_, err := app.UpdateActive(user, false)
 	if err != nil {
 		l4g.Warn(utils.T("api.slackimport.slack_deactivate_bot_user.failed_to_deactivate", err))
 	}

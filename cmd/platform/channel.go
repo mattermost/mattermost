@@ -5,7 +5,6 @@ package main
 import (
 	"errors"
 
-	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -166,7 +165,7 @@ func removeUserFromChannel(channel *model.Channel, user *model.User, userArg str
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := api.RemoveUserFromChannel(user.Id, "", channel); err != nil {
+	if err := app.RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
