@@ -1075,7 +1075,7 @@ func cmdSlackImport() {
 
 		fmt.Fprintln(os.Stdout, "Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-		api.SlackImport(fileReader, fileInfo.Size(), team.Id)
+		app.SlackImport(fileReader, fileInfo.Size(), team.Id)
 
 		flushLogAndExit(0)
 	}

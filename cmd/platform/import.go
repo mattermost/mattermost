@@ -6,7 +6,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +54,7 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-	api.SlackImport(fileReader, fileInfo.Size(), team.Id)
+	app.SlackImport(fileReader, fileInfo.Size(), team.Id)
 
 	CommandPrettyPrintln("Finished Slack Import.")
 
