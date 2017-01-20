@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Failed to post displayname update message %v"
+    "translation": "Failed to post displayname update message"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -312,8 +312,8 @@
     "translation": "%s 이(가) 채널 헤더를 %s에서 %s(으)로 갱신했습니다"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "메시지 %v 를 포스트 하는 데 실패하였습니다"
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Failed to post update channel header message"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -800,12 +800,16 @@
     "translation": "적절하지 않은 {{.Name}} 파라미터"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "올바르지 않은 상황에서 팀 URL에 접근했습니다. 팀 URL은 API 함수나 팀과 관련이 없는 곳에서 사용되어서는 안 됩니다."
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "유효하지않은 세션 토큰=%v, err=%v"
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1468,24 +1472,8 @@
     "translation": "작업을 할 수 있는 권한이 없습니다"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "채널을 찾을 수 없습니다, channel_id=%s, err=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "채널의 참가자를 얻을 수 없습니다, channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "사용자 프로필을 가져올 수 없습니다, team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "팀을 가져올 수 없습니다, team_id=%s, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "사용자를 가져올 수 없습니다, user_id=%s, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1494,10 +1482,6 @@
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
     "translation": "이벤트 POST 실패. err=%s"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "팀의 웹훅을 가져올 수 없습니다. err=%v"
   },
   {
     "id": "api.post.init.debug",
@@ -1520,20 +1504,16 @@
     "translation": "개인 메시지 채널의 속성을 변경하지 못했습니다. user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "@here (으)로 온라인 사용자에게 알림을 보낼 수 없습니다. err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "채널 회원의 프로필 사진을 불러올 수 없습니다. user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Clearing push notification to %v with channel_id %v"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Failed to retrieve comment thread posts in notifications root_post_id=%v, err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Clearing push notification to %v with channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1581,23 +1561,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "푸시 알림 발송 실패 device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "발신 실패한 멘션 이메일=%v, err=%v"
+    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} 보냄"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "Failed to retrieve sessions in notifications id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "Post user_id not returned by GetProfiles user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2273,7 +2241,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "사용자의 다이렉트 채널 기본 구성을 실패하였습니다. user_id=%s, team_id=%s, err=%v"
+    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2774,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "WebRTC 토큰 등록 중에 에러가 발생하였습니다."
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",

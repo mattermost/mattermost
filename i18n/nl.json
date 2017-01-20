@@ -312,8 +312,8 @@
     "translation": "%s heeft de kanaalkoptekst veranderd van: %s naar: %s"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "Failed to post update channel header message"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Het plaatsen van een komen/gaan bericht %v is mislukt"
+    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -800,12 +800,16 @@
     "translation": "Ongeldig {{.Name}} parameter"
   },
   {
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid session err=%v"
+  },
+  {
     "id": "api.context.invalid_team_url.debug",
     "translation": "De benaderde Team URL is niet geldig. Team URL moet niet gebruikt worden bij api aanroepen die team onafhankelijk zijn"
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Ongeldig sessie token=%v, fout=%v"
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1468,24 +1472,8 @@
     "translation": "U beschikt niet over de juiste rechten"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "Er is een probleem opgetreden bij het ophalen van het kanaal. channel_id=%s, fout=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "Ophalen van de deelnemers van het kanaal is mislukt. channel_id=%v, fout=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "Ophalen van gebruikers profielen is mislukt. team_id=%v, fout=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "Er is een fout opgetreden bij het ophalen van het team. team_id=%s, fout=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "Er is een fout opgetreden bij het ophalen van de gebruiker. user_id=%s, fout=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1494,10 +1482,6 @@
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
     "translation": "Gebeurtenis POST is mislukt, fout=%s"
-  },
-  {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "Er is een probleem opgetreden bij het ophalen van de webhooks door team. fout=%v"
   },
   {
     "id": "api.post.init.debug",
@@ -1520,20 +1504,16 @@
     "translation": "Het bijwerken van de voorkeuren van een direct kanaal is mislukt. user_id=%v, other_user_id=%v, fout=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "Kon geen bericht sturen naar online leden met @here, err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "Niet mogelijk om profiel voor kanaal lid op te halen, user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Verwijderen van push notificatie aan %v met kanaal_id %v"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "Niet gelukt om commentaar thread berichten op te halen uit notificaties root_post_id=%v, err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "Verwijderen van push notificatie aan %v met kanaal_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1581,23 +1561,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Het versturen van een push bericht is mislukt, device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "Het versturen van een notificatie via e-mail is niet gelukt. e-mail=%v, fout=%v"
+    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}} verstuurd"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "Er is een probleem opgetreden bij het ophalen van sessies bij notificaties. id=%v, fout=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "Bericht user_id is niet teruggegeven door GetProfiles user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -2273,7 +2241,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Er is een fout opgetreden bij het toevoegen van instellingen voor een direct kanaal voor gebruiker, user_id=%s, team_id=%s, fout=%v"
+    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2774,6 +2742,10 @@
   {
     "id": "api.webrtc.register_token.app_error",
     "translation": "We encountered an error trying to register the WebRTC Token"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "Invalid session err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
