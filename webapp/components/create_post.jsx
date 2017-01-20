@@ -158,7 +158,7 @@ export default class CreatePost extends React.Component {
                         this.setState({state});
                     }
                 }
-            ).bind(this);
+            )
         } else if (isReaction && EmojiStore.has(isReaction[2])) {
             this.sendReaction(isReaction);
         } else {
@@ -500,9 +500,10 @@ export default class CreatePost extends React.Component {
     }
 
     handleEmojiClick(emoji) {
-        const emojiAlias = (emoji.aliases.length > 0) ? emoji.aliases[0] : false;
+        const emojiAlias = emoji.name ||  emoji.aliases[0];
 
         if (!emojiAlias) {
+            console.error("unknown emoji alias or name", emoji);
             //Oops.. There went something wrong
             return;
         }
