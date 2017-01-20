@@ -75,7 +75,7 @@ export default class EmojiPicker extends React.Component {
         this.setState({selected: emoji});
     }
 
-    handleItemOut(emoji) {
+    handleItemOut() {
         this.setState({selected: null});
     }
 
@@ -86,8 +86,6 @@ export default class EmojiPicker extends React.Component {
         }
     }
 
-
-
     handleItemClick(emoji) {
         this.props.onEmojiClick(emoji);
     }
@@ -97,7 +95,7 @@ export default class EmojiPicker extends React.Component {
 
         const contentTop = items.scrollTop();
         const contentTopPadding = parseInt(items.css('padding-top'), 10);
-        let scrollPct = contentTop / (items[0].scrollHeight - items[0].clientHeight) * 100.0
+        const scrollPct = (contentTop / (items[0].scrollHeight - items[0].clientHeight)) * 100.0;
 
         if (scrollPct > 99.0) {
             this.setState({category: 'custom'});
@@ -112,7 +110,7 @@ export default class EmojiPicker extends React.Component {
             // If category is the first one visible, highlight it in the bar at the top
             if (headerBottom - contentTopPadding >= contentTop) {
                 if (this.state.category !== category) {
-                    this.setState({category: category});
+                    this.setState({category: String(category)});
                 }
 
                 break;
@@ -125,22 +123,21 @@ export default class EmojiPicker extends React.Component {
         let indices = [];
         let recentEmojis = [];
 
-        if (category === 'recent'){
+        if (category === 'recent') {
             recentEmojis = EmojiStore.getRecentEmojis();
-
             indices = [...Array(recentEmojis.length).keys()];
+
             // reverse indices so most recently added is first
             indices.reverse();
-
-        }else {
+        } else {
             indices = Emoji.EmojiIndicesByCategory.get(category) || [];
         }
 
         for (const index of indices) {
             let emoji = {};
-            if (category === 'recent'){
+            if (category === 'recent') {
                 emoji = recentEmojis[index];
-            }else {
+            } else {
                 emoji = Emoji.Emojis[index];
             }
             if (filter) {
@@ -170,8 +167,8 @@ export default class EmojiPicker extends React.Component {
             );
         }
 
-        if (category === 'custom'){
-            for (const emoji of EmojiStore.getCustomEmojiMap().values() ) {
+        if (category === 'custom') {
+            for (const emoji of customEmojis) {
                 if (filter && emoji.name.indexOf(filter) === -1) {
                     continue;
                 }

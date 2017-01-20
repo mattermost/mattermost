@@ -310,8 +310,6 @@ export function queuePost(post, doLoadPost, success, error) {
     sendFirstPostInQueue();
 }
 
-
-
 // Remove the completed post from the queue and send the next one
 function postSendComplete() {
     postQueue.shift();
@@ -393,7 +391,6 @@ export function emitEmojiPosted(emoji) {
         alias: emoji
     });
 }
-
 
 export function deletePost(channelId, post, success, error) {
     Client.deletePost(

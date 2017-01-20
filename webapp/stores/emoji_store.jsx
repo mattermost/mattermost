@@ -141,22 +141,20 @@ class EmojiStore extends EventEmitter {
         return this.map.get(name);
     }
 
+    addRecentEmoji(rawAlias) {
+        const recentEmojis = this.getRecentEmojis();
 
-
-    addRecentEmoji(rawAlias){
-        let recentEmojis = this.getRecentEmojis();
-
-        let alias = rawAlias.split(':').join('');
+        const alias = rawAlias.split(':').join('');
 
         let emoji = this.getCustomEmojiMap().get(alias);
 
-        if (!emoji){
-            let emojiIndex =  Emoji.EmojiIndicesByAlias.get(alias)
+        if (!emoji) {
+            const emojiIndex = Emoji.EmojiIndicesByAlias.get(alias);
             emoji = Emoji.Emojis[emojiIndex];
         }
 
-        if (!emoji){
-            console.error("cannot find emoji to add to recent", rawAlias);
+        if (!emoji) {
+            // something is wrong, so we return
             return;
         }
 
@@ -171,16 +169,15 @@ class EmojiStore extends EventEmitter {
         recentEmojis.push(emoji);
 
         // cut off the _top_ if it's over length (since new are added to end)
-        if (recentEmojis.length > MAXIMUM_RECENT_EMOJI){
-            recentEmojis.splice(0,recentEmojis.length -MAXIMUM_RECENT_EMOJI);
+        if (recentEmojis.length > MAXIMUM_RECENT_EMOJI) {
+            recentEmojis.splice(0, recentEmojis.length - MAXIMUM_RECENT_EMOJI);
         }
 
-        BrowserStore.setGlobalItem(RECENT_EMOJI_KEY,recentEmojis);
-
+        BrowserStore.setGlobalItem(RECENT_EMOJI_KEY, recentEmojis);
     }
 
-    getRecentEmojis(){
-        return BrowserStore.getGlobalItem(RECENT_EMOJI_KEY,[]);
+    getRecentEmojis() {
+        return BrowserStore.getGlobalItem(RECENT_EMOJI_KEY, []);
     }
 
     hasUnicode(codepoint) {
