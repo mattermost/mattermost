@@ -125,6 +125,48 @@ export function removeUserFromChannel(channelId, userId, success, error) {
     );
 }
 
+export function makeUserChannelAdmin(channelId, userId, success, error) {
+    Client.updateChannelMemberRoles(
+        channelId,
+        userId,
+        'channel_user channel_admin',
+        () => {
+            AsyncClient.getChannelMember(channelId, userId);
+            getChannelMembersForUserIds(channelId, [userId]);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function makeUserChannelMember(channelId, userId, success, error) {
+    Client.updateChannelMemberRoles(
+        channelId,
+        userId,
+        'channel_user',
+        () => {
+            AsyncClient.getChannelMember(channelId, userId);
+            getChannelMembersForUserIds(channelId, [userId]);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function openDirectChannelToUser(user, success, error) {
     const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), user.id);
     const channel = ChannelStore.getByName(channelName);
@@ -322,6 +364,25 @@ export function createChannel(channel, success, error) {
     );
 }
 
+export function updateChannelPurpose(channelId, purposeValue, success, error) {
+    Client.updateChannelPurpose(
+        channelId,
+        purposeValue,
+        () => {
+            AsyncClient.getChannel(channelId);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function updateChannelHeader(channelId, header, success, error) {
     Client.updateChannelHeader(
         channelId,
@@ -337,6 +398,36 @@ export function updateChannelHeader(channelId, header, success, error) {
             }
         },
         (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function getChannelMembersForUserIds(channelId, userIds, success, error) {
+    Client.getChannelMembersByIds(
+        channelId,
+        userIds,
+        (data) => {
+            const memberMap = {};
+            for (let i = 0; i < data.length; i++) {
+                memberMap[data[i].user_id] = data[i];
+            }
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL,
+                channel_id: channelId,
+                channel_members: memberMap
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getChannelMembersByIds');
+
             if (error) {
                 error(err);
             }

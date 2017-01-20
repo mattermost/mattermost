@@ -22,17 +22,20 @@ export default class PostBodyAdditionalContent extends React.Component {
         this.generateStaticEmbed = this.generateStaticEmbed.bind(this);
         this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
         this.isLinkToggleable = this.isLinkToggleable.bind(this);
+        this.handleLinkLoadError = this.handleLinkLoadError.bind(this);
 
         this.state = {
             embedVisible: props.previewCollapsed.startsWith('false'),
-            link: Utils.extractFirstLink(props.post.message)
+            link: Utils.extractFirstLink(props.post.message),
+            linkLoadError: false
         };
     }
 
     componentWillReceiveProps(nextProps) {
         this.setState({
             embedVisible: nextProps.previewCollapsed.startsWith('false'),
-            link: Utils.extractFirstLink(nextProps.post.message)
+            link: Utils.extractFirstLink(nextProps.post.message),
+            linkLoadError: false
         });
     }
 
@@ -44,6 +47,9 @@ export default class PostBodyAdditionalContent extends React.Component {
             return true;
         }
         if (nextState.embedVisible !== this.state.embedVisible) {
+            return true;
+        }
+        if (nextState.linkLoadError !== this.state.linkLoadError) {
             return true;
         }
         return false;
@@ -79,12 +85,10 @@ export default class PostBodyAdditionalContent extends React.Component {
     }
 
     isLinkImage(link) {
-        for (let i = 0; i < Constants.IMAGE_TYPES.length; i++) {
-            const imageType = Constants.IMAGE_TYPES[i];
-            const suffix = link.substring(link.length - (imageType.length + 1));
-            if (suffix === '.' + imageType || suffix === '=' + imageType) {
-                return true;
-            }
+        const regex = /.+\/(.+\.(?:jpg|gif|bmp|png|jpeg))(?:\?.*)?$/i;
+        const match = link.match(regex);
+        if (match && match[1]) {
+            return true;
         }
 
         return false;
@@ -105,6 +109,12 @@ export default class PostBodyAdditionalContent extends React.Component {
         }
 
         return false;
+    }
+
+    handleLinkLoadError() {
+        this.setState({
+            linkLoadError: true
+        });
     }
 
     generateToggleableEmbed() {
@@ -128,6 +138,7 @@ export default class PostBodyAdditionalContent extends React.Component {
                 <PostImage
                     channelId={this.props.post.channel_id}
                     link={link}
+                    onLinkLoadError={this.handleLinkLoadError}
                 />
             );
         }
@@ -173,7 +184,7 @@ export default class PostBodyAdditionalContent extends React.Component {
             );
         }
 
-        if (this.isLinkToggleable()) {
+        if (this.isLinkToggleable() && !this.state.linkLoadError) {
             const messageWithToggle = [];
 
             // if message has only one line and starts with a link place toggle in this only line

@@ -284,7 +284,12 @@ class ChannelStoreClass extends EventEmitter {
 
     getMoreChannelsList(teamId = TeamStore.getCurrentId()) {
         const teamChannels = this.moreChannels[teamId] || {};
-        return Object.keys(teamChannels).map((cid) => teamChannels[cid]);
+
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(Utils.sortByDisplayName);
     }
 
     storeStats(stats) {

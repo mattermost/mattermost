@@ -27,7 +27,7 @@ func RevokeAccessToken(token string) *model.AppError {
 	}
 
 	if session != nil {
-		RemoveAllSessionsForUserId(session.UserId)
+		ClearSessionCacheForUser(session.UserId)
 	}
 
 	return nil

@@ -39,7 +39,7 @@ func GetSiteURL() string {
 }
 
 func SetSiteURL(url string) {
-	siteURL = url
+	siteURL = strings.TrimRight(url, "/")
 }
 
 func FindConfigFile(fileName string) string {
@@ -267,6 +267,9 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
+	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
+	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)

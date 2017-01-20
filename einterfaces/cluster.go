@@ -12,7 +12,7 @@ type ClusterInterface interface {
 	StopInterNodeCommunication()
 	GetClusterInfos() []*model.ClusterInfo
 	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
-	RemoveAllSessionsForUserId(userId string)
+	ClearSessionCacheForUser(userId string)
 	InvalidateCacheForUser(userId string)
 	InvalidateCacheForChannel(channelId string)
 	InvalidateCacheForChannelPosts(channelId string)

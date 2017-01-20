@@ -8,10 +8,6 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"html/template"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	"image/png"
 	"io"
 	"net/http"
 	"net/url"
@@ -20,7 +16,6 @@ import (
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
@@ -140,7 +135,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shouldSendWelcomeEmail {
-		sendWelcomeEmail(c, ruser.Id, ruser.Email, c.GetSiteURL(), ruser.EmailVerified)
+		if err := app.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, c.GetSiteURL()); err != nil {
+			l4g.Error(err.Error())
+		}
 	}
 
 	w.Write([]byte(ruser.ToJson()))
@@ -188,55 +185,6 @@ func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool 
 	}
 
 	return shouldVerifyHash
-}
-
-func sendWelcomeEmail(c *Context, userId string, email string, siteURL string, verified bool) {
-	rawUrl, _ := url.Parse(siteURL)
-
-	subject := c.T("api.templates.welcome_subject", map[string]interface{}{"ServerURL": rawUrl.Host})
-
-	bodyPage := utils.NewHTMLTemplate("welcome_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
-	bodyPage.Props["Info"] = c.T("api.templates.welcome_body.info")
-	bodyPage.Props["Button"] = c.T("api.templates.welcome_body.button")
-	bodyPage.Props["Info2"] = c.T("api.templates.welcome_body.info2")
-	bodyPage.Props["Info3"] = c.T("api.templates.welcome_body.info3")
-	bodyPage.Props["SiteURL"] = siteURL
-
-	if *utils.Cfg.NativeAppSettings.AppDownloadLink != "" {
-		bodyPage.Props["AppDownloadInfo"] = c.T("api.templates.welcome_body.app_download_info")
-		bodyPage.Props["AppDownloadLink"] = *utils.Cfg.NativeAppSettings.AppDownloadLink
-	}
-
-	if !verified {
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(email))
-		bodyPage.Props["VerifyUrl"] = link
-	}
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_welcome_email_and_forget.failed.error"), err)
-	}
-}
-
-func SendVerifyEmail(c *Context, userId, userEmail, siteURL string) {
-	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(userEmail))
-
-	url, _ := url.Parse(siteURL)
-
-	subject := c.T("api.templates.verify_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-
-	bodyPage := utils.NewHTMLTemplate("verify_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.verify_body.title", map[string]interface{}{"ServerURL": url.Host})
-	bodyPage.Props["Info"] = c.T("api.templates.verify_body.info")
-	bodyPage.Props["VerifyUrl"] = link
-	bodyPage.Props["Button"] = c.T("api.templates.verify_body.button")
-
-	if err := utils.SendMail(userEmail, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_verify_email_and_forget.failed.error"), err)
-	}
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -362,21 +310,10 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 		// A special case where we logout of all other sessions with the same Id
-		if result := <-app.Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
-			c.Err = result.Err
+		if err := app.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
+			c.Err = err
 			c.Err.StatusCode = http.StatusInternalServerError
 			return
-		} else {
-			sessions := result.Data.([]*model.Session)
-			for _, session := range sessions {
-				if session.DeviceId == deviceId {
-					l4g.Debug(utils.T("api.user.login.revoking.app_error"), session.Id, user.Id)
-					if err := app.RevokeSessionById(session.Id); err != nil {
-						c.LogError(err)
-						c.Err = nil
-					}
-				}
-			}
 		}
 	} else {
 		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthWebInDays)
@@ -399,10 +336,6 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		bname = "unknown"
 	}
 
-	if strings.Contains(r.UserAgent(), "Mattermost") {
-		bname = "Desktop App"
-	}
-
 	if bversion == "" {
 		bversion = "0.0"
 	}
@@ -411,13 +344,11 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 	session.AddProp(model.SESSION_PROP_OS, os)
 	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
 
-	if result := <-app.Srv.Store.Session().Save(session); result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if session, err = app.CreateSession(session); err != nil {
+		c.Err = err
 		c.Err.StatusCode = http.StatusInternalServerError
 		return
-	} else {
-		session = result.Data.(*model.Session)
-		app.AddSessionToCache(session)
 	}
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
@@ -476,7 +407,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.RemoveAllSessionsForUserId(c.Session.UserId)
+	app.ClearSessionCacheForUser(c.Session.UserId)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
@@ -507,58 +438,6 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(props)))
 }
 
-// IF YOU UPDATE THIS PLEASE UPDATE BELOW
-func RevokeAllSession(c *Context, userId string) {
-	if result := <-app.Srv.Store.Session().GetSessions(userId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		sessions := result.Data.([]*model.Session)
-
-		for _, session := range sessions {
-			c.LogAuditWithUserId(userId, "session_id="+session.Id)
-			if session.IsOAuth {
-				app.RevokeAccessToken(session.Token)
-			} else {
-				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-					c.Err = result.Err
-					return
-				}
-			}
-
-			app.RevokeWebrtcToken(session.Id)
-		}
-	}
-
-	app.RemoveAllSessionsForUserId(userId)
-}
-
-// UGH...
-// If you update this please update above
-func RevokeAllSessionsNoContext(userId string) *model.AppError {
-	if result := <-app.Srv.Store.Session().GetSessions(userId); result.Err != nil {
-		return result.Err
-	} else {
-		sessions := result.Data.([]*model.Session)
-
-		for _, session := range sessions {
-			if session.IsOAuth {
-				app.RevokeAccessToken(session.Token)
-			} else {
-				if result := <-app.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-					return result.Err
-				}
-			}
-
-			app.RevokeWebrtcToken(session.Id)
-		}
-	}
-
-	app.RemoveAllSessionsForUserId(userId)
-
-	return nil
-}
-
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
@@ -568,11 +447,10 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Session().GetSessions(id); result.Err != nil {
-		c.Err = result.Err
+	if sessions, err := app.GetSessions(id); err != nil {
+		c.Err = err
 		return
 	} else {
-		sessions := result.Data.([]*model.Session)
 		for _, session := range sessions {
 			session.Sanitize()
 		}
@@ -990,62 +868,9 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	file, err := imageData.Open()
-	defer file.Close()
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error())
+	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+		c.Err = err
 		return
-	}
-
-	// Decode image config first to check dimensions before loading the whole thing into memory later on
-	config, _, err := image.DecodeConfig(file)
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileFile", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error())
-		return
-	} else if config.Width*config.Height > MaxImageSize {
-		c.Err = model.NewLocAppError("uploadProfileFile", "api.user.upload_profile_user.too_large.app_error", nil, err.Error())
-		return
-	}
-
-	file.Seek(0, 0)
-
-	// Decode image into Image object
-	img, _, err := image.Decode(file)
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
-		return
-	}
-
-	// Scale profile image
-	img = imaging.Resize(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Lanczos)
-
-	buf := new(bytes.Buffer)
-	err = png.Encode(buf, img)
-	if err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error())
-		return
-	}
-
-	path := "users/" + c.Session.UserId + "/profile.png"
-
-	if err := app.WriteFile(buf.Bytes(), path); err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
-		return
-	}
-
-	app.Srv.Store.User().UpdateLastPictureUpdate(c.Session.UserId)
-
-	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
-	} else {
-		user := result.Data.(*model.User)
-		user = sanitizeProfile(c, user)
-		omitUsers := make(map[string]bool, 1)
-		omitUsers[user.Id] = true
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
-		message.Add("user", user)
-
-		go app.Publish(message)
 	}
 
 	c.LogAudit("")
@@ -1071,29 +896,13 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().Update(user, false); result.Err != nil {
-		c.Err = result.Err
+	if ruser, err := app.UpdateUser(user, c.GetSiteURL()); err != nil {
+		c.Err = err
 		return
 	} else {
 		c.LogAudit("")
 
-		rusers := result.Data.([2]*model.User)
-
-		if rusers[0].Email != rusers[1].Email {
-			go sendEmailChangeEmail(c, rusers[1].Email, rusers[0].Email, c.GetSiteURL())
-
-			if utils.Cfg.EmailSettings.RequireEmailVerification {
-				go SendEmailChangeVerifyEmail(c, rusers[0].Id, rusers[0].Email, c.GetSiteURL())
-			}
-		}
-
-		if rusers[0].Username != rusers[1].Username {
-			go sendEmailChangeUsername(c, rusers[1].Username, rusers[0].Username, rusers[0].Email, c.GetSiteURL())
-		}
-
-		app.InvalidateCacheForUser(user.Id)
-
-		updatedUser := rusers[0]
+		updatedUser := ruser
 		updatedUser = sanitizeProfile(c, updatedUser)
 
 		omitUsers := make(map[string]bool, 1)
@@ -1102,10 +911,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		message.Add("user", updatedUser)
 		go app.Publish(message)
 
-		rusers[0].Password = ""
-		rusers[0].AuthData = new(string)
-		*rusers[0].AuthData = ""
-		w.Write([]byte(rusers[0].ToJson()))
+		ruser.Password = ""
+		ruser.AuthData = new(string)
+		*ruser.AuthData = ""
+		w.Write([]byte(ruser.ToJson()))
 	}
 }
 
@@ -1138,20 +947,19 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result store.StoreResult
+	var user *model.User
+	var err *model.AppError
 
-	if result = <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
 		return
 	}
 
-	if result.Data == nil {
+	if user == nil {
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "")
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
-
-	user := result.Data.(*model.User)
 
 	if user.AuthData != nil && *user.AuthData != "" {
 		c.LogAudit("failed - tried to update user password who was logged in through oauth")
@@ -1170,16 +978,14 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if uresult := <-app.Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(newPassword)); uresult.Err != nil {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.failed.app_error", nil, uresult.Err.Error())
+	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.update_password.menu"), c.GetSiteURL()); err != nil {
+		c.Err = err
 		return
 	} else {
 		c.LogAudit("completed")
 
-		go sendPasswordChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.user.update_password.menu"))
-
 		data := make(map[string]string)
-		data["user_id"] = uresult.Data.(string)
+		data["user_id"] = c.Session.UserId
 		w.Write([]byte(model.MapToJson(data)))
 	}
 }
@@ -1204,18 +1010,10 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		c.Err = result.Err
+	if _, err := app.UpdateUserRoles(userId, newRoles); err != nil {
 		return
 	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if _, err := UpdateUserRoles(user, newRoles); err != nil {
-		return
-	} else {
-		c.LogAuditWithUserId(user.Id, "roles="+newRoles)
+		c.LogAuditWithUserId(userId, "roles="+newRoles)
 	}
 
 	rdata := map[string]string{}
@@ -1223,34 +1021,11 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(rdata)))
 }
 
-func UpdateUserRoles(user *model.User, newRoles string) (*model.User, *model.AppError) {
-
-	user.Roles = newRoles
-	uchan := app.Srv.Store.User().Update(user, true)
-	schan := app.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
-
-	var ruser *model.User
-	if result := <-uchan; result.Err != nil {
-		return nil, result.Err
-	} else {
-		ruser = result.Data.([2]*model.User)[0]
-	}
-
-	if result := <-schan; result.Err != nil {
-		// soft error since the user roles were still updated
-		l4g.Error(result.Err)
-	}
-
-	app.RemoveAllSessionsForUserId(user.Id)
-
-	return ruser, nil
-}
-
 func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	user_id := props["user_id"]
-	if len(user_id) != 26 {
+	userId := props["user_id"]
+	if len(userId) != 26 {
 		c.SetInvalidParam("updateActive", "user_id")
 		return
 	}
@@ -1258,140 +1033,33 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := props["active"] == "true"
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().Get(user_id); result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	// true when you're trying to de-activate yourself
-	isSelfDeactive := !active && user_id == c.Session.UserId
+	isSelfDeactive := !active && userId == c.Session.UserId
 
 	if !isSelfDeactive && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
-		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+user_id)
+		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+userId)
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	if user.IsLDAPUser() {
-		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user_id)
+		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+userId)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
-	if ruser, err := UpdateActive(user, active); err != nil {
+	if ruser, err := app.UpdateActive(user, active); err != nil {
 		c.Err = err
 	} else {
-		if !active {
-			app.SetStatusOffline(ruser.Id, false)
-		}
-
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
 		w.Write([]byte(ruser.ToJson()))
 	}
-}
-
-func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
-	if active {
-		user.DeleteAt = 0
-	} else {
-		user.DeleteAt = model.GetMillis()
-	}
-
-	if result := <-app.Srv.Store.User().Update(user, true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		if user.DeleteAt > 0 {
-			RevokeAllSessionsNoContext(user.Id)
-		}
-
-		if extra := <-app.Srv.Store.Channel().ExtraUpdateByUser(user.Id, model.GetMillis()); extra.Err != nil {
-			return nil, extra.Err
-		}
-
-		ruser := result.Data.([2]*model.User)[0]
-		options := utils.Cfg.GetSanitizeOptions()
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
-		return ruser, nil
-	}
-}
-
-func PermanentDeleteUser(user *model.User) *model.AppError {
-	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
-	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
-		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
-	}
-
-	if _, err := UpdateActive(user, false); err != nil {
-		return err
-	}
-
-	if result := <-app.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Command().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	if result := <-app.Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
-		return result.Err
-	}
-
-	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
-
-	return nil
-}
-
-func PermanentDeleteAllUsers() *model.AppError {
-	if result := <-app.Srv.Store.User().GetAll(); result.Err != nil {
-		return result.Err
-	} else {
-		users := result.Data.([]*model.User)
-		for _, user := range users {
-			PermanentDeleteUser(user)
-		}
-	}
-
-	return nil
 }
 
 func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1404,11 +1072,10 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		w.Write([]byte(model.MapToJson(props)))
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if user.AuthData != nil && len(*user.AuthData) != 0 {
@@ -1416,11 +1083,9 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recovery := &model.PasswordRecovery{}
-	recovery.UserId = user.Id
-
-	if result := <-app.Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
-		c.Err = result.Err
+	var recovery *model.PasswordRecovery
+	if recovery, err = app.CreatePasswordRecovery(user.Id); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -1464,13 +1129,11 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := ""
 
-	if result := <-app.Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
+	if recovery, err := app.GetPasswordRecovery(code); err != nil {
 		c.LogAuditWithUserId(userId, "fail - bad code")
-		c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
+		c.Err = err
 		return
 	} else {
-		recovery := result.Data.(*model.PasswordRecovery)
-
 		if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
 			userId = recovery.UserId
 		} else {
@@ -1479,11 +1142,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		go func() {
-			if result := <-app.Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
-				l4g.Error("%v", result.Err)
-			}
-		}()
+		if err := app.DeletePasswordRecoveryForUser(userId); err != nil {
+			l4g.Error(err.Error())
+		}
 	}
 
 	if err := ResetPassword(c, userId, newPassword); err != nil {
@@ -1500,10 +1161,9 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 	var user *model.User
-	if result := <-app.Srv.Store.User().Get(userId); result.Err != nil {
-		return result.Err
-	} else {
-		user = result.Data.(*model.User)
+	var err *model.AppError
+	if user, err = app.GetUser(userId); err != nil {
+		return err
 	}
 
 	if user.AuthData != nil && len(*user.AuthData) != 0 && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
@@ -1511,116 +1171,23 @@ func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
 
 	}
 
-	if result := <-app.Srv.Store.User().UpdatePassword(userId, model.HashPassword(newPassword)); result.Err != nil {
-		return result.Err
+	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.reset_password.method"), c.GetSiteURL()); err != nil {
+		return err
 	}
-
-	go sendPasswordChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.user.reset_password.method"))
 
 	return nil
-}
-
-func sendPasswordChangeEmail(c *Context, email, siteURL, method string) {
-	subject := c.T("api.templates.password_change_subject",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "SiteName": utils.Cfg.TeamSettings.SiteName})
-
-	bodyPage := utils.NewHTMLTemplate("password_change_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.password_change_body.title")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.password_change_body.info",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "TeamURL": siteURL, "Method": method}))
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_password_change_email_and_forget.error"), err)
-	}
-}
-
-func sendMfaChangeEmail(c *Context, email string, siteURL string, activated bool) {
-	subject := c.T("api.templates.mfa_change_subject",
-		map[string]interface{}{"SiteName": utils.Cfg.TeamSettings.SiteName})
-
-	bodyPage := utils.NewHTMLTemplate("mfa_change_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-
-	bodyText := ""
-	if activated {
-		bodyText = "api.templates.mfa_activated_body.info"
-		bodyPage.Props["Title"] = c.T("api.templates.mfa_activated_body.title")
-	} else {
-		bodyText = "api.templates.mfa_deactivated_body.info"
-		bodyPage.Props["Title"] = c.T("api.templates.mfa_deactivated_body.title")
-	}
-
-	bodyPage.Html["Info"] = template.HTML(c.T(bodyText,
-		map[string]interface{}{"SiteURL": siteURL}))
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_mfa_change_email.error"), err)
-	}
-}
-
-func sendEmailChangeEmail(c *Context, oldEmail, newEmail, siteURL string) {
-	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, c.T("api.templates.email_change_subject",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName}))
-
-	bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.email_change_body.title")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.email_change_body.info",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewEmail": newEmail}))
-
-	if err := utils.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_email_change_email_and_forget.error"), err)
-	}
-}
-
-func SendEmailChangeVerifyEmail(c *Context, userId, newUserEmail, siteURL string) {
-	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(newUserEmail))
-
-	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, c.T("api.templates.email_change_verify_subject",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName}))
-
-	bodyPage := utils.NewHTMLTemplate("email_change_verify_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.email_change_verify_body.title")
-	bodyPage.Props["Info"] = c.T("api.templates.email_change_verify_body.info",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
-	bodyPage.Props["VerifyUrl"] = link
-	bodyPage.Props["VerifyButton"] = c.T("api.templates.email_change_verify_body.button")
-
-	if err := utils.SendMail(newUserEmail, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_email_change_verify_email_and_forget.error"), err)
-	}
-}
-
-func sendEmailChangeUsername(c *Context, oldUsername, newUsername, email, siteURL string) {
-	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, c.T("api.templates.username_change_subject",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName}))
-
-	bodyPage := utils.NewHTMLTemplate("email_change_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.username_change_body.title")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.username_change_body.info",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewUsername": newUsername}))
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_email_change_username_and_forget.error"), err)
-	}
-
 }
 
 func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	user_id := props["user_id"]
-	if len(user_id) != 26 {
+	userId := props["user_id"]
+	if len(userId) != 26 {
 		c.SetInvalidParam("updateUserNotify", "user_id")
 		return
 	}
 
-	uchan := app.Srv.Store.User().Get(user_id)
-
-	if !HasPermissionToUser(c, user_id) {
+	if !HasPermissionToUser(c, userId) {
 		return
 	}
 
@@ -1651,28 +1218,26 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	user.NotifyProps = props
 
-	if result := <-app.Srv.Store.User().Update(user, false); result.Err != nil {
-		c.Err = result.Err
+	var ruser *model.User
+	if ruser, err = app.UpdateUser(user, c.GetSiteURL()); err != nil {
+		c.Err = err
 		return
-	} else {
-		c.LogAuditWithUserId(user.Id, "")
-		app.InvalidateCacheForUser(user.Id)
-
-		ruser := result.Data.([2]*model.User)[0]
-		options := utils.Cfg.GetSanitizeOptions()
-		options["passwordupdate"] = false
-		ruser.Sanitize(options)
-		w.Write([]byte(ruser.ToJson()))
 	}
+
+	c.LogAuditWithUserId(user.Id, "")
+
+	options := utils.Cfg.GetSanitizeOptions()
+	options["passwordupdate"] = false
+	ruser.Sanitize(options)
+	w.Write([]byte(ruser.ToJson()))
 }
 
 func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1701,12 +1266,11 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
@@ -1754,12 +1318,11 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if user.Id != c.Session.UserId {
@@ -1769,15 +1332,24 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().UpdatePassword(c.Session.UserId, model.HashPassword(password)); result.Err != nil {
+	if err := app.UpdatePassword(user, model.HashPassword(password)); err != nil {
 		c.LogAudit("fail - database issue")
-		c.Err = result.Err
+		c.Err = err
 		return
 	}
 
-	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	go func() {
+		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale, c.GetSiteURL()); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
 
-	RevokeAllSession(c, c.Session.UserId)
+	if err := app.RevokeAllSessions(c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	}
+	c.LogAuditWithUserId(c.Session.UserId, "Revoked all sessions for user")
+
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
@@ -1822,12 +1394,11 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if err := checkPasswordAndAllCriteria(user, emailPassword, token); err != nil {
@@ -1836,7 +1407,12 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RevokeAllSession(c, user.Id)
+	if err := app.RevokeAllSessions(user.Id); err != nil {
+		c.Err = err
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
+
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
@@ -1855,7 +1431,11 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), "AD/LDAP")
+	go func() {
+		if err := app.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, c.GetSiteURL()); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
 
 	m := map[string]string{}
 	m["follow_link"] = "/login?extra=signin_change"
@@ -1890,12 +1470,11 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(email); result.Err != nil {
+	var err *model.AppError
+	if user, err = app.GetUserByEmail(email); err != nil {
 		c.LogAudit("fail - couldn't get user")
-		c.Err = result.Err
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	if user.AuthService != model.USER_AUTH_SERVICE_LDAP {
@@ -1922,40 +1501,34 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(emailPassword)); result.Err != nil {
+	if err := app.UpdatePassword(user, model.HashPassword(emailPassword)); err != nil {
 		c.LogAudit("fail - database issue")
-		c.Err = result.Err
+		c.Err = err
 		return
 	}
 
-	RevokeAllSession(c, user.Id)
+	if err := app.RevokeAllSessions(user.Id); err != nil {
+		c.Err = err
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
+
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
 
-	go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), c.T("api.templates.signin_change_email.body.method_email"))
+	go func() {
+		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale, c.GetSiteURL()); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
 
 	m := map[string]string{}
 	m["follow_link"] = "/login?extra=signin_change"
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(m)))
-}
-
-func sendSignInChangeEmail(c *Context, email, siteURL, method string) {
-	subject := c.T("api.templates.singin_change_email.subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-
-	bodyPage := utils.NewHTMLTemplate("signin_change_body", c.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = c.T("api.templates.signin_change_email.body.title")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.singin_change_email.body.info",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		l4g.Error(utils.T("api.user.send_sign_in_change_email_and_forget.error"), err)
-	}
 }
 
 func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1974,7 +1547,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
-		if c.Err = (<-app.Srv.Store.User().VerifyEmail(userId)).Err; c.Err != nil {
+		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
 			return
 		} else {
 			c.LogAudit("Email Verified")
@@ -2000,22 +1573,19 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if _, err := app.GetStatus(user.Id); err != nil {
-			go SendVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
+			go app.SendVerifyEmail(user.Id, user.Email, user.Locale, c.GetSiteURL())
 		} else {
-			go SendEmailChangeVerifyEmail(c, user.Id, user.Email, c.GetSiteURL())
+			go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale, c.GetSiteURL())
 		}
 	}
 }
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
-	uchan := app.Srv.Store.User().Get(c.Session.UserId)
-
 	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	var err *model.AppError
+	if user, err = app.GetUser(c.Session.UserId); err != nil {
+		c.Err = err
 		return
-	} else {
-		user = result.Data.(*model.User)
 	}
 
 	mfaInterface := einterfaces.GetMfaInterface()
@@ -2077,13 +1647,15 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		var user *model.User
-		if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-			l4g.Warn(result.Err)
-		} else {
-			user = result.Data.(*model.User)
+		var err *model.AppError
+		if user, err = app.GetUser(c.Session.UserId); err != nil {
+			l4g.Warn(err.Error())
+			return
 		}
 
-		sendMfaChangeEmail(c, user.Email, c.GetSiteURL(), activate)
+		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale, c.GetSiteURL()); err != nil {
+			l4g.Error(err.Error())
+		}
 	}()
 
 	rdata := map[string]string{}
@@ -2107,20 +1679,11 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// we don't need to worry about contacting the ldap server to get this user because
-	// only users already in the system could have MFA enabled
-	uchan := app.Srv.Store.User().GetForLogin(
-		loginId,
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername,
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail,
-		*utils.Cfg.LdapSettings.Enable,
-	)
-
 	rdata := map[string]string{}
-	if result := <-uchan; result.Err != nil {
+	if user, err := app.GetUserForLogin(loginId, false); err != nil {
 		rdata["mfa_required"] = "false"
 	} else {
-		rdata["mfa_required"] = strconv.FormatBool(result.Data.(*model.User).MfaActive)
+		rdata["mfa_required"] = strconv.FormatBool(user.MfaActive)
 	}
 	w.Write([]byte(model.MapToJson(rdata)))
 }
@@ -2214,8 +1777,16 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
-			RevokeAllSession(c, user.Id)
-			go sendSignInChangeEmail(c, user.Email, c.GetSiteURL(), strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO")
+			if err := app.RevokeAllSessions(user.Id); err != nil {
+				c.Err = err
+				return
+			}
+			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
+			go func() {
+				if err := app.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.GetSiteURL()); err != nil {
+					l4g.Error(err.Error())
+				}
+			}()
 			break
 		}
 		doLogin(c, w, r, user, "")
@@ -2307,27 +1878,26 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = nil
 	}
 
-	var uchan store.StoreChannel
+	var profiles []*model.User
+	var err *model.AppError
 	if props.InChannelId != "" {
-		uchan = app.Srv.Store.User().SearchInChannel(props.InChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions)
 	} else if props.NotInChannelId != "" {
-		uchan = app.Srv.Store.User().SearchNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
 	} else {
-		uchan = app.Srv.Store.User().Search(props.TeamId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions)
 	}
 
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
-
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		w.Write([]byte(model.UserListToJson(profiles)))
 	}
+
+	for _, p := range profiles {
+		sanitizeProfile(c, p)
+	}
+
+	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
 func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2338,12 +1908,10 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
-		c.Err = result.Err
+	if profiles, err := app.GetUsersByIds(userIds); err != nil {
+		c.Err = err
 		return
 	} else {
-		profiles := result.Data.(map[string]*model.User)
-
 		for _, p := range profiles {
 			sanitizeProfile(c, p)
 		}
@@ -2379,35 +1947,18 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().SearchInChannel(channelId, term, searchOptions)
-	nuchan := app.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, searchOptions)
-
-	autocomplete := &model.UserAutocompleteInChannel{}
-
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
-
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.InChannel = profiles
 	}
 
-	if result := <-nuchan; result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		profiles := result.Data.([]*model.User)
+	for _, p := range autocomplete.InChannel {
+		sanitizeProfile(c, p)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.OutOfChannel = profiles
+	for _, p := range autocomplete.OutOfChannel {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -2435,21 +1986,14 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().Search(teamId, term, searchOptions)
-
-	autocomplete := &model.UserAutocompleteInTeam{}
-
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles := result.Data.([]*model.User)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
-
-		autocomplete.InTeam = profiles
+	for _, p := range autocomplete.InTeam {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -2468,19 +2012,16 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	uchan := app.Srv.Store.User().Search("", term, searchOptions)
-
 	var profiles []*model.User
+	var err *model.AppError
 
-	if result := <-uchan; result.Err != nil {
-		c.Err = result.Err
+	if profiles, err = app.SearchUsersInTeam("", term, searchOptions); err != nil {
+		c.Err = err
 		return
-	} else {
-		profiles = result.Data.([]*model.User)
+	}
 
-		for _, p := range profiles {
-			sanitizeProfile(c, p)
-		}
+	for _, p := range profiles {
+		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(model.UserListToJson(profiles)))

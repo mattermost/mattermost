@@ -14,6 +14,18 @@ import (
 
 var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
 
+func CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	if result := <-Srv.Store.Session().Save(session); result.Err != nil {
+		return nil, result.Err
+	} else {
+		session := result.Data.(*model.Session)
+
+		AddSessionToCache(session)
+
+		return session, nil
+	}
+}
+
 func GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := einterfaces.GetMetricsInterface()
 
@@ -51,16 +63,48 @@ func GetSession(token string) (*model.Session, *model.AppError) {
 	return session, nil
 }
 
-func RemoveAllSessionsForUserId(userId string) {
-
-	RemoveAllSessionsForUserIdSkipClusterSend(userId)
-
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().RemoveAllSessionsForUserId(userId)
+func GetSessions(userId string) ([]*model.Session, *model.AppError) {
+	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Session), nil
 	}
 }
 
-func RemoveAllSessionsForUserIdSkipClusterSend(userId string) {
+func RevokeAllSessions(userId string) *model.AppError {
+	if result := <-Srv.Store.Session().GetSessions(userId); result.Err != nil {
+		return result.Err
+	} else {
+		sessions := result.Data.([]*model.Session)
+
+		for _, session := range sessions {
+			if session.IsOAuth {
+				RevokeAccessToken(session.Token)
+			} else {
+				if result := <-Srv.Store.Session().Remove(session.Id); result.Err != nil {
+					return result.Err
+				}
+			}
+
+			RevokeWebrtcToken(session.Id)
+		}
+	}
+
+	ClearSessionCacheForUser(userId)
+
+	return nil
+}
+
+func ClearSessionCacheForUser(userId string) {
+
+	ClearSessionCacheForUserSkipClusterSend(userId)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().ClearSessionCacheForUser(userId)
+	}
+}
+
+func ClearSessionCacheForUserSkipClusterSend(userId string) {
 	keys := sessionCache.Keys()
 
 	for _, key := range keys {
@@ -132,7 +176,7 @@ func RevokeSession(session *model.Session) *model.AppError {
 	}
 
 	RevokeWebrtcToken(session.Id)
-	RemoveAllSessionsForUserId(session.UserId)
+	ClearSessionCacheForUser(session.UserId)
 
 	return nil
 }
