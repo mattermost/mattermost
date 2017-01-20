@@ -29,15 +29,12 @@ import * as ChannelActions from 'actions/channel_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
 import {Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router/es6';
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
@@ -131,21 +128,7 @@ export default class ChannelHeader extends React.Component {
     }
 
     handleLeave() {
-        Client.leaveChannel(this.state.channel.id,
-            () => {
-                const channelId = this.state.channel.id;
-
-                if (this.state.isFavorite) {
-                    ChannelActions.unmarkFavorite(channelId);
-                }
-
-                const townsquare = ChannelStore.getByName('town-square');
-                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'handleLeave');
-            }
-        );
+        ChannelActions.leaveChannel(this.state.channel.id);
     }
 
     toggleFavorite = (e) => {

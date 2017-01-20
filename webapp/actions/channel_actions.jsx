@@ -6,6 +6,7 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
@@ -427,6 +428,32 @@ export function getChannelMembersForUserIds(channelId, userIds, success, error) 
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getChannelMembersByIds');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function leaveChannel(channelId, success, error) {
+    Client.leaveChannel(channelId,
+        () => {
+            loadChannelsForCurrentUser();
+
+            if (ChannelUtils.isFavoriteChannelId(channelId)) {
+                unmarkFavorite(channelId);
+            }
+
+            const townsquare = ChannelStore.getByName('town-square');
+            browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'handleLeave');
 
             if (error) {
                 error(err);

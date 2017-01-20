@@ -22,8 +22,6 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import ChannelSwitchModal from './channel_switch_modal.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -37,7 +35,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 
-import {Link, browserHistory} from 'react-router/es6';
+import {Link} from 'react-router/es6';
 
 import React from 'react';
 
@@ -111,23 +109,7 @@ export default class Navbar extends React.Component {
     }
 
     handleLeave() {
-        var channelId = this.state.channel.id;
-
-        Client.leaveChannel(channelId,
-            () => {
-                ChannelActions.loadChannelsForCurrentUser();
-
-                if (this.state.isFavorite) {
-                    ChannelActions.unmarkFavorite(channelId);
-                }
-
-                const townsquare = ChannelStore.getByName('town-square');
-                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'handleLeave');
-            }
-        );
+        ChannelActions.leaveChannel(this.state.channel.id);
     }
 
     hideSidebars(e) {
