@@ -164,7 +164,7 @@ export default class Sidebar extends React.Component {
         if (this.state.activeId !== prevState.activeId) {
             if (this.closedDirectChannel) {
                 this.closedDirectChannel = false;
-            } else {
+            } else if (document.location.search !== '?mobile=true') {
                 $('.app__body .inner-wrap').removeClass('move--right');
                 $('.app__body .sidebar--left').removeClass('move--right');
                 $('.multi-teams .team-sidebar').removeClass('move--right');
@@ -752,9 +752,14 @@ export default class Sidebar extends React.Component {
             );
         }
 
+        let moveRight = '';
+        if (document.location.search === '?mobile=true') {
+            moveRight = 'move--right';
+        }
+
         return (
             <div
-                className='sidebar--left'
+                className={`sidebar--left ${moveRight}`}
                 id='sidebar-left'
                 key='sidebar-left'
             >

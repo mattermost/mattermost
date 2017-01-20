@@ -135,6 +135,10 @@ export default class NeedsTeam extends React.Component {
 
     render() {
         let content = [];
+        let moveRight = '';
+        if (this.props.location.query.mobile) {
+            moveRight = 'move--right';
+        }
         if (this.props.children) {
             content = this.props.children;
         } else {
@@ -148,7 +152,7 @@ export default class NeedsTeam extends React.Component {
             content.push(
                 <div
                     key='inner-wrap'
-                    className='inner-wrap channel__wrap'
+                    className={`inner-wrap channel__wrap ${moveRight}`}
                 >
                     <div className='row header'>
                         <div id='navbar'>
@@ -201,5 +205,6 @@ NeedsTeam.propTypes = {
     team_sidebar: React.PropTypes.element,
     center: React.PropTypes.element,
     params: React.PropTypes.object,
+    location: React.PropTypes.object,
     user: React.PropTypes.object
 };

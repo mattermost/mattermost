@@ -12,6 +12,14 @@ export default class TeamButton extends React.Component {
         super(props);
 
         this.handleDisabled = this.handleDisabled.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick(e) {
+        e.stopPropagation();
+        if (this.props.active || this.props.disabled) {
+            this.handleDisabled(e);
+        }
     }
 
     handleDisabled(e) {
@@ -22,7 +30,6 @@ export default class TeamButton extends React.Component {
         let teamClass = this.props.active ? 'active' : '';
         const btnClass = this.props.btnClass;
         const disabled = this.props.disabled ? 'team-disabled' : '';
-        const handleClick = (this.props.active || this.props.disabled) ? this.handleDisabled : null;
         let badge;
 
         if (!teamClass) {
@@ -73,14 +80,16 @@ export default class TeamButton extends React.Component {
             );
         }
 
+        const url = this.props.url + (this.props.isMobile ? '?mobile=true' : '');
+
         return (
             <div
                 className={`team-container ${teamClass}`}
             >
                 <Link
                     className={disabled}
-                    to={this.props.url}
-                    onClick={handleClick}
+                    to={url}
+                    onClick={this.handleClick}
                 >
                     {btn}
                 </Link>

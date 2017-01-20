@@ -14,6 +14,10 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class TeamSidebar extends React.Component {
+    static propTypes = {
+        location: React.PropTypes.object
+    };
+
     constructor(props) {
         super(props);
 
@@ -168,8 +172,13 @@ export default class TeamSidebar extends React.Component {
             );
         }
 
+        let moveRight = '';
+        if (this.props.location.query.mobile) {
+            moveRight = 'move--right';
+        }
+
         return (
-            <div className='team-sidebar'>
+            <div className={`team-sidebar ${moveRight}`}>
                 <div className='team-wrapper'>
                     {teams}
                 </div>
