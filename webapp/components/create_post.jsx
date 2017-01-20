@@ -37,7 +37,7 @@ const KeyCodes = Constants.KeyCodes;
 import React from 'react';
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
-export const EMOJI_PATTERN = /\:[A-Za-z-_0-9]*\:/g;
+export const EMOJI_PATTERN = /:[A-Za-z-_0-9]*:/g;
 
 export default class CreatePost extends React.Component {
     constructor(props) {
@@ -92,8 +92,6 @@ export default class CreatePost extends React.Component {
     handlePostError(postError) {
         this.setState({postError});
     }
-
-
 
     handleSubmit(e) {
         e.preventDefault();
@@ -158,11 +156,10 @@ export default class CreatePost extends React.Component {
                         this.setState({state});
                     }
                 }
-            )
+            );
         } else if (isReaction && EmojiStore.has(isReaction[2])) {
             this.sendReaction(isReaction);
         } else {
-
             this.sendMessage(post);
         }
 
@@ -196,9 +193,8 @@ export default class CreatePost extends React.Component {
 
         // parse message and emit emoji event
         post.message.match(EMOJI_PATTERN).forEach((emoji) => {
-
             PostActions.emitEmojiPosted(emoji);
-        })
+        });
 
         PostActions.queuePost(post, false, null,
             (err) => {
@@ -500,10 +496,9 @@ export default class CreatePost extends React.Component {
     }
 
     handleEmojiClick(emoji) {
-        const emojiAlias = emoji.name ||  emoji.aliases[0];
+        const emojiAlias = emoji.name || emoji.aliases[0];
 
         if (!emojiAlias) {
-            console.error("unknown emoji alias or name", emoji);
             //Oops.. There went something wrong
             return;
         }
