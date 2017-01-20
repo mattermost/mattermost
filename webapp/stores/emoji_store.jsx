@@ -147,18 +147,28 @@ class EmojiStore extends EventEmitter {
         let recentEmojis = this.getRecentEmojis();
 
         let alias = rawAlias.split(':').join('');
-        let emojiIndex =  Emoji.EmojiIndicesByAlias.get(alias)
-        let emoji = Emoji.Emojis[emojiIndex];
-        recentEmojis.push(emoji);
 
-        // odd workaround to the lack of array.findLastIndex - reverse before and after
-        recentEmojis.reverse();
-        recentEmojis = recentEmojis.filter(
-            (val, i, a ) => i === a.findIndex(
-                val2 => val.filename === val2.filename
-            )
-        );
-        recentEmojis.reverse();
+        let emoji = this.getCustomEmojiMap().get(alias);
+
+        if (!emoji){
+            let emojiIndex =  Emoji.EmojiIndicesByAlias.get(alias)
+            emoji = Emoji.Emojis[emojiIndex];
+        }
+
+        if (!emoji){
+            console.error("cannot find emoji to add to recent", rawAlias);
+            return;
+        }
+
+        // odd workaround to the lack of array.findLastIndex - reverse looping & splice
+        for (let i = recentEmojis.length - 1; i >= 0; i--) {
+            if ((emoji.name && recentEmojis[i].name === emoji.name) ||
+                (emoji.filename && recentEmojis[i].filename === emoji.filename)) {
+                recentEmojis.splice(i, 1);
+                break;
+            }
+        }
+        recentEmojis.push(emoji);
 
         // cut off the _top_ if it's over length (since new are added to end)
         if (recentEmojis.length > MAXIMUM_RECENT_EMOJI){
@@ -210,7 +220,6 @@ class EmojiStore extends EventEmitter {
             this.emitChange();
             break;
         case ActionTypes.EMOJI_POSTED:
-            console.log(action);
             this.addRecentEmoji(action.alias);
             this.emitChange();
             break;

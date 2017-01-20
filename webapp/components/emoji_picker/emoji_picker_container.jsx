@@ -18,7 +18,7 @@ export default class EmojiPickerContainer extends React.Component {
         this.handleEmojiChange = this.handleEmojiChange.bind(this);
 
         this.state = {
-            customEmojis: EmojiStore.getCustomEmojiMap()
+            customEmojis: EmojiStore.getCustomEmojiMap().values()
         };
     }
 

@@ -76,9 +76,7 @@ export default class EmojiPicker extends React.Component {
     }
 
     handleItemOut(emoji) {
-        if (this.state.selected === emoji) {
-            // this.setState({selected: null});
-        }
+        this.setState({selected: null});
     }
 
     handleItemUnmount(emoji) {
@@ -91,10 +89,7 @@ export default class EmojiPicker extends React.Component {
 
 
     handleItemClick(emoji) {
-
-
         this.props.onEmojiClick(emoji);
-
     }
 
     handleScroll() {
@@ -103,14 +98,11 @@ export default class EmojiPicker extends React.Component {
         const contentTop = items.scrollTop();
         const contentTopPadding = parseInt(items.css('padding-top'), 10);
         let scrollPct = contentTop / (items[0].scrollHeight - items[0].clientHeight) * 100.0
-        // console.log(scrollPct)
 
         if (scrollPct > 99.0) {
             this.setState({category: 'custom'});
             return;
         }
-
-
 
         for (const category of CATEGORIES) {
             const header = $(ReactDOM.findDOMNode(this.refs[category]));
@@ -168,7 +160,7 @@ export default class EmojiPicker extends React.Component {
 
             items.push(
                 <EmojiPickerItem
-                    key={'system_' + (category === 'recent' ? 'recent_' : '') + emoji.aliases[0]}
+                    key={'system_' + (category === 'recent' ? 'recent_' : '') + (emoji.name || emoji.aliases[0])}
                     emoji={emoji}
                     onItemOver={this.handleItemOver}
                     onItemOut={this.handleItemOut}
@@ -178,20 +170,24 @@ export default class EmojiPicker extends React.Component {
             );
         }
 
-        for (const [, emoji] of customEmojis) {
-            if (filter && emoji.name.indexOf(filter) === -1) {
-                continue;
-            }
+        if (category === 'custom'){
+            for (const emoji of EmojiStore.getCustomEmojiMap().values() ) {
+                if (filter && emoji.name.indexOf(filter) === -1) {
+                    continue;
+                }
 
-            items.push(
-                <EmojiPickerItem
-                    key={'custom_' + emoji.name}
-                    emoji={emoji}
-                    onItemOver={this.handleItemOver}
-                    onItemOut={this.handleItemOut}
-                    onItemClick={this.handleItemClick}
-                />
-            );
+                items.push(
+                    <EmojiPickerItem
+                        key={'custom_' + emoji.name}
+                        emoji={emoji}
+                        onItemOver={this.handleItemOver}
+                        onItemOut={this.handleItemOut}
+                        onItemClick={this.handleItemClick}
+                        onItemUnmount={this.handleItemUnmount}
+
+                    />
+                );
+            }
         }
 
         // Only render the header if there's any visible items
