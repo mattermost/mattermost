@@ -191,7 +191,7 @@ export default class UserSettingsDisplay extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='user.settings.display.collapseDesc'
-                            defaultMessage='Expand links to show a preview of content, when available.'
+                            defaultMessage='Set whether previews of image links show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.'
                         />
                     </div>
                 </div>
@@ -202,7 +202,7 @@ export default class UserSettingsDisplay extends React.Component {
                     title={
                         <FormattedMessage
                             id='user.settings.display.collapseDisplay'
-                            defaultMessage='Link previews'
+                            defaultMessage='Default appearance of image link previews'
                         />
                     }
                     inputs={inputs}
@@ -218,14 +218,14 @@ export default class UserSettingsDisplay extends React.Component {
             describe = (
                 <FormattedMessage
                     id='user.settings.display.collapseOn'
-                    defaultMessage='On'
+                    defaultMessage='Expanded'
                 />
             );
         } else {
             describe = (
                 <FormattedMessage
                     id='user.settings.display.collapseOff'
-                    defaultMessage='Off'
+                    defaultMessage='Collapsed'
                 />
             );
         }
@@ -239,7 +239,7 @@ export default class UserSettingsDisplay extends React.Component {
                 title={
                     <FormattedMessage
                         id='user.settings.display.collapseDisplay'
-                        defaultMessage='Link previews'
+                        defaultMessage='Default appearance of image link previews'
                     />
                 }
                 describe={describe}
