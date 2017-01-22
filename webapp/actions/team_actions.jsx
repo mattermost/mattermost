@@ -126,3 +126,19 @@ export function getInviteInfo(inviteId, success, error) {
         }
     );
 }
+
+export function inviteMembers(data, success, error) {
+    Client.inviteMembers(
+        data,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (err) {
+                error(err);
+            }
+        }
+    );
+}
