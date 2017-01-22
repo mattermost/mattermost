@@ -242,3 +242,32 @@ List A:
 1. One
 List B:
 2. Two
+
+### Lists with blank lines before and after 
+
+**Expected:**
+
+```
+Line with blank line after 
+
+Line with blank line after and before 
+
+1. Bullet 
+2. Bullet 
+3. Bullet 
+
+Line with blank line after and before 
+
+Line with blank line before
+```
+Line with blank line after 
+
+Line with blank line after and before 
+
+1. Bullet 
+2. Bullet 
+3. Bullet 
+
+Line with blank line after and before 
+
+Line with blank line before
