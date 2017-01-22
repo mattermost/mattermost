@@ -8,10 +8,9 @@ import DesktopNotificationSettings from './desktop_notification_settings.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {updateUserNotifyProps} from 'actions/user_actions.jsx';
 
 import EmailNotificationSetting from './email_notification_setting.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -143,10 +142,10 @@ export default class NotificationsTab extends React.Component {
         data.first_name = this.state.firstNameKey.toString();
         data.channel = this.state.channelKey.toString();
 
-        Client.updateUserNotifyProps(data,
+        updateUserNotifyProps(
+            data,
             () => {
                 this.props.updateSection('');
-                AsyncClient.getMe();
                 $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
             },
             (err) => {

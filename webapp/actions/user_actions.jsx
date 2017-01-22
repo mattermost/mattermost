@@ -453,6 +453,24 @@ export function generateMfaSecret(success, error) {
     );
 }
 
+export function updateUserNotifyProps(data, success, error) {
+    Client.updateUserNotifyProps(
+      data,
+      () => {
+          AsyncClient.getMe();
+
+          if (success) {
+              success();
+          }
+      },
+      (err) => {
+          if (error) {
+              error(err);
+          }
+      }
+    );
+}
+
 export function updateUserRoles(userId, newRoles, success, error) {
     Client.updateUserRoles(
       userId,
