@@ -317,7 +317,7 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := ResetPassword(c, userId, newPassword); err != nil {
+	if err := app.UpdatePasswordByUserIdSendEmail(userId, newPassword, c.T("api.user.reset_password.method"), c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}

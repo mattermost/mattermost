@@ -223,6 +223,8 @@ func GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppEr
 		} else {
 			rows[5].Value = float64(r.Data.(int64))
 		}
+
+		return rows, nil
 	}
 
 	return nil, nil

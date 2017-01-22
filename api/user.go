@@ -7,10 +7,8 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
-	"html/template"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -94,15 +92,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user.EmailVerified = false
 
-	shouldSendWelcomeEmail := true
-
 	hash := r.URL.Query().Get("h")
 	inviteId := r.URL.Query().Get("iid")
-
-	if !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
-		c.Err = model.NewLocAppError("createUser", "api.user.create_user.accepted_domain.app_error", nil, "")
-		return
-	}
 
 	var ruser *model.User
 	var err *model.AppError
@@ -113,10 +104,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-
-		shouldSendWelcomeEmail = false
 	} else if len(inviteId) > 0 {
-		ruser, err = app.CreateUserWithInviteId(user, inviteId)
+		ruser, err = app.CreateUserWithInviteId(user, inviteId, c.GetSiteURL())
 		if err != nil {
 			c.Err = err
 			return
@@ -132,9 +121,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-	}
 
-	if shouldSendWelcomeEmail {
 		if err := app.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
@@ -142,49 +129,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(ruser.ToJson()))
 
-}
-
-// Check that a user's email domain matches a list of space-delimited domains as a string.
-func CheckUserDomain(user *model.User, domains string) bool {
-	if len(domains) == 0 {
-		return true
-	}
-
-	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
-
-	matched := false
-	for _, d := range domainArray {
-		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
-			matched = true
-			break
-		}
-	}
-
-	return matched
-}
-
-func IsVerifyHashRequired(user *model.User, team *model.Team, hash string) bool {
-	shouldVerifyHash := true
-
-	if team.Type == model.TEAM_INVITE && len(team.AllowedDomains) > 0 && len(hash) == 0 && user != nil {
-		matched := CheckUserDomain(user, team.AllowedDomains)
-
-		if matched {
-			shouldVerifyHash = false
-		} else {
-			return true
-		}
-	}
-
-	if team.Type == model.TEAM_OPEN {
-		shouldVerifyHash = false
-	}
-
-	if len(hash) > 0 {
-		shouldVerifyHash = true
-	}
-
-	return shouldVerifyHash
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -594,10 +538,7 @@ func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	email := params["email"]
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = app.GetUserByEmail(email); err != nil {
+	if user, err := app.GetUserByEmail(email); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
@@ -631,11 +572,8 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var profiles map[string]*model.User
-	var profileErr *model.AppError
-
-	if profiles, profileErr = app.GetUsers(offset, limit); profileErr != nil {
-		c.Err = profileErr
+	if profiles, err := app.GetUsers(offset, limit); err != nil {
+		c.Err = err
 		return
 	} else {
 		for k, p := range profiles {
@@ -674,11 +612,8 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var profiles map[string]*model.User
-	var profileErr *model.AppError
-
-	if profiles, profileErr = app.GetUsersInTeam(teamId, offset, limit); profileErr != nil {
-		c.Err = profileErr
+	if profiles, err := app.GetUsersInTeam(teamId, offset, limit); err != nil {
+		c.Err = err
 		return
 	} else {
 		for k, p := range profiles {
@@ -694,18 +629,6 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelId := params["channel_id"]
 
-	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-			return
-		}
-	}
-
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-		return
-	}
-
 	offset, err := strconv.Atoi(params["offset"])
 	if err != nil {
 		c.SetInvalidParam("getProfiles", "offset")
@@ -715,6 +638,18 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	limit, err := strconv.Atoi(params["limit"])
 	if err != nil {
 		c.SetInvalidParam("getProfiles", "limit")
+		return
+	}
+
+	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -761,11 +696,8 @@ func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var profiles map[string]*model.User
-	var profileErr *model.AppError
-
-	if profiles, err = app.GetUsersNotInChannel(c.TeamId, channelId, offset, limit); profileErr != nil {
-		c.Err = profileErr
+	if profiles, err := app.GetUsersNotInChannel(c.TeamId, channelId, offset, limit); err != nil {
+		c.Err = err
 		return
 	} else {
 		for k, p := range profiles {
@@ -897,11 +829,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.IsPasswordValid(user.Password); user.Password != "" && err != nil {
-		c.Err = err
-		return
-	}
-
 	if ruser, err := app.UpdateUser(user, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
@@ -942,11 +869,6 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newPassword := props["new_password"]
 
-	if err := utils.IsPasswordValid(newPassword); err != nil {
-		c.Err = err
-		return
-	}
-
 	if userId != c.Session.UserId {
 		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.context.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
@@ -984,7 +906,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.update_password.menu"), c.GetSiteURL()); err != nil {
+	if err := app.UpdatePasswordSendEmail(user, newPassword, c.T("api.user.update_password.menu"), c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -1039,13 +961,6 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	active := props["active"] == "true"
 
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUser(userId); err != nil {
-		c.Err = err
-		return
-	}
-
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && userId == c.Session.UserId
 
@@ -1055,13 +970,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.IsLDAPUser() {
-		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+userId)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	if ruser, err := app.UpdateActive(user, active); err != nil {
+	if ruser, err := app.UpdateActiveNoLdap(userId, active); err != nil {
 		c.Err = err
 	} else {
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
@@ -1078,41 +987,12 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUserByEmail(email); err != nil {
-		w.Write([]byte(model.MapToJson(props)))
-		return
-	}
-
-	if user.AuthData != nil && len(*user.AuthData) != 0 {
-		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id)
-		return
-	}
-
-	var recovery *model.PasswordRecovery
-	if recovery, err = app.CreatePasswordRecovery(user.Id); err != nil {
+	if sent, err := app.SendPasswordReset(email, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
+	} else if sent {
+		c.LogAudit("sent=" + email)
 	}
-
-	link := fmt.Sprintf("%s/reset_password_complete?code=%s", c.GetSiteURL(), url.QueryEscape(recovery.Code))
-
-	subject := c.T("api.templates.reset_subject")
-
-	bodyPage := utils.NewHTMLTemplate("reset_body", c.Locale)
-	bodyPage.Props["SiteURL"] = c.GetSiteURL()
-	bodyPage.Props["Title"] = c.T("api.templates.reset_body.title")
-	bodyPage.Html["Info"] = template.HTML(c.T("api.templates.reset_body.info"))
-	bodyPage.Props["ResetUrl"] = link
-	bodyPage.Props["Button"] = c.T("api.templates.reset_body.button")
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		c.Err = model.NewLocAppError("sendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
-		return
-	}
-
-	c.LogAuditWithUserId(user.Id, "sent="+email)
 
 	w.Write([]byte(model.MapToJson(props)))
 }
@@ -1127,62 +1007,20 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	newPassword := props["new_password"]
-	if err := utils.IsPasswordValid(newPassword); err != nil {
+
+	c.LogAudit("attempt - code=" + code)
+
+	if err := app.ResetPasswordFromCode(code, newPassword, c.GetSiteURL()); err != nil {
+		c.LogAudit("fail - code=" + code)
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("attempt")
-
-	userId := ""
-
-	if recovery, err := app.GetPasswordRecovery(code); err != nil {
-		c.LogAuditWithUserId(userId, "fail - bad code")
-		c.Err = err
-		return
-	} else {
-		if model.GetMillis()-recovery.CreateAt < model.PASSWORD_RECOVER_EXPIRY_TIME {
-			userId = recovery.UserId
-		} else {
-			c.LogAuditWithUserId(userId, "fail - link expired")
-			c.Err = model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
-			return
-		}
-
-		if err := app.DeletePasswordRecoveryForUser(userId); err != nil {
-			l4g.Error(err.Error())
-		}
-	}
-
-	if err := ResetPassword(c, userId, newPassword); err != nil {
-		c.Err = err
-		return
-	}
-
-	c.LogAuditWithUserId(userId, "success")
+	c.LogAudit("success - code=" + code)
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
 	w.Write([]byte(model.MapToJson(rdata)))
-}
-
-func ResetPassword(c *Context, userId, newPassword string) *model.AppError {
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUser(userId); err != nil {
-		return err
-	}
-
-	if user.AuthData != nil && len(*user.AuthData) != 0 && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		return model.NewLocAppError("ResetPassword", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
-
-	}
-
-	if err := app.UpdatePasswordSendEmail(user, model.HashPassword(newPassword), c.T("api.user.reset_password.method"), c.GetSiteURL()); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1225,22 +1063,13 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUser(userId); err != nil {
+	ruser, err := app.UpdateUserNotifyProps(userId, props, c.GetSiteURL())
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	user.NotifyProps = props
-
-	var ruser *model.User
-	if ruser, err = app.UpdateUser(user, c.GetSiteURL()); err != nil {
-		c.Err = err
-		return
-	}
-
-	c.LogAuditWithUserId(user.Id, "")
+	c.LogAuditWithUserId(ruser.Id, "")
 
 	options := utils.Cfg.GetSanitizeOptions()
 	options["passwordupdate"] = false
@@ -1340,7 +1169,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePassword(user, model.HashPassword(password)); err != nil {
+	if err := app.UpdatePassword(user, password); err != nil {
 		c.LogAudit("fail - database issue")
 		c.Err = err
 		return
@@ -1509,7 +1338,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePassword(user, model.HashPassword(emailPassword)); err != nil {
+	if err := app.UpdatePassword(user, emailPassword); err != nil {
 		c.LogAudit("fail - database issue")
 		c.Err = err
 		return
