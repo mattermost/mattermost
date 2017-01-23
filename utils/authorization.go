@@ -3,7 +3,9 @@
 
 package utils
 
-import "github.com/mattermost/platform/model"
+import (
+	"github.com/mattermost/platform/model"
+)
 
 func SetDefaultRolesBasedOnConfig() {
 	// Reset the roles to default to make this logic easier
@@ -168,6 +170,13 @@ func SetDefaultRolesBasedOnConfig() {
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		)
 		break
+	}
+
+	if Cfg.TeamSettings.EnableTeamCreation {
+		model.ROLE_SYSTEM_USER.Permissions = append(
+			model.ROLE_SYSTEM_USER.Permissions,
+			model.PERMISSION_CREATE_TEAM.Id,
+		)
 	}
 
 }

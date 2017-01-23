@@ -203,7 +203,7 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	}
 
 	if len(teamId) > 0 {
-		err = JoinUserToTeamById(teamId, user)
+		err = AddUserToTeamByTeamId(teamId, user)
 		if err != nil {
 			return nil, err
 		}

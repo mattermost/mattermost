@@ -345,7 +345,7 @@ func (c *Context) SystemAdminRequired() {
 		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "SystemAdminRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
-	} else if !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+	} else if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.Err = model.NewLocAppError("", "api.context.permissions.app_error", nil, "AdminRequired")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -376,6 +376,11 @@ func NewInvalidParamError(where string, name string) *model.AppError {
 
 func (c *Context) SetUnknownError(where string, details string) {
 	c.Err = model.NewLocAppError(where, "api.context.unknown.app_error", nil, details)
+}
+
+func (c *Context) SetPermissionError(permission *model.Permission) {
+	c.Err = model.NewLocAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id)
+	c.Err.StatusCode = http.StatusForbidden
 }
 
 func (c *Context) setTeamURL(url string, valid bool) {
@@ -462,14 +467,14 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 
 func (c *Context) CheckTeamId() {
 	if c.TeamId != "" && c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM) {
+		if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			if result := <-app.Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 				c.Err = result.Err
 				c.Err.StatusCode = http.StatusBadRequest
 				return
 			}
 		} else {
-			// HasPermissionToContext automatically fills the Context error
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}
 	}

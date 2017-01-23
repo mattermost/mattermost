@@ -43,7 +43,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 		return
 	}
 
@@ -69,8 +70,9 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel = result.Data.(*model.Channel)
 	}
 
-	if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.LogAudit("fail - bad channel permissions")
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
@@ -91,7 +93,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.Err = model.NewLocAppError("deleteIncomingHook", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -111,7 +113,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+		if c.Session.UserId != result.Data.(*model.IncomingWebhook).UserId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteIncomingHook", "api.webhook.delete_incoming.permissions.app_errror", nil, "user_id="+c.Session.UserId)
 			return
@@ -134,7 +136,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -156,7 +158,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.Err = model.NewLocAppError("createOutgoingHook", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -235,7 +237,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.Err = model.NewLocAppError("getOutgoingHooks", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -257,7 +259,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.Err = model.NewLocAppError("deleteOutgoingHook", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -277,7 +279,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+		if c.Session.UserId != result.Data.(*model.OutgoingWebhook).CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteOutgoingHook", "api.webhook.delete_outgoing.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -300,7 +302,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_WEBHOOKS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -323,7 +325,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		hook = result.Data.(*model.OutgoingWebhook)
 
-		if c.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+		if c.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenOutgoingHookToken", "api.webhook.regen_outgoing_token.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -485,7 +487,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.TeamId = hook.TeamId
 
-	if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannelContext(c, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.Err = model.NewLocAppError("incomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "")
 		return
 	}

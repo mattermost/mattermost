@@ -54,7 +54,7 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_OAUTH) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
 		c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -93,14 +93,14 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_OAUTH) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
 		c.Err = model.NewLocAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
 
 	var ochan store.StoreChannel
-	if HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		ochan = app.Srv.Store.OAuth().GetApps()
 	} else {
 		c.Err = nil
@@ -297,7 +297,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_LOGIN:
 			user := LoginByOAuth(c, w, r, service, body)
 			if len(teamId) > 0 {
-				c.Err = app.JoinUserToTeamById(teamId, user)
+				c.Err = app.AddUserToTeamByTeamId(teamId, user)
 			}
 			if c.Err == nil {
 				if val, ok := props["redirect_to"]; ok {
@@ -855,7 +855,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToContext(c, model.PERMISSION_MANAGE_OAUTH) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
 		c.Err = model.NewLocAppError("deleteOAuthApp", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -875,7 +875,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.Session.UserId != result.Data.(*model.OAuthApp).CreatorId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+		if c.Session.UserId != result.Data.(*model.OAuthApp).CreatorId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteOAuthApp", "api.oauth.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -958,7 +958,7 @@ func regenerateOAuthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		oauthApp = result.Data.(*model.OAuthApp)
 
-		if oauthApp.CreatorId != c.Session.UserId && !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+		if oauthApp.CreatorId != c.Session.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 			c.Err = model.NewLocAppError("registerOAuthApp", "api.command.admin_only.app_error", nil, "")
 			c.Err.StatusCode = http.StatusForbidden
 			return

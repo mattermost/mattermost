@@ -97,7 +97,8 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(commandArgs.ChannelId) > 0 {
-		if !HasPermissionToChannelContext(c, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+		if !app.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+			c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 			return
 		}
 	}
@@ -260,7 +261,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.Err = model.NewLocAppError("createCommand", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -316,7 +317,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.Err = model.NewLocAppError("updateCommand", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -340,7 +341,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		oldCmd = result.Data.(*model.Command)
 
-		if c.Session.UserId != oldCmd.CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+		if c.Session.UserId != oldCmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("updateCommand", "api.command.update.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -375,7 +376,7 @@ func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.Err = model.NewLocAppError("listTeamCommands", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -397,7 +398,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.Err = model.NewLocAppError("regenCommandToken", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -420,7 +421,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		cmd = result.Data.(*model.Command)
 
-		if c.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
+		if c.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("regenToken", "api.command.regen.app_error", nil, "user_id="+c.Session.UserId)
 			return
@@ -444,7 +445,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.Err = model.NewLocAppError("deleteCommand", "api.command.admin_only.app_error", nil, "")
 		c.Err.StatusCode = http.StatusForbidden
 		return
@@ -464,7 +465,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		if c.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
+		if c.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
 			c.LogAudit("fail - inappropriate permissions")
 			c.Err = model.NewLocAppError("deleteCommand", "api.command.delete.app_error", nil, "user_id="+c.Session.UserId)
 			return

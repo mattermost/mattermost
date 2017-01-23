@@ -65,13 +65,14 @@ func TestStatic(t *testing.T) {
 func TestGetAccessToken(t *testing.T) {
 	Setup()
 
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := ApiClient.CreateTeam(&team)
-
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Password: "passwd1"}
 	ruser := ApiClient.Must(ApiClient.CreateUser(&user, "")).Data.(*model.User)
-	app.JoinUserToTeam(rteam.Data.(*model.Team), ruser)
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
+
+	ApiClient.Must(ApiClient.LoginById(ruser.Id, "passwd1"))
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := ApiClient.CreateTeam(&team)
 
 	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -201,16 +202,18 @@ func TestGetAccessToken(t *testing.T) {
 func TestIncomingWebhook(t *testing.T) {
 	Setup()
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
-
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
 	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
+
+	ApiClient.Login(user.Email, "passwd1")
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
+
 	app.JoinUserToTeam(team, user)
 
 	app.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
-	ApiClient.Login(user.Email, "passwd1")
 	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}

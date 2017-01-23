@@ -174,8 +174,7 @@ func RemoveLicense() *model.AppError {
 }
 
 func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	useSanitizedLicense := !HasPermissionToContext(c, model.PERMISSION_MANAGE_SYSTEM)
-	c.Err = nil
+	useSanitizedLicense := !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 
 	etag := utils.GetClientLicenseEtag(useSanitizedLicense)
 	if HandleEtag(etag, "Get Client License Config", w, r) {
