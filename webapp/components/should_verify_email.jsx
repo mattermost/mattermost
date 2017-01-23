@@ -2,10 +2,11 @@
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
-import Client from 'client/web_client.jsx';
 
 import React from 'react';
 import {Link} from 'react-router/es6';
+
+import {resendVerification} from 'actions/user_actions.jsx';
 
 export default class ShouldVerifyEmail extends React.Component {
     constructor(props) {
@@ -22,7 +23,7 @@ export default class ShouldVerifyEmail extends React.Component {
 
         this.setState({resendStatus: 'sending'});
 
-        Client.resendVerification(
+        resendVerification(
             email,
             () => {
                 this.setState({resendStatus: 'success'});
