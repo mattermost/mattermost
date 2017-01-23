@@ -1779,7 +1779,7 @@ export default class Client {
 
     // Routes for Files
 
-    uploadFile(file, filename, channelId, clientId, success, error) {
+    uploadFile(file, filename, channelId, clientId, success, error, progress) {
         return request.
             post(`${this.getTeamFilesRoute()}/upload`).
             set(this.defaultHeaders).
@@ -1787,6 +1787,7 @@ export default class Client {
             field('channel_id', channelId).
             field('client_ids', clientId).
             accept('application/json').
+            on('progress', progress).
             end(this.handleResponse.bind(this, 'uploadFile', success, error));
     }
 

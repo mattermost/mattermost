@@ -42,6 +42,12 @@
         margin-left: 0;
     }
 
+    &.custom-file {
+        .file-preview__image, .file-icon.generic {
+            height: 80%;
+        }
+    }
+
     .spinner {
         height: 32px;
         left: 50%;
@@ -316,4 +322,17 @@
 .view-image__loading {
     background: $black;
     min-height: 100px;
+}
+
+.file-upload-progress__circle {
+    margin-top: 5px;
+    width: 100%;
+    height: 70%;
+    transition: 'stroke-dashoffset 1s ease 0s, stroke 1s ease';
+    -moz-transition: 'stroke-dashoffset 2s ease 0s, stroke 2s ease';
+    -webkit-transition: 'stroke-dashoffset 2s ease 0s, stroke 2s ease';
+    -o-transition: 'stroke-dashoffset 2s ease 0s, stroke 2s ease';
+    .file-upload-progress__inside-text {
+        font-size: 20px;
+    }
 }

@@ -47,11 +47,16 @@ class FileUpload extends React.Component {
         this.cancelUpload = this.cancelUpload.bind(this);
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
+        this.fileUploadProgress = this.fileUploadProgress.bind(this);
         this.handleMaxUploadReached = this.handleMaxUploadReached.bind(this);
 
         this.state = {
             requests: {}
         };
+    }
+
+    fileUploadProgress(clientId, fileName, progress) {
+        this.props.onUploadProgress(clientId, fileName, progress.percent);
     }
 
     fileUploadSuccess(channelId, data) {
@@ -94,7 +99,8 @@ class FileUpload extends React.Component {
                 channelId,
                 clientId,
                 this.fileUploadSuccess.bind(this, channelId),
-                this.fileUploadFail.bind(this, clientId, channelId)
+                this.fileUploadFail.bind(this, clientId, channelId),
+                this.fileUploadProgress.bind(this, clientId, files[i].name)
             );
 
             const requests = this.state.requests;
@@ -276,7 +282,8 @@ class FileUpload extends React.Component {
                     channelId,
                     clientId,
                     this.fileUploadSuccess.bind(this, channelId),
-                    this.fileUploadFail.bind(this, clientId)
+                    this.fileUploadFail.bind(this, clientId),
+                    this.fileUploadProgress.bind(this, clientId, file.name)
                 );
 
                 const requests = this.state.requests;
@@ -366,6 +373,7 @@ FileUpload.propTypes = {
     onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
+    onUploadProgress: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string
