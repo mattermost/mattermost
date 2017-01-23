@@ -6,12 +6,10 @@ import ConfirmModal from '../confirm_modal.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import {updateUserRoles, updateActive} from 'actions/user_actions.jsx';
-import {updateTeamMemberRoles} from 'actions/team_actions.jsx';
+import {updateTeamMemberRoles, removeUserFromTeam, adminResetMfa} from 'actions/team_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -75,14 +73,10 @@ export default class AdminTeamMembersDropdown extends React.Component {
     }
 
     handleRemoveFromTeam() {
-        Client.removeUserFromTeam(
+        removeUserFromTeam(
             this.props.teamMember.team_id,
             this.props.user.id,
-            () => {
-                AsyncClient.getTeamStats(this.props.teamMember.team_id);
-                UserStore.removeProfileFromTeam(this.props.teamMember.team_id, this.props.user.id);
-                UserStore.emitInTeamChange();
-            },
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }
@@ -150,10 +144,8 @@ export default class AdminTeamMembersDropdown extends React.Component {
     handleResetMfa(e) {
         e.preventDefault();
 
-        Client.adminResetMfa(this.props.user.id,
-            () => {
-                AsyncClient.getUser(this.props.user.id);
-            },
+        adminResetMfa(this.props.user.id,
+            null,
             (err) => {
                 this.setState({serverError: err.message});
             }
