@@ -4,7 +4,6 @@
 import $ from 'jquery';
 import 'jquery-dragster/jquery.dragster.js';
 import ReactDOM from 'react-dom';
-import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
@@ -12,6 +11,8 @@ import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
+
+import {uploadFile} from 'actions/file_actions.jsx';
 
 const holders = defineMessages({
     limited: {
@@ -89,13 +90,14 @@ class FileUpload extends React.Component {
             // generate a unique id that can be used by other components to refer back to this upload
             const clientId = Utils.generateId();
 
-            const request = Client.uploadFile(files[i],
-                files[i].name,
-                channelId,
-                clientId,
-                this.fileUploadSuccess.bind(this, channelId),
-                this.fileUploadFail.bind(this, clientId, channelId)
-            );
+            const request = uploadFile(
+                    files[i],
+                    files[i].name,
+                    channelId,
+                    clientId,
+                    this.fileUploadSuccess.bind(this, channelId),
+                    this.fileUploadFail.bind(this, clientId)
+                );
 
             const requests = this.state.requests;
             requests[clientId] = request;
@@ -271,7 +273,8 @@ class FileUpload extends React.Component {
 
                 const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
 
-                const request = Client.uploadFile(file,
+                const request = uploadFile(
+                    file,
                     name,
                     channelId,
                     clientId,
