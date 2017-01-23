@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
 import {Modal} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
@@ -13,7 +11,7 @@ import {browserHistory} from 'react-router/es6';
 
 import React from 'react';
 
-import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
+import {deleteChannel} from 'actions/channel_actions.jsx';
 
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
@@ -31,15 +29,7 @@ export default class DeleteChannelModal extends React.Component {
         }
 
         browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/town-square');
-        Client.deleteChannel(
-            this.props.channel.id,
-            () => {
-                loadChannelsForCurrentUser();
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'handleDelete');
-            }
-        );
+        deleteChannel(this.props.channel.id);
     }
 
     onHide() {

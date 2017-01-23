@@ -461,3 +461,23 @@ export function leaveChannel(channelId, success, error) {
         }
     );
 }
+
+export function deleteChannel(channelId, success, error) {
+    Client.deleteChannel(
+            channelId,
+            () => {
+                loadChannelsForCurrentUser();
+
+                if (success) {
+                    success();
+                }
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'handleDelete');
+
+                if (error) {
+                    error(err);
+                }
+            }
+        );
+}
