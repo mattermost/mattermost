@@ -127,6 +127,7 @@ type PostStore interface {
 	Save(post *model.Post) StoreChannel
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
 	Get(id string) StoreChannel
+	GetSingle(id string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
@@ -276,6 +277,7 @@ type PreferenceStore interface {
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel
+	DeleteCategoryAndName(category string, name string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	IsFeatureEnabled(feature, userId string) StoreChannel
 }

@@ -348,3 +348,25 @@ func (s SqlPreferenceStore) DeleteCategory(userId string, category string) Store
 
 	return storeChannel
 }
+
+func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec(
+			`DELETE FROM
+				Preferences
+			WHERE
+				Name = :Name
+				AND Category = :Category`, map[string]interface{}{"Name": name, "Category": category}); err != nil {
+			result.Err = model.NewLocAppError("SqlPreferenceStore.DeleteCategoryAndName", "store.sql_preference.delete.app_error", nil, err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
