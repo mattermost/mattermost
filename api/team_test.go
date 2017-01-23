@@ -79,6 +79,10 @@ func TestAddUserToTeam(t *testing.T) {
 			t.Fatal("ids didn't match")
 		}
 	}
+
+	if _, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, user2.Id); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestRemoveUserFromTeam(t *testing.T) {
