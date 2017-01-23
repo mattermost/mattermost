@@ -235,8 +235,8 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	etagChan := app.Srv.Store.Post().GetEtag(id, true)
 
-	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_EDIT_POST) {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_CREATE_POST) {
+		c.SetPermissionError(model.PERMISSION_CREATE_POST)
 		return
 	}
 
