@@ -301,11 +301,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "发送显示名更新信息 %v 时失败"
+    "translation": "发送显示名更新信息时失败"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "尝试保存更新的频道标题消息 %v 时获取用户失败"
+    "translation": "尝试保存更新的频道标题消息 %v 时获取用户信息失败"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "发布添加/退出消息失败 %v"
+    "translation": "发布添加/退出消息失败"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "无效会话 err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
@@ -809,7 +809,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+    "translation": "无效会话令牌 token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "获取私聊频道的2个用户失败 channel_id=%v"
+    "translation": "获取私聊频道的2个用户失败 channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1580,8 +1580,16 @@
     "translation": "您没有对应的权限"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "团队创建被禁用。详细请询问您的系统管理员。"
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "已经删除 id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2745,11 +2753,47 @@
   },
   {
     "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "无效会话 err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "无效的参数 {{.Name}}"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Failed to post channel purpose message"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s 删除了频道标题 (原为: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "尝试保存更新的频道标题消息 %v 时获取用户信息失败"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s 将频道标题从 %s 更新为 %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s 更新频道标题为: %s"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",

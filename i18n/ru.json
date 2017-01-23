@@ -301,11 +301,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Ну удалось отправить сообщение об обновлении отображаемого имени канала %v"
+    "translation": "Ну удалось отправить сообщение об обновлении отображаемого имени канала"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Не удалось получить пользователя при попытке обновления отображаемого имени канала %v"
+    "translation": "Не удалось получить пользователя при попытке обновления сообщения заголовка канала"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Не удалось отправить join/leave сообщение %v"
+    "translation": "Не удалось отправить сообщение о присоединении/отсоединении"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "Не удалось получить 2 участников для прямого канала channel_id=%v"
+    "translation": "Не удалось получить 2 участников для канала личных сообщений channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1580,8 +1580,16 @@
     "translation": "У вас нет соответствующих прав"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "Возможность создания команд была отключена. Пожалуйста, обратитесь к вашему системному администратору за подробностями."
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Уже удален id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1685,11 +1693,11 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Integration Posts Import User: Email, Password: {{.Email}}, {{.Password}}\r\n"
+    "translation": "Пользователь для импорта сообщений ботов и интеграций Slack: {{.Email}}, {{.Password}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import Slack Bot/Integration Posts Import User: {{.Username}}\r\n"
+    "translation": "Не удалось импортировать пользователя для импорта сообщений ботов и интеграций Slack: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
@@ -1721,7 +1729,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Importer: Not importing bot message as the bot-importing user does not exist."
+    "translation": "Импорт Slack: Не импортируем сообщение бота. Пользователь для импорта ботов не найден."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
@@ -1733,7 +1741,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Importer: Not importing bot message due to lack of BotId field."
+    "translation": "Импорт Slack: Не импортируем сообщение бота. Отсутствует поле BotId."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1797,7 +1805,7 @@
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Importer: Failed to deactivate the bot-importing user."
+    "translation": "Импорт Slack: Не удалось деактивировать пользователя для импорта ботов."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2493,19 +2501,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо с уведомленим о смене адреса электронной почты err=%v"
+    "translation": "Не удалось отправить письмо с уведомленим о смене адреса электронной почты"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Не удалось отправить письмо с уведомленим о смене имени пользователя err=%v"
+    "translation": "Не удалось отправить письмо с уведомленим о смене имени пользователя"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Не удалось отправить письмо с подтверждением смены адреса электронной почты err=%v"
+    "translation": "Не удалось отправить письмо с подтверждением смены адреса электронной почты"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо об обновлении пароля err=%v"
+    "translation": "Не удалось отправить письмо об обновлении пароля"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2521,15 +2529,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Не удалось отправить письмо об обновлении пароля err=%v"
+    "translation": "Не удалось отправить письмо об обновлении пароля"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Не удалось отправить письмо с подтверждением err=%v"
+    "translation": "Не удалось отправить письмо с подтверждением"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Не удалось отправить приветственное письмо err=%v"
+    "translation": "Не удалось отправить приветственное письмо"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2750,6 +2758,42 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Недопустимый параметр {{.Name}}"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Failed to post channel purpose message"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s удалил заголовок канала (был: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Не удалось получить пользователя при попытке обновления сообщения заголовка канала %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s обновил заголовок канала с: %s на: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s обновил заголовок канала на: %s"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",

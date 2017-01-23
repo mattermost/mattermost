@@ -301,11 +301,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Falha ao postar a mensagem de atualização do nome de exibição %v"
+    "translation": "Falha ao postar a mensagem para atualização do nome de exibição"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Não foi possível recuperar o usuário ao tentar salvar a mensagem de atualização do nome de exibição %v"
+    "translation": "Error ao recuperar o usuário enquanto atualizava o campo DisplayName do canal"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Failed to post update channel header message"
+    "translation": "Falha ao postar a mensagem para atualização do cabeçalho do canal"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Não foi possível recuperar o usuário ao tentar salvar a atualização do cabeçalho do canal de mensagem %v"
+    "translation": "Não foi possível recuperar o usuário ao tentar salvar a atualização da mensagem do cabeçalho do canal %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Não foi possível postar mensagem juntar/deixar %v"
+    "translation": "Erro ao postar mensagem de entrar/sair"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "Sessão inválida err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
@@ -809,7 +809,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+    "translation": "Token de sessão inválido={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "Falha ao obter 2 membros para o canal direto channel_id=%v"
+    "translation": "Falha ao obter 2 membros para o canal direto channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "O criador da postagem não está no canal onde a postagem foi criada post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1561,7 +1561,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "Falha ao enviar notificação device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -1580,8 +1580,16 @@
     "translation": "Você não tem a permissão apropriada"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "Edição de postagem foi desativada. Por favor, pergunte ao administrador do sistema para obter detalhes."
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Já deletado id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Edição de postagens só são permitidas por {{.timeLimit}} segundos. Por favor peça ao administrador do sistema por detalhes."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1961,11 +1969,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Criação de equipe foi desativada. Por favor, pergunte ao seu administrador de sistemas para obter detalhes."
+    "translation": "Criação de equipe foi desativada. Por favor, pergunte ao administrador do sistema para obter detalhes."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email precisa ser de um domínio específico (ex. @example.com). Por favor pergunte ao seu administrador de sistema por detalhes."
+    "translation": "Email precisa ser de um domínio específico (ex. @example.com). Por favor pergunte ao administrador do sistema por detalhes."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2241,7 +2249,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "Falha ao adicionar as preferências de canal direto para o usuário user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2465,7 +2473,7 @@
   },
   {
     "id": "api.user.permanent_delete_user.system_admin.warn",
-    "translation": "Você está deletando %v que é um administrador de sistema.  Você pode precisar definir outra conta como administrador de sistema usando as ferramentas de linha de comando."
+    "translation": "Você está deletando %v que é um administrador do sistema.  Você pode precisar definir outra conta como administrador de sistema usando as ferramentas de linha de comando."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -2493,19 +2501,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Falha ao enviar com sucesso uma notificação por email err=%v"
+    "translation": "Erro ao enviar email de troca de notificação"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Falha ao enviar notificação por email sobre alteração do nome do usuário err=%v"
+    "translation": "Erro ao enviar notificação por email sobre alteração do nome do usuário"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Falha ao enviar com sucesso uma verificação de email err=%v"
+    "translation": "Erro ao enviar verificação de email"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Falha ao enviar com sucesso uma atualização de senha por email err=%v"
+    "translation": "Erro ao enviar uma atualização de senha por email"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2521,15 +2529,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Falha ao enviar com sucesso uma atualização de senha por email err=%v"
+    "translation": "Erro ao enviar atualização de senha por email"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Falha ao enviar com sucesso uma verificação de email err=%v"
+    "translation": "Erro ao enviar verificação de email"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Falha ao enviar com sucesso boas vindas por email err=%v"
+    "translation": "Erro ao enviar boas vindas por email"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2745,11 +2753,47 @@
   },
   {
     "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "Sessão inválida err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Parâmetro {{.Name}} inválido"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Falha ao postar a mensagem de propósito do canal"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s removido do propósito do canal (foi: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Não foi possível recuperar o usuário ao tentar salvar a atualização do propósito do canal %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s atualizou o propósito do canal de: %s para: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s atualizou o propósito do canal para: %s"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -4893,7 +4937,7 @@
   },
   {
     "id": "store.sql_system.get.app_error",
-    "translation": "Encontramos um erro ao procurar as propriedades de sistema"
+    "translation": "Encontramos um erro ao procurar as propriedades do sistema"
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
@@ -4909,7 +4953,7 @@
   },
   {
     "id": "store.sql_system.update.app_error",
-    "translation": "Encontramos um erro ao atualizar as propriedades de sistema"
+    "translation": "Encontramos um erro ao atualizar as propriedades do sistema"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
@@ -5109,7 +5153,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o seu administrador de sistema para ajustar um limite maior."
+    "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o administrador do sistema para ajustar um limite maior."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
