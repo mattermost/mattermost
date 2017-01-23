@@ -192,9 +192,12 @@ export default class CreatePost extends React.Component {
         GlobalActions.emitUserPostedEvent(post);
 
         // parse message and emit emoji event
-        post.message.match(EMOJI_PATTERN).forEach((emoji) => {
-            PostActions.emitEmojiPosted(emoji);
-        });
+        const emojiResult = post.message.match(EMOJI_PATTERN);
+        if (emojiResult) {
+            emojiResult.forEach((emoji) => {
+                PostActions.emitEmojiPosted(emoji);
+            });
+        }
 
         PostActions.queuePost(post, false, null,
             (err) => {
@@ -595,12 +598,11 @@ export default class CreatePost extends React.Component {
         let emojiPicker = null;
         if (this.state.showEmojiPicker) {
             //TODO: get custom emojis
-            const customEmojis = [];
 
             emojiPicker = (
                 <EmojiPicker
-                    customEmojis={customEmojis}
                     onEmojiClick={this.handleEmojiClick}
+                    topOrBottom='top'
                 />
             );
         }

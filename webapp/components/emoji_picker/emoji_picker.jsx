@@ -31,8 +31,9 @@ const CATEGORIES = [
 
 export default class EmojiPicker extends React.Component {
     static propTypes = {
-        customEmojis: React.PropTypes.array.isRequired,
-        onEmojiClick: React.PropTypes.func.isRequired
+        customEmojis: React.PropTypes.object.isRequired,
+        onEmojiClick: React.PropTypes.func.isRequired,
+        topOrBottom: React.PropTypes.string.isRequired
     }
 
     constructor(props) {
@@ -117,8 +118,7 @@ export default class EmojiPicker extends React.Component {
             }
         }
     }
-
-    renderCategory(category, filter, customEmojis = []) {
+    renderCategory(category, filter) {
         const items = [];
         let indices = [];
         let recentEmojis = [];
@@ -143,7 +143,7 @@ export default class EmojiPicker extends React.Component {
             if (filter) {
                 let matches = false;
 
-                for (const alias of emoji.aliases) {
+                for (const alias of emoji.aliases || [...emoji.name]) {
                     if (alias.indexOf(filter) !== -1) {
                         matches = true;
                         break;
@@ -168,6 +168,8 @@ export default class EmojiPicker extends React.Component {
         }
 
         if (category === 'custom') {
+            const customEmojis = EmojiStore.getCustomEmojiMap().values();
+
             for (const emoji of customEmojis) {
                 if (filter && emoji.name.indexOf(filter) === -1) {
                     continue;
@@ -257,9 +259,9 @@ export default class EmojiPicker extends React.Component {
                 items.push(this.renderCategory(category, this.state.filter));
             }
         }
-
+        const cssclass = this.props.topOrBottom === 'top' ? 'emoji-picker' : 'emoji-picker-bottom';
         return (
-            <div className='emoji-picker'>
+            <div className={cssclass}>
                 <div className='emoji-picker__categories'>
                     <EmojiPickerCategory
                         category='recent'

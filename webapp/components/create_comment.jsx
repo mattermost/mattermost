@@ -15,6 +15,7 @@ import Textbox from './textbox.jsx';
 import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
+import EmojiPicker from './emoji_picker/emoji_picker.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -28,8 +29,7 @@ import {browserHistory} from 'react-router/es6';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-import {REACTION_PATTERN} from './create_post.jsx';
-import {EMOJI_PATTERN} from './create_post.jsx'
+import {REACTION_PATTERN, EMOJI_PATTERN} from './create_post.jsx';
 import React from 'react';
 
 export default class CreateComment extends React.Component {
@@ -56,6 +56,8 @@ export default class CreateComment extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
+        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
+        this.handleEmojiClick = this.handleEmojiClick.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -69,10 +71,36 @@ export default class CreateComment extends React.Component {
             submitting: false,
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             showPostDeletedModal: false,
-            enableAddButton
+            enableAddButton,
+            showEmojiPicker: false
         };
 
         this.lastBlurAt = 0;
+    }
+
+    handleEmojiPickerClick() {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
+    handleEmojiClick(emoji) {
+        const emojiAlias = emoji.name || emoji.aliases[0];
+
+        if (!emojiAlias) {
+            //Oops.. There went something wrong
+            return;
+        }
+
+        if (this.state.message === '') {
+            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+        } else {
+            //check whether there is already a blank at the end of the current message
+            const newMessage = (/\s+$/.test(this.state.message)) ?
+            this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
+
+            this.setState({message: newMessage, showEmojiPicker: false});
+        }
+
+        this.focusTextbox();
     }
 
     componentDidMount() {
@@ -205,11 +233,13 @@ export default class CreateComment extends React.Component {
 
         GlobalActions.emitUserCommentedEvent(post);
 
-        // parse message and emit emoji event
-        post.message.match(EMOJI_PATTERN).forEach((emoji) => {
-
-            PostActions.emitEmojiPosted(emoji);
-        })
+        const emojiResult = post.message.match(EMOJI_PATTERN);
+        if (emojiResult) {
+            // parse message and emit emoji event
+            emojiResult.forEach((emoji) => {
+                PostActions.emitEmojiPosted(emoji);
+            });
+        }
 
         PostActions.queuePost(post, false, null,
             (err) => {
@@ -508,6 +538,18 @@ export default class CreateComment extends React.Component {
             addButtonClass += ' disabled';
         }
 
+        let emojiPicker = null;
+        if (this.state.showEmojiPicker) {
+            //TODO: get custom emojis
+
+            emojiPicker = (
+                <EmojiPicker
+                    onEmojiClick={this.handleEmojiClick}
+                    topOrBottom='bottom'
+                />
+            );
+        }
+
         return (
             <form onSubmit={this.handleSubmit}>
                 <div className='post-create'>
@@ -539,6 +581,11 @@ export default class CreateComment extends React.Component {
                                 postType='comment'
                                 channelId={this.props.channelId}
                             />
+                            <span
+                                className='fa fa-smile-o icon__emoji_picker'
+                                onClick={this.handleEmojiPickerClick}
+                            />
+                            {emojiPicker}
                         </div>
                     </div>
                     <MsgTyping

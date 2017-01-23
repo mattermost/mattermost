@@ -45,6 +45,21 @@
     }
 }
 
+.emoji-picker-bottom {
+    display: flex;
+    z-index: 999 !important;
+    background-color: rgba(245,245,245,1);
+    flex-direction: column;
+    @include user-select(none);
+    position: absolute;
+    top: -162px;
+    right: 66px;
+    width: 315px;
+    border: 1px solid;
+    border-radius: 3px;
+}
+
+
 .emoji-picker {
     display: flex;
     flex-direction: column;

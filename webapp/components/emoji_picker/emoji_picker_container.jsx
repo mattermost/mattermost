@@ -14,11 +14,10 @@ export default class EmojiPickerContainer extends React.Component {
 
     constructor(props) {
         super(props);
-
         this.handleEmojiChange = this.handleEmojiChange.bind(this);
 
         this.state = {
-            customEmojis: EmojiStore.getCustomEmojiMap().values()
+            customEmojis: EmojiStore.getCustomEmojiMap().values() ? EmojiStore.getCustomEmojiMap().values() : []
         };
     }
 
@@ -32,14 +31,14 @@ export default class EmojiPickerContainer extends React.Component {
 
     handleEmojiChange() {
         this.setState({
-            customEmojis: EmojiStore.getCustomEmojiMap()
+            customEmojis: EmojiStore.getCustomEmojiMap().values()
         });
     }
 
     render() {
         return (
             <EmojiPicker
-                customEmojis={this.state.customEmojis}
+                customEmojis={EmojiStore.getCustomEmojiMap().values()}
                 onEmojiClick={this.props.onEmojiClick}
             />
         );
