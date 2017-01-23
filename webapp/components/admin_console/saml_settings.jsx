@@ -15,6 +15,8 @@ import SettingsGroup from './settings_group.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import {samlCertificateStatus} from 'actions/admin_actions.jsx';
+
 export default class SamlSettings extends AdminSettings {
     constructor(props) {
         super(props);
@@ -73,7 +75,7 @@ export default class SamlSettings extends AdminSettings {
     }
 
     componentWillMount() {
-        Client.samlCertificateStatus(
+        samlCertificateStatus(
             (data) => {
                 const files = {};
                 if (!data.IdpCertificateFile) {

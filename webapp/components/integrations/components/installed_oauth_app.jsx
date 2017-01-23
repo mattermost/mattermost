@@ -5,10 +5,10 @@ import React from 'react';
 
 import FormError from 'components/form_error.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {regenerateOAuthAppSecret} from 'actions/admin_actions.jsx';
 
 const FAKE_SECRET = '***************';
 
@@ -49,7 +49,7 @@ export default class InstalledOAuthApp extends React.Component {
     handleRegenerate(e) {
         e.preventDefault();
 
-        Client.regenerateOAuthAppSecret(
+        regenerateOAuthAppSecret(
             this.props.oauthApp.id,
             (data) => {
                 this.props.oauthApp.client_secret = data.client_secret;
