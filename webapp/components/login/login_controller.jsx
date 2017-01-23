@@ -60,6 +60,10 @@ export default class LoginController extends React.Component {
             GlobalActions.redirectUserToDefaultTeam();
         }
 
+        if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
+            this.refs.password.focus();
+        }
+
         AsyncClient.checkVersion();
     }
 
