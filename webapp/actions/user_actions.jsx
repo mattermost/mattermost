@@ -561,3 +561,20 @@ export function updatePassword(userId, currentPassword, newPassword, success, er
         }
     );
 }
+
+export function verifyEmail(uid, hid, success, error) {
+    Client.verifyEmail(
+        uid,
+        hid,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
