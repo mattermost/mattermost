@@ -5,6 +5,7 @@ node_modules
 /dist
 /webapp/dist
 npm-debug.log
+platform
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
