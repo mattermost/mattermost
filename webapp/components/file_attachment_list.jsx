@@ -23,6 +23,7 @@ export default class FileAttachmentList extends React.Component {
     render() {
         const postFiles = [];
         if (this.props.fileInfos && this.props.fileInfos.length > 0) {
+            const isSingle = this.props.fileInfos.length === 1;
             for (let i = 0; i < Math.min(this.props.fileInfos.length, Constants.MAX_DISPLAY_FILES); i++) {
                 const fileInfo = this.props.fileInfos[i];
 
@@ -33,6 +34,7 @@ export default class FileAttachmentList extends React.Component {
                         index={i}
                         handleImageClick={this.handleImageClick}
                         compactDisplay={this.props.compactDisplay}
+                        isSingle={isSingle}
                     />
                 );
             }

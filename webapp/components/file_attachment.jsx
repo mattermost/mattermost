@@ -64,6 +64,8 @@ export default class FileAttachment extends React.Component {
         const fileName = fileInfo.name;
         const fileUrl = FileStore.getFileUrl(fileInfo.id);
 
+        let imageThumbnailSizeClass = 'small';
+
         let thumbnail;
         if (this.state.loaded) {
             const type = Utils.getFileType(fileInfo.extension);
@@ -71,18 +73,26 @@ export default class FileAttachment extends React.Component {
             if (type === 'image') {
                 let className = 'post-image';
 
+                const styleObj = {
+                    backgroundImage: `url(${FileStore.getFileThumbnailUrl(fileInfo.id)})`
+                };
+
                 if (fileInfo.width < Constants.THUMBNAIL_WIDTH && fileInfo.height < Constants.THUMBNAIL_HEIGHT) {
-                    className += ' small';
-                } else {
-                    className += ' normal';
+                    imageThumbnailSizeClass = 'small__width';
+                    styleObj.width = fileInfo.width + 'px';
+                    styleObj.height = fileInfo.height + 'px';
+                    styleObj.margin = '0 auto';
+                } else if (this.props.isSingle &&
+                    fileInfo.width > Constants.THUMBNAIL_MAX_WIDTH &&
+                    fileInfo.height > Constants.THUMBNAIL_MAX_HEIGHT) {
+                    imageThumbnailSizeClass = 'medium';
+                    className = 'post-image small';
                 }
 
                 thumbnail = (
                     <div
                         className={className}
-                        style={{
-                            backgroundImage: `url(${FileStore.getFileThumbnailUrl(fileInfo.id)})`
-                        }}
+                        style={styleObj}
                     />
                 );
             } else {
@@ -144,7 +154,7 @@ export default class FileAttachment extends React.Component {
         return (
             <div className='post-image__column'>
                 <a
-                    className='post-image__thumbnail'
+                    className={`post-image__thumbnail ${imageThumbnailSizeClass}`}
                     href='#'
                     onClick={this.onAttachmentClick}
                 >
@@ -152,19 +162,6 @@ export default class FileAttachment extends React.Component {
                 </a>
                 <div className='post-image__details'>
                     {filenameOverlay}
-                    <div>
-                        <a
-                            href={fileUrl}
-                            download={fileName}
-                            className='post-image__download'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            <span className='fa fa-download'/>
-                        </a>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{Utils.fileSizeToString(fileInfo.size)}</span>
-                    </div>
                 </div>
             </div>
         );
@@ -180,5 +177,7 @@ FileAttachment.propTypes = {
     // handler for when the thumbnail is clicked passed the index above
     handleImageClick: React.PropTypes.func,
 
-    compactDisplay: React.PropTypes.bool
+    compactDisplay: React.PropTypes.bool,
+
+    isSingle: React.PropTypes.bool
 };

@@ -351,4 +351,11 @@
     .search__form {
         width: calc(100% - 92px);
     }
+
+    .post-image__thumbnail {
+        &.medium {
+            width: 400px !important;
+            height: 200px !important;
+        }
+    }
 }
