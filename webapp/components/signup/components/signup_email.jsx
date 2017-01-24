@@ -121,6 +121,7 @@ export default class SignupEmail extends React.Component {
             data.id,
             user.password,
             '',
+            this.state.hash,
             null,
             (err) => {
                 if (err.id === 'api.user.login.not_verified.app_error') {

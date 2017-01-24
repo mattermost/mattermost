@@ -637,14 +637,15 @@ export function resendVerification(email, success, error) {
     );
 }
 
-export function loginById(userId, password, mfaToken, success, error) {
+export function loginById(userId, password, mfaToken, hash, success, error) {
     Client.loginById(
         userId,
         password,
         mfaToken,
+        hash,
         () => {
-            if (this.state.hash > 0) {
-                BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
+            if (hash > 0) {
+                BrowserStore.setGlobalItem(hash, JSON.stringify({usedBefore: true}));
             }
 
             GlobalActions.emitInitialLoad(
