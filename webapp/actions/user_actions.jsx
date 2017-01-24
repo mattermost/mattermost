@@ -21,8 +21,6 @@ import Client from 'client/web_client.jsx';
 import {ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
 
-import {browserHistory} from 'react-router/es6';
-
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
     Client.ldapToEmail(
         email,
@@ -741,4 +739,21 @@ export function deauthorizeOAuthApp(appId, success, error) {
                 error(err);
             }
         });
+}
+
+export function uploadProfileImage(userPicture, success, error) {
+    Client.uploadProfileImage(
+        userPicture,
+        () => {
+            AsyncClient.getMe();
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
 }

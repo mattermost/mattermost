@@ -323,3 +323,50 @@ export function regenerateOAuthAppSecret(oauthAppId, success, error) {
         }
     );
 }
+
+export function uploadBrandImage(brandImage, success, error) {
+    Client.uploadBrandImage(
+        brandImage,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function uploadLicenseFile(file, success, error) {
+    Client.uploadLicenseFile(
+        file,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function removeLicenseFile(success, error) {
+    Client.removeLicenseFile(
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
