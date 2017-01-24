@@ -8,7 +8,6 @@ import (
 	"crypto/sha1"
 	"crypto/tls"
 	"encoding/base64"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -107,11 +106,4 @@ func generateTurnPassword(username string, secret string) string {
 	h := hmac.New(sha1.New, key)
 	h.Write([]byte(username))
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
-}
-
-func closeBody(r *http.Response) {
-	if r.Body != nil {
-		ioutil.ReadAll(r.Body)
-		r.Body.Close()
-	}
 }
