@@ -12,10 +12,13 @@ import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
 import {getDirectChannelName} from 'utils/utils.jsx';
+
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
 import {ActionTypes, Preferences} from 'utils/constants.jsx';
+
+import {browserHistory} from 'react-router/es6';
 
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
     Client.ldapToEmail(
@@ -569,6 +572,25 @@ export function verifyEmail(uid, hid, success, error) {
         (data) => {
             if (success) {
                 success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function resetPassword(code, password, success, error) {
+    Client.resetPassword(
+        code,
+        password,
+        () => {
+            browserHistory.push('/login?extra=' + ActionTypes.PASSWORD_CHANGE);
+
+            if (success) {
+                success();
             }
         },
         (err) => {
