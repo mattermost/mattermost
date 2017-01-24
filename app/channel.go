@@ -243,14 +243,11 @@ func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, us
 
 func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
-	scm := Srv.Store.Channel().GetMember(channel.Id, userId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
 	ohc := Srv.Store.Webhook().GetOutgoingByChannel(channel.Id)
 
 	if uresult := <-uc; uresult.Err != nil {
 		return uresult.Err
-	} else if scmresult := <-scm; scmresult.Err != nil {
-		return scmresult.Err
 	} else if ihcresult := <-ihc; ihcresult.Err != nil {
 		return ihcresult.Err
 	} else if ohcresult := <-ohc; ohcresult.Err != nil {
@@ -259,7 +256,6 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 		user := uresult.Data.(*model.User)
 		incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
 		outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
-		// Don't need to do anything with channel member, just wanted to confirm it exists
 
 		if channel.DeleteAt > 0 {
 			err := model.NewLocAppError("deleteChannel", "api.channel.delete_channel.deleted.app_error", nil, "")
