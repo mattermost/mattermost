@@ -600,3 +600,19 @@ export function resetPassword(code, password, success, error) {
         }
     );
 }
+
+export function resendVerification(email, success, error) {
+    Client.resendVerification(
+        email,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
