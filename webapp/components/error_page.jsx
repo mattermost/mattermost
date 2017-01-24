@@ -13,9 +13,11 @@ export default class ErrorPage extends React.Component {
     componentDidMount() {
         $('body').attr('class', 'sticky error');
     }
+
     componentWillUnmount() {
         $('body').attr('class', '');
     }
+
     render() {
         let title = this.props.location.query.title;
         if (!title || title === '') {
@@ -29,6 +31,9 @@ export default class ErrorPage extends React.Component {
 
         let link = this.props.location.query.link;
         if (!link || link === '') {
+            link = '/';
+        } else if (link.startsWith('javascript:') || link.startsWith('vbscript:') || link.startsWith('data:')) { // eslint-disable-line no-script-url
+            // Sanitize out any script links
             link = '/';
         }
 
