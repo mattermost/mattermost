@@ -370,3 +370,35 @@ export function removeLicenseFile(success, error) {
         }
     );
 }
+
+export function uploadCertificateFile(certificateFile, success, error) {
+    Client.uploadCertificateFile(
+        certificateFile,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function removeCertificateFile(certificateId, success, error) {
+    Client.removeCertificateFile(
+        certificateId,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

@@ -689,6 +689,24 @@ export function createUserWithInvite(user, data, emailHash, inviteId, success, e
     );
 }
 
+export function webLogin(loginId, password, token, success, error) {
+    Client.webLogin(
+        loginId,
+        password,
+        token,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function webLoginByLdap(loginId, password, token, success, error) {
     Client.webLoginByLdap(
         loginId,

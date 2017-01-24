@@ -7,7 +7,7 @@ import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
-import {checkMfa} from 'actions/user_actions.jsx';
+import {checkMfa, webLogin} from 'actions/user_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
@@ -138,7 +138,7 @@ export default class LoginController extends React.Component {
     submit(loginId, password, token) {
         this.setState({serverError: null, loading: true});
 
-        Client.webLogin(
+        webLogin(
             loginId,
             password,
             token,
