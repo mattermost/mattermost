@@ -4,14 +4,54 @@
 package app
 
 import (
+	"net/http"
 	"regexp"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
+
+func CreatePostAsUser(post *model.Post, teamId string) (*model.Post, *model.AppError) {
+	// Check that channel has not been deleted
+	var channel *model.Channel
+	if result := <-Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
+		err := model.NewLocAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error())
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewLocAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "")
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
+	}
+
+	if rp, err := CreatePost(post, teamId, true); err != nil {
+		if err.Id == "api.post.create_post.root_id.app_error" ||
+			err.Id == "api.post.create_post.channel_root_id.app_error" ||
+			err.Id == "api.post.create_post.parent_id.app_error" {
+			err.StatusCode = http.StatusBadRequest
+		}
+
+		return nil, err
+	} else {
+		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
+		if _, ok := post.Props["from_webhook"]; !ok {
+			if result := <-Srv.Store.Channel().UpdateLastViewedAt([]string{post.ChannelId}, post.UserId); result.Err != nil {
+				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, post.UserId, result.Err)
+			}
+		}
+
+		return rp, nil
+	}
+
+}
 
 func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
@@ -193,4 +233,269 @@ func SendEphemeralPost(teamId, userId string, post *model.Post) *model.Post {
 	go Publish(message)
 
 	return post
+}
+
+func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
+	if utils.IsLicensed {
+		if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER {
+			err := model.NewLocAppError("updatePost", "api.post.update_post.permissions_denied.app_error", nil, "")
+			err.StatusCode = http.StatusForbidden
+			return nil, err
+		}
+	}
+
+	var oldPost *model.Post
+	if result := <-Srv.Store.Post().Get(post.Id); result.Err != nil {
+		return nil, result.Err
+	} else {
+		oldPost = result.Data.(*model.PostList).Posts[post.Id]
+
+		if oldPost == nil {
+			err := model.NewLocAppError("updatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id)
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+
+		if oldPost.UserId != post.UserId {
+			err := model.NewLocAppError("updatePost", "api.post.update_post.permissions.app_error", nil, "oldUserId="+oldPost.UserId)
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+
+		if oldPost.DeleteAt != 0 {
+			err := model.NewLocAppError("updatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "")
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+
+		if oldPost.IsSystemMessage() {
+			err := model.NewLocAppError("updatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id)
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+
+		if utils.IsLicensed {
+			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*utils.Cfg.ServiceSettings.PostEditTimeLimit*1000) {
+				err := model.NewLocAppError("updatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}, "")
+				err.StatusCode = http.StatusBadRequest
+				return nil, err
+			}
+		}
+	}
+
+	newPost := &model.Post{}
+	*newPost = *oldPost
+
+	newPost.Message = post.Message
+	newPost.EditAt = model.GetMillis()
+	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+
+	if result := <-Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
+		return nil, result.Err
+	} else {
+		rpost := result.Data.(*model.Post)
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+		message.Add("post", rpost.ToJson())
+
+		go Publish(message)
+
+		InvalidateCacheForChannelPosts(rpost.ChannelId)
+
+		return rpost, nil
+	}
+}
+
+func GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetPosts(channelId, offset, limit, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
+func GetPostsEtag(channelId string) string {
+	return (<-Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
+}
+
+func GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetPostsSince(channelId, time, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
+func GetSinglePost(postId string) (*model.Post, *model.AppError) {
+	if result := <-Srv.Store.Post().GetSingle(postId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Post), nil
+	}
+}
+
+func GetPostThread(postId string) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
+func GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetFlaggedPosts(userId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
+func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		list := result.Data.(*model.PostList)
+
+		if len(list.Order) != 1 {
+			return nil, model.NewLocAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "")
+		}
+		post := list.Posts[list.Order[0]]
+
+		var channel *model.Channel
+		var err *model.AppError
+		if channel, err = GetChannel(post.ChannelId); err != nil {
+			return nil, err
+		}
+
+		if err = JoinChannel(channel, userId); err != nil {
+			return nil, err
+		}
+
+		return list, nil
+	}
+}
+
+func GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
+	var pchan store.StoreChannel
+	if before {
+		pchan = Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
+	} else {
+		pchan = Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
+	}
+
+	if result := <-pchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
+func DeletePost(postId string) (*model.Post, *model.AppError) {
+	if result := <-Srv.Store.Post().GetSingle(postId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		post := result.Data.(*model.Post)
+
+		if result := <-Srv.Store.Post().Delete(postId, model.GetMillis()); result.Err != nil {
+			return nil, result.Err
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+		message.Add("post", post.ToJson())
+
+		go Publish(message)
+		go DeletePostFiles(post)
+		go DeleteFlaggedPosts(post.Id)
+
+		InvalidateCacheForChannelPosts(post.ChannelId)
+
+		return post, nil
+	}
+}
+
+func DeleteFlaggedPosts(postId string) {
+	if result := <-Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); result.Err != nil {
+		l4g.Warn(utils.T("api.post.delete_flagged_post.app_error.warn"), result.Err)
+		return
+	}
+}
+
+func DeletePostFiles(post *model.Post) {
+	if len(post.FileIds) != 0 {
+		return
+	}
+
+	if result := <-Srv.Store.FileInfo().DeleteForPost(post.Id); result.Err != nil {
+		l4g.Warn(utils.T("api.post.delete_post_files.app_error.warn"), post.Id, result.Err)
+	}
+}
+
+func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
+	paramsList := model.ParseSearchParams(terms)
+	channels := []store.StoreChannel{}
+
+	for _, params := range paramsList {
+		params.OrTerms = isOrSearch
+		// don't allow users to search for everything
+		if params.Terms != "*" {
+			channels = append(channels, Srv.Store.Post().Search(teamId, userId, params))
+		}
+	}
+
+	posts := &model.PostList{}
+	for _, channel := range channels {
+		if result := <-channel; result.Err != nil {
+			return nil, result.Err
+		} else {
+			data := result.Data.(*model.PostList)
+			posts.Extend(data)
+		}
+	}
+
+	return posts, nil
+}
+
+func GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
+	pchan := Srv.Store.Post().Get(postId)
+	fchan := Srv.Store.FileInfo().GetForPost(postId)
+
+	var infos []*model.FileInfo
+	if result := <-fchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		infos = result.Data.([]*model.FileInfo)
+	}
+
+	if len(infos) == 0 {
+		// No FileInfos were returned so check if they need to be created for this post
+		var post *model.Post
+		if result := <-pchan; result.Err != nil {
+			return nil, result.Err
+		} else {
+			post = result.Data.(*model.PostList).Posts[postId]
+		}
+
+		if len(post.Filenames) > 0 {
+			// The post has Filenames that need to be replaced with FileInfos
+			infos = MigrateFilenamesToFileInfos(post)
+		}
+	}
+
+	return infos, nil
+}
+
+func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
+	og := opengraph.NewOpenGraph()
+
+	res, err := http.Get(url)
+	defer CloseBody(res)
+	if err != nil {
+		return og
+	}
+
+	if err := og.ProcessHTML(res.Body); err != nil {
+		return og
+	}
+
+	return og
 }

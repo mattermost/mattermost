@@ -222,6 +222,27 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlPostStore) GetSingle(id string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var post model.Post
+		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
+		}
+
+		result.Data = &post
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 type etagPosts struct {
 	Id       string
 	UpdateAt int64

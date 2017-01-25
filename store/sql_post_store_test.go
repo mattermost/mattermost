@@ -63,6 +63,29 @@ func TestPostStoreGet(t *testing.T) {
 	}
 }
 
+func TestPostStoreGetSingle(t *testing.T) {
+	Setup()
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "b"
+
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	if r1 := <-store.Post().GetSingle(o1.Id); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.Post).CreateAt != o1.CreateAt {
+			t.Fatal("invalid returned post")
+		}
+	}
+
+	if err := (<-store.Post().GetSingle("123")).Err; err == nil {
+		t.Fatal("Missing id should have failed")
+	}
+}
+
 func TestGetEtagCache(t *testing.T) {
 	Setup()
 	o1 := &model.Post{}

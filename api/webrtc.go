@@ -89,7 +89,7 @@ func getWebrtcToken(sessionId string) (string, *model.AppError) {
 	if rp, err := httpClient.Do(rq); err != nil {
 		return "", model.NewLocAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error())
 	} else if rp.StatusCode >= 300 {
-		defer closeBody(rp)
+		defer app.CloseBody(rp)
 		return "", model.AppErrorFromJson(rp.Body)
 	} else {
 		janusResponse := model.GatewayResponseFromJson(rp.Body)

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
+	"html/template"
 	"image"
 	"image/color"
 	"image/draw"
@@ -17,6 +18,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -66,7 +68,7 @@ func CreateUserWithHash(user *model.User, hash string, data string) (*model.User
 	return ruser, nil
 }
 
-func CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *model.AppError) {
+func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (*model.User, *model.AppError) {
 	var team *model.Team
 	if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 		return nil, result.Err
@@ -85,6 +87,10 @@ func CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *mo
 	}
 
 	AddDirectChannels(team.Id, ruser)
+
+	if err := SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, siteURL); err != nil {
+		l4g.Error(err.Error())
+	}
 
 	return ruser, nil
 }
@@ -106,6 +112,9 @@ func IsFirstUserAccount() bool {
 }
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
+	if !user.IsSSOUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+		return nil, model.NewLocAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "")
+	}
 
 	user.Roles = model.ROLE_SYSTEM_USER.Id
 
@@ -215,6 +224,25 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	}
 
 	return ruser, nil
+}
+
+// Check that a user's email domain matches a list of space-delimited domains as a string.
+func CheckUserDomain(user *model.User, domains string) bool {
+	if len(domains) == 0 {
+		return true
+	}
+
+	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+
+	matched := false
+	for _, d := range domainArray {
+		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
+			matched = true
+			break
+		}
+	}
+
+	return matched
 }
 
 // Check if the username is already used by another user. Return false if the username is invalid.
@@ -547,6 +575,22 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	return nil
 }
 
+func UpdateActiveNoLdap(userId string, active bool) (*model.User, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		return nil, err
+	}
+
+	if user.IsLDAPUser() {
+		err := model.NewLocAppError("UpdateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user.Id)
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
+	}
+
+	return UpdateActive(user, active)
+}
+
 func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		user.DeleteAt = 0
@@ -616,7 +660,40 @@ func UpdateUser(user *model.User, siteURL string) (*model.User, *model.AppError)
 	}
 }
 
-func UpdatePassword(user *model.User, hashedPassword string) *model.AppError {
+func UpdateUserNotifyProps(userId string, props map[string]string, siteURL string) (*model.User, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		return nil, err
+	}
+
+	user.NotifyProps = props
+
+	var ruser *model.User
+	if ruser, err = UpdateUser(user, siteURL); err != nil {
+		return nil, err
+	}
+
+	return ruser, nil
+}
+
+func UpdatePasswordByUserIdSendEmail(userId, newPassword, method, siteURL string) *model.AppError {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		return err
+	}
+
+	return UpdatePasswordSendEmail(user, newPassword, method, siteURL)
+}
+
+func UpdatePassword(user *model.User, newPassword string) *model.AppError {
+	if err := utils.IsPasswordValid(newPassword); err != nil {
+		return err
+	}
+
+	hashedPassword := model.HashPassword(newPassword)
+
 	if result := <-Srv.Store.User().UpdatePassword(user.Id, hashedPassword); result.Err != nil {
 		return model.NewLocAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error())
 	}
@@ -624,8 +701,8 @@ func UpdatePassword(user *model.User, hashedPassword string) *model.AppError {
 	return nil
 }
 
-func UpdatePasswordSendEmail(user *model.User, hashedPassword, method, siteURL string) *model.AppError {
-	if err := UpdatePassword(user, hashedPassword); err != nil {
+func UpdatePasswordSendEmail(user *model.User, newPassword, method, siteURL string) *model.AppError {
+	if err := UpdatePassword(user, newPassword); err != nil {
 		return err
 	}
 
@@ -634,6 +711,75 @@ func UpdatePasswordSendEmail(user *model.User, hashedPassword, method, siteURL s
 			l4g.Error(err.Error())
 		}
 	}()
+
+	return nil
+}
+
+func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUserByEmail(email); err != nil {
+		return false, nil
+	}
+
+	if user.AuthData != nil && len(*user.AuthData) != 0 {
+		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id)
+	}
+
+	var recovery *model.PasswordRecovery
+	if recovery, err = CreatePasswordRecovery(user.Id); err != nil {
+		return false, err
+	}
+
+	T := utils.GetUserTranslations(user.Locale)
+
+	link := fmt.Sprintf("%s/reset_password_complete?code=%s", siteURL, url.QueryEscape(recovery.Code))
+
+	subject := T("api.templates.reset_subject")
+
+	bodyPage := utils.NewHTMLTemplate("reset_body", user.Locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
+	bodyPage.Html["Info"] = template.HTML(T("api.templates.reset_body.info"))
+	bodyPage.Props["ResetUrl"] = link
+	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
+
+	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
+	}
+
+	return true, nil
+}
+
+func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
+	var recovery *model.PasswordRecovery
+	var err *model.AppError
+	if recovery, err = GetPasswordRecovery(code); err != nil {
+		return err
+	} else {
+		if model.GetMillis()-recovery.CreateAt >= model.PASSWORD_RECOVER_EXPIRY_TIME {
+			return model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
+		}
+	}
+
+	var user *model.User
+	if user, err = GetUser(recovery.UserId); err != nil {
+		return err
+	}
+
+	if user.IsSSOUser() {
+		return model.NewLocAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
+	}
+
+	T := utils.GetUserTranslations(user.Locale)
+
+	if err := UpdatePasswordSendEmail(user, newPassword, T("api.user.reset_password.method"), siteURL); err != nil {
+		return err
+	}
+
+	if err := DeletePasswordRecoveryForUser(recovery.UserId); err != nil {
+		l4g.Error(err.Error())
+	}
 
 	return nil
 }

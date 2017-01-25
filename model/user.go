@@ -376,6 +376,13 @@ func IsInRole(userRoles string, inRole string) bool {
 	return false
 }
 
+func (u *User) IsSSOUser() bool {
+	if u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL {
+		return true
+	}
+	return false
+}
+
 func (u *User) IsOAuthUser() bool {
 	if u.AuthService == USER_AUTH_SERVICE_GITLAB {
 		return true
