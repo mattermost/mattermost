@@ -383,7 +383,7 @@ func TestSendInviteEmails(t *testing.T) {
   var senderName string = "TheBoss"
   var siteURL string = "http://test.mattermost.io"
   invites := []string{email1, email2}
-  var expectedPartialMessage string = "The team member " + senderName  + " , has invited you to join " + th.BasicTeam.DisplayName
+  var expectedPartialMessage string = "The team member *" + senderName  + "* , has invited you to join *" + th.BasicTeam.DisplayName + "*"
   var expectedSubject string = senderName + " invited you to join " + th.BasicTeam.DisplayName + " Team on " + utils.Cfg.TeamSettings.SiteName
 
 
