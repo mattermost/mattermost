@@ -313,6 +313,9 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Message:   sPost.Text,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_JOIN_LEAVE,
+				Props: model.StringInterface{
+					"username": users[sPost.User].Username,
+				},
 			}
 			ImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "me_message":
