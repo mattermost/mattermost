@@ -266,6 +266,9 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 			Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
 			Type:      model.POST_CHANNEL_DELETED,
 			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
 		}
 
 		if _, err := CreatePost(post, channel.TeamId, false); err != nil {
