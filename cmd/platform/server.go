@@ -57,6 +57,18 @@ func runServer(configFileLocation string) {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(configFileLocation))
 
+	var rlim syscall.Rlimit
+	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rlim)
+	if err != nil {
+		l4g.Error(utils.T("mattermost.rlimit.error"), err.Error())
+	} else {
+		if rlim.Cur < 50000 {
+			l4g.Error(utils.T("mattermost.rlimit_low.error"), rlim.Cur)
+		} else {
+			l4g.Info(utils.T("mattermost.rlimit.info"), rlim.Cur)
+		}
+	}
+
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true

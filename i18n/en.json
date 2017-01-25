@@ -3171,6 +3171,20 @@
     "id": "mattermost.config_file",
     "translation": "Loaded config file from %v"
   },
+
+  {
+    "id": "mattermost.rlimit.error",
+    "translation": "Failed to get rlimit, error: %v"
+  },
+  {
+    "id": "mattermost.rlimit_low.error",
+    "translation": "The maximum number of open file descriptors is %v, you may experience connectivity issues when lower than 50K and under high load."
+  },
+  {
+    "id": "mattermost.rlimit.info",
+    "translation": "The maximum number of open file descriptors is %v"
+  },
+
   {
     "id": "mattermost.current_version",
     "translation": "Current version is %v (%v/%v/%v/%v)"
