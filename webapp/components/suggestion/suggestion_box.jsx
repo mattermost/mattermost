@@ -153,6 +153,12 @@ export default class SuggestionBox extends React.Component {
         window.requestAnimationFrame(() => {
             Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
         });
+
+        for (const provider of this.props.providers) {
+            if (provider.handleCompleteWord) {
+                provider.handleCompleteWord(term, matchedPretext);
+            }
+        }
     }
 
     handleKeyDown(e) {
