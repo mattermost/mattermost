@@ -4,6 +4,7 @@
 package api
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -142,4 +143,11 @@ func ReturnStatusOK(w http.ResponseWriter) {
 	m := make(map[string]string)
 	m[model.STATUS] = model.STATUS_OK
 	w.Write([]byte(model.MapToJson(m)))
+}
+
+func closeBody(r *http.Response) {
+	if r.Body != nil {
+		ioutil.ReadAll(r.Body)
+		r.Body.Close()
+	}
 }

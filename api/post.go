@@ -668,6 +668,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	og := opengraph.NewOpenGraph()
 
 	res, err := http.Get(props["url"].(string))
+	defer closeBody(res)
 	if err != nil {
 		writeOpenGraphToResponse(w, og)
 		return
