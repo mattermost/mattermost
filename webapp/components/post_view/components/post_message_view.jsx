@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import Constants from 'utils/constants.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
@@ -29,6 +30,14 @@ export default class PostMessageView extends React.Component {
             return true;
         }
 
+        if (nextProps.post.state !== this.props.post.state) {
+            return true;
+        }
+
+        if (nextProps.post.type !== this.props.post.type) {
+            return true;
+        }
+
         // emojis are immutable
         if (nextProps.emojis !== this.props.emojis) {
             return true;
@@ -49,26 +58,43 @@ export default class PostMessageView extends React.Component {
         return false;
     }
 
-    editedIndicator() {
+    renderDeletedPost() {
         return (
-            PostUtils.isEdited(this.props.post) ?
-                <span className='edited'>
-                    <FormattedMessage
-                        id='post_message_view.edited'
-                        defaultMessage='(edited)'
-                    />
-                </span> :
-                ''
+            <p>
+                <FormattedMessage
+                    id='post_body.deleted'
+                    defaultMessage='(message deleted)'
+                />
+            </p>
+        );
+    }
+
+    renderEditedIndicator() {
+        if (!PostUtils.isEdited(this.props.post)) {
+            return null;
+        }
+
+        return (
+            <span className='edited'>
+                <FormattedMessage
+                    id='post_message_view.edited'
+                    defaultMessage='(edited)'
+                />
+            </span>
         );
     }
 
     render() {
+        if (this.props.post.state === Constants.POST_DELETED) {
+            return this.renderDeletedPost();
+        }
+
         if (!this.props.enableFormatting) {
             return (
                 <span>
                     {this.props.post.message}
                     &nbsp;
-                    {this.editedIndicator()}
+                    {this.renderEditedIndicator()}
                 </span>
             );
         }
@@ -88,7 +114,7 @@ export default class PostMessageView extends React.Component {
                     onClick={Utils.handleFormattedTextClick}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
                 />
-                {this.editedIndicator()}
+                {this.renderEditedIndicator()}
             </div>
         );
     }
