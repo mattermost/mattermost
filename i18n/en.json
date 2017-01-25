@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Failed to retrieve user while updating channel header message %v"
+    "translation": "Failed to retrieve user while updating channel header"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
