@@ -1580,8 +1580,16 @@
     "translation": "U beschikt niet over de juiste rechten"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "Teams aanmaken is uitgeschakeld. Neem contact op met systeem beheerder voor details."
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Is reeds verwijderd id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2750,6 +2758,42 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Ongeldige {{.Name}} parameter"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Failed to post channel purpose message"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s heeft de kanaalkoptekst verwijderd (was: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s heeft de kanaalkoptekst bijgewerkt naar: %s"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",

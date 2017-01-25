@@ -305,7 +305,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "No se pudo recuperar el usuario al intentar guardar la actualización del nombre del canal"
+    "translation": "No se pudo recuperar el usuario al actualizar el campo DisplayName del canal"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "No se pudo recuperar de usuario al intentar guardar la actualización del encabezado del canal %v"
+    "translation": "No se pudo recuperar el usuario al actualizar el mensaje del encabezado del canal %v"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -385,7 +385,7 @@
   },
   {
     "id": "api.command.disabled.app_error",
-    "translation": "Los comandos han sido deshabilitados por el administrador de sistema."
+    "translation": "Los comandos han sido inhabilitados por el administrador de sistema."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
@@ -857,7 +857,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Los correos electrónicos por lotes han sido deshabilitados por el administrador de sistema"
+    "translation": "Los correos electrónicos por lotes han sido inhabilitados por el administrador de sistema"
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
@@ -943,7 +943,7 @@
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Los emoticones personalizados han sido deshabilitados por el administrador del sistema."
+    "translation": "Los emoticones personalizados han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
@@ -983,7 +983,7 @@
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
-    "translation": "Los enlaces públicos han sido deshabilitados por un administrador del sistema"
+    "translation": "Los enlaces públicos han sido inhabilitados por un administrador del sistema"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1015,7 +1015,7 @@
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Los enlaces públicos han sido deshabilitados"
+    "translation": "Los enlaces públicos han sido inhabilitados"
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
@@ -1371,7 +1371,7 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
-    "translation": "El registro de usuario está deshabilitado."
+    "translation": "El registro de usuario está inhabilitado."
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
@@ -1580,8 +1580,16 @@
     "translation": "No tienes los permisos apropiados"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "La edición de mensajes ha sido inhabilitada. Por favor pregunta a tu administrador de sistema por detalles."
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Ya fué elminado el id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "La edición del mensaje sólo está permitido por {{.timeLimit}} segundos. Por favor, pregunta a tu administrador de sistemas para obtener más detalles."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1653,7 +1661,7 @@
   },
   {
     "id": "api.server.start_server.rate.warn",
-    "translation": "La configuración del límite de velocidad no ha sido configurado apropiadamente utilizando VaryByHeader y deshabilitado VaryByRemoteAddr"
+    "translation": "La configuración del límite de velocidad no ha sido configurado apropiadamente utilizando VaryByHeader y inhabilitado VaryByRemoteAddr"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1869,11 +1877,11 @@
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
-    "translation": "El registro a equipos por correo electrónico está deshabilitado."
+    "translation": "El registro a equipos por correo electrónico está inhabilitado."
   },
   {
     "id": "api.team.create_team_from_signup.email_disabled.app_error",
-    "translation": "El registro a equipos por correo electrónico está deshabilitado."
+    "translation": "El registro a equipos por correo electrónico está inhabilitado."
   },
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
@@ -1961,7 +1969,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "La creación de Equipos ha sido deshabilitada. Por favor pregunta a tu administrador de sistema por detalles."
+    "translation": "La creación de Equipos ha sido inhabilitada. Por favor pregunta a tu administrador de sistema por detalles."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -1981,7 +1989,7 @@
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
-    "translation": "El registro a equipos por correo electrónico está deshabilitado."
+    "translation": "El registro a equipos por correo electrónico está inhabilitado."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2349,7 +2357,7 @@
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
-    "translation": "Registro de usuarios por correo electrónico está deshabilitado."
+    "translation": "Registro de usuarios por correo electrónico está inhabilitado."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
@@ -2493,19 +2501,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Falla al enviar la notificación por correo electrónico del cambio de correo err=%v"
+    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del correo electrónico"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Falla al enviar la notificación por correo electrónico del cambio de nombre de usuario err=%v"
+    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio del nombre de usuario"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Error al enviar correo electrónico de verificación de cambio de correo electrónico con éxito err=%v"
+    "translation": "Error al enviar la notificación por correo electrónico para verificar el cambio satisfactorio del correo electrónico"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Falla al enviar el correo del cambio de contraseña satisfactorio err=%v"
+    "translation": "Error al enviar la notificación por correo electrónico del cambio satisfactorio de contraseña"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2521,15 +2529,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Falla al enviar el correo del cambio de contraseña satisfactorio err=%v"
+    "translation": "Error al enviar la notificación por correo del cambio satisfactorio de contraseña"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Falla al enviar el correo con la verificación éxitosa del correo electrónico err=%v"
+    "translation": "Error al enviar la notificación por correo electrónico de la verificación del correo electrónico"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Falla al enviar el correo de bienvenida err=%v"
+    "translation": "Error al enviar la notificación de bienvenida por correo electrónico"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2665,11 +2673,11 @@
   },
   {
     "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks de Salida han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2689,7 +2697,7 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_errror",
-    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_errror",
@@ -2697,7 +2705,7 @@
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks de Salida han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
@@ -2705,11 +2713,11 @@
   },
   {
     "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks de Salida han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2725,7 +2733,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks de Salida han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
@@ -2750,6 +2758,42 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Parámetro {{.Name}} inválido"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "No pudo publicar el mensaje del propósito del canal"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s removió el propósito del canal (era: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "No se pudo recuperar el usuario al actualizar el mensaje del propósito del canal %v"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s actualizó el propósito del canal de: %s a: %s"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s actualizó el propósito del canal a: %s"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -2817,7 +2861,7 @@
   },
   {
     "id": "ent.cluster.licence_disable.app_error",
-    "translation": "La funcionalidad de Agrupamiento de Servidores está deshabilitada por la licencia actual. Por favor, póngase en contacto con su administrador del sistema acerca de la actualización de su licencia empresarial."
+    "translation": "La funcionalidad de Agrupamiento de Servidores está inhabilitada por la licencia actual. Por favor, póngase en contacto con su administrador del sistema acerca de la actualización de su licencia empresarial."
   },
   {
     "id": "ent.cluster.ping_failed.info",
@@ -2841,7 +2885,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "La característica de Cumplimiento está deshabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
+    "translation": "La característica de Cumplimiento está inhabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -2869,7 +2913,7 @@
   },
   {
     "id": "ent.ldap.disabled.app_error",
-    "translation": "AD/LDAP deshabilitado o la licencia no es compatible con AD/LDAP."
+    "translation": "AD/LDAP inhabilitado o la licencia no es compatible con AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
@@ -2881,7 +2925,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Las funcionalidades de AD/LDAP están deshabilitadas con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia empresarial."
+    "translation": "La funcionalidad de AD/LDAP está inhabilitada con la licencia actual. Por favor contacta a un administrador del sistema acerca de mejorar la licencia empresarial."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -4153,7 +4197,7 @@
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
-    "translation": "La funcionalidad de más de 1 replica ha sido deshabilitada debido a la licencia actual. Por favor contacta a un administrador del sistema para realizar una actualización de la licencia empresarial."
+    "translation": "La funcionalidad de más de 1 replica ha sido inhabilitada debido a la licencia actual. Por favor contacta a un administrador del sistema para realizar una actualización de la licencia empresarial."
   },
   {
     "id": "store.sql.remove_index.critical",
@@ -5433,7 +5477,7 @@
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
-    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+    "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",

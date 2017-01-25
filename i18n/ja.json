@@ -301,11 +301,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "表示名更新メッセージ %v を投稿できませんでした"
+    "translation": "表示名更新メッセージを投稿できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "チャンネル表示名更新メッセージ%vを保存する際にユーザーを取得できませんでした"
+    "translation": "チャンネル表示名を更新する際にユーザーを取得できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Failed to post update channel header message"
+    "translation": "チャンネルヘッダー更新メッセージを投稿できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "チャンネルのヘッダー更新メッセージ%vを保存する際にユーザーを取得できませんでした"
+    "translation": "チャンネルのヘッダーメッセージ%vを更新する際にユーザーを取得できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "参加/脱退のメッセージを投稿できませんでした %v"
+    "translation": "参加/脱退のメッセージを投稿できませんでした"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "無効なセッション err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
@@ -809,7 +809,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+    "translation": "無効なセッショントークン={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "ダイレクトチャンネルの2人のメンバーを取得できませんでした channel_id=%v"
+    "translation": "ダイレクトチャンネルの2人のメンバーを取得できませんでした channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1509,7 +1509,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "その投稿の作成者がチャンネルにいないため、通知は送信されませんでした post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1561,7 +1561,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "プッシュ通知を送信出来ませんでした device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -1580,8 +1580,16 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "投稿を編集する機能は無効になっています。詳細はシステム管理者に問い合わせてください。"
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "既に削除されたIDです id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "投稿を編集する機能は {{.timeLimit}} 秒間のみ有効です。詳細はシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2241,7 +2249,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "ユーザーにダイレクトチャンネルの設定を追加できませんでした user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2493,19 +2501,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
+    "translation": "電子メールアドレス変更通知の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "ユーザー名変更の確認の電子メールを送信しました err=%v"
+    "translation": "ユーザー名変更通知の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした err=%v"
+    "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "パスワード更新の電子メールを送信できませんでした err=%v"
+    "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2521,15 +2529,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "パスワード更新の電子メールを送信できませんでした err=%v"
+    "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "確認の電子メールを送信できませんでした err=%v"
+    "translation": "確認の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歓迎の電子メールを送信できませんでした err=%v"
+    "translation": "歓迎の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2745,11 +2753,47 @@
   },
   {
     "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "無効なセッション err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "チャンネルの目的メッセージを投稿できませんでした"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%sがチャンネルヘッダーを削除しました(これまでは%sでした)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "チャンネルの目的メッセージ %v を更新する際にユーザーを取得できませんでした"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s がチャンネルの目的を %s から %s に更新しました"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s がチャンネルの目的を %s に更新しました"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",

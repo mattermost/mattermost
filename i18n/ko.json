@@ -1580,8 +1580,16 @@
     "translation": "작업을 할 수 있는 권한이 없습니다."
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "새로운 팀을 생성할 수 없습니다. 시스템 관리자에게 문의해보세요."
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "이미 지워짐. ID={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2750,6 +2758,42 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "적절하지 않은 {{.Name}} 파라미터"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "Failed to post channel purpose message"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%s이(가) 채널 헤더를 제거했습니다 (이전: %s)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "업데이트 채널 헤더 메시지 %v을(를) 저장 시도중 사용자를 가져오는데 실패했습니다"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s 이(가) 채널 헤더를 %s에서 %s(으)로 갱신했습니다"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s이(가) 채널 헤더를 %s로 갱신했습니다"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "Ability to create new teams"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "Ability to change the roles of a team member"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "Manage Team Roles"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
