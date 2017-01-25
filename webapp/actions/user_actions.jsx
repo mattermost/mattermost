@@ -727,11 +727,6 @@ export function webLoginByLdap(loginId, password, token, success, error) {
 }
 
 export function getAuthorizedApps(success, error) {
-    if (global.mm_config.EnableOAuthServiceProvider === 'true') {
-        success(false);
-        return;
-    }
-
     Client.getAuthorizedApps(
         (authorizedApps) => {
             if (success) {

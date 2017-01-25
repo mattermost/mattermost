@@ -53,15 +53,15 @@ export default class SecurityTab extends React.Component {
     }
 
     componentDidMount() {
-        getAuthorizedApps(
-            (authorizedApps) => {
-                if (authorizedApps) {
+        if (global.mm_config.EnableOAuthServiceProvider === 'true') {
+            getAuthorizedApps(
+                (authorizedApps) => {
                     this.setState({authorizedApps, serverError: null}); //eslint-disable-line react/no-did-mount-set-state
-                }
-            },
-            (err) => {
-                this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
-            });
+                },
+                (err) => {
+                    this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
+                });
+        }
     }
 
     submitPassword(e) {
