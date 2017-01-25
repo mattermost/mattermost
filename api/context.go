@@ -144,6 +144,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if utils.GetSiteURL() == "" {
 		protocol := GetProtocol(r)
 		c.SetSiteURL(protocol + "://" + r.Host)
+	} else {
+		c.SetSiteURL(utils.GetSiteURL())
 	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
