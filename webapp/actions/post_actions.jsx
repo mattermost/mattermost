@@ -115,12 +115,16 @@ export function getFlaggedPosts() {
     );
 }
 
-export function loadPosts(channelId = ChannelStore.getCurrentId()) {
+export function loadPosts(channelId = ChannelStore.getCurrentId(), isPost = false) {
     const postList = PostStore.getAllPosts(channelId);
     const latestPostTime = PostStore.getLatestPostFromPageTime(channelId);
 
-    if (!postList || Object.keys(postList).length === 0 || postList.order.length < Constants.POST_CHUNK_SIZE || latestPostTime === 0) {
-        loadPostsPage(channelId, Constants.POST_CHUNK_SIZE);
+    if (
+        !postList || Object.keys(postList).length === 0 ||
+        (!isPost && postList.order.length < Constants.POST_CHUNK_SIZE) ||
+        latestPostTime === 0
+    ) {
+        loadPostsPage(channelId, Constants.POST_CHUNK_SIZE, isPost);
         return;
     }
 
@@ -133,7 +137,8 @@ export function loadPosts(channelId = ChannelStore.getCurrentId()) {
                 id: channelId,
                 before: true,
                 numRequested: 0,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             loadProfilesForPosts(data.posts);
@@ -145,7 +150,7 @@ export function loadPosts(channelId = ChannelStore.getCurrentId()) {
     );
 }
 
-export function loadPostsPage(channelId = ChannelStore.getCurrentId(), max = Constants.POST_CHUNK_SIZE) {
+export function loadPostsPage(channelId = ChannelStore.getCurrentId(), max = Constants.POST_CHUNK_SIZE, isPost = false) {
     const postList = PostStore.getAllPosts(channelId);
 
     // if we already have more than POST_CHUNK_SIZE posts,
@@ -168,7 +173,8 @@ export function loadPostsPage(channelId = ChannelStore.getCurrentId(), max = Con
                 numRequested: numPosts,
                 checkLatest: true,
                 checkEarliest: true,
-                post_list: data
+                post_list: data,
+                isPost
             });
 
             loadProfilesForPosts(data.posts);
@@ -365,11 +371,11 @@ export function createPost(post, doLoadPost, success, error) {
     );
 }
 
-export function updatePost(post, success) {
+export function updatePost(post, success, isPost) {
     Client.updatePost(
         post,
         () => {
-            loadPosts(post.channel_id);
+            loadPosts(post.channel_id, isPost);
 
             if (success) {
                 success();
