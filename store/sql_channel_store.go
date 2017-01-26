@@ -579,6 +579,31 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetDeletedByName(teamId string, name string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		channel := model.Channel{}
+
+		if err := s.GetReplica().SelectOne(&channel, "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name AND DeleteAt != 0", map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
+			if err == sql.ErrNoRows {
+				result.Err = model.NewLocAppError("SqlChannelStore.GetDeletedByName", "store.sql_channel.get_deleted_by_name.missing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())
+			} else {
+				result.Err = model.NewLocAppError("SqlChannelStore.GetDeletedByName", "store.sql_channel.get_deleted_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())
+			}
+		} else {
+			result.Data = &channel
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

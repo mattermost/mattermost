@@ -93,6 +93,7 @@ type ChannelStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	GetByName(team_id string, name string) StoreChannel
 	GetByNameIncludeDeleted(team_id string, name string) StoreChannel
+	GetDeletedByName(team_id string, name string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
