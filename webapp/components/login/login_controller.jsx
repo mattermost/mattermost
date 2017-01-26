@@ -51,6 +51,10 @@ export default class LoginController extends React.Component {
             showMfa: false,
             loading: false
         };
+
+        if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
+            this.state.loginId = this.props.location.query.email; // eslint-disable-line react/no-direct-mutation-state
+        }
     }
 
     componentDidMount() {
@@ -65,14 +69,6 @@ export default class LoginController extends React.Component {
         }
 
         AsyncClient.checkVersion();
-    }
-
-    componentWillMount() {
-        if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
-            this.setState({
-                loginId: this.props.location.query.email
-            });
-        }
     }
 
     preSubmit(e) {
