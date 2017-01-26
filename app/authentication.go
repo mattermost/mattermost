@@ -1,10 +1,9 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -13,8 +12,8 @@ import (
 	"strings"
 )
 
-func checkPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := checkUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+func CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+	if err := CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
@@ -40,13 +39,13 @@ func doubleCheckPassword(user *model.User, password string) *model.AppError {
 
 func checkUserPassword(user *model.User, password string) *model.AppError {
 	if !model.ComparePassword(user.Password, password) {
-		if result := <-app.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
 			return result.Err
 		}
 
 		return model.NewLocAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id)
 	} else {
-		if result := <-app.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
 			return result.Err
 		}
 
@@ -71,7 +70,7 @@ func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaTok
 		user = ldapUser
 	}
 
-	if err := checkUserMfa(user, mfaToken); err != nil {
+	if err := CheckUserMfa(user, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -83,8 +82,8 @@ func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaTok
 	return user, nil
 }
 
-func checkUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := checkUserMfa(user, mfaToken); err != nil {
+func CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := CheckUserMfa(user, mfaToken); err != nil {
 		return err
 	}
 
@@ -103,7 +102,7 @@ func checkUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string
 	return nil
 }
 
-func checkUserMfa(user *model.User, token string) *model.AppError {
+func CheckUserMfa(user *model.User, token string) *model.AppError {
 	if !user.MfaActive || !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
@@ -168,7 +167,7 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 		err.StatusCode = http.StatusBadRequest
 		return user, err
 	} else {
-		if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+		if err := CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
 		} else {

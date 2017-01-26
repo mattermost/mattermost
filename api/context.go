@@ -21,17 +21,18 @@ import (
 )
 
 type Context struct {
-	Session      model.Session
-	RequestId    string
-	IpAddress    string
-	Path         string
-	Err          *model.AppError
-	siteURL      string
-	teamURLValid bool
-	teamURL      string
-	T            goi18n.TranslateFunc
-	Locale       string
-	TeamId       string
+	Session       model.Session
+	RequestId     string
+	IpAddress     string
+	Path          string
+	Err           *model.AppError
+	siteURL       string
+	teamURLValid  bool
+	teamURL       string
+	T             goi18n.TranslateFunc
+	Locale        string
+	TeamId        string
+	isSystemAdmin bool
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -142,7 +143,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if utils.GetSiteURL() == "" {
-		protocol := GetProtocol(r)
+		protocol := app.GetProtocol(r)
 		c.SetSiteURL(protocol + "://" + r.Host)
 	} else {
 		c.SetSiteURL(utils.GetSiteURL())
@@ -251,18 +252,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.isApi && einterfaces.GetMetricsInterface() != nil {
 		einterfaces.GetMetricsInterface().IncrementHttpRequest()
 
-		if r.URL.Path != model.API_URL_SUFFIX+"/users/websocket" {
+		if r.URL.Path != model.API_URL_SUFFIX_V3+"/users/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
 		}
-	}
-}
-
-func GetProtocol(r *http.Request) string {
-	if r.Header.Get(model.HEADER_FORWARDED_PROTO) == "https" {
-		return "https"
-	} else {
-		return "http"
 	}
 }
 
@@ -347,11 +340,15 @@ func (c *Context) SystemAdminRequired() {
 		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "SystemAdminRequired")
 		c.Err.StatusCode = http.StatusUnauthorized
 		return
-	} else if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	} else if !c.IsSystemAdmin() {
 		c.Err = model.NewLocAppError("", "api.context.permissions.app_error", nil, "AdminRequired")
 		c.Err.StatusCode = http.StatusForbidden
 		return
 	}
+}
+
+func (c *Context) IsSystemAdmin() bool {
+	return app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {

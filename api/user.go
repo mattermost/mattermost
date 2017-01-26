@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/mssola/user_agent"
 )
 
 func InitUser() {
@@ -77,12 +76,6 @@ func InitUser() {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
-		c.Err = model.NewLocAppError("createUser", "api.user.create_user.signup_email_disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	user := model.UserFromJson(r.Body)
 
 	if user == nil {
@@ -90,45 +83,25 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.EmailVerified = false
-
 	hash := r.URL.Query().Get("h")
 	inviteId := r.URL.Query().Get("iid")
 
 	var ruser *model.User
 	var err *model.AppError
 	if len(hash) > 0 {
-		data := r.URL.Query().Get("d")
-		ruser, err = app.CreateUserWithHash(user, hash, data)
-		if err != nil {
-			c.Err = err
-			return
-		}
+		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"))
 	} else if len(inviteId) > 0 {
 		ruser, err = app.CreateUserWithInviteId(user, inviteId, c.GetSiteURL())
-		if err != nil {
-			c.Err = err
-			return
-		}
 	} else {
-		if !app.IsFirstUserAccount() && !*utils.Cfg.TeamSettings.EnableOpenServer {
-			c.Err = model.NewLocAppError("createUser", "api.user.create_user.no_open_server", nil, "email="+user.Email)
-			return
-		}
+		ruser, err = app.CreateUserFromSignup(user, c.GetSiteURL())
+	}
 
-		ruser, err = app.CreateUser(user)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		if err := app.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, c.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
-		}
+	if err != nil {
+		c.Err = err
+		return
 	}
 
 	w.Write([]byte(ruser.ToJson()))
-
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -141,56 +114,15 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 
-	if len(password) == 0 {
-		c.Err = model.NewLocAppError("login", "api.user.login.blank_pwd.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	var user *model.User
-	var err *model.AppError
-
-	if len(id) != 0 {
-		c.LogAuditWithUserId(id, "attempt")
-
-		if user, err = app.GetUser(id); err != nil {
-			c.LogAuditWithUserId(id, "failure")
-			c.Err = err
-			c.Err.StatusCode = http.StatusBadRequest
-			if einterfaces.GetMetricsInterface() != nil {
-				einterfaces.GetMetricsInterface().IncrementLoginFail()
-			}
-			return
-		}
-	} else {
-		c.LogAudit("attempt")
-
-		if user, err = app.GetUserForLogin(loginId, ldapOnly); err != nil {
-			c.LogAudit("failure")
-			c.Err = err
-			if einterfaces.GetMetricsInterface() != nil {
-				einterfaces.GetMetricsInterface().IncrementLoginFail()
-			}
-			return
-		}
-
-		c.LogAuditWithUserId(user.Id, "attempt")
-	}
-
-	// and then authenticate them
-	if user, err = authenticateUser(user, password, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "failure")
+	c.LogAudit("attempt - user_id=" + id + " login_id=" + loginId)
+	user, err := app.AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId, ldapOnly)
+	if err != nil {
+		c.LogAudit("failure - user_id=" + id + " login_id=" + loginId)
 		c.Err = err
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().IncrementLoginFail()
-		}
 		return
 	}
 
 	c.LogAuditWithUserId(user.Id, "success")
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementLogin()
-	}
 
 	doLogin(c, w, r, user, deviceId)
 	if c.Err != nil {
@@ -244,76 +176,11 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 
 // User MUST be authenticated completely before calling Login
 func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
-
-	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
-
-	maxAge := *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
-
-	if len(deviceId) > 0 {
-		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
-		maxAge = *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
-
-		// A special case where we logout of all other sessions with the same Id
-		if err := app.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
-			c.Err = err
-			c.Err.StatusCode = http.StatusInternalServerError
-			return
-		}
-	} else {
-		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthWebInDays)
-	}
-
-	ua := user_agent.New(r.UserAgent())
-
-	plat := ua.Platform()
-	if plat == "" {
-		plat = "unknown"
-	}
-
-	os := ua.OS()
-	if os == "" {
-		os = "unknown"
-	}
-
-	bname, bversion := ua.Browser()
-	if bname == "" {
-		bname = "unknown"
-	}
-
-	if bversion == "" {
-		bversion = "0.0"
-	}
-
-	session.AddProp(model.SESSION_PROP_PLATFORM, plat)
-	session.AddProp(model.SESSION_PROP_OS, os)
-	session.AddProp(model.SESSION_PROP_BROWSER, fmt.Sprintf("%v/%v", bname, bversion))
-
-	var err *model.AppError
-	if session, err = app.CreateSession(session); err != nil {
+	session, err := app.DoLogin(w, r, user, deviceId)
+	if err != nil {
 		c.Err = err
-		c.Err.StatusCode = http.StatusInternalServerError
 		return
 	}
-
-	w.Header().Set(model.HEADER_TOKEN, session.Token)
-
-	secure := false
-	if GetProtocol(r) == "https" {
-		secure = true
-	}
-
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
-	sessionCookie := &http.Cookie{
-		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    session.Token,
-		Path:     "/",
-		MaxAge:   maxAge,
-		Expires:  expiresAt,
-		HttpOnly: true,
-		Secure:   secure,
-	}
-
-	http.SetCookie(w, sessionCookie)
 
 	c.Session = *session
 }
@@ -357,7 +224,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 	secure := false
-	if GetProtocol(r) == "https" {
+	if app.GetProtocol(r) == "https" {
 		secure = true
 	}
 
@@ -502,12 +369,15 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err = app.GetUser(id); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get User", w, r) {
+	}
+
+	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+
+	if HandleEtag(etag, "Get User", w, r) {
 		return
 	} else {
-		sanitizeProfile(c, user)
-
-		w.Header().Set(model.HEADER_ETAG_SERVER, user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress))
+		app.SanitizeProfile(user, c.IsSystemAdmin())
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
 	}
@@ -829,24 +699,11 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := app.UpdateUser(user, c.GetSiteURL()); err != nil {
+	if ruser, err := app.UpdateUserAsUser(user, c.GetSiteURL(), c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
 		c.LogAudit("")
-
-		updatedUser := ruser
-		updatedUser = sanitizeProfile(c, updatedUser)
-
-		omitUsers := make(map[string]bool, 1)
-		omitUsers[user.Id] = true
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
-		message.Add("user", updatedUser)
-		go app.Publish(message)
-
-		ruser.Password = ""
-		ruser.AuthData = new(string)
-		*ruser.AuthData = ""
 		w.Write([]byte(ruser.ToJson()))
 	}
 }
@@ -875,38 +732,8 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = app.GetUser(userId); err != nil {
-		c.Err = err
-		return
-	}
-
-	if user == nil {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	if user.AuthData != nil && *user.AuthData != "" {
-		c.LogAudit("failed - tried to update user password who was logged in through oauth")
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
-		c.Err.StatusCode = http.StatusBadRequest
-		return
-	}
-
-	if err := doubleCheckPassword(user, currentPassword); err != nil {
-		if err.Id == "api.user.check_user_password.invalid.app_error" {
-			c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
-		} else {
-			c.Err = err
-		}
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	if err := app.UpdatePasswordSendEmail(user, newPassword, c.T("api.user.update_password.menu"), c.GetSiteURL()); err != nil {
+	if err := app.UpdatePasswordAsUser(userId, currentPassword, newPassword, c.GetSiteURL()); err != nil {
+		c.LogAudit("failed")
 		c.Err = err
 		return
 	} else {
@@ -1110,7 +937,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := checkPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+	if err := app.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
 		c.Err = err
 		return
@@ -1238,7 +1065,7 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := checkPasswordAndAllCriteria(user, emailPassword, token); err != nil {
+	if err := app.CheckPasswordAndAllCriteria(user, emailPassword, token); err != nil {
 		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
 		c.Err = err
 		return
@@ -1332,7 +1159,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := checkUserMfa(user, token); err != nil {
+	if err := app.CheckUserMfa(user, token); err != nil {
 		c.LogAuditWithUserId(user.Id, "fail - mfa token failed")
 		c.Err = err
 		return
@@ -1600,7 +1427,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err.StatusCode = http.StatusFound
 		return
 	} else {
-		if err := checkUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+		if err := app.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 			return
@@ -1635,7 +1462,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, c.GetSiteURL()+val, http.StatusFound)
 			return
 		}
-		http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusFound)
+		http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
 	}
 }
 

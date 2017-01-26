@@ -239,7 +239,7 @@ func TestTestCommand(t *testing.T) {
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 
 	cmd1 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/teams/command_test",
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_POST,
 		Trigger: "test",
 	}
@@ -259,7 +259,7 @@ func TestTestCommand(t *testing.T) {
 	}
 
 	cmd2 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX + "/teams/command_test",
+		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_GET,
 		Trigger: "test2",
 	}
