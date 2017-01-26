@@ -50,7 +50,7 @@ export default class FileAttachmentList extends React.Component {
 
         return (
             <div>
-                <div className='post-image__columns'>
+                <div className='post-image__columns clearfix'>
                     {postFiles}
                 </div>
                 <ViewImageModal
