@@ -252,7 +252,8 @@ export function format(text, options = {}) {
         renderer: new MattermostMarkdownRenderer(null, options),
         sanitize: true,
         gfm: true,
-        tables: true
+        tables: true,
+        mangle: false
     };
 
     return marked(text, markdownOptions);
