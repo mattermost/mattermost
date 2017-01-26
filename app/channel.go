@@ -415,6 +415,7 @@ func PostUpdateChannelHeaderMessage(userId string, channelId string, teamId stri
 			Type:      model.POST_HEADER_CHANGE,
 			UserId:    userId,
 			Props: model.StringInterface{
+				"username":   user.Username,
 				"old_header": oldChannelHeader,
 				"new_header": newChannelHeader,
 			},
@@ -451,6 +452,7 @@ func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId str
 			Type:      model.POST_PURPOSE_CHANGE,
 			UserId:    userId,
 			Props: model.StringInterface{
+				"username":    user.Username,
 				"old_purpose": oldChannelPurpose,
 				"new_purpose": newChannelPurpose,
 			},
@@ -479,6 +481,7 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 			Type:      model.POST_DISPLAYNAME_CHANGE,
 			UserId:    userId,
 			Props: model.StringInterface{
+				"username":        user.Username,
 				"old_displayname": oldChannelDisplayName,
 				"new_displayname": newChannelDisplayName,
 			},
