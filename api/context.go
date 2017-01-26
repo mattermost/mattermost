@@ -581,6 +581,7 @@ func InvalidateAllCaches() {
 	store.ClearChannelCaches()
 	store.ClearUserCaches()
 	store.ClearPostCaches()
+	store.ClearWebhookCaches()
 }
 
 func (c *Context) CheckTeamId() {

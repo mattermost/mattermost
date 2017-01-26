@@ -242,7 +242,7 @@ type SystemStore interface {
 
 type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncoming(id string) StoreChannel
+	GetIncoming(id string, allowFromCache bool) StoreChannel
 	GetIncomingByTeam(teamId string) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
@@ -256,6 +256,7 @@ type WebhookStore interface {
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
+	InvalidateWebhookCache(webhook string)
 }
 
 type CommandStore interface {
