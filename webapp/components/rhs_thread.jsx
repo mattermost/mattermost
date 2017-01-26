@@ -7,6 +7,7 @@ import RhsHeaderPost from './rhs_header_post.jsx';
 import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
 import FileUploadOverlay from './file_upload_overlay.jsx';
+import FloatingTimestamp from './post_view/components/floating_timestamp.jsx';
 
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -14,6 +15,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
+import DelayedAction from 'utils/delayed_action.jsx';
 
 import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
@@ -59,6 +61,9 @@ export default class RhsThread extends React.Component {
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onBusy = this.onBusy.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
+        this.handleScrollStop = this.handleScrollStop.bind(this);
+        this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
         const state = this.getPosts();
         state.windowWidth = Utils.windowWidth();
@@ -70,7 +75,11 @@ export default class RhsThread extends React.Component {
         state.previewsCollapsed = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false');
         state.isBusy = WebrtcStore.isBusy();
 
-        this.state = state;
+        this.state = {
+            ...state,
+            isScrolling: false,
+            topRhsPostCreateAt: 0
+        };
     }
 
     componentDidMount() {
@@ -153,6 +162,14 @@ export default class RhsThread extends React.Component {
         }
 
         if (nextState.isBusy !== this.state.isBusy) {
+            return true;
+        }
+
+        if (nextState.isScrolling !== this.state.isScrolling) {
+            return true;
+        }
+
+        if (nextState.topRhsPostCreateAt !== this.state.topRhsPostCreateAt) {
             return true;
         }
 
@@ -258,6 +275,52 @@ export default class RhsThread extends React.Component {
         }
     }
 
+    updateFloatingTimestamp() {
+        // skip this in non-mobile view since that's when the timestamp is visible
+        if (!Utils.isMobile()) {
+            return;
+        }
+
+        if (this.state.postsArray) {
+            const childNodes = this.refs.rhspostlist.childNodes;
+            const viewPort = this.refs.rhspostlist.getBoundingClientRect();
+            let topRhsPostCreateAt = 0;
+            const offset = 100;
+
+            // determine the top rhs comment assuming that childNodes and postsArray are of same length
+            for (let i = 0; i < childNodes.length; i++) {
+                if ((childNodes[i].offsetTop + viewPort.top) - offset > 0) {
+                    topRhsPostCreateAt = this.state.postsArray[i].create_at;
+                    break;
+                }
+            }
+
+            if (topRhsPostCreateAt !== this.state.topRhsPostCreateAt) {
+                this.setState({
+                    topRhsPostCreateAt
+                });
+            }
+        }
+    }
+
+    handleScroll() {
+        this.updateFloatingTimestamp();
+
+        if (!this.state.isScrolling) {
+            this.setState({
+                isScrolling: true
+            });
+        }
+
+        this.scrollStopAction.fireAfter(Constants.SCROLL_DELAY);
+    }
+
+    handleScrollStop() {
+        this.setState({
+            isScrolling: false
+        });
+    }
+
     render() {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
@@ -297,6 +360,12 @@ export default class RhsThread extends React.Component {
                 <FileUploadOverlay overlayType='right'/>
                 <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
                 <div className='sidebar-right__body'>
+                    <FloatingTimestamp
+                        isScrolling={this.state.isScrolling}
+                        isMobile={Utils.isMobile()}
+                        createAt={this.state.topRhsPostCreateAt}
+                        isRhsPost={true}
+                    />
                     <RhsHeaderPost
                         fromFlaggedPosts={this.props.fromFlaggedPosts}
                         fromSearch={this.props.fromSearch}
@@ -312,6 +381,7 @@ export default class RhsThread extends React.Component {
                         renderThumbHorizontal={renderThumbHorizontal}
                         renderThumbVertical={renderThumbVertical}
                         renderView={renderView}
+                        onScroll={this.handleScroll}
                     >
                         <div className='post-right__scroll'>
                             <RootPost
@@ -327,7 +397,10 @@ export default class RhsThread extends React.Component {
                                 previewCollapsed={this.state.previewsCollapsed}
                                 isBusy={this.state.isBusy}
                             />
-                            <div className='post-right-comments-container'>
+                            <div
+                                ref='rhspostlist'
+                                className='post-right-comments-container'
+                            >
                                 {postsArray.map((comPost) => {
                                     let p;
                                     if (UserStore.getCurrentId() === comPost.user_id) {
