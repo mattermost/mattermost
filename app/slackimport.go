@@ -572,17 +572,23 @@ func SlackConvertPostsMarkup(posts map[string][]SlackPost) map[string][]SlackPos
 			regexp.MustCompile(`~([^~])+~`),
 			"~$0~",
 		},
+		// single paragraph blockquote
+		// Slack converts > character to &gt;
+		{
+			regexp.MustCompile(`&gt;`),
+			">",
+		},
 	}
 
 	regexReplaceAllStringFunc := []struct {
 		regex *regexp.Regexp
 		fn    func(string) string
 	}{
-		// blockquotes
+		// multiple paragraphs blockquotes
 		{
 			regexp.MustCompile(`(?sm)^>>>(.+)$`),
 			func(src string) string {
-				// remove >>> prefix, might has leading \n
+				// remove >>> prefix, might have leading \n
 				prefixRegexp := regexp.MustCompile(`^([\n])?>>>(.*)`)
 				src = prefixRegexp.ReplaceAllString(src, "$1$2")
 				// append > to start of line

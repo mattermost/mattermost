@@ -235,9 +235,14 @@ func TestSlackConvertPostsMarkup(t *testing.T) {
 		},
 		{
 			Text: `This message contains multiple paragraphs blockquotes
->>>first
+&gt;&gt;&gt;first
 second
 third`,
+		},
+		{
+			Text: `This message contains single paragraph blockquotes
+&gt;something
+&gt;another thing`,
 		},
 	}
 
@@ -261,13 +266,18 @@ third`,
 >second
 >third`,
 		},
+		{
+			Text: `This message contains single paragraph blockquotes
+>something
+>another thing`,
+		},
 	}
 
 	actualOutput := SlackConvertPostsMarkup(input)
 
 	for i := range actualOutput["test"] {
 		if actualOutput["test"][i].Text != expectedOutput["test"][i].Text {
-			t.Fatalf("Unexpected message after markup translation: %v", actualOutput["test"][i].Text)
+			t.Errorf("Unexpected message after markup translation: %v", actualOutput["test"][i].Text)
 		}
 	}
 }
