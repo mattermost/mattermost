@@ -18,8 +18,8 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 	var newUsername string = "fancyusername"
 	var locale string = "en"
 	var siteURL string = ""
-	var expectedPartialMessage string = "Your username for Mattermost has been changed to " + newUsername + "."
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your username has changed for Mattermost"
+	var expectedPartialMessage string = "Your username for "+ utils.Cfg.TeamSettings.SiteName + " has been changed to " + newUsername + "."
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your username has changed for " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(emailTo)
@@ -55,7 +55,7 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 	var locale string = "en"
 	var siteURL string = ""
 	var expectedPartialMessage string = "You updated your email"
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Verify new email address for Mattermost"
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Verify new email address for " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(newUserEmail)
@@ -95,7 +95,7 @@ func TestSendEmailChangeEmail(t *testing.T) {
 	var locale string = "en"
 	var siteURL string = ""
 	var expectedPartialMessage string = "Your email address for Mattermost has been changed to " + newUserEmail
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your email address has changed for Mattermost"
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your email address has changed for " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(oldEmail)
@@ -171,7 +171,7 @@ func TestSendSignInChangeEmail(t *testing.T) {
 	var siteURL string = ""
 	var method string = "AD/LDAP"
 	var expectedPartialMessage string = "You updated your sign-in method on Mattermost to " + method + "."
-	var expectedSubject string = "You updated your sign-in method on Mattermost"
+	var expectedSubject string = "You updated your sign-in method on " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
@@ -208,7 +208,7 @@ func TestSendWelcomeEmail(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	var verified bool = true
 	var expectedPartialMessage string = "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving"
-	var expectedSubject string = "You joined test.mattermost.io"
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] You joined test.mattermost.io"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
@@ -277,7 +277,7 @@ func TestSendPasswordChangeEmail(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	var method string = "using a reset password link"
 	var expectedPartialMessage string = "Your password has been updated for " + utils.Cfg.TeamSettings.SiteName + " on " + siteURL + " by " + method
-	var expectedSubject string = "Your password has been updated for " + utils.Cfg.TeamSettings.SiteName + " on " + utils.Cfg.TeamSettings.SiteName
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your password has been updated for " + utils.Cfg.TeamSettings.SiteName + " on " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
@@ -313,7 +313,7 @@ func TestSendMfaChangeEmail(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	var activated bool = true
 	var expectedPartialMessage string = "Multi-factor authentication has been added to your account on " + siteURL + "."
-	var expectedSubject string = "Your MFA has been updated on " + utils.Cfg.TeamSettings.SiteName
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your MFA has been updated on " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)

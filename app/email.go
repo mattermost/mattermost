@@ -101,8 +101,8 @@ func SendVerifyEmail(userId, userEmail, locale, siteURL string) *model.AppError 
 func SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.singin_change_email.subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, T("api.templates.singin_change_email.subject",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]}))
 
 	bodyPage := utils.NewHTMLTemplate("signin_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -122,7 +122,8 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 
 	rawUrl, _ := url.Parse(siteURL)
 
-	subject := T("api.templates.welcome_subject", map[string]interface{}{"ServerURL": rawUrl.Host})
+	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, T("api.templates.welcome_subject",
+		map[string]interface{}{"ServerURL": rawUrl.Host}))
 
 	bodyPage := utils.NewHTMLTemplate("welcome_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -153,8 +154,8 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.password_change_subject",
-		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "SiteName": utils.Cfg.TeamSettings.SiteName})
+	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, T("api.templates.password_change_subject",
+		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "SiteName": utils.Cfg.TeamSettings.SiteName}))
 
 	bodyPage := utils.NewHTMLTemplate("password_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -172,8 +173,8 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 func SendMfaChangeEmail(email string, activated bool, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.mfa_change_subject",
-		map[string]interface{}{"SiteName": utils.Cfg.TeamSettings.SiteName})
+	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, T("api.templates.mfa_change_subject",
+		map[string]interface{}{"SiteName": utils.Cfg.TeamSettings.SiteName}))
 
 	bodyPage := utils.NewHTMLTemplate("mfa_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -202,8 +203,8 @@ func SendInviteEmails(team *model.Team, senderName string, invites []string, sit
 		if len(invite) > 0 {
 			senderRole := utils.T("api.team.invite_members.member")
 
-			subject := utils.T("api.templates.invite_subject",
-				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]})
+			subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, utils.T("api.templates.invite_subject",
+				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName, "SiteName": utils.ClientCfg["SiteName"]}))
 
 			bodyPage := utils.NewHTMLTemplate("invite_body", model.DEFAULT_LOCALE)
 			bodyPage.Props["SiteURL"] = siteURL
