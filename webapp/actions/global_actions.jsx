@@ -397,7 +397,7 @@ export function sendEphemeralPost(message, channelId) {
         user_id: '0',
         channel_id: channelId || ChannelStore.getCurrentId(),
         message,
-        type: Constants.POST_TYPE_EPHEMERAL,
+        type: Constants.PostTypes.EPHEMERAL,
         create_at: timestamp,
         update_at: timestamp,
         props: {}

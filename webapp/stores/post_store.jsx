@@ -8,7 +8,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import Constants from 'utils/constants.jsx';
+import {Constants, PostTypes} from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
@@ -616,7 +616,9 @@ class PostStoreClass extends EventEmitter {
 
         if (!joinLeave && postsList) {
             postsList.order = postsList.order.filter((id) => {
-                if (postsList.posts[id].type === Constants.POST_TYPE_JOIN_LEAVE) {
+                const post = postsList.posts[id];
+
+                if (post.type === PostTypes.JOIN_LEAVE || post.type === PostTypes.JOIN_CHANNEL || post.type === PostTypes.LEAVE_CHANNEL) {
                     Reflect.deleteProperty(postsList.posts, id);
 
                     return false;
