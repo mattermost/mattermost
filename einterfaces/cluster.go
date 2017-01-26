@@ -15,6 +15,7 @@ type ClusterInterface interface {
 	RemoveAllSessionsForUserId(userId string)
 	InvalidateCacheForUser(userId string)
 	InvalidateCacheForChannel(channelId string)
+	InvalidateCacheForChannelByName(teamId, name string)
 	InvalidateCacheForChannelPosts(channelId string)
 	InvalidateCacheForWebhook(webhookId string)
 	Publish(event *model.WebSocketEvent)

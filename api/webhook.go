@@ -447,7 +447,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			channelName = channelName[1:]
 		}
 
-		cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName)
+		cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
 	} else {
 		cchan = Srv.Store.Channel().Get(hook.ChannelId, true)
 	}
