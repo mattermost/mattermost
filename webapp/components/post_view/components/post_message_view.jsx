@@ -5,9 +5,11 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as PostUtils from 'utils/post_utils.jsx';
+
+import {renderSystemMessage} from './system_message_helpers.jsx';
 
 export default class PostMessageView extends React.Component {
     static propTypes = {
@@ -87,6 +89,11 @@ export default class PostMessageView extends React.Component {
     render() {
         if (this.props.post.state === Constants.POST_DELETED) {
             return this.renderDeletedPost();
+        }
+
+        const renderedSystemMessage = renderSystemMessage(this.props.post);
+        if (renderedSystemMessage) {
+            return <div>{renderedSystemMessage}</div>;
         }
 
         if (!this.props.enableFormatting) {
