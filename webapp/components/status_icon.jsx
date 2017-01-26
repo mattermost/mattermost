@@ -23,14 +23,12 @@ export default class StatusIcon extends React.Component {
             } else {
                 statusIcon = Constants.OFFLINE_AVATAR_SVG;
             }
+        } else if (status === 'online') {
+            statusIcon = Constants.ONLINE_ICON_SVG;
+        } else if (status === 'away') {
+            statusIcon = Constants.AWAY_ICON_SVG;
         } else {
-            if (status === 'online') {
-                statusIcon = Constants.ONLINE_ICON_SVG;
-            } else if (status === 'away') {
-                statusIcon = Constants.AWAY_ICON_SVG;
-            } else {
-                statusIcon = Constants.OFFLINE_ICON_SVG;
-            }
+            statusIcon = Constants.OFFLINE_ICON_SVG;
         }
 
         return (
