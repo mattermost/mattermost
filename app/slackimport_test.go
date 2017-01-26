@@ -190,7 +190,7 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 
 	c1s := SlackSanitiseChannelProperties(c1)
 	if c1.DisplayName != c1s.DisplayName || c1.Name != c1s.Name || c1.Purpose != c1s.Purpose || c1.Header != c1s.Header {
-		t.Fatalf("Unexpected alterations to the channel properties.")
+		t.Fatal("Unexpected alterations to the channel properties.")
 	}
 
 	c2 := model.Channel{
