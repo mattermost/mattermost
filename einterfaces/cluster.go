@@ -17,6 +17,7 @@ type ClusterInterface interface {
 	InvalidateCacheForChannel(channelId string)
 	InvalidateCacheForChannelMembers(channelId string)
 	InvalidateCacheForChannelPosts(channelId string)
+	InvalidateCacheForWebhook(webhookId string)
 	Publish(event *model.WebSocketEvent)
 	UpdateStatus(status *model.Status)
 	GetLogs() ([]string, *model.AppError)

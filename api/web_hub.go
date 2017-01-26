@@ -158,6 +158,18 @@ func InvalidateCacheForUserSkipClusterSend(userId string) {
 	}
 }
 
+func InvalidateCacheForWebhook(webhookId string) {
+	InvalidateCacheForWebhookSkipClusterSend(webhookId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForWebhook(webhookId)
+	}
+}
+
+func InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
+	Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
+}
+
 func InvalidateWebConnSessionCacheForUser(userId string) {
 	if len(hubs) != 0 {
 		GetHubForUserId(userId).InvalidateUser(userId)

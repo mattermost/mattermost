@@ -5,10 +5,22 @@ package store
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlWebhookStore struct {
 	*SqlStore
+}
+
+const (
+	WEBHOOK_CACHE_SIZE = 25000
+	WEBHOOK_CACHE_SEC  = 900 // 15 minutes
+)
+
+var webhookCache = utils.NewLru(WEBHOOK_CACHE_SIZE)
+
+func ClearWebhookCaches() {
+	webhookCache.Purge()
 }
 
 func NewSqlWebhookStore(sqlStore *SqlStore) WebhookStore {
@@ -54,6 +66,10 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_delete_at", "OutgoingWebhooks", "DeleteAt")
 }
 
+func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
+	webhookCache.Remove(webhookId)
+}
+
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -88,16 +104,29 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncoming(id string) StoreChannel {
+func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
+		if allowFromCache {
+			if cacheItem, ok := webhookCache.Get(id); ok {
+				result.Data = cacheItem.(*model.IncomingWebhook)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			}
+		}
+
 		var webhook model.IncomingWebhook
 
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error())
+		}
+
+		if result.Err == nil {
+			webhookCache.AddWithExpiresInSecs(id, &webhook, WEBHOOK_CACHE_SEC)
 		}
 
 		result.Data = &webhook
