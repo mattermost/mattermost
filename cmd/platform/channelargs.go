@@ -42,7 +42,7 @@ func getChannelFromChannelArg(channelArg string) *model.Channel {
 			return nil
 		}
 
-		if result := <-api.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart); result.Err == nil {
+		if result := <-api.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart, true); result.Err == nil {
 			channel = result.Data.(*model.Channel)
 		} else {
 			fmt.Println(result.Err.Error())

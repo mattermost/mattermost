@@ -16,6 +16,7 @@ type ClusterInterface interface {
 	InvalidateCacheForUser(userId string)
 	InvalidateCacheForChannel(channelId string)
 	InvalidateCacheForChannelMembers(channelId string)
+	InvalidateCacheForChannelByName(teamId, name string)
 	InvalidateCacheForChannelPosts(channelId string)
 	InvalidateCacheForWebhook(webhookId string)
 	Publish(event *model.WebSocketEvent)
