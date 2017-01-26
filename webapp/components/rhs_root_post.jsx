@@ -417,7 +417,10 @@ export default class RhsRootPost extends React.Component {
                             <li className='col__name'>{userProfile}</li>
                             {botIndicator}
                             <li className='col'>
-                                <time className='post__time' dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}>
+                                <time
+                                    className='post__time'
+                                    dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
+                                >
                                     {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 <OverlayTrigger
