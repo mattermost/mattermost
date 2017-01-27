@@ -635,7 +635,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	}
 
 	InvalidateCacheForUser(user.Id)
-	InvalidateCacheForChannel(channel.Id)
+	InvalidateCacheForChannelMembers(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 	message.Add("user_id", user.Id)
@@ -675,7 +675,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+		InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
 
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
@@ -699,7 +699,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			UserId:    user.Id,
 		}
 
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+		InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
 
 		if _, err := CreatePost(fakeContext, post, false); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
@@ -1136,7 +1136,7 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	}
 
 	InvalidateCacheForUser(userIdToRemove)
-	InvalidateCacheForChannel(channel.Id)
+	InvalidateCacheForChannelMembers(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)
