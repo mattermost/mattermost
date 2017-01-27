@@ -29,7 +29,6 @@ func TestCreateTeam(t *testing.T) {
 	if _, err := CreateTeam(th.BasicTeam); err == nil {
 		t.Fatal("Should not create a new team - team already exist")
 	}
-
 }
 
 func TestCreateTeamWithUser(t *testing.T) {
@@ -78,9 +77,38 @@ func TestCreateTeamWithUser(t *testing.T) {
 func TestUpdateTeam(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if _, err := UpdateTeam(th.BasicTeam); err != nil {
-		t.Log(err)
-		t.Fatal("Should create a new team with existing user")
-	}
+	th.BasicTeam.DisplayName = "Testing 123"
 
+	if updatedTeam, err := UpdateTeam(th.BasicTeam); err != nil {
+		t.Log(err)
+		t.Fatal("Should update the team")
+	} else {
+		if updatedTeam.DisplayName != "Testing 123" {
+			t.Fatal("Wrong Team DisplayName")
+		}
+	}
+}
+
+func TestAddUserToTeam(t *testing.T) {
+	th := Setup().InitBasic()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := CreateUser(&user)
+
+	if _, err := AddUserToTeam(th.BasicTeam.Id, ruser.Id); err != nil {
+		t.Log(err)
+		t.Fatal("Should add user to the team")
+	}
+}
+
+func TestAddUserToTeamByTeamId(t *testing.T) {
+	th := Setup().InitBasic()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := CreateUser(&user)
+
+	if err := AddUserToTeamByTeamId(th.BasicTeam.Id, ruser); err != nil {
+		t.Log(err)
+		t.Fatal("Should add user to the team")
+	}
 }
