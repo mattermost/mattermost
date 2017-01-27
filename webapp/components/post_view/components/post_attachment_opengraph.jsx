@@ -11,29 +11,47 @@ import {requestOpenGraphMetadata} from 'actions/global_actions.jsx';
 export default class PostAttachmentOpenGraph extends React.Component {
     constructor(props) {
         super(props);
+        this.largeImageMinWidth = 150;
         this.imageDimentions = {  // Image dimentions in pixels.
-            height: 150,
-            width: 150
+            height: 80,
+            width: 80
         };
-        this.maxDescriptionLength = 300;
-        this.descriptionEllipsis = '...';
+        this.textMaxLenght = 300;
+        this.textEllipsis = '...';
+        this.largeImageMinRatio = 16 / 9;
+        this.smallImageContainerLeftPadding = 15;
+
+        this.imageRatio = null;
+
+        this.smallImageContainer = null;
+        this.smallImageElement = null;
+
         this.fetchData = this.fetchData.bind(this);
         this.onOpenGraphMetadataChange = this.onOpenGraphMetadataChange.bind(this);
         this.toggleImageVisibility = this.toggleImageVisibility.bind(this);
         this.onImageLoad = this.onImageLoad.bind(this);
+        this.onImageError = this.onImageError.bind(this);
+        this.truncateText = this.truncateText.bind(this);
+        this.setImageWidth = this.setImageWidth.bind(this);
+    }
+
+    IMAGE_LOADED = {
+        LOADING: 'loading',
+        YES: 'yes',
+        ERROR: 'error'
     }
 
     componentWillMount() {
         this.setState({
             data: {},
-            imageLoaded: false,
-            imageVisible: this.props.previewCollapsed.startsWith('false')
+            imageLoaded: this.IMAGE_LOADED.LOADING,
+            imageVisible: this.props.previewCollapsed.startsWith('false'),
+            hasLargeImage: false
         });
         this.fetchData(this.props.link);
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({imageVisible: nextProps.previewCollapsed.startsWith('false')});
         if (!Utils.areObjectsEqual(nextProps.link, this.props.link)) {
             this.fetchData(nextProps.link);
         }
@@ -41,6 +59,9 @@ export default class PostAttachmentOpenGraph extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (nextState.imageVisible !== this.state.imageVisible) {
+            return true;
+        }
+        if (nextState.hasLargeImage !== this.state.hasLargeImage) {
             return true;
         }
         if (nextState.imageLoaded !== this.state.imageLoaded) {
@@ -54,16 +75,20 @@ export default class PostAttachmentOpenGraph extends React.Component {
 
     componentDidMount() {
         OpenGraphStore.addUrlDataChangeListener(this.onOpenGraphMetadataChange);
+        this.setImageWidth();
+        window.addEventListener('resize', this.setImageWidth);
     }
 
     componentDidUpdate() {
         if (this.props.childComponentDidUpdateFunction) {
             this.props.childComponentDidUpdateFunction();
         }
+        this.setImageWidth();
     }
 
     componentWillUnmount() {
         OpenGraphStore.removeUrlDataChangeListener(this.onOpenGraphMetadataChange);
+        window.removeEventListener('resize', this.setImageWidth);
     }
 
     onOpenGraphMetadataChange(url) {
@@ -74,53 +99,54 @@ export default class PostAttachmentOpenGraph extends React.Component {
 
     fetchData(url) {
         const data = OpenGraphStore.getOgInfo(url);
-        this.setState({data, imageLoaded: false});
+        this.setState({data, imageLoaded: this.IMAGE_LOADED.LOADING});
         if (Utils.isEmptyObject(data)) {
             requestOpenGraphMetadata(url);
         }
     }
 
     getBestImageUrl() {
-        if (this.state.data.images == null) {
+        if (Utils.isEmptyObject(this.state.data.images)) {
             return null;
         }
 
-        const nearestPointData = CommonUtils.getNearestPoint(this.imageDimentions, this.state.data.images, 'width', 'height');
-
-        const bestImage = nearestPointData.nearestPoint;
-        const bestImageLte = nearestPointData.nearestPointLte;  // Best image <= 150px height and width
-
-        let finalBestImage;
-
-        if (
-            !Utils.isEmptyObject(bestImageLte) &&
-            bestImageLte.height <= this.imageDimentions.height &&
-            bestImageLte.width <= this.imageDimentions.width
-        ) {
-            finalBestImage = bestImageLte;
-        } else {
-            finalBestImage = bestImage;
-        }
-
-        return finalBestImage.secure_url || finalBestImage.url;
+        const bestImage = CommonUtils.getNearestPoint(this.imageDimentions, this.state.data.images, 'width', 'height');
+        return bestImage.secure_url || bestImage.url;
     }
 
     toggleImageVisibility() {
         this.setState({imageVisible: !this.state.imageVisible});
     }
 
-    onImageLoad() {
-        this.setState({imageLoaded: true});
+    onImageLoad(image) {
+        this.imageRatio = image.target.naturalWidth / image.target.naturalHeight;
+        if (
+            image.target.naturalWidth >= this.largeImageMinWidth &&
+            this.imageRatio >= this.largeImageMinRatio &&
+            !this.state.hasLargeImage
+        ) {
+            this.setState({
+                hasLargeImage: true
+            });
+        }
+        this.setState({
+            imageLoaded: this.IMAGE_LOADED.YES
+        });
+    }
+
+    onImageError() {
+        this.setState({imageLoaded: this.IMAGE_LOADED.ERROR});
     }
 
     loadImage(src) {
         const img = new Image();
         img.onload = this.onImageLoad;
+        img.onerror = this.onImageError;
         img.src = src;
     }
 
     imageToggleAnchoreTag(imageUrl) {
-        if (imageUrl) {
+        if (imageUrl && this.state.hasLargeImage) {
             return (
                 <a
                     className={'post__embed-visibility'}
@@ -133,16 +159,81 @@ export default class PostAttachmentOpenGraph extends React.Component {
         return null;
     }
 
-    imageTag(imageUrl) {
-        if (imageUrl && this.state.imageVisible) {
-            return (
-                <img
-                    className={this.state.imageLoaded ? 'attachment__image' : 'attachment__image loading'}
-                    src={this.state.imageLoaded ? imageUrl : null}
-                />
+    wrapInSmallImageContainer(imageElement) {
+        return (
+            <div
+                className='attachment__image__container--openraph'
+                style={{
+                    width: (this.imageDimentions.height * this.imageRatio) + this.smallImageContainerLeftPadding
+                }} // Initially set the width accordinly to max image heigh, ie 80px. Later on it would be modified according to actul height of image.
+                ref={(div) => {
+                    this.smallImageContainer = div;
+                }}
+            >
+                {imageElement}
+            </div>
+        );
+    }
+
+    imageTag(imageUrl, renderingForLargeImage = false) {
+        var element = null;
+        if (
+            imageUrl && renderingForLargeImage === this.state.hasLargeImage &&
+            (!renderingForLargeImage || (renderingForLargeImage && this.state.imageVisible))
+        ) {
+            if (this.state.imageLoaded === this.IMAGE_LOADED.LOADING) {
+                if (renderingForLargeImage) {
+                    element = <img className={'attachment__image attachment__image--openraph loading large_image'}/>;
+                } else {
+                    element = this.wrapInSmallImageContainer(
+                        <img className={'attachment__image attachment__image--openraph loading '}/>
+                    );
+                }
+            } else if (this.state.imageLoaded === this.IMAGE_LOADED.YES) {
+                if (renderingForLargeImage) {
+                    element = (
+                        <img
+                            className={'attachment__image attachment__image--openraph large_image'}
+                            src={imageUrl}
+                        />
+                    );
+                } else {
+                    element = this.wrapInSmallImageContainer(
+                        <img
+                            className={'attachment__image attachment__image--openraph'}
+                            src={imageUrl}
+                            ref={(img) => {
+                                this.smallImageElement = img;
+                            }}
+                        />
+                    );
+                }
+            } else if (this.state.imageLoaded === this.IMAGE_LOADED.ERROR) {
+                return null;
+            }
+        }
+        return element;
+    }
+
+    setImageWidth() {
+        if (
+            this.state.imageLoaded === this.IMAGE_LOADED.YES &&
+            this.smallImageContainer &&
+            this.smallImageElement
+        ) {
+            this.smallImageContainer.style.width = (
+                (this.smallImageElement.offsetHeight * this.imageRatio) +
+                this.smallImageContainerLeftPadding +
+                'px'
             );
         }
-        return null;
+    }
+
+    truncateText(text, maxLength = this.textMaxLenght, ellipsis = this.textEllipsis) {
+        if (text.length > maxLength) {
+            return text.substring(0, maxLength - ellipsis.length) + ellipsis;
+        }
+        return text;
     }
 
     render() {
@@ -152,52 +243,52 @@ export default class PostAttachmentOpenGraph extends React.Component {
 
         const data = this.state.data;
         const imageUrl = this.getBestImageUrl();
-        var description = data.description;
 
-        if (description.length > this.maxDescriptionLength) {
-            description = description.substring(0, this.maxDescriptionLength - this.descriptionEllipsis.length) + this.descriptionEllipsis;
-        }
-
-        if (imageUrl && this.state.imageVisible) {
+        if (imageUrl) {
             this.loadImage(imageUrl);
         }
 
         return (
             <div
-                className='attachment attachment--oembed'
+                className='attachment attachment--opengraph'
                 ref='attachment'
             >
                 <div className='attachment__content'>
                     <div
-                        className={'clearfix attachment__container'}
+                        className={'clearfix attachment__container attachment__container--opengraph'}
                     >
-                        <span className='sitename'>{data.site_name}</span>
-                        <h1
-                            className='attachment__title has-link'
+                        <div
+                            className={'attachment__body__wrap attachment__body__wrap--opengraph'}
                         >
-                            <a
-                                className='attachment__title-link'
-                                href={data.url || this.props.link}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                title={data.title || data.url || this.props.link}
+                            <span className='sitename'>{this.truncateText(data.site_name)}</span>
+                            <h1
+                                className={'attachment__title attachment__title--opengraph' + (data.title ? '' : ' is-url')}
                             >
-                                {data.title || data.url || this.props.link}
-                            </a>
-                        </h1>
-                        <div >
-                            <div
-                                className={'attachment__body attachment__body--no_thumb'}
-                            >
-                                <div>
+                                <a
+                                    className='attachment__title-link attachment__title-link--opengraph'
+                                    href={data.url || this.props.link}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    title={data.title || data.url || this.props.link}
+                                >
+                                    {this.truncateText(data.title || data.url || this.props.link)}
+                                </a>
+                            </h1>
+                            <div >
+                                <div
+                                    className={'attachment__body attachment__body--opengraph'}
+                                >
                                     <div>
-                                        {description} &nbsp;
-                                        {this.imageToggleAnchoreTag(imageUrl)}
+                                        <div>
+                                            {this.truncateText(data.description)} &nbsp;
+                                            {this.imageToggleAnchoreTag(imageUrl)}
+                                        </div>
+                                        {this.imageTag(imageUrl, true)}
                                     </div>
-                                    {this.imageTag(imageUrl)}
                                 </div>
                             </div>
                         </div>
+                        {this.imageTag(imageUrl, false)}
                     </div>
                 </div>
             </div>
