@@ -91,11 +91,6 @@ export default class PostMessageView extends React.Component {
             return this.renderDeletedPost();
         }
 
-        const renderedSystemMessage = renderSystemMessage(this.props.post);
-        if (renderedSystemMessage) {
-            return <div>{renderedSystemMessage}</div>;
-        }
-
         if (!this.props.enableFormatting) {
             return (
                 <span>
@@ -114,6 +109,11 @@ export default class PostMessageView extends React.Component {
             channelNamesMap: this.props.channelNamesMap,
             team: this.props.team
         });
+
+        const renderedSystemMessage = renderSystemMessage(this.props.post, options);
+        if (renderedSystemMessage) {
+            return <div>{renderedSystemMessage}</div>;
+        }
 
         return (
             <div>

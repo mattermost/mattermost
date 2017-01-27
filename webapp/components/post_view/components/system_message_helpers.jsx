@@ -5,56 +5,79 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {PostTypes} from 'utils/constants.jsx';
+import {formatText} from 'utils/text_formatting.jsx';
 
-function renderJoinChannelMessage(post) {
+function renderFormattedText(value, options) {
+    return <span dangerouslySetInnerHTML={{__html: formatText(value, options)}}/>;
+}
+
+function renderJoinChannelMessage(post, options) {
+    const username = renderFormattedText(post.props.username, options);
+
     return (
         <FormattedMessage
             id='api.channel.join_channel.post_and_forget'
             defaultMessage='{username} has joined the channel.'
-            values={{username: post.props.username}}
+            values={{username}}
         />
     );
 }
 
-function renderLeaveChannelMessage(post) {
+function renderLeaveChannelMessage(post, options) {
+    const username = renderFormattedText(post.props.username, options);
+
     return (
         <FormattedMessage
             id='api.channel.leave.left'
             defaultMessage='{username} has left the channel.'
-            values={{username: post.props.username}}
+            values={{username}}
         />
     );
 }
 
-function renderAddToChannelMessage(post) {
+function renderAddToChannelMessage(post, options) {
+    const username = renderFormattedText(post.props.username, options);
+    const addedUsername = renderFormattedText(post.props.addedUsername, options);
+
     return (
         <FormattedMessage
             id='api.channel.add_member.added'
             defaultMessage='{addedUsername} added to the channel by {username}'
             values={{
-                username: post.props.username,
-                addedUsername: post.props.addedUsername
+                username,
+                addedUsername
             }}
         />
     );
 }
 
-function renderRemoveFromChannelMessage(post) {
+function renderRemoveFromChannelMessage(post, options) {
+    const removedUsername = renderFormattedText(post.props.removedUsername, options);
+
     return (
         <FormattedMessage
             id='api.channel.remove_member.removed'
             defaultMessage='{removedUsername} was removed from the channel'
             values={{
-                removedUsername: post.props.removedUsername
+                removedUsername
             }}
         />
     );
 }
 
-function renderHeaderChangeMessage(post) {
+function renderHeaderChangeMessage(post, options) {
     if (!post.props.username) {
         return null;
     }
+
+    const headerOptions = {
+        ...options,
+        singleline: true
+    };
+
+    const username = renderFormattedText(post.props.username, options);
+    const oldHeader = post.props.old_header ? renderFormattedText(post.props.old_header, headerOptions) : null;
+    const newHeader = post.props.new_header ? renderFormattedText(post.props.new_header, headerOptions) : null;
 
     if (post.props.new_header) {
         if (post.props.old_header) {
@@ -63,9 +86,9 @@ function renderHeaderChangeMessage(post) {
                     id='api.channel.post_update_channel_header_message_and_forget.updated_from'
                     defaultMessage='{username} updated the channel header from: {old} to: {new}'
                     values={{
-                        username: post.props.username,
-                        old: post.props.old_header,
-                        new: post.props.new_header
+                        username,
+                        old: oldHeader,
+                        new: newHeader
                     }}
                 />
             );
@@ -76,8 +99,8 @@ function renderHeaderChangeMessage(post) {
                 id='api.channel.post_update_channel_header_message_and_forget.updated_to'
                 defaultMessage='{username} updated the channel header to: {new}'
                 values={{
-                    username: post.props.username,
-                    new: post.props.new_header
+                    username,
+                    new: newHeader
                 }}
             />
         );
@@ -87,8 +110,8 @@ function renderHeaderChangeMessage(post) {
                 id='api.channel.post_update_channel_header_message_and_forget.removed'
                 defaultMessage='{username} removed the channel header (was: {old})'
                 values={{
-                    username: post.props.username,
-                    old: post.props.old_header
+                    username,
+                    old: oldHeader
                 }}
             />
         );
@@ -97,28 +120,36 @@ function renderHeaderChangeMessage(post) {
     return null;
 }
 
-function renderDisplayNameChangeMessage(post) {
+function renderDisplayNameChangeMessage(post, options) {
     if (!(post.props.username && post.props.old_displayname && post.props.new_displayname)) {
         return null;
     }
+
+    const username = renderFormattedText(post.props.username, options);
+    const oldDisplayName = post.props.old_displayname;
+    const newDisplayName = post.props.new_displayname;
 
     return (
         <FormattedMessage
             id='api.channel.post_update_channel_displayname_message_and_forget.updated_from'
             defaultMessage='{username} updated the channel display name from: {old} to: {new}'
             values={{
-                username: post.props.username,
-                old: post.props.old_displayname,
-                new: post.props.new_displayname
+                username,
+                old: oldDisplayName,
+                new: newDisplayName
             }}
         />
     );
 }
 
-function renderPurposeChangeMessage(post) {
+function renderPurposeChangeMessage(post, options) {
     if (!post.props.username) {
         return null;
     }
+
+    const username = renderFormattedText(post.props.username, options);
+    const oldPurpose = post.props.old_purpose;
+    const newPurpose = post.props.new_purpose;
 
     if (post.props.new_purpose) {
         if (post.props.old_purpose) {
@@ -127,9 +158,9 @@ function renderPurposeChangeMessage(post) {
                     id='app.channel.post_update_channel_purpose_message.updated_from'
                     defaultMessage='{username} updated the channel purpose from: {old} to: {new}'
                     values={{
-                        username: post.props.username,
-                        old: post.props.old_purpose,
-                        new: post.props.new_purpose
+                        username,
+                        old: oldPurpose,
+                        new: newPurpose
                     }}
                 />
             );
@@ -140,8 +171,8 @@ function renderPurposeChangeMessage(post) {
                 id='app.channel.post_update_channel_purpose_message.updated_to'
                 defaultMessage='{username} updated the channel purpose to: {new}'
                 values={{
-                    username: post.props.username,
-                    new: post.props.new_purpose
+                    username,
+                    new: newPurpose
                 }}
             />
         );
@@ -151,8 +182,8 @@ function renderPurposeChangeMessage(post) {
                 id='app.channel.post_update_channel_purpose_message.removed'
                 defaultMessage='{username} removed the channel purpose (was: {old})'
                 values={{
-                    username: post.props.username,
-                    old: post.props.old_purpose
+                    username,
+                    old: oldPurpose
                 }}
             />
         );
@@ -161,18 +192,18 @@ function renderPurposeChangeMessage(post) {
     return null;
 }
 
-function renderChannelDeletedMessage(post) {
+function renderChannelDeletedMessage(post, options) {
     if (!post.props.username) {
         return null;
     }
+
+    const username = renderFormattedText(post.props.username, options);
 
     return (
         <FormattedMessage
             id='api.channel.delete_channel.archived'
             defaultMessage='{username} has archived the channel.'
-            values={{
-                username: post.props.username
-            }}
+            values={{username}}
         />
     );
 }
@@ -188,10 +219,10 @@ const systemMessageRenderers = {
     [PostTypes.CHANNEL_DELETED]: renderChannelDeletedMessage
 };
 
-export function renderSystemMessage(post) {
+export function renderSystemMessage(post, options) {
     if (!systemMessageRenderers[post.type]) {
         return null;
     }
 
-    return systemMessageRenderers[post.type](post);
+    return systemMessageRenderers[post.type](post, options);
 }
