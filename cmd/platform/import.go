@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 
+	"fmt"
 	"github.com/mattermost/platform/app"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +24,19 @@ var slackImportCmd = &cobra.Command{
 	RunE:    slackImportCmdF,
 }
 
+var bulkImportCmd = &cobra.Command{
+	Use:     "bulk [file]",
+	Short:   "Import bulk data.",
+	Long:    "Import data from a Mattermost Bulk Import File.",
+	Example: "  import bulk bulk_data.json",
+	RunE:    bulkImportCmdF,
+}
+
 func init() {
+	bulkImportCmd.Flags().Bool("apply", false, "Save the import data to the database. Use with caution - this cannot be reverted.")
+
 	importCmd.AddCommand(
+		bulkImportCmd,
 		slackImportCmd,
 	)
 }
@@ -57,6 +69,50 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 	app.SlackImport(fileReader, fileInfo.Size(), team.Id)
 
 	CommandPrettyPrintln("Finished Slack Import.")
+
+	return nil
+}
+
+func bulkImportCmdF(cmd *cobra.Command, args []string) error {
+	initDBCommandContextCobra(cmd)
+
+	apply, err := cmd.Flags().GetBool("apply")
+	if err != nil {
+		return errors.New("Apply flag error")
+	}
+
+	if len(args) != 1 {
+		return errors.New("Incorrect number of arguments.")
+	}
+
+	fileReader, err := os.Open(args[0])
+	if err != nil {
+		return err
+	}
+	defer fileReader.Close()
+
+	if apply {
+		CommandPrettyPrintln("Running Bulk Import. This may take a long time.")
+	} else {
+		CommandPrettyPrintln("Running Bulk Import Data Validation.")
+		CommandPrettyPrintln("** This checks the validity of the entities in the data file, but does not persist any changes **")
+		CommandPrettyPrintln("Use the --apply flag to perform the actual data import.")
+	}
+
+	CommandPrettyPrintln("")
+
+	if err, lineNumber := app.BulkImport(fileReader, !apply); err != nil {
+		CommandPrettyPrintln(err.Error())
+		if lineNumber != 0 {
+			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
+		}
+	}
+
+	if apply {
+		CommandPrettyPrintln("Finished Bulk Import.")
+	} else {
+		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
+	}
 
 	return nil
 }
