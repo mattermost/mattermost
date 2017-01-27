@@ -190,7 +190,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 
 	for _, channel := range *channelList {
 		if channel.Type != model.CHANNEL_DIRECT {
-			InvalidateCacheForChannel(channel.Id)
+			InvalidateCacheForChannelMembers(channel.Id)
 			if result := <-Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
 				return result.Err
 			}
