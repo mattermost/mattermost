@@ -644,7 +644,7 @@ export default class WebrtcController extends React.Component {
     }
 
     onConnectCall() {
-        Client.webrtcToken(
+        WebrtcActions.webrtcToken(
             (info) => {
                 const connectingMsg = (
                     <FormattedMessage

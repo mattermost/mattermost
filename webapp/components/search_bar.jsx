@@ -2,8 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -14,7 +12,7 @@ import SearchSuggestionList from './suggestion/search_suggestion_list.jsx';
 import SearchUserProvider from './suggestion/search_user_provider.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import {loadProfilesForPosts, getFlaggedPosts} from 'actions/post_actions.jsx';
+import {getFlaggedPosts, performSearch} from 'actions/post_actions.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -118,26 +116,18 @@ export default class SearchBar extends React.Component {
         if (terms.length) {
             this.setState({isSearching: true});
 
-            Client.search(
+            performSearch(
                 terms,
                 isMentionSearch,
-                (data) => {
+                () => {
                     this.setState({isSearching: false});
+
                     if (Utils.isMobile() && this.search) {
                         this.search.value = '';
                     }
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_SEARCH,
-                        results: data,
-                        is_mention_search: isMentionSearch
-                    });
-
-                    loadProfilesForPosts(data.posts);
                 },
-                (err) => {
+                () => {
                     this.setState({isSearching: false});
-                    AsyncClient.dispatchError(err, 'search');
                 }
             );
         }

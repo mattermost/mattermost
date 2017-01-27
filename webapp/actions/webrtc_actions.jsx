@@ -4,6 +4,8 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {WebrtcActionTypes} from 'utils/constants.jsx';
 
+import Client from 'client/web_client.jsx';
+
 export function initWebrtc(userId, isCalling) {
     AppDispatcher.handleServerAction({
         type: WebrtcActionTypes.INITIALIZE,
@@ -17,4 +19,18 @@ export function handle(message) {
         type: message.action,
         message
     });
+}
+
+export function webrtcToken(success, error) {
+    Client.webrtcToken(
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        () => {
+            if (error) {
+                error();
+            }
+        });
 }

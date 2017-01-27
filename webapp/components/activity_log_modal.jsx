@@ -5,7 +5,6 @@ import LoadingScreen from './loading_screen.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -13,6 +12,8 @@ import $ from 'jquery';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
+
+import {revokeSession} from 'actions/admin_actions.jsx';
 
 export default class ActivityLogModal extends React.Component {
     constructor(props) {
@@ -46,10 +47,8 @@ export default class ActivityLogModal extends React.Component {
         setTimeout(() => {
             modalContent.removeClass('animation--highlight');
         }, 1500);
-        Client.revokeSession(altId,
-            () => {
-                AsyncClient.getSessions();
-            },
+        revokeSession(altId,
+            null,
             (err) => {
                 const state = this.getStateFromStores();
                 state.serverError = err;

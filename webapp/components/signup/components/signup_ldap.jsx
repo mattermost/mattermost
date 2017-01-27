@@ -6,9 +6,9 @@ import FormError from 'components/form_error.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
 import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
+import {webLoginByLdap} from 'actions/user_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
 
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -56,7 +56,7 @@ export default class SignupLdap extends React.Component {
 
         this.setState({ldapError: ''});
 
-        Client.webLoginByLdap(
+        webLoginByLdap(
             this.state.ldapId,
             this.state.ldapPassword,
             null,

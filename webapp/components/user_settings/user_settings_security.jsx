@@ -9,12 +9,11 @@ import ToggleModalButton from '../toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import {updatePassword} from 'actions/user_actions.jsx';
+import {updatePassword, getAuthorizedApps, deactivateMfa, deauthorizeOAuthApp} from 'actions/user_actions.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -29,7 +28,7 @@ export default class SecurityTab extends React.Component {
 
         this.submitPassword = this.submitPassword.bind(this);
         this.setupMfa = this.setupMfa.bind(this);
-        this.deactivateMfa = this.deactivateMfa.bind(this);
+        this.removeMfa = this.removeMfa.bind(this);
         this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
         this.updateNewPassword = this.updateNewPassword.bind(this);
         this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
@@ -55,7 +54,7 @@ export default class SecurityTab extends React.Component {
 
     componentDidMount() {
         if (global.mm_config.EnableOAuthServiceProvider === 'true') {
-            Client.getAuthorizedApps(
+            getAuthorizedApps(
                 (authorizedApps) => {
                     this.setState({authorizedApps, serverError: null}); //eslint-disable-line react/no-did-mount-set-state
                 },
@@ -120,10 +119,8 @@ export default class SecurityTab extends React.Component {
         browserHistory.push('/mfa/setup');
     }
 
-    deactivateMfa() {
-        Client.updateMfa(
-            '',
-            false,
+    removeMfa() {
+        deactivateMfa(
             () => {
                 if (global.window.mm_license.MFA === 'true' &&
                         global.window.mm_config.EnableMultifactorAuthentication === 'true' &&
@@ -133,7 +130,6 @@ export default class SecurityTab extends React.Component {
                 }
 
                 this.props.updateSection('');
-                AsyncClient.getMe();
                 this.setState(this.getDefaultState());
             },
             (err) => {
@@ -163,7 +159,7 @@ export default class SecurityTab extends React.Component {
     deauthorizeApp(e) {
         e.preventDefault();
         const appId = e.currentTarget.getAttribute('data-app');
-        Client.deauthorizeOAuthApp(
+        deauthorizeOAuthApp(
             appId,
             () => {
                 const authorizedApps = this.state.authorizedApps.filter((app) => {
@@ -223,7 +219,7 @@ export default class SecurityTab extends React.Component {
                         <a
                             className='btn btn-primary'
                             href='#'
-                            onClick={this.deactivateMfa}
+                            onClick={this.removeMfa}
                         >
                             {mfaButtonText}
                         </a>

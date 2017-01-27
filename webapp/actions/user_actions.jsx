@@ -4,10 +4,12 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
+import * as GlobalActions from 'actions/global_actions.jsx';
 import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
@@ -17,7 +19,6 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
 import {ActionTypes, Preferences} from 'utils/constants.jsx';
-
 import {browserHistory} from 'react-router/es6';
 
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
@@ -512,6 +513,25 @@ export function activateMfa(code, success, error) {
     );
 }
 
+export function deactivateMfa(success, error) {
+    Client.updateMfa(
+        '',
+        false,
+        () => {
+            AsyncClient.getMe();
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function checkMfa(loginId, success, error) {
     if (global.window.mm_config.EnableMultifactorAuthentication !== 'true') {
         success(false);
@@ -605,6 +625,141 @@ export function resendVerification(email, success, error) {
     Client.resendVerification(
         email,
         () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function loginById(userId, password, mfaToken, hash, success, error) {
+    Client.loginById(
+        userId,
+        password,
+        mfaToken,
+        hash,
+        () => {
+            if (hash > 0) {
+                BrowserStore.setGlobalItem(hash, JSON.stringify({usedBefore: true}));
+            }
+
+            GlobalActions.emitInitialLoad(
+                () => {
+                    const query = this.props.location.query;
+                    if (query.redirect_to) {
+                        browserHistory.push(query.redirect_to);
+                    } else {
+                        GlobalActions.redirectUserToDefaultTeam();
+                    }
+                }
+            );
+
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function createUserWithInvite(user, data, emailHash, inviteId, success, error) {
+    Client.createUserWithInvite(
+        user,
+        data,
+        emailHash,
+        inviteId,
+        (response) => {
+            if (success) {
+                success(response);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function webLogin(loginId, password, token, success, error) {
+    Client.webLogin(
+        loginId,
+        password,
+        token,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function webLoginByLdap(loginId, password, token, success, error) {
+    Client.webLoginByLdap(
+        loginId,
+        password,
+        token,
+        (data) => {
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function getAuthorizedApps(success, error) {
+    Client.getAuthorizedApps(
+        (authorizedApps) => {
+            if (success) {
+                success(authorizedApps);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        });
+}
+
+export function deauthorizeOAuthApp(appId, success, error) {
+    Client.deauthorizeOAuthApp(
+        appId,
+        () => {
+            if (success) {
+                success();
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        });
+}
+
+export function uploadProfileImage(userPicture, success, error) {
+    Client.uploadProfileImage(
+        userPicture,
+        () => {
+            AsyncClient.getMe();
             if (success) {
                 success();
             }

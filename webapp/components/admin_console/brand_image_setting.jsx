@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom';
 
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {uploadBrandImage} from 'actions/admin_actions.jsx';
 
 import FormError from 'components/form_error.jsx';
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
@@ -81,7 +82,7 @@ export default class BrandImageSetting extends React.Component {
             error: ''
         });
 
-        Client.uploadBrandImage(
+        uploadBrandImage(
             this.state.brandImage,
             () => {
                 $(ReactDOM.findDOMNode(this.refs.upload)).button('complete');

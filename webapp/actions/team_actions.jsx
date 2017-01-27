@@ -60,7 +60,10 @@ export function removeUserFromTeam(teamId, userId, success, error) {
         userId,
         () => {
             TeamStore.removeMemberInTeam(teamId, userId);
+            UserStore.removeProfileFromTeam(teamId, userId);
+            UserStore.emitInTeamChange();
             AsyncClient.getUser(userId);
+            AsyncClient.getTeamStats(teamId);
 
             if (success) {
                 success();

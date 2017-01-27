@@ -6,11 +6,9 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
 import {getInviteInfo} from 'actions/team_actions.jsx';
-
-import BrowserStore from 'stores/browser_store.jsx';
+import {loginById, createUserWithInvite} from 'actions/user_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -119,26 +117,12 @@ export default class SignupEmail extends React.Component {
 
     handleSignupSuccess(user, data) {
         track('signup', 'signup_user_02_complete');
-        Client.loginById(
+        loginById(
             data.id,
             user.password,
             '',
-            () => {
-                if (this.state.hash > 0) {
-                    BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
-                }
-
-                GlobalActions.emitInitialLoad(
-                    () => {
-                        const query = this.props.location.query;
-                        if (query.redirect_to) {
-                            browserHistory.push(query.redirect_to);
-                        } else {
-                            GlobalActions.redirectUserToDefaultTeam();
-                        }
-                    }
-                );
-            },
+            this.state.hash,
+            null,
             (err) => {
                 if (err.id === 'api.user.login.not_verified.app_error') {
                     browserHistory.push('/should_verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.state.teamName));
@@ -242,7 +226,7 @@ export default class SignupEmail extends React.Component {
                 allow_marketing: true
             };
 
-            Client.createUserWithInvite(user,
+            createUserWithInvite(user,
                 this.state.data,
                 this.state.hash,
                 this.state.inviteId,
