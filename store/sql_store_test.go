@@ -118,3 +118,51 @@ func TestAlertDbCmds(t *testing.T) {
 		t.Fatal("Column should not exist")
 	}
 }
+
+func TestCreateIndexIfNotExists(t *testing.T) {
+	Setup()
+
+	sqlStore := store.(*SqlStore)
+
+	defer sqlStore.RemoveColumnIfExists("Systems", "Test")
+	if !sqlStore.CreateColumnIfNotExists("Systems", "Test", "VARCHAR(50)", "VARCHAR(50)", "") {
+		t.Fatal("Failed to create test column")
+	}
+
+	defer sqlStore.RemoveIndexIfExists("idx_systems_create_index_test", "Systems")
+	if !sqlStore.CreateIndexIfNotExists("idx_systems_create_index_test", "Systems", "Test") {
+		t.Fatal("Should've created test index")
+	}
+
+	if sqlStore.CreateIndexIfNotExists("idx_systems_create_index_test", "Systems", "Test") {
+		t.Fatal("Shouldn't have created index that already exists")
+	}
+}
+
+func TestRemoveIndexIfExists(t *testing.T) {
+	Setup()
+
+	sqlStore := store.(*SqlStore)
+
+	defer sqlStore.RemoveColumnIfExists("Systems", "Test")
+	if !sqlStore.CreateColumnIfNotExists("Systems", "Test", "VARCHAR(50)", "VARCHAR(50)", "") {
+		t.Fatal("Failed to create test column")
+	}
+
+	if sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems") {
+		t.Fatal("Should've failed to remove index that doesn't exist")
+	}
+
+	defer sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems")
+	if !sqlStore.CreateIndexIfNotExists("idx_systems_remove_index_test", "Systems", "Test") {
+		t.Fatal("Should've created test index")
+	}
+
+	if !sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems") {
+		t.Fatal("Should've removed index that exists")
+	}
+
+	if sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems") {
+		t.Fatal("Should've failed to remove index that was already removed")
+	}
+}

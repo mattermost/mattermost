@@ -481,18 +481,28 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Header:      sChannel.Topic["value"],
 		}
 		newChannel = SlackSanitiseChannelProperties(newChannel)
-		mChannel := ImportChannel(&newChannel)
+
+		var mChannel *model.Channel
+		if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); result.Err == nil {
+			// The channel already exists as an active channel. Merge with the existing one.
+			mChannel = result.Data.(*model.Channel)
+			log.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
+		} else if result := <-Srv.Store.Channel().GetDeletedByName(teamId, sChannel.Name); result.Err == nil {
+			// The channel already exists but has been deleted. Generate a random string for the handle instead.
+			newChannel.Name = model.NewId()
+			newChannel = SlackSanitiseChannelProperties(newChannel)
+		}
+
 		if mChannel == nil {
-			// Maybe it already exists?
-			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {
+			// Haven't found an existing channel to merge with. Try importing it as a new one.
+			mChannel = OldImportChannel(&newChannel)
+			if mChannel == nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_channels.import_failed.warn"), newChannel.DisplayName)
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 				continue
-			} else {
-				mChannel = result.Data.(*model.Channel)
-				log.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 			}
 		}
+
 		addSlackUsersToChannel(sChannel.Members, users, mChannel, log)
 		log.WriteString(newChannel.DisplayName + "\r\n")
 		addedChannels[sChannel.Id] = mChannel

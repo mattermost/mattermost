@@ -88,7 +88,7 @@ func CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
 func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *model.AppError {
 	var err *model.AppError = nil
 
-	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square", true); result.Err != nil {
 		err = result.Err
 	} else {
 		townSquare := result.Data.(*model.Channel)
@@ -104,10 +104,10 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
 
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+		InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
 	}
 
-	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic", true); result.Err != nil {
 		err = result.Err
 	} else {
 		offTopic := result.Data.(*model.Channel)
@@ -123,7 +123,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
 
-		InvalidateCacheForChannel(result.Data.(*model.Channel).Id)
+		InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
 	}
 
 	return err
@@ -185,7 +185,7 @@ func UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	if result := <-Srv.Store.Channel().Update(channel); result.Err != nil {
 		return nil, result.Err
 	} else {
-		InvalidateCacheForChannel(channel.Id)
+		InvalidateCacheForChannel(channel)
 		return channel, nil
 	}
 }
@@ -280,6 +280,7 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 			if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
 				l4g.Error(utils.T("api.channel.delete_channel.incoming_webhook.error"), hook.Id)
 			}
+			InvalidateCacheForWebhook(hook.Id)
 		}
 
 		for _, hook := range outgoingHooks {
@@ -291,7 +292,7 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 		if dresult := <-Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); dresult.Err != nil {
 			return dresult.Err
 		}
-		InvalidateCacheForChannel(channel.Id)
+		InvalidateCacheForChannel(channel)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
 		message.Add("channel_id", channel.Id)
@@ -344,7 +345,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	}
 
 	InvalidateCacheForUser(user.Id)
-	InvalidateCacheForChannel(channel.Id)
+	InvalidateCacheForChannelMembers(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 	message.Add("user_id", user.Id)
@@ -504,7 +505,7 @@ func GetChannel(channelId string) (*model.Channel, *model.AppError) {
 }
 
 func GetChannelByName(channelName, teamId string) (*model.Channel, *model.AppError) {
-	if result := <-Srv.Store.Channel().GetByName(teamId, channelName); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Channel), nil
@@ -722,7 +723,7 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	}
 
 	InvalidateCacheForUser(userIdToRemove)
-	InvalidateCacheForChannel(channel.Id)
+	InvalidateCacheForChannelMembers(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)

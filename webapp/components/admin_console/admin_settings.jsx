@@ -4,10 +4,11 @@
 import React from 'react';
 
 import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
 
 import FormError from 'components/form_error.jsx';
 import SaveButton from 'components/admin_console/save_button.jsx';
+
+import {saveConfig} from 'actions/admin_actions.jsx';
 
 export default class AdminSettings extends React.Component {
     static get propTypes() {
@@ -53,7 +54,7 @@ export default class AdminSettings extends React.Component {
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        Client.saveConfig(
+        saveConfig(
             config,
             () => {
                 AsyncClient.getConfig((savedConfig) => {

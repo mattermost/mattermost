@@ -19,6 +19,24 @@ import (
 )
 
 func GetLogs() ([]string, *model.AppError) {
+	lines, err := GetLogsSkipSend()
+	if err != nil {
+		return nil, err
+	}
+
+	if einterfaces.GetClusterInterface() != nil {
+		clines, err := einterfaces.GetClusterInterface().GetLogs()
+		if err != nil {
+			return nil, err
+		}
+
+		lines = append(lines, clines...)
+	}
+
+	return lines, nil
+}
+
+func GetLogsSkipSend() ([]string, *model.AppError) {
 	var lines []string
 
 	if utils.Cfg.LogSettings.EnableFile {
@@ -35,15 +53,6 @@ func GetLogs() ([]string, *model.AppError) {
 		}
 	} else {
 		lines = append(lines, "")
-	}
-
-	if einterfaces.GetClusterInterface() != nil {
-		clines, err := einterfaces.GetClusterInterface().GetLogs()
-		if err != nil {
-			return nil, err
-		}
-
-		lines = append(lines, clines...)
 	}
 
 	return lines, nil
@@ -80,6 +89,7 @@ func InvalidateAllCachesSkipSend() {
 	store.ClearChannelCaches()
 	store.ClearUserCaches()
 	store.ClearPostCaches()
+	store.ClearWebhookCaches()
 }
 
 func GetConfig() *model.Config {

@@ -38,6 +38,12 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	// Backwards compatibility with -config flag
+	if flagConfigFile != "" {
+		config = flagConfigFile
+	}
+
 	runServer(config)
 	return nil
 }

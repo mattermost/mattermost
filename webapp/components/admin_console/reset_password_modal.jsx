@@ -1,11 +1,12 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Modal} from 'react-bootstrap';
 
 import {injectIntl, intlShape, FormattedMessage} from 'react-intl';
+
+import {adminResetPassword} from 'actions/admin_actions.jsx';
 
 import React from 'react';
 
@@ -32,7 +33,7 @@ class ResetPasswordModal extends React.Component {
         }
         this.setState({serverError: null});
 
-        Client.adminResetPassword(
+        adminResetPassword(
             this.props.user.id,
             password,
             () => {

@@ -417,3 +417,30 @@ export function deletePost(channelId, post, success, error) {
         }
     );
 }
+
+export function performSearch(terms, isMentionSearch, success, error) {
+    Client.search(
+        terms,
+        isMentionSearch,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH,
+                results: data,
+                is_mention_search: isMentionSearch
+            });
+
+            loadProfilesForPosts(data.posts);
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'search');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}

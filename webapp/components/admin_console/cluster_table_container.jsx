@@ -4,8 +4,8 @@
 import React from 'react';
 import ClusterTable from './cluster_table.jsx';
 import LoadingScreen from '../loading_screen.jsx';
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+
+import {getClusterStatus} from 'actions/admin_actions.jsx';
 
 export default class ClusterTableContainer extends React.Component {
     constructor(props) {
@@ -19,15 +19,13 @@ export default class ClusterTableContainer extends React.Component {
     }
 
     load() {
-        Client.getClusterStatus(
+        getClusterStatus(
             (data) => {
                 this.setState({
                     clusterInfos: data
                 });
             },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getClusterStatus');
-            }
+            null
         );
     }
 

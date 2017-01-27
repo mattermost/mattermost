@@ -1,13 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'client/web_client.jsx';
 import FormError from 'components/form_error.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import React from 'react';
 
 import icon50 from 'images/icon50x50.png';
+
+import {getOAuthAppInfo, allowOAuth2} from 'actions/admin_actions.jsx';
 
 export default class Authorize extends React.Component {
     static get propTypes() {
@@ -27,7 +28,7 @@ export default class Authorize extends React.Component {
     }
 
     componentWillMount() {
-        Client.getOAuthAppInfo(
+        getOAuthAppInfo(
             this.props.location.query.client_id,
             (app) => {
                 this.setState({app});
@@ -46,7 +47,7 @@ export default class Authorize extends React.Component {
     handleAllow() {
         const params = this.props.location.query;
 
-        Client.allowOAuth2(params.response_type, params.client_id, params.redirect_uri, params.state, params.scope,
+        allowOAuth2(params,
             (data) => {
                 if (data.redirect) {
                     window.location.href = data.redirect;

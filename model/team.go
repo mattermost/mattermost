@@ -13,8 +13,14 @@ import (
 )
 
 const (
-	TEAM_OPEN   = "O"
-	TEAM_INVITE = "I"
+	TEAM_OPEN                       = "O"
+	TEAM_INVITE                     = "I"
+	TEAM_ALLOWED_DOMAINS_MAX_LENGTH = 500
+	TEAM_COMPANY_NAME_MAX_LENGTH    = 64
+	TEAM_DESCRIPTION_MAX_LENGTH     = 255
+	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
+	TEAM_EMAIL_MAX_LENGTH           = 128
+	TEAM_NAME_MAX_LENGTH            = 64
 )
 
 type Team struct {
@@ -123,7 +129,7 @@ func (o *Team) IsValid() *AppError {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.Email) > 128 {
+	if len(o.Email) > TEAM_EMAIL_MAX_LENGTH {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id)
 	}
 
@@ -131,15 +137,15 @@ func (o *Team) IsValid() *AppError {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id)
 	}
 
-	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > 64 {
+	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TEAM_DISPLAY_NAME_MAX_RUNES {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.Name) > 64 {
+	if len(o.Name) > TEAM_NAME_MAX_LENGTH {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.Description) > 255 {
+	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id)
 	}
 
@@ -155,11 +161,11 @@ func (o *Team) IsValid() *AppError {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.CompanyName) > 64 {
+	if len(o.CompanyName) > TEAM_COMPANY_NAME_MAX_LENGTH {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.AllowedDomains) > 500 {
+	if len(o.AllowedDomains) > TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
 		return NewLocAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id)
 	}
 

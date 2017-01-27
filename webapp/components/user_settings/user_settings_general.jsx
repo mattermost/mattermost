@@ -15,7 +15,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
-import {updateUser} from 'actions/user_actions.jsx';
+import {updateUser, uploadProfileImage} from 'actions/user_actions.jsx';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -241,11 +241,11 @@ class UserSettingsGeneralTab extends React.Component {
 
         this.setState({loadingPicture: true});
 
-        Client.uploadProfileImage(picture,
+        uploadProfileImage(
+            picture,
             () => {
                 this.updateSection('');
                 this.submitActive = false;
-                AsyncClient.getMe();
             },
             (err) => {
                 var state = this.setupInitialState(this.props);

@@ -2780,6 +2780,118 @@
     "translation": "%s updated the channel purpose to: %s"
   },
   {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSON decode of line failed."
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Error reading import data file."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "Import data line has type \"team\" but the team object is null."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "Import data line has type \"channel\" but the channel object is null."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "Import data line has unknown type \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Missing required team property: name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Team name is too long."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Team name contains reserved word."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Team name contains invalid characters."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Missing required team property: display_name"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "Team display_name is not within permitted length constraints."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Missing required team property: type"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Team type is not valid."
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "Team create_at must not be 0 if provided."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Team description is too long."
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "Team allowed_domains is too long."
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Missing required channel property: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Missing required channel property: name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Channel name is too long."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Channel name contains invalid characters."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "Missing required channel property: display_name."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "Channel display_name is not within permitted length constraints."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Channel type is invalid."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "Channel create_at must not be 0 if provided."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Channel header is too long."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Channel purpose is too long."
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },
@@ -4314,6 +4426,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No channels were found"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "We couldn't find the existing deleted channel"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "No deleted channel exists with that name"
   },
   {
     "id": "store.sql_channel.get_extra_members.app_error",

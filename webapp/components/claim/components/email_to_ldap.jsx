@@ -4,9 +4,9 @@
 import LoginMfa from 'components/login/components/login_mfa.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
 
 import {checkMfa} from 'actions/user_actions.jsx';
+import {emailToLdap} from 'actions/admin_actions.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -79,7 +79,7 @@ export default class EmailToLDAP extends React.Component {
     }
 
     submit(loginId, password, token, ldapId, ldapPassword) {
-        Client.emailToLdap(
+        emailToLdap(
             loginId,
             password,
             token,

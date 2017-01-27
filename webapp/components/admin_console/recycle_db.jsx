@@ -3,10 +3,11 @@
 
 import React from 'react';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
+import {recycleDatabaseConnection} from 'actions/admin_actions.jsx';
 
 export default class RecycleDbButton extends React.Component {
     constructor(props) {
@@ -28,7 +29,7 @@ export default class RecycleDbButton extends React.Component {
             fail: null
         });
 
-        Client.recycleDatabaseConnection(
+        recycleDatabaseConnection(
             () => {
                 this.setState({
                     loading: false
