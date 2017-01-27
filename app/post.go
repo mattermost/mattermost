@@ -110,9 +110,6 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 		}
 	}
 
-	InvalidateCacheForChannel(rpost.ChannelId)
-	InvalidateCacheForChannelPosts(rpost.ChannelId)
-
 	if err := handlePostEvents(rpost, teamId, triggerWebhooks); err != nil {
 		return nil, err
 	}
@@ -138,6 +135,9 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 	} else {
 		channel = result.Data.(*model.Channel)
 	}
+
+	InvalidateCacheForChannel(channel)
+	InvalidateCacheForChannelPosts(channel.Id)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
