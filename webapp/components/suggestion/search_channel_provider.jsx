@@ -10,6 +10,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
+import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 
@@ -67,8 +68,8 @@ export default class SearchChannelProvider extends Provider {
                         }
                     });
 
-                    privateChannels.sort((a, b) => a.name.localeCompare(b.name));
-                    filteredPublicChannels.sort((a, b) => a.name.localeCompare(b.name));
+                    privateChannels.sort(sortChannelsByDisplayName);
+                    filteredPublicChannels.sort(sortChannelsByDisplayName);
 
                     const channels = filteredPublicChannels.concat(privateChannels);
                     const channelNames = channels.map((channel) => channel.name);

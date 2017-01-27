@@ -1093,25 +1093,9 @@ export function windowHeight() {
     return $(window).height();
 }
 
-// Use when sorting multiple channels or teams by their `display_name` field
-export function sortByDisplayName(a, b) {
-    let aDisplayName = '';
-    let bDisplayName = '';
-
-    if (a && a.display_name) {
-        aDisplayName = a.display_name.toLowerCase();
-    }
-    if (b && b.display_name) {
-        bDisplayName = b.display_name.toLowerCase();
-    }
-
-    if (aDisplayName < bDisplayName) {
-        return -1;
-    }
-    if (aDisplayName > bDisplayName) {
-        return 1;
-    }
-    return 0;
+// Use when sorting multiple teams by their `display_name` field
+export function sortTeamsByDisplayName(a, b) {
+    a.display_name.localeCompare(b.display_name);
 }
 
 export function getChannelTerm(channelType) {
