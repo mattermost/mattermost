@@ -379,7 +379,7 @@ func TestChannelStoreGetByName(t *testing.T) {
 
 	Must(store.Channel().Delete(r1.Data.(*model.Channel).Id, model.GetMillis()))
 
-	if err := (<-store.Channel().GetByName(o1.TeamId, "")).Err; err == nil {
+	if err := (<-store.Channel().GetByName(o1.TeamId, "", false)).Err; err == nil {
 		t.Fatal("Deleted channel should not be returned by GetByName()")
 	}
 }

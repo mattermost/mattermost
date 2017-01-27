@@ -35,12 +35,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		profileMap = result.Data.(map[string]*model.User)
 	}
 
-	// If the user who made the post isn't in the channel, don't send a notification
-	if _, ok := profileMap[post.UserId]; !ok && post.Props["from_webhook"] != "true" {
-		l4g.Debug(utils.T("api.post.send_notifications.user_id.debug"), post.Id, channel.Id, post.UserId)
-		return []string{}, nil
-	}
-
 	mentionedUserIds := make(map[string]bool)
 	allActivityPushUserIds := []string{}
 	hereNotification := false
