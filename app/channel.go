@@ -669,6 +669,43 @@ func postLeaveChannelMessage(user *model.User, channel *model.Channel) *model.Ap
 	return nil
 }
 
+func PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel) *model.AppError {
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
+		Type:      model.POST_ADD_TO_CHANNEL,
+		UserId:    user.Id,
+		Props: model.StringInterface{
+			"username":      user.Username,
+			"addedUsername": addedUser.Username,
+		},
+	}
+
+	if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+		return model.NewLocAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
+	}
+
+	return nil
+}
+
+func PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
+		Type:      model.POST_REMOVE_FROM_CHANNEL,
+		UserId:    removerUserId,
+		Props: model.StringInterface{
+			"removedUsername": removedUser.Username,
+		},
+	}
+
+	if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+		return model.NewLocAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
+	}
+
+	return nil
+}
+
 func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	if channel.DeleteAt > 0 {
 		err := model.NewLocAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "")

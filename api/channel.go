@@ -4,7 +4,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -644,29 +643,10 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go postAddToChannelMessage(oUser, nUser, channel)
+	go app.PostAddToChannelMessage(oUser, nUser, channel)
 
 	app.UpdateChannelLastViewedAt([]string{id}, oUser.Id)
 	w.Write([]byte(cm.ToJson()))
-}
-
-func postAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel) *model.AppError {
-	post := &model.Post{
-		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
-		Type:      model.POST_ADD_TO_CHANNEL,
-		UserId:    user.Id,
-		Props: model.StringInterface{
-			"username":      user.Username,
-			"addedUsername": addedUser.Username,
-		},
-	}
-
-	if _, err := app.CreatePost(post, channel.TeamId, false); err != nil {
-		return model.NewLocAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
-	}
-
-	return nil
 }
 
 func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -716,30 +696,12 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go postRemoveFromChannelMessage(c.Session.UserId, user, channel)
+	go app.PostRemoveFromChannelMessage(c.Session.UserId, user, channel)
 
 	result := make(map[string]string)
 	result["channel_id"] = channel.Id
 	result["removed_user_id"] = userIdToRemove
 	w.Write([]byte(model.MapToJson(result)))
-}
-
-func postRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
-	post := &model.Post{
-		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
-		Type:      model.POST_REMOVE_FROM_CHANNEL,
-		UserId:    removerUserId,
-		Props: model.StringInterface{
-			"removedUsername": removedUser.Username,
-		},
-	}
-
-	if _, err := app.CreatePost(post, channel.TeamId, false); err != nil {
-		return model.NewLocAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
-	}
-
-	return nil
 }
 
 func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
