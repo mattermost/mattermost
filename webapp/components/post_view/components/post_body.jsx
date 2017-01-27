@@ -4,6 +4,7 @@
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import CommentedOnFilesMessageContainer from './commented_on_files_message_container.jsx';
 import FileAttachmentListContainer from 'components/file_attachment_list_container.jsx';
@@ -139,6 +140,10 @@ export default class PostBody extends React.Component {
                     src={loadingGif}
                 />
             );
+        }
+
+        if (PostUtils.isEdited(this.props.post)) {
+            postClass += ' post--edited';
         }
 
         let fileAttachmentHolder = null;
