@@ -103,11 +103,13 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 	}
 }
 
-func InvalidateCacheForChannel(channelId string) {
-	InvalidateCacheForChannelSkipClusterSend(channelId)
+func InvalidateCacheForChannel(channel *model.Channel) {
+	InvalidateCacheForChannelSkipClusterSend(channel.Id)
+	InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
-		cluster.InvalidateCacheForChannel(channelId)
+		cluster.InvalidateCacheForChannel(channel.Id)
+		cluster.InvalidateCacheForChannelByName(channel.TeamId, channel.Name)
 	}
 }
 
@@ -115,6 +117,10 @@ func InvalidateCacheForChannelSkipClusterSend(channelId string) {
 	Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
 	Srv.Store.Channel().InvalidateMemberCount(channelId)
 	Srv.Store.Channel().InvalidateChannel(channelId)
+}
+
+func InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
+	Srv.Store.Channel().InvalidateChannelByName(teamId, name)
 }
 
 func InvalidateCacheForChannelPosts(channelId string) {
@@ -145,6 +151,18 @@ func InvalidateCacheForUserSkipClusterSend(userId string) {
 	if len(hubs) != 0 {
 		GetHubForUserId(userId).InvalidateUser(userId)
 	}
+}
+
+func InvalidateCacheForWebhook(webhookId string) {
+	InvalidateCacheForWebhookSkipClusterSend(webhookId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForWebhook(webhookId)
+	}
+}
+
+func InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
+	Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
 }
 
 func InvalidateWebConnSessionCacheForUser(userId string) {

@@ -182,7 +182,7 @@ func ImportChannel(data *ChannelImportData, dryRun bool) *model.AppError {
 	}
 
 	var channel *model.Channel
-	if result := <-Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name); result.Err == nil {
+	if result := <-Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); result.Err == nil {
 		channel = result.Data.(*model.Channel)
 	} else {
 		channel = &model.Channel{}
