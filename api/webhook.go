@@ -109,7 +109,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Webhook().GetIncoming(id); result.Err != nil {
+	if result := <-app.Srv.Store.Webhook().GetIncoming(id, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -124,6 +124,8 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	app.InvalidateCacheForWebhook(id)
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(props)))
@@ -352,7 +354,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	hchan := app.Srv.Store.Webhook().GetIncoming(id)
+	hchan := app.Srv.Store.Webhook().GetIncoming(id, true)
 
 	r.ParseForm()
 
@@ -448,7 +450,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			channelName = channelName[1:]
 		}
 
-		cchan = app.Srv.Store.Channel().GetByName(hook.TeamId, channelName)
+		cchan = app.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
 	} else {
 		cchan = app.Srv.Store.Channel().Get(hook.ChannelId, true)
 	}
