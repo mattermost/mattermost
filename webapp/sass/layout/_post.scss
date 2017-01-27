@@ -440,7 +440,7 @@
 
             &.btn-file__disabled {
                 @include opacity(.1);
-                
+
                 &:hover,
                 &:active {
                     @include opacity(.1);
@@ -613,10 +613,12 @@
 
             p + p {
                 margin: 1em 0;
+
                 &:last-of-type {
                     margin-bottom: 0;
                 }
             }
+
             span {
                 > p:first-child {
                     margin-bottom: 1em;
@@ -704,6 +706,14 @@
 
     .post--fail {
         position: relative;
+    }
+
+    .post--edited {
+        p {
+            &:last-child {
+                display: inline;
+            }
+        }
     }
 
     p {
@@ -1005,24 +1015,10 @@
         }
 
         p + p {
-            margin: 1.4em 0;
+            margin: 1.2em 0;
+
             &:last-of-type {
                 margin-bottom: 0;
-            }
-        }
-
-        span {
-            > p:last-child {
-                display: inline;
-            }
-            > p:first-child {
-                margin-bottom: 1.4em;
-            }
-        }
-
-        li {
-            > p {
-                margin-top: 10px;
             }
         }
 
@@ -1083,6 +1079,11 @@
             }
         }
 
+        ul + p,
+        ol + p {
+            margin-top: 1.2em;
+        }
+
         .pending-post-actions {
             background: alpha-property($black, .7);
             color: $white;
@@ -1098,10 +1099,11 @@
             }
         }
 
-        span.edited {
-            color: #A3A3A3;
-            font-size: 0.87em;
-            opacity: 0.6;
+        span {
+            &.edited {
+                @include opacity(.6);
+                font-size: .87em;
+            }
         }
     }
 
