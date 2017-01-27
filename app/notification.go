@@ -400,9 +400,11 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 			"Hour": fmt.Sprintf("%02d", tm.Hour()), "Minute": fmt.Sprintf("%02d", tm.Minute()),
 			"TimeZone": zone, "Month": month, "Day": day}))
 
-	if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
-		return err
-	}
+	go func() {
+		if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
+			l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
+		}
+	}()
 
 	if einterfaces.GetMetricsInterface() != nil {
 		einterfaces.GetMetricsInterface().IncrementPostSentEmail()
@@ -497,9 +499,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		if err := sendToPushProxy(tmpMessage); err != nil {
-			return err
-		}
+		go sendToPushProxy(tmpMessage)
 
 		if einterfaces.GetMetricsInterface() != nil {
 			einterfaces.GetMetricsInterface().IncrementPostSentPush()
@@ -531,9 +531,7 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		if err := sendToPushProxy(tmpMessage); err != nil {
-			return err
-		}
+		go sendToPushProxy(tmpMessage)
 	}
 
 	return nil
