@@ -146,7 +146,7 @@ export default class AdminSidebar extends React.Component {
 
     renderTeams() {
         const teams = [];
-        const teamsArray = [];
+        let teamsArray = [];
 
         Reflect.ownKeys(this.state.selectedTeams).forEach((key) => {
             if (this.state.teams[key]) {
@@ -154,7 +154,7 @@ export default class AdminSidebar extends React.Component {
             }
         });
 
-        teamsArray.sort(Utils.sortTeamsByDisplayName);
+        teamsArray = teamsArray.sort(Utils.sortTeamsByDisplayName);
 
         for (let i = 0; i < teamsArray.length; i++) {
             const team = teamsArray[i];

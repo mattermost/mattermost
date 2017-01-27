@@ -106,9 +106,9 @@ export default class SwitchChannelProvider extends Provider {
                         userMap[user.id] = user;
                     }
 
-                    channels.sort(sortChannelsByDisplayName);
-
-                    const channelNames = channels.map((channel) => channel.name);
+                    const channelNames = channels.
+                        sort(sortChannelsByDisplayName).
+                        map((channel) => channel.name);
 
                     AppDispatcher.handleServerAction({
                         type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,

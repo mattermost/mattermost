@@ -52,7 +52,7 @@ export default class SearchChannelProvider extends Provider {
                     const publicChannels = data;
 
                     const localChannels = ChannelStore.getAll();
-                    const privateChannels = [];
+                    let privateChannels = [];
 
                     for (const id of Object.keys(localChannels)) {
                         const channel = localChannels[id];
@@ -61,15 +61,15 @@ export default class SearchChannelProvider extends Provider {
                         }
                     }
 
-                    const filteredPublicChannels = [];
+                    let filteredPublicChannels = [];
                     publicChannels.forEach((item) => {
                         if (item.name.startsWith(channelPrefix)) {
                             filteredPublicChannels.push(item);
                         }
                     });
 
-                    privateChannels.sort(sortChannelsByDisplayName);
-                    filteredPublicChannels.sort(sortChannelsByDisplayName);
+                    privateChannels = privateChannels.sort(sortChannelsByDisplayName);
+                    filteredPublicChannels = filteredPublicChannels.sort(sortChannelsByDisplayName);
 
                     const channels = filteredPublicChannels.concat(privateChannels);
                     const channelNames = channels.map((channel) => channel.name);

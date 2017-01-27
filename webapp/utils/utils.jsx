@@ -1095,7 +1095,13 @@ export function windowHeight() {
 
 // Use when sorting multiple teams by their `display_name` field
 export function sortTeamsByDisplayName(a, b) {
-    a.display_name.localeCompare(b.display_name);
+    const locale = LocalizationStore.getLocale();
+
+    if (a.display_name !== b.display_name) {
+        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
+    }
+
+    return a.name.localeCompare(b.name, locale, {numeric: true});
 }
 
 export function getChannelTerm(channelType) {

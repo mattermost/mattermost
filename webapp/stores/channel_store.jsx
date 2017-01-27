@@ -7,8 +7,6 @@ import EventEmitter from 'events';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
-
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
@@ -205,7 +203,11 @@ class ChannelStoreClass extends EventEmitter {
             channels.push(channel);
         }
 
-        channels.sort(sortChannelsByDisplayName);
+        if (!Utils) {
+            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
+        }
+
+        channels = channels.sort(Utils.sortChannelsByDisplayName);
         this.storeChannels(channels);
     }
 
@@ -283,7 +285,11 @@ class ChannelStoreClass extends EventEmitter {
     getMoreChannelsList(teamId = TeamStore.getCurrentId()) {
         const teamChannels = this.moreChannels[teamId] || {};
 
-        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(sortChannelsByDisplayName);
+        if (!Utils) {
+            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
+        }
+
+        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(Utils.sortChannelsByDisplayName);
     }
 
     storeStats(stats) {

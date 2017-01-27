@@ -30,14 +30,13 @@ export default class SelectTeamModal extends React.Component {
         }
 
         const options = [];
-        const teamsArray = [];
+        let teamsArray = [];
 
         Reflect.ownKeys(this.props.teams).forEach((key) => {
             teamsArray.push(this.props.teams[key]);
         });
 
-        teamsArray.sort(sortTeamsByDisplayName);
-
+        teamsArray = teamsArray.sort(sortTeamsByDisplayName);
         for (let i = 0; i < teamsArray.length; i++) {
             const team = teamsArray[i];
             options.push(

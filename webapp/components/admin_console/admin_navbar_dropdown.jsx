@@ -65,7 +65,7 @@ export default class AdminNavbarDropdown extends React.Component {
             }
 
             // Sort teams alphabetically with display_name
-            teamsArray.sort(sortTeamsByDisplayName);
+            teamsArray = teamsArray.sort(sortTeamsByDisplayName);
 
             for (const team of teamsArray) {
                 teams.push(
