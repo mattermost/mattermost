@@ -1350,7 +1350,7 @@ func TestSendNotifications(t *testing.T) {
 		Message:   "@" + th.BasicUser2.Username,
 	})).Data.(*model.Post)
 
-	mentions := sendNotifications(newContext, post1, th.BasicTeam, th.BasicChannel)
+	mentions := sendNotifications(newContext, post1, th.BasicTeam, th.BasicChannel, th.BasicUser)
 	if mentions == nil {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
