@@ -87,12 +87,13 @@ type ChannelStore interface {
 	Update(channel *model.Channel) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 	InvalidateChannel(id string)
+	InvalidateChannelByName(teamId, name string)
 	GetFromMaster(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
-	GetByName(team_id string, name string) StoreChannel
-	GetByNameIncludeDeleted(team_id string, name string) StoreChannel
+	GetByName(team_id string, name string, allowFromCache bool) StoreChannel
+	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
@@ -242,7 +243,7 @@ type SystemStore interface {
 
 type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncoming(id string) StoreChannel
+	GetIncoming(id string, allowFromCache bool) StoreChannel
 	GetIncomingByTeam(teamId string) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
@@ -256,6 +257,7 @@ type WebhookStore interface {
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
+	InvalidateWebhookCache(webhook string)
 }
 
 type CommandStore interface {

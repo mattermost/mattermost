@@ -479,7 +479,7 @@ func cmdJoinChannel() {
 		}
 
 		var channel *model.Channel
-		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
+		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName, true); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {
@@ -540,7 +540,7 @@ func cmdLeaveChannel() {
 		}
 
 		var channel *model.Channel
-		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName); result.Err != nil {
+		if result := <-api.Srv.Store.Channel().GetByName(team.Id, flagChannelName, true); result.Err != nil {
 			l4g.Error("%v", result.Err)
 			flushLogAndExit(1)
 		} else {

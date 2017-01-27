@@ -264,7 +264,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			oldChannel.Type = channel.Type
 		}
 
-		InvalidateCacheForChannel(oldChannel.Id)
+		InvalidateCacheForChannel(oldChannel)
 		if ucresult := <-Srv.Store.Channel().Update(oldChannel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
@@ -313,7 +313,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannelHeader := channel.Header
 		channel.Header = channelHeader
 
-		InvalidateCacheForChannel(channel.Id)
+		InvalidateCacheForChannel(channel)
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
@@ -421,7 +421,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		channel.Purpose = channelPurpose
 
-		InvalidateCacheForChannel(channel.Id)
+		InvalidateCacheForChannel(channel)
 		if ucresult := <-Srv.Store.Channel().Update(channel); ucresult.Err != nil {
 			c.Err = ucresult.Err
 			return
@@ -538,7 +538,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func JoinChannelByName(c *Context, userId string, teamId string, channelName string) (*model.AppError, *model.Channel) {
-	channelChannel := Srv.Store.Channel().GetByName(teamId, channelName)
+	channelChannel := Srv.Store.Channel().GetByName(teamId, channelName, true)
 	userChannel := Srv.Store.User().Get(userId)
 
 	return joinChannel(c, channelChannel, userChannel)
@@ -658,7 +658,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 		T:      utils.TfuncWithFallback(user.Locale),
 	}
 
-	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square", true); result.Err != nil {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
@@ -682,7 +682,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 		}
 	}
 
-	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic"); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, "off-topic", true); result.Err != nil {
 		err = result.Err
 	} else {
 		cm := &model.ChannelMember{ChannelId: result.Data.(*model.Channel).Id, UserId: user.Id,
@@ -842,6 +842,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			if result := <-Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
 				l4g.Error(utils.T("api.channel.delete_channel.incoming_webhook.error"), hook.Id)
 			}
+			InvalidateCacheForWebhook(hook.Id)
 		}
 
 		for _, hook := range outgoingHooks {
@@ -854,7 +855,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = dresult.Err
 			return
 		}
-		InvalidateCacheForChannel(channel.Id)
+		InvalidateCacheForChannel(channel)
 
 		c.LogAudit("name=" + channel.Name)
 
@@ -923,7 +924,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelName := params["channel_name"]
 
-	cchan := Srv.Store.Channel().GetByName(c.TeamId, channelName)
+	cchan := Srv.Store.Channel().GetByName(c.TeamId, channelName, true)
 
 	if cresult := <-cchan; cresult.Err != nil {
 		c.Err = cresult.Err
