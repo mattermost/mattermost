@@ -484,7 +484,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 
 		if mChannel == nil {
 			// Haven't found an existing channel to merge with. Try importing it as a new one.
-			mChannel = ImportChannel(&newChannel)
+			mChannel = OldImportChannel(&newChannel)
 			if mChannel == nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_channels.import_failed.warn"), newChannel.DisplayName)
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))

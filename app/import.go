@@ -4,9 +4,12 @@
 package app
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
 	"io"
 	"regexp"
+	"strings"
 	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
@@ -14,7 +17,242 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+// Import Data Models
+
+type LineImportData struct {
+	Type    string             `json:"type"`
+	Team    *TeamImportData    `json:"team"`
+	Channel *ChannelImportData `json:"channel"`
+}
+
+type TeamImportData struct {
+	Name            *string `json:"name"`
+	DisplayName     *string `json:"display_name"`
+	Type            *string `json:"type"`
+	Description     *string `json:"description"`
+	AllowOpenInvite *bool   `json:"allow_open_invite"`
+}
+
+type ChannelImportData struct {
+	Team        *string `json:"team"`
+	Name        *string `json:"name"`
+	DisplayName *string `json:"display_name"`
+	Type        *string `json:"type"`
+	Header      *string `json:"header"`
+	Purpose     *string `json:"purpose"`
+}
+
 //
+// -- Bulk Import Functions --
+// These functions import data directly into the database. Security and permission checks are bypassed but validity is
+// still enforced.
+//
+
+func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
+	scanner := bufio.NewScanner(fileReader)
+	lineNumber := 0
+	for scanner.Scan() {
+		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
+		lineNumber++
+
+		var line LineImportData
+		if err := decoder.Decode(&line); err != nil {
+			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error()), lineNumber
+		} else {
+			if err := ImportLine(line, dryRun); err != nil {
+				return err, lineNumber
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return model.NewLocAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error()), 0
+	}
+
+	return nil, 0
+}
+
+func ImportLine(line LineImportData, dryRun bool) *model.AppError {
+	switch {
+	case line.Type == "team":
+		if line.Team == nil {
+			return model.NewLocAppError("BulkImport", "app.import.import_line.null_team.error", nil, "")
+		} else {
+			return ImportTeam(line.Team, dryRun)
+		}
+	case line.Type == "channel":
+		if line.Channel == nil {
+			return model.NewLocAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "")
+		} else {
+			return ImportChannel(line.Channel, dryRun)
+		}
+	default:
+		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "")
+	}
+}
+
+func ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
+	if err := validateTeamImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(*data.Name); result.Err == nil {
+		team = result.Data.(*model.Team)
+	} else {
+		team = &model.Team{}
+	}
+
+	team.Name = *data.Name
+	team.DisplayName = *data.DisplayName
+	team.Type = *data.Type
+
+	if data.Description != nil {
+		team.Description = *data.Description
+	}
+
+	if data.AllowOpenInvite != nil {
+		team.AllowOpenInvite = *data.AllowOpenInvite
+	}
+
+	if team.Id == "" {
+		if _, err := CreateTeam(team); err != nil {
+			return err
+		}
+	} else {
+		if _, err := UpdateTeam(team); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateTeamImportData(data *TeamImportData) *model.AppError {
+
+	if data.Name == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "")
+	} else if len(*data.Name) > model.TEAM_NAME_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "")
+	} else if model.IsReservedTeamName(*data.Name) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "")
+	} else if !model.IsValidTeamName(*data.Name) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "")
+	}
+
+	if data.DisplayName == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.display_name_missing.error", nil, "")
+	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.TEAM_DISPLAY_NAME_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "")
+	}
+
+	if data.Type == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.type_missing.error", nil, "")
+	} else if *data.Type != model.TEAM_OPEN && *data.Type != model.TEAM_INVITE {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.type_invalid.error", nil, "")
+	}
+
+	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "")
+	}
+
+	return nil
+}
+
+func ImportChannel(data *ChannelImportData, dryRun bool) *model.AppError {
+	if err := validateChannelImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(*data.Team); result.Err != nil {
+		return model.NewLocAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, "")
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var channel *model.Channel
+	if result := <-Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name); result.Err == nil {
+		channel = result.Data.(*model.Channel)
+	} else {
+		channel = &model.Channel{}
+	}
+
+	channel.TeamId = team.Id
+	channel.Name = *data.Name
+	channel.DisplayName = *data.DisplayName
+	channel.Type = *data.Type
+
+	if data.Header != nil {
+		channel.Header = *data.Header
+	}
+
+	if data.Purpose != nil {
+		channel.Purpose = *data.Purpose
+	}
+
+	if channel.Id == "" {
+		if _, err := CreateChannel(channel, false); err != nil {
+			return err
+		}
+	} else {
+		if _, err := UpdateChannel(channel); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateChannelImportData(data *ChannelImportData) *model.AppError {
+
+	if data.Team == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.team_missing.error", nil, "")
+	}
+
+	if data.Name == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "")
+	} else if len(*data.Name) > model.CHANNEL_NAME_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "")
+	} else if !model.IsValidChannelIdentifier(*data.Name) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "")
+	}
+
+	if data.DisplayName == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.display_name_missing.error", nil, "")
+	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.display_name_length.error", nil, "")
+	}
+
+	if data.Type == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.type_missing.error", nil, "")
+	} else if *data.Type != model.CHANNEL_OPEN && *data.Type != model.CHANNEL_PRIVATE {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.type_invalid.error", nil, "")
+	}
+
+	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.header_length.error", nil, "")
+	}
+
+	if data.Purpose != nil && utf8.RuneCountInString(*data.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.purpose_length.error", nil, "")
+	}
+
+	return nil
+}
+
+//
+// -- Old SlackImport Functions --
 // Import functions are sutible for entering posts and users into the database without
 // some of the usual checks. (IsValid is still run)
 //
@@ -73,7 +311,7 @@ func ImportUser(team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func ImportChannel(channel *model.Channel) *model.Channel {
+func OldImportChannel(channel *model.Channel) *model.Channel {
 	if result := <-Srv.Store.Channel().Save(channel); result.Err != nil {
 		return nil
 	} else {
