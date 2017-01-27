@@ -67,9 +67,15 @@ export function close() {
     WebSocketClient.close();
 }
 
-export function reconnect() {
+function reconnectWebSocket() {
     close();
     initialize();
+}
+
+export function reconnect(includeWebSocket = true) {
+    if (includeWebSocket) {
+        reconnectWebSocket();
+    }
 
     if (Client.teamId) {
         loadChannelsForCurrentUser();
