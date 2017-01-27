@@ -327,6 +327,10 @@ func (c *Context) GetSiteURL() string {
 }
 
 func (c *Context) RequireUserId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
 	if len(c.Params.UserId) != 26 {
 		c.SetInvalidUrlParam("user_id")
 	}
@@ -334,6 +338,10 @@ func (c *Context) RequireUserId() *Context {
 }
 
 func (c *Context) RequireTeamId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
 	if len(c.Params.TeamId) != 26 {
 		c.SetInvalidUrlParam("team_id")
 	}
@@ -341,6 +349,10 @@ func (c *Context) RequireTeamId() *Context {
 }
 
 func (c *Context) RequireChannelId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
 	if len(c.Params.ChannelId) != 26 {
 		c.SetInvalidUrlParam("channel_id")
 	}
