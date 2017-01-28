@@ -6,6 +6,7 @@ import React from 'react';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router';
 
 export default class InstalledOutgoingWebhook extends React.Component {
     static get propTypes() {
@@ -15,7 +16,8 @@ export default class InstalledOutgoingWebhook extends React.Component {
             onDelete: React.PropTypes.func.isRequired,
             filter: React.PropTypes.string,
             creator: React.PropTypes.object.isRequired,
-            canChange: React.PropTypes.bool.isRequired
+            canChange: React.PropTypes.bool.isRequired,
+            team: React.PropTypes.object.isRequired
         };
     }
 
@@ -160,6 +162,13 @@ export default class InstalledOutgoingWebhook extends React.Component {
                             defaultMessage='Regen Token'
                         />
                     </a>
+                    {' - '}
+                    <Link to={`/${this.props.team.name}/integrations/outgoing_webhooks/edit?id=${outgoingWebhook.id}`}>
+                        <FormattedMessage
+                            id='installed_integrations.edit'
+                            defaultMessage='Edit'
+                        />
+                    </Link>
                     {' - '}
                     <a
                         href='#'

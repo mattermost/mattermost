@@ -22,7 +22,29 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.create_incoming.disabled.app_errror');
+                    assert.equal(err.id, 'api.webhook.create_incoming.disabled.app_error');
+                    done();
+                }
+            );
+        });
+    });
+
+    it('updateIncomingHook', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+
+            var hook = {};
+            hook.channel_id = TestHelper.basicChannel().id;
+            hook.description = 'desc';
+            hook.display_name = 'Unit Test';
+
+            TestHelper.basicClient().updateIncomingHook(
+                hook,
+                function() {
+                    done(new Error('hooks not enabled'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.webhook.update_incoming.disabled.app_error');
                     done();
                 }
             );
@@ -38,7 +60,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.delete_incoming.disabled.app_errror');
+                    assert.equal(err.id, 'api.webhook.delete_incoming.disabled.app_error');
                     done();
                 }
             );
@@ -123,6 +145,28 @@ describe('Client.Hooks', function() {
                 },
                 function(err) {
                     assert.equal(err.id, 'api.webhook.regen_outgoing_token.disabled.app_error');
+                    done();
+                }
+            );
+        });
+    });
+
+    it('updateOutgoingHook', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
+
+            var hook = {};
+            hook.channel_id = TestHelper.basicChannel().id;
+            hook.description = 'desc';
+            hook.display_name = 'Unit Test';
+
+            TestHelper.basicClient().updateOutgoingHook(
+                hook,
+                function() {
+                    done(new Error('hooks not enabled'));
+                },
+                function(err) {
+                    assert.equal(err.id, 'api.webhook.update_outgoing.disabled.app_error');
                     done();
                 }
             );

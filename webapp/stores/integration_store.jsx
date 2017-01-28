@@ -57,6 +57,20 @@ class IntegrationStore extends EventEmitter {
         this.setIncomingWebhooks(teamId, incomingWebhooks);
     }
 
+    updateIncomingWebhook(incomingWebhook) {
+        const teamId = incomingWebhook.team_id;
+        const incomingWebhooks = this.getIncomingWebhooks(teamId);
+
+        for (let i = 0; i < incomingWebhooks.length; i++) {
+            if (incomingWebhooks[i].id === incomingWebhook.id) {
+                incomingWebhooks[i] = incomingWebhook;
+                break;
+            }
+        }
+
+        this.setIncomingWebhooks(teamId, incomingWebhooks);
+    }
+
     removeIncomingWebhook(teamId, id) {
         let incomingWebhooks = this.getIncomingWebhooks(teamId);
 
@@ -198,6 +212,10 @@ class IntegrationStore extends EventEmitter {
             break;
         case ActionTypes.RECEIVED_INCOMING_WEBHOOK:
             this.addIncomingWebhook(action.incomingWebhook);
+            this.emitChange();
+            break;
+        case ActionTypes.UPDATED_INCOMING_WEBHOOK:
+            this.updateIncomingWebhook(action.incomingWebhook);
             this.emitChange();
             break;
         case ActionTypes.REMOVED_INCOMING_WEBHOOK:

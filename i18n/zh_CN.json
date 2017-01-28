@@ -2684,7 +2684,7 @@
     "translation": "团队枢纽停止 teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "传入的webhooks已被系统管理员禁用。"
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "无论是trigger_words或channel_id必须设置"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "传入的webhooks已被系统管理员禁用。"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "无效的删除传入的 webhook 权限"
   },
   {
