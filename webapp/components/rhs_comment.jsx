@@ -308,6 +308,10 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        if (PostUtils.isEdited(this.props.post)) {
+            postClass += ' post--edited';
+        }
+
         let systemMessageClass = '';
         if (isSystemMessage) {
             systemMessageClass = 'post--system';

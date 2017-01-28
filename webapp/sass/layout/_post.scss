@@ -717,7 +717,7 @@
     .post--edited {
         p {
             &:last-child {
-                display: inline;
+                display: inline-block;
             }
         }
     }
@@ -727,20 +727,10 @@
         line-height: 1.6em;
         margin: 0;
         white-space: pre-wrap;
-
-        &:last-child {
-            margin-bottom: .5em;
-        }
     }
 
     .post__header--info {
         padding: 0;
-    }
-
-    span {
-        p:last-child {
-            margin-bottom: .5em;
-        }
     }
 
     &.post--root {
@@ -1023,7 +1013,7 @@
         }
 
         p + p {
-            margin: 1.2em 0;
+            margin: 1.2em 0 0;
 
             &:last-of-type {
                 margin-bottom: 0;
