@@ -580,11 +580,10 @@ export default class CreateComment extends React.Component {
                                 onUploadError={this.handleUploadError}
                                 postType='comment'
                                 channelId={this.props.channelId}
+                                onEmojiClick={this.handleEmojiPickerClick}
+                                emojiPicker={emojiPicker}
                             />
-                            <span
-                                className='fa fa-smile-o icon__emoji_picker'
-                                onClick={this.handleEmojiPickerClick}
-                            />
+
                             {emojiPicker}
                         </div>
                     </div>

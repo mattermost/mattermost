@@ -48,7 +48,7 @@ export default class EmojiPickerItem extends React.Component {
                 onMouseOut={this.handleMouseOut}
                 onClick={this.handleClick}
                 src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
-                title={':' + name + ':'}
+
             />
         );
     }

@@ -48,7 +48,7 @@
 .emoji-picker-bottom {
     display: flex;
     z-index: 999 !important;
-    background-color: rgba(245,245,245,1);
+   // background-color: rgba(245,245,245,1);
     flex-direction: column;
     @include user-select(none);
     position: absolute;

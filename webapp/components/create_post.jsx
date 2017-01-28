@@ -639,11 +639,10 @@ export default class CreatePost extends React.Component {
                                 onUploadError={this.handleUploadError}
                                 postType='post'
                                 channelId=''
+                                onEmojiClick={this.handleEmojiPickerClick}
+                                emojiPicker={emojiPicker}
                             />
-                            <span
-                                className='fa fa-smile-o icon__emoji_picker'
-                                onClick={this.handleEmojiPickerClick}
-                            />
+
                             {emojiPicker}
                         </div>
                         <a

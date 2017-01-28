@@ -49,6 +49,7 @@ class FileUpload extends React.Component {
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
         this.handleMaxUploadReached = this.handleMaxUploadReached.bind(this);
+        this.emojiClick = this.emojiClick.bind(this);
 
         this.state = {
             requests: {}
@@ -210,7 +211,9 @@ class FileUpload extends React.Component {
         // jquery-dragster doesn't provide a function to unregister itself so do it manually
         target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
     }
-
+    emojiClick() {
+        this.props.onEmojiClick();
+    }
     pasteUpload(e) {
         var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         const {formatMessage} = this.props.intl;
@@ -353,6 +356,7 @@ class FileUpload extends React.Component {
                 ref='input'
                 className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
+
                 <span
                     className='icon'
                     dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
@@ -365,6 +369,10 @@ class FileUpload extends React.Component {
                     multiple={multiple}
                     accept={accept}
                 />
+                 <span
+                     className='fa fa-smile-o icon__emoji_picker'
+                     onClick={this.emojiClick}
+                 />
             </span>
         );
     }
@@ -380,7 +388,9 @@ FileUpload.propTypes = {
     onFileUploadChange: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
-    postType: React.PropTypes.string
+    postType: React.PropTypes.string,
+    onEmojiClick: React.PropTypes.func,
+    emojiPicker: React.PropTypes.object
 };
 
 export default injectIntl(FileUpload, {withRef: true});

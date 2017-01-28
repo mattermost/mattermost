@@ -455,18 +455,26 @@
                     @include opacity(.1);
                 }
             }
+
+            .icon {
+                position: relative;
+                top: -5px;
+
+            }
+
         }
+
 
         .icon__emoji_picker
         {
             @include opacity(.5);
             @include single-transition(all, .15s);
-            position: absolute;
-            top: 1px;
-            right: 37px;
+            // position: absolute;
+            top: -8px;
+            right: -4px;
             font-size: 19px;
             padding: 9px 11px 8px;
-
+            position: relative;
             &:hover,
             &:active {
                 @include opacity(.9);
