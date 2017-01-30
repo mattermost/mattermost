@@ -634,7 +634,7 @@ func TestGetAudits(t *testing.T) {
 		t.Fatal(err)
 	} else {
 
-		if len(result.Data.(model.Audits)) != 2 {
+		if len(result.Data.(model.Audits)) != 1 {
 			t.Fatal(result.Data.(model.Audits))
 		}
 

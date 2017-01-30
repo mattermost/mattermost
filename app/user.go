@@ -31,6 +31,10 @@ import (
 )
 
 func CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
+	if err := IsUserSignUpAllowed(); err != nil {
+		return nil, err
+	}
+
 	props := model.MapFromJson(strings.NewReader(data))
 
 	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
@@ -69,12 +73,18 @@ func CreateUserWithHash(user *model.User, hash string, data string) (*model.User
 }
 
 func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (*model.User, *model.AppError) {
+	if err := IsUserSignUpAllowed(); err != nil {
+		return nil, err
+	}
+
 	var team *model.Team
 	if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		team = result.Data.(*model.Team)
 	}
+
+	user.EmailVerified = false
 
 	var ruser *model.User
 	var err *model.AppError
@@ -93,6 +103,40 @@ func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (
 	}
 
 	return ruser, nil
+}
+
+func CreateUserFromSignup(user *model.User, siteURL string) (*model.User, *model.AppError) {
+	if err := IsUserSignUpAllowed(); err != nil {
+		return nil, err
+	}
+
+	if !IsFirstUserAccount() && !*utils.Cfg.TeamSettings.EnableOpenServer {
+		err := model.NewLocAppError("CreateUserFromSignup", "api.user.create_user.no_open_server", nil, "email="+user.Email)
+		err.StatusCode = http.StatusForbidden
+		return nil, err
+	}
+
+	user.EmailVerified = false
+
+	ruser, err := CreateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, siteURL); err != nil {
+		l4g.Error(err.Error())
+	}
+
+	return ruser, nil
+}
+
+func IsUserSignUpAllowed() *model.AppError {
+	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
+		err := model.NewLocAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "")
+		err.StatusCode = http.StatusNotImplemented
+		return err
+	}
+	return nil
 }
 
 func IsFirstUserAccount() bool {
@@ -575,6 +619,43 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	return nil
 }
 
+func UpdatePasswordAsUser(userId, currentPassword, newPassword, siteURL string) *model.AppError {
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = GetUser(userId); err != nil {
+		return err
+	}
+
+	if user == nil {
+		err = model.NewLocAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "")
+		err.StatusCode = http.StatusBadRequest
+		return err
+	}
+
+	if user.AuthData != nil && *user.AuthData != "" {
+		err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
+		err.StatusCode = http.StatusBadRequest
+		return err
+	}
+
+	if err := doubleCheckPassword(user, currentPassword); err != nil {
+		if err.Id == "api.user.check_user_password.invalid.app_error" {
+			err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
+		}
+		err.StatusCode = http.StatusForbidden
+		return err
+	}
+
+	T := utils.GetUserTranslations(user.Locale)
+
+	if err := UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"), siteURL); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func UpdateActiveNoLdap(userId string, active bool) (*model.User, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
@@ -622,6 +703,33 @@ func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) 
 
 		return ruser, nil
 	}
+}
+
+func SanitizeProfile(user *model.User, asAdmin bool) {
+	options := utils.Cfg.GetSanitizeOptions()
+	if asAdmin {
+		options["email"] = true
+		options["fullname"] = true
+		options["authservice"] = true
+	}
+	user.SanitizeProfile(options)
+}
+
+func UpdateUserAsUser(user *model.User, siteURL string, asAdmin bool) (*model.User, *model.AppError) {
+	updatedUser, err := UpdateUser(user, siteURL)
+	if err != nil {
+		return nil, err
+	}
+
+	SanitizeProfile(updatedUser, asAdmin)
+
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[updatedUser.Id] = true
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+	message.Add("user", updatedUser)
+	go Publish(message)
+
+	return updatedUser, nil
 }
 
 func UpdateUser(user *model.User, siteURL string) (*model.User, *model.AppError) {
