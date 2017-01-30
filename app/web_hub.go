@@ -227,7 +227,9 @@ func (h *Hub) Start() {
 					}
 					if userId == webConCandidate.UserId {
 						found = true
-						break
+						if indexToDel != -1 {
+							break
+						}
 					}
 				}
 
