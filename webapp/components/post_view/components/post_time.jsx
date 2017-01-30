@@ -6,13 +6,19 @@ import React from 'react';
 import Constants from 'utils/constants.jsx';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
-import {getDateForUnixTicks} from 'utils/utils.jsx';
+import {getDateForUnixTicks, isMobile} from 'utils/utils.jsx';
+
+import {Link} from 'react-router/es6';
+import TeamStore from 'stores/team_store.jsx';
 
 export default class PostTime extends React.Component {
     constructor(props) {
         super(props);
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
+        this.state = {
+            currentTeamDisplayName: TeamStore.getCurrent().display_name
+        };
     }
 
     componentDidMount() {
@@ -25,7 +31,7 @@ export default class PostTime extends React.Component {
         clearInterval(this.intervalId);
     }
 
-    render() {
+    renderTimeTag() {
         return (
             <time
                 className='post__time'
@@ -34,6 +40,19 @@ export default class PostTime extends React.Component {
                 {getDateForUnixTicks(this.props.eventTime).toLocaleString('en', {hour: '2-digit', minute: '2-digit', hour12: !this.props.useMilitaryTime})}
             </time>
         );
+    }
+
+    render() {
+        return isMobile() ?
+            this.renderTimeTag() :
+            (
+                <Link
+                    to={`/${this.state.currentTeamDisplayName}/pl/${this.props.postId}`}
+                    target='_blank'
+                >
+                    {this.renderTimeTag()}
+                </Link>
+            );
     }
 }
 
@@ -46,5 +65,6 @@ PostTime.propTypes = {
     eventTime: React.PropTypes.number.isRequired,
     sameUser: React.PropTypes.bool,
     compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    postId: React.PropTypes.string
 };

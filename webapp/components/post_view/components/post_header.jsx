@@ -19,7 +19,6 @@ export default class PostHeader extends React.Component {
     render() {
         const post = this.props.post;
         const isSystemMessage = PostUtils.isSystemMessage(post);
-
         let userProfile = (
             <UserProfile
                 user={this.props.user}
