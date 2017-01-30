@@ -1170,7 +1170,7 @@ export function clearFileInput(elm) {
 }
 
 export function isPostEphemeral(post) {
-    return post.type === Constants.POST_TYPE_EPHEMERAL || post.state === Constants.POST_DELETED;
+    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Constants.POST_DELETED;
 }
 
 export function getRootId(post) {

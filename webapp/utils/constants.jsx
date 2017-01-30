@@ -228,6 +228,19 @@ export const TutorialSteps = {
     MENU_POPOVER: 3
 };
 
+export const PostTypes = {
+    JOIN_LEAVE: 'system_join_leave',
+    JOIN_CHANNEL: 'system_join_channel',
+    LEAVE_CHANNEL: 'system_leave_channel',
+    ADD_TO_CHANNEL: 'system_add_to_channel',
+    REMOVE_FROM_CHANNEL: 'system_remove_from_channel',
+    HEADER_CHANGE: 'system_header_change',
+    DISPLAYNAME_CHANGE: 'system_displayname_change',
+    PURPOSE_CHANGE: 'system_purpose_change',
+    CHANNEL_DELETED: 'system_channel_deleted',
+    EPHEMERAL: 'system_ephemeral'
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
@@ -236,6 +249,7 @@ export const Constants = {
     UserStatuses,
     UserSearchOptions,
     TutorialSteps,
+    PostTypes,
 
     PayloadSources: keyMirror({
         SERVER_ACTION: null,
@@ -349,9 +363,6 @@ export const Constants = {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
-    POST_TYPE_EPHEMERAL: 'system_ephemeral',
-    POST_TYPE_JOIN_LEAVE: 'system_join_leave',
-    POST_TYPE_ATTACHMENT: 'slack_attachment',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_NAME: 'System',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
