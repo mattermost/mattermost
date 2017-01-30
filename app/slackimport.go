@@ -178,7 +178,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			Password:  password,
 		}
 
-		if mUser := ImportUser(team, &newUser); mUser != nil {
+		if mUser := OldImportUser(team, &newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
 			log.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
 		} else {
@@ -210,7 +210,7 @@ func SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
 		Password:  password,
 	}
 
-	if mUser := ImportUser(team, &botUser); mUser != nil {
+	if mUser := OldImportUser(team, &botUser); mUser != nil {
 		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]interface{}{"Email": botUser.Email, "Password": password}))
 		return mUser
 	} else {

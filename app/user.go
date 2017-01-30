@@ -173,8 +173,22 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		}
 	}
 
-	user.MakeNonNil()
 	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+
+	if ruser, err := createUser(user); err != nil {
+		return nil, err
+	} else {
+		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
+		message.Add("user_id", ruser.Id)
+		go Publish(message)
+
+		return ruser, nil
+	}
+}
+
+func createUser(user *model.User) (*model.User, *model.AppError) {
+	user.MakeNonNil()
 
 	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		return nil, err
@@ -198,11 +212,6 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		}
 
 		ruser.Sanitize(map[string]bool{})
-
-		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
-		message.Add("user_id", ruser.Id)
-		go Publish(message)
 
 		return ruser, nil
 	}
@@ -716,7 +725,7 @@ func SanitizeProfile(user *model.User, asAdmin bool) {
 }
 
 func UpdateUserAsUser(user *model.User, siteURL string, asAdmin bool) (*model.User, *model.AppError) {
-	updatedUser, err := UpdateUser(user, siteURL)
+	updatedUser, err := UpdateUser(user, siteURL, true)
 	if err != nil {
 		return nil, err
 	}
@@ -732,34 +741,36 @@ func UpdateUserAsUser(user *model.User, siteURL string, asAdmin bool) (*model.Us
 	return updatedUser, nil
 }
 
-func UpdateUser(user *model.User, siteURL string) (*model.User, *model.AppError) {
+func UpdateUser(user *model.User, siteURL string, sendNotifications bool) (*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().Update(user, false); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rusers := result.Data.([2]*model.User)
 
-		if rusers[0].Email != rusers[1].Email {
-			go func() {
-				if err := SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, siteURL); err != nil {
-					l4g.Error(err.Error())
-				}
-			}()
-
-			if utils.Cfg.EmailSettings.RequireEmailVerification {
+		if sendNotifications {
+			if rusers[0].Email != rusers[1].Email {
 				go func() {
-					if err := SendEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, rusers[0].Locale, siteURL); err != nil {
+					if err := SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, siteURL); err != nil {
+						l4g.Error(err.Error())
+					}
+				}()
+
+				if utils.Cfg.EmailSettings.RequireEmailVerification {
+					go func() {
+						if err := SendEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, rusers[0].Locale, siteURL); err != nil {
+							l4g.Error(err.Error())
+						}
+					}()
+				}
+			}
+
+			if rusers[0].Username != rusers[1].Username {
+				go func() {
+					if err := SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, siteURL); err != nil {
 						l4g.Error(err.Error())
 					}
 				}()
 			}
-		}
-
-		if rusers[0].Username != rusers[1].Username {
-			go func() {
-				if err := SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, siteURL); err != nil {
-					l4g.Error(err.Error())
-				}
-			}()
 		}
 
 		InvalidateCacheForUser(user.Id)
@@ -778,7 +789,7 @@ func UpdateUserNotifyProps(userId string, props map[string]string, siteURL strin
 	user.NotifyProps = props
 
 	var ruser *model.User
-	if ruser, err = UpdateUser(user, siteURL); err != nil {
+	if ruser, err = UpdateUser(user, siteURL, true); err != nil {
 		return nil, err
 	}
 

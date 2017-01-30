@@ -22,6 +22,13 @@ const (
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
+
+	USER_EMAIL_MAX_LENGTH     = 128
+	USER_NICKNAME_MAX_RUNES   = 64
+	USER_POSITION_MAX_RUNES   = 35
+	USER_FIRST_NAME_MAX_RUNES = 64
+	USER_LAST_NAME_MAX_RUNES  = 64
+	USER_AUTH_DATA_MAX_LENGTH = 128
 )
 
 type User struct {
@@ -72,27 +79,27 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if len(u.Email) > 128 || len(u.Email) == 0 {
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 {
 		return NewAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.Nickname) > 64 {
+	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.Position) > 35 {
+	if utf8.RuneCountInString(u.Position) > USER_POSITION_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.FirstName) > 64 {
+	if utf8.RuneCountInString(u.FirstName) > USER_FIRST_NAME_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.LastName) > 64 {
+	if utf8.RuneCountInString(u.LastName) > USER_LAST_NAME_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 128 {
+	if u.AuthData != nil && len(*u.AuthData) > USER_AUTH_DATA_MAX_LENGTH {
 		return NewAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 

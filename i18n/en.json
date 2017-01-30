@@ -2804,6 +2804,10 @@
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
   {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "Import data line has type \"user\" but the user objcet is null."
+  },
+  {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "Import data line has unknown type \"{{.Type}}\"."
   },
@@ -2898,6 +2902,50 @@
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
     "translation": "Channel purpose is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Missing require user property: username."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "Username is not valid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Missing required user property: email."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "User email has an invalid length."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "User AuthService should not be empty if it is provided."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "User AuthData is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "User nickname is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "User First Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "User Last Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "User Position is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "User roles are not valid."
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
