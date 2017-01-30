@@ -170,6 +170,28 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 	return nil
 }
 
+func SendPasswordResetEmail(email string, recovery *model.PasswordRecovery, locale, siteURL string) (bool, *model.AppError) {
+
+	T := utils.GetUserTranslations(locale)
+
+	link := fmt.Sprintf("%s/reset_password_complete?code=%s", siteURL, url.QueryEscape(recovery.Code))
+
+	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, T("api.templates.reset_subject"))
+
+	bodyPage := utils.NewHTMLTemplate("reset_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
+	bodyPage.Html["Info"] = template.HTML(T("api.templates.reset_body.info"))
+	bodyPage.Props["ResetUrl"] = link
+	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
+
+	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
+	}
+
+	return true, nil
+}
+
 func SendMfaChangeEmail(email string, activated bool, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 

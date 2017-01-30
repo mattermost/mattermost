@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -18,7 +19,7 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 	var newUsername string = "fancyusername"
 	var locale string = "en"
 	var siteURL string = ""
-	var expectedPartialMessage string = "Your username for "+ utils.Cfg.TeamSettings.SiteName + " has been changed to " + newUsername + "."
+	var expectedPartialMessage string = "Your username for " + utils.Cfg.TeamSettings.SiteName + " has been changed to " + newUsername + "."
 	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your username has changed for " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
@@ -413,6 +414,51 @@ func TestSendInviteEmails(t *testing.T) {
 			if !strings.Contains(resultsEmail.Body.Text, expectedPartialMessage) {
 				t.Log(resultsEmail.Body.Text)
 				t.Fatal("Wrong Body message")
+			}
+		}
+	}
+}
+
+func TestSendPasswordReset(t *testing.T) {
+	th := Setup().InitBasic()
+	utils.LoadConfig("config.json")
+
+	var siteURL string = "http://test.mattermost.io"
+	// var locale string = "en"
+	var expectedPartialMessage string = "To change your password"
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Reset your password"
+
+	//Delete all the messages before check the sample email
+	utils.DeleteMailBox(th.BasicUser.Email)
+
+	if _, err := SendPasswordReset(th.BasicUser.Email, siteURL); err != nil {
+		t.Log(err)
+		t.Fatal("Should send change username email")
+	} else {
+		//Check if the email was send to the rigth email address
+		if resultsMailbox, err := utils.GetMailBox(th.BasicUser.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser.Email) {
+			t.Fatal("Wrong To recipient")
+		} else {
+			if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser.Email, resultsMailbox[0].ID); err == nil {
+				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+					t.Log(resultsEmail.Subject)
+					t.Fatal("Wrong Subject")
+				}
+				if !strings.Contains(resultsEmail.Body.Text, expectedPartialMessage) {
+					t.Log(resultsEmail.Body.Text)
+					t.Fatal("Wrong Body message")
+				}
+				var recoveryKey *model.PasswordRecovery
+				if result := <-Srv.Store.PasswordRecovery().Get(th.BasicUser.Id); result.Err != nil {
+					t.Fatal(result.Err)
+				} else {
+					recoveryKey = result.Data.(*model.PasswordRecovery)
+					if !strings.Contains(resultsEmail.Body.Text, recoveryKey.Code) {
+						t.Log(resultsEmail.Body.Text)
+						t.Log(recoveryKey.Code)
+						t.Fatal("Received wrong recovery code")
+					}
+				}
 			}
 		}
 	}
