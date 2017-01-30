@@ -61,7 +61,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "ログファイルの読み込み中にエラーになりました"
+    "translation": "ログファイルの読み込み中にエラーが発生しました"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "チャンネルのヘッダーメッセージ%vを更新する際にユーザーを取得できませんでした"
+    "translation": "チャンネルヘッダーを更新する際にユーザーを取得できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -796,6 +796,10 @@
     "translation": "申し訳ありません。ページが見付かりません。"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Invalid or missing {{.Name}} in request body"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
   },
@@ -810,6 +814,10 @@
   {
     "id": "api.context.invalid_token.error",
     "translation": "無効なセッショントークン={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Invalid or missing {{.Name}} parameter in request URL"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -2780,20 +2788,132 @@
     "translation": "%s がチャンネルの目的を %s に更新しました"
   },
   {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "インポートデータファイルの読み込み中にエラーが発生しました。"
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSONをデコードできませんでした。"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "チャンネルのインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "インポートデータに \"channel\" という型がありましたが、そのチャンネルのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "インポートデータに \"team\" という型がありましたが、そのチームのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "インポートデータに不明な型 \"{{.Type}}\"がありました。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "チャンネル作成日時は0ではないはずです。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "チャンネルの表示名の長さが制限を超えています。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "必須のチャンネル設定値 display_name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "チャンネルヘッダーが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "チャンネル名が不正な文字を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "チャンネル名が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "必須のチャンネル設定値 name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "チャンネルの目的が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "必須のチャンネル設定値 team が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "チャンネルの種類が不正です。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "必須のチャンネル設定値 type が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "チームの許可されたドメインが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "チームの作成日時は0ではないはずです。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "チームの説明が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "チームの表示名の長さが制限を超えています。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "必須のチーム設定値 display_name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "チーム名が不正な文字を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "チーム名が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "必須のチーム設定値 name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "チーム名が予約語を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "チームの種類が有効ではありません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "必須のチーム設定値 type が存在しません。"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Ability to create new teams"
+    "translation": "新しいチームを作成できるようにする"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Create Teams"
+    "translation": "チームを作成する"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
+    "translation": "チームメンバーの役割を変更できるようにする"
   },
   {
     "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
+    "translation": "チームの役割を管理する"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3644,6 +3764,10 @@
     "translation": "SQL設定の最大稼働接続数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Time btween user typing updates should not be set less than 1000 milliseconds."
+  },
+  {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
     "translation": "WebRTCゲートウェイ管理者秘密情報を設定してください。"
   },
@@ -4314,6 +4438,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "チャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "削除されたチャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "その名前を持つ削除されたチャンネルは存在しません"
   },
   {
     "id": "store.sql_channel.get_extra_members.app_error",
