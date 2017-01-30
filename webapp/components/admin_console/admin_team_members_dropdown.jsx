@@ -9,7 +9,8 @@ import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {updateUserRoles, updateActive} from 'actions/user_actions.jsx';
-import {updateTeamMemberRoles, removeUserFromTeam, adminResetMfa} from 'actions/team_actions.jsx';
+import {updateTeamMemberRoles, removeUserFromTeam} from 'actions/team_actions.jsx';
+import {adminResetMfa} from 'actions/admin_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
