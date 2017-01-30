@@ -540,6 +540,11 @@ class UserStoreClass extends EventEmitter {
             keys.push('@all');
         }
 
+        const usernameKey = '@' + user.username;
+        if (keys.indexOf(usernameKey) === -1) {
+            keys.push(usernameKey);
+        }
+
         return keys;
     }
 
