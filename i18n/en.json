@@ -3400,6 +3400,10 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Time btween user typing updates should not be set less than 1000 milliseconds."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled"
   },

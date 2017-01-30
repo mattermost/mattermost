@@ -35,7 +35,9 @@
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
-        "RestrictCustomEmojiCreation": "all"
+        "RestrictCustomEmojiCreation": "all",
+        "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
+        "EnableUserTypingMessages": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
