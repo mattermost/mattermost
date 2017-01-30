@@ -314,6 +314,10 @@
         @include opacity(.8);
     }
 
+    &.rhs {
+        top: 98px;
+    }
+
     > div {
         @include border-radius(3px);
         @include font-smoothing(initial);
