@@ -5,6 +5,7 @@ package store
 
 import (
 	"database/sql"
+	"net/http"
 	"strconv"
 
 	"github.com/mattermost/platform/model"
@@ -62,8 +63,8 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		result := StoreResult{}
 
 		if len(team.Id) > 0 {
-			result.Err = model.NewLocAppError("SqlTeamStore.Save",
-				"store.sql_team.save.existing.app_error", nil, "id="+team.Id)
+			result.Err = model.NewAppError("SqlTeamStore.Save",
+				"store.sql_team.save.existing.app_error", nil, "id="+team.Id, http.StatusBadRequest)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -79,7 +80,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 
 		if err := s.GetMaster().Insert(team); err != nil {
 			if IsUniqueConstraintError(err.Error(), []string{"Name", "teams_name_key"}) {
-				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusBadRequest)
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error())
 			}

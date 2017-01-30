@@ -45,7 +45,7 @@ func TestCreateTeam(t *testing.T) {
 
 	rteam.Data.(*model.Team).Id = ""
 	if _, err := Client.CreateTeam(rteam.Data.(*model.Team)); err != nil {
-		if err.Message != "A team with that domain already exists" {
+		if err.Message != "A team with that name already exists" {
 			t.Fatal(err)
 		}
 	}
