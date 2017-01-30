@@ -355,7 +355,7 @@ class UserSettingsGeneralTab extends React.Component {
 
             if (!emailEnabled) {
                 helpText = (
-                    <div className='setting-list__hint text-danger'>
+                    <div className='setting-list__hint col-sm-12 text-danger'>
                         <FormattedMessage
                             id='user.settings.general.emailHelp2'
                             defaultMessage='Email has been disabled by your System Administrator. No notification emails will be sent until it is enabled.'
@@ -437,7 +437,7 @@ class UserSettingsGeneralTab extends React.Component {
                         key='oauthEmailInfo'
                         className='form-group'
                     >
-                        <div className='setting-list__hint'>
+                        <div className='setting-list__hint col-sm-12'>
                             <FormattedMessage
                                 id='user.settings.general.emailGitlabCantUpdate'
                                 defaultMessage='Login occurs through GitLab. Email cannot be updated. Email address used for notifications is {email}.'
@@ -455,7 +455,7 @@ class UserSettingsGeneralTab extends React.Component {
                         key='oauthEmailInfo'
                         className='form-group'
                     >
-                        <div className='setting-list__hint'>
+                        <div className='setting-list__hint col-sm-12'>
                             <FormattedMessage
                                 id='user.settings.general.emailGoogleCantUpdate'
                                 defaultMessage='Login occurs through Google Apps. Email cannot be updated. Email address used for notifications is {email}.'
@@ -473,7 +473,7 @@ class UserSettingsGeneralTab extends React.Component {
                         key='oauthEmailInfo'
                         className='form-group'
                     >
-                        <div className='setting-list__hint'>
+                        <div className='setting-list__hint col-sm-12'>
                             <FormattedMessage
                                 id='user.settings.general.emailOffice365CantUpdate'
                                 defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
@@ -491,7 +491,7 @@ class UserSettingsGeneralTab extends React.Component {
                         key='oauthEmailInfo'
                         className='padding-bottom'
                     >
-                        <div className='setting-list__hint'>
+                        <div className='setting-list__hint col-sm-12'>
                             <FormattedMessage
                                 id='user.settings.general.emailLdapCantUpdate'
                                 defaultMessage='Login occurs through AD/LDAP. Email cannot be updated. Email address used for notifications is {email}.'
@@ -509,7 +509,7 @@ class UserSettingsGeneralTab extends React.Component {
                         key='oauthEmailInfo'
                         className='padding-bottom'
                     >
-                        <div className='setting-list__hint'>
+                        <div className='setting-list__hint col-sm-12'>
                             <FormattedMessage
                                 id='user.settings.general.emailSamlCantUpdate'
                                 defaultMessage='Login occurs through SAML. Email cannot be updated. Email address used for notifications is {email}.'

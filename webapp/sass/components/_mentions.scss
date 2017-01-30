@@ -21,6 +21,13 @@
     width: 100%;
     z-index: 101;
 
+    .status {
+        font-size: 15px;
+        text-align: center;
+        vertical-align: bottom;
+        width: 20px;
+    }
+
     .fa-user {
         position: relative;
         top: -1px;

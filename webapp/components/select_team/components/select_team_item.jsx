@@ -49,7 +49,7 @@ export default class SelectTeamItem extends React.Component {
                 <OverlayTrigger
                     trigger={['hover', 'focus', 'click']}
                     delayShow={1000}
-                    placement='left'
+                    placement='top'
                     overlay={descriptionTooltip}
                     ref='descriptionOverlay'
                 >

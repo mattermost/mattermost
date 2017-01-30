@@ -10,7 +10,7 @@ export default class SettingItemMin extends React.Component {
         let editButton = null;
         if (!this.props.disableOpen) {
             editButton = (
-                <li className='col-sm-3 section-edit'>
+                <li className='col-xs-12 col-sm-3 section-edit'>
                     <a
                         className='theme'
                         href='#'
@@ -31,9 +31,9 @@ export default class SettingItemMin extends React.Component {
                 className='section-min'
                 onClick={this.props.updateSection}
             >
-                <li className='col-sm-9 section-title'>{this.props.title}</li>
+                <li className='col-xs-12 col-sm-9 section-title'>{this.props.title}</li>
                 {editButton}
-                <li className='col-sm-12 section-describe'>{this.props.describe}</li>
+                <li className='col-xs-12 section-describe'>{this.props.describe}</li>
             </ul>
         );
     }
