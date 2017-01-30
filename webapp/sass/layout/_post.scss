@@ -311,13 +311,14 @@
 
     &.scrolling {
         @include translateY(0);
-        @include opacity(.8);
+        @include opacity(.9);
     }
 
     > div {
         @include border-radius(3px);
         @include font-smoothing(initial);
         background: $primary-color;
+        border: 1px solid;
         color: $white;
         display: inline-block;
         font-size: 12px;
