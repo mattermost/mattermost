@@ -2948,6 +2948,22 @@
     "translation": "User roles are not valid."
   },
   {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Channel name missing from User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Channel Membership."
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },
