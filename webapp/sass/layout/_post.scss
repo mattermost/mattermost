@@ -1086,7 +1086,7 @@
         }
 
         .pending-post-actions {
-            background: alpha-property($black, .7);
+            background: alpha-color($black, .7);
             color: $white;
             font-size: .9em;
             padding: 5px 7px;
