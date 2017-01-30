@@ -294,7 +294,6 @@ export default class RhsComment extends React.Component {
 
         let loading;
         let postClass = '';
-        let message = <PostMessageContainer post={post}/>;
 
         if (post.state === Constants.POST_FAILED) {
             postClass += ' post-fail';
@@ -305,13 +304,6 @@ export default class RhsComment extends React.Component {
                 <img
                     className='post-loading-gif pull-right'
                     src={loadingGif}
-                />
-            );
-        } else if (this.props.post.state === Constants.POST_DELETED) {
-            message = (
-                <FormattedMessage
-                    id='post_body.deleted'
-                    defaultMessage='(message deleted)'
                 />
             );
         }
@@ -491,7 +483,7 @@ export default class RhsComment extends React.Component {
                         <div className='post__body'>
                             <div className={postClass}>
                                 {loading}
-                                {message}
+                                <PostMessageContainer post={post}/>
                             </div>
                             {fileAttachment}
                             <ReactionListContainer
