@@ -291,7 +291,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 				doLogin(c, w, r, user, "")
 			}
 			if c.Err == nil {
-				http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
+				http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			}
 			break
 		case model.OAUTH_ACTION_LOGIN:
@@ -304,25 +304,25 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 					http.Redirect(w, r, c.GetSiteURL()+val, http.StatusTemporaryRedirect)
 					return
 				}
-				http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
+				http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			}
 			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
 			CompleteSwitchWithOAuth(c, w, r, service, body, props["email"])
 			if c.Err == nil {
-				http.Redirect(w, r, GetProtocol(r)+"://"+r.Host+"/login?extra=signin_change", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host+"/login?extra=signin_change", http.StatusTemporaryRedirect)
 			}
 			break
 		case model.OAUTH_ACTION_SSO_TO_EMAIL:
 			LoginByOAuth(c, w, r, service, body)
 			if c.Err == nil {
-				http.Redirect(w, r, GetProtocol(r)+"://"+r.Host+"/claim?email="+url.QueryEscape(props["email"]), http.StatusTemporaryRedirect)
+				http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host+"/claim?email="+url.QueryEscape(props["email"]), http.StatusTemporaryRedirect)
 			}
 			break
 		default:
 			LoginByOAuth(c, w, r, service, body)
 			if c.Err == nil {
-				http.Redirect(w, r, GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
+				http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
 			}
 			break
 		}

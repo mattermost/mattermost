@@ -800,6 +800,14 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Invalid or missing {{.Name}} in request body"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Invalid or missing {{.Name}} parameter in request URL"
+  },
+  {
     "id": "api.context.invalid_session.error",
     "translation": "Invalid session err=%v"
   },
@@ -5245,7 +5253,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join."
+    "translation": "We couldn't find the user."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
