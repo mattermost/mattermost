@@ -454,7 +454,9 @@ export function viewLoggedIn() {
 let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
-    if ((t - lastTimeTypingSent) > Constants.UPDATE_TYPING_MS) {
+    const membersInChannel = ChannelStore.getStats(channelId).member_count;
+
+    if (((t - lastTimeTypingSent) > global.window.mm_config.TimeBetweenUserTypingUpdatesMilliseconds) && membersInChannel < global.window.mm_config.MaxNotificationsPerChannel && global.window.mm_config.EnableUserTypingMessages === 'true') {
         WebSocketClient.userTyping(channelId, parentId);
         lastTimeTypingSent = t;
     }
