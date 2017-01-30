@@ -514,30 +514,6 @@
 
 }
 
-
-.status-wrapper {
-    display: inline-block;
-    height: 32px;
-    position: relative;
-
-    &:after {
-        border-radius: 100%;
-        bottom: -2px;
-        content: '';
-        display: block;
-        height: 8px;
-        position: absolute;
-        right: 0;
-        width: 8px;
-    }
-
-    &.status-offline {
-        &:after {
-            background: #D3D3D3;
-        }
-    }
-}
-
 .more-modal__list {
     display: flex;
     flex-direction: column;
@@ -556,12 +532,6 @@
 
         .more-modal__row {
             padding: 5px 10px;
-
-            .status-wrapper {
-                &:after {
-                    bottom: 0;
-                }
-            }
         }
 
         .more-modal__name {
@@ -575,12 +545,6 @@
         flex-shrink: 0;
         margin-top: 2px;
         max-width: none;
-
-        .status-wrapper {
-            &:after {
-                bottom: 3px;
-            }
-        }
     }
 
     .more-modal__details {

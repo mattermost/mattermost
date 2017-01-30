@@ -926,9 +926,11 @@
         text-align: right;
         width: 53px;
 
-        svg {
-            height: 32px;
-            width: 32px;
+        .icon {
+            svg {
+                height: 32px;
+                width: 32px;
+            }
         }
 
         path {
