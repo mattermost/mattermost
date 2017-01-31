@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 	"reflect"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"testing"
@@ -213,10 +214,12 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	if !reflect.ValueOf(data).IsNil() {
+		debug.PrintStack()
 		t.Fatal("etag data was not nil")
 	}
 
 	if resp.StatusCode != http.StatusNotModified {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
 		t.Fatal("wrong status code for etag")
@@ -225,17 +228,20 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 
 func CheckNoError(t *testing.T, resp *model.Response) {
 	if resp.Error != nil {
-		t.Fatal(resp.Error)
+		debug.PrintStack()
+		t.Fatal("Expected no error, got " + resp.Error.Error())
 	}
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusForbidden))
 		return
 	}
 
 	if resp.StatusCode != http.StatusForbidden {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusForbidden))
 		t.Fatal("wrong status code")
@@ -244,11 +250,13 @@ func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusUnauthorized))
 		return
 	}
 
 	if resp.StatusCode != http.StatusUnauthorized {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusUnauthorized))
 		t.Fatal("wrong status code")
@@ -257,11 +265,13 @@ func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotFound))
 		return
 	}
 
 	if resp.StatusCode != http.StatusNotFound {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotFound))
 		t.Fatal("wrong status code")
@@ -270,11 +280,13 @@ func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusBadRequest))
 		return
 	}
 
 	if resp.StatusCode != http.StatusBadRequest {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
 		t.Fatal("wrong status code")
@@ -283,11 +295,13 @@ func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with message:" + errorId)
 		return
 	}
 
 	if resp.Error.Id != errorId {
+		debug.PrintStack()
 		t.Log("actual: " + resp.Error.Id)
 		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
