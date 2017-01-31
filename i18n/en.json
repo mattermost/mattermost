@@ -5161,7 +5161,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "A team with that domain already exists"
+    "translation": "A team with that name already exists"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
