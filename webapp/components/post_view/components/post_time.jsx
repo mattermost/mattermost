@@ -17,7 +17,7 @@ export default class PostTime extends React.Component {
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
         this.state = {
-            currentTeamDisplayName: TeamStore.getCurrent().display_name,
+            currentTeamDisplayName: TeamStore.getCurrent().name,
             width: '',
             height: ''
         };
