@@ -17,7 +17,9 @@ export default class PostTime extends React.Component {
 
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
         this.state = {
-            currentTeamDisplayName: TeamStore.getCurrent().display_name
+            currentTeamDisplayName: TeamStore.getCurrent().display_name,
+            width: '',
+            height: ''
         };
     }
 
@@ -25,10 +27,16 @@ export default class PostTime extends React.Component {
         this.intervalId = setInterval(() => {
             this.forceUpdate();
         }, Constants.TIME_SINCE_UPDATE_INTERVAL);
+        window.addEventListener('resize', this.updateDimensions.bind(this));
     }
 
     componentWillUnmount() {
         clearInterval(this.intervalId);
+        window.removeEventListener('resize', this.updateDimensions.bind(this));
+    }
+
+    updateDimensions() {
+        this.setState({width: window.innerWidth, height: window.innerHeight});
     }
 
     renderTimeTag() {
@@ -49,6 +57,7 @@ export default class PostTime extends React.Component {
                 <Link
                     to={`/${this.state.currentTeamDisplayName}/pl/${this.props.postId}`}
                     target='_blank'
+                    className='post__permalink'
                 >
                     {this.renderTimeTag()}
                 </Link>
