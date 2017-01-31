@@ -369,10 +369,10 @@ class FileUpload extends React.Component {
                     multiple={multiple}
                     accept={accept}
                 />
-                 <span
-                     className='fa fa-smile-o icon__emoji_picker'
-                     onClick={this.emojiClick}
-                 />
+                <span
+                    className='fa fa-smile-o icon__emoji_picker'
+                    onClick={this.emojiClick}
+                />
             </span>
         );
     }

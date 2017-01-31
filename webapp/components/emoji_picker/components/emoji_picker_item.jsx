@@ -39,8 +39,6 @@ export default class EmojiPickerItem extends React.Component {
     }
 
     render() {
-        const name = this.props.emoji.name || this.props.emoji.aliases[0];
-
         return (
             <img
                 className='emoji-picker__item emoticon'
