@@ -42,12 +42,17 @@ export default class LoginController extends React.Component {
         this.handleLoginIdChange = this.handleLoginIdChange.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
 
+        let loginId = '';
+        if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
+            loginId = this.props.location.query.email;
+        }
+
         this.state = {
             ldapEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true',
             usernameSigninEnabled: global.window.mm_config.EnableSignInWithUsername === 'true',
             emailSigninEnabled: global.window.mm_config.EnableSignInWithEmail === 'true',
             samlEnabled: global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableSaml === 'true',
-            loginId: '', // the browser will set a default for this
+            loginId,
             password: '',
             showMfa: false,
             loading: false
@@ -59,6 +64,10 @@ export default class LoginController extends React.Component {
         BrowserStore.removeGlobalItem('team');
         if (UserStore.getCurrentUser()) {
             GlobalActions.redirectUserToDefaultTeam();
+        }
+
+        if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
+            this.refs.password.focus();
         }
 
         AsyncClient.checkVersion();
