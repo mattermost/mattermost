@@ -764,22 +764,19 @@ func UpdatePasswordAsUser(userId, currentPassword, newPassword, siteURL string) 
 	}
 
 	if user == nil {
-		err = model.NewLocAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "")
-		err.StatusCode = http.StatusBadRequest
+		err = model.NewAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "", http.StatusBadRequest)
 		return err
 	}
 
 	if user.AuthData != nil && *user.AuthData != "" {
-		err = model.NewLocAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService)
-		err.StatusCode = http.StatusBadRequest
+		err = model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 		return err
 	}
 
 	if err := doubleCheckPassword(user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
-			err = model.NewLocAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "")
+			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
-		err.StatusCode = http.StatusForbidden
 		return err
 	}
 

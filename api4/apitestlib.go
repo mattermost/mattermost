@@ -61,6 +61,8 @@ func Setup() *TestHelper {
 }
 
 func TearDown() {
+	utils.DisableDebugLogForTest()
+
 	options := map[string]bool{}
 	options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	if result := <-app.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
@@ -86,6 +88,8 @@ func TearDown() {
 			}
 		}
 	}
+
+	utils.EnableDebugLogForTest()
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
@@ -208,7 +212,7 @@ func (me *TestHelper) LoginBasicWithClient(client *model.Client4) {
 
 func (me *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	client.Login(me.BasicUser.Email, me.BasicUser.Password)
+	client.Login(me.BasicUser2.Email, me.BasicUser2.Password)
 	utils.EnableDebugLogForTest()
 }
 

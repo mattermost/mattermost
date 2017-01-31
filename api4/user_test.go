@@ -149,7 +149,6 @@ func TestGetUserByEmail(t *testing.T) {
 	ruser, resp = Client.GetUserByEmail(user.Email, resp.Etag)
 	CheckEtag(t, ruser, resp)
 
-	
 	_, resp = Client.GetUserByEmail(GenerateTestUsername(), "")
 	CheckBadRequestStatus(t, resp)
 
@@ -287,7 +286,7 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.Client
-	
+
 	user := th.BasicUser
 	th.LoginBasic()
 
@@ -296,7 +295,7 @@ func TestDeleteUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
-	
+
 	_, resp = Client.DeleteUser(user.Id)
 	CheckUnauthorizedStatus(t, resp)
 
@@ -508,5 +507,77 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	CheckNoError(t, resp)
+}
+
+func TestUpdateUserPassword(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	password := "newpassword1"
+	pass, resp := Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, password)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have returned true")
+	}
+
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, password, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, password, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateUserPassword("junk", password, password)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, "", password)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, "junk", password)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, password, th.BasicUser.Password)
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, password, password)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, password, password)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	// Test lockout
+	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	defer func() {
+		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+	}()
+	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+
+	// Fail twice
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, "badpwd", "newpwd")
+	CheckBadRequestStatus(t, resp)
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, "badpwd", "newpwd")
+	CheckBadRequestStatus(t, resp)
+
+	// Should fail because account is locked out
+	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, "newpwd")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	CheckForbiddenStatus(t, resp)
+
+	// System admin can update another user's password
+	adminSetPassword := "pwdsetbyadmin"
+	pass, resp = th.SystemAdminClient.UpdateUserPassword(th.BasicUser.Id, "", adminSetPassword)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have returned true")
+	}
+
+	_, resp = Client.Login(th.BasicUser.Email, adminSetPassword)
 	CheckNoError(t, resp)
 }
