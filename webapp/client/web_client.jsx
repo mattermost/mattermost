@@ -50,7 +50,7 @@ class WebClientClass extends Client {
             return;
         }
 
-        if (err.status === HTTP_UNAUTHORIZED && res.req.url !== '/api/v3/users/login') {
+        if (err.status === HTTP_UNAUTHORIZED && res.req.url !== this.getUsersRoute() + '/login') {
             GlobalActions.emitUserLoggedOutEvent('/login');
         }
 
