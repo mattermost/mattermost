@@ -204,10 +204,10 @@ class ChannelStoreClass extends EventEmitter {
         }
 
         if (!Utils) {
-            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
         }
 
-        channels.sort(Utils.sortByDisplayName);
+        channels = channels.sort(Utils.sortChannelsByDisplayName);
         this.storeChannels(channels);
     }
 
@@ -286,10 +286,10 @@ class ChannelStoreClass extends EventEmitter {
         const teamChannels = this.moreChannels[teamId] || {};
 
         if (!Utils) {
-            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
         }
 
-        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(Utils.sortByDisplayName);
+        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(Utils.sortChannelsByDisplayName);
     }
 
     storeStats(stats) {

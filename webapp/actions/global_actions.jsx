@@ -570,7 +570,7 @@ export function redirectUserToDefaultTeam() {
         }
 
         if (myTeams.length > 0) {
-            myTeams = myTeams.sort((a, b) => a.display_name.localeCompare(b.display_name));
+            myTeams = myTeams.sort(Utils.sortTeamsByDisplayName);
             teamId = myTeams[0].id;
         }
     }

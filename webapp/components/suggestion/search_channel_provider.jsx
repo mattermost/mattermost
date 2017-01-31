@@ -10,6 +10,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
+import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 
@@ -51,7 +52,7 @@ export default class SearchChannelProvider extends Provider {
                     const publicChannels = data;
 
                     const localChannels = ChannelStore.getAll();
-                    const privateChannels = [];
+                    let privateChannels = [];
 
                     for (const id of Object.keys(localChannels)) {
                         const channel = localChannels[id];
@@ -60,15 +61,15 @@ export default class SearchChannelProvider extends Provider {
                         }
                     }
 
-                    const filteredPublicChannels = [];
+                    let filteredPublicChannels = [];
                     publicChannels.forEach((item) => {
                         if (item.name.startsWith(channelPrefix)) {
                             filteredPublicChannels.push(item);
                         }
                     });
 
-                    privateChannels.sort((a, b) => a.name.localeCompare(b.name));
-                    filteredPublicChannels.sort((a, b) => a.name.localeCompare(b.name));
+                    privateChannels = privateChannels.sort(sortChannelsByDisplayName);
+                    filteredPublicChannels = filteredPublicChannels.sort(sortChannelsByDisplayName);
 
                     const channels = filteredPublicChannels.concat(privateChannels);
                     const channelNames = channels.map((channel) => channel.name);

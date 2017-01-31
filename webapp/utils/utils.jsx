@@ -1093,25 +1093,15 @@ export function windowHeight() {
     return $(window).height();
 }
 
-// Use when sorting multiple channels or teams by their `display_name` field
-export function sortByDisplayName(a, b) {
-    let aDisplayName = '';
-    let bDisplayName = '';
+// Use when sorting multiple teams by their `display_name` field
+export function sortTeamsByDisplayName(a, b) {
+    const locale = LocalizationStore.getLocale();
 
-    if (a && a.display_name) {
-        aDisplayName = a.display_name.toLowerCase();
-    }
-    if (b && b.display_name) {
-        bDisplayName = b.display_name.toLowerCase();
+    if (a.display_name !== b.display_name) {
+        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
     }
 
-    if (aDisplayName < bDisplayName) {
-        return -1;
-    }
-    if (aDisplayName > bDisplayName) {
-        return 1;
-    }
-    return 0;
+    return a.name.localeCompare(b.name, locale, {numeric: true});
 }
 
 export function getChannelTerm(channelType) {

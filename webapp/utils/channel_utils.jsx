@@ -23,8 +23,11 @@ import LocalizationStore from 'stores/localization_store.jsx';
 export function buildDisplayableChannelList(persistentChannels) {
     const missingDMChannels = createMissingDirectChannels(persistentChannels);
 
-    const channels = persistentChannels.concat(missingDMChannels).map(completeDirectChannelInfo).filter(isNotDeletedChannel);
-    channels.sort(sortChannelsByDisplayName);
+    const channels = persistentChannels.
+        concat(missingDMChannels).
+        map(completeDirectChannelInfo).
+        filter(isNotDeletedChannel).
+        sort(sortChannelsByDisplayName);
 
     const favoriteChannels = channels.filter(isFavoriteChannel);
     const notFavoriteChannels = channels.filter(not(isFavoriteChannel));
