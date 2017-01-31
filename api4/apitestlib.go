@@ -24,6 +24,7 @@ type TestHelper struct {
 	BasicUser2    *model.User
 	TeamAdminUser *model.User
 	BasicTeam     *model.Team
+	BasicChannel  *model.Channel
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -62,6 +63,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = me.CreateUser()
 	me.LoginTeamAdmin()
 	me.BasicTeam = me.CreateTeam()
+	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicUser = me.CreateUser()
 	LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
@@ -125,6 +127,30 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	VerifyUserEmail(ruser.Id)
 	utils.EnableDebugLogForTest()
 	return ruser
+}
+
+func (me *TestHelper) CreatePublicChannel() *model.Channel {
+	return me.CreateChannelWithClient(me.Client, model.CHANNEL_OPEN)
+}
+
+func (me *TestHelper) CreatePrivateChannel() *model.Channel {
+	return me.CreateChannelWithClient(me.Client, model.CHANNEL_PRIVATE)
+}
+
+func (me *TestHelper) CreateChannelWithClient(client *model.Client4, channelType string) *model.Channel {
+	id := model.NewId()
+
+	channel := &model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        GenerateTestChannelName(),
+		Type:        channelType,
+		TeamId:      me.BasicTeam.Id,
+	}
+
+	utils.DisableDebugLogForTest()
+	rchannel, _ := client.CreateChannel(channel)
+	utils.EnableDebugLogForTest()
+	return rchannel
 }
 
 func (me *TestHelper) LoginBasic() {
@@ -191,6 +217,10 @@ func GenerateTestUsername() string {
 
 func GenerateTestTeamName() string {
 	return "faketeam" + model.NewId()
+}
+
+func GenerateTestChannelName() string {
+	return "fakechannel" + model.NewId()
 }
 
 func VerifyUserEmail(userId string) {

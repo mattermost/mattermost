@@ -60,6 +60,14 @@ func (c *Client4) GetTeamsRoute() string {
 	return fmt.Sprintf("/teams")
 }
 
+func (c *Client4) GetChannelsRoute() string {
+	return fmt.Sprintf("/channels")
+}
+
+func (c *Client4) GetChannelRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelsRoute()+"/%v", channelId)
+}
+
 func (c *Client4) GetTeamRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/%v", teamId)
 }
@@ -225,7 +233,16 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response) {
 }
 
 // Channel Section
-// to be filled in..
+
+// CreateChannel creates a channel based on the provided channel struct.
+func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
 
 // Post Section
 // to be filled in..
