@@ -16,7 +16,7 @@ import (
 )
 
 type Hub struct {
-	connections    map[*WebConn]bool
+	connections    []*WebConn
 	register       chan *WebConn
 	unregister     chan *WebConn
 	broadcast      chan *model.WebSocketEvent
@@ -30,7 +30,7 @@ func NewWebHub() *Hub {
 	return &Hub{
 		register:       make(chan *WebConn),
 		unregister:     make(chan *WebConn),
-		connections:    make(map[*WebConn]bool, model.SESSION_CACHE_SIZE),
+		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
 		broadcast:      make(chan *model.WebSocketEvent, 4096),
 		stop:           make(chan string),
 		invalidateUser: make(chan string),
@@ -213,25 +213,34 @@ func (h *Hub) Start() {
 		for {
 			select {
 			case webCon := <-h.register:
-				h.connections[webCon] = true
+				h.connections = append(h.connections, webCon)
 
 			case webCon := <-h.unregister:
 				userId := webCon.UserId
-				if _, ok := h.connections[webCon]; ok {
-					delete(h.connections, webCon)
-					close(webCon.Send)
+
+				found := false
+				indexToDel := -1
+				for i, webConCandidate := range h.connections {
+					if webConCandidate == webCon {
+						indexToDel = i
+						continue
+					}
+					if userId == webConCandidate.UserId {
+						found = true
+						if indexToDel != -1 {
+							break
+						}
+					}
+				}
+
+				if indexToDel != -1 {
+					// Delete the webcon we are unregistering
+					h.connections[indexToDel] = h.connections[len(h.connections)-1]
+					h.connections = h.connections[:len(h.connections)-1]
 				}
 
 				if len(userId) == 0 {
 					continue
-				}
-
-				found := false
-				for webCon := range h.connections {
-					if userId == webCon.UserId {
-						found = true
-						break
-					}
 				}
 
 				if !found {
@@ -239,27 +248,33 @@ func (h *Hub) Start() {
 				}
 
 			case userId := <-h.invalidateUser:
-				for webCon := range h.connections {
+				for _, webCon := range h.connections {
 					if webCon.UserId == userId {
 						webCon.InvalidateCache()
 					}
 				}
 
 			case msg := <-h.broadcast:
-				for webCon := range h.connections {
+				for _, webCon := range h.connections {
 					if webCon.ShouldSendEvent(msg) {
 						select {
 						case webCon.Send <- msg:
 						default:
 							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
 							close(webCon.Send)
-							delete(h.connections, webCon)
+							for i, webConCandidate := range h.connections {
+								if webConCandidate == webCon {
+									h.connections[i] = h.connections[len(h.connections)-1]
+									h.connections = h.connections[:len(h.connections)-1]
+									break
+								}
+							}
 						}
 					}
 				}
 
 			case <-h.stop:
-				for webCon := range h.connections {
+				for _, webCon := range h.connections {
 					webCon.WebSocket.Close()
 				}
 

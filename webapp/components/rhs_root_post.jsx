@@ -358,7 +358,6 @@ export default class RhsRootPost extends React.Component {
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
-        const messageWrapper = <PostMessageContainer post={post}/>;
 
         let flag;
         let flagFunc;
@@ -445,7 +444,7 @@ export default class RhsRootPost extends React.Component {
                         <div className='post__body'>
                             <PostBodyAdditionalContent
                                 post={post}
-                                message={messageWrapper}
+                                message={<PostMessageContainer post={post}/>}
                                 previewCollapsed={this.props.previewCollapsed}
                             />
                             {fileAttachment}

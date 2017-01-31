@@ -406,6 +406,7 @@ func TestGetPublicFile(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
+		t.Log(link)
 		t.Fatal("failed to get image with public link", err)
 	}
 
@@ -509,7 +510,7 @@ func TestGetPublicFileOld(t *testing.T) {
 
 func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename string) string {
 	hash := app.GeneratePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
-	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX, teamId, channelId, userId, filename, hash)
+	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX_V3, teamId, channelId, userId, filename, hash)
 }
 
 func TestGetPublicLink(t *testing.T) {

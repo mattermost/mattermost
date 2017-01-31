@@ -26,14 +26,14 @@ type WebSocketClient struct {
 // NewWebSocketClient constructs a new WebSocket client with convienence
 // methods for talking to the server.
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/users/websocket", nil)
+	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
 	if err != nil {
 		return nil, NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
 	}
 
 	client := &WebSocketClient{
 		url,
-		url + API_URL_SUFFIX,
+		url + API_URL_SUFFIX_V3,
 		conn,
 		authToken,
 		1,

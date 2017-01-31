@@ -507,7 +507,11 @@ export default class Sidebar extends React.Component {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else {
             // set up status icon for direct message channels (status is null for other channel types)
-            icon = <StatusIcon status={channel.status}/>;
+            icon = (
+                <StatusIcon
+                    type='avatar'
+                    status={channel.status}
+                />);
         }
 
         let closeButton = null;

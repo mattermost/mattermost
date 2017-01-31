@@ -526,6 +526,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body #navbar .navbar-default .navbar-brand .heading', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body #navbar .navbar-default .navbar-toggle .icon-bar', 'background:' + theme.sidebarHeaderTextColor);
+        changeCss('.app__body .post-list__timestamp > div', 'border-color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.5));
         changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'color:' + theme.sidebarHeaderTextColor);
     }
 
@@ -533,14 +534,12 @@ export function applyTheme(theme) {
         changeCss('.app__body .status .online--icon', 'fill:' + theme.onlineIndicator);
         changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator);
         changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator);
-        changeCss('.status-wrapper.status-online:after', 'background:' + theme.onlineIndicator);
     }
 
     if (theme.awayIndicator) {
         changeCss('.app__body .status .away--icon', 'fill:' + theme.awayIndicator);
         changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator);
         changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator);
-        changeCss('.status-wrapper.status-away:after', 'background:' + theme.awayIndicator);
     }
 
     if (theme.mentionBj) {
@@ -557,7 +556,7 @@ export function applyTheme(theme) {
 
     if (theme.centerChannelBg) {
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
         changeCss('#post-list .post-list-holder-by-time, .app__body .post .dropdown-menu a', 'background:' + theme.centerChannelBg);
         changeCss('#post-create', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg);
@@ -1171,7 +1170,7 @@ export function clearFileInput(elm) {
 }
 
 export function isPostEphemeral(post) {
-    return post.type === Constants.POST_TYPE_EPHEMERAL || post.state === Constants.POST_DELETED;
+    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Constants.POST_DELETED;
 }
 
 export function getRootId(post) {

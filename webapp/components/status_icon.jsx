@@ -8,13 +8,22 @@ import React from 'react';
 export default class StatusIcon extends React.Component {
     render() {
         const status = this.props.status;
+        const type = this.props.type;
 
         if (!status) {
             return null;
         }
 
         let statusIcon = '';
-        if (status === 'online') {
+        if (type === 'avatar') {
+            if (status === 'online') {
+                statusIcon = Constants.ONLINE_AVATAR_SVG;
+            } else if (status === 'away') {
+                statusIcon = Constants.AWAY_AVATAR_SVG;
+            } else {
+                statusIcon = Constants.OFFLINE_AVATAR_SVG;
+            }
+        } else if (status === 'online') {
             statusIcon = Constants.ONLINE_ICON_SVG;
         } else if (status === 'away') {
             statusIcon = Constants.AWAY_ICON_SVG;
@@ -33,5 +42,6 @@ export default class StatusIcon extends React.Component {
 }
 
 StatusIcon.propTypes = {
-    status: React.PropTypes.string
+    status: React.PropTypes.string,
+    type: React.PropTypes.string
 };

@@ -156,22 +156,6 @@ export default class PostBody extends React.Component {
             );
         }
 
-        let message;
-        if (this.props.post.state === Constants.POST_DELETED) {
-            message = (
-                <p>
-                    <FormattedMessage
-                        id='post_body.deleted'
-                        defaultMessage='(message deleted)'
-                    />
-                </p>
-            );
-        } else {
-            message = (
-                <PostMessageContainer post={this.props.post}/>
-            );
-        }
-
         const messageWrapper = (
             <div
                 key={`${post.id}_message`}
@@ -179,7 +163,7 @@ export default class PostBody extends React.Component {
                 className={postClass}
             >
                 {loading}
-                {message}
+                <PostMessageContainer post={this.props.post}/>
             </div>
         );
 

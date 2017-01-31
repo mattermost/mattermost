@@ -5,13 +5,13 @@ package app
 
 import (
 	"bytes"
-	_ "image/gif"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
+	_ "image/gif"
 	"image/jpeg"
 	"io"
 	"io/ioutil"
@@ -24,9 +24,9 @@ import (
 	"sync"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"github.com/disintegration/imaging"
 	s3 "github.com/minio/minio-go"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
@@ -359,7 +359,7 @@ func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 func GeneratePublicLink(siteURL string, info *model.FileInfo) string {
 	hash := GeneratePublicLinkHash(info.Id, *utils.Cfg.FileSettings.PublicLinkSalt)
-	return fmt.Sprintf("%s%s/public/files/%v/get?h=%s", siteURL, model.API_URL_SUFFIX, info.Id, hash)
+	return fmt.Sprintf("%s%s/public/files/%v/get?h=%s", siteURL, model.API_URL_SUFFIX_V3, info.Id, hash)
 }
 
 func GeneratePublicLinkHash(fileId, salt string) string {

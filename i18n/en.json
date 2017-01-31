@@ -800,6 +800,14 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Invalid or missing {{.Name}} in request body"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Invalid or missing {{.Name}} parameter in request URL"
+  },
+  {
     "id": "api.context.invalid_session.error",
     "translation": "Invalid session err=%v"
   },
@@ -3528,6 +3536,10 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Time btween user typing updates should not be set less than 1000 milliseconds."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled"
   },
@@ -5245,7 +5257,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "We couldn't find an existing account matching your email address for this team. This team may require an invite from the team owner to join."
+    "translation": "We couldn't find the user."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
