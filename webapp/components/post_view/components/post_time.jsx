@@ -33,7 +33,10 @@ export default class PostTime extends React.Component {
 
     renderTimeTag() {
         return (
-            <time className='post__time'>
+            <time
+                className='post__time'
+                dateTime={getDateForUnixTicks(this.props.eventTime).toISOString()}
+            >
                 {getDateForUnixTicks(this.props.eventTime).toLocaleString('en', {hour: '2-digit', minute: '2-digit', hour12: !this.props.useMilitaryTime})}
             </time>
         );

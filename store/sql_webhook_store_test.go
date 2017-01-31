@@ -35,7 +35,7 @@ func TestWebhookStoreGetIncoming(t *testing.T) {
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-store.Webhook().GetIncoming(o1.Id); r1.Err != nil {
+	if r1 := <-store.Webhook().GetIncoming(o1.Id, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
@@ -43,7 +43,19 @@ func TestWebhookStoreGetIncoming(t *testing.T) {
 		}
 	}
 
-	if err := (<-store.Webhook().GetIncoming("123")).Err; err == nil {
+	if r1 := <-store.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
+			t.Fatal("invalid returned webhook")
+		}
+	}
+
+	if err := (<-store.Webhook().GetIncoming("123", false)).Err; err == nil {
+		t.Fatal("Missing id should have failed")
+	}
+
+	if err := (<-store.Webhook().GetIncoming("123", true)).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -85,7 +97,7 @@ func TestWebhookStoreDeleteIncoming(t *testing.T) {
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-store.Webhook().GetIncoming(o1.Id); r1.Err != nil {
+	if r1 := <-store.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
@@ -97,7 +109,9 @@ func TestWebhookStoreDeleteIncoming(t *testing.T) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-store.Webhook().GetIncoming(o1.Id)); r3.Err == nil {
+	ClearWebhookCaches()
+
+	if r3 := (<-store.Webhook().GetIncoming(o1.Id, true)); r3.Err == nil {
 		t.Log(r3.Data)
 		t.Fatal("Missing id should have failed")
 	}
@@ -113,7 +127,7 @@ func TestWebhookStoreDeleteIncomingByUser(t *testing.T) {
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-store.Webhook().GetIncoming(o1.Id); r1.Err != nil {
+	if r1 := <-store.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
@@ -125,7 +139,9 @@ func TestWebhookStoreDeleteIncomingByUser(t *testing.T) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-store.Webhook().GetIncoming(o1.Id)); r3.Err == nil {
+	ClearWebhookCaches()
+
+	if r3 := (<-store.Webhook().GetIncoming(o1.Id, true)); r3.Err == nil {
 		t.Log(r3.Data)
 		t.Fatal("Missing id should have failed")
 	}

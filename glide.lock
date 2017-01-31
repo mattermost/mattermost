@@ -40,7 +40,7 @@ imports:
 - name: github.com/gorilla/handlers
   version: e1b2144f2167de0e1042d1d35e5cba5119d4fb5d
 - name: github.com/gorilla/mux
-  version: 757bef944d0f21880861c2dd9c871ca543023cba
+  version: 34dda716af12ba79ed40ce1f66b102ff75dc3411
 - name: github.com/gorilla/websocket
   version: e8f0f8aaa98dfb6586cbdf2978d511e3199a960a
 - name: github.com/hashicorp/golang-lru

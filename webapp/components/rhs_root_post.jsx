@@ -358,7 +358,6 @@ export default class RhsRootPost extends React.Component {
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
-        const messageWrapper = <PostMessageContainer post={post}/>;
 
         let flag;
         let flagFunc;
@@ -417,7 +416,10 @@ export default class RhsRootPost extends React.Component {
                             <li className='col__name'>{userProfile}</li>
                             {botIndicator}
                             <li className='col'>
-                                <time className='post__time'>
+                                <time
+                                    className='post__time'
+                                    dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
+                                >
                                     {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
                                 </time>
                                 <OverlayTrigger
@@ -442,7 +444,7 @@ export default class RhsRootPost extends React.Component {
                         <div className='post__body'>
                             <PostBodyAdditionalContent
                                 post={post}
-                                message={messageWrapper}
+                                message={<PostMessageContainer post={post}/>}
                                 previewCollapsed={this.props.previewCollapsed}
                             />
                             {fileAttachment}

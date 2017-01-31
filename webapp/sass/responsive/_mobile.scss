@@ -608,6 +608,17 @@
                         display: block;
 
                         .settings-content {
+                            .section-title {
+                                padding-right: 15px;
+                            }
+
+                            .section-edit {
+                                position: relative;
+                                right: 0;
+                                text-align: left;
+                                top: 0;
+                            }
+
                             .appearance-section {
                                 .theme-elements {
                                     .element {
@@ -1080,16 +1091,14 @@
             }
 
             .post-create-footer {
-                padding: 0 45px 0 45px;
-
                 .control-label {
                     margin: .5em 0;
                     top: 0;
                 }
 
                 .post-error {
-                    top: 0;
                     left: 0;
+                    top: 0;
                 }
             }
         }

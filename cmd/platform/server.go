@@ -16,6 +16,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/manualtesting"
@@ -38,6 +39,12 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	// Backwards compatibility with -config flag
+	if flagConfigFile != "" {
+		config = flagConfigFile
+	}
+
 	runServer(config)
 	return nil
 }
@@ -67,6 +74,7 @@ func runServer(configFileLocation string) {
 	app.NewServer()
 	app.InitStores()
 	api.InitRouter()
+	api4.InitApi(false)
 	api.InitApi()
 	web.InitWeb()
 

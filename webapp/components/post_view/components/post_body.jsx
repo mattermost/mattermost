@@ -4,6 +4,7 @@
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import CommentedOnFilesMessageContainer from './commented_on_files_message_container.jsx';
 import FileAttachmentListContainer from 'components/file_attachment_list_container.jsx';
@@ -141,6 +142,10 @@ export default class PostBody extends React.Component {
             );
         }
 
+        if (PostUtils.isEdited(this.props.post)) {
+            postClass += ' post--edited';
+        }
+
         let fileAttachmentHolder = null;
         if (((post.file_ids && post.file_ids.length > 0) || (post.filenames && post.filenames.length > 0)) && this.props.post.state !== Constants.POST_DELETED) {
             fileAttachmentHolder = (
@@ -151,22 +156,6 @@ export default class PostBody extends React.Component {
             );
         }
 
-        let message;
-        if (this.props.post.state === Constants.POST_DELETED) {
-            message = (
-                <p>
-                    <FormattedMessage
-                        id='post_body.deleted'
-                        defaultMessage='(message deleted)'
-                    />
-                </p>
-            );
-        } else {
-            message = (
-                <PostMessageContainer post={this.props.post}/>
-            );
-        }
-
         const messageWrapper = (
             <div
                 key={`${post.id}_message`}
@@ -174,7 +163,7 @@ export default class PostBody extends React.Component {
                 className={postClass}
             >
                 {loading}
-                {message}
+                <PostMessageContainer post={this.props.post}/>
             </div>
         );
 

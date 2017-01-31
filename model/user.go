@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -56,51 +57,51 @@ type User struct {
 func (u *User) IsValid() *AppError {
 
 	if len(u.Id) != 26 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.id.app_error", nil, "")
+		return NewAppError("User.IsValid", "model.user.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if u.CreateAt == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.create_at.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.create_at.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if u.UpdateAt == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidUsername(u.Username) {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if len(u.Email) > 128 || len(u.Email) == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(u.Nickname) > 64 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(u.Position) > 35 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(u.FirstName) > 64 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(u.LastName) > 64 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > 128 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil

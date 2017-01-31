@@ -307,12 +307,23 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.user_no_exists.debug"), sPost.User)
 				continue
 			}
+
+			var postType string
+			if sPost.SubType == "channel_join" {
+				postType = model.POST_JOIN_CHANNEL
+			} else {
+				postType = model.POST_LEAVE_CHANNEL
+			}
+
 			newPost := model.Post{
 				UserId:    users[sPost.User].Id,
 				ChannelId: channel.Id,
 				Message:   sPost.Text,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
-				Type:      model.POST_JOIN_LEAVE,
+				Type:      postType,
+				Props: model.StringInterface{
+					"username": users[sPost.User].Username,
+				},
 			}
 			ImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "me_message":
@@ -472,7 +483,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
 		var mChannel *model.Channel
-		if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err == nil {
+		if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); result.Err == nil {
 			// The channel already exists as an active channel. Merge with the existing one.
 			mChannel = result.Data.(*model.Channel)
 			log.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
@@ -484,7 +495,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 
 		if mChannel == nil {
 			// Haven't found an existing channel to merge with. Try importing it as a new one.
-			mChannel = ImportChannel(&newChannel)
+			mChannel = OldImportChannel(&newChannel)
 			if mChannel == nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_channels.import_failed.warn"), newChannel.DisplayName)
 				log.WriteString(utils.T("api.slackimport.slack_add_channels.import_failed", map[string]interface{}{"DisplayName": newChannel.DisplayName}))

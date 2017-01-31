@@ -462,19 +462,19 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	return true
 }
 
-func (ss *SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
+func (ss *SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
 }
 
-func (ss *SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, false)
+func (ss *SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, false)
 }
 
-func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) {
-	ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, false)
+func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, false)
 }
 
-func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) {
+func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
 	if unique {
@@ -485,7 +485,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if err == nil {
-			return
+			return false
 		}
 
 		query := ""
@@ -512,7 +512,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		}
 
 		if count > 0 {
-			return
+			return false
 		}
 
 		fullTextIndex := ""
@@ -531,15 +531,17 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_INDEX_MISSING)
 	}
+
+	return true
 }
 
-func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
+func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
-		if err == nil {
-			return
+		if err != nil {
+			return false
 		}
 
 		_, err = ss.GetMaster().Exec("DROP INDEX " + indexName)
@@ -548,6 +550,8 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 			time.Sleep(time.Second)
 			os.Exit(EXIT_REMOVE_INDEX_POSTGRES)
 		}
+
+		return true
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
@@ -557,8 +561,8 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 			os.Exit(EXIT_REMOVE_INDEX_MYSQL)
 		}
 
-		if count > 0 {
-			return
+		if count <= 0 {
+			return false
 		}
 
 		_, err = ss.GetMaster().Exec("DROP INDEX " + indexName + " ON " + tableName)
@@ -572,6 +576,8 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) {
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_INDEX_MISSING)
 	}
+
+	return true
 }
 
 func IsUniqueConstraintError(err string, indexName []string) bool {
