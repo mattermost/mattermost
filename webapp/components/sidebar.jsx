@@ -110,7 +110,7 @@ export default class Sidebar extends React.Component {
         const currentChannelId = ChannelStore.getCurrentId();
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
-        const allChannels = ChannelStore.getAll().map(channel => Object.assign({}, channel));
+        const allChannels = ChannelStore.getAll().map((channel) => Object.assign({}, channel));
         const channelList = ChannelUtils.buildDisplayableChannelList(allChannels);
 
         return {
