@@ -138,6 +138,7 @@ func InitApi(full bool) {
 	BaseRoutes.Webrtc = BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 
 	InitUser()
+	InitTeam()
 
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {

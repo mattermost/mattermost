@@ -7,12 +7,16 @@ import {FormattedMessage} from 'react-intl';
 import {PostTypes} from 'utils/constants.jsx';
 import {formatText} from 'utils/text_formatting.jsx';
 
+function renderUsername(value, options) {
+    return renderFormattedText(value, {...options, markdown: false});
+}
+
 function renderFormattedText(value, options) {
     return <span dangerouslySetInnerHTML={{__html: formatText(value, options)}}/>;
 }
 
 function renderJoinChannelMessage(post, options) {
-    const username = renderFormattedText(post.props.username, options);
+    const username = renderUsername(post.props.username, options);
 
     return (
         <FormattedMessage
@@ -24,7 +28,7 @@ function renderJoinChannelMessage(post, options) {
 }
 
 function renderLeaveChannelMessage(post, options) {
-    const username = renderFormattedText(post.props.username, options);
+    const username = renderUsername(post.props.username, options);
 
     return (
         <FormattedMessage
@@ -36,8 +40,8 @@ function renderLeaveChannelMessage(post, options) {
 }
 
 function renderAddToChannelMessage(post, options) {
-    const username = renderFormattedText(post.props.username, options);
-    const addedUsername = renderFormattedText(post.props.addedUsername, options);
+    const username = renderUsername(post.props.username, options);
+    const addedUsername = renderUsername(post.props.addedUsername, options);
 
     return (
         <FormattedMessage
@@ -52,7 +56,7 @@ function renderAddToChannelMessage(post, options) {
 }
 
 function renderRemoveFromChannelMessage(post, options) {
-    const removedUsername = renderFormattedText(post.props.removedUsername, options);
+    const removedUsername = renderUsername(post.props.removedUsername, options);
 
     return (
         <FormattedMessage
@@ -75,7 +79,7 @@ function renderHeaderChangeMessage(post, options) {
         singleline: true
     };
 
-    const username = renderFormattedText(post.props.username, options);
+    const username = renderUsername(post.props.username, options);
     const oldHeader = post.props.old_header ? renderFormattedText(post.props.old_header, headerOptions) : null;
     const newHeader = post.props.new_header ? renderFormattedText(post.props.new_header, headerOptions) : null;
 
@@ -125,7 +129,7 @@ function renderDisplayNameChangeMessage(post, options) {
         return null;
     }
 
-    const username = renderFormattedText(post.props.username, options);
+    const username = renderUsername(post.props.username, options);
     const oldDisplayName = post.props.old_displayname;
     const newDisplayName = post.props.new_displayname;
 
@@ -147,7 +151,7 @@ function renderPurposeChangeMessage(post, options) {
         return null;
     }
 
-    const username = renderFormattedText(post.props.username, options);
+    const username = renderUsername(post.props.username, options);
     const oldPurpose = post.props.old_purpose;
     const newPurpose = post.props.new_purpose;
 
@@ -197,7 +201,7 @@ function renderChannelDeletedMessage(post, options) {
         return null;
     }
 
-    const username = renderFormattedText(post.props.username, options);
+    const username = renderUsername(post.props.username, options);
 
     return (
         <FormattedMessage

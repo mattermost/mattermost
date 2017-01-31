@@ -25,6 +25,7 @@
 
         th {
             font-weight: normal !important;
+
             &.header-list__members {
                 padding-right: 4px;
             }
@@ -281,6 +282,10 @@
             right: 22px;
             top: 10px;
             z-index: 5;
+
+            li {
+                width: 100%;
+            }
 
             .sidebar-header-dropdown__toggle,
             .admin-navbar-dropdown__toggle {

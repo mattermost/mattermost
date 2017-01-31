@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
+	"github.com/mattermost/platform/utils"
 )
 
 func ptrStr(s string) *string {
@@ -234,6 +235,118 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	if err := validateChannelImportData(&data); err == nil {
 		t.Fatal("Should have failed due to too long purpose.")
 	}
+}
+
+func TestImportValidateUserImportData(t *testing.T) {
+
+	// Test with minimum required valid properties.
+	data := UserImportData{
+		Username: ptrStr("bob"),
+		Email:    ptrStr("bob@example.com"),
+	}
+	if err := validateUserImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Invalid Usernames.
+	data.Username = nil
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to nil Username.")
+	}
+
+	data.Username = ptrStr("")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to 0 length Username.")
+	}
+
+	data.Username = ptrStr(strings.Repeat("abcdefghij", 7))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long Username.")
+	}
+
+	data.Username = ptrStr("i am a username with spaces and !!!")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to invalid characters in Username.")
+	}
+
+	data.Username = ptrStr("bob")
+
+	// Invalid Emails
+	data.Email = nil
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to nil Email.")
+	}
+
+	data.Email = ptrStr("")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to 0 length Email.")
+	}
+
+	data.Email = ptrStr(strings.Repeat("abcdefghij", 13))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long Email.")
+	}
+
+	data.Email = ptrStr("bob@example.com")
+
+	// TODO: Auth Service and Auth Data.
+
+	// Test a valid User with all fields populated.
+	data = UserImportData{
+		Username:    ptrStr("bob"),
+		Email:       ptrStr("bob@example.com"),
+		AuthService: ptrStr("ldap"),
+		AuthData:    ptrStr("bob"),
+		Nickname:    ptrStr("BobNick"),
+		FirstName:   ptrStr("Bob"),
+		LastName:    ptrStr("Blob"),
+		Position:    ptrStr("The Boss"),
+		Roles:       ptrStr("system_user"),
+		Locale:      ptrStr("en"),
+	}
+	if err := validateUserImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test various invalid optional field values.
+	data.Nickname = ptrStr(strings.Repeat("abcdefghij", 7))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long Nickname.")
+	}
+	data.Nickname = ptrStr("BobNick")
+
+	data.FirstName = ptrStr(strings.Repeat("abcdefghij", 7))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long First Name.")
+	}
+	data.FirstName = ptrStr("Bob")
+
+	data.LastName = ptrStr(strings.Repeat("abcdefghij", 7))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long Last name.")
+	}
+	data.LastName = ptrStr("Blob")
+
+	data.Position = ptrStr(strings.Repeat("abcdefghij", 7))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long Position.")
+	}
+	data.Position = ptrStr("The Boss")
+
+	data.Roles = ptrStr("system_user wat")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too unrecognised role.")
+	}
+	data.Roles = nil
+	if err := validateUserImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	data.Roles = ptrStr("")
+	if err := validateUserImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+	data.Roles = ptrStr("system_user")
 }
 
 func TestImportImportTeam(t *testing.T) {
@@ -505,6 +618,182 @@ func TestImportImportChannel(t *testing.T) {
 
 }
 
+func TestImportImportUser(t *testing.T) {
+	_ = Setup()
+
+	// Check how many users are in the database.
+	var userCount int64
+	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+		userCount = r.Data.(int64)
+	} else {
+		t.Fatalf("Failed to get user count.")
+	}
+
+	// Do an invalid user in dry-run mode.
+	data := UserImportData{
+		Username: ptrStr(model.NewId()),
+	}
+	if err := ImportUser(&data, true); err == nil {
+		t.Fatalf("Should have failed to import invalid user.")
+	}
+
+	// Check that no more users are in the DB.
+	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+		if r.Data.(int64) != userCount {
+			t.Fatalf("Unexpected number of users")
+		}
+	} else {
+		t.Fatalf("Failed to get user count.")
+	}
+
+	// Do a valid user in dry-run mode.
+	data = UserImportData{
+		Username: ptrStr(model.NewId()),
+		Email: ptrStr(model.NewId() + "@example.com"),
+	}
+	if err := ImportUser(&data, true); err != nil {
+		t.Fatalf("Should have succeeded to import valid user.")
+	}
+
+	// Check that no more users are in the DB.
+	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+		if r.Data.(int64) != userCount {
+			t.Fatalf("Unexpected number of users")
+		}
+	} else {
+		t.Fatalf("Failed to get user count.")
+	}
+
+	// Do an invalid user in apply mode.
+	data = UserImportData{
+		Username: ptrStr(model.NewId()),
+	}
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed to import invalid user.")
+	}
+
+	// Check that no more users are in the DB.
+	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+		if r.Data.(int64) != userCount {
+			t.Fatalf("Unexpected number of users")
+		}
+	} else {
+		t.Fatalf("Failed to get user count.")
+	}
+
+	// Do a valid user in apply mode.
+	username := model.NewId()
+	data = UserImportData{
+		Username: &username,
+		Email: ptrStr(model.NewId() + "@example.com"),
+		Nickname: ptrStr(model.NewId()),
+		FirstName: ptrStr(model.NewId()),
+		LastName: ptrStr(model.NewId()),
+		Position: ptrStr(model.NewId()),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded to import valid user.")
+	}
+
+	// Check that one more user is in the DB.
+	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+		if r.Data.(int64) != userCount + 1 {
+			t.Fatalf("Unexpected number of users")
+		}
+	} else {
+		t.Fatalf("Failed to get user count.")
+	}
+
+	// Get the user and check all the fields are correct.
+	if user, err := GetUserByUsername(username); err != nil {
+		t.Fatalf("Failed to get user from database.")
+	} else {
+		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
+			t.Fatalf("User properties do not match Import Data.")
+		}
+		// Check calculated properties.
+		if user.AuthService != "" {
+			t.Fatalf("Expected Auth Service to be empty.")
+		}
+
+		if ! (user.AuthData  == nil || *user.AuthData == "") {
+			t.Fatalf("Expected AuthData to be empty.")
+		}
+
+		if len(user.Password) == 0 {
+			t.Fatalf("Expected password to be set.")
+		}
+
+		if !user.EmailVerified {
+			t.Fatalf("Expected EmailVerified to be true.")
+		}
+
+		if user.Locale != *utils.Cfg.LocalizationSettings.DefaultClientLocale {
+			t.Fatalf("Expected Locale to be the default.")
+		}
+
+		if user.Roles != "system_user" {
+			t.Fatalf("Expected roles to be system_user")
+		}
+	}
+
+	// Alter all the fields of that user.
+	data.Email = ptrStr(model.NewId() + "@example.com")
+	data.AuthService = ptrStr("ldap")
+	data.AuthData = &username
+	data.Nickname = ptrStr(model.NewId())
+	data.FirstName = ptrStr(model.NewId())
+	data.LastName = ptrStr(model.NewId())
+	data.Position = ptrStr(model.NewId())
+	data.Roles = ptrStr("system_admin system_user")
+	data.Locale = ptrStr("zh_CN")
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded to update valid user %v", err)
+	}
+
+	// Check user count the same.
+	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+		if r.Data.(int64) != userCount + 1 {
+			t.Fatalf("Unexpected number of users")
+		}
+	} else {
+		t.Fatalf("Failed to get user count.")
+	}
+
+	// Get the user and check all the fields are correct.
+	if user, err := GetUserByUsername(username); err != nil {
+		t.Fatalf("Failed to get user from database.")
+	} else {
+		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
+			t.Fatalf("Updated User properties do not match Import Data.")
+		}
+		// Check calculated properties.
+		if user.AuthService != "ldap" {
+			t.Fatalf("Expected Auth Service to be ldap \"%v\"", user.AuthService)
+		}
+
+		if ! (user.AuthData == data.AuthData || *user.AuthData == *data.AuthData) {
+			t.Fatalf("Expected AuthData to be set.")
+		}
+
+		if len(user.Password) != 0 {
+			t.Fatalf("Expected password to be empty.")
+		}
+
+		if !user.EmailVerified {
+			t.Fatalf("Expected EmailVerified to be true.")
+		}
+
+		if user.Locale != *data.Locale {
+			t.Fatalf("Expected Locale to be the set.")
+		}
+
+		if user.Roles != *data.Roles {
+			t.Fatalf("Expected roles to be set: %v", user.Roles)
+		}
+	}
+}
+
 func TestImportImportLine(t *testing.T) {
 	_ = Setup()
 
@@ -528,6 +817,12 @@ func TestImportImportLine(t *testing.T) {
 	if err := ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type channel with a nil channel.")
 	}
+
+	// Try import line with user type but nil user.
+	line.Type = "user"
+	if err := ImportLine(line, false); err == nil {
+		t.Fatalf("Expected an error when importing a line with type uesr with a nil user.")
+	}
 }
 
 func TestImportBulkImport(t *testing.T) {
@@ -538,7 +833,8 @@ func TestImportBulkImport(t *testing.T) {
 
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
-{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}`
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}`
 
 	if err, line := BulkImport(strings.NewReader(data1), false); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)

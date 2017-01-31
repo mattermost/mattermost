@@ -213,7 +213,16 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 }
 
 // Team Section
-// to be filled in..
+
+// CreateTeam creates a team in the system based on the provided team struct.
+func (c *Client4) CreateTeam(team *Team) (*Team, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamsRoute(), team.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
 
 // Channel Section
 // to be filled in..

@@ -15,6 +15,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 // Import Data Models
@@ -23,6 +24,7 @@ type LineImportData struct {
 	Type    string             `json:"type"`
 	Team    *TeamImportData    `json:"team"`
 	Channel *ChannelImportData `json:"channel"`
+	User    *UserImportData    `json:"user"`
 }
 
 type TeamImportData struct {
@@ -40,6 +42,19 @@ type ChannelImportData struct {
 	Type        *string `json:"type"`
 	Header      *string `json:"header"`
 	Purpose     *string `json:"purpose"`
+}
+
+type UserImportData struct {
+	Username    *string `json:"username"`
+	Email       *string `json:"email"`
+	AuthService *string `json:"auth_service"`
+	AuthData    *string `json:"auth_data"`
+	Nickname    *string `json:"nickname"`
+	FirstName   *string `json:"first_name"`
+	LastName    *string `json:"last_name"`
+	Position    *string `json:"position"`
+	Roles       *string `json:"roles"`
+	Locale      *string `json:"locale"`
 }
 
 //
@@ -85,6 +100,12 @@ func ImportLine(line LineImportData, dryRun bool) *model.AppError {
 			return model.NewLocAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "")
 		} else {
 			return ImportChannel(line.Channel, dryRun)
+		}
+	case line.Type == "user":
+		if line.User == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
+		} else {
+			return ImportUser(line.User, dryRun)
 		}
 	default:
 		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "")
@@ -251,6 +272,158 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 	return nil
 }
 
+func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
+	if err := validateUserImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByUsername(*data.Username); result.Err == nil {
+		user = result.Data.(*model.User)
+	} else {
+		user = &model.User{}
+	}
+
+	user.Username = *data.Username
+	user.Email = *data.Email
+
+	var password string
+	var authService string
+	var authData *string
+
+	if data.AuthService != nil {
+		authService = *data.AuthService
+	}
+
+	// AuthData and Password are mutually exclusive.
+	if data.AuthData != nil {
+		authData = data.AuthData
+		password = ""
+	} else {
+		// If no Auth Data is specified, we must generate a password.
+		password = model.NewId()
+		authData = nil
+	}
+
+	user.Password = password
+	user.AuthService = authService
+	user.AuthData = authData
+
+	// Automatically assume all emails are verified.
+	emailVerified := true
+	user.EmailVerified = emailVerified
+
+	if data.Nickname != nil {
+		user.Nickname = *data.Nickname
+	}
+
+	if data.FirstName != nil {
+		user.FirstName = *data.FirstName
+	}
+
+	if data.LastName != nil {
+		user.LastName = *data.LastName
+	}
+
+	if data.Position != nil {
+		user.Position = *data.Position
+	}
+
+	if data.Locale != nil {
+		user.Locale = *data.Locale
+	} else {
+		user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+	}
+
+	var roles string
+	if data.Roles != nil {
+		roles = *data.Roles
+	} else if len(user.Roles) == 0 {
+		// Set SYSTEM_USER roles on newly created users by default.
+		roles = model.ROLE_SYSTEM_USER.Id
+	}
+	user.Roles = roles
+
+	if user.Id == "" {
+		if _, err := createUser(user); err != nil {
+			return err
+		}
+	} else {
+		if _, err := UpdateUser(user, utils.GetSiteURL(), false); err != nil {
+			return err
+		}
+		if _, err := UpdateUserRoles(user.Id, roles); err != nil {
+			return err
+		}
+		if len(password) > 0 {
+			if err := UpdatePassword(user, password); err != nil {
+				return err
+			}
+		} else {
+			if res := <-Srv.Store.User().UpdateAuthData(user.Id, authService, authData, user.Email, false); res.Err != nil {
+				return res.Err
+			}
+		}
+		if emailVerified {
+			if err := VerifyUserEmail(user.Id); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateUserImportData(data *UserImportData) *model.AppError {
+
+	if data.Username == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(*data.Username) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Email == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_missing.error", nil, "", http.StatusBadRequest)
+	} else if len(*data.Email) == 0 || len(*data.Email) > model.USER_EMAIL_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.email_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.AuthService != nil && len(*data.AuthService) == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_service_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.AuthData != nil && len(*data.AuthData) > model.USER_AUTH_DATA_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Nickname != nil && utf8.RuneCountInString(*data.Nickname) > model.USER_NICKNAME_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.nickname_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.FirstName != nil && utf8.RuneCountInString(*data.FirstName) > model.USER_FIRST_NAME_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.first_name_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.LastName != nil && utf8.RuneCountInString(*data.LastName) > model.USER_LAST_NAME_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.last_name_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Position != nil && utf8.RuneCountInString(*data.Position) > model.USER_POSITION_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.position_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Roles != nil && !model.IsValidUserRoles(*data.Roles) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 //
 // -- Old SlackImport Functions --
 // Import functions are sutible for entering posts and users into the database without
@@ -288,7 +461,7 @@ func ImportPost(post *model.Post) {
 	}
 }
 
-func ImportUser(team *model.Team, user *model.User) *model.User {
+func OldImportUser(team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
 	user.Roles = model.ROLE_SYSTEM_USER.Id
