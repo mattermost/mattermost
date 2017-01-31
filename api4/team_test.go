@@ -37,12 +37,12 @@ func TestCreateTeam(t *testing.T) {
 
 	rteam.Id = ""
 	_, resp = Client.CreateTeam(rteam)
-	CheckErrorMessage(t, resp, "A team with that name already exists")
+	CheckErrorMessage(t, resp, "store.sql_team.save.domain_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	rteam.Name = ""
 	_, resp = Client.CreateTeam(rteam)
-	CheckErrorMessage(t, resp, "Name must be 2 or more lowercase alphanumeric characters")
+	CheckErrorMessage(t, resp, "model.team.is_valid.characters.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	if r, err := Client.DoApiPost("/teams", "garbage"); err == nil {
@@ -64,6 +64,7 @@ func TestCreateTeam(t *testing.T) {
 	enableTeamCreation := utils.Cfg.TeamSettings.EnableTeamCreation
 	defer func() {
 		utils.Cfg.TeamSettings.EnableTeamCreation = enableTeamCreation
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.Cfg.TeamSettings.EnableTeamCreation = false
 	utils.SetDefaultRolesBasedOnConfig()
@@ -71,5 +72,4 @@ func TestCreateTeam(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.CreateTeam(team)
 	CheckForbiddenStatus(t, resp)
-
 }

@@ -40,18 +40,18 @@ func TestCreateUser(t *testing.T) {
 	ruser.Username = GenerateTestUsername()
 	ruser.Password = "passwd1"
 	_, resp = Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "An account with that email already exists.")
+	CheckErrorMessage(t, resp, "store.sql_user.save.email_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = GenerateTestEmail()
 	ruser.Username = user.Username
 	_, resp = Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "An account with that username already exists.")
+	CheckErrorMessage(t, resp, "store.sql_user.save.username_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = ""
 	_, resp = Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "Invalid email")
+	CheckErrorMessage(t, resp, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	if r, err := Client.DoApiPost("/users", "garbage"); err == nil {
@@ -116,8 +116,7 @@ func TestGetUser(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admins should ignore privacy settings
-	th.LoginSystemAdmin()
-	ruser, resp = Client.GetUser(user.Id, resp.Etag)
+	ruser, resp = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -180,7 +179,6 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = Client.UpdateUser(user)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginSystemAdmin()
-	_, resp = Client.UpdateUser(user)
+	_, resp = th.SystemAdminClient.UpdateUser(user)
 	CheckNoError(t, resp)
 }
