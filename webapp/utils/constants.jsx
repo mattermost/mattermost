@@ -364,7 +364,6 @@ export const Constants = {
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
     SYSTEM_MESSAGE_PREFIX: 'system_',
-    SYSTEM_MESSAGE_PROFILE_NAME: 'System',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
         'signup',

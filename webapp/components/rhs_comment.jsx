@@ -285,7 +285,12 @@ export default class RhsComment extends React.Component {
             userProfile = (
                 <UserProfile
                     user={{}}
-                    overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
+                    overwriteName={
+                        <FormattedMessage
+                            id='post_info.system'
+                            defaultMessage='System'
+                        />
+                    }
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
                 />
