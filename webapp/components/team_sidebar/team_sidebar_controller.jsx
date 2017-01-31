@@ -118,21 +118,21 @@ export default class TeamSidebar extends React.Component {
         }
 
         const teams = myTeams.
-        sort((a, b) => a.display_name.localeCompare(b.display_name)).
-        map((team) => {
-            return (
-                <TeamButton
-                    key={'switch_team_' + team.name}
-                    url={`/${team.name}`}
-                    tip={team.display_name}
-                    active={team.id === this.state.currentTeamId}
-                    isMobile={this.state.isMobile}
-                    displayName={team.display_name}
-                    unread={team.unread}
-                    mentions={team.mentions}
-                />
-            );
-        });
+            sort(Utils.sortTeamsByDisplayName).
+            map((team) => {
+                return (
+                    <TeamButton
+                        key={'switch_team_' + team.name}
+                        url={`/${team.name}`}
+                        tip={team.display_name}
+                        active={team.id === this.state.currentTeamId}
+                        isMobile={this.state.isMobile}
+                        displayName={team.display_name}
+                        unread={team.unread}
+                        mentions={team.mentions}
+                    />
+                );
+            });
 
         if (moreTeams) {
             teams.push(

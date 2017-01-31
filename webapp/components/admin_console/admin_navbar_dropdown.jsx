@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
+import {sortTeamsByDisplayName} from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -64,9 +65,7 @@ export default class AdminNavbarDropdown extends React.Component {
             }
 
             // Sort teams alphabetically with display_name
-            teamsArray.sort((teamA, teamB) =>
-                teamA.display_name.localeCompare(teamB.display_name)
-            );
+            teamsArray = teamsArray.sort(sortTeamsByDisplayName);
 
             for (const team of teamsArray) {
                 teams.push(
