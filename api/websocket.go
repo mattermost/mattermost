@@ -4,11 +4,12 @@
 package api
 
 import (
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 const (
@@ -25,9 +26,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: SOCKET_MAX_MESSAGE_SIZE_KB,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
+		CheckOrigin:     nil,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
