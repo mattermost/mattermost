@@ -352,6 +352,12 @@ func TestPostStorePermDelete1Level(t *testing.T) {
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
 
+	o3 := &model.Post{}
+	o3.ChannelId = model.NewId()
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "b"
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+
 	if r2 := <-store.Post().PermanentDeleteByUser(o2.UserId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
@@ -361,6 +367,14 @@ func TestPostStorePermDelete1Level(t *testing.T) {
 	}
 
 	if r4 := (<-store.Post().Get(o2.Id)); r4.Err == nil {
+		t.Fatal("Deleted id should have failed")
+	}
+
+	if r2 := <-store.Post().PermanentDeleteByChannel(o3.ChannelId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	}
+
+	if r3 := (<-store.Post().Get(o3.Id)); r3.Err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 }

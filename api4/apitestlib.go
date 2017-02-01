@@ -58,6 +58,34 @@ func Setup() *TestHelper {
 	return th
 }
 
+func TearDown() {
+	options := map[string]bool{}
+	options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	if result := <-app.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
+		l4g.Error("Error tearing down test users")
+	} else {
+		users := result.Data.([]*model.User)
+
+		for _, u := range users {
+			if err := app.PermanentDeleteUser(u); err != nil {
+				l4g.Error(err.Error())
+			}
+		}
+	}
+
+	if result := <-app.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
+		l4g.Error("Error tearing down test teams")
+	} else {
+		teams := result.Data.([]*model.Team)
+
+		for _, t := range teams {
+			if err := app.PermanentDeleteTeam(t); err != nil {
+				l4g.Error(err.Error())
+			}
+		}
+	}
+}
+
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = me.CreateUser()
 	me.LoginTeamAdmin()

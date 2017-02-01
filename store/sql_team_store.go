@@ -236,6 +236,27 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) SearchByName(name string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var teams []*model.Team
+
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Name", map[string]interface{}{"Name": name + "%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.SearchByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error())
+		}
+
+		result.Data = teams
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetAll() StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

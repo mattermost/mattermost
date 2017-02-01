@@ -13,7 +13,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup()
+	th := Setup().InitBasic()
 	Client := th.Client
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
@@ -28,6 +28,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		t.Log(ruser.Roles)
 		t.Fatal("did not clear roles")
 	}
 
@@ -63,6 +64,8 @@ func TestCreateUser(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
+
+	TearDown()
 }
 
 func TestGetUser(t *testing.T) {
@@ -126,6 +129,8 @@ func TestGetUser(t *testing.T) {
 	if ruser.LastName == "" {
 		t.Fatal("last name should not be blank")
 	}
+
+	TearDown()
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -181,4 +186,6 @@ func TestUpdateUser(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.UpdateUser(user)
 	CheckNoError(t, resp)
+
+	TearDown()
 }

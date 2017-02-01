@@ -72,4 +72,6 @@ func TestCreateTeam(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.CreateTeam(team)
 	CheckForbiddenStatus(t, resp)
+
+	TearDown()
 }

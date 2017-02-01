@@ -823,3 +823,19 @@ func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPus
 
 	return nil
 }
+
+func PermanentDeleteChannel(channel *model.Channel) *model.AppError {
+	if result := <-Srv.Store.Post().PermanentDeleteByChannel(channel.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Channel().PermanentDelete(channel.Id); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}

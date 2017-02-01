@@ -4540,6 +4540,10 @@
     "translation": "We couldn't delete the channels"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "We couldn't delete the channel"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "We couldn't remove the channel member"
   },
@@ -4894,6 +4898,10 @@
   {
     "id": "store.sql_post.permanent_delete.app_error",
     "translation": "We couldn't delete the post"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "We couldn't delete the posts by channel"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
