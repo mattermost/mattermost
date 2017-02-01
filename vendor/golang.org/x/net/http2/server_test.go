@@ -45,12 +45,21 @@ type serverTester struct {
 	t              testing.TB
 	ts             *httptest.Server
 	fr             *Framer
-	logBuf         *bytes.Buffer
-	logFilter      []string   // substrings to filter out
-	scMu           sync.Mutex // guards sc
+	serverLogBuf   bytes.Buffer // logger for httptest.Server
+	logFilter      []string     // substrings to filter out
+	scMu           sync.Mutex   // guards sc
 	sc             *serverConn
 	hpackDec       *hpack.Decoder
 	decodedHeaders [][2]string
+
+	// If http2debug!=2, then we capture Frame debug logs that will be written
+	// to t.Log after a test fails. The read and write logs use separate locks
+	// and buffers so we don't accidentally introduce synchronization between
+	// the read and write goroutines, which may hide data races.
+	frameReadLogMu   sync.Mutex
+	frameReadLogBuf  bytes.Buffer
+	frameWriteLogMu  sync.Mutex
+	frameWriteLogBuf bytes.Buffer
 
 	// writing headers:
 	headerBuf bytes.Buffer
@@ -75,7 +84,6 @@ var optQuiet = serverTesterOpt("quiet_logging")
 func newServerTester(t testing.TB, handler http.HandlerFunc, opts ...interface{}) *serverTester {
 	resetHooks()
 
-	logBuf := new(bytes.Buffer)
 	ts := httptest.NewUnstartedServer(handler)
 
 	tlsConfig := &tls.Config{
@@ -110,9 +118,8 @@ func newServerTester(t testing.TB, handler http.HandlerFunc, opts ...interface{}
 	ConfigureServer(ts.Config, h2server)
 
 	st := &serverTester{
-		t:      t,
-		ts:     ts,
-		logBuf: logBuf,
+		t:  t,
+		ts: ts,
 	}
 	st.hpackEnc = hpack.NewEncoder(&st.headerBuf)
 	st.hpackDec = hpack.NewDecoder(initialHeaderTableSize, st.onHeaderField)
@@ -121,7 +128,7 @@ func newServerTester(t testing.TB, handler http.HandlerFunc, opts ...interface{}
 	if quiet {
 		ts.Config.ErrorLog = log.New(ioutil.Discard, "", 0)
 	} else {
-		ts.Config.ErrorLog = log.New(io.MultiWriter(stderrv(), twriter{t: t, st: st}, logBuf), "", log.LstdFlags)
+		ts.Config.ErrorLog = log.New(io.MultiWriter(stderrv(), twriter{t: t, st: st}, &st.serverLogBuf), "", log.LstdFlags)
 	}
 	ts.StartTLS()
 
@@ -142,6 +149,22 @@ func newServerTester(t testing.TB, handler http.HandlerFunc, opts ...interface{}
 		}
 		st.cc = cc
 		st.fr = NewFramer(cc, cc)
+		if !logFrameReads && !logFrameWrites {
+			st.fr.debugReadLoggerf = func(m string, v ...interface{}) {
+				m = time.Now().Format("2006-01-02 15:04:05.999999999 ") + strings.TrimPrefix(m, "http2: ") + "\n"
+				st.frameReadLogMu.Lock()
+				fmt.Fprintf(&st.frameReadLogBuf, m, v...)
+				st.frameReadLogMu.Unlock()
+			}
+			st.fr.debugWriteLoggerf = func(m string, v ...interface{}) {
+				m = time.Now().Format("2006-01-02 15:04:05.999999999 ") + strings.TrimPrefix(m, "http2: ") + "\n"
+				st.frameWriteLogMu.Lock()
+				fmt.Fprintf(&st.frameWriteLogBuf, m, v...)
+				st.frameWriteLogMu.Unlock()
+			}
+			st.fr.logReads = true
+			st.fr.logWrites = true
+		}
 	}
 	return st
 }
@@ -201,6 +224,18 @@ func (st *serverTester) awaitIdle() {
 
 func (st *serverTester) Close() {
 	if st.t.Failed() {
+		st.frameReadLogMu.Lock()
+		if st.frameReadLogBuf.Len() > 0 {
+			st.t.Logf("Framer read log:\n%s", st.frameReadLogBuf.String())
+		}
+		st.frameReadLogMu.Unlock()
+
+		st.frameWriteLogMu.Lock()
+		if st.frameWriteLogBuf.Len() > 0 {
+			st.t.Logf("Framer write log:\n%s", st.frameWriteLogBuf.String())
+		}
+		st.frameWriteLogMu.Unlock()
+
 		// If we failed already (and are likely in a Fatal,
 		// unwindowing), force close the connection, so the
 		// httptest.Server doesn't wait forever for the conn
@@ -1100,10 +1135,10 @@ func TestServer_RejectsLargeFrames(t *testing.T) {
 	if gf.ErrCode != ErrCodeFrameSize {
 		t.Errorf("GOAWAY err = %v; want %v", gf.ErrCode, ErrCodeFrameSize)
 	}
-	if st.logBuf.Len() != 0 {
+	if st.serverLogBuf.Len() != 0 {
 		// Previously we spun here for a bit until the GOAWAY disconnect
 		// timer fired, logging while we fired.
-		t.Errorf("unexpected server output: %.500s\n", st.logBuf.Bytes())
+		t.Errorf("unexpected server output: %.500s\n", st.serverLogBuf.Bytes())
 	}
 }
 
@@ -1227,6 +1262,7 @@ func testServerPostUnblock(t *testing.T,
 		inHandler <- true
 		errc <- handler(w, r)
 	})
+	defer st.Close()
 	st.greet()
 	st.writeHeaders(HeadersFrameParam{
 		StreamID:      1,
@@ -1244,7 +1280,6 @@ func testServerPostUnblock(t *testing.T,
 	case <-time.After(5 * time.Second):
 		t.Fatal("timeout waiting for Handler to return")
 	}
-	st.Close()
 }
 
 func TestServer_RSTStream_Unblocks_Read(t *testing.T) {

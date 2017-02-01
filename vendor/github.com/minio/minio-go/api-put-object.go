@@ -103,11 +103,10 @@ func getReaderSize(reader io.Reader) (size int64, err error) {
 			// implement Seekable calls. Ignore them and treat
 			// them like a stream with unknown length.
 			switch st.Name() {
-			case "stdin":
-				fallthrough
-			case "stdout":
-				fallthrough
-			case "stderr":
+			case "stdin", "stdout", "stderr":
+				return
+			// Ignore read/write stream of os.Pipe() which have unknown length too.
+			case "|0", "|1":
 				return
 			}
 			size = st.Size()
@@ -151,7 +150,7 @@ func (c Client) PutObject(bucketName, objectName string, reader io.Reader, conte
 
 // putObjectNoChecksum special function used Google Cloud Storage. This special function
 // is used for Google Cloud Storage since Google's multipart API is not S3 compatible.
-func (c Client) putObjectNoChecksum(bucketName, objectName string, reader io.Reader, size int64, contentType string, progress io.Reader) (n int64, err error) {
+func (c Client) putObjectNoChecksum(bucketName, objectName string, reader io.Reader, size int64, metaData map[string][]string, progress io.Reader) (n int64, err error) {
 	// Input validation.
 	if err := isValidBucketName(bucketName); err != nil {
 		return 0, err
@@ -169,7 +168,7 @@ func (c Client) putObjectNoChecksum(bucketName, objectName string, reader io.Rea
 
 	// This function does not calculate sha256 and md5sum for payload.
 	// Execute put object.
-	st, err := c.putObjectDo(bucketName, objectName, readSeeker, nil, nil, size, contentType)
+	st, err := c.putObjectDo(bucketName, objectName, readSeeker, nil, nil, size, metaData)
 	if err != nil {
 		return 0, err
 	}
@@ -181,7 +180,7 @@ func (c Client) putObjectNoChecksum(bucketName, objectName string, reader io.Rea
 
 // putObjectSingle is a special function for uploading single put object request.
 // This special function is used as a fallback when multipart upload fails.
-func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader, size int64, contentType string, progress io.Reader) (n int64, err error) {
+func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader, size int64, metaData map[string][]string, progress io.Reader) (n int64, err error) {
 	// Input validation.
 	if err := isValidBucketName(bucketName); err != nil {
 		return 0, err
@@ -237,7 +236,7 @@ func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader,
 		}
 	}
 	// Execute put object.
-	st, err := c.putObjectDo(bucketName, objectName, reader, hashSums["md5"], hashSums["sha256"], size, contentType)
+	st, err := c.putObjectDo(bucketName, objectName, reader, hashSums["md5"], hashSums["sha256"], size, metaData)
 	if err != nil {
 		return 0, err
 	}
@@ -255,7 +254,7 @@ func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader,
 
 // putObjectDo - executes the put object http operation.
 // NOTE: You must have WRITE permissions on a bucket to add an object to it.
-func (c Client) putObjectDo(bucketName, objectName string, reader io.Reader, md5Sum []byte, sha256Sum []byte, size int64, contentType string) (ObjectInfo, error) {
+func (c Client) putObjectDo(bucketName, objectName string, reader io.Reader, md5Sum []byte, sha256Sum []byte, size int64, metaData map[string][]string) (ObjectInfo, error) {
 	// Input validation.
 	if err := isValidBucketName(bucketName); err != nil {
 		return ObjectInfo{}, err
@@ -272,13 +271,20 @@ func (c Client) putObjectDo(bucketName, objectName string, reader io.Reader, md5
 		return ObjectInfo{}, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
 	}
 
-	if strings.TrimSpace(contentType) == "" {
-		contentType = "application/octet-stream"
-	}
-
 	// Set headers.
 	customHeader := make(http.Header)
-	customHeader.Set("Content-Type", contentType)
+
+	// Set metadata to headers
+	for k, v := range metaData {
+		if len(v) > 0 {
+			customHeader.Set(k, v[0])
+		}
+	}
+
+	// If Content-Type is not provided, set the default application/octet-stream one
+	if v, ok := metaData["Content-Type"]; !ok || len(v) == 0 {
+		customHeader.Set("Content-Type", "application/octet-stream")
+	}
 
 	// Populate request metadata.
 	reqMetadata := requestMetadata{
@@ -303,13 +309,13 @@ func (c Client) putObjectDo(bucketName, objectName string, reader io.Reader, md5
 		}
 	}
 
-	var metadata ObjectInfo
+	var objInfo ObjectInfo
 	// Trim off the odd double quotes from ETag in the beginning and end.
-	metadata.ETag = strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
-	metadata.ETag = strings.TrimSuffix(metadata.ETag, "\"")
+	objInfo.ETag = strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
+	objInfo.ETag = strings.TrimSuffix(objInfo.ETag, "\"")
 	// A success here means data was written to server successfully.
-	metadata.Size = size
+	objInfo.Size = size
 
 	// Return here.
-	return metadata, nil
+	return objInfo, nil
 }

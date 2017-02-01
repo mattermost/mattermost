@@ -1,0 +1,102 @@
+SplineFontDB: 3.0
+FontName: glyfTest
+FullName: glyfTest
+FamilyName: glyfTest
+Weight: Regular
+Copyright: Copyright 2016 The Go Authors. All rights reserved.\nUse of this font is governed by a BSD-style license that can be found at https://golang.org/LICENSE.
+Version: 001.000
+ItalicAngle: -11.25
+UnderlinePosition: -204
+UnderlineWidth: 102
+Ascent: 1638
+Descent: 410
+LayerCount: 2
+Layer: 0 1 "Back"  1
+Layer: 1 1 "Fore"  0
+XUID: [1021 367 888937226 7862908]
+FSType: 8
+OS2Version: 0
+OS2_WeightWidthSlopeOnly: 0
+OS2_UseTypoMetrics: 1
+CreationTime: 1484386143
+ModificationTime: 1484386143
+PfmFamily: 17
+TTFWeight: 400
+TTFWidth: 5
+LineGap: 184
+VLineGap: 0
+OS2TypoAscent: 0
+OS2TypoAOffset: 1
+OS2TypoDescent: 0
+OS2TypoDOffset: 1
+OS2TypoLinegap: 184
+OS2WinAscent: 0
+OS2WinAOffset: 1
+OS2WinDescent: 0
+OS2WinDOffset: 1
+HheadAscent: 0
+HheadAOffset: 1
+HheadDescent: 0
+HheadDOffset: 1
+OS2Vendor: 'PfEd'
+MarkAttachClasses: 1
+DEI: 91125
+LangName: 1033 
+Encoding: UnicodeBmp
+UnicodeInterp: none
+NameList: Adobe Glyph List
+DisplaySize: -24
+AntiAlias: 1
+FitToEm: 1
+WinInfo: 0 32 23
+BeginPrivate: 0
+EndPrivate
+TeXData: 1 0 0 346030 173015 115343 0 -1048576 115343 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
+BeginChars: 65536 2
+
+StartChar: zero
+Encoding: 48 48 0
+Width: 1228
+VWidth: 0
+Flags: W
+HStem: 0 205<508 700> 1434 205<529 720>
+VStem: 205 164<500 1088> 860 164<550 1139>
+LayerCount: 2
+Fore
+SplineSet
+614 1434 m 0,0,1
+ 369 1434 369 1434 369 614 c 0,2,3
+ 369 471 369 471 435 338 c 0,4,5
+ 502 205 502 205 614 205 c 0,6,7
+ 860 205 860 205 860 1024 c 0,8,9
+ 860 1167 860 1167 793 1300 c 0,10,11
+ 727 1434 727 1434 614 1434 c 0,0,1
+614 1638 m 0,12,13
+ 1024 1638 1024 1638 1024 819 c 128,-1,14
+ 1024 0 1024 0 614 0 c 0,15,16
+ 205 0 205 0 205 819 c 128,-1,17
+ 205 1638 205 1638 614 1638 c 0,12,13
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: one
+Encoding: 49 49 1
+Width: 819
+VWidth: 0
+Flags: W
+HStem: 0 43G<205 614>
+VStem: 205 410<0 1638>
+LayerCount: 2
+Fore
+SplineSet
+205 0 m 25,0,-1
+ 205 1638 l 1,1,-1
+ 614 1638 l 1,2,-1
+ 614 0 l 1,3,-1
+ 205 0 l 25,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+EndChars
+EndSplineFont

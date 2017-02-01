@@ -4,14 +4,14 @@ package bundle
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"reflect"
-
 	"path/filepath"
+	"reflect"
+	"sync"
 
 	"github.com/nicksnyder/go-i18n/i18n/language"
 	"github.com/nicksnyder/go-i18n/i18n/translation"
+	"gopkg.in/yaml.v2"
 )
 
 // TranslateFunc is a copy of i18n.TranslateFunc to avoid a circular dependency.
@@ -24,6 +24,8 @@ type Bundle struct {
 
 	// Translations that can be used when an exact language match is not possible.
 	fallbackTranslations map[string]map[string]translation.Translation
+
+	sync.RWMutex
 }
 
 // New returns an empty bundle.
@@ -89,7 +91,7 @@ func parseTranslations(filename string, buf []byte) ([]translation.Translation, 
 	var translationsData []map[string]interface{}
 	if len(buf) > 0 {
 		if err := unmarshalFunc(buf, &translationsData); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to load %s because %s", filename, err)
 		}
 	}
 
@@ -108,6 +110,8 @@ func parseTranslations(filename string, buf []byte) ([]translation.Translation, 
 //
 // It is useful if your translations are in a format not supported by LoadTranslationFile.
 func (b *Bundle) AddTranslation(lang *language.Language, translations ...translation.Translation) {
+	b.Lock()
+	defer b.Unlock()
 	if b.translations[lang.Tag] == nil {
 		b.translations[lang.Tag] = make(map[string]translation.Translation, len(translations))
 	}
@@ -128,24 +132,37 @@ func (b *Bundle) AddTranslation(lang *language.Language, translations ...transla
 
 // Translations returns all translations in the bundle.
 func (b *Bundle) Translations() map[string]map[string]translation.Translation {
-	return b.translations
+	t := make(map[string]map[string]translation.Translation)
+	b.RLock()
+	for tag, translations := range b.translations {
+		t[tag] = make(map[string]translation.Translation)
+		for id, translation := range translations {
+			t[tag][id] = translation
+		}
+	}
+	b.RUnlock()
+	return t
 }
 
 // LanguageTags returns the tags of all languages that that have been added.
 func (b *Bundle) LanguageTags() []string {
 	var tags []string
+	b.RLock()
 	for k := range b.translations {
 		tags = append(tags, k)
 	}
+	b.RUnlock()
 	return tags
 }
 
 // LanguageTranslationIDs returns the ids of all translations that have been added for a given language.
 func (b *Bundle) LanguageTranslationIDs(languageTag string) []string {
 	var ids []string
+	b.RLock()
 	for id := range b.translations[languageTag] {
 		ids = append(ids, id)
 	}
+	b.RUnlock()
 	return ids
 }
 
@@ -212,6 +229,8 @@ func (b *Bundle) supportedLanguage(pref string, prefs ...string) *language.Langu
 
 func (b *Bundle) translatedLanguage(src string) *language.Language {
 	langs := language.Parse(src)
+	b.RLock()
+	defer b.RUnlock()
 	for _, lang := range langs {
 		if len(b.translations[lang.Tag]) > 0 ||
 			len(b.fallbackTranslations[lang.Tag]) > 0 {
@@ -226,15 +245,7 @@ func (b *Bundle) translate(lang *language.Language, translationID string, args .
 		return translationID
 	}
 
-	translations := b.translations[lang.Tag]
-	if translations == nil {
-		translations = b.fallbackTranslations[lang.Tag]
-		if translations == nil {
-			return translationID
-		}
-	}
-
-	translation := translations[translationID]
+	translation := b.translation(lang, translationID)
 	if translation == nil {
 		return translationID
 	}
@@ -278,6 +289,19 @@ func (b *Bundle) translate(lang *language.Language, translationID string, args .
 		return translationID
 	}
 	return s
+}
+
+func (b *Bundle) translation(lang *language.Language, translationID string) translation.Translation {
+	b.RLock()
+	defer b.RUnlock()
+	translations := b.translations[lang.Tag]
+	if translations == nil {
+		translations = b.fallbackTranslations[lang.Tag]
+		if translations == nil {
+			return nil
+		}
+	}
+	return translations[translationID]
 }
 
 func isNumber(n interface{}) bool {

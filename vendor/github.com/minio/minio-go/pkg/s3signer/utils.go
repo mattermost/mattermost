@@ -1,5 +1,5 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015, 2016 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package minio
+package s3signer
 
 import (
-	"sort"
-	"testing"
+	"crypto/hmac"
+	"crypto/sha256"
 )
 
-// Tests for 'func TestResourceListSorting(t *testing.T)'.
-func TestResourceListSorting(t *testing.T) {
-	sortedResourceList := make([]string, len(resourceList))
-	copy(sortedResourceList, resourceList)
-	sort.Strings(sortedResourceList)
-	for i := 0; i < len(resourceList); i++ {
-		if resourceList[i] != sortedResourceList[i] {
-			t.Errorf("Expected resourceList[%d] = \"%s\", resourceList is not correctly sorted.", i, sortedResourceList[i])
-			break
-		}
-	}
+// unsignedPayload - value to be set to X-Amz-Content-Sha256 header when
+const unsignedPayload = "UNSIGNED-PAYLOAD"
+
+// sum256 calculate sha256 sum for an input byte array.
+func sum256(data []byte) []byte {
+	hash := sha256.New()
+	hash.Write(data)
+	return hash.Sum(nil)
+}
+
+// sumHMAC calculate hmac between two input byte array.
+func sumHMAC(key []byte, data []byte) []byte {
+	hash := hmac.New(sha256.New, key)
+	hash.Write(data)
+	return hash.Sum(nil)
 }

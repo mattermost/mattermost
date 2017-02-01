@@ -17,10 +17,26 @@ package minio
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
 )
+
+// Tests filter header function by filtering out
+// some custom header keys.
+func TestFilterHeader(t *testing.T) {
+	header := http.Header{}
+	header.Set("Content-Type", "binary/octet-stream")
+	header.Set("Content-Encoding", "gzip")
+	newHeader := filterHeader(header, []string{"Content-Type"})
+	if len(newHeader) > 1 {
+		t.Fatalf("Unexpected size of the returned header, should be 1, got %d", len(newHeader))
+	}
+	if newHeader.Get("Content-Encoding") != "gzip" {
+		t.Fatalf("Unexpected content-encoding value, expected 'gzip', got %s", newHeader.Get("Content-Encoding"))
+	}
+}
 
 // Tests for 'getEndpointURL(endpoint string, inSecure bool)'.
 func TestGetEndpointURL(t *testing.T) {
@@ -74,35 +90,6 @@ func TestGetEndpointURL(t *testing.T) {
 	}
 }
 
-// Tests for 'isValidDomain(host string) bool'.
-func TestIsValidDomain(t *testing.T) {
-	testCases := []struct {
-		// Input.
-		host string
-		// Expected result.
-		result bool
-	}{
-		{"s3.amazonaws.com", true},
-		{"s3.cn-north-1.amazonaws.com.cn", true},
-		{"s3.amazonaws.com_", false},
-		{"%$$$", false},
-		{"s3.amz.test.com", true},
-		{"s3.%%", false},
-		{"localhost", true},
-		{"-localhost", false},
-		{"", false},
-		{"\n \t", false},
-		{"   ", false},
-	}
-
-	for i, testCase := range testCases {
-		result := isValidDomain(testCase.host)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isValidDomain test to be '%v', but found '%v' instead", i+1, testCase.result, result)
-		}
-	}
-}
-
 // Tests validate end point validator.
 func TestIsValidEndpointURL(t *testing.T) {
 	testCases := []struct {
@@ -125,159 +112,31 @@ func TestIsValidEndpointURL(t *testing.T) {
 	}
 
 	for i, testCase := range testCases {
-		err := isValidEndpointURL(testCase.url)
+		var u url.URL
+		if testCase.url == "" {
+			u = sentinelURL
+		} else {
+			u1, err := url.Parse(testCase.url)
+			if err != nil {
+				t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err)
+			}
+			u = *u1
+		}
+		err := isValidEndpointURL(u)
 		if err != nil && testCase.shouldPass {
-			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err.Error())
+			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err)
 		}
 		if err == nil && !testCase.shouldPass {
-			t.Errorf("Test %d: Expected to fail with <ERROR> \"%s\", but passed instead", i+1, testCase.err.Error())
+			t.Errorf("Test %d: Expected to fail with <ERROR> \"%s\", but passed instead", i+1, testCase.err)
 		}
 		// Failed as expected, but does it fail for the expected reason.
 		if err != nil && !testCase.shouldPass {
 			if err.Error() != testCase.err.Error() {
-				t.Errorf("Test %d: Expected to fail with error \"%s\", but instead failed with error \"%s\" instead", i+1, testCase.err.Error(), err.Error())
+				t.Errorf("Test %d: Expected to fail with error \"%s\", but instead failed with error \"%s\" instead", i+1, testCase.err, err)
 			}
 		}
 
 	}
-}
-
-// Tests validate IP address validator.
-func TestIsValidIP(t *testing.T) {
-	testCases := []struct {
-		// Input.
-		ip string
-		// Expected result.
-		result bool
-	}{
-		{"192.168.1.1", true},
-		{"192.168.1", false},
-		{"192.168.1.1.1", false},
-		{"-192.168.1.1", false},
-		{"260.192.1.1", false},
-	}
-
-	for i, testCase := range testCases {
-		result := isValidIP(testCase.ip)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isValidIP to be '%v' for input \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.ip, result)
-		}
-	}
-
-}
-
-// Tests validate virtual host validator.
-func TestIsVirtualHostSupported(t *testing.T) {
-	testCases := []struct {
-		url    string
-		bucket string
-		// Expeceted result.
-		result bool
-	}{
-		{"https://s3.amazonaws.com", "my-bucket", true},
-		{"https://s3.cn-north-1.amazonaws.com.cn", "my-bucket", true},
-		{"https://s3.amazonaws.com", "my-bucket.", false},
-		{"https://amazons3.amazonaws.com", "my-bucket.", false},
-		{"https://storage.googleapis.com/", "my-bucket", true},
-		{"https://mystorage.googleapis.com/", "my-bucket", false},
-	}
-
-	for i, testCase := range testCases {
-		result := isVirtualHostSupported(testCase.url, testCase.bucket)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isVirtualHostSupported to be '%v' for input url \"%s\" and bucket \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.url, testCase.bucket, result)
-		}
-	}
-}
-
-// Tests validate Amazon endpoint validator.
-func TestIsAmazonEndpoint(t *testing.T) {
-	testCases := []struct {
-		url string
-		// Expected result.
-		result bool
-	}{
-		{"https://192.168.1.1", false},
-		{"192.168.1.1", false},
-		{"http://storage.googleapis.com", false},
-		{"https://storage.googleapis.com", false},
-		{"storage.googleapis.com", false},
-		{"s3.amazonaws.com", false},
-		{"https://amazons3.amazonaws.com", false},
-		{"-192.168.1.1", false},
-		{"260.192.1.1", false},
-		// valid inputs.
-		{"https://s3.amazonaws.com", true},
-		{"https://s3.cn-north-1.amazonaws.com.cn", true},
-	}
-
-	for i, testCase := range testCases {
-		result := isAmazonEndpoint(testCase.url)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isAmazonEndpoint to be '%v' for input \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.url, result)
-		}
-	}
-
-}
-
-// Tests validate Amazon S3 China endpoint validator.
-func TestIsAmazonChinaEndpoint(t *testing.T) {
-	testCases := []struct {
-		url string
-		// Expected result.
-		result bool
-	}{
-		{"https://192.168.1.1", false},
-		{"192.168.1.1", false},
-		{"http://storage.googleapis.com", false},
-		{"https://storage.googleapis.com", false},
-		{"storage.googleapis.com", false},
-		{"s3.amazonaws.com", false},
-		{"https://amazons3.amazonaws.com", false},
-		{"-192.168.1.1", false},
-		{"260.192.1.1", false},
-		// s3.amazonaws.com is not a valid Amazon S3 China end point.
-		{"https://s3.amazonaws.com", false},
-		// valid input.
-		{"https://s3.cn-north-1.amazonaws.com.cn", true},
-	}
-
-	for i, testCase := range testCases {
-		result := isAmazonChinaEndpoint(testCase.url)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isAmazonEndpoint to be '%v' for input \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.url, result)
-		}
-	}
-
-}
-
-// Tests validate Google Cloud end point validator.
-func TestIsGoogleEndpoint(t *testing.T) {
-	testCases := []struct {
-		url string
-		// Expected result.
-		result bool
-	}{
-		{"192.168.1.1", false},
-		{"https://192.168.1.1", false},
-		{"s3.amazonaws.com", false},
-		{"http://s3.amazonaws.com", false},
-		{"https://s3.amazonaws.com", false},
-		{"https://s3.cn-north-1.amazonaws.com.cn", false},
-		{"-192.168.1.1", false},
-		{"260.192.1.1", false},
-		// valid inputs.
-		{"http://storage.googleapis.com", true},
-		{"https://storage.googleapis.com", true},
-	}
-
-	for i, testCase := range testCases {
-		result := isGoogleEndpoint(testCase.url)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isGoogleEndpoint to be '%v' for input \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.url, result)
-		}
-	}
-
 }
 
 // Tests validate the expiry time validator.
@@ -354,83 +213,4 @@ func TestIsValidBucketName(t *testing.T) {
 
 	}
 
-}
-
-func TestPercentEncodeSlash(t *testing.T) {
-	testCases := []struct {
-		input  string
-		output string
-	}{
-		{"test123", "test123"},
-		{"abc,+_1", "abc,+_1"},
-		{"%40prefix=test%40123", "%40prefix=test%40123"},
-		{"key1=val1/val2", "key1=val1%2Fval2"},
-		{"%40prefix=test%40123/", "%40prefix=test%40123%2F"},
-	}
-
-	for i, testCase := range testCases {
-		receivedOutput := percentEncodeSlash(testCase.input)
-		if testCase.output != receivedOutput {
-			t.Errorf(
-				"Test %d: Input: \"%s\" --> Expected percentEncodeSlash to return \"%s\", but it returned \"%s\" instead!",
-				i+1, testCase.input, testCase.output,
-				receivedOutput,
-			)
-
-		}
-	}
-}
-
-// Tests validate the query encoder.
-func TestQueryEncode(t *testing.T) {
-	testCases := []struct {
-		queryKey      string
-		valueToEncode []string
-		// Expected result.
-		result string
-	}{
-		{"prefix", []string{"test@123", "test@456"}, "prefix=test%40123&prefix=test%40456"},
-		{"@prefix", []string{"test@123"}, "%40prefix=test%40123"},
-		{"@prefix", []string{"a/b/c/"}, "%40prefix=a%2Fb%2Fc%2F"},
-		{"prefix", []string{"test#123"}, "prefix=test%23123"},
-		{"prefix#", []string{"test#123"}, "prefix%23=test%23123"},
-		{"prefix", []string{"test123"}, "prefix=test123"},
-		{"prefix", []string{"test本語123", "test123"}, "prefix=test%E6%9C%AC%E8%AA%9E123&prefix=test123"},
-	}
-
-	for i, testCase := range testCases {
-		urlValues := make(url.Values)
-		for _, valueToEncode := range testCase.valueToEncode {
-			urlValues.Add(testCase.queryKey, valueToEncode)
-		}
-		result := queryEncode(urlValues)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected queryEncode result to be \"%s\", but found it to be \"%s\" instead", i+1, testCase.result, result)
-		}
-	}
-}
-
-// Tests validate the URL path encoder.
-func TestUrlEncodePath(t *testing.T) {
-	testCases := []struct {
-		// Input.
-		inputStr string
-		// Expected result.
-		result string
-	}{
-		{"thisisthe%url", "thisisthe%25url"},
-		{"本語", "%E6%9C%AC%E8%AA%9E"},
-		{"本語.1", "%E6%9C%AC%E8%AA%9E.1"},
-		{">123", "%3E123"},
-		{"myurl#link", "myurl%23link"},
-		{"space in url", "space%20in%20url"},
-		{"url+path", "url%2Bpath"},
-	}
-
-	for i, testCase := range testCases {
-		result := urlEncodePath(testCase.inputStr)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected queryEncode result to be \"%s\", but found it to be \"%s\" instead", i+1, testCase.result, result)
-		}
-	}
 }

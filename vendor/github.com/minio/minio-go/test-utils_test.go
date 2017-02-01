@@ -21,6 +21,7 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 // Contains common used utilities for tests.
@@ -61,4 +62,13 @@ func encodeResponse(response interface{}) []byte {
 	encode := xml.NewEncoder(&bytesBuffer)
 	encode.Encode(response)
 	return bytesBuffer.Bytes()
+}
+
+// Convert string to bool and always return true if any error
+func mustParseBool(str string) bool {
+	b, err := strconv.ParseBool(str)
+	if err != nil {
+		return true
+	}
+	return b
 }

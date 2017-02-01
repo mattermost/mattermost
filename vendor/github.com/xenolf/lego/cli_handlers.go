@@ -136,10 +136,18 @@ func saveCertRes(certRes acme.CertificateResource, conf *Configuration) {
 	privOut := path.Join(conf.CertPath(), certRes.Domain+".key")
 	pemOut := path.Join(conf.CertPath(), certRes.Domain+".pem")
 	metaOut := path.Join(conf.CertPath(), certRes.Domain+".json")
+	issuerOut := path.Join(conf.CertPath(), certRes.Domain+".issuer.crt")
 
 	err := ioutil.WriteFile(certOut, certRes.Certificate, 0600)
 	if err != nil {
 		logger().Fatalf("Unable to save Certificate for domain %s\n\t%s", certRes.Domain, err.Error())
+	}
+
+	if certRes.IssuerCertificate != nil {
+		err = ioutil.WriteFile(issuerOut, certRes.IssuerCertificate, 0600)
+		if err != nil {
+			logger().Fatalf("Unable to save IssuerCertificate for domain %s\n\t%s", certRes.Domain, err.Error())
+		}
 	}
 
 	if certRes.PrivateKey != nil {

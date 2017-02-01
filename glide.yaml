@@ -1,56 +1,45 @@
 package: github.com/mattermost/platform
 import:
 - package: github.com/NYTimes/gziphandler
-  version: 172fbbbb329cf7e031dd3ab35766186fc2081eab
 - package: github.com/alecthomas/log4go
-  version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
 - package: github.com/dgryski/dgoogauth
-  version: 96977cbd42e27be71f9f731db6634123de7e861a
 - package: github.com/disintegration/imaging
-  version: 5b7e22645c93e3f3911b36b7d66bf8799f3eddfd
 - package: github.com/go-gorp/gorp
   version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
-  version: v2.4.1
+  version: v2.5.0
 - package: github.com/go-sql-driver/mysql
-  version: v1.2
+  version: v1.3
 - package: github.com/goamz/goamz
-  version: fb002ae75f50beb93874fa6ce2c861e488ce08a0
   subpackages:
   - aws
   - s3
 - package: github.com/golang/freetype
-  version: 38b4c392adc5eed94207994c4848fff99f4ac234
 - package: github.com/gorilla/handlers
-  version: e1b2144f2167de0e1042d1d35e5cba5119d4fb5d
+  version: v1.2
 - package: github.com/gorilla/mux
-  version: 34dda716af12ba79ed40ce1f66b102ff75dc3411
+  version: v1.3.0
 - package: github.com/gorilla/websocket
-  version: e8f0f8aaa98dfb6586cbdf2978d511e3199a960a
+  version: v1.1.0
 - package: github.com/lib/pq
-  version: d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b
 - package: github.com/mattermost/rsc
-  version: bbaefb05eaa0389ea712340066837c8ce4d287f9
   subpackages:
   - qr
 - package: github.com/mssola/user_agent
   version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
-  version: v1.6.0
+  version: v1.7.0
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
   version: v1.0
 - package: github.com/rwcarlsen/goexif
-  version: 709fab3d192d7c62f86043caff1e7e3fb0f42bd8
   subpackages:
   - exif
 - package: golang.org/x/crypto
-  version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
   subpackages:
   - bcrypt
 - package: golang.org/x/image
-  version: 507b1a44bd72830c136e6ecf7c05f9089796d572
   subpackages:
   - bmp
 - package: gopkg.in/fsnotify.v1
@@ -62,9 +51,8 @@ import:
 - package: github.com/segmentio/analytics-go
   version: 2.1.1
 - package: github.com/rsc/letsencrypt
-  version: 76104d26167d38b6a0010f42bfc8ec5487742e8b
 - package: github.com/minio/minio-go
-  version: 2.0.2
+  version: v2.0.3
 - package: github.com/prometheus/client_golang
   version: v0.8.0
   subpackages:
@@ -89,6 +77,5 @@ import:
 - package: github.com/spf13/cobra
 - package: github.com/spf13/pflag
 - package: github.com/dyatlov/go-opengraph
-  version: 41a3523719dfbe7e8f853fbd4061867543db5270
   subpackages:
   - opengraph

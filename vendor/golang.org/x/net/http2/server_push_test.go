@@ -244,6 +244,50 @@ func TestServer_Push_Success(t *testing.T) {
 	}
 }
 
+func TestServer_Push_SuccessNoRace(t *testing.T) {
+	// Regression test for issue #18326. Ensure the request handler can mutate
+	// pushed request headers without racing with the PUSH_PROMISE write.
+	errc := make(chan error, 2)
+	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.RequestURI() {
+		case "/":
+			opt := &http.PushOptions{
+				Header: http.Header{"User-Agent": {"testagent"}},
+			}
+			if err := w.(http.Pusher).Push("/pushed", opt); err != nil {
+				errc <- fmt.Errorf("error pushing: %v", err)
+				return
+			}
+			w.WriteHeader(200)
+			errc <- nil
+
+		case "/pushed":
+			// Update request header, ensure there is no race.
+			r.Header.Set("User-Agent", "newagent")
+			r.Header.Set("Cookie", "cookie")
+			w.WriteHeader(200)
+			errc <- nil
+
+		default:
+			errc <- fmt.Errorf("unknown RequestURL %q", r.URL.RequestURI())
+		}
+	})
+
+	// Send one request, which should push one response.
+	st.greet()
+	getSlash(st)
+	for k := 0; k < 2; k++ {
+		select {
+		case <-time.After(2 * time.Second):
+			t.Errorf("timeout waiting for handler %d to finish", k)
+		case err := <-errc:
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+}
+
 func TestServer_Push_RejectRecursivePush(t *testing.T) {
 	// Expect two requests, but might get three if there's a bug and the second push succeeds.
 	errc := make(chan error, 3)
@@ -386,18 +430,20 @@ func TestServer_Push_RejectForbiddenHeader(t *testing.T) {
 func TestServer_Push_StateTransitions(t *testing.T) {
 	const body = "foo"
 
-	startedPromise := make(chan bool)
+	gotPromise := make(chan bool)
 	finishedPush := make(chan bool)
+
 	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.RequestURI() {
 		case "/":
 			if err := w.(http.Pusher).Push("/pushed", nil); err != nil {
 				t.Errorf("Push error: %v", err)
 			}
-			close(startedPromise)
 			// Don't finish this request until the push finishes so we don't
 			// nondeterministically interleave output frames with the push.
 			<-finishedPush
+		case "/pushed":
+			<-gotPromise
 		}
 		w.Header().Set("Content-Type", "text/html")
 		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
@@ -414,11 +460,16 @@ func TestServer_Push_StateTransitions(t *testing.T) {
 		t.Fatalf("streamState(2)=%v, want %v", got, want)
 	}
 	getSlash(st)
-	<-startedPromise
+	// After the PUSH_PROMISE is sent, the stream should be stateHalfClosedRemote.
+	st.wantPushPromise()
 	if got, want := st.streamState(2), stateHalfClosedRemote; got != want {
 		t.Fatalf("streamState(2)=%v, want %v", got, want)
 	}
-	st.wantPushPromise()
+	// We stall the HTTP handler for "/pushed" until the above check. If we don't
+	// stall the handler, then the handler might write HEADERS and DATA and finish
+	// the stream before we check st.streamState(2) -- should that happen, we'll
+	// see stateClosed and fail the above check.
+	close(gotPromise)
 	st.wantHeaders()
 	if df := st.wantData(); !df.StreamEnded() {
 		t.Fatal("expected END_STREAM flag on DATA")

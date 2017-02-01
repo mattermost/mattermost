@@ -2,6 +2,8 @@ package bundle
 
 import (
 	"fmt"
+	"strconv"
+	"sync"
 	"testing"
 
 	"reflect"
@@ -157,6 +159,59 @@ func TestTfuncAndLanguage(t *testing.T) {
 			(lang != nil && test.expectedLanguage != nil && lang.String() != test.expectedLanguage.String()) {
 			t.Errorf("lang %d was %s; expected %s", i, lang, test.expectedLanguage)
 		}
+	}
+}
+
+func TestConcurrent(t *testing.T) {
+	b := New()
+	// bootstrap bundle
+	translationID := "translation_id" // +1
+	englishLanguage := languageWithTag("en-US")
+	addFakeTranslation(t, b, englishLanguage, translationID)
+
+	tf, err := b.Tfunc(englishLanguage.Tag)
+	if err != nil {
+		t.Errorf("Tfunc(%v) = error{%q}; expected no error", []string{englishLanguage.Tag}, err)
+	}
+
+	const iterations = 1000
+	var wg sync.WaitGroup
+	wg.Add(iterations)
+
+	// Using go routines insert 1000 ints into our map.
+	go func() {
+		for i := 0; i < iterations/2; i++ {
+			// Add item to map.
+			translationID := strconv.FormatInt(int64(i), 10)
+			addFakeTranslation(t, b, englishLanguage, translationID)
+
+			// Retrieve item from map.
+			tf(translationID)
+
+			wg.Done()
+		} // Call go routine with current index.
+	}()
+
+	go func() {
+		for i := iterations / 2; i < iterations; i++ {
+			// Add item to map.
+			translationID := strconv.FormatInt(int64(i), 10)
+			addFakeTranslation(t, b, englishLanguage, translationID)
+
+			// Retrieve item from map.
+			tf(translationID)
+
+			wg.Done()
+		} // Call go routine with current index.
+	}()
+
+	// Wait for all go routines to finish.
+	wg.Wait()
+
+	// Make sure map contains 1000+1 elements.
+	count := len(b.Translations()[englishLanguage.Tag])
+	if count != iterations+1 {
+		t.Error("Expecting 1001 elements, got", count)
 	}
 }
 

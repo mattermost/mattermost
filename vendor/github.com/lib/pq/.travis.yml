@@ -1,10 +1,11 @@
 language: go
 
 go:
-  - 1.5
-  - 1.6
-  - 1.7
-  - tip
+  - 1.5.x
+  - 1.6.x
+  - 1.7.x
+  - 1.8.x
+  - master
 
 sudo: true
 
@@ -15,6 +16,7 @@ env:
     - PQSSLCERTTEST_PATH=$PWD/certs
     - PGHOST=127.0.0.1
   matrix:
+    - PGVERSION=9.6
     - PGVERSION=9.5
     - PGVERSION=9.4
     - PGVERSION=9.3
@@ -39,5 +41,5 @@ script:
   - >
     goimports -d -e $(find -name '*.go') | awk '{ print } END { exit NR == 0 ? 0 : 1 }'
   - go vet ./...
-  - PQTEST_BINARY_PARAMETERS=no  go test -v ./...
-  - PQTEST_BINARY_PARAMETERS=yes go test -v ./...
+  - PQTEST_BINARY_PARAMETERS=no  go test -race -v ./...
+  - PQTEST_BINARY_PARAMETERS=yes go test -race -v ./...

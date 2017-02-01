@@ -275,7 +275,7 @@ func (o *Object) setOffset(bytesRead int64) error {
 	return nil
 }
 
-// Read reads up to len(p) bytes into p. It returns the number of
+// Read reads up to len(b) bytes into b. It returns the number of
 // bytes read (0 <= n <= len(p)) and any error encountered. Returns
 // io.EOF upon end of file.
 func (o *Object) Read(b []byte) (n int, err error) {
@@ -343,7 +343,7 @@ func (o *Object) Read(b []byte) (n int, err error) {
 	return response.Size, err
 }
 
-// Stat returns the ObjectInfo structure describing object.
+// Stat returns the ObjectInfo structure describing Object.
 func (o *Object) Stat() (ObjectInfo, error) {
 	if o == nil {
 		return ObjectInfo{}, ErrInvalidArgument("Object is nil")
