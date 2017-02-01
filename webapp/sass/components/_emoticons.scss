@@ -47,15 +47,14 @@
 
 .emoji-picker-bottom {
     display: flex;
-    z-index: 999 !important;
-   // background-color: rgba(245,245,245,1);
     flex-direction: column;
     @include user-select(none);
     position: absolute;
-    top: -162px;
-    right: 66px;
+    z-index: 40;
+    right: 1%;
     width: 315px;
     border: 1px solid;
+    min-height: 298px;
     border-radius: 3px;
 }
 
@@ -148,8 +147,10 @@
     }
 
     .emoji-picker__preview-image {
-        height: 36px;
+        max-height: 36px;
+        max-width: 42px;
         position: absolute;
+        padding-top: 4px;
     }
 
     .emoji-picker__preview-name {

@@ -393,6 +393,10 @@ export default class CreatePost extends React.Component {
     }
 
     showShortcuts(e) {
+        if (e.which === Constants.KeyCodes.ESCAPE && this.state.showEmojiPicker === true) {
+            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        }
+
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
             const args = {};

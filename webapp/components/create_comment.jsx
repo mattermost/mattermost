@@ -58,6 +58,7 @@ export default class CreateComment extends React.Component {
         this.handlePostError = this.handlePostError.bind(this);
         this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
+        this.onKeyPress = this.onKeyPress.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -72,14 +73,25 @@ export default class CreateComment extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             showPostDeletedModal: false,
             enableAddButton,
-            showEmojiPicker: false
+            showEmojiPicker: false,
+            emojiOffset: 0
         };
 
         this.lastBlurAt = 0;
     }
 
     handleEmojiPickerClick() {
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        const threadHeight = $('#thread--root') ? $('#thread--root').height() : 0;
+        const messagesHeight = $('.post-right-comments-container') ? $('.post-right-comments-container').height() : 0;
+
+        const totalHeight = threadHeight + messagesHeight;
+        let pickerOffset = 0;
+        if (totalHeight > 340) {
+            pickerOffset = -340;
+        } else {
+            pickerOffset = -1 * totalHeight;
+        }
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker, emojiOffset: pickerOffset});
     }
 
     handleEmojiClick(emoji) {
@@ -105,11 +117,20 @@ export default class CreateComment extends React.Component {
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        document.addEventListener('keydown', this.onKeyPress);
+
         this.focusTextbox();
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        document.removeEventListener('keydown', this.onKeyPress);
+    }
+
+    onKeyPress(e) {
+        if (e.which === Constants.KeyCodes.ESCAPE && this.state.showEmojiPicker === true) {
+            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        }
     }
 
     onPreferenceChange() {
@@ -546,6 +567,7 @@ export default class CreateComment extends React.Component {
                 <EmojiPicker
                     onEmojiClick={this.handleEmojiClick}
                     topOrBottom='bottom'
+                    emojiOffset={this.state.emojiOffset}
                 />
             );
         }

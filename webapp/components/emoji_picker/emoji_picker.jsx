@@ -33,7 +33,8 @@ export default class EmojiPicker extends React.Component {
     static propTypes = {
         customEmojis: React.PropTypes.object.isRequired,
         onEmojiClick: React.PropTypes.func.isRequired,
-        topOrBottom: React.PropTypes.string.isRequired
+        topOrBottom: React.PropTypes.string.isRequired,
+        emojiOffset: React.PropTypes.number
     }
 
     constructor(props) {
@@ -56,6 +57,10 @@ export default class EmojiPicker extends React.Component {
             filter: '',
             selected: null
         };
+    }
+
+    componentDidMount() {
+        this.searchInput.focus();
     }
 
     handleCategoryClick(category) {
@@ -260,8 +265,12 @@ export default class EmojiPicker extends React.Component {
             }
         }
         const cssclass = this.props.topOrBottom === 'top' ? 'emoji-picker' : 'emoji-picker-bottom';
+        const pickerStyle = this.props.emojiOffset ? {top: this.props.emojiOffset} : {};
         return (
-            <div className={cssclass}>
+            <div
+                style={pickerStyle}
+                className={cssclass}
+            >
                 <div className='emoji-picker__categories'>
                     <EmojiPickerCategory
                         category='recent'
@@ -332,6 +341,9 @@ export default class EmojiPicker extends React.Component {
                     <div className='emoji-picker__search-container'>
                         <span className='fa fa-search emoji-picker__search-icon'/>
                         <input
+                            ref={(input) => {
+                                this.searchInput = input;
+                            }}
                             className='emoji-picker__search'
                             type='text'
                             onChange={this.handleFilterChange}
