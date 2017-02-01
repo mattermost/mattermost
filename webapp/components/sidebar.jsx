@@ -109,7 +109,9 @@ export default class Sidebar extends React.Component {
         const teamMembers = TeamStore.getMyTeamMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
-        const channelList = ChannelUtils.buildDisplayableChannelList(Object.assign([], ChannelStore.getAll()));
+
+        const allChannels = ChannelStore.getAll().map((channel) => Object.assign({}, channel));
+        const channelList = ChannelUtils.buildDisplayableChannelList(allChannels);
 
         return {
             activeId: currentChannelId,
