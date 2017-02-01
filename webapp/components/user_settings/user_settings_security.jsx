@@ -833,13 +833,11 @@ export default class SecurityTab extends React.Component {
             } else {
                 apps = (
                     <div className='padding-bottom x2 authorized-app'>
-                        <div className='col-sm-12'>
-                            <div className='setting-list__hint col-sm-12'>
-                                <FormattedMessage
-                                    id='user.settings.security.noApps'
-                                    defaultMessage='No OAuth 2.0 Applications are authorized.'
-                                />
-                            </div>
+                        <div className='setting-list__hint'>
+                            <FormattedMessage
+                                id='user.settings.security.noApps'
+                                defaultMessage='No OAuth 2.0 Applications are authorized.'
+                            />
                         </div>
                     </div>
                 );
