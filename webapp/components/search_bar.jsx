@@ -164,7 +164,7 @@ export default class SearchBar extends React.Component {
         const flagIcon = Constants.FLAG_ICON_SVG;
         var isSearching = null;
         if (this.state.isSearching) {
-            isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
+            isSearching = (<span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>);
         }
 
         let helpClass = 'search-help-popover';
@@ -239,6 +239,21 @@ export default class SearchBar extends React.Component {
             );
         }
 
+        let showHelpSearchPopover;
+        if (!Utils.isMobile()) {
+            showHelpSearchPopover =
+                (<Popover
+                    id='searchbar-help-popup'
+                    placement='bottom'
+                    className={helpClass}
+                 >
+                    <FormattedHTMLMessage
+                        id='search_bar.usage'
+                        defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
+                    />
+                </Popover>);
+        }
+
         return (
             <div>
                 <div
@@ -279,16 +294,7 @@ export default class SearchBar extends React.Component {
                         type='search'
                     />
                     {isSearching}
-                    <Popover
-                        id='searchbar-help-popup'
-                        placement='bottom'
-                        className={helpClass}
-                    >
-                        <FormattedHTMLMessage
-                            id='search_bar.usage'
-                            defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
-                        />
-                    </Popover>
+                    {showHelpSearchPopover}
                 </form>
 
                 {mentionBtn}
