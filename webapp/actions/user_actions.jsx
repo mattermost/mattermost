@@ -542,7 +542,7 @@ export function checkMfa(loginId, success, error) {
         loginId,
         (data) => {
             if (success) {
-                success(data.mfa_required === 'true');
+                success(data);
             }
         },
         (err) => {
