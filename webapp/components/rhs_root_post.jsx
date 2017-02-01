@@ -341,6 +341,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         let compactClass = '';
+        let postClass = '';
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
@@ -360,6 +361,10 @@ export default class RhsRootPost extends React.Component {
                     />
                 );
             }
+        }
+
+        if (PostUtils.isEdited(this.props.post)) {
+            postClass += ' post--edited';
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
@@ -447,11 +452,13 @@ export default class RhsRootPost extends React.Component {
                             </li>
                         </ul>
                         <div className='post__body'>
-                            <PostBodyAdditionalContent
-                                post={post}
-                                message={<PostMessageContainer post={post}/>}
-                                previewCollapsed={this.props.previewCollapsed}
-                            />
+                            <div className={postClass}>
+                                <PostBodyAdditionalContent
+                                    post={post}
+                                    message={<PostMessageContainer post={post}/>}
+                                    previewCollapsed={this.props.previewCollapsed}
+                                />
+                            </div>
                             {fileAttachment}
                             <ReactionListContainer
                                 post={post}
