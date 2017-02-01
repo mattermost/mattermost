@@ -182,3 +182,27 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.SystemAdminClient.UpdateUser(user)
 	CheckNoError(t, resp)
 }
+
+func TestUpdateUserRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.Client
+	SystemAdminClient := th.SystemAdminClient
+
+	_, resp := Client.UpdateUserRoles(th.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
+	CheckNoError(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	CheckNoError(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserRoles("junk", model.ROLE_SYSTEM_USER.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.ROLE_SYSTEM_USER.Id)
+	CheckBadRequestStatus(t, resp)
+}
