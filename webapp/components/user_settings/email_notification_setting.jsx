@@ -1,6 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import React from 'react';
 
 import {savePreference} from 'utils/async_client.jsx';
@@ -54,6 +55,7 @@ export default class EmailNotificationSetting extends React.Component {
 
     expand() {
         this.props.updateSection('email');
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
     }
 
     collapse() {
