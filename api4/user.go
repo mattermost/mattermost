@@ -18,8 +18,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
+	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
-
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
 
@@ -110,12 +110,17 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+<<<<<<< HEAD
 func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+=======
+func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
+>>>>>>> added delete for user deactivation endpoint
 	c.RequireUserId()
 	if c.Err != nil {
 		return
 	}
 
+<<<<<<< HEAD
 	props := model.MapFromJson(r.Body)
 
 	newRoles := props["roles"]
@@ -134,6 +139,24 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
+=======
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUser(c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, user.Id) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if _, err := app.UpdateActive(user, false); err != nil {
+		c.Err = err
+		return
+>>>>>>> added delete for user deactivation endpoint
 	}
 
 	ReturnStatusOK(w)
