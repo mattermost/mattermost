@@ -116,6 +116,9 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	team := getTeamFromTeamArg(teamArg)
+	if team == nil {
+		return errors.New("Unable to find team: " + teamArg)
+	}
 
 	c := getMockContext()
 
