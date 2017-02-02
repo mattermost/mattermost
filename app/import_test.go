@@ -5,9 +5,9 @@ package app
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"strings"
 	"testing"
-	"github.com/mattermost/platform/utils"
 )
 
 func ptrStr(s string) *string {
@@ -423,6 +423,31 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 	if err := validateUserChannelsImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with valid roles.")
 	}
+
+	// Empty notify props.
+	data[0].NotifyProps = &UserChannelNotifyPropsImportData{}
+	if err := validateUserChannelsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with empty notify props.")
+	}
+
+	// Invalid desktop notify props.
+	data[0].NotifyProps.Desktop = ptrStr("invalid")
+	if err := validateUserChannelsImportData(&data); err == nil {
+		t.Fatal("Should have failed with invalid desktop notify props.")
+	}
+
+	// Invalid desktop notify props.
+	data[0].NotifyProps.Desktop = ptrStr("mention")
+	data[0].NotifyProps.MarkUnread = ptrStr("invalid")
+	if err := validateUserChannelsImportData(&data); err == nil {
+		t.Fatal("Should have failed with invalid mark_unread notify props.")
+	}
+
+	// Empty notify props.
+	data[0].NotifyProps.MarkUnread = ptrStr("mention")
+	if err := validateUserChannelsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid notify props.")
+	}
 }
 
 func TestImportImportTeam(t *testing.T) {
@@ -543,7 +568,7 @@ func TestImportImportChannel(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := GetTeamByName(teamName);
+	team, err := GetTeamByName(teamName)
 	if err != nil {
 		t.Fatalf("Failed to get team from database.")
 	}
@@ -723,7 +748,7 @@ func TestImportImportUser(t *testing.T) {
 	// Do a valid user in dry-run mode.
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
-		Email: ptrStr(model.NewId() + "@example.com"),
+		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
 	if err := ImportUser(&data, true); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
@@ -758,12 +783,12 @@ func TestImportImportUser(t *testing.T) {
 	// Do a valid user in apply mode.
 	username := model.NewId()
 	data = UserImportData{
-		Username: &username,
-		Email: ptrStr(model.NewId() + "@example.com"),
-		Nickname: ptrStr(model.NewId()),
+		Username:  &username,
+		Email:     ptrStr(model.NewId() + "@example.com"),
+		Nickname:  ptrStr(model.NewId()),
 		FirstName: ptrStr(model.NewId()),
-		LastName: ptrStr(model.NewId()),
-		Position: ptrStr(model.NewId()),
+		LastName:  ptrStr(model.NewId()),
+		Position:  ptrStr(model.NewId()),
 	}
 	if err := ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
@@ -771,7 +796,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check that one more user is in the DB.
 	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
-		if r.Data.(int64) != userCount + 1 {
+		if r.Data.(int64) != userCount+1 {
 			t.Fatalf("Unexpected number of users")
 		}
 	} else {
@@ -790,7 +815,7 @@ func TestImportImportUser(t *testing.T) {
 			t.Fatalf("Expected Auth Service to be empty.")
 		}
 
-		if ! (user.AuthData  == nil || *user.AuthData == "") {
+		if !(user.AuthData == nil || *user.AuthData == "") {
 			t.Fatalf("Expected AuthData to be empty.")
 		}
 
@@ -827,7 +852,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check user count the same.
 	if r := <-Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
-		if r.Data.(int64) != userCount + 1 {
+		if r.Data.(int64) != userCount+1 {
 			t.Fatalf("Unexpected number of users")
 		}
 	} else {
@@ -846,7 +871,7 @@ func TestImportImportUser(t *testing.T) {
 			t.Fatalf("Expected Auth Service to be ldap \"%v\"", user.AuthService)
 		}
 
-		if ! (user.AuthData == data.AuthData || *user.AuthData == *data.AuthData) {
+		if !(user.AuthData == data.AuthData || *user.AuthData == *data.AuthData) {
 			t.Fatalf("Expected AuthData to be set.")
 		}
 
@@ -874,31 +899,31 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := GetTeamByName(teamName);
+	team, err := GetTeamByName(teamName)
 	if err != nil {
 		t.Fatalf("Failed to get team from database.")
 	}
 
 	channelName := model.NewId()
 	ImportChannel(&ChannelImportData{
-		Team: &teamName,
-		Name: &channelName,
+		Team:        &teamName,
+		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
-		Type: ptrStr("O"),
+		Type:        ptrStr("O"),
 	}, false)
-	channel, err := GetChannelByName(channelName, team.Id);
+	channel, err := GetChannelByName(channelName, team.Id)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
 
 	username = model.NewId()
 	data = UserImportData{
-		Username: &username,
-		Email: ptrStr(model.NewId() + "@example.com"),
-		Nickname: ptrStr(model.NewId()),
+		Username:  &username,
+		Email:     ptrStr(model.NewId() + "@example.com"),
+		Nickname:  ptrStr(model.NewId()),
 		FirstName: ptrStr(model.NewId()),
-		LastName: ptrStr(model.NewId()),
-		Position: ptrStr(model.NewId()),
+		LastName:  ptrStr(model.NewId()),
+		Position:  ptrStr(model.NewId()),
 	}
 
 	teamMembers, err := GetTeamMembers(team.Id, 0, 1000)
@@ -1076,7 +1101,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check only new team member object created because dry run mode.
 	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
-	} else if len(tmc) != teamMemberCount + 1 {
+	} else if len(tmc) != teamMemberCount+1 {
 		t.Fatalf("Number of team members not as expected")
 	}
 
@@ -1087,7 +1112,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check team member properties.
-	user, err := GetUserByUsername(username);
+	user, err := GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
@@ -1115,32 +1140,36 @@ func TestImportImportUser(t *testing.T) {
 	// Check only new channel member object created because dry run mode.
 	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
-	} else if len(tmc) != teamMemberCount + 1 {
+	} else if len(tmc) != teamMemberCount+1 {
 		t.Fatalf("Number of team members not as expected")
 	}
 
 	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
-	} else if cmc != channelMemberCount + 1 {
+	} else if cmc != channelMemberCount+1 {
 		t.Fatalf("Number of channel members not as expected")
 	}
 
 	// Check channel member properties.
 	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member from database.")
-	} else if channelMember.Roles != "channel_user" {
+	} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps["desktop"] != "default" || channelMember.NotifyProps["mark_unread"] != "all" {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
 	// Test with the properties of the team and channel membership changed.
 	data.Teams = &[]UserTeamImportData{
 		{
-			Name: &teamName,
+			Name:  &teamName,
 			Roles: ptrStr("team_user team_admin"),
 			Channels: &[]UserChannelImportData{
 				{
-					Name: &channelName,
+					Name:  &channelName,
 					Roles: ptrStr("channel_user channel_admin"),
+					NotifyProps: &UserChannelNotifyPropsImportData{
+						Desktop:    ptrStr("mention"),
+						MarkUnread: ptrStr("mention"),
+					},
 				},
 			},
 		},
@@ -1157,21 +1186,21 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
-		t.Fatalf("Failed to get channel member from database.")
-	} else if channelMember.Roles != "channel_user channel_admin" {
+		t.Fatalf("Failed to get channel member Desktop from database.")
+	} else if channelMember.Roles != "channel_user channel_admin" && channelMember.NotifyProps["desktop"] == "mention" && channelMember.NotifyProps["mark_unread"] == "mention" {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
 	// No more new member objects.
 	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
-	} else if len(tmc) != teamMemberCount + 1 {
+	} else if len(tmc) != teamMemberCount+1 {
 		t.Fatalf("Number of team members not as expected")
 	}
 
 	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
-	} else if cmc != channelMemberCount + 1 {
+	} else if cmc != channelMemberCount+1 {
 		t.Fatalf("Number of channel members not as expected")
 	}
 }
