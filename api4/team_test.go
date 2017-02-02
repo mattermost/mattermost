@@ -14,6 +14,7 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer TearDown()
 	Client := th.Client
 
 	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
@@ -72,6 +73,4 @@ func TestCreateTeam(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.CreateTeam(team)
 	CheckForbiddenStatus(t, resp)
-
-	TearDown()
 }

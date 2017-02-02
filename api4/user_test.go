@@ -14,6 +14,7 @@ import (
 
 func TestCreateUser(t *testing.T) {
 	th := Setup().InitBasic()
+	defer TearDown()
 	Client := th.Client
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
@@ -64,12 +65,11 @@ func TestCreateUser(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
-
-	TearDown()
 }
 
 func TestGetUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -129,12 +129,11 @@ func TestGetUser(t *testing.T) {
 	if ruser.LastName == "" {
 		t.Fatal("last name should not be blank")
 	}
-
-	TearDown()
 }
 
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -186,6 +185,4 @@ func TestUpdateUser(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.UpdateUser(user)
 	CheckNoError(t, resp)
-
-	TearDown()
 }
