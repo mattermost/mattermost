@@ -212,6 +212,16 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	}
 }
 
+// DeleteUser deactivates a user in the system based on the provided user id string.
+func (c *Client4) DeleteUser(userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetUserRoute(userId), ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
