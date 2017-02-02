@@ -102,7 +102,7 @@ UserProfile.defaultProps = {
 };
 UserProfile.propTypes = {
     user: React.PropTypes.object,
-    overwriteName: React.PropTypes.string,
+    overwriteName: React.PropTypes.node,
     overwriteImage: React.PropTypes.string,
     disablePopover: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,

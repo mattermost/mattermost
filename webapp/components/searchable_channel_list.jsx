@@ -147,7 +147,10 @@ export default class SearchableChannelList extends React.Component {
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
-                        {'Next'}
+                        <FormattedMessage
+                            id='more_channels.next'
+                            defaultMessage='Next'
+                        />
                     </button>
                 );
             }
@@ -158,7 +161,10 @@ export default class SearchableChannelList extends React.Component {
                         className='btn btn-default filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
-                        {'Previous'}
+                        <FormattedMessage
+                            id='more_channels.prev'
+                            defaultMessage='Previous'
+                        />
                     </button>
                 );
             }

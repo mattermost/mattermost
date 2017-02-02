@@ -18,6 +18,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
+	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
@@ -107,6 +108,35 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("")
 		w.Write([]byte(ruser.ToJson()))
 	}
+}
+
+func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+
+	newRoles := props["roles"]
+	if !model.IsValidUserRoles(newRoles) {
+		c.SetInvalidParam("roles")
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_ROLES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_ROLES)
+		return
+	}
+
+	if _, err := app.UpdateUserRoles(c.Params.UserId, newRoles); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
+	}
+
+	ReturnStatusOK(w)
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {

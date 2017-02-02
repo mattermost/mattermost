@@ -6,10 +6,13 @@ package api4
 import (
 	"net/http"
 	"reflect"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -17,9 +20,14 @@ import (
 )
 
 type TestHelper struct {
-	Client          *model.Client4
-	BasicUser       *model.User
-	SystemAdminUser *model.User
+	Client        *model.Client4
+	BasicUser     *model.User
+	BasicUser2    *model.User
+	TeamAdminUser *model.User
+	BasicTeam     *model.Team
+
+	SystemAdminClient *model.Client4
+	SystemAdminUser   *model.User
 }
 
 func Setup() *TestHelper {
@@ -47,11 +55,18 @@ func Setup() *TestHelper {
 
 	th := &TestHelper{}
 	th.Client = th.CreateClient()
+	th.SystemAdminClient = th.CreateClient()
 	return th
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
+	me.TeamAdminUser = me.CreateUser()
+	me.LoginTeamAdmin()
+	me.BasicTeam = me.CreateTeam()
 	me.BasicUser = me.CreateUser()
+	LinkUserToTeam(me.BasicUser, me.BasicTeam)
+	me.BasicUser2 = me.CreateUser()
+	LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	app.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
 	me.LoginBasic()
 
@@ -61,6 +76,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminUser = me.CreateUser()
 	app.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	me.LoginSystemAdmin()
 
 	return me
 }
@@ -70,6 +86,29 @@ func (me *TestHelper) CreateClient() *model.Client4 {
 }
 
 func (me *TestHelper) CreateUser() *model.User {
+	return me.CreateUserWithClient(me.Client)
+}
+
+func (me *TestHelper) CreateTeam() *model.Team {
+	return me.CreateTeamWithClient(me.Client)
+}
+
+func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        GenerateTestTeamName(),
+		Email:       GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	}
+
+	utils.DisableDebugLogForTest()
+	rteam, _ := client.CreateTeam(team)
+	utils.EnableDebugLogForTest()
+	return rteam
+}
+
+func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -82,7 +121,7 @@ func (me *TestHelper) CreateUser() *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, _ := me.Client.CreateUser(user)
+	ruser, _ := client.CreateUser(user)
 	ruser.Password = "Password1"
 	VerifyUserEmail(ruser.Id)
 	utils.EnableDebugLogForTest()
@@ -90,14 +129,56 @@ func (me *TestHelper) CreateUser() *model.User {
 }
 
 func (me *TestHelper) LoginBasic() {
-	utils.DisableDebugLogForTest()
-	me.Client.Login(me.BasicUser.Email, me.BasicUser.Password)
-	utils.EnableDebugLogForTest()
+	me.LoginBasicWithClient(me.Client)
+}
+
+func (me *TestHelper) LoginBasic2() {
+	me.LoginBasic2WithClient(me.Client)
+}
+
+func (me *TestHelper) LoginTeamAdmin() {
+	me.LoginTeamAdminWithClient(me.Client)
 }
 
 func (me *TestHelper) LoginSystemAdmin() {
+	me.LoginSystemAdminWithClient(me.SystemAdminClient)
+}
+
+func (me *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
-	me.Client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
+	client.Login(me.BasicUser.Email, me.BasicUser.Password)
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) LoginBasic2WithClient(client *model.Client4) {
+	utils.DisableDebugLogForTest()
+	client.Login(me.BasicUser.Email, me.BasicUser.Password)
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
+	utils.DisableDebugLogForTest()
+	client.Login(me.TeamAdminUser.Email, me.TeamAdminUser.Password)
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
+	utils.DisableDebugLogForTest()
+	client.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password)
+	utils.EnableDebugLogForTest()
+}
+
+func LinkUserToTeam(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	err := app.JoinUserToTeam(team, user)
+	if err != nil {
+		l4g.Error(err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(err)
+	}
+
 	utils.EnableDebugLogForTest()
 }
 
@@ -106,7 +187,11 @@ func GenerateTestEmail() string {
 }
 
 func GenerateTestUsername() string {
-	return "n" + model.NewId()
+	return "fakeuser" + model.NewId()
+}
+
+func GenerateTestTeamName() string {
+	return "faketeam" + model.NewId()
 }
 
 func VerifyUserEmail(userId string) {
@@ -129,10 +214,12 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	if !reflect.ValueOf(data).IsNil() {
+		debug.PrintStack()
 		t.Fatal("etag data was not nil")
 	}
 
 	if resp.StatusCode != http.StatusNotModified {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotModified))
 		t.Fatal("wrong status code for etag")
@@ -141,17 +228,20 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 
 func CheckNoError(t *testing.T, resp *model.Response) {
 	if resp.Error != nil {
-		t.Fatal(resp.Error)
+		debug.PrintStack()
+		t.Fatal("Expected no error, got " + resp.Error.Error())
 	}
 }
 
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusForbidden))
 		return
 	}
 
 	if resp.StatusCode != http.StatusForbidden {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusForbidden))
 		t.Fatal("wrong status code")
@@ -160,11 +250,13 @@ func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 
 func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusUnauthorized))
 		return
 	}
 
 	if resp.StatusCode != http.StatusUnauthorized {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusUnauthorized))
 		t.Fatal("wrong status code")
@@ -173,11 +265,13 @@ func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
 
 func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotFound))
 		return
 	}
 
 	if resp.StatusCode != http.StatusNotFound {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusNotFound))
 		t.Fatal("wrong status code")
@@ -186,26 +280,30 @@ func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
+		debug.PrintStack()
 		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusBadRequest))
 		return
 	}
 
 	if resp.StatusCode != http.StatusBadRequest {
+		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
 		t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
 		t.Fatal("wrong status code")
 	}
 }
 
-func CheckErrorMessage(t *testing.T, resp *model.Response, message string) {
+func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	if resp.Error == nil {
-		t.Fatal("should have errored with message:" + message)
+		debug.PrintStack()
+		t.Fatal("should have errored with message:" + errorId)
 		return
 	}
 
-	if resp.Error.Message != message {
-		t.Log("actual: " + resp.Error.Message)
-		t.Log("expected: " + message)
+	if resp.Error.Id != errorId {
+		debug.PrintStack()
+		t.Log("actual: " + resp.Error.Id)
+		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
 	}
 }

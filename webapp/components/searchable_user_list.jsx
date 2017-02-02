@@ -102,7 +102,10 @@ export default class SearchableUserList extends React.Component {
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
-                        {'Next'}
+                        <FormattedMessage
+                            id='filtered_user_list.next'
+                            defaultMessage='Next'
+                        />
                     </button>
                 );
             }
@@ -113,7 +116,10 @@ export default class SearchableUserList extends React.Component {
                         className='btn btn-default filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
-                        {'Previous'}
+                        <FormattedMessage
+                            id='filtered_user_list.prev'
+                            defaultMessage='Previous'
+                        />
                     </button>
                 );
             }

@@ -12,6 +12,7 @@ import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 
@@ -105,19 +106,9 @@ export default class SwitchChannelProvider extends Provider {
                         userMap[user.id] = user;
                     }
 
-                    channels.sort((a, b) => {
-                        if (a.display_name === b.display_name) {
-                            if (a.type !== Constants.DM_CHANNEL && b.type === Constants.DM_CHANNEL) {
-                                return -1;
-                            } else if (a.type === Constants.DM_CHANNEL && b.type !== Constants.DM_CHANNEL) {
-                                return 1;
-                            }
-                            return a.name.localeCompare(b.name);
-                        }
-                        return a.display_name.localeCompare(b.display_name);
-                    });
-
-                    const channelNames = channels.map((channel) => channel.name);
+                    const channelNames = channels.
+                        sort(sortChannelsByDisplayName).
+                        map((channel) => channel.name);
 
                     AppDispatcher.handleServerAction({
                         type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
