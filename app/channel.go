@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
@@ -127,6 +128,38 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 	}
 
 	return err
+}
+
+func CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	if channel.Type == model.CHANNEL_DIRECT {
+		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if strings.Index(channel.Name, "__") > 0 {
+		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.invalid_character.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(channel.TeamId) == 0 {
+		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Get total number of channels on current team
+	if count, err := GetNumberOfChannelsOnTeam(channel.TeamId); err != nil {
+		return nil, err
+	} else {
+		if int64(count+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
+			return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *utils.Cfg.TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		}
+	}
+
+	channel.CreatorId = userId
+
+	rchannel, err := CreateChannel(channel, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return rchannel, nil
 }
 
 func CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {

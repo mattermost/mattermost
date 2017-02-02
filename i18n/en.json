@@ -208,6 +208,10 @@
     "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Must specify the team ID to create a channel"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -4569,7 +4573,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that URL already exists"
+    "translation": "A channel with that name already exists on the same team"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
