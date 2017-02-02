@@ -539,8 +539,13 @@ func PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
 		return result.Err
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		for _, c := range *channels {
+			PermanentDeleteChannel(c)
+		}
 	}
 
 	if result := <-Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {
