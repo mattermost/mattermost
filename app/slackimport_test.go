@@ -231,7 +231,27 @@ func TestSlackConvertPostsMarkup(t *testing.T) {
 			Text: "This message contains a *bold* word.",
 		},
 		{
+			Text: "This is not a * bold * word.",
+		},
+		{
+			Text: `There is *no bold word
+in this*.`,
+		},
+		{
+			Text: "*This* is not a*bold* word.*This* is a bold word, *and* this; *and* this too.",
+		},
+		{
 			Text: "This message contains a ~strikethrough~ word.",
+		},
+		{
+			Text: "This is not a ~ strikethrough ~ word.",
+		},
+		{
+			Text: `There is ~no strikethrough word
+in this~.`,
+		},
+		{
+			Text: "~This~ is not a~strikethrough~ word.~This~ is a strikethrough word, ~and~ this; ~and~ this too.",
 		},
 		{
 			Text: `This message contains multiple paragraphs blockquotes
@@ -243,6 +263,9 @@ third`,
 			Text: `This message contains single paragraph blockquotes
 &gt;something
 &gt;another thing`,
+		},
+		{
+			Text: "This message has no > block quote",
 		},
 	}
 
@@ -258,7 +281,27 @@ third`,
 			Text: "This message contains a **bold** word.",
 		},
 		{
+			Text: "This is not a * bold * word.",
+		},
+		{
+			Text: `There is *no bold word
+in this*.`,
+		},
+		{
+			Text: "**This** is not a*bold* word.**This** is a bold word, **and** this; **and** this too.",
+		},
+		{
 			Text: "This message contains a ~~strikethrough~~ word.",
+		},
+		{
+			Text: "This is not a ~ strikethrough ~ word.",
+		},
+		{
+			Text: `There is ~no strikethrough word
+in this~.`,
+		},
+		{
+			Text: "~~This~~ is not a~strikethrough~ word.~~This~~ is a strikethrough word, ~~and~~ this; ~~and~~ this too.",
 		},
 		{
 			Text: `This message contains multiple paragraphs blockquotes
@@ -270,6 +313,9 @@ third`,
 			Text: `This message contains single paragraph blockquotes
 >something
 >another thing`,
+		},
+		{
+			Text: "This message has no > block quote",
 		},
 	}
 
