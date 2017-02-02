@@ -13,7 +13,8 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup()
+	th := Setup().InitBasic()
+	defer TearDown()
 	Client := th.Client
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
@@ -28,6 +29,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		t.Log(ruser.Roles)
 		t.Fatal("did not clear roles")
 	}
 
@@ -67,6 +69,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -130,6 +133,7 @@ func TestGetUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
