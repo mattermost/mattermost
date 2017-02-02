@@ -116,16 +116,18 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	userId := c.Params.UserId
+
+	if !app.SessionHasPermissionToUser(c.Session, userId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = app.GetUser(c.Params.UserId); err != nil {
+	if user, err = app.GetUser(userId); err != nil {
 		c.Err = err
-		return
-	}
-
-	if !app.SessionHasPermissionToUser(c.Session, user.Id) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
