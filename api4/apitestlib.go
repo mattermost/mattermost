@@ -97,6 +97,8 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
 	LinkUserToTeam(me.BasicUser2, me.BasicTeam)
+	app.AddUserToChannel(me.BasicUser, me.BasicChannel)
+	app.AddUserToChannel(me.BasicUser2, me.BasicChannel)
 	app.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
 	me.LoginBasic()
 
