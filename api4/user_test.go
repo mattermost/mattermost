@@ -198,6 +198,10 @@ func TestDeleteUser(t *testing.T) {
 	_, resp = Client.DeleteUser(testUser.Id)
 	CheckNotFoundStatus(t, resp)
 
+	testUser.Id = "junk"
+	_, resp = Client.DeleteUser(testUser.Id)
+	CheckBadRequestStatus(t, resp)
+
 	_, resp = Client.DeleteUser(user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
