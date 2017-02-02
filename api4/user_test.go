@@ -190,18 +190,19 @@ func TestDeleteUser(t *testing.T) {
 	user := th.InitBasic().CreateUser()
 	Client.Login(user.Email, user.Password)
 
-	ruser := th.InitBasic().CreateUser()
-	_, resp := Client.DeleteUser(ruser.Id)
+	testUser := th.InitBasic().CreateUser()
+	_, resp := Client.DeleteUser(testUser.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.DeleteUser(model.NewId())
+	testUser.Id = model.NewId()
+	_, resp = Client.DeleteUser(testUser.Id)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.DeleteUser(user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
-	_, resp = Client.DeleteUser(ruser.Id)
+	_, resp = Client.DeleteUser(testUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
 }
