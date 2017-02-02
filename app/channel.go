@@ -336,7 +336,7 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	return nil
 }
 
-func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.DeleteAt > 0 {
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
 	}
@@ -379,6 +379,16 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 
 	InvalidateCacheForUser(user.Id)
 	InvalidateCacheForChannelMembers(channel.Id)
+
+	return newMember, nil
+}
+
+func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+
+	newMember, err := addUserToChannel(user, channel)
+	if err != nil {
+		return nil, err
+	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 	message.Add("user_id", user.Id)
