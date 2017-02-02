@@ -335,7 +335,7 @@ export default class RhsThread extends React.Component {
         var currentId = UserStore.getCurrentId();
         var searchForm;
         if (currentId != null) {
-            searchForm = <SearchBox/>;
+            searchForm = <SearchBox isCommentsPage='true'/>;
         }
 
         let profile;
