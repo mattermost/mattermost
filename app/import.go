@@ -55,6 +55,19 @@ type UserImportData struct {
 	Position    *string `json:"position"`
 	Roles       *string `json:"roles"`
 	Locale      *string `json:"locale"`
+
+	Teams *[]UserTeamImportData `json:"teams"`
+}
+
+type UserTeamImportData struct {
+	Name     *string                  `json:"name"`
+	Roles    *string                  `json:"roles"`
+	Channels *[]UserChannelImportData `json:"channels"`
+}
+
+type UserChannelImportData struct {
+	Name  *string `json:"name"`
+	Roles *string `json:"roles"`
 }
 
 //
@@ -376,6 +389,91 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
+	return ImportUserTeams(*data.Username, data.Teams)
+}
+
+func ImportUserTeams(username string, data *[]UserTeamImportData) *model.AppError {
+	if data == nil {
+		return nil
+	}
+
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+
+	for _, tdata := range *data {
+		team, err := GetTeamByName(*tdata.Name)
+		if err != nil {
+			return err
+		}
+
+		var roles string
+		if tdata.Roles == nil {
+			roles = model.ROLE_TEAM_USER.Id
+		} else {
+			roles = *tdata.Roles
+		}
+
+		if _, err := GetTeamMember(team.Id, user.Id); err != nil {
+			if _, err := joinUserToTeam(team, user); err != nil {
+				return err
+			}
+		}
+
+		if member, err := GetTeamMember(team.Id, user.Id); err != nil {
+			return err
+		} else {
+			if member.Roles != roles {
+				if _, err := UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
+					return err
+				}
+			}
+		}
+
+		if err := ImportUserChannels(user, team, tdata.Channels); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func ImportUserChannels(user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
+	if data == nil {
+		return nil
+	}
+
+	// Loop through all channels.
+	for _, cdata := range *data {
+		channel, err := GetChannelByName(*cdata.Name, team.Id)
+		if err != nil {
+			return err
+		}
+
+		var roles string
+		if cdata.Roles == nil {
+			roles = model.ROLE_CHANNEL_USER.Id
+		} else {
+			roles = *cdata.Roles
+		}
+
+		var member *model.ChannelMember
+		member, err = GetChannelMember(channel.Id, user.Id)
+		if err != nil {
+			member, err = addUserToChannel(user, channel)
+			if err != nil {
+				return err
+			}
+		}
+
+		if member.Roles != roles {
+			if _, err := UpdateChannelMemberRoles(channel.Id, user.Id, roles); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -419,6 +517,52 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Roles != nil && !model.IsValidUserRoles(*data.Roles) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Teams != nil {
+		return validateUserTeamsImportData(data.Teams)
+	} else {
+		return nil
+	}
+}
+
+func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
+	if data == nil {
+		return nil
+	}
+
+	for _, tdata := range *data {
+		if tdata.Name == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.team_name_missing.error", nil, "", http.StatusBadRequest)
+		}
+
+		if tdata.Roles != nil && !model.IsValidUserRoles(*tdata.Roles) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_roles.error", nil, "", http.StatusBadRequest)
+		}
+
+		if tdata.Channels != nil {
+			if err := validateUserChannelsImportData(tdata.Channels); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppError {
+	if data == nil {
+		return nil
+	}
+
+	for _, cdata := range *data {
+		if cdata.Name == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.channel_name_missing.error", nil, "", http.StatusBadRequest)
+		}
+
+		if cdata.Roles != nil && !model.IsValidUserRoles(*cdata.Roles) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.invalid_roles.error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
