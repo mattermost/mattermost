@@ -55,7 +55,7 @@ func TestCreateChannel(t *testing.T) {
 
 	rchannel.Data.(*model.Channel).Id = ""
 	if _, err := Client.CreateChannel(rchannel.Data.(*model.Channel)); err != nil {
-		if err.Message != "A channel with that URL already exists" {
+		if err.Id != "store.sql_channel.save_channel.exists.app_error" {
 			t.Fatal(err)
 		}
 	}
@@ -1768,7 +1768,9 @@ func TestAutocompleteChannels(t *testing.T) {
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
 	channel3 := &model.Channel{DisplayName: "BadChannelC", Name: "c" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: model.NewId()}
-	channel3 = th.SystemAdminClient.Must(th.SystemAdminClient.CreateChannel(channel3)).Data.(*model.Channel)
+	if _, err := th.SystemAdminClient.CreateChannel(channel3); err == nil {
+		t.Fatal("channel must have valid team id")
+	}
 
 	channel4 := &model.Channel{DisplayName: "BadChannelD", Name: "d" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
 	channel4 = Client.Must(Client.CreateChannel(channel4)).Data.(*model.Channel)

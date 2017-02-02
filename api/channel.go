@@ -6,7 +6,6 @@ package api
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -48,9 +47,7 @@ func InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	channel := model.ChannelFromJson(r.Body)
-
 	if channel == nil {
 		c.SetInvalidParam("createChannel", "channel")
 		return
@@ -58,16 +55,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(channel.TeamId) == 0 {
 		channel.TeamId = c.TeamId
-	}
-
-	if channel.Type == model.CHANNEL_DIRECT {
-		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.direct_channel.app_error", nil, "")
-		return
-	}
-
-	if strings.Index(channel.Name, "__") > 0 {
-		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.invalid_character.app_error", nil, "")
-		return
 	}
 
 	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
@@ -80,23 +67,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.TeamId == c.TeamId {
-
-		// Get total number of channels on current team
-		if count, err := app.GetNumberOfChannelsOnTeam(channel.TeamId); err != nil {
-			c.Err = model.NewLocAppError("createChannel", "api.channel.get_channels.error", nil, err.Error())
-			return
-		} else {
-			if int64(count+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
-				c.Err = model.NewLocAppError("createChannel", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *utils.Cfg.TeamSettings.MaxChannelsPerTeam}, "")
-				return
-			}
-		}
-	}
-
-	channel.CreatorId = c.Session.UserId
-
-	if sc, err := app.CreateChannel(channel, true); err != nil {
+	if sc, err := app.CreateChannelWithUser(channel, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
