@@ -6,7 +6,7 @@ import React from 'react';
 import Constants from 'utils/constants.jsx';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
-import {getDateForUnixTicks, isMobile} from 'utils/utils.jsx';
+import {getDateForUnixTicks, isMobile, updateWindowDimensions} from 'utils/utils.jsx';
 
 import {Link} from 'react-router/es6';
 import TeamStore from 'stores/team_store.jsx';
@@ -27,16 +27,16 @@ export default class PostTime extends React.Component {
         this.intervalId = setInterval(() => {
             this.forceUpdate();
         }, Constants.TIME_SINCE_UPDATE_INTERVAL);
-        window.addEventListener('resize', this.updateDimensions.bind(this));
+        window.addEventListener('resize', () => {
+            updateWindowDimensions(this);
+        });
     }
 
     componentWillUnmount() {
         clearInterval(this.intervalId);
-        window.removeEventListener('resize', this.updateDimensions.bind(this));
-    }
-
-    updateDimensions() {
-        this.setState({width: window.innerWidth, height: window.innerHeight});
+        window.removeEventListener('resize', () => {
+            updateWindowDimensions(this);
+        });
     }
 
     renderTimeTag() {

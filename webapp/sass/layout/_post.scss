@@ -1187,8 +1187,14 @@
 
     .post__permalink {
         color: #333;
-        &:hover {
+        &:hover, &:focus {
             color: #333;
+        }
+        &:focus {
+            text-decoration: none;
+        }
+        &:hover {
+            text-decoration: underline;
         }
     }
 
