@@ -182,3 +182,26 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.SystemAdminClient.UpdateUser(user)
 	CheckNoError(t, resp)
 }
+
+func TestDeleteUser(t *testing.T) {
+	th := Setup()
+	Client := th.CreateClient()
+	
+	user := th.InitBasic().CreateUser()
+	Client.Login(user.Email, user.Password)
+
+	ruser := th.InitBasic().CreateUser()
+	_, resp := Client.DeleteUser(ruser.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteUser(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.DeleteUser(user.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	_, resp = Client.DeleteUser(ruser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+}
