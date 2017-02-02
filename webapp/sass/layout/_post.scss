@@ -566,7 +566,20 @@
         }
 
         .status-wrapper {
+            cursor: auto;
             height: 14px;
+
+            .status {
+                bottom: auto;
+                left: -3px;
+                position: relative;
+                right: auto;
+                top: auto;
+            }
+
+            svg {
+                top: 0;
+            }
 
             &:after {
                 bottom: 0;
@@ -697,11 +710,8 @@
             padding-top: 3px;
             width: 16px;
 
-            img,
-            svg {
-                height: 20px;
-                visibility: hidden;
-                width: 9px;
+            img {
+                display: none;
             }
         }
     }
