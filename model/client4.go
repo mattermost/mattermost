@@ -255,5 +255,17 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	}
 }
 
+// CreateDirectChannel creates a direct message channel based on the two user
+// ids provided.
+func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
+	requestBody := []string{userId1, userId2}
+	if r, err := c.DoApiPost(c.GetChannelsRoute()+"/direct", ArrayToJson(requestBody)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Post Section
 // to be filled in..
