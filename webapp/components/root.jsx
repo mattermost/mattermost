@@ -78,7 +78,11 @@ export default class Root extends React.Component {
             } else if (UserStore.getCurrentUser()) {
                 GlobalActions.redirectUserToDefaultTeam();
             } else {
-                browserHistory.push('/login');
+                let regUrl = /.+?\:\/\/.+?(\/.+?)(?:#|\?|$)/;
+                if ( !regUrl.exec(Client.getRedirectUrl()))
+                    browserHistory.push('/login');
+                else
+                    browserHistory.push('/login?redirect_to='+Client.getRedirectUrl());
             }
         }
     }

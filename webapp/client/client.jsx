@@ -23,10 +23,16 @@ export default class Client {
             'X-Requested-With': 'XMLHttpRequest'
         };
 
+        this.redirect_url = window.location.href;
+
         this.translations = {
             connectionError: 'There appears to be a problem with your internet connection.',
             unknownError: 'We received an unexpected status code from the server.'
         };
+    }
+
+    getRedirectUrl() {
+        return this.redirect_url;
     }
 
     setUrl(url) {
