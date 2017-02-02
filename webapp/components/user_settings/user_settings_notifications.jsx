@@ -146,7 +146,7 @@ export default class NotificationsTab extends React.Component {
             data,
             () => {
                 this.props.updateSection('');
-                this.updateScroll();
+                $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -158,7 +158,7 @@ export default class NotificationsTab extends React.Component {
         e.preventDefault();
         this.updateState();
         this.props.updateSection('');
-        this.updateScroll();
+        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
     }
 
     setStateValue(key, value) {
@@ -234,10 +234,6 @@ export default class NotificationsTab extends React.Component {
         } else {
             this.setState({customKeys: '', customKeysChecked: false});
         }
-    }
-
-    updateScroll() {
-        $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
     }
 
     onCustomChange() {
@@ -494,7 +490,6 @@ export default class NotificationsTab extends React.Component {
         }
 
         const handleUpdatePushSection = () => {
-            this.updateScroll();
             this.props.updateSection('push');
         };
 
@@ -658,7 +653,6 @@ export default class NotificationsTab extends React.Component {
             }
 
             handleUpdateKeysSection = function updateKeysSection() {
-                this.updateScroll();
                 this.props.updateSection('keys');
             }.bind(this);
 
@@ -779,7 +773,6 @@ export default class NotificationsTab extends React.Component {
             }
 
             handleUpdateCommentsSection = function updateCommentsSection() {
-                this.updateScroll();
                 this.props.updateSection('comments');
             }.bind(this);
 
