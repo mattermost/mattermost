@@ -188,32 +188,35 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	th := Setup()
-	Client := th.CreateClient()
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.Client
 	
-	user := th.InitBasic().CreateUser()
-	Client.Login(user.Email, user.Password)
+	user := th.BasicUser
+	th.LoginBasic()
 
-	testUser := th.InitBasic().CreateUser()
+	testUser := th.SystemAdminUser
 	_, resp := Client.DeleteUser(testUser.Id)
 	CheckForbiddenStatus(t, resp)
 
-	testUser.Id = model.NewId()
-	_, resp = Client.DeleteUser(testUser.Id)
-	CheckNotFoundStatus(t, resp)
-
-	testUser.Id = "junk"
-	_, resp = Client.DeleteUser(testUser.Id)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.DeleteUser(user.Id)
-	CheckNoError(t, resp)
 	Client.Logout()
-
-	_, resp = Client.DeleteUser(testUser.Id)
+	
+	_, resp = Client.DeleteUser(user.Id)
 	CheckUnauthorizedStatus(t, resp)
 
+	Client.Login(testUser.Email, testUser.Password)
+
+	user.Id = model.NewId()
+	_, resp = Client.DeleteUser(user.Id)
+	CheckNotFoundStatus(t, resp)
+
+	user.Id = "junk"
+	_, resp = Client.DeleteUser(user.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.DeleteUser(testUser.Id)
+	CheckNoError(t, resp)
 }
+
 func TestUpdateUserRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.Client
@@ -225,7 +228,7 @@ func TestUpdateUserRoles(t *testing.T) {
 	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
 	CheckNoError(t, resp)
 
-	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id" "model.ROLE_SYSTEM_ADMIN.Id)
 	CheckNoError(t, resp)
 
 	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, "junk")

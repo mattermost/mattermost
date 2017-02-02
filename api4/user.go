@@ -110,17 +110,40 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-<<<<<<< HEAD
-func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
-=======
 func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
->>>>>>> added delete for user deactivation endpoint
 	c.RequireUserId()
 	if c.Err != nil {
 		return
 	}
 
-<<<<<<< HEAD
+	userId := c.Params.UserId
+
+	if !app.SessionHasPermissionToUser(c.Session, userId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err := app.UpdateActive(user, false); err != nil {
+		c.Err = err
+		return	
+
+	ReturnStatusOK(w)
+}
+
+func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
 	props := model.MapFromJson(r.Body)
 
 	newRoles := props["roles"]
@@ -138,25 +161,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
 		c.Err = err
 		return
 	} else {
-		c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
-=======
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = app.GetUser(c.Params.UserId); err != nil {
-		c.Err = err
-		return
-	}
-
-	if !app.SessionHasPermissionToUser(c.Session, user.Id) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
-
-	if _, err := app.UpdateActive(user, false); err != nil {
-		c.Err = err
-		return
->>>>>>> added delete for user deactivation endpoint
+		c.LogAuditWithUserId(c.Params.UserId, "roles="newRoles)
 	}
 
 	ReturnStatusOK(w)
