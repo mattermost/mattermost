@@ -37,6 +37,7 @@ export default class SearchBar extends React.Component {
 
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
+        state.isPristine = true;
         this.state = state;
 
         this.suggestionProviders = [new SearchChannelProvider(), new SearchUserProvider()];
@@ -114,7 +115,10 @@ export default class SearchBar extends React.Component {
 
     performSearch(terms, isMentionSearch) {
         if (terms.length) {
-            this.setState({isSearching: true});
+            this.setState({
+                isSearching: true,
+                isPristine: false
+            });
 
             performSearch(
                 terms,
@@ -158,6 +162,25 @@ export default class SearchBar extends React.Component {
         } else {
             getFlaggedPosts();
         }
+    }
+
+    renderHintPopover(helpClass) {
+        if (!this.props.isCommentsPage && Utils.isMobile() && this.state.isPristine) {
+            return false;
+        }
+
+        return (
+            <Popover
+                id='searchbar-help-popup'
+                placement='bottom'
+                className={helpClass}
+            >
+                <FormattedHTMLMessage
+                    id='search_bar.usage'
+                    defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
+                />
+            </Popover>
+        );
     }
 
     render() {
@@ -279,16 +302,7 @@ export default class SearchBar extends React.Component {
                         type='search'
                     />
                     {isSearching}
-                    <Popover
-                        id='searchbar-help-popup'
-                        placement='bottom'
-                        className={helpClass}
-                    >
-                        <FormattedHTMLMessage
-                            id='search_bar.usage'
-                            defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
-                        />
-                    </Popover>
+                    {this.renderHintPopover(helpClass)}
                 </form>
 
                 {mentionBtn}
@@ -303,5 +317,6 @@ SearchBar.defaultProps = {
 };
 
 SearchBar.propTypes = {
-    showMentionFlagBtns: React.PropTypes.bool
+    showMentionFlagBtns: React.PropTypes.bool,
+    isCommentsPage: React.PropTypes.bool
 };
