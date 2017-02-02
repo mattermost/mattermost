@@ -9,6 +9,7 @@ import EmojiStore from 'stores/emoji_store.jsx';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
+import ReactOutsideEvent from 'react-outside-event';
 
 import EmojiPickerCategory from './components/emoji_picker_category.jsx';
 import EmojiPickerItem from './components/emoji_picker_item.jsx';
@@ -29,12 +30,13 @@ const CATEGORIES = [
     'custom'
 ];
 
-export default class EmojiPicker extends React.Component {
+class EmojiPicker extends React.Component {
     static propTypes = {
-        customEmojis: React.PropTypes.object.isRequired,
+        customEmojis: React.PropTypes.object,
         onEmojiClick: React.PropTypes.func.isRequired,
         topOrBottom: React.PropTypes.string.isRequired,
-        emojiOffset: React.PropTypes.number
+        emojiOffset: React.PropTypes.number,
+        outsideClick: React.PropTypes.func
     }
 
     constructor(props) {
@@ -51,6 +53,7 @@ export default class EmojiPicker extends React.Component {
         this.handleScroll = this.handleScroll.bind(this);
         this.handleItemUnmount = this.handleItemUnmount.bind(this);
         this.renderCategory = this.renderCategory.bind(this);
+        this.onOutsideEvent = this.onOutsideEvent.bind(this);
 
         this.state = {
             category: 'recent',
@@ -61,6 +64,11 @@ export default class EmojiPicker extends React.Component {
 
     componentDidMount() {
         this.searchInput.focus();
+    }
+
+    onOutsideEvent = (event) => {
+        // Handle the event.
+        this.props.outsideClick(event);
     }
 
     handleCategoryClick(category) {
@@ -357,3 +365,7 @@ export default class EmojiPicker extends React.Component {
         );
     }
 }
+
+// disabling eslint check for outslide click handler
+// eslint-disable-next-line new-cap
+export default ReactOutsideEvent(EmojiPicker, ['click']);

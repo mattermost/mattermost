@@ -66,6 +66,7 @@ export default class CreatePost extends React.Component {
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
         this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
+        this.closeEmoji = this.closeEmoji.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -91,6 +92,18 @@ export default class CreatePost extends React.Component {
 
     handlePostError(postError) {
         this.setState({postError});
+    }
+
+    closeEmoji(clickEvent) {
+        /*
+         if the user clicked something outside the component, except the main emojipicker icon
+         and the picker is open, then close it
+         */
+        if (clickEvent && clickEvent.srcElement &&
+            clickEvent.srcElement.className.indexOf('emoji-main') === -1 &&
+            this.state.showEmojiPicker) {
+            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        }
     }
 
     handleSubmit(e) {
@@ -607,6 +620,8 @@ export default class CreatePost extends React.Component {
                 <EmojiPicker
                     onEmojiClick={this.handleEmojiClick}
                     topOrBottom='top'
+                    outsideClick={this.closeEmoji}
+
                 />
             );
         }
@@ -644,7 +659,7 @@ export default class CreatePost extends React.Component {
                                 postType='post'
                                 channelId=''
                                 onEmojiClick={this.handleEmojiPickerClick}
-                                emojiPicker={emojiPicker}
+                                navBarName='main'
                             />
 
                             {emojiPicker}

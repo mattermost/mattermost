@@ -59,6 +59,7 @@ export default class CreateComment extends React.Component {
         this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
         this.onKeyPress = this.onKeyPress.bind(this);
+        this.closeEmoji = this.closeEmoji.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -78,6 +79,19 @@ export default class CreateComment extends React.Component {
         };
 
         this.lastBlurAt = 0;
+    }
+
+    closeEmoji(clickEvent) {
+        /*
+        if the user clicked something outside the component, except the RHS emojipicker icon
+        and the picker is open, then close it
+         */
+        if (clickEvent && clickEvent.srcElement &&
+            clickEvent.srcElement.className !== '' &&
+            clickEvent.srcElement.className.indexOf('emoji-rhs') === -1 &&
+            this.state.showEmojiPicker) {
+            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        }
     }
 
     handleEmojiPickerClick() {
@@ -568,6 +582,7 @@ export default class CreateComment extends React.Component {
                     onEmojiClick={this.handleEmojiClick}
                     topOrBottom='bottom'
                     emojiOffset={this.state.emojiOffset}
+                    outsideClick={this.closeEmoji}
                 />
             );
         }
@@ -603,7 +618,7 @@ export default class CreateComment extends React.Component {
                                 postType='comment'
                                 channelId={this.props.channelId}
                                 onEmojiClick={this.handleEmojiPickerClick}
-                                emojiPicker={emojiPicker}
+                                navBarName='rhs'
                             />
 
                             {emojiPicker}

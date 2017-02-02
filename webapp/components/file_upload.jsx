@@ -370,7 +370,7 @@ class FileUpload extends React.Component {
                     accept={accept}
                 />
                 <span
-                    className='fa fa-smile-o icon__emoji_picker'
+                    className={'fa fa-smile-o icon__emoji_picker emoji-' + this.props.navBarName}
                     onClick={this.emojiClick}
                 />
             </span>
@@ -390,7 +390,7 @@ FileUpload.propTypes = {
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string,
     onEmojiClick: React.PropTypes.func,
-    emojiPicker: React.PropTypes.object
+    navBarName: React.PropTypes.string
 };
 
 export default injectIntl(FileUpload, {withRef: true});
