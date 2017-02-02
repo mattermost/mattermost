@@ -12,6 +12,11 @@ import (
 	"golang.org/x/net/internal/netreflect"
 )
 
+// BUG(mikio): On Windows, the JoinSourceSpecificGroup,
+// LeaveSourceSpecificGroup, ExcludeSourceSpecificGroup and
+// IncludeSourceSpecificGroup methods of PacketConn and RawConn are
+// not implemented.
+
 // A Conn represents a network endpoint that uses the IPv4 transport.
 // It is used to control basic IP-level socket options such as TOS and
 // TTL.

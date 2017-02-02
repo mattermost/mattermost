@@ -24,6 +24,8 @@ import (
 	"golang.org/x/net/ipv6"
 )
 
+// BUG(mikio): This package is not implemented on NaCl and Plan 9.
+
 var (
 	errMessageTooShort  = errors.New("message too short")
 	errHeaderTooShort   = errors.New("header too short")

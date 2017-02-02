@@ -24,8 +24,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
+	"path"
 	"testing"
+
+	"github.com/minio/minio-go/pkg/s3signer"
 )
 
 // Tests validate http request formulated for creation of bucket.
@@ -33,14 +35,11 @@ func TestMakeBucketRequest(t *testing.T) {
 	// Generates expected http request for bucket creation.
 	// Used for asserting with the actual request generated.
 	createExpectedRequest := func(c *Client, bucketName string, location string, req *http.Request) (*http.Request, error) {
-
-		targetURL, err := url.Parse(c.endpointURL)
-		if err != nil {
-			return nil, err
-		}
-		targetURL.Path = "/" + bucketName + "/"
+		targetURL := c.endpointURL
+		targetURL.Path = path.Join(bucketName, "") + "/"
 
 		// get a new HTTP request for the method.
+		var err error
 		req, err = http.NewRequest("PUT", targetURL.String(), nil)
 		if err != nil {
 			return nil, err
@@ -78,9 +77,9 @@ func TestMakeBucketRequest(t *testing.T) {
 		if c.signature.isV4() {
 			// Signature calculated for MakeBucket request should be for 'us-east-1',
 			// regardless of the bucket's location constraint.
-			req = signV4(*req, c.accessKeyID, c.secretAccessKey, "us-east-1")
+			req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, "us-east-1")
 		} else if c.signature.isV2() {
-			req = signV2(*req, c.accessKeyID, c.secretAccessKey)
+			req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
 		}
 
 		// Return signed request.

@@ -434,7 +434,7 @@ func TestPriorityFlowControl(t *testing.T) {
 			t.Fatalf("Pop(%d)=false, want true", i)
 		}
 		if got, want := wr.DataSize(), 8; got != want {
-			t.Fatalf("Pop(%d)=%d bytes, want %d bytes", got, want)
+			t.Fatalf("Pop(%d)=%d bytes, want %d bytes", i, got, want)
 		}
 	}
 }

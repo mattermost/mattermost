@@ -172,10 +172,12 @@ func (srv *Server) ListenTLS(certFile, keyFile string) (net.Listener, error) {
 	}
 
 	var err error
-	config.Certificates = make([]tls.Certificate, 1)
-	config.Certificates[0], err = tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return nil, err
+	if certFile != "" && keyFile != "" {
+		config.Certificates = make([]tls.Certificate, 1)
+		config.Certificates[0], err = tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Enable http2
@@ -455,6 +457,8 @@ func (srv *Server) shutdown(shutdown chan chan struct{}, kill chan struct{}) {
 	done := make(chan struct{})
 	shutdown <- done
 
+	srv.stopLock.Lock()
+	defer srv.stopLock.Unlock()
 	if srv.Timeout > 0 {
 		select {
 		case <-done:

@@ -339,7 +339,7 @@ func (srv *Server) ListenAndServe() error {
 		network := "tcp"
 		if srv.Net == "tcp4-tls" {
 			network = "tcp4"
-		} else if srv.Net == "tcp6" {
+		} else if srv.Net == "tcp6-tls" {
 			network = "tcp6"
 		}
 

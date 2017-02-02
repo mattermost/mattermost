@@ -14,6 +14,7 @@ The following individuals have contributed code to this repository
 * Ji-Hoon, Seol <jihoon.seol@gmail.com>
 * Jonas Große Sundrup <cherti@letopolis.de>
 * Julius Volz <julius.volz@gmail.com>
+* Matt Layher <mdlayher@gmail.com>
 * Matthias Rampke <mr@soundcloud.com>
 * Nicky Gerritsen <nicky@streamone.nl>
 * Rémi Audebert <contact@halfr.net>

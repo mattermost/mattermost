@@ -22,14 +22,17 @@ func setUDPSocketOptions4(conn *net.UDPConn) error {
 		return err
 	}
 	if err := syscall.SetsockoptInt(int(file.Fd()), syscall.IPPROTO_IP, syscall.IP_PKTINFO, 1); err != nil {
+		file.Close()
 		return err
 	}
 	// Calling File() above results in the connection becoming blocking, we must fix that.
 	// See https://github.com/miekg/dns/issues/279
 	err = syscall.SetNonblock(int(file.Fd()), true)
 	if err != nil {
+		file.Close()
 		return err
 	}
+	file.Close()
 	return nil
 }
 
@@ -40,12 +43,15 @@ func setUDPSocketOptions6(conn *net.UDPConn) error {
 		return err
 	}
 	if err := syscall.SetsockoptInt(int(file.Fd()), syscall.IPPROTO_IPV6, syscall.IPV6_RECVPKTINFO, 1); err != nil {
+		file.Close()
 		return err
 	}
 	err = syscall.SetNonblock(int(file.Fd()), true)
 	if err != nil {
+		file.Close()
 		return err
 	}
+	file.Close()
 	return nil
 }
 
@@ -59,8 +65,10 @@ func getUDPSocketOptions6Only(conn *net.UDPConn) (bool, error) {
 	// dual stack. See http://stackoverflow.com/questions/1618240/how-to-support-both-ipv4-and-ipv6-connections
 	v6only, err := syscall.GetsockoptInt(int(file.Fd()), syscall.IPPROTO_IPV6, syscall.IPV6_V6ONLY)
 	if err != nil {
+		file.Close()
 		return false, err
 	}
+	file.Close()
 	return v6only == 1, nil
 }
 
@@ -69,5 +77,6 @@ func getUDPSocketName(conn *net.UDPConn) (syscall.Sockaddr, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	return syscall.Getsockname(int(file.Fd()))
 }

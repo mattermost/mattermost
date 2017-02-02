@@ -226,7 +226,7 @@ func generateCsr(privateKey crypto.PrivateKey, domain string, san []string, must
 	}
 
 	if mustStaple {
-		template.Extensions = append(template.Extensions, pkix.Extension{
+		template.ExtraExtensions = append(template.ExtraExtensions, pkix.Extension{
 			Id:    tlsFeatureExtensionOID,
 			Value: ocspMustStapleFeature,
 		})

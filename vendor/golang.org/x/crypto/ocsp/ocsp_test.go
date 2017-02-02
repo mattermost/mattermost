@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.7
+
 package ocsp
 
 import (
@@ -22,7 +24,13 @@ func TestOCSPDecode(t *testing.T) {
 	responseBytes, _ := hex.DecodeString(ocspResponseHex)
 	resp, err := ParseResponse(responseBytes, nil)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
+	}
+
+	responderCert, _ := hex.DecodeString(startComResponderCertHex)
+	responder, err := x509.ParseCertificate(responderCert)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	expected := Response{
@@ -31,6 +39,7 @@ func TestOCSPDecode(t *testing.T) {
 		RevocationReason: Unspecified,
 		ThisUpdate:       time.Date(2010, 7, 7, 15, 1, 5, 0, time.UTC),
 		NextUpdate:       time.Date(2010, 7, 7, 18, 35, 17, 0, time.UTC),
+		RawResponderName: responder.RawSubject,
 	}
 
 	if !reflect.DeepEqual(resp.ThisUpdate, expected.ThisUpdate) {
@@ -51,6 +60,14 @@ func TestOCSPDecode(t *testing.T) {
 
 	if resp.RevocationReason != expected.RevocationReason {
 		t.Errorf("resp.RevocationReason: got %d, want %d", resp.RevocationReason, expected.RevocationReason)
+	}
+
+	if !bytes.Equal(resp.RawResponderName, expected.RawResponderName) {
+		t.Errorf("resp.RawResponderName: got %x, want %x", resp.RawResponderName, expected.RawResponderName)
+	}
+
+	if !bytes.Equal(resp.ResponderKeyHash, expected.ResponderKeyHash) {
+		t.Errorf("resp.ResponderKeyHash: got %x, want %x", resp.ResponderKeyHash, expected.ResponderKeyHash)
 	}
 }
 
@@ -222,46 +239,76 @@ func TestOCSPResponse(t *testing.T) {
 		ExtraExtensions:  extensions,
 	}
 
-	responseBytes, err := CreateResponse(issuer, responder, template, responderPrivateKey)
-	if err != nil {
-		t.Fatal(err)
+	template.IssuerHash = crypto.MD5
+	_, err = CreateResponse(issuer, responder, template, responderPrivateKey)
+	if err == nil {
+		t.Fatal("CreateResponse didn't fail with non-valid template.IssuerHash value crypto.MD5")
 	}
 
-	resp, err := ParseResponse(responseBytes, nil)
-	if err != nil {
-		t.Fatal(err)
+	testCases := []struct {
+		name       string
+		issuerHash crypto.Hash
+	}{
+		{"Zero value", 0},
+		{"crypto.SHA1", crypto.SHA1},
+		{"crypto.SHA256", crypto.SHA256},
+		{"crypto.SHA384", crypto.SHA384},
+		{"crypto.SHA512", crypto.SHA512},
 	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			template.IssuerHash = tc.issuerHash
+			responseBytes, err := CreateResponse(issuer, responder, template, responderPrivateKey)
+			if err != nil {
+				t.Fatalf("CreateResponse failed: %s", err)
+			}
 
-	if !reflect.DeepEqual(resp.ThisUpdate, template.ThisUpdate) {
-		t.Errorf("resp.ThisUpdate: got %d, want %d", resp.ThisUpdate, template.ThisUpdate)
-	}
+			resp, err := ParseResponse(responseBytes, nil)
+			if err != nil {
+				t.Fatalf("ParseResponse failed: %s", err)
+			}
 
-	if !reflect.DeepEqual(resp.NextUpdate, template.NextUpdate) {
-		t.Errorf("resp.NextUpdate: got %d, want %d", resp.NextUpdate, template.NextUpdate)
-	}
+			if !reflect.DeepEqual(resp.ThisUpdate, template.ThisUpdate) {
+				t.Errorf("resp.ThisUpdate: got %d, want %d", resp.ThisUpdate, template.ThisUpdate)
+			}
 
-	if !reflect.DeepEqual(resp.RevokedAt, template.RevokedAt) {
-		t.Errorf("resp.RevokedAt: got %d, want %d", resp.RevokedAt, template.RevokedAt)
-	}
+			if !reflect.DeepEqual(resp.NextUpdate, template.NextUpdate) {
+				t.Errorf("resp.NextUpdate: got %d, want %d", resp.NextUpdate, template.NextUpdate)
+			}
 
-	if !reflect.DeepEqual(resp.Extensions, template.ExtraExtensions) {
-		t.Errorf("resp.Extensions: got %v, want %v", resp.Extensions, template.ExtraExtensions)
-	}
+			if !reflect.DeepEqual(resp.RevokedAt, template.RevokedAt) {
+				t.Errorf("resp.RevokedAt: got %d, want %d", resp.RevokedAt, template.RevokedAt)
+			}
 
-	if !resp.ProducedAt.Equal(producedAt) {
-		t.Errorf("resp.ProducedAt: got %d, want %d", resp.ProducedAt, producedAt)
-	}
+			if !reflect.DeepEqual(resp.Extensions, template.ExtraExtensions) {
+				t.Errorf("resp.Extensions: got %v, want %v", resp.Extensions, template.ExtraExtensions)
+			}
 
-	if resp.Status != template.Status {
-		t.Errorf("resp.Status: got %d, want %d", resp.Status, template.Status)
-	}
+			if !resp.ProducedAt.Equal(producedAt) {
+				t.Errorf("resp.ProducedAt: got %d, want %d", resp.ProducedAt, producedAt)
+			}
 
-	if resp.SerialNumber.Cmp(template.SerialNumber) != 0 {
-		t.Errorf("resp.SerialNumber: got %x, want %x", resp.SerialNumber, template.SerialNumber)
-	}
+			if resp.Status != template.Status {
+				t.Errorf("resp.Status: got %d, want %d", resp.Status, template.Status)
+			}
 
-	if resp.RevocationReason != template.RevocationReason {
-		t.Errorf("resp.RevocationReason: got %d, want %d", resp.RevocationReason, template.RevocationReason)
+			if resp.SerialNumber.Cmp(template.SerialNumber) != 0 {
+				t.Errorf("resp.SerialNumber: got %x, want %x", resp.SerialNumber, template.SerialNumber)
+			}
+
+			if resp.RevocationReason != template.RevocationReason {
+				t.Errorf("resp.RevocationReason: got %d, want %d", resp.RevocationReason, template.RevocationReason)
+			}
+
+			expectedHash := tc.issuerHash
+			if tc.issuerHash == 0 {
+				expectedHash = crypto.SHA1
+			}
+
+			if resp.IssuerHash != expectedHash {
+				t.Errorf("resp.IssuerHash: got %d, want %d", resp.IssuerHash, expectedHash)
+			}
+		})
 	}
 }
 
@@ -353,6 +400,41 @@ const ocspResponseHex = "308206bc0a0100a08206b5308206b106092b0601050507300101048
 	"f763bf4d707bc8841d7ad9385ee2a4244469260b6f2bf085977af9074796048ecc2f9d48" +
 	"a1d24ce16e41a9941568fec5b42771e118f16c106a54ccc339a4b02166445a167902e75e" +
 	"6d8620b0825dcd18a069b90fd851d10fa8effd409deec02860d26d8d833f304b10669b42"
+
+const startComResponderCertHex = "308204b23082039aa003020102020101300d06092a864886f70d010105050030818c310b" +
+	"300906035504061302494c31163014060355040a130d5374617274436f6d204c74642e31" +
+	"2b3029060355040b1322536563757265204469676974616c204365727469666963617465" +
+	"205369676e696e67313830360603550403132f5374617274436f6d20436c617373203120" +
+	"5072696d61727920496e7465726d65646961746520536572766572204341301e170d3037" +
+	"313032353030323330365a170d3132313032333030323330365a304c310b300906035504" +
+	"061302494c31163014060355040a130d5374617274436f6d204c74642e31253023060355" +
+	"0403131c5374617274436f6d20436c6173732031204f435350205369676e657230820122" +
+	"300d06092a864886f70d01010105000382010f003082010a0282010100b9561b4c453187" +
+	"17178084e96e178df2255e18ed8d8ecc7c2b7b51a6c1c2e6bf0aa3603066f132fe10ae97" +
+	"b50e99fa24b83fc53dd2777496387d14e1c3a9b6a4933e2ac12413d085570a95b8147414" +
+	"a0bc007c7bcf222446ef7f1a156d7ea1c577fc5f0facdfd42eb0f5974990cb2f5cefebce" +
+	"ef4d1bdc7ae5c1075c5a99a93171f2b0845b4ff0864e973fcfe32f9d7511ff87a3e94341" +
+	"0c90a4493a306b6944359340a9ca96f02b66ce67f028df2980a6aaee8d5d5d452b8b0eb9" +
+	"3f923cc1e23fcccbdbe7ffcb114d08fa7a6a3c404f825d1a0e715935cf623a8c7b596700" +
+	"14ed0622f6089a9447a7a19010f7fe58f84129a2765ea367824d1c3bb2fda30853020301" +
+	"0001a382015c30820158300c0603551d130101ff04023000300b0603551d0f0404030203" +
+	"a8301e0603551d250417301506082b0601050507030906092b0601050507300105301d06" +
+	"03551d0e0416041445e0a36695414c5dd449bc00e33cdcdbd2343e173081a80603551d23" +
+	"0481a030819d8014eb4234d098b0ab9ff41b6b08f7cc642eef0e2c45a18181a47f307d31" +
+	"0b300906035504061302494c31163014060355040a130d5374617274436f6d204c74642e" +
+	"312b3029060355040b1322536563757265204469676974616c2043657274696669636174" +
+	"65205369676e696e6731293027060355040313205374617274436f6d2043657274696669" +
+	"636174696f6e20417574686f7269747982010a30230603551d12041c301a861868747470" +
+	"3a2f2f7777772e737461727473736c2e636f6d2f302c06096086480186f842010d041f16" +
+	"1d5374617274436f6d205265766f636174696f6e20417574686f72697479300d06092a86" +
+	"4886f70d01010505000382010100182d22158f0fc0291324fa8574c49bb8ff2835085adc" +
+	"bf7b7fc4191c397ab6951328253fffe1e5ec2a7da0d50fca1a404e6968481366939e666c" +
+	"0a6209073eca57973e2fefa9ed1718e8176f1d85527ff522c08db702e3b2b180f1cbff05" +
+	"d98128252cf0f450f7dd2772f4188047f19dc85317366f94bc52d60f453a550af58e308a" +
+	"aab00ced33040b62bf37f5b1ab2a4f7f0f80f763bf4d707bc8841d7ad9385ee2a4244469" +
+	"260b6f2bf085977af9074796048ecc2f9d48a1d24ce16e41a9941568fec5b42771e118f1" +
+	"6c106a54ccc339a4b02166445a167902e75e6d8620b0825dcd18a069b90fd851d10fa8ef" +
+	"fd409deec02860d26d8d833f304b10669b42"
 
 const startComHex = "308206343082041ca003020102020118300d06092a864886f70d0101050500307d310b30" +
 	"0906035504061302494c31163014060355040a130d5374617274436f6d204c74642e312b" +

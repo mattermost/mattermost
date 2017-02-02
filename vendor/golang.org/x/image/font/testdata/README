@@ -1,0 +1,2 @@
+CFFTest.sfd is a FontForge file for creating CFFTest.otf, a custom OpenType
+font for testing the golang.org/x/image/font/sfnt package's CFF support.
