@@ -188,7 +188,7 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 	tr := newTransport(s.sshConn.conn, config.Rand, false /* not client */)
 	s.transport = newServerTransport(tr, s.clientVersion, s.serverVersion, config)
 
-	if err := s.transport.requestInitialKeyChange(); err != nil {
+	if err := s.transport.waitSession(); err != nil {
 		return nil, err
 	}
 
@@ -242,7 +242,7 @@ func checkSourceAddress(addr net.Addr, sourceAddr string) error {
 	}
 
 	if allowedIP := net.ParseIP(sourceAddr); allowedIP != nil {
-		if bytes.Equal(allowedIP, tcpAddr.IP) {
+		if allowedIP.Equal(tcpAddr.IP) {
 			return nil
 		}
 	} else {
@@ -260,7 +260,7 @@ func checkSourceAddress(addr net.Addr, sourceAddr string) error {
 }
 
 func (s *connection) serverAuthenticate(config *ServerConfig) (*Permissions, error) {
-	var err error
+	sessionID := s.transport.getSessionID()
 	var cache pubKeyCache
 	var perms *Permissions
 
@@ -385,7 +385,7 @@ userAuthLoop:
 				if !isAcceptableAlgo(sig.Format) {
 					break
 				}
-				signedData := buildDataSignedForAuth(s.transport.getSessionID(), userAuthReq, algoBytes, pubKeyData)
+				signedData := buildDataSignedForAuth(sessionID, userAuthReq, algoBytes, pubKeyData)
 
 				if err := pubKey.Verify(signedData, sig); err != nil {
 					return nil, err
@@ -421,12 +421,12 @@ userAuthLoop:
 			return nil, errors.New("ssh: no authentication methods configured but NoClientAuth is also false")
 		}
 
-		if err = s.transport.writePacket(Marshal(&failureMsg)); err != nil {
+		if err := s.transport.writePacket(Marshal(&failureMsg)); err != nil {
 			return nil, err
 		}
 	}
 
-	if err = s.transport.writePacket([]byte{msgUserAuthSuccess}); err != nil {
+	if err := s.transport.writePacket([]byte{msgUserAuthSuccess}); err != nil {
 		return nil, err
 	}
 	return perms, nil

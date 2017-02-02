@@ -71,6 +71,13 @@ func (c Client) RemoveObject(bucketName, objectName string) error {
 	if err != nil {
 		return err
 	}
+	if resp != nil {
+		// if some unexpected error happened and max retry is reached, we want to let client know
+		if resp.StatusCode != http.StatusNoContent {
+			return httpRespToErrorResponse(resp, bucketName, objectName)
+		}
+	}
+
 	// DeleteObject always responds with http '204' even for
 	// objects which do not exist. So no need to handle them
 	// specifically.
@@ -163,6 +170,10 @@ func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan
 				if count++; count >= maxEntries {
 					break
 				}
+			}
+			if count == 0 {
+				// Multi Objects Delete API doesn't accept empty object list, quit immediatly
+				break
 			}
 			if count < maxEntries {
 				// We didn't have 1000 entries, so this is the last batch

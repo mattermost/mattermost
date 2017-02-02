@@ -209,6 +209,7 @@ func (g *GlyphBuf) load(recursion uint32, i Index, useMyMetrics bool) (err error
 		g.addPhantomsAndScale(len(g.Points), len(g.Points), true, true)
 		copy(g.phantomPoints[:], g.Points[len(g.Points)-4:])
 		g.Points = g.Points[:len(g.Points)-4]
+		// TODO: also trim g.InFontUnits and g.Unhinted?
 		return nil
 	}
 
@@ -281,6 +282,10 @@ func (g *GlyphBuf) loadSimple(glyf []byte, ne int) (program []byte) {
 	offset += 2
 	program = glyf[offset : offset+instrLen]
 	offset += instrLen
+
+	if ne == 0 {
+		return program
+	}
 
 	np0 := len(g.Points)
 	np1 := np0 + int(g.Ends[len(g.Ends)-1])

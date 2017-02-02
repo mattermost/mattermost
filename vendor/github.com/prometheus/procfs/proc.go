@@ -192,6 +192,18 @@ func (p Proc) FileDescriptorsLen() (int, error) {
 	return len(fds), nil
 }
 
+// MountStats retrieves statistics and configuration for mount points in a
+// process's namespace.
+func (p Proc) MountStats() ([]*Mount, error) {
+	f, err := os.Open(p.path("mountstats"))
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return parseMountStats(f)
+}
+
 func (p Proc) fileDescriptors() ([]string, error) {
 	d, err := os.Open(p.path("fd"))
 	if err != nil {

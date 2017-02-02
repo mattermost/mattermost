@@ -88,6 +88,14 @@ func withPort(host string) string {
 	return host
 }
 
+// withoutPort strips the port from addr if present.
+func withoutPort(addr string) string {
+	if h, _, err := net.SplitHostPort(addr); err == nil {
+		return h
+	}
+	return addr
+}
+
 // h2i is the app's state.
 type h2i struct {
 	host   string
@@ -134,7 +142,7 @@ func main() {
 
 func (app *h2i) Main() error {
 	cfg := &tls.Config{
-		ServerName:         app.host,
+		ServerName:         withoutPort(app.host),
 		NextProtos:         strings.Split(*flagNextProto, ","),
 		InsecureSkipVerify: *flagInsecure,
 	}
@@ -473,7 +481,7 @@ func (app *h2i) encodeHeaders(req *http.Request) []byte {
 		host = req.URL.Host
 	}
 
-	path := req.URL.Path
+	path := req.RequestURI
 	if path == "" {
 		path = "/"
 	}

@@ -24,8 +24,8 @@
 // net.UDPConn and net.IPConn which are created as network connections
 // that use the IPv6 transport.  When a single TCP connection carrying
 // a data flow of multiple packets needs to indicate the flow is
-// important, ipv6.Conn is used to set the traffic class field on the
-// IPv6 header for each packet.
+// important, Conn is used to set the traffic class field on the IPv6
+// header for each packet.
 //
 //	ln, err := net.Listen("tcp6", "[::]:1024")
 //	if err != nil {
@@ -97,8 +97,8 @@
 // The application might set per packet control message transmissions
 // between the protocol stack within the kernel.  When the application
 // needs a destination address on an incoming packet,
-// SetControlMessage of ipv6.PacketConn is used to enable control
-// message transmissions.
+// SetControlMessage of PacketConn is used to enable control message
+// transmissions.
 //
 //	if err := p.SetControlMessage(ipv6.FlagDst, true); err != nil {
 //		// error handling
@@ -239,3 +239,5 @@
 // In the fallback case, ExcludeSourceSpecificGroup and
 // IncludeSourceSpecificGroup may return an error.
 package ipv6 // import "golang.org/x/net/ipv6"
+
+// BUG(mikio): This package is not implemented on NaCl and Plan 9.

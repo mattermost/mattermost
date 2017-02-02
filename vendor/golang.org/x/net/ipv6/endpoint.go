@@ -12,6 +12,11 @@ import (
 	"golang.org/x/net/internal/netreflect"
 )
 
+// BUG(mikio): On Windows, the JoinSourceSpecificGroup,
+// LeaveSourceSpecificGroup, ExcludeSourceSpecificGroup and
+// IncludeSourceSpecificGroup methods of PacketConn are not
+// implemented.
+
 // A Conn represents a network endpoint that uses IPv6 transport.
 // It allows to set basic IP-level socket options such as traffic
 // class and hop limit.

@@ -6,6 +6,9 @@ package ipv6
 
 import "golang.org/x/net/internal/iana"
 
+// BUG(mikio): On Windows, methods related to ICMPFilter are not
+// implemented.
+
 // An ICMPType represents a type of ICMP message.
 type ICMPType int
 

@@ -30,7 +30,7 @@ func TestRandomScheduler(t *testing.T) {
 		t.Fatalf("got %d frames, expected 6", len(order))
 	}
 	if order[0].StreamID() != 0 || order[1].StreamID() != 0 {
-		t.Fatalf("expected non-stream frames first", order[0], order[1])
+		t.Fatal("expected non-stream frames first", order[0], order[1])
 	}
 	got := make(map[uint32]bool)
 	for _, wr := range order[2:] {
