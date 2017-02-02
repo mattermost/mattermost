@@ -128,6 +128,38 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestGetUsersByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.Client
+
+	users, resp := Client.GetUsersByIds([]string{th.BasicUser.Id})
+	CheckNoError(t, resp)
+
+	if users[0].Id != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+	CheckUserSanitization(t, users[0])
+
+	_, resp = Client.GetUsersByIds([]string{})
+	CheckBadRequestStatus(t, resp)
+
+	users, resp = Client.GetUsersByIds([]string{"junk"})
+	CheckNoError(t, resp)
+	if len(users) > 0 {
+		t.Fatal("no users should be returned")
+	}
+
+	users, resp = Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
+	CheckNoError(t, resp)
+	if len(users) != 1 {
+		t.Fatal("1 user should be returned")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersByIds([]string{th.BasicUser.Id})
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.Client

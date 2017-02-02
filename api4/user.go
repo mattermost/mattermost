@@ -16,6 +16,8 @@ func InitUser() {
 	l4g.Debug(utils.T("api.user.init.debug"))
 
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
+	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
+
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
@@ -81,6 +83,24 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
+	}
+}
+
+func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	// No permission check required
+
+	if users, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.UserListToJson(users)))
 	}
 }
 
