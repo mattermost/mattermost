@@ -225,6 +225,7 @@ export default class SuggestionBox extends React.Component {
             textbox = (
                 <input
                     type='search'
+                    autoFocus={Utils.isMobile()}
                     {...props}
                     {...childProps}
                 />
