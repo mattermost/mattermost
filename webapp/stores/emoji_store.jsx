@@ -1,7 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from '../client/web_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
@@ -149,7 +148,8 @@ class EmojiStore extends EventEmitter {
 
     getEmojiImageUrl(emoji) {
         if (emoji.id) {
-            return Client.getCustomEmojiImageUrl(emoji.id);
+            // must match Client.getCustomEmojiImageUrl
+            return `/api/v3/emoji/${emoji.id}`;
         }
 
         const filename = emoji.filename || emoji.aliases[0];

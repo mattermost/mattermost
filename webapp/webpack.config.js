@@ -159,7 +159,6 @@ if (TEST) {
     config.entry = ['babel-polyfill', './root.jsx'];
     config.target = 'node';
     config.externals = [nodeExternals()];
-    config.resolve.alias['./client/web_client.jsx'] = path.resolve(__dirname, 'client/test_web_client.jsx');
 } else {
     // For some reason these break mocha. So they go here.
     config.plugins.push(
