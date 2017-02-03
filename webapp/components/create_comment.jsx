@@ -29,7 +29,7 @@ const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
 import {REACTION_PATTERN} from './create_post.jsx';
-
+import {EMOJI_PATTERN} from './create_post.jsx'
 import React from 'react';
 
 export default class CreateComment extends React.Component {
@@ -196,6 +196,12 @@ export default class CreateComment extends React.Component {
         post.create_at = time;
 
         GlobalActions.emitUserCommentedEvent(post);
+
+        // parse message and emit emoji event
+        post.message.match(EMOJI_PATTERN).forEach((emoji) => {
+
+            PostActions.emitEmojiPosted(emoji);
+        })
 
         PostActions.queuePost(post, false, null,
             (err) => {
