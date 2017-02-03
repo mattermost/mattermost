@@ -442,14 +442,10 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if profiles, err := app.GetUsers(offset, limit); err != nil {
+	if profiles, err := app.GetUsersMap(offset, limit, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
@@ -482,14 +478,10 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if profiles, err := app.GetUsersInTeam(teamId, offset, limit); err != nil {
+	if profiles, err := app.GetUsersInTeamMap(teamId, offset, limit, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
@@ -523,17 +515,10 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var profiles map[string]*model.User
-	var profileErr *model.AppError
-
-	if profiles, err = app.GetUsersInChannel(channelId, offset, limit); profileErr != nil {
-		c.Err = profileErr
+	if profiles, err := app.GetUsersInChannelMap(channelId, offset, limit, c.IsSystemAdmin()); err != nil {
+		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
@@ -566,14 +551,10 @@ func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if profiles, err := app.GetUsersNotInChannel(c.TeamId, channelId, offset, limit); err != nil {
+	if profiles, err := app.GetUsersNotInChannelMap(c.TeamId, channelId, offset, limit, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }

@@ -77,17 +77,17 @@ func TestCreateChannel(t *testing.T) {
 	// Check permissions with policy config changes
 	isLicensed := utils.IsLicensed
 	license := utils.License
-	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
-	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
+	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelCreation
+	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelCreation
 	defer func() {
-		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
-		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
+		*utils.Cfg.TeamSettings.RestrictPublicChannelCreation = restrictPublicChannel
+		*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = restrictPrivateChannel
 		utils.IsLicensed = isLicensed
 		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
-	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
+	*utils.Cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_ALL
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_ALL
 	utils.SetDefaultRolesBasedOnConfig()
 	utils.IsLicensed = true
 	utils.License = &model.License{Features: &model.Features{}}

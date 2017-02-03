@@ -162,7 +162,8 @@ type UserStore interface {
 	GetAll() StoreChannel
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
-	GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
+	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
+	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel
