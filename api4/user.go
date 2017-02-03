@@ -19,7 +19,11 @@ func InitUser() {
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
+<<<<<<< HEAD
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
+=======
+
+>>>>>>> 43e8e03c79cff9135806d117322025d0af1fedaa
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
 
@@ -133,6 +137,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
 
 	if _, err := app.UpdateActive(user, false); err != nil {
 		c.Err = err
+<<<<<<< HEAD
 		return	
 
 	ReturnStatusOK(w)
@@ -162,6 +167,9 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		c.LogAuditWithUserId(c.Params.UserId, "roles="newRoles)
+=======
+		return
+>>>>>>> 43e8e03c79cff9135806d117322025d0af1fedaa
 	}
 
 	ReturnStatusOK(w)

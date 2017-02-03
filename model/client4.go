@@ -220,6 +220,16 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	}
 }
 
+// DeleteUser deactivates a user in the system based on the provided user id string.
+func (c *Client4) DeleteUser(userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetUserRoute(userId), ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
 func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
@@ -231,15 +241,6 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	}
 }
 
-// DeleteUser deactivates a user in the system based on the provided user id string.
-func (c *Client4) DeleteUser(userId string) (bool, *Response) {
-	if r, err := c.DoApiDelete(c.GetUserRoute(userId), ""); err != nil {
-		return false, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
-	}
-}
 
 // Team Section
 

@@ -215,6 +215,7 @@ func TestDeleteUser(t *testing.T) {
 
 	_, resp = Client.DeleteUser(testUser.Id)
 	CheckNoError(t, resp)
+
 }
 
 func TestUpdateUserRoles(t *testing.T) {
@@ -239,4 +240,5 @@ func TestUpdateUserRoles(t *testing.T) {
 
 	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.ROLE_SYSTEM_USER.Id)
 	CheckBadRequestStatus(t, resp)
+
 }
