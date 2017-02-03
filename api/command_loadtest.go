@@ -291,7 +291,7 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 
 	var usernames []string
 	if result := <-app.Srv.Store.User().GetProfiles(c.TeamId, 0, 1000); result.Err == nil {
-		profileUsers := result.Data.(map[string]*model.User)
+		profileUsers := result.Data.([]*model.User)
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {

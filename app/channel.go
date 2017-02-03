@@ -404,21 +404,19 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 }
 
 func AddDirectChannels(teamId string, user *model.User) *model.AppError {
-	var profiles map[string]*model.User
+	var profiles []*model.User
 	if result := <-Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
 		return model.NewLocAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "")
 	} else {
-		profiles = result.Data.(map[string]*model.User)
+		profiles = result.Data.([]*model.User)
 	}
 
 	var preferences model.Preferences
 
-	for id := range profiles {
-		if id == user.Id {
+	for _, profile := range profiles {
+		if profile.Id == user.Id {
 			continue
 		}
-
-		profile := profiles[id]
 
 		preference := model.Preference{
 			UserId:   user.Id,
