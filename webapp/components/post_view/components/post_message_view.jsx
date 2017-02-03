@@ -8,6 +8,7 @@ import Constants from 'utils/constants.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import {renderSystemMessage} from './system_message_helpers.jsx';
 
@@ -103,7 +104,7 @@ export default class PostMessageView extends React.Component {
 
         const options = Object.assign({}, this.props.options, {
             emojis: this.props.emojis,
-            siteURL: Utils.getSiteURL(),
+            siteURL: getSiteURL(),
             mentionKeys: this.props.mentionKeys,
             usernameMap: this.props.usernameMap,
             channelNamesMap: this.props.channelNamesMap,

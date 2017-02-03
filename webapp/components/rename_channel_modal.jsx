@@ -4,6 +4,7 @@
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {cleanUpUrlable} from 'utils/url.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannel} from 'actions/channel_actions.jsx';
@@ -145,7 +146,7 @@ export class RenameChannelModal extends React.Component {
             state.nameError = formatMessage(holders.maxLength);
             state.invalid = true;
         } else {
-            const cleanedName = Utils.cleanUpUrlable(channel.name);
+            const cleanedName = cleanUpUrlable(channel.name);
             if (cleanedName === channel.name) {
                 state.nameError = '';
             } else {

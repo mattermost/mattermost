@@ -28,6 +28,7 @@ import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
@@ -582,7 +583,7 @@ export default class ChannelHeader extends React.Component {
 
         let headerText;
         if (this.state.enableFormatting) {
-            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: Utils.getSiteURL()});
+            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
         } else {
             headerText = channel.header;
         }
