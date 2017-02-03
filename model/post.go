@@ -10,15 +10,18 @@ import (
 )
 
 const (
-	POST_SYSTEM_MESSAGE_PREFIX = "system_"
-	POST_DEFAULT               = ""
-	POST_SLACK_ATTACHMENT      = "slack_attachment"
-	POST_SYSTEM_GENERIC        = "system_generic"
-	POST_JOIN_LEAVE            = "system_join_leave"
-	POST_ADD_REMOVE            = "system_add_remove"
-	POST_HEADER_CHANGE         = "system_header_change"
-	POST_CHANNEL_DELETED       = "system_channel_deleted"
-	POST_EPHEMERAL             = "system_ephemeral"
+	POST_SYSTEM_MESSAGE_PREFIX  = "system_"
+	POST_DEFAULT                = ""
+	POST_SLACK_ATTACHMENT       = "slack_attachment"
+	POST_SYSTEM_GENERIC         = "system_generic"
+	POST_JOIN_LEAVE             = "system_join_leave"
+	POST_ADD_REMOVE             = "system_add_remove"
+	POST_HEADER_CHANGE          = "system_header_change"
+	POST_CHANNEL_DELETED        = "system_channel_deleted"
+	POST_EPHEMERAL              = "system_ephemeral"
+	POST_DIALOGUE_CANCEL_VIDEO  = "dialogue_cancel_video"
+	POST_DIALOGUE_DECLINE_VIDEO = "dialogue_decline_video"
+	POST_DIALOGUE_SYSTEM        = "dialogue_system"
 )
 
 type Post struct {
@@ -110,7 +113,7 @@ func (o *Post) IsValid() *AppError {
 	}
 
 	// should be removed once more message types are supported
-	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE || o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE) {
+	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE || o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_DIALOGUE_CANCEL_VIDEO || o.Type == POST_DIALOGUE_DECLINE_VIDEO || o.Type == POST_DIALOGUE_SYSTEM) {
 		return NewLocAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type)
 	}
 
