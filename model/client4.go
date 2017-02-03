@@ -241,7 +241,6 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	}
 }
 
-
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
