@@ -221,7 +221,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Invalid other user ID "
+    "translation": "Invalid user ID for direct channel creation"
   },
   {
     "id": "api.channel.delete_channel.archived",

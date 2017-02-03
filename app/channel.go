@@ -188,10 +188,15 @@ func CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *mod
 }
 
 func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
-	uc := Srv.Store.User().Get(otherUserId)
+	uc1 := Srv.Store.User().Get(userId)
+	uc2 := Srv.Store.User().Get(otherUserId)
 
-	if uresult := <-uc; uresult.Err != nil {
-		return nil, model.NewLocAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId)
+	if result := <-uc1; result.Err != nil {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userId, http.StatusBadRequest)
+	}
+
+	if result := <-uc2; result.Err != nil {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
 
 	if result := <-Srv.Store.Channel().CreateDirectChannel(userId, otherUserId); result.Err != nil {

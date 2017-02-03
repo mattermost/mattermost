@@ -167,3 +167,55 @@ func TestCreateChannel(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateDirectChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUser()
+
+	dm, resp := Client.CreateDirectChannel(user1.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	channelName := ""
+	if user2.Id > user1.Id {
+		channelName = user1.Id + "__" + user2.Id
+	} else {
+		channelName = user2.Id + "__" + user1.Id
+	}
+
+	if dm.Name != channelName {
+		t.Fatal("dm name didn't match")
+	}
+
+	_, resp = Client.CreateDirectChannel("junk", user2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.CreateDirectChannel(user1.Id, model.NewId())
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.CreateDirectChannel(model.NewId(), user1.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.CreateDirectChannel(model.NewId(), user2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	if r, err := Client.DoApiPost("/channels/direct", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	Client.Logout()
+	_, resp = Client.CreateDirectChannel(model.NewId(), user2.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
+	CheckNoError(t, resp)
+}
