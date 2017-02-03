@@ -417,11 +417,17 @@ func GetUsersNotInChannel(teamId string, channelId string, offset int, limit int
 	}
 }
 
-func GetUsersByIds(userIds []string) (map[string]*model.User, *model.AppError) {
+func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		users := result.Data.([]*model.User)
+
+		for _, u := range users {
+			SanitizeProfile(u, asAdmin)
+		}
+
+		return users, nil
 	}
 }
 
