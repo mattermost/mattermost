@@ -16,8 +16,11 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
-	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
+
+	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
+
+	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
 
 }
 
@@ -79,5 +82,25 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(model.TeamListToJson(teams)))
+	}
+}
+
+func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	if team, err := app.GetTeamMember(c.Params.TeamId, c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(team.ToJson()))
+		return
 	}
 }

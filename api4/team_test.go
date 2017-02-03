@@ -155,3 +155,40 @@ func TestGetTeamsForUser(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetTeamsForUser(th.BasicUser2.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetTeamMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	user := th.BasicUser
+
+	rmember, resp := Client.GetTeamMember(team.Id, user.Id, "")
+	CheckNoError(t, resp)
+
+	if rmember.TeamId != team.Id {
+		t.Fatal("wrong team id")
+	}
+
+	if rmember.UserId != user.Id {
+		t.Fatal("wrong team id")
+	}
+
+	_, resp = Client.GetTeamMember("junk", user.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamMember(team.Id, "junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamMember("junk", "junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamMember(team.Id, model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetTeamMember(model.NewId(), user.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetTeamMember(team.Id, user.Id, "")
+	CheckNoError(t, resp)
+}
