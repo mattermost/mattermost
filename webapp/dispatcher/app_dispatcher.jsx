@@ -32,4 +32,4 @@ const AppDispatcher = Object.assign(new Flux.Dispatcher(), {
     }
 });
 
-module.exports = AppDispatcher;
+export default AppDispatcher;
