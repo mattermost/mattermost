@@ -156,17 +156,32 @@ class CustomThemeChooser extends React.Component {
         this.props.updateTheme(theme);
     }
 
+    getColors(text) {
+        const colorsText = text.split(',');
+        const exp = new RegExp(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`);
+        return colorsText.map(colorText => {
+            let color = colorText.split(': ')[1] || colorText;
+            if(exp.test(color))
+                return color;
+            return '#FFF';
+        });
+    }
+
     pasteBoxChange(e) {
-        const text = e.target.value;
+        let text = '';
+
+        if (window.clipboardData && window.clipboardData.getData) { // IE
+            text = window.clipboardData.getData('Text');
+        } else {
+            text = e.clipboardData.getData('Text');//e.clipboardData.getData('text/plain');
+        }
 
         if (text.length === 0) {
             return;
         }
 
         // theme vectors are currently represented as a number of hex color codes followed by the code theme
-
-        const colors = text.split(',');
-
+        const colors = this.getColors(text);
         const theme = {type: 'custom'};
         let index = 0;
         Constants.THEME_ELEMENTS.forEach((element) => {
@@ -180,6 +195,10 @@ class CustomThemeChooser extends React.Component {
         theme.codeTheme = colors[colors.length - 1];
 
         this.props.updateTheme(theme);
+    }
+
+    onChangeHandle(e){
+        // 
     }
 
     toggleContent(e) {
@@ -291,7 +310,7 @@ class CustomThemeChooser extends React.Component {
                     </div>
                 );
 
-                colors += theme[element.id] + ',';
+                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ',';
             } else if (element.group === 'sidebarElements') {
                 sidebarElements.push(
                     <div
@@ -313,7 +332,7 @@ class CustomThemeChooser extends React.Component {
                     </div>
                 );
 
-                colors += theme[element.id] + ',';
+                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ',';
             } else {
                 linkAndButtonElements.push(
                     <div
@@ -335,11 +354,11 @@ class CustomThemeChooser extends React.Component {
                     </div>
                 );
 
-                colors += theme[element.id] + ',';
+                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ',';
             }
         });
 
-        colors += theme.codeTheme;
+        colors += 'code theme: ' + theme.codeTheme;
 
         const pasteBox = (
             <div className='col-sm-12'>
@@ -349,11 +368,11 @@ class CustomThemeChooser extends React.Component {
                         defaultMessage='Copy and paste to share theme colors:'
                     />
                 </label>
-                <input
-                    type='text'
+                <textarea
                     className='form-control'
                     value={colors}
-                    onChange={this.pasteBoxChange}
+                    onPaste={this.pasteBoxChange}
+                    onChange={this.onChangeHandle}
                 />
             </div>
         );
