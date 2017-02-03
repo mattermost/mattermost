@@ -20,8 +20,8 @@ func InitUser() {
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
+	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
-
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
 
@@ -128,6 +128,35 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("")
 		w.Write([]byte(ruser.ToJson()))
 	}
+}
+
+func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	userId := c.Params.UserId
+
+	if !app.SessionHasPermissionToUser(c.Session, userId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err := app.UpdateActive(user, false); err != nil {
+		c.Err = err
+		return	
+	}
+
+	ReturnStatusOK(w)
 }
 
 func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
