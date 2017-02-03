@@ -297,6 +297,16 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response) {
 	}
 }
 
+// GetTeam returns a team based on the provided team id string.
+func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamRoute(teamId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.

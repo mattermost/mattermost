@@ -74,3 +74,42 @@ func TestCreateTeam(t *testing.T) {
 	_, resp = Client.CreateTeam(team)
 	CheckForbiddenStatus(t, resp)
 }
+
+func TestGetTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	rteam, resp := Client.GetTeam(team.Id, "")
+	CheckNoError(t, resp)
+
+	if rteam.Id != team.Id {
+		t.Fatal("wrong team")
+	}
+
+	_, resp = Client.GetTeam("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeam("", "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetTeam(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
+	th.LoginTeamAdmin()
+
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	rteam2, _ := Client.CreateTeam(team2)
+
+	th.LoginBasic()
+	_, resp = Client.GetTeam(rteam2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeam(team.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetTeam(rteam2.Id, "")
+	CheckNoError(t, resp)
+}

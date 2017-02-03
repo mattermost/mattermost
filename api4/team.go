@@ -16,6 +16,7 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
+	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 
 }
 
@@ -39,4 +40,24 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rteam.ToJson()))
+}
+
+func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if team, err := app.GetTeam(c.Params.TeamId); err != nil {
+		c.Err = err
+		return
+	} else {
+		if team.Type != model.TEAM_OPEN && !app.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		w.Write([]byte(team.ToJson()))
+		return
+	}
 }
