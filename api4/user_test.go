@@ -229,7 +229,7 @@ func TestUpdateUserRoles(t *testing.T) {
 	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
 	CheckNoError(t, resp)
 
-	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id" "model.ROLE_SYSTEM_ADMIN.Id)
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
 	CheckNoError(t, resp)
 
 	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, "junk")
@@ -240,5 +240,4 @@ func TestUpdateUserRoles(t *testing.T) {
 
 	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.ROLE_SYSTEM_USER.Id)
 	CheckBadRequestStatus(t, resp)
-
 }

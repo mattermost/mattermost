@@ -134,6 +134,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
 	if _, err := app.UpdateActive(user, false); err != nil {
 		c.Err = err
 		return	
+	}
 
 	ReturnStatusOK(w)
 }
@@ -161,8 +162,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		c.LogAuditWithUserId(c.Params.UserId, "roles="newRoles)
-		return
+		c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
 	}
 
 	ReturnStatusOK(w)
