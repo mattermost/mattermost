@@ -307,6 +307,17 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
 	}
 }
 
+// GetTeamsForUser returns a list of teams a user is on. Must be logged in as the user
+// or be a system administrator.
+func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.

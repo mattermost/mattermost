@@ -94,7 +94,7 @@ func InitApi(full bool) {
 	BaseRoutes.UserByEmail = BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
 
 	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
-	BaseRoutes.TeamsForUser = BaseRoutes.Users.PathPrefix("/teams").Subrouter()
+	BaseRoutes.TeamsForUser = BaseRoutes.User.PathPrefix("/teams").Subrouter()
 	BaseRoutes.Team = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
@@ -141,11 +141,10 @@ func InitApi(full bool) {
 	InitTeam()
 	InitChannel()
 
+	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
+
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {
-		// 404 on any api route before web.go has a chance to serve it
-		app.Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
-
 		utils.InitHTML()
 
 		app.InitEmailBatching()

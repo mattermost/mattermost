@@ -113,3 +113,45 @@ func TestGetTeam(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetTeam(rteam2.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetTeamsForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	rteam2, _ := Client.CreateTeam(team2)
+
+	teams, resp := Client.GetTeamsForUser(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	if len(teams) != 2 {
+		t.Fatal("wrong number of teams")
+	}
+
+	found1 := false
+	found2 := false
+	for _, t := range teams {
+		if t.Id == th.BasicTeam.Id {
+			found1 = true
+		} else if t.Id == rteam2.Id {
+			found2 = true
+		}
+	}
+
+	if !found1 || !found2 {
+		t.Fatal("missing team")
+	}
+
+	_, resp = Client.GetTeamsForUser("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamsForUser(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetTeamsForUser(th.BasicUser2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetTeamsForUser(th.BasicUser2.Id, "")
+	CheckNoError(t, resp)
+}
