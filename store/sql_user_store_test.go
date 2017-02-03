@@ -456,78 +456,120 @@ func TestUserStoreGetProfilesByIds(t *testing.T) {
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id}, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id}, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id, u2.Id}, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id, u2.Id}, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id, u2.Id}, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id}, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 

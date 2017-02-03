@@ -1571,15 +1571,15 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if profiles, err := app.GetUsersByIds(userIds); err != nil {
+	if profiles, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
+		profileMap := map[string]*model.User{}
 		for _, p := range profiles {
-			sanitizeProfile(c, p)
+			profileMap[p.Id] = p
 		}
-
-		w.Write([]byte(model.UserMapToJson(profiles)))
+		w.Write([]byte(model.UserMapToJson(profileMap)))
 	}
 }
 
