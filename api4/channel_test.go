@@ -322,3 +322,46 @@ func TestGetChannelMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetChannelMembersForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	members, resp := Client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
+
+	if len(*members) != 3 {
+		t.Fatal("should have 3 members on team")
+	}
+
+	_, resp = Client.GetChannelMembersForUser("", th.BasicTeam.Id, "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetChannelMembersForUser("junk", th.BasicTeam.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelMembersForUser(model.NewId(), th.BasicTeam.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetChannelMembersForUser(th.BasicUser.Id, "", "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetChannelMembersForUser(th.BasicUser.Id, "junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelMembersForUser(th.BasicUser.Id, model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
+}

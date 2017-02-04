@@ -443,5 +443,15 @@ func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMemb
 	}
 }
 
+// GetChannelMembersForUser gets all the channel members for a user on a team.
+func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*ChannelMembers, *Response) {
+	if r, err := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Post Section
 // to be filled in..
