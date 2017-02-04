@@ -25,6 +25,8 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
+import loadingGif from 'images/load.gif';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -110,6 +112,12 @@ export default class PostList extends React.Component {
         return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
     }
 
+    isTop() {
+        const atTopMargin = 10;
+
+        return this.refs.postlist.scrollTop - atTopMargin < 0;
+    }
+
     handleScroll() {
         // HACK FOR RHS -- REMOVE WHEN RHS DIES
         const childNodes = this.refs.postlistcontent.childNodes;
@@ -123,6 +131,10 @@ export default class PostList extends React.Component {
         this.wasAtBottom = this.isAtBottom();
         if (!this.jumpToPostNode && childNodes.length > 0) {
             this.jumpToPostNode = childNodes[childNodes.length - 1];
+        }
+        
+        if(this.isTop()) {
+            this.loadMorePostsTop();
         }
 
         // --- --------
@@ -183,9 +195,7 @@ export default class PostList extends React.Component {
         }
     }
 
-    loadMorePostsTop(e) {
-        e.preventDefault();
-
+    loadMorePostsTop() {
         if (this.props.isFocusPost) {
             return GlobalActions.emitLoadMorePostsFocusedTopEvent();
         }
@@ -540,11 +550,10 @@ export default class PostList extends React.Component {
                     ref='loadmoretop'
                     className='more-messages-text theme'
                     href='#'
-                    onClick={this.loadMorePostsTop}
                 >
-                    <FormattedMessage
-                        id='posts_view.loadMore'
-                        defaultMessage='Load more messages'
+                    <img
+                        className='post-loading-gif'
+                        src={loadingGif}
                     />
                 </a>
             );
