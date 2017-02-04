@@ -751,18 +751,18 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) StoreChannel 
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMembers(channelId string) StoreChannel {
+func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		var members []model.ChannelMember
-		_, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+		var members model.ChannelMembers
+		_, err := s.GetReplica().Select(&members, "SELECT * FROM ChannelMembers WHERE ChannelId = :ChannelId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Limit": limit, "Offset": offset})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetMembers", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+err.Error())
 		} else {
-			result.Data = members
+			result.Data = &members
 		}
 
 		storeChannel <- result

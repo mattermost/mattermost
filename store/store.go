@@ -105,7 +105,7 @@ type ChannelStore interface {
 	GetForPost(postId string) StoreChannel
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
-	GetMembers(channelId string) StoreChannel
+	GetMembers(channelId string, offset, limit int) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
