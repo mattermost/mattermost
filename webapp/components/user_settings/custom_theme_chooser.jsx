@@ -158,11 +158,12 @@ class CustomThemeChooser extends React.Component {
 
     getColors(text) {
         const colorsText = text.split(',');
-        const exp = new RegExp(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`);
-        return colorsText.map(colorText => {
-            let color = colorText.split(': ')[1] || colorText;
-            if(exp.test(color))
+        const exp = new RegExp('^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$');
+        return colorsText.map((colorText) => {
+            const color = colorText.split(': ')[1] || colorText;
+            if (exp.test(color)) {
                 return color;
+            }
             return '#FFF';
         });
     }
@@ -197,8 +198,8 @@ class CustomThemeChooser extends React.Component {
         this.props.updateTheme(theme);
     }
 
-    onChangeHandle(e){
-        // 
+    onChangeHandle(e) {
+        e.stopPropagation();
     }
 
     toggleContent(e) {
