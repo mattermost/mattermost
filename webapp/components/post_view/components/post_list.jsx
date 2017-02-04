@@ -132,8 +132,7 @@ export default class PostList extends React.Component {
         if (!this.jumpToPostNode && childNodes.length > 0) {
             this.jumpToPostNode = childNodes[childNodes.length - 1];
         }
-        
-        if(this.isTop()) {
+        if (this.isTop()) {
             this.loadMorePostsTop();
         }
 
