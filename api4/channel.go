@@ -19,6 +19,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
+	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -102,5 +103,24 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(members.ToJson()))
+	}
+}
+
+func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if member, err := app.GetChannelMember(c.Params.ChannelId, c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(member.ToJson()))
 	}
 }

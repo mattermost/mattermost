@@ -84,6 +84,10 @@ func (c *Client4) GetChannelMembersRoute(channelId string) string {
 	return fmt.Sprintf(c.GetChannelRoute(channelId) + "/members")
 }
 
+func (c *Client4) GetChannelMemberRoute(channelId, userId string) string {
+	return fmt.Sprintf(c.GetChannelMembersRoute(channelId)+"/%v", userId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -426,6 +430,16 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 	} else {
 		defer closeBody(r)
 		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetChannelMember gets a channel member.
+func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMemberFromJson(r.Body), BuildResponse(r)
 	}
 }
 

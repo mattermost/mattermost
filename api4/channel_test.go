@@ -275,3 +275,50 @@ func TestGetChannelMembers(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetChannelMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	if member.ChannelId != th.BasicChannel.Id {
+		t.Fatal("wrong channel id")
+	}
+
+	if member.UserId != th.BasicUser.Id {
+		t.Fatal("wrong user id")
+	}
+
+	_, resp = Client.GetChannelMember("", th.BasicUser.Id, "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetChannelMember("junk", th.BasicUser.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelMember(model.NewId(), th.BasicUser.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetChannelMember(th.BasicChannel.Id, "", "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetChannelMember(th.BasicChannel.Id, "junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+}
