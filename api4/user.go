@@ -322,9 +322,7 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	data["user_id"] = c.Session.UserId
 
 	Logout(c, w, r)
-	if c.Err == nil {
-		w.Write([]byte(model.MapToJson(data)))
-	}
+
 }
 
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
