@@ -471,6 +471,21 @@ vet:
 	$(GO) vet $(GOFLAGS) ./api || exit 1
 	$(GO) vet $(GOFLAGS) ./api4 || exit 1
 	$(GO) vet $(GOFLAGS) ./app || exit 1
+	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
+	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/oauth/google || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/oauth/office365 || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/saml || exit 1
+	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
 	#$(GO) vet $(GOFLAGS) ./model || exit 1
 	#$(GO) vet $(GOFLAGS) ./store || exit 1
 	#$(GO) vet $(GOFLAGS) ./utils || exit 1
