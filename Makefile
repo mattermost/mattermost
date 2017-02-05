@@ -469,8 +469,8 @@ setup-mac:
 
 vet:
 	$(GO) vet $(GOFLAGS) ./api || exit 1
-	#$(GO) vet $(GOFLAGS) ./api4 || exit 1
-	#$(GO) vet $(GOFLAGS) ./app || exit 1
+	$(GO) vet $(GOFLAGS) ./api4 || exit 1
+	$(GO) vet $(GOFLAGS) ./app || exit 1
 	#$(GO) vet $(GOFLAGS) ./model || exit 1
 	#$(GO) vet $(GOFLAGS) ./store || exit 1
 	#$(GO) vet $(GOFLAGS) ./utils || exit 1

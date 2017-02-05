@@ -307,11 +307,9 @@ func IsUsernameTaken(name string) bool {
 
 	if result := <-Srv.Store.User().GetByUsername(name); result.Err != nil {
 		return false
-	} else {
-		return true
 	}
 
-	return false
+	return true
 }
 
 func GetUser(userId string) (*model.User, *model.AppError) {

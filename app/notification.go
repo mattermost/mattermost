@@ -241,7 +241,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
-				status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
+				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
@@ -254,7 +254,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				var status *model.Status
 				var err *model.AppError
 				if status, err = GetStatus(id); err != nil {
-					status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
+					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
