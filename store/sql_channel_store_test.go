@@ -1062,9 +1062,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m1))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 1 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 
 	u2 := model.User{
@@ -1082,9 +1082,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m2))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 
 	// make sure members of other channels aren't counted
@@ -1103,9 +1103,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m3))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 
 	// make sure inactive users aren't counted
@@ -1124,9 +1124,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m4))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 }
 
@@ -1169,14 +1169,14 @@ func TestUpdateExtrasByUser(t *testing.T) {
 	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
-		t.Fatal("failed to update extras by user: %v", result.Err)
+		t.Fatalf("failed to update extras by user: %v", result.Err)
 	}
 
 	u1.DeleteAt = 0
 	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
-		t.Fatal("failed to update extras by user: %v", result.Err)
+		t.Fatalf("failed to update extras by user: %v", result.Err)
 	}
 }
 
