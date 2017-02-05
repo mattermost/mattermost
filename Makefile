@@ -183,7 +183,7 @@ check-client-style:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
 
-check-server-style:
+check-server-style: govet
 	@echo Running GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
@@ -467,12 +467,21 @@ nuke: clean clean-docker
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
-vet:
+govet:
 	$(GO) vet $(GOFLAGS) ./api || exit 1
 	$(GO) vet $(GOFLAGS) ./api4 || exit 1
 	$(GO) vet $(GOFLAGS) ./app || exit 1
 	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
 	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
+	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
+	$(GO) vet $(GOFLAGS) ./model || exit 1
+	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
+	$(GO) vet $(GOFLAGS) ./store || exit 1
+	$(GO) vet $(GOFLAGS) ./utils || exit 1
+	$(GO) vet $(GOFLAGS) ./web || exit 1
+	$(GO) vet $(GOFLAGS) . || exit 1
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet $(GOFLAGS) ./enterprise || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
@@ -485,14 +494,7 @@ vet:
 	$(GO) vet $(GOFLAGS) ./enterprise/oauth/google || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/oauth/office365 || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/saml || exit 1
-	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
-	$(GO) vet $(GOFLAGS) ./model || exit 1
-	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
-	$(GO) vet $(GOFLAGS) ./store || exit 1
-	$(GO) vet $(GOFLAGS) ./utils || exit 1
-	$(GO) vet $(GOFLAGS) ./web || exit 1
-	$(GO) vet $(GOFLAGS) . || exit 1
-
+endif
 
 todo:
 	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO
