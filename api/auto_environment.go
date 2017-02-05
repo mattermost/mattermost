@@ -84,7 +84,7 @@ func CreateTestEnvironmentInTeam(client *model.Client, team *model.Team, rangeCh
 	numPosts := utils.RandIntFromRange(rangePosts)
 	numImages := utils.RandIntFromRange(rangePosts) / 4
 	for j := 0; j < numPosts; j++ {
-		user := users[utils.RandIntFromRange(utils.Range{0, len(users) - 1})]
+		user := users[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(users) - 1})]
 		client.LoginById(user.Id, USER_PASSWORD)
 		for i, channel := range channels {
 			postCreator := NewAutoPostCreator(client, channel.Id)

@@ -169,10 +169,10 @@ func (me *LoadTestProvider) SetupCommand(c *Context, channelId string, message s
 		client.Login(BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
 		environment, err := CreateTestEnvironmentWithTeams(
 			client,
-			utils.Range{numTeams, numTeams},
-			utils.Range{numChannels, numChannels},
-			utils.Range{numUsers, numUsers},
-			utils.Range{numPosts, numPosts},
+			utils.Range{Begin: numTeams, End: numTeams},
+			utils.Range{Begin: numChannels, End: numChannels},
+			utils.Range{Begin: numUsers, End: numUsers},
+			utils.Range{Begin: numPosts, End: numPosts},
 			doFuzz)
 		if err != true {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
@@ -197,9 +197,9 @@ func (me *LoadTestProvider) SetupCommand(c *Context, channelId string, message s
 		CreateTestEnvironmentInTeam(
 			client,
 			team,
-			utils.Range{numChannels, numChannels},
-			utils.Range{numUsers, numUsers},
-			utils.Range{numPosts, numPosts},
+			utils.Range{Begin: numChannels, End: numChannels},
+			utils.Range{Begin: numUsers, End: numUsers},
+			utils.Range{Begin: numPosts, End: numPosts},
 			doFuzz)
 	}
 
@@ -217,7 +217,7 @@ func (me *LoadTestProvider) UsersCommand(c *Context, channelId string, message s
 
 	usersr, err := parseRange(cmd, "")
 	if err == false {
-		usersr = utils.Range{2, 5}
+		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
 	var team *model.Team
@@ -247,7 +247,7 @@ func (me *LoadTestProvider) ChannelsCommand(c *Context, channelId string, messag
 
 	channelsr, err := parseRange(cmd, "")
 	if err == false {
-		channelsr = utils.Range{2, 5}
+		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
 	var team *model.Team
@@ -278,14 +278,14 @@ func (me *LoadTestProvider) PostsCommand(c *Context, channelId string, message s
 
 	postsr, err := parseRange(cmd, "")
 	if err == false {
-		postsr = utils.Range{20, 30}
+		postsr = utils.Range{Begin: 20, End: 30}
 	}
 
 	tokens := strings.Fields(cmd)
-	rimages := utils.Range{0, 0}
+	rimages := utils.Range{Begin: 0, End: 0}
 	if len(tokens) >= 3 {
 		if numImages, err := strconv.Atoi(tokens[2]); err == nil {
-			rimages = utils.Range{numImages, numImages}
+			rimages = utils.Range{Begin: numImages, End: numImages}
 		}
 	}
 
@@ -415,18 +415,18 @@ func parseRange(command string, cmd string) (utils.Range, bool) {
 		begin, err1 = strconv.Atoi(tokens[0])
 		end = begin
 		if err1 != nil {
-			return utils.Range{0, 0}, false
+			return utils.Range{Begin: 0, End: 0}, false
 		}
 	case len(tokens) >= 2:
 		begin, err1 = strconv.Atoi(tokens[0])
 		end, err2 = strconv.Atoi(tokens[1])
 		if err1 != nil || err2 != nil {
-			return utils.Range{0, 0}, false
+			return utils.Range{Begin: 0, End: 0}, false
 		}
 	default:
-		return utils.Range{0, 0}, false
+		return utils.Range{Begin: 0, End: 0}, false
 	}
-	return utils.Range{begin, end}, true
+	return utils.Range{Begin: begin, End: end}, true
 }
 
 func contains(items []string, token string) bool {

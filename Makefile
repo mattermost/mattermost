@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client vet
 
 # For golang 1.5.x compatibility (remove when we don't want to support it anymore)
 export GO15VENDOREXPERIMENT=1
@@ -466,6 +466,16 @@ nuke: clean clean-docker
 
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
+
+vet:
+	$(GO) vet $(GOFLAGS) ./api || exit 1
+	#$(GO) vet $(GOFLAGS) ./api4 || exit 1
+	#$(GO) vet $(GOFLAGS) ./app || exit 1
+	#$(GO) vet $(GOFLAGS) ./model || exit 1
+	#$(GO) vet $(GOFLAGS) ./store || exit 1
+	#$(GO) vet $(GOFLAGS) ./utils || exit 1
+	#$(GO) vet $(GOFLAGS) ./web || exit 1
+
 
 todo:
 	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO
