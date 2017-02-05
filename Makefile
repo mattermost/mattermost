@@ -490,7 +490,8 @@ vet:
 	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
 	$(GO) vet $(GOFLAGS) ./store || exit 1
 	$(GO) vet $(GOFLAGS) ./utils || exit 1
-	#$(GO) vet $(GOFLAGS) ./web || exit 1
+	$(GO) vet $(GOFLAGS) ./web || exit 1
+	$(GO) vet $(GOFLAGS) . || exit 1
 
 
 todo:
