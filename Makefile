@@ -468,6 +468,8 @@ setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
 govet:
+	@echo Running GOVET
+
 	$(GO) vet $(GOFLAGS) ./api || exit 1
 	$(GO) vet $(GOFLAGS) ./api4 || exit 1
 	$(GO) vet $(GOFLAGS) ./app || exit 1
