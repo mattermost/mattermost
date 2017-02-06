@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "無效的其他使用者 ID"
+    "translation": "Invalid user ID for direct channel creation"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -301,11 +301,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "發送顯示名稱更新訊息時失敗 %v"
+    "translation": "發送顯示名稱更新訊息時失敗"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "嘗試儲存更新的頻道標題訊息 %v 時取得使用者資訊失敗"
+    "translation": "在更新頻道顯示名稱時無法取得使用者資訊"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Failed to post update channel header message"
+    "translation": "發送更新頻道標題訊息時失敗"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "嘗試儲存更新的頻道標題訊息 %v 時取得使用者資訊失敗"
+    "translation": "在更新頻道標題時無法取得使用者資訊"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "張貼 加入/退出 訊息 %v 失敗"
+    "translation": "發送加入/退出 訊息失敗"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -796,12 +796,16 @@
     "translation": "抱歉，無法找到頁面。"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "要求內容中缺少 {{.Name}} 或是該值為無效"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "無效的 {{.Name}} 參數"
   },
   {
     "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "無效工作階段 err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
@@ -809,7 +813,11 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+    "translation": "無效工作階段 token={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "要求網址中缺少 {{.Name}} 參數或是該值為無效 "
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1489,7 +1497,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "取得直接訊息頻道的兩位成員失敗 channel_id=%v"
+    "translation": "取得直接訊息頻道的兩位成員失敗 channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1509,7 +1517,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "此訊息的發起人不在頻道，將不發送通知 post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1561,7 +1569,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "發送推播失敗 device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -1581,7 +1589,7 @@
   },
   {
     "id": "api.post.update_post.permissions_denied.app_error",
-    "translation": "建立團隊已被停用。請洽詢系統管理員了解詳情。"
+    "translation": "編輯訊息已被停用。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1589,7 +1597,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+    "translation": "僅在 {{.timeLimit} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。 "
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2249,7 +2257,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "為使用者增加直接訊息頻道設定時失敗 user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2501,19 +2509,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "更改通知電子郵件傳送失敗 err=%v"
+    "translation": "更改通知電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "使用者名稱變更通知電子郵件以傳送失敗 err=%v"
+    "translation": "使用者名稱變更通知電子郵件以傳送失敗"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "更改驗證電子郵件傳送失敗 err=%v"
+    "translation": "更改驗證電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "更新密碼電子郵件傳送失敗 err=%v"
+    "translation": "更新密碼電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2529,15 +2537,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "更新密碼電子郵件傳送失敗 err=%v"
+    "translation": "更新密碼電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "認證電子郵件傳送失敗 err=%v"
+    "translation": "認證電子郵件傳送失敗"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歡迎電子郵件傳送失敗 err=%v"
+    "translation": "歡迎電子郵件傳送失敗"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2753,47 +2761,227 @@
   },
   {
     "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "無效的工作階段 err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "無效的參數 {{.Name}}"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "建立頻道時必須指定團隊 ID"
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "發送頻道用途訊息失敗"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": "%s 已移除了頻道標題 (原為: %s)"
+    "translation": "%s 已移除了頻道用途 (原為: %s)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "嘗試儲存更新的頻道標題訊息 %v 時取得使用者資訊失敗"
+    "translation": "嘗試儲存更新的頻道用途訊息 %v 時取得使用者資訊失敗"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
-    "translation": "%s 將原頻道標題由 %s 改為 %s"
+    "translation": "%s 將原頻道用途由 %s 改為 %s"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
-    "translation": "%s 已更新頻道標題為：%s"
+    "translation": "%s 已更新頻道用途為：%s"
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "讀取匯入資料檔失敗。"
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSON 解碼失敗。"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "匯入頻道失敗。不存在名字為 \"{{.TeamName}}\" 的團隊。"
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "匯入資料行資料型別為\"頻道\"但頻道物件為 null"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "匯入資料行資料型別為\"團隊\"但團隊物件為 null"
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "匯入資料行資料型別為\"使用者\"但使用者物件為 null"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "匯入資料行型別為未知型別 \"{{.Type}}\"。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "如果有提供頻道建立時間，該值不能為 0。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "頻道顯示名稱長度不符要求。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "缺少必要的頻道屬性：顯示名稱。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "頻道標題過長。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "頻道名稱包含無效的字元。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "頻道名稱過長。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "缺少必要的頻道屬性：名字。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "頻道用途過長。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "缺少必要的頻道屬性：團隊。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "無效的頻道類型。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "缺少必要的頻道屬性：類型。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "團隊允許網域過長。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "如果有提供團隊建立時間，該值不能為 0。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "團隊描述過長。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "團隊顯示名稱長度不符要求。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "缺少必要的團隊屬性：顯示名稱。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "使用者名稱帶有無效字元。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "團隊名稱過長。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "缺少必要的團隊屬性：名字。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "團隊名稱帶有保留字。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "無效的團隊類型。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "缺少必要的團隊屬性：類型。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "使用者頻道資料中缺少頻道名字。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "使用者頻道資料的角色為無效資料。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "使用者認證資料過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "如果有提供使用者認證服務，該值不能為空。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "使用者電子郵件的長度無效。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "缺少必要的使用者屬性：電子郵件。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "使用者名字過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "使用者姓氏過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "使用者暱稱過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "使用者職位過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "無效的使用者角色。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "無效的使用者名稱。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "缺少必要的使用者屬性：名字。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "使用者團隊資料的角色為無效資料。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "使用者團隊資料中缺少團隊名字。"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Ability to create new teams"
+    "translation": "允許建立團隊"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Create Teams"
+    "translation": "建立團隊"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
+    "translation": "允許改變團隊成員的角色"
   },
   {
     "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
+    "translation": "管理團隊角色"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3644,6 +3832,10 @@
     "translation": "SQL 設定中的最高開啟連線數無效。必須為正數。"
   },
   {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "使用者輸入更新間隔不應該設定為低於 1000 毫秒。"
+  },
+  {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
     "translation": "必須設定 WebRTC 閘道管理員密碼。"
   },
@@ -4316,6 +4508,14 @@
     "translation": "找不到頻道"
   },
   {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "找不到現有的已刪除頻道"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "沒有該名字的已刪除頻道"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "無法取得頻道成員的更多資訊"
   },
@@ -4356,6 +4556,10 @@
     "translation": "無法遞增提及計數"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "無法刪除頻道"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "無法刪除這些頻道"
   },
@@ -4389,7 +4593,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "該網址已經被其他頻道使用"
+    "translation": "相同名字的頻道已存在於同團隊"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4720,6 +4924,10 @@
     "translation": "無法刪除使用者的註解"
   },
   {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "無法根據頻道刪除訊息"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
     "translation": "無法選擇該使用者的訊息以刪除"
   },
@@ -5029,7 +5237,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "該網域的團隊已存在"
+    "translation": "已經存在相同名稱的團隊"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -5125,7 +5333,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "在此團隊中找不到符合您的電子郵件之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
+    "translation": "找不到使用者"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
