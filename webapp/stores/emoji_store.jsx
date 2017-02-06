@@ -5,7 +5,10 @@ import Client from '../client/web_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
-import BrowserStore from 'stores/browser_store.jsx';
+var BrowserStore;
+if (global.window) {
+    BrowserStore = require('stores/browser_store.jsx').BrowserStore; //eslint-disable-line global-require
+}
 
 import * as Emoji from 'utils/emoji.jsx';
 
