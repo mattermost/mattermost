@@ -30,6 +30,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
 
+	BaseRoutes.UserByUsername.Handle("", ApiSessionRequired(getUserByUsername)).Methods("GET")
 	BaseRoutes.UserByEmail.Handle("", ApiSessionRequired(getUserByEmail)).Methods("GET")
 
 }
@@ -77,6 +78,34 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if user, err = app.GetUser(c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+
+	if HandleEtag(etag, "Get User", w, r) {
+		return
+	} else {
+		app.SanitizeProfile(user, c.IsSystemAdmin())
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(user.ToJson()))
+		return
+	}
+}
+
+func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserName()
+	if c.Err != nil {
+		return
+	}
+
+	// No permission check required
+
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUserByUsername(c.Params.UserName); err != nil {
 		c.Err = err
 		return
 	}

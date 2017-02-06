@@ -359,6 +359,22 @@ func (c *Context) RequireChannelId() *Context {
 	return c
 }
 
+func (c *Context) RequireUserName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.UserName) < 3 {
+		c.SetInvalidUrlParam("username")
+	} 
+
+	if len(c.Params.UserName) > 22 {
+		c.SetInvalidUrlParam("username")
+	}
+
+	return c
+}
+
 func (c *Context) RequireEmail() *Context {
 	if c.Err != nil {
 		return c
@@ -371,3 +387,4 @@ func (c *Context) RequireEmail() *Context {
 
 	return c
 }
+
