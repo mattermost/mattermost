@@ -197,7 +197,7 @@ check-server-style:
 check-style: check-client-style check-server-style
 
 test-race: start-docker prepare-enterprise
-	@echo Running server tests
+	@echo Running server tests for race conditions
 
 	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.v -test.timeout=2000s ./api || exit 1
 	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.v -test.timeout=2000s ./api4 || exit 1
@@ -208,16 +208,16 @@ test-race: start-docker prepare-enterprise
 	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.v -test.timeout=200s ./web || exit 1
     
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Running Enterprise tests
+	@echo Running Enterprise tests for race conditions
 
-	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/mfa && ./mfa.test -test.v -test.timeout=120s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/saml && ./saml.test -test.v -test.timeout=60s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/cluster && ./cluster.test -test.v -test.timeout=60s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/metrics && ./metrics.test -test.v -test.timeout=60s || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/account_migration && ./account_migration.test -test.v -test.timeout=60s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/mfa && ./mfa.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/saml && ./saml.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -c ./enterprise/cluster && ./cluster.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/metrics && ./metrics.test -test.v -test.timeout=200s || exit 1
+	$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c ./enterprise/account_migration && ./account_migration.test -test.v -test.timeout=200s || exit 1
 endif
 
 test-server: start-docker prepare-enterprise
