@@ -2,7 +2,7 @@ hash: 42839eb256dd5b5607d93cd50372cf55881de6e874a63525862ed3f0ac47682b
 updated: 2017-02-01T10:22:19.702548922-05:00
 imports:
 - name: github.com/alecthomas/log4go
-  version: 5deeb78d8803f03b9fae2d7584ebba253b207ebf
+  version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
   repo: https://github.com/mattermost/log4go.git
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
