@@ -2340,6 +2340,10 @@
     "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Could not get user from {{.Service}} user object"
+  },
+  {
     "id": "api.user.create_profile_image.default_font.app_error",
     "translation": "Could not create default profile image font"
   },

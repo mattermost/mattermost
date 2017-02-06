@@ -127,7 +127,6 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 }
 
 func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
-
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -164,7 +163,9 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			}
 
 			if user.IsOAuthUser() {
-				user.Email = oldUser.Email
+				if !trustedUpdateData {
+					user.Email = oldUser.Email
+				}
 			} else if user.IsLDAPUser() && !trustedUpdateData {
 				if user.Username != oldUser.Username ||
 					user.Email != oldUser.Email {
