@@ -18,11 +18,9 @@ package minio
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -202,49 +200,6 @@ func TestTempFile(t *testing.T) {
 	}
 }
 
-// Tests url encoding.
-func TestEncodeURL2Path(t *testing.T) {
-	type urlStrings struct {
-		objName        string
-		encodedObjName string
-	}
-
-	bucketName := "bucketName"
-	want := []urlStrings{
-		{
-			objName:        "本語",
-			encodedObjName: "%E6%9C%AC%E8%AA%9E",
-		},
-		{
-			objName:        "本語.1",
-			encodedObjName: "%E6%9C%AC%E8%AA%9E.1",
-		},
-		{
-			objName:        ">123>3123123",
-			encodedObjName: "%3E123%3E3123123",
-		},
-		{
-			objName:        "test 1 2.txt",
-			encodedObjName: "test%201%202.txt",
-		},
-		{
-			objName:        "test++ 1.txt",
-			encodedObjName: "test%2B%2B%201.txt",
-		},
-	}
-
-	for _, o := range want {
-		u, err := url.Parse(fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucketName, o.objName))
-		if err != nil {
-			t.Fatal("Error:", err)
-		}
-		urlPath := "/" + bucketName + "/" + o.encodedObjName
-		if urlPath != encodeURL2Path(u) {
-			t.Fatal("Error")
-		}
-	}
-}
-
 // Tests error response structure.
 func TestErrorResponse(t *testing.T) {
 	var err error
@@ -267,53 +222,6 @@ func TestErrorResponse(t *testing.T) {
 	errResp = ToErrorResponse(err)
 	if errResp.Code != "InvalidArgument" {
 		t.Fatal("Empty response input should return invalid argument.")
-	}
-}
-
-// Tests signature calculation.
-func TestSignatureCalculation(t *testing.T) {
-	req, err := http.NewRequest("GET", "https://s3.amazonaws.com", nil)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	req = signV4(*req, "", "", "us-east-1")
-	if req.Header.Get("Authorization") != "" {
-		t.Fatal("Error: anonymous credentials should not have Authorization header.")
-	}
-
-	req = preSignV4(*req, "", "", "us-east-1", 0)
-	if strings.Contains(req.URL.RawQuery, "X-Amz-Signature") {
-		t.Fatal("Error: anonymous credentials should not have Signature query resource.")
-	}
-
-	req = signV2(*req, "", "")
-	if req.Header.Get("Authorization") != "" {
-		t.Fatal("Error: anonymous credentials should not have Authorization header.")
-	}
-
-	req = preSignV2(*req, "", "", 0)
-	if strings.Contains(req.URL.RawQuery, "Signature") {
-		t.Fatal("Error: anonymous credentials should not have Signature query resource.")
-	}
-
-	req = signV4(*req, "ACCESS-KEY", "SECRET-KEY", "us-east-1")
-	if req.Header.Get("Authorization") == "" {
-		t.Fatal("Error: normal credentials should have Authorization header.")
-	}
-
-	req = preSignV4(*req, "ACCESS-KEY", "SECRET-KEY", "us-east-1", 0)
-	if !strings.Contains(req.URL.RawQuery, "X-Amz-Signature") {
-		t.Fatal("Error: normal credentials should have Signature query resource.")
-	}
-
-	req = signV2(*req, "ACCESS-KEY", "SECRET-KEY")
-	if req.Header.Get("Authorization") == "" {
-		t.Fatal("Error: normal credentials should have Authorization header.")
-	}
-
-	req = preSignV2(*req, "ACCESS-KEY", "SECRET-KEY", 0)
-	if !strings.Contains(req.URL.RawQuery, "Signature") {
-		t.Fatal("Error: normal credentials should not have Signature query resource.")
 	}
 }
 

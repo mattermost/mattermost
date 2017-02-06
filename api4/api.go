@@ -139,6 +139,7 @@ func InitApi(full bool) {
 
 	InitUser()
 	InitTeam()
+	InitChannel()
 
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {

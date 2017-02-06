@@ -349,6 +349,82 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.Roles = ptrStr("system_user")
 }
 
+func TestImportValidateUserTeamsImportData(t *testing.T) {
+
+	// Invalid Name.
+	data := []UserTeamImportData{
+		{
+			Roles: ptrStr("team_admin team_user"),
+		},
+	}
+	if err := validateUserTeamsImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+	data[0].Name = ptrStr("teamname")
+
+	// Invalid Roles
+	data[0].Roles = ptrStr("wtf")
+	if err := validateUserTeamsImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid roles.")
+	}
+
+	// Valid (nil roles)
+	data[0].Roles = nil
+	if err := validateUserTeamsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with empty roles.")
+	}
+
+	// Valid (empty roles)
+	data[0].Roles = ptrStr("")
+	if err := validateUserTeamsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with empty roles.")
+	}
+
+	// Valid (with roles)
+	data[0].Roles = ptrStr("team_admin team_user")
+	if err := validateUserTeamsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid roles.")
+	}
+}
+
+func TestImportValidateUserChannelsImportData(t *testing.T) {
+
+	// Invalid Name.
+	data := []UserChannelImportData{
+		{
+			Roles: ptrStr("channel_admin channel_user"),
+		},
+	}
+	if err := validateUserChannelsImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid name.")
+	}
+	data[0].Name = ptrStr("channelname")
+
+	// Invalid Roles
+	data[0].Roles = ptrStr("wtf")
+	if err := validateUserChannelsImportData(&data); err == nil {
+		t.Fatal("Should have failed due to invalid roles.")
+	}
+
+	// Valid (nil roles)
+	data[0].Roles = nil
+	if err := validateUserChannelsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with empty roles.")
+	}
+
+	// Valid (empty roles)
+	data[0].Roles = ptrStr("")
+	if err := validateUserChannelsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with empty roles.")
+	}
+
+	// Valid (with roles)
+	data[0].Roles = ptrStr("channel_admin channel_user")
+	if err := validateUserChannelsImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid roles.")
+	}
+}
+
 func TestImportImportTeam(t *testing.T) {
 	_ = Setup()
 
@@ -467,11 +543,9 @@ func TestImportImportChannel(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	var team *model.Team
-	if te, err := GetTeamByName(teamName); err != nil {
+	team, err := GetTeamByName(teamName);
+	if err != nil {
 		t.Fatalf("Failed to get team from database.")
-	} else {
-		team = te
 	}
 
 	// Check how many channels are in the database.
@@ -792,6 +866,314 @@ func TestImportImportUser(t *testing.T) {
 			t.Fatalf("Expected roles to be set: %v", user.Roles)
 		}
 	}
+
+	// Test team and channel memberships
+	teamName := model.NewId()
+	ImportTeam(&TeamImportData{
+		Name:        &teamName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	team, err := GetTeamByName(teamName);
+	if err != nil {
+		t.Fatalf("Failed to get team from database.")
+	}
+
+	channelName := model.NewId()
+	ImportChannel(&ChannelImportData{
+		Team: &teamName,
+		Name: &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type: ptrStr("O"),
+	}, false)
+	channel, err := GetChannelByName(channelName, team.Id);
+	if err != nil {
+		t.Fatalf("Failed to get channel from database.")
+	}
+
+	username = model.NewId()
+	data = UserImportData{
+		Username: &username,
+		Email: ptrStr(model.NewId() + "@example.com"),
+		Nickname: ptrStr(model.NewId()),
+		FirstName: ptrStr(model.NewId()),
+		LastName: ptrStr(model.NewId()),
+		Position: ptrStr(model.NewId()),
+	}
+
+	teamMembers, err := GetTeamMembers(team.Id, 0, 1000)
+	if err != nil {
+		t.Fatalf("Failed to get team member count")
+	}
+	teamMemberCount := len(teamMembers)
+
+	channelMemberCount, err := GetChannelMemberCount(channel.Id)
+	if err != nil {
+		t.Fatalf("Failed to get channel member count")
+	}
+
+	// Test with an invalid team & channel membership in dry-run mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Roles: ptrStr("invalid"),
+			Channels: &[]UserChannelImportData{
+				{
+					Roles: ptrStr("invalid"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, true); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Test with an unknown team name & invalid channel membership in dry-run mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: ptrStr(model.NewId()),
+			Channels: &[]UserChannelImportData{
+				{
+					Roles: ptrStr("invalid"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, true); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Test with a valid team & invalid channel membership in dry-run mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Channels: &[]UserChannelImportData{
+				{
+					Roles: ptrStr("invalid"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, true); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Test with a valid team & unknown channel name in dry-run mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Channels: &[]UserChannelImportData{
+				{
+					Name: ptrStr(model.NewId()),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, true); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Test with a valid team & valid channel name in dry-run mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Channels: &[]UserChannelImportData{
+				{
+					Name: &channelName,
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, true); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check no new member objects were created because dry run mode.
+	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
+		t.Fatalf("Failed to get Team Member Count")
+	} else if len(tmc) != teamMemberCount {
+		t.Fatalf("Number of team members not as expected")
+	}
+
+	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
+		t.Fatalf("Failed to get Channel Member Count")
+	} else if cmc != channelMemberCount {
+		t.Fatalf("Number of channel members not as expected")
+	}
+
+	// Test with an invalid team & channel membership in apply mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Roles: ptrStr("invalid"),
+			Channels: &[]UserChannelImportData{
+				{
+					Roles: ptrStr("invalid"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Test with an unknown team name & invalid channel membership in apply mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: ptrStr(model.NewId()),
+			Channels: &[]UserChannelImportData{
+				{
+					Roles: ptrStr("invalid"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Test with a valid team & invalid channel membership in apply mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Channels: &[]UserChannelImportData{
+				{
+					Roles: ptrStr("invalid"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Check no new member objects were created because all tests should have failed so far.
+	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
+		t.Fatalf("Failed to get Team Member Count")
+	} else if len(tmc) != teamMemberCount {
+		t.Fatalf("Number of team members not as expected")
+	}
+
+	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
+		t.Fatalf("Failed to get Channel Member Count")
+	} else if cmc != channelMemberCount {
+		t.Fatalf("Number of channel members not as expected")
+	}
+
+	// Test with a valid team & unknown channel name in apply mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Channels: &[]UserChannelImportData{
+				{
+					Name: ptrStr(model.NewId()),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed.")
+	}
+
+	// Check only new team member object created because dry run mode.
+	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
+		t.Fatalf("Failed to get Team Member Count")
+	} else if len(tmc) != teamMemberCount + 1 {
+		t.Fatalf("Number of team members not as expected")
+	}
+
+	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
+		t.Fatalf("Failed to get Channel Member Count")
+	} else if cmc != channelMemberCount {
+		t.Fatalf("Number of channel members not as expected")
+	}
+
+	// Check team member properties.
+	user, err := GetUserByUsername(username);
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+	if teamMember, err := GetTeamMember(team.Id, user.Id); err != nil {
+		t.Fatalf("Failed to get team member from database.")
+	} else if teamMember.Roles != "team_user" {
+		t.Fatalf("Team member properties not as expected")
+	}
+
+	// Test with a valid team & valid channel name in apply mode.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Channels: &[]UserChannelImportData{
+				{
+					Name: &channelName,
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check only new channel member object created because dry run mode.
+	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
+		t.Fatalf("Failed to get Team Member Count")
+	} else if len(tmc) != teamMemberCount + 1 {
+		t.Fatalf("Number of team members not as expected")
+	}
+
+	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
+		t.Fatalf("Failed to get Channel Member Count")
+	} else if cmc != channelMemberCount + 1 {
+		t.Fatalf("Number of channel members not as expected")
+	}
+
+	// Check channel member properties.
+	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
+		t.Fatalf("Failed to get channel member from database.")
+	} else if channelMember.Roles != "channel_user" {
+		t.Fatalf("Channel member properties not as expected")
+	}
+
+	// Test with the properties of the team and channel membership changed.
+	data.Teams = &[]UserTeamImportData{
+		{
+			Name: &teamName,
+			Roles: ptrStr("team_user team_admin"),
+			Channels: &[]UserChannelImportData{
+				{
+					Name: &channelName,
+					Roles: ptrStr("channel_user channel_admin"),
+				},
+			},
+		},
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check both member properties.
+	if teamMember, err := GetTeamMember(team.Id, user.Id); err != nil {
+		t.Fatalf("Failed to get team member from database.")
+	} else if teamMember.Roles != "team_user team_admin" {
+		t.Fatalf("Team member properties not as expected: %v", teamMember.Roles)
+	}
+
+	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
+		t.Fatalf("Failed to get channel member from database.")
+	} else if channelMember.Roles != "channel_user channel_admin" {
+		t.Fatalf("Channel member properties not as expected")
+	}
+
+	// No more new member objects.
+	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
+		t.Fatalf("Failed to get Team Member Count")
+	} else if len(tmc) != teamMemberCount + 1 {
+		t.Fatalf("Number of team members not as expected")
+	}
+
+	if cmc, err := GetChannelMemberCount(channel.Id); err != nil {
+		t.Fatalf("Failed to get Channel Member Count")
+	} else if cmc != channelMemberCount + 1 {
+		t.Fatalf("Number of channel members not as expected")
+	}
 }
 
 func TestImportImportLine(t *testing.T) {
@@ -834,7 +1216,8 @@ func TestImportBulkImport(t *testing.T) {
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
-{"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}`
+{"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
+{"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
 
 	if err, line := BulkImport(strings.NewReader(data1), false); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)

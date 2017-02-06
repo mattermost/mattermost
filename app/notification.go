@@ -25,7 +25,7 @@ import (
 )
 
 func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
-	pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, -1, -1, true)
+	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	fchan := Srv.Store.FileInfo().GetForPost(post.Id)
 
 	var profileMap map[string]*model.User

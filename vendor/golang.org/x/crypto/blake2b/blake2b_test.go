@@ -21,14 +21,19 @@ func fromHex(s string) []byte {
 }
 
 func TestHashes(t *testing.T) {
-	defer func(sse4, avx2 bool) {
-		useSSE4, useAVX2 = sse4, avx2
-	}(useSSE4, useAVX2)
+	defer func(sse4, avx, avx2 bool) {
+		useSSE4, useAVX, useAVX2 = sse4, useAVX, avx2
+	}(useSSE4, useAVX, useAVX2)
 
 	if useAVX2 {
 		t.Log("AVX2 version")
 		testHashes(t)
 		useAVX2 = false
+	}
+	if useAVX {
+		t.Log("AVX version")
+		testHashes(t)
+		useAVX = false
 	}
 	if useSSE4 {
 		t.Log("SSE4 version")

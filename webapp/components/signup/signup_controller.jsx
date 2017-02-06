@@ -266,7 +266,7 @@ export default class SignupController extends React.Component {
             if (global.window.mm_config.EnableSignUpWithEmail === 'true') {
                 return browserHistory.push('/signup_email' + window.location.search);
             } else if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true') {
-                return browserHistory.push('/signup_ldap');
+                return browserHistory.push('/signup_ldap' + window.location.search);
             }
         }
 

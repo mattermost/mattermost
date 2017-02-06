@@ -1,8 +1,10 @@
 package gziphandler
 
 import (
+	"bufio"
 	"compress/gzip"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -130,6 +132,18 @@ func (w *GzipResponseWriter) Flush() {
 		fw.Flush()
 	}
 }
+
+// Hijack implements http.Hijacker. If the underlying ResponseWriter is a
+// Hijacker, its Hijack method is returned. Otherwise an error is returned.
+func (w *GzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hj, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return hj.Hijack()
+	}
+	return nil, nil, fmt.Errorf("http.Hijacker interface is not supported")
+}
+
+// verify Hijacker interface implementation
+var _ http.Hijacker = &GzipResponseWriter{}
 
 // MustNewGzipLevelHandler behaves just like NewGzipLevelHandler except that in
 // an error case it panics rather than returning an error.

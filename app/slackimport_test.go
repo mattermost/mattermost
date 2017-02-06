@@ -190,7 +190,7 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 
 	c1s := SlackSanitiseChannelProperties(c1)
 	if c1.DisplayName != c1s.DisplayName || c1.Name != c1s.Name || c1.Purpose != c1s.Purpose || c1.Header != c1s.Header {
-		t.Fatalf("Unexpected alterations to the channel properties.")
+		t.Fatal("Unexpected alterations to the channel properties.")
 	}
 
 	c2 := model.Channel{
@@ -227,14 +227,103 @@ func TestSlackConvertPostsMarkup(t *testing.T) {
 		{
 			Text: "This message contains a mailto link to <mailto:me@example.com|me@example.com> in it.",
 		},
+		{
+			Text: "This message contains a *bold* word.",
+		},
+		{
+			Text: "This is not a * bold * word.",
+		},
+		{
+			Text: `There is *no bold word
+in this*.`,
+		},
+		{
+			Text: "*This* is not a*bold* word.*This* is a bold word, *and* this; *and* this too.",
+		},
+		{
+			Text: "This message contains a ~strikethrough~ word.",
+		},
+		{
+			Text: "This is not a ~ strikethrough ~ word.",
+		},
+		{
+			Text: `There is ~no strikethrough word
+in this~.`,
+		},
+		{
+			Text: "~This~ is not a~strikethrough~ word.~This~ is a strikethrough word, ~and~ this; ~and~ this too.",
+		},
+		{
+			Text: `This message contains multiple paragraphs blockquotes
+&gt;&gt;&gt;first
+second
+third`,
+		},
+		{
+			Text: `This message contains single paragraph blockquotes
+&gt;something
+&gt;another thing`,
+		},
+		{
+			Text: "This message has no > block quote",
+		},
 	}
 
-	output := SlackConvertPostsMarkup(input)
-
-	if output["test"][0].Text != "This message contains a link to [Google](https://google.com)." {
-		t.Fatalf("Unexpected message after markup translation: %v", output["test"][0].Text)
+	expectedOutput := make(map[string][]SlackPost)
+	expectedOutput["test"] = []SlackPost{
+		{
+			Text: "This message contains a link to [Google](https://google.com).",
+		},
+		{
+			Text: "This message contains a mailto link to [me@example.com](mailto:me@example.com) in it.",
+		},
+		{
+			Text: "This message contains a **bold** word.",
+		},
+		{
+			Text: "This is not a * bold * word.",
+		},
+		{
+			Text: `There is *no bold word
+in this*.`,
+		},
+		{
+			Text: "**This** is not a*bold* word.**This** is a bold word, **and** this; **and** this too.",
+		},
+		{
+			Text: "This message contains a ~~strikethrough~~ word.",
+		},
+		{
+			Text: "This is not a ~ strikethrough ~ word.",
+		},
+		{
+			Text: `There is ~no strikethrough word
+in this~.`,
+		},
+		{
+			Text: "~~This~~ is not a~strikethrough~ word.~~This~~ is a strikethrough word, ~~and~~ this; ~~and~~ this too.",
+		},
+		{
+			Text: `This message contains multiple paragraphs blockquotes
+>first
+>second
+>third`,
+		},
+		{
+			Text: `This message contains single paragraph blockquotes
+>something
+>another thing`,
+		},
+		{
+			Text: "This message has no > block quote",
+		},
 	}
-	if output["test"][1].Text != "This message contains a mailto link to [me@example.com](mailto:me@example.com) in it." {
-		t.Fatalf("Unexpected message after markup translation: %v", output["test"][0].Text)
+
+	actualOutput := SlackConvertPostsMarkup(input)
+
+	for i := range actualOutput["test"] {
+		if actualOutput["test"][i].Text != expectedOutput["test"][i].Text {
+			t.Errorf("Unexpected message after markup translation: %v", actualOutput["test"][i].Text)
+		}
 	}
 }

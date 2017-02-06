@@ -208,6 +208,10 @@
     "translation": "Cannot create more than {{.MaxChannelsPerTeam}} channels for current team"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Must specify the team ID to create a channel"
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
@@ -217,7 +221,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Invalid other user ID "
+    "translation": "Invalid user ID for direct channel creation"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -2948,6 +2952,22 @@
     "translation": "User roles are not valid."
   },
   {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Channel name missing from User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Channel Membership."
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },
@@ -4540,6 +4560,10 @@
     "translation": "We couldn't delete the channels"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "We couldn't delete the channel"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "We couldn't remove the channel member"
   },
@@ -4569,7 +4593,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that URL already exists"
+    "translation": "A channel with that name already exists on the same team"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4894,6 +4918,10 @@
   {
     "id": "store.sql_post.permanent_delete.app_error",
     "translation": "We couldn't delete the post"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "We couldn't delete the posts by channel"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",

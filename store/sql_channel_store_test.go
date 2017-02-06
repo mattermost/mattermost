@@ -340,6 +340,14 @@ func TestChannelStoreDelete(t *testing.T) {
 	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
 	}
+
+	<-store.Channel().PermanentDelete(o2.Id)
+
+	cresult = <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
+	t.Log(cresult.Err)
+	if cresult.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+		t.Fatal("no channels should be found")
+	}
 }
 
 func TestChannelStoreGetByName(t *testing.T) {
@@ -559,6 +567,15 @@ func TestChannelDeleteMemberStore(t *testing.T) {
 	count = (<-store.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
 	if count != 1 {
 		t.Fatal("should have removed 1 member")
+	}
+
+	if r1 := <-store.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	count = (<-store.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	if count != 0 {
+		t.Fatal("should have removed all members")
 	}
 }
 

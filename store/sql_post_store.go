@@ -304,7 +304,7 @@ func (s SqlPostStore) Delete(postId string, time int64) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "ParentId": postId, "RootId": postId})
+		_, err := s.GetMaster().Exec("Update Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+err.Error())
 		}
@@ -322,7 +322,7 @@ func (s SqlPostStore) permanentDelete(postId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR ParentId = :ParentId OR RootId = :RootId", map[string]interface{}{"Id": postId, "ParentId": postId, "RootId": postId})
+		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.Delete", "store.sql_post.permanent_delete.app_error", nil, "id="+postId+", err="+err.Error())
 		}
@@ -400,6 +400,23 @@ func (s SqlPostStore) PermanentDeleteByUser(userId string) StoreChannel {
 				close(storeChannel)
 				return
 			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) PermanentDeleteByChannel(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error())
 		}
 
 		storeChannel <- result

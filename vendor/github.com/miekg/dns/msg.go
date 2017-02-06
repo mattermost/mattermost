@@ -203,12 +203,6 @@ func packDomainName(s string, msg []byte, off int, compression map[string]int, c
 					bs[j] = bs[j+2]
 				}
 				ls -= 2
-			} else if bs[i] == 't' {
-				bs[i] = '\t'
-			} else if bs[i] == 'r' {
-				bs[i] = '\r'
-			} else if bs[i] == 'n' {
-				bs[i] = '\n'
 			}
 			escapedDot = bs[i] == '.'
 			bsFresh = false
@@ -335,10 +329,6 @@ Loop:
 					fallthrough
 				case '"', '\\':
 					s = append(s, '\\', b)
-				case '\t':
-					s = append(s, '\\', 't')
-				case '\r':
-					s = append(s, '\\', 'r')
 				default:
 					if b < 32 || b >= 127 { // unprintable use \DDD
 						var buf [3]byte
@@ -431,12 +421,6 @@ func packTxtString(s string, msg []byte, offset int, tmp []byte) (int, error) {
 			if i+2 < len(bs) && isDigit(bs[i]) && isDigit(bs[i+1]) && isDigit(bs[i+2]) {
 				msg[offset] = dddToByte(bs[i:])
 				i += 2
-			} else if bs[i] == 't' {
-				msg[offset] = '\t'
-			} else if bs[i] == 'r' {
-				msg[offset] = '\r'
-			} else if bs[i] == 'n' {
-				msg[offset] = '\n'
 			} else {
 				msg[offset] = bs[i]
 			}
@@ -508,12 +492,6 @@ func unpackTxtString(msg []byte, offset int) (string, int, error) {
 		switch b {
 		case '"', '\\':
 			s = append(s, '\\', b)
-		case '\t':
-			s = append(s, `\t`...)
-		case '\r':
-			s = append(s, `\r`...)
-		case '\n':
-			s = append(s, `\n`...)
 		default:
 			if b < 32 || b > 127 { // unprintable
 				var buf [3]byte
@@ -781,9 +759,6 @@ func (dns *Msg) Unpack(msg []byte) (err error) {
 	if dh, off, err = unpackMsgHdr(msg, off); err != nil {
 		return err
 	}
-	if off == len(msg) {
-		return ErrTruncated
-	}
 
 	dns.Id = dh.Id
 	dns.Response = (dh.Bits & _QR) != 0
@@ -796,6 +771,10 @@ func (dns *Msg) Unpack(msg []byte) (err error) {
 	dns.AuthenticatedData = (dh.Bits & _AD) != 0
 	dns.CheckingDisabled = (dh.Bits & _CD) != 0
 	dns.Rcode = int(dh.Bits & 0xF)
+
+	if off == len(msg) {
+		return ErrTruncated
+	}
 
 	// Optimistically use the count given to us in the header
 	dns.Question = make([]Question, 0, int(dh.Qdcount))

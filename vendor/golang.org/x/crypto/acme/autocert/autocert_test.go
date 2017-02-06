@@ -108,10 +108,41 @@ func decodePayload(v interface{}, r io.Reader) error {
 }
 
 func TestGetCertificate(t *testing.T) {
-	const domain = "example.org"
 	man := &Manager{Prompt: AcceptTOS}
 	defer man.stopRenew()
+	hello := &tls.ClientHelloInfo{ServerName: "example.org"}
+	testGetCertificate(t, man, "example.org", hello)
+}
 
+func TestGetCertificate_trailingDot(t *testing.T) {
+	man := &Manager{Prompt: AcceptTOS}
+	defer man.stopRenew()
+	hello := &tls.ClientHelloInfo{ServerName: "example.org."}
+	testGetCertificate(t, man, "example.org", hello)
+}
+
+func TestGetCertificate_ForceRSA(t *testing.T) {
+	man := &Manager{
+		Prompt:   AcceptTOS,
+		Cache:    make(memCache),
+		ForceRSA: true,
+	}
+	defer man.stopRenew()
+	hello := &tls.ClientHelloInfo{ServerName: "example.org"}
+	testGetCertificate(t, man, "example.org", hello)
+
+	cert, err := man.cacheGet("example.org")
+	if err != nil {
+		t.Fatalf("man.cacheGet: %v", err)
+	}
+	if _, ok := cert.PrivateKey.(*rsa.PrivateKey); !ok {
+		t.Errorf("cert.PrivateKey is %T; want *rsa.PrivateKey", cert.PrivateKey)
+	}
+}
+
+// tests man.GetCertificate flow using the provided hello argument.
+// The domain argument is the expected domain name of a certificate request.
+func testGetCertificate(t *testing.T, man *Manager, domain string, hello *tls.ClientHelloInfo) {
 	// echo token-02 | shasum -a 256
 	// then divide result in 2 parts separated by dot
 	tokenCertName := "4e8eb87631187e9ff2153b56b13a4dec.13a35d002e485d60ff37354b32f665d9.token.acme.invalid"
@@ -167,6 +198,9 @@ func TestGetCertificate(t *testing.T) {
 			if err != nil {
 				t.Fatalf("new-cert: CSR: %v", err)
 			}
+			if csr.Subject.CommonName != domain {
+				t.Errorf("CommonName in CSR = %q; want %q", csr.Subject.CommonName, domain)
+			}
 			der, err := dummyCert(csr.PublicKey, domain)
 			if err != nil {
 				t.Fatalf("new-cert: dummyCert: %v", err)
@@ -202,7 +236,6 @@ func TestGetCertificate(t *testing.T) {
 	var tlscert *tls.Certificate
 	done := make(chan struct{})
 	go func() {
-		hello := &tls.ClientHelloInfo{ServerName: domain}
 		tlscert, err = man.GetCertificate(hello)
 		close(done)
 	}()

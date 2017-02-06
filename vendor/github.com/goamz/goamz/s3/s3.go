@@ -984,6 +984,9 @@ func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
 	if v, ok := req.headers["Content-Length"]; ok {
 		hreq.ContentLength, _ = strconv.ParseInt(v[0], 10, 64)
 		delete(req.headers, "Content-Length")
+		if hreq.ContentLength == 0 {
+			req.payload = nil
+		}
 	}
 	if req.payload != nil {
 		hreq.Body = ioutil.NopCloser(req.payload)

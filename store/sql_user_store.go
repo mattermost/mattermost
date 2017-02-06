@@ -510,16 +510,13 @@ func (us SqlUserStore) GetAllProfiles(offset int, limit int) StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
-			userMap := make(map[string]*model.User)
-
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -562,16 +559,13 @@ func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreCh
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
-			userMap := make(map[string]*model.User)
-
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -598,7 +592,38 @@ func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
 	profilesInChannelCache.Remove(channelId)
 }
 
-func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel {
+func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -606,7 +631,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 		result := StoreResult{}
 		metrics := einterfaces.GetMetricsInterface()
 
-		if allowFromCache && offset == -1 && limit == -1 {
+		if allowFromCache {
 			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
 				if metrics != nil {
 					metrics.IncrementMemCacheHitCounter("Profiles in Channel")
@@ -630,12 +655,8 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 
 		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0"
 
-		if limit >= 0 && offset >= 0 {
-			query += " ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
-		}
-
-		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -649,7 +670,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 
 			result.Data = userMap
 
-			if allowFromCache && offset == -1 && limit == -1 {
+			if allowFromCache {
 				profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
 			}
 		}
@@ -688,16 +709,13 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesNotInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
-			userMap := make(map[string]*model.User)
-
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -808,8 +826,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 		result := StoreResult{}
 		metrics := einterfaces.GetMetricsInterface()
 
-		var users []*model.User
-		userMap := make(map[string]*model.User)
+		users := []*model.User{}
 		props := make(map[string]interface{})
 		idQuery := ""
 		remainingUserIds := make([]string, 0)
@@ -818,13 +835,13 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 			for _, userId := range userIds {
 				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
 					u := cacheItem.(*model.User)
-					userMap[u.Id] = u
+					users = append(users, u)
 				} else {
 					remainingUserIds = append(remainingUserIds, userId)
 				}
 			}
 			if metrics != nil {
-				metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(userMap)))
+				metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
 				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 			}
 		} else {
@@ -836,7 +853,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 
 		// If everything came from the cache then just return
 		if len(remainingUserIds) == 0 {
-			result.Data = userMap
+			result.Data = users
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -859,11 +876,10 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
 				profileByIdsCache.AddWithExpiresInSecs(u.Id, u, PROFILE_BY_IDS_CACHE_SEC)
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result

@@ -60,6 +60,7 @@ type TeamStore interface {
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) StoreChannel
 	GetByName(name string) StoreChannel
+	SearchByName(name string) StoreChannel
 	GetAll() StoreChannel
 	GetAllTeamListing() StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
@@ -92,6 +93,7 @@ type ChannelStore interface {
 	Delete(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
+	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) StoreChannel
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) StoreChannel
 	GetDeletedByName(team_id string, name string) StoreChannel
@@ -114,6 +116,7 @@ type ChannelStore interface {
 	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
+	PermanentDeleteMembersByChannel(channelId string) StoreChannel
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
@@ -132,6 +135,7 @@ type PostStore interface {
 	GetSingle(id string) StoreChannel
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteByChannel(channelId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
 	GetFlaggedPosts(userId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
@@ -158,7 +162,8 @@ type UserStore interface {
 	GetAll() StoreChannel
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
-	GetProfilesInChannel(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
+	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
+	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(offset int, limit int) StoreChannel

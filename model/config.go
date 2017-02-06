@@ -847,7 +847,7 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.AllowEditPost == nil {
 		o.ServiceSettings.AllowEditPost = new(string)
-		*o.ServiceSettings.AllowEditPost = ALLOW_EDIT_POST_TIME_LIMIT
+		*o.ServiceSettings.AllowEditPost = ALLOW_EDIT_POST_ALWAYS
 	}
 
 	if o.ServiceSettings.PostEditTimeLimit == nil {

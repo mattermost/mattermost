@@ -72,7 +72,7 @@ func (c *DNSProvider) Present(domain, token, keyAuth string) error {
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
 	rec := dns.RecordSet{
 		Name: &relative,
-		Properties: &dns.RecordSetProperties{
+		RecordSetProperties: &dns.RecordSetProperties{
 			TTL:        to.Int64Ptr(60),
 			TXTRecords: &[]dns.TxtRecord{dns.TxtRecord{Value: &[]string{value}}},
 		},
@@ -103,7 +103,7 @@ func (c *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	relative := toRelativeRecord(fqdn, acme.ToFqdn(zone))
 	rsc := dns.NewRecordSetsClient(c.subscriptionId)
 	rsc.Authorizer, err = c.newServicePrincipalTokenFromCredentials(azure.PublicCloud.ResourceManagerEndpoint)
-	_, err = rsc.Delete(c.resourceGroup, zone, relative, dns.TXT, "", "")
+	_, err = rsc.Delete(c.resourceGroup, zone, relative, dns.TXT, "")
 	if err != nil {
 		return err
 	}

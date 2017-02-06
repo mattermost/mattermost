@@ -377,51 +377,173 @@ func GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppErro
 	}
 }
 
-func GetUsers(offset int, limit int) (map[string]*model.User, *model.AppError) {
+func GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetAllProfiles(offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		return result.Data.([]*model.User), nil
 	}
+}
+
+func GetUsersMap(page int, perPage int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsers(page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[string]*model.User, len(users))
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+		userMap[user.Id] = user
+	}
+
+	return userMap, nil
+}
+
+func GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsers(page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
 }
 
 func GetUsersEtag() string {
 	return (<-Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
 }
 
-func GetUsersInTeam(teamId string, offset int, limit int) (map[string]*model.User, *model.AppError) {
+func GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfiles(teamId, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		return result.Data.([]*model.User), nil
 	}
+}
+
+func GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsersInTeam(teamId, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[string]*model.User, len(users))
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+		userMap[user.Id] = user
+	}
+
+	return userMap, nil
+}
+
+func GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersInTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
 }
 
 func GetUsersInTeamEtag(teamId string) string {
 	return (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
 }
 
-func GetUsersInChannel(channelId string, offset int, limit int) (map[string]*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit, false); result.Err != nil {
+func GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesInChannel(channelId, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		return result.Data.([]*model.User), nil
 	}
 }
 
-func GetUsersNotInChannel(teamId string, channelId string, offset int, limit int) (map[string]*model.User, *model.AppError) {
+func GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsersInChannel(channelId, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[string]*model.User, len(users))
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+		userMap[user.Id] = user
+	}
+
+	return userMap, nil
+}
+
+func GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersInChannel(channelId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
+func GetUsersNotInChannel(teamId string, channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		return result.Data.([]*model.User), nil
 	}
 }
 
-func GetUsersByIds(userIds []string) (map[string]*model.User, *model.AppError) {
+func GetUsersNotInChannelMap(teamId string, channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsersNotInChannel(teamId, channelId, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[string]*model.User, len(users))
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+		userMap[user.Id] = user
+	}
+
+	return userMap, nil
+}
+
+func GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersNotInChannel(teamId, channelId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
+func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		users := result.Data.([]*model.User)
+
+		for _, u := range users {
+			SanitizeProfile(u, asAdmin)
+		}
+
+		return users, nil
 	}
 }
 

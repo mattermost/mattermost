@@ -16,8 +16,12 @@ func InitUser() {
 	l4g.Debug(utils.T("api.user.init.debug"))
 
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
+	BaseRoutes.Users.Handle("", ApiSessionRequired(getUsers)).Methods("GET")
+	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
+
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
+	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
@@ -84,6 +88,85 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	inTeamId := r.URL.Query().Get("in_team")
+	inChannelId := r.URL.Query().Get("in_channel")
+	notInChannelId := r.URL.Query().Get("not_in_channel")
+
+	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	var profiles []*model.User
+	var err *model.AppError
+	etag := ""
+
+	if len(notInChannelId) > 0 {
+		if !app.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+
+		profiles, err = app.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	} else if len(inTeamId) > 0 {
+		if !app.SessionHasPermissionToTeam(c.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		etag = app.GetUsersInTeamEtag(inTeamId)
+		if HandleEtag(etag, "Get Users in Team", w, r) {
+			return
+		}
+
+		profiles, err = app.GetUsersInTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	} else if len(inChannelId) > 0 {
+		if !app.SessionHasPermissionToChannel(c.Session, inChannelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+
+		profiles, err = app.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	} else {
+		// No permission check required
+
+		etag = app.GetUsersEtag()
+		if HandleEtag(etag, "Get Users", w, r) {
+			return
+		}
+		profiles, err = app.GetUsersPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		if len(etag) > 0 {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		}
+		w.Write([]byte(model.UserListToJson(profiles)))
+	}
+}
+
+func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	// No permission check required
+
+	if users, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.UserListToJson(users)))
+	}
+}
+
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -108,6 +191,35 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("")
 		w.Write([]byte(ruser.ToJson()))
 	}
+}
+
+func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	userId := c.Params.UserId
+
+	if !app.SessionHasPermissionToUser(c.Session, userId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUser(userId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err := app.UpdateActive(user, false); err != nil {
+		c.Err = err
+		return	
+	}
+
+	ReturnStatusOK(w)
 }
 
 func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {

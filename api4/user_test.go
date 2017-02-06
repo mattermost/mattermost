@@ -13,7 +13,8 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup()
+	th := Setup().InitBasic()
+	defer TearDown()
 	Client := th.Client
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
@@ -28,6 +29,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		t.Log(ruser.Roles)
 		t.Fatal("did not clear roles")
 	}
 
@@ -67,6 +69,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -128,8 +131,41 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestGetUsersByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.Client
+
+	users, resp := Client.GetUsersByIds([]string{th.BasicUser.Id})
+	CheckNoError(t, resp)
+
+	if users[0].Id != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+	CheckUserSanitization(t, users[0])
+
+	_, resp = Client.GetUsersByIds([]string{})
+	CheckBadRequestStatus(t, resp)
+
+	users, resp = Client.GetUsersByIds([]string{"junk"})
+	CheckNoError(t, resp)
+	if len(users) > 0 {
+		t.Fatal("no users should be returned")
+	}
+
+	users, resp = Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
+	CheckNoError(t, resp)
+	if len(users) != 1 {
+		t.Fatal("1 user should be returned")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersByIds([]string{th.BasicUser.Id})
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -183,6 +219,37 @@ func TestUpdateUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestDeleteUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.Client
+	
+	user := th.BasicUser
+	th.LoginBasic()
+
+	testUser := th.SystemAdminUser
+	_, resp := Client.DeleteUser(testUser.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	
+	_, resp = Client.DeleteUser(user.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.Login(testUser.Email, testUser.Password)
+
+	user.Id = model.NewId()
+	_, resp = Client.DeleteUser(user.Id)
+	CheckNotFoundStatus(t, resp)
+
+	user.Id = "junk"
+	_, resp = Client.DeleteUser(user.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.DeleteUser(testUser.Id)
+	CheckNoError(t, resp)
+
+}
+
 func TestUpdateUserRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.Client
@@ -205,4 +272,176 @@ func TestUpdateUserRoles(t *testing.T) {
 
 	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.ROLE_SYSTEM_USER.Id)
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestGetUsers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	rusers, resp := Client.GetUsers(0, 60, "")
+	CheckNoError(t, resp)
+	for _, u := range rusers {
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetUsers(0, 60, resp.Etag)
+	CheckEtag(t, rusers, resp)
+
+	rusers, resp = Client.GetUsers(0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsers(1, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsers(10000, 100, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should be no users")
+	}
+
+	// Check default params for page and per_page
+	if _, err := Client.DoApiGet("/users", ""); err != nil {
+		t.Fatal("should not have errored")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsers(0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetUsersInTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+
+	rusers, resp := Client.GetUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+	for _, u := range rusers {
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetUsersInTeam(teamId, 0, 60, resp.Etag)
+	CheckEtag(t, rusers, resp)
+
+	rusers, resp = Client.GetUsersInTeam(teamId, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersInTeam(teamId, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersInTeam(teamId, 10000, 100, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should be no users")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersInTeam(teamId, 0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetUsersInTeam(teamId, 0, 60, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+}
+
+func TestGetUsersInChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channelId := th.BasicChannel.Id
+
+	rusers, resp := Client.GetUsersInChannel(channelId, 0, 60, "")
+	CheckNoError(t, resp)
+	for _, u := range rusers {
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetUsersInChannel(channelId, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersInChannel(channelId, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersInChannel(channelId, 10000, 100, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should be no users")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersInChannel(channelId, 0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetUsersInChannel(channelId, 0, 60, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetUsersInChannel(channelId, 0, 60, "")
+	CheckNoError(t, resp)
+}
+
+func TestGetUsersNotInChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+	channelId := th.BasicChannel.Id
+
+	user := th.CreateUser()
+	LinkUserToTeam(user, th.BasicTeam)
+
+	rusers, resp := Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	CheckNoError(t, resp)
+	for _, u := range rusers {
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetUsersNotInChannel(teamId, channelId, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Log(len(rusers))
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersNotInChannel(teamId, channelId, 10000, 100, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should be no users")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
+	CheckNoError(t, resp)
 }

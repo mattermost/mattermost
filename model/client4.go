@@ -60,6 +60,14 @@ func (c *Client4) GetTeamsRoute() string {
 	return fmt.Sprintf("/teams")
 }
 
+func (c *Client4) GetChannelsRoute() string {
+	return fmt.Sprintf("/channels")
+}
+
+func (c *Client4) GetChannelRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelsRoute()+"/%v", channelId)
+}
+
 func (c *Client4) GetTeamRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/%v", teamId)
 }
@@ -202,6 +210,60 @@ func (c *Client4) GetUser(userId, etag string) (*User, *Response) {
 	}
 }
 
+// GetUsers returns a page of users on the system. Page counting starts at 0.
+func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
+func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersInChannel returns a page of users on a team. Page counting starts at 0.
+func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersNotInChannel returns a page of users on a team. Page counting starts at 0.
+func (c *Client4) GetUsersNotInChannel(teamId, channelId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_team=%v&not_in_channel=%v&page=%v&per_page=%v", teamId, channelId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersByIds returns a list of users based on the provided user ids.
+func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/ids", ArrayToJson(userIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPut(c.GetUserRoute(user.Id), user.ToJson()); err != nil {
@@ -223,6 +285,16 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	}
 }
 
+// DeleteUser deactivates a user in the system based on the provided user id string.
+func (c *Client4) DeleteUser(userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetUserRoute(userId), ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
@@ -236,7 +308,28 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response) {
 }
 
 // Channel Section
-// to be filled in..
+
+// CreateChannel creates a channel based on the provided channel struct.
+func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CreateDirectChannel creates a direct message channel based on the two user
+// ids provided.
+func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
+	requestBody := []string{userId1, userId2}
+	if r, err := c.DoApiPost(c.GetChannelsRoute()+"/direct", ArrayToJson(requestBody)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
 
 // Post Section
 // to be filled in..

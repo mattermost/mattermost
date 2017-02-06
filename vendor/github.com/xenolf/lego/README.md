@@ -244,7 +244,7 @@ if err != nil {
 // The acme library takes care of completing the challenges to obtain the certificate(s).
 // The domains must resolve to this machine or you have to use the DNS challenge.
 bundle := false
-certificates, failures := client.ObtainCertificate([]string{"mydomain.com"}, bundle, nil)
+certificates, failures := client.ObtainCertificate([]string{"mydomain.com"}, bundle, nil, false)
 if len(failures) > 0 {
 	log.Fatal(failures)
 }
