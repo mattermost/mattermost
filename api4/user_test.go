@@ -133,6 +133,70 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestGetUserByUsername(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+
+	ruser, resp := Client.GetUserByUsername(user.Username, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	ruser, resp = Client.GetUserByUsername(user.Username, resp.Etag)
+	CheckEtag(t, ruser, resp)
+
+	_, resp = Client.GetUserByUsername(GenerateTestUsername(), "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetUserByUsername(model.NewRandomString(25), "")
+	CheckBadRequestStatus(t, resp)
+
+	// Check against privacy config settings
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	ruser, resp = Client.GetUserByUsername(user.Username, "")
+	CheckNoError(t, resp)
+
+	if ruser.Email != "" {
+		t.Fatal("email should be blank")
+	}
+	if ruser.FirstName != "" {
+		t.Fatal("first name should be blank")
+	}
+	if ruser.LastName != "" {
+		t.Fatal("last name should be blank")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUserByUsername(user.Username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	// System admins should ignore privacy settings
+	ruser, resp = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
+	if ruser.Email == "" {
+		t.Fatal("email should not be blank")
+	}
+	if ruser.FirstName == "" {
+		t.Fatal("first name should not be blank")
+	}
+	if ruser.LastName == "" {
+		t.Fatal("last name should not be blank")
+	}
+}
+
 func TestGetUserByEmail(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
