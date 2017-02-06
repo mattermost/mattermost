@@ -62,6 +62,10 @@
 
         .btn {
             margin-bottom: 10px;
+            
+            &.disabled {
+                color: grey;
+            }
         }
 
         .custom-textarea {
