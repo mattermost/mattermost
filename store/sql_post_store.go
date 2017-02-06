@@ -188,6 +188,13 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		result := StoreResult{}
 		pl := &model.PostList{}
 
+		if len(id) == 0 {
+			result.Data = pl
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
@@ -201,6 +208,13 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 
 		if rootId == "" {
 			rootId = post.Id
+		}
+
+		if len(rootId) == 0 {
+			result.Data = pl
+			storeChannel <- result
+			close(storeChannel)
+			return
 		}
 
 		var posts []*model.Post
