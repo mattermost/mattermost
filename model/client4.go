@@ -64,16 +64,20 @@ func (c *Client4) GetTeamsRoute() string {
 	return fmt.Sprintf("/teams")
 }
 
+func (c *Client4) GetTeamRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v", teamId)
+}
+
+func (c *Client4) GetTeamMemberRoute(teamId, userId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId)+"/members/%v", userId)
+}
+
 func (c *Client4) GetChannelsRoute() string {
 	return fmt.Sprintf("/channels")
 }
 
 func (c *Client4) GetChannelRoute(channelId string) string {
 	return fmt.Sprintf(c.GetChannelsRoute()+"/%v", channelId)
-}
-
-func (c *Client4) GetTeamRoute(teamId string) string {
-	return fmt.Sprintf(c.GetTeamsRoute()+"/%v", teamId)
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -318,6 +322,37 @@ func (c *Client4) CreateTeam(team *Team) (*Team, *Response) {
 	} else {
 		defer closeBody(r)
 		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeam returns a team based on the provided team id string.
+func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamRoute(teamId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamsForUser returns a list of teams a user is on. Must be logged in as the user
+// or be a system administrator.
+func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamMember returns a team member based on the provided team and user id strings.
+func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamMemberRoute(teamId, userId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMemberFromJson(r.Body), BuildResponse(r)
 	}
 }
 
