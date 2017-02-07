@@ -70,7 +70,9 @@ export default class ChannelView extends React.Component {
                 <ChannelHeader
                     channelId={this.state.channelId}
                 />
-                <PostViewCache/>
+                <PostViewCache
+                    channelId={this.state.channelId}
+                />
                 <div
                     className='post-create__container'
                     id='post-create'
