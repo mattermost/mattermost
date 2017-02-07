@@ -1597,7 +1597,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "僅在 {{.timeLimit} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。 "
+    "translation": "僅在 {{.timeLimit}} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。 "
   },
   {
     "id": "api.post.update_post.system_message.app_error",
