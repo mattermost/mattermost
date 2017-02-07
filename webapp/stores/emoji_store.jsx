@@ -5,11 +5,6 @@ import Client from '../client/web_client.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
-var BrowserStore;
-if (global.window) {
-    BrowserStore = require('stores/browser_store.jsx').BrowserStore; //eslint-disable-line global-require
-}
-
 import * as Emoji from 'utils/emoji.jsx';
 
 const ActionTypes = Constants.ActionTypes;
@@ -176,12 +171,15 @@ class EmojiStore extends EventEmitter {
         if (recentEmojis.length > MAXIMUM_RECENT_EMOJI) {
             recentEmojis.splice(0, recentEmojis.length - MAXIMUM_RECENT_EMOJI);
         }
-
-        BrowserStore.setGlobalItem(RECENT_EMOJI_KEY, recentEmojis);
+        localStorage.setItem(RECENT_EMOJI_KEY, JSON.stringify(recentEmojis));
     }
 
     getRecentEmojis() {
-        return BrowserStore.getGlobalItem(RECENT_EMOJI_KEY, []);
+        const result = JSON.parse(localStorage.getItem(RECENT_EMOJI_KEY));
+        if (!result) {
+            return [];
+        }
+        return result;
     }
 
     hasUnicode(codepoint) {
