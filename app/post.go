@@ -457,7 +457,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 
 func GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
 	pchan := Srv.Store.Post().Get(postId)
-	fchan := Srv.Store.FileInfo().GetForPost(postId)
+	fchan := Srv.Store.FileInfo().GetForPost(postId, true)
 
 	var infos []*model.FileInfo
 	if result := <-fchan; result.Err != nil {
@@ -476,6 +476,7 @@ func GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
 		}
 
 		if len(post.Filenames) > 0 {
+			Srv.Store.FileInfo().InvalidateFileInfosForPostCache(postId)
 			// The post has Filenames that need to be replaced with FileInfos
 			infos = MigrateFilenamesToFileInfos(post)
 		}
