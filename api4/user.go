@@ -95,7 +95,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserName()
+	c.RequireUsername()
 	if c.Err != nil {
 		return
 	}
@@ -105,7 +105,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = app.GetUserByUsername(c.Params.UserName); err != nil {
+	if user, err = app.GetUserByUsername(c.Params.Username); err != nil {
 		c.Err = err
 		return
 	}
