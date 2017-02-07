@@ -80,6 +80,14 @@ func (c *Client4) GetChannelRoute(channelId string) string {
 	return fmt.Sprintf(c.GetChannelsRoute()+"/%v", channelId)
 }
 
+func (c *Client4) GetChannelMembersRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelRoute(channelId) + "/members")
+}
+
+func (c *Client4) GetChannelMemberRoute(channelId, userId string) string {
+	return fmt.Sprintf(c.GetChannelMembersRoute(channelId)+"/%v", userId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -411,6 +419,37 @@ func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Respo
 	} else {
 		defer closeBody(r)
 		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetChannelMembers gets a page of channel members.
+func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag string) (*ChannelMembers, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetChannelMembersRoute(channelId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetChannelMember gets a channel member.
+func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetChannelMembersForUser gets all the channel members for a user on a team.
+func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*ChannelMembers, *Response) {
+	if r, err := c.DoApiGet(fmt.Sprintf(c.GetUserRoute(userId)+"/teams/%v/channels/members", teamId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMembersFromJson(r.Body), BuildResponse(r)
 	}
 }
 
