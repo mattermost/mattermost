@@ -324,6 +324,29 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	}
 }
 
+// SendPasswordResetEmail will send a link for password resetting to a user with the
+// provided email.
+func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
+	requestBody := map[string]string{"email": email}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/password/reset/send", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// ResetPassword uses a recovery code to update reset a user's password.
+func (c *Client4) ResetPassword(code, newPassword string) (bool, *Response) {
+	requestBody := map[string]string{"code": code, "new_password": newPassword}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/password/reset", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.

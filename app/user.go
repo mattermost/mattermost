@@ -966,7 +966,7 @@ func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
 	}
 
 	if user.AuthData != nil && len(*user.AuthData) != 0 {
-		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id)
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	var recovery *model.PasswordRecovery
@@ -1001,7 +1001,7 @@ func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
 		return err
 	} else {
 		if model.GetMillis()-recovery.CreateAt >= model.PASSWORD_RECOVER_EXPIRY_TIME {
-			return model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
+			return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1011,7 +1011,7 @@ func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
 	}
 
 	if user.IsSSOUser() {
-		return model.NewLocAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
+		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	T := utils.GetUserTranslations(user.Locale)
@@ -1040,7 +1040,7 @@ func CreatePasswordRecovery(userId string) (*model.PasswordRecovery, *model.AppE
 
 func GetPasswordRecovery(code string) (*model.PasswordRecovery, *model.AppError) {
 	if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
-		return nil, model.NewLocAppError("GetPasswordRecovery", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
+		return nil, model.NewAppError("GetPasswordRecovery", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		return result.Data.(*model.PasswordRecovery), nil
 	}
