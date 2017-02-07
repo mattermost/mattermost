@@ -91,7 +91,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-
+	c.RequireEmail()
 	if c.Err != nil {
 		return
 	}

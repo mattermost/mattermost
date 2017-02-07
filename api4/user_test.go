@@ -150,8 +150,8 @@ func TestGetUserByEmail(t *testing.T) {
 	CheckEtag(t, ruser, resp)
 
 	
-	_, resp = Client.GetUserByEmail("", "")
-	CheckNotFoundStatus(t, resp)
+	_, resp = Client.GetUserByEmail(GenerateTestUsername(), "")
+	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.GetUserByEmail(GenerateTestEmail(), "")
 	CheckNotFoundStatus(t, resp)

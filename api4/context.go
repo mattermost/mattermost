@@ -358,3 +358,16 @@ func (c *Context) RequireChannelId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireEmail() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	pos := strings.Index(c.Params.Email, "@")
+	if pos < 0 {
+		c.SetInvalidUrlParam("email")
+	}
+
+	return c
+}
