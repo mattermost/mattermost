@@ -331,7 +331,12 @@ func GetUserByUsername(username string) (*model.User, *model.AppError) {
 }
 
 func GetUserByEmail(email string) (*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil {
+
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const"{
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.User), nil
