@@ -310,7 +310,7 @@ export default class NewChannelModal extends React.Component {
                                         ref='channel_header'
                                         rows='4'
                                         placeholder={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
-                                        maxLength='128'
+                                        maxLength='1024'
                                         value={this.props.channelData.header}
                                         onChange={this.handleChange}
                                         tabIndex='2'
