@@ -4,7 +4,7 @@
 import React from 'react';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -116,7 +116,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                                 id='installed_integrations.url'
                                 defaultMessage='URL: {url}'
                                 values={{
-                                    url: Utils.getSiteURL() + '/hooks/' + incomingWebhook.id
+                                    url: getSiteURL() + '/hooks/' + incomingWebhook.id
                                 }}
                             />
                         </span>
