@@ -157,12 +157,14 @@ class CustomThemeChooser extends React.Component {
     }
 
     getColors(text) {
-        const colorsText = text.split(',');
-        const exp = new RegExp('^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$');
+        const colorsText = text.split(', ');
         return colorsText.map((colorText) => {
-            const color = colorText.split(': ')[1] || colorText;
-            if (exp.test(color)) {
+            const keyValue = colorText.split(': ');
+            const color = keyValue[1] || colorText;
+            if (Utils.isHexColor(color)) {
                 return color;
+            } else if (keyValue[0] === 'Code Theme') {
+                return keyValue[1];
             }
             return '#FFF';
         });
@@ -311,7 +313,7 @@ class CustomThemeChooser extends React.Component {
                     </div>
                 );
 
-                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ',';
+                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ', ';
             } else if (element.group === 'sidebarElements') {
                 sidebarElements.push(
                     <div
@@ -333,7 +335,7 @@ class CustomThemeChooser extends React.Component {
                     </div>
                 );
 
-                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ',';
+                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ', ';
             } else {
                 linkAndButtonElements.push(
                     <div
@@ -355,11 +357,11 @@ class CustomThemeChooser extends React.Component {
                     </div>
                 );
 
-                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ',';
+                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ', ';
             }
         });
 
-        colors += 'code theme: ' + theme.codeTheme;
+        colors += 'Code Theme: ' + theme.codeTheme;
 
         const pasteBox = (
             <div className='col-sm-12'>
