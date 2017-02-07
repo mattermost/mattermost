@@ -616,7 +616,7 @@ func sendNotifications(c *Context, post *model.Post, team *model.Team, channel *
 		senderUsername = c.T("system.message.name")
 	} else {
 		pchan := Srv.Store.User().GetProfilesInChannel(channel.Id, -1, -1, true)
-		fchan = Srv.Store.FileInfo().GetForPost(post.Id)
+		fchan = Srv.Store.FileInfo().GetForPost(post.Id, true)
 
 		var profileMap map[string]*model.User
 		if result := <-pchan; result.Err != nil {
@@ -1004,7 +1004,7 @@ func getMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 
 	// extract the filenames from their paths and determine what type of files are attached
 	var infos []*model.FileInfo
-	if result := <-Srv.Store.FileInfo().GetForPost(post.Id); result.Err != nil {
+	if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true); result.Err != nil {
 		l4g.Warn(utils.T("api.post.get_message_for_notification.get_files.error"), post.Id, result.Err)
 	} else {
 		infos = result.Data.([]*model.FileInfo)
@@ -1691,7 +1691,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pchan := Srv.Store.Post().Get(postId)
-	fchan := Srv.Store.FileInfo().GetForPost(postId)
+	fchan := Srv.Store.FileInfo().GetForPost(postId, true)
 
 	if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_READ_CHANNEL) {
 		return
@@ -1716,6 +1716,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(post.Filenames) > 0 {
+			Srv.Store.FileInfo().InvalidateFileInfosForPostCache(postId)
 			// The post has Filenames that need to be replaced with FileInfos
 			infos = migrateFilenamesToFileInfos(post)
 		}
