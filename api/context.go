@@ -173,6 +173,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if session == nil || session.IsExpired() {
 			c.RemoveSessionCookie(w, r)
+
 			if h.requireUser || h.requireSystemAdmin {
 				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
 				c.Err.StatusCode = http.StatusUnauthorized
@@ -532,7 +533,15 @@ func GetSession(token string) *model.Session {
 
 	if session == nil {
 		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
-			l4g.Error(utils.T("api.context.invalid_token.error"), token, sessionResult.Err.DetailedError)
+
+			// JWT Token handling
+			if claims, error := jwtTokenDecode(token); error == nil {
+				if session, error := newSessionForJwtToken(token, claims); error == nil {
+					return session
+				}
+			} else {
+				l4g.Error(utils.T("api.context.invalid_token.error"), token, sessionResult.Err.DetailedError)
+			}
 		} else {
 			session = sessionResult.Data.(*model.Session)
 

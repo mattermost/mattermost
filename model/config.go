@@ -54,6 +54,12 @@ const (
 	SITENAME_MAX_LENGTH = 30
 )
 
+type JwtKey struct {
+	Audience      *string
+	Key           *string
+	SigningMethod *string
+}
+
 type ServiceSettings struct {
 	SiteURL                           *string
 	ListenAddress                     string
@@ -61,6 +67,7 @@ type ServiceSettings struct {
 	SegmentDeveloperKey               string
 	GoogleDeveloperKey                string
 	EnableOAuthServiceProvider        bool
+	JwtKeys                           *[]JwtKey
 	EnableIncomingWebhooks            bool
 	EnableOutgoingWebhooks            bool
 	EnableCommands                    *bool
