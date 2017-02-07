@@ -17,6 +17,7 @@ import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
@@ -36,7 +37,7 @@ export function initialize() {
         return;
     }
 
-    let connUrl = Utils.getSiteURL();
+    let connUrl = getSiteURL();
 
     // replace the protocol with a websocket one
     if (connUrl.startsWith('https:')) {

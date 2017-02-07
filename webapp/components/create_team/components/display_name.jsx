@@ -3,8 +3,8 @@
 
 import {track} from 'actions/analytics_actions.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {cleanUpUrlable} from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
@@ -50,7 +50,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
 
         this.props.state.wizard = 'team_url';
         this.props.state.team.display_name = displayName;
-        this.props.state.team.name = Utils.cleanUpUrlable(displayName);
+        this.props.state.team.name = cleanUpUrlable(displayName);
         this.props.updateParent(this.props.state);
     }
 
