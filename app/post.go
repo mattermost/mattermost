@@ -488,10 +488,10 @@ func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
 	res, err := http.Get(url)
-	defer CloseBody(res)
 	if err != nil {
 		return og
 	}
+	defer CloseBody(res)
 
 	if err := og.ProcessHTML(res.Body); err != nil {
 		return og
