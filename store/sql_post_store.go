@@ -189,7 +189,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		pl := &model.PostList{}
 
 		if len(id) == 0 {
-			result.Data = pl
+			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -199,6 +199,9 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
+			storeChannel <- result
+			close(storeChannel)
+			return
 		}
 
 		pl.AddPost(&post)
@@ -211,7 +214,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		}
 
 		if len(rootId) == 0 {
-			result.Data = pl
+			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -221,6 +224,9 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error())
+			storeChannel <- result
+			close(storeChannel)
+			return
 		} else {
 			for _, p := range posts {
 				pl.AddPost(p)
