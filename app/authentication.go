@@ -4,12 +4,12 @@
 package app
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-
-	"net/http"
-	"strings"
 )
 
 func CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
@@ -123,7 +123,7 @@ func CheckUserMfa(user *model.User, token string) *model.AppError {
 
 func checkUserLoginAttempts(user *model.User) *model.AppError {
 	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
-		return model.NewLocAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id)
+		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusForbidden)
 	}
 
 	return nil

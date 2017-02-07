@@ -292,6 +292,17 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	}
 }
 
+// UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
+func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *Response) {
+	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
 func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
