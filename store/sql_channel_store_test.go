@@ -79,8 +79,8 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members := (<-store.Channel().GetMembers(o1.Id)).Data.([]model.ChannelMember)
-	if len(members) != 2 {
+	members := (<-store.Channel().GetMembers(o1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
@@ -135,8 +135,8 @@ func TestChannelStoreCreateDirectChannel(t *testing.T) {
 
 	c1 := res.Data.(*model.Channel)
 
-	members := (<-store.Channel().GetMembers(c1.Id)).Data.([]model.ChannelMember)
-	if len(members) != 2 {
+	members := (<-store.Channel().GetMembers(c1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 }
