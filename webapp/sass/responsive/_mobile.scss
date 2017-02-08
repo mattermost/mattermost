@@ -146,6 +146,14 @@
         display: block;
     }
 
+    .post-code {
+        &:hover {
+            .post-code__language {
+                @include opacity(.6);
+            }
+        }
+    }
+
     .backstage-filters {
         display: block;
 
