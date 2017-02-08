@@ -746,28 +746,6 @@
         margin-top: 0;
     }
 
-    .file-preview__remove {
-        @include alpha-property(background, $black, .5);
-        height: 28px;
-        left: auto;
-        right: 0;
-        text-align: center;
-        top: 0;
-        width: 28px;
-
-        &:after {
-            display: none;
-        }
-
-        i {
-            font-size: 16px;
-            line-height: 29px;
-            position: relative;
-            right: auto;
-            top: auto;
-        }
-    }
-
     // Since system console is not responsive we're overriding bootstrap styles for it
     .admin-sidebar {
         .navbar-nav {

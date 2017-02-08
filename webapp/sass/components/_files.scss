@@ -20,24 +20,6 @@
     position: relative;
     width: 120px;
 
-    &:after {
-        @include opacity(0);
-        @include alpha-property(background, $black, .4);
-        content: '';
-        height: 100%;
-        left: 0;
-        opacity: 0;
-        position: absolute;
-        top: 0;
-        width: 100%;
-    }
-
-    &:hover {
-        &:after {
-            @include opacity(1);
-        }
-    }
-
     &:first-child {
         margin-left: 0;
     }
@@ -60,21 +42,24 @@
 }
 
 .file-preview__remove {
-    height: 100%;
-    left: 0;
+    background: alpha-color($black, .5);
+    border-radius: 0 0 0 2px;
+    height: 28px;
     position: absolute;
+    right: 0;
+    text-align: center;
     top: 0;
-    width: 100%;
+    width: 28px;
 
     i {
         color: $white;
         cursor: pointer;
         font-size: 16px;
-        opacity: inherit;
-        position: absolute;
-        right: 5px;
+        line-height: 29px;
+        position: relative;
+        right: auto;
         text-shadow: 0 0 3px alpha-color($black, .7);
-        top: 5px;
+        top: auto;
         z-index: 5;
     }
 }
