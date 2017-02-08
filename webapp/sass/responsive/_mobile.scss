@@ -1,6 +1,14 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .post-create__container {
+        padding-bottom: 10px;
+
+        .msg-typing {
+            display: none;
+        }
+    }
+
     .suggestion-list__content {
         max-height: 145px;
     }
