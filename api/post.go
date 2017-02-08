@@ -177,6 +177,10 @@ func CreateWebhookPost(c *Context, channelId, text, overrideUsername, overrideIc
 	post := &model.Post{UserId: c.Session.UserId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
+	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
+		metrics.IncrementWebhookPost()
+	}
+
 	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
 		if len(overrideUsername) != 0 {
 			post.AddProp("override_username", overrideUsername)
