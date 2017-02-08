@@ -54,7 +54,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := app.CreatePostAsUser(post, c.TeamId)
+	rp, err := app.CreatePostAsUser(post)
 	if err != nil {
 		c.Err = err
 		return

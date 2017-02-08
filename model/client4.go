@@ -92,6 +92,14 @@ func (c *Client4) GetChannelMemberRoute(channelId, userId string) string {
 	return fmt.Sprintf(c.GetChannelMembersRoute(channelId)+"/%v", userId)
 }
 
+func (c *Client4) GetPostsRoute() string {
+	return fmt.Sprintf("/posts")
+}
+
+func (c *Client4) GetPostRoute(postId string) string {
+	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -468,4 +476,16 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 }
 
 // Post Section
+
+// CreatePost creates a post based on the provided post struct.
+func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
+	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Files Section
 // to be filled in..
