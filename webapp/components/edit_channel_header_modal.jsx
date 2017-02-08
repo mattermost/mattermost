@@ -177,11 +177,10 @@ class EditChannelHeaderModal extends React.Component {
                         />
                     </button>
                     <button
-                        disabled={this.state.submitted}
+                        disabled={this.state.submitted || !this.state.headerChanged}
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
-                        disabled={!this.state.headerChanged}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'
