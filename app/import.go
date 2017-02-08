@@ -66,8 +66,14 @@ type UserTeamImportData struct {
 }
 
 type UserChannelImportData struct {
-	Name  *string `json:"name"`
-	Roles *string `json:"roles"`
+	Name        *string                           `json:"name"`
+	Roles       *string                           `json:"roles"`
+	NotifyProps *UserChannelNotifyPropsImportData `json:"notify_props"`
+}
+
+type UserChannelNotifyPropsImportData struct {
+	Desktop    *string `json:"desktop"`
+	MarkUnread *string `json:"mark_unread"`
 }
 
 //
@@ -472,6 +478,22 @@ func ImportUserChannels(user *model.User, team *model.Team, data *[]UserChannelI
 				return err
 			}
 		}
+
+		if cdata.NotifyProps != nil {
+			notifyProps := member.NotifyProps
+
+			if cdata.NotifyProps.Desktop != nil {
+				notifyProps["desktop"] = *cdata.NotifyProps.Desktop
+			}
+
+			if cdata.NotifyProps.MarkUnread != nil {
+				notifyProps["mark_unread"] = *cdata.NotifyProps.MarkUnread
+			}
+
+			if _, err := UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -562,6 +584,16 @@ func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppErr
 
 		if cdata.Roles != nil && !model.IsValidUserRoles(*cdata.Roles) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.invalid_roles.error", nil, "", http.StatusBadRequest)
+		}
+
+		if cdata.NotifyProps != nil {
+			if cdata.NotifyProps.Desktop != nil && !model.IsChannelNotifyLevelValid(*cdata.NotifyProps.Desktop) {
+				return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error", nil, "", http.StatusBadRequest)
+			}
+
+			if cdata.NotifyProps.MarkUnread != nil && !model.IsChannelMarkUnreadLevelValid(*cdata.NotifyProps.MarkUnread) {
+				return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 
