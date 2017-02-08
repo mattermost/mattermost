@@ -230,6 +230,15 @@ func (c *Client4) GetUser(userId, etag string) (*User, *Response) {
 	}
 }
 
+// GetUserByUsername returns a user based on the provided user name string.
+func (c *Client4) GetUserByUsername(userName, etag string) (*User, *Response) {
+	if r, err := c.DoApiGet(c.GetUserByUsernameRoute(userName), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
 
 // GetUserByEmail returns a user based on the provided user email string.
 func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
@@ -240,16 +249,6 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 		return UserFromJson(r.Body), BuildResponse(r)
 	}
 }
-
-// GetUserByUsername returns a user based on the provided user name string.
-func (c *Client4) GetUserByUsername(userName, etag string) (*User, *Response) {
-	if r, err := c.DoApiGet(c.GetUserByUsernameRoute(userName), etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
-	}
-}		
 
 // GetUsers returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Response) {
