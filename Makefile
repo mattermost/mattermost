@@ -481,7 +481,6 @@ govet:
 	$(GO) vet $(GOFLAGS) ./store || exit 1
 	$(GO) vet $(GOFLAGS) ./utils || exit 1
 	$(GO) vet $(GOFLAGS) ./web || exit 1
-	$(GO) vet $(GOFLAGS) . || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet $(GOFLAGS) ./enterprise || exit 1
