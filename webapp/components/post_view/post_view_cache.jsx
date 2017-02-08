@@ -72,7 +72,6 @@ export default class PostViewCache extends React.Component {
         return Boolean(nextProps.channelId);
     }
 
-
     render() {
         const channels = this.state.channels;
         const currentChannelId = this.state.currentChannelId;
