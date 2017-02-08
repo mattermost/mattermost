@@ -80,7 +80,9 @@ export default class ChannelHeader extends React.Component {
             otherUserId,
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             isBusy: WebrtcStore.isBusy(),
-            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel),
+            channelNamesMap: ChannelStore.getChannelNamesMap(),
+            team: TeamStore.getCurrent()
         };
     }
 
@@ -583,7 +585,13 @@ export default class ChannelHeader extends React.Component {
 
         let headerText;
         if (this.state.enableFormatting) {
-            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
+            headerText = TextFormatting.formatText(channel.header, {
+                singleline: true,
+                mentionHighlight: false,
+                siteURL: getSiteURL(),
+                channelNamesMap: this.state.channelNamesMap,
+                team: this.state.team
+            });
         } else {
             headerText = channel.header;
         }

@@ -37,7 +37,8 @@ class EditChannelHeaderModal extends React.Component {
             header: props.channel.header,
             show: true,
             serverError: '',
-            submitted: false
+            submitted: false,
+            headerChanged: false
         };
     }
 
@@ -51,8 +52,13 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleChange(e) {
+        if (e.target.value === this.props.channel.header) {
+            this.setState({headerChanged: false});
+            return;
+        }
         this.setState({
-            header: e.target.value
+            header: e.target.value,
+            headerChanged: true
         });
     }
 
@@ -61,6 +67,9 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleSubmit() {
+        if (!this.state.headerChanged) {
+            return;
+        }
         this.setState({submitted: true});
 
         updateChannelHeader(
@@ -172,6 +181,7 @@ class EditChannelHeaderModal extends React.Component {
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}
+                        disabled={!this.state.headerChanged}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'
