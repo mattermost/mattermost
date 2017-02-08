@@ -57,16 +57,16 @@ export default class YoutubeVideo extends React.Component {
     }
 
     handleYoutubeTime(link) {
-        const timeRegex = /[\\?&]t=([0-9hms]+)/;
+        const timeRegex = /[\\?&]t=([0-9]+h)?([0-9]+m)?([0-9]+s?)/;
 
         const time = link.match(timeRegex);
-        if (!time || !time[1]) {
+        if (!time || !time[0]) {
             return '';
         }
 
-        const hours = time[1].match(/([0-9]+)h/);
-        const minutes = time[1].match(/([0-9]+)m/);
-        const seconds = time[1].match(/([0-9]+)s/);
+        const hours = time[1] ? time[1].match(/([0-9]+)h/) : null;
+        const minutes = time[2] ? time[2].match(/([0-9]+)m/) : null;
+        const seconds = time[3] ? time[3].match(/([0-9]+)s?/) : null;
 
         let ticks = 0;
 

@@ -15,11 +15,11 @@ import (
 )
 
 func MakeDirectChannelVisible(channelId string) *model.AppError {
-	var members []model.ChannelMember
-	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
+	var members model.ChannelMembers
+	if result := <-Srv.Store.Channel().GetMembers(channelId, 0, 100); result.Err != nil {
 		return result.Err
 	} else {
-		members = result.Data.([]model.ChannelMember)
+		members = *(result.Data.(*model.ChannelMembers))
 	}
 
 	if len(members) != 2 {
@@ -579,6 +579,14 @@ func GetChannelMember(channelId string, userId string) (*model.ChannelMember, *m
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelMember), nil
+	}
+}
+
+func GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelMembers), nil
 	}
 }
 

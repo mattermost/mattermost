@@ -444,6 +444,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	ogJson, err := og.ToJSON()
 	if err != nil {
 		w.Write([]byte(`{"url": ""}`))
+		return
 	}
 	w.Write(ogJson)
 }

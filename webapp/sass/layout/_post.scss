@@ -405,6 +405,10 @@
             &:active {
                 @include opacity(.75);
             }
+
+            &.disabled {
+                color: grey;
+            }
         }
 
         .custom-textarea {

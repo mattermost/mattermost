@@ -82,7 +82,7 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]*model.Team)
 	for _, v := range teams {
 		m[v.Id] = v
-		if !app.HasPermissionTo(c.Session.UserId, model.PERMISSION_MANAGE_SYSTEM) {
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			m[v.Id].Sanitize()
 		}
 	}

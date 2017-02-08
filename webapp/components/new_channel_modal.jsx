@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
+import {getShortenedTeamURL} from 'utils/url.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
@@ -189,7 +190,7 @@ export default class NewChannelModal extends React.Component {
             break;
         }
 
-        const prettyTeamURL = Utils.getShortenedTeamURL();
+        const prettyTeamURL = getShortenedTeamURL();
 
         return (
             <span>
@@ -310,7 +311,7 @@ export default class NewChannelModal extends React.Component {
                                         ref='channel_header'
                                         rows='4'
                                         placeholder={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
-                                        maxLength='128'
+                                        maxLength='1024'
                                         value={this.props.channelData.header}
                                         onChange={this.handleChange}
                                         tabIndex='2'

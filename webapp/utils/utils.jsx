@@ -27,14 +27,6 @@ export function isEmail(email) {
     return (/^.+@.+$/).test(email);
 }
 
-export function cleanUpUrlable(input) {
-    var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
-    cleaned = cleaned.replace(/-{2,}/, '-');
-    cleaned = cleaned.replace(/^-+/, '');
-    cleaned = cleaned.replace(/-+$/, '');
-    return cleaned;
-}
-
 export function isMac() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
@@ -996,17 +988,6 @@ export function fileSizeToString(bytes) {
     return bytes + 'B';
 }
 
-// Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
-export function getFileUrl(filename) {
-    return Client.getFilesRoute() + '/get' + filename;
-}
-
-// Gets the name of a file (including extension) from a given url or file path.
-export function getFileName(path) {
-    var split = path.split('/');
-    return split[split.length - 1];
-}
-
 // Gets the websocket port to use. Configurable on the server.
 export function getWebsocketPort(protocol) {
     if ((/^wss:/).test(protocol)) { // wss://
@@ -1076,13 +1057,6 @@ export function importSlack(file, success, error) {
     formData.append('importFrom', 'slack');
 
     Client.importSlack(formData, success, error);
-}
-
-export function getShortenedTeamURL(teamURL = '') {
-    if (teamURL.length > 35) {
-        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length) + '/';
-    }
-    return teamURL + '/';
 }
 
 export function windowWidth() {
@@ -1272,18 +1246,6 @@ export function isValidPassword(password) {
     }
 
     return errorMsg;
-}
-
-export function getSiteURL() {
-    if (global.mm_config.SiteURL) {
-        return global.mm_config.SiteURL;
-    }
-
-    if (window.location.origin) {
-        return window.location.origin;
-    }
-
-    return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 }
 
 export function handleFormattedTextClick(e) {

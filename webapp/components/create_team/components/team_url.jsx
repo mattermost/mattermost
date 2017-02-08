@@ -1,11 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from 'utils/utils.jsx';
-
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
 import Constants from 'utils/constants.jsx';
+import * as URL from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
@@ -38,7 +37,7 @@ export default class TeamUrl extends React.Component {
         e.preventDefault();
 
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
-        const cleanedName = Utils.cleanUpUrlable(name);
+        const cleanedName = URL.cleanUpUrlable(name);
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
 
         if (!name) {
@@ -136,7 +135,7 @@ export default class TeamUrl extends React.Component {
             nameDivClass += ' has-error';
         }
 
-        const title = `${Utils.getSiteURL()}/`;
+        const title = `${URL.getSiteURL()}/`;
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{title}</Tooltip>
         );

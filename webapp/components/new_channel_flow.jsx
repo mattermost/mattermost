@@ -4,6 +4,7 @@
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import {cleanUpUrlable} from 'utils/url.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
@@ -165,7 +166,7 @@ class NewChannelFlow extends React.Component {
             channelHeader: data.header
         });
         if (!this.state.nameModified) {
-            this.setState({channelName: Utils.cleanUpUrlable(data.displayName.trim())});
+            this.setState({channelName: cleanUpUrlable(data.displayName.trim())});
         }
     }
     render() {

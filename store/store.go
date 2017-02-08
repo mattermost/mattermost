@@ -105,7 +105,7 @@ type ChannelStore interface {
 	GetForPost(postId string) StoreChannel
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
-	GetMembers(channelId string) StoreChannel
+	GetMembers(channelId string, offset, limit int) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
@@ -326,7 +326,8 @@ type FileInfoStore interface {
 	Save(info *model.FileInfo) StoreChannel
 	Get(id string) StoreChannel
 	GetByPath(path string) StoreChannel
-	GetForPost(postId string) StoreChannel
+	GetForPost(postId string, allowFromCache bool) StoreChannel
+	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 }
