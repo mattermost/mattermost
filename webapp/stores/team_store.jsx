@@ -6,6 +6,7 @@ import EventEmitter from 'events';
 import UserStore from 'stores/user_store.jsx';
 
 import Constants from 'utils/constants.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
@@ -122,10 +123,7 @@ class TeamStoreClass extends EventEmitter {
         const current = this.getCurrent();
 
         if (current) {
-            // can't call Utils.getSiteURL here because that introduces a circular dependency
-            const origin = window.mm_config.SiteURL || window.location.origin;
-
-            return origin + '/signup_user_complete/?id=' + current.invite_id;
+            return getSiteURL() + '/signup_user_complete/?id=' + current.invite_id;
         }
 
         return '';
@@ -138,10 +136,7 @@ class TeamStoreClass extends EventEmitter {
             return '';
         }
 
-        // can't call Utils.getSiteURL here because that introduces a circular dependency
-        const origin = window.mm_config.SiteURL || window.location.origin;
-
-        return origin + '/' + team.name;
+        return getSiteURL() + '/' + team.name;
     }
 
     getCurrentStats() {

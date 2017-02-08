@@ -38,7 +38,7 @@ type Routes struct {
 	ChannelsForTeam       *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels'
 	ChannelMembers        *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members'
 	ChannelMember         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}'
-	ChannelMembersForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/channels/members'
+	ChannelMembersForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/members'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
@@ -94,7 +94,7 @@ func InitApi(full bool) {
 	BaseRoutes.UserByEmail = BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
 
 	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
-	BaseRoutes.TeamsForUser = BaseRoutes.Users.PathPrefix("/teams").Subrouter()
+	BaseRoutes.TeamsForUser = BaseRoutes.User.PathPrefix("/teams").Subrouter()
 	BaseRoutes.Team = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
@@ -106,7 +106,7 @@ func InitApi(full bool) {
 	BaseRoutes.ChannelsForTeam = BaseRoutes.Team.PathPrefix("/channels").Subrouter()
 	BaseRoutes.ChannelMembers = BaseRoutes.Channel.PathPrefix("/members").Subrouter()
 	BaseRoutes.ChannelMember = BaseRoutes.ChannelMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.ChannelMembersForUser = BaseRoutes.User.PathPrefix("/channels/members").Subrouter()
+	BaseRoutes.ChannelMembersForUser = BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/members").Subrouter()
 
 	BaseRoutes.Posts = BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
 	BaseRoutes.Post = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
@@ -141,11 +141,10 @@ func InitApi(full bool) {
 	InitTeam()
 	InitChannel()
 
+	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
+
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {
-		// 404 on any api route before web.go has a chance to serve it
-		app.Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
-
 		utils.InitHTML()
 
 		app.InitEmailBatching()

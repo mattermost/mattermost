@@ -112,6 +112,26 @@ func TeamMapFromJson(data io.Reader) map[string]*Team {
 	}
 }
 
+func TeamListToJson(t []*Team) string {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func TeamListFromJson(data io.Reader) []*Team {
+	decoder := json.NewDecoder(data)
+	var teams []*Team
+	err := decoder.Decode(&teams)
+	if err == nil {
+		return teams
+	} else {
+		return nil
+	}
+}
+
 func (o *Team) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }

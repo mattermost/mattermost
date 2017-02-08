@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import * as URL from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -105,7 +105,7 @@ export default class ChangeUrlModal extends React.Component {
         e.preventDefault();
 
         const url = ReactDOM.findDOMNode(this.refs.urlinput).value;
-        const cleanedURL = Utils.cleanUpUrlable(url);
+        const cleanedURL = URL.cleanUpUrlable(url);
         if (cleanedURL !== url || url.length < 2 || url.indexOf('__') > -1) {
             this.setState({urlError: this.getURLError(url)});
             return;
@@ -136,7 +136,7 @@ export default class ChangeUrlModal extends React.Component {
         }
 
         const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
-        const shortURL = Utils.getShortenedURL(fullUrl);
+        const shortURL = URL.getShortenedURL(fullUrl);
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
         );

@@ -4,6 +4,8 @@
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {cleanUpUrlable, getShortenedURL} from 'utils/url.jsx';
+
 import TeamStore from 'stores/team_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
@@ -146,7 +148,7 @@ export class RenameChannelModal extends React.Component {
             state.nameError = formatMessage(holders.maxLength);
             state.invalid = true;
         } else {
-            const cleanedName = Utils.cleanUpUrlable(channel.name);
+            const cleanedName = cleanUpUrlable(channel.name);
             if (cleanedName === channel.name) {
                 state.nameError = '';
             } else {
@@ -222,7 +224,7 @@ export class RenameChannelModal extends React.Component {
         }
 
         const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
-        const shortUrl = Utils.getShortenedURL(fullUrl);
+        const shortUrl = getShortenedURL(fullUrl);
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
         );

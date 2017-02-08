@@ -6,14 +6,16 @@ import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 function getCountsStateFromStores() {
-    let count = 0;
+    let mentionCount = 0;
+    let messageCount = 0;
     const teamMembers = TeamStore.getMyTeamMembers();
     const channels = ChannelStore.getAll();
     const members = ChannelStore.getMyMembers();
 
     teamMembers.forEach((member) => {
         if (member.team_id !== TeamStore.getCurrentId()) {
-            count += (member.mention_count || 0);
+            mentionCount += (member.mention_count || 0);
+            messageCount += (member.msg_count || 0);
         }
     });
 
@@ -24,13 +26,16 @@ function getCountsStateFromStores() {
         }
 
         if (channel.type === 'D') {
-            count += channel.total_msg_count - channelMember.msg_count;
+            mentionCount += channel.total_msg_count - channelMember.msg_count;
         } else if (channelMember.mention_count > 0) {
-            count += channelMember.mention_count;
+            mentionCount += channelMember.mention_count;
+        }
+        if (channelMember.notify_props.mark_unread !== 'mention' && channel.total_msg_count - channelMember.msg_count > 0) {
+            messageCount += 1;
         }
     });
 
-    return {count};
+    return {mentionCount, messageCount};
 }
 
 import React from 'react';
@@ -63,8 +68,10 @@ export default class NotifyCounts extends React.Component {
         }
     }
     render() {
-        if (this.state.count) {
-            return <span className='badge badge-notify'>{this.state.count}</span>;
+        if (this.state.mentionCount) {
+            return <span className='badge badge-notify'>{this.state.mentionCount}</span>;
+        } else if (this.state.messageCount) {
+            return <span className='badge badge-notify'>{'•'}</span>;
         }
         return null;
     }
