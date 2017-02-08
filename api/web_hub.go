@@ -86,6 +86,10 @@ func HubUnregister(webConn *WebConn) {
 }
 
 func Publish(message *model.WebSocketEvent) {
+	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
+		metrics.IncrementWebsocketEvent(message.Event)
+	}
+
 	message.DoPreComputeJson()
 	for _, hub := range hubs {
 		hub.Broadcast(message)
