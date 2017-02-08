@@ -247,7 +247,7 @@ func GenerateTestEmail() string {
 }
 
 func GenerateTestUsername() string {
-	return "fakeuser" + model.NewId()
+	return "fakeuser" + model.NewRandomString(13)
 }
 
 func GenerateTestTeamName() string {
