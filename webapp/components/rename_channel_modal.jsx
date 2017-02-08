@@ -9,7 +9,7 @@ import TeamStore from 'stores/team_store.jsx';
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannel} from 'actions/channel_actions.jsx';
 
-import {Modal} from 'react-bootstrap';
+import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 const holders = defineMessages({
     required: {
@@ -221,7 +221,11 @@ export class RenameChannelModal extends React.Component {
             readOnlyHandleInput = true;
         }
 
-        const channelURL = Utils.getShortenedTeamURL(TeamStore.getCurrentTeamUrl());
+        const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
+        const shortUrl = Utils.getShortenedURL(fullUrl);
+        const urlTooltip = (
+            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
+        );
 
         return (
             <Modal
@@ -261,7 +265,13 @@ export class RenameChannelModal extends React.Component {
                             <label className='control-label'>{urlInputLabel}</label>
 
                             <div className='input-group input-group--limit'>
-                                <span className='input-group-addon'>{channelURL}</span>
+                                <OverlayTrigger
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='top'
+                                    overlay={urlTooltip}
+                                >
+                                    <span className='input-group-addon'>{shortUrl}</span>
+                                </OverlayTrigger>
                                 <input
                                     onChange={this.onNameChange}
                                     type='text'

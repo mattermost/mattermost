@@ -189,7 +189,7 @@ export default class NewChannelModal extends React.Component {
             break;
         }
 
-        const prettyTeamURL = Utils.getShortenedTeamURL();
+        const prettyTeamURL = Utils.getShortenedURL();
 
         return (
             <span>

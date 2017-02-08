@@ -1078,11 +1078,11 @@ export function importSlack(file, success, error) {
     Client.importSlack(formData, success, error);
 }
 
-export function getShortenedTeamURL(teamURL = '') {
-    if (teamURL.length > 35) {
-        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length) + '/';
+export function getShortenedURL(url = '') {
+    if (url.length > 35) {
+        return url.substring(0, 10) + '...' + url.substring(url.length - 12, url.length) + '/';
     }
-    return teamURL + '/';
+    return url + '/';
 }
 
 export function windowWidth() {
