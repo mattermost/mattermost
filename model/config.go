@@ -81,6 +81,7 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication   *bool
 	AllowCorsFrom                     *string
 	AllowCorsCredentials              *bool
+	AllowCorsHeaders                  *string
 	SessionLengthWebInDays            *int
 	SessionLengthMobileInDays         *int
 	SessionLengthSSOInDays            *int

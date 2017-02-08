@@ -255,7 +255,10 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 				w.Header().Set(
 					"Access-Control-Allow-Headers",
-					r.Header.Get("Access-Control-Request-Headers"))
+					concatWithComma(
+						r.Header.Get("Access-Control-Request-Headers"),
+						*utils.Cfg.ServiceSettings.AllowCorsHeaders,
+					))
 			}
 		}
 	}
@@ -265,6 +268,18 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cw.router.ServeHTTP(w, r)
+}
+
+func concatWithComma(a string, b string) string {
+	res := ""
+	res = res + a
+	if b != "" {
+		if res != "" {
+			res = res + ","
+		}
+		res = res + b
+	}
+	return res
 }
 
 func GetProtocol(r *http.Request) string {
