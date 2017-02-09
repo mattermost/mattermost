@@ -23,6 +23,7 @@ const Preferences = Constants.Preferences;
 import $ from 'jquery';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
+import {FormattedDate} from 'react-intl';
 
 export function renderView(props) {
     return (
@@ -325,6 +326,7 @@ export default class RhsThread extends React.Component {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
         const profiles = this.state.profiles || {};
+        let previousPostDay = Utils.getDateForUnixTicks(selected.create_at);
 
         if (postsArray == null || selected == null) {
             return (
@@ -335,7 +337,7 @@ export default class RhsThread extends React.Component {
         var currentId = UserStore.getCurrentId();
         var searchForm;
         if (currentId != null) {
-            searchForm = <SearchBox isCommentsPage='true'/>;
+            searchForm = <SearchBox isCommentsPage={true}/>;
         }
 
         let profile;
@@ -384,6 +386,20 @@ export default class RhsThread extends React.Component {
                         onScroll={this.handleScroll}
                     >
                         <div className='post-right__scroll'>
+                            <div
+                                className='date-separator'
+                            >
+                                <hr className='separator__hr'/>
+                                <div className='separator__text'>
+                                    <FormattedDate
+                                        value={previousPostDay}
+                                        weekday='short'
+                                        month='short'
+                                        day='2-digit'
+                                        year='numeric'
+                                    />
+                                </div>
+                            </div>
                             <RootPost
                                 ref={selected.id}
                                 post={selected}
@@ -421,19 +437,44 @@ export default class RhsThread extends React.Component {
 
                                     const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
 
+                                    let separator = null;
+                                    const currentPostDay = Utils.getDateForUnixTicks(comPost.create_at);
+
+                                    if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
+                                        previousPostDay = currentPostDay;
+                                        separator = (
+                                            <div
+                                                key={currentPostDay.toDateString()}
+                                                className='date-separator'
+                                            >
+                                                <hr className='separator__hr'/>
+                                                <div className='separator__text'>
+                                                    <FormattedDate
+                                                        value={currentPostDay}
+                                                        weekday='short'
+                                                        month='short'
+                                                        day='2-digit'
+                                                        year='numeric'
+                                                    />
+                                                </div>
+                                            </div>);
+                                    }
+
                                     return (
-                                        <Comment
-                                            ref={comPost.id}
-                                            key={keyPrefix + 'commentKey'}
-                                            post={comPost}
-                                            user={p}
-                                            currentUser={this.props.currentUser}
-                                            compactDisplay={this.state.compactDisplay}
-                                            useMilitaryTime={this.props.useMilitaryTime}
-                                            isFlagged={isFlagged}
-                                            status={status}
-                                            isBusy={this.state.isBusy}
-                                        />
+                                        <div key={keyPrefix + 'commentKey'}>
+                                            {separator}
+                                            <Comment
+                                                ref={comPost.id}
+                                                post={comPost}
+                                                user={p}
+                                                currentUser={this.props.currentUser}
+                                                compactDisplay={this.state.compactDisplay}
+                                                useMilitaryTime={this.props.useMilitaryTime}
+                                                isFlagged={isFlagged}
+                                                status={status}
+                                                isBusy={this.state.isBusy}
+                                            />
+                                        </div>
                                     );
                                 })}
                             </div>
