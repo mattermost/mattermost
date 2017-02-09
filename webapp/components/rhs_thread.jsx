@@ -24,7 +24,6 @@ const Preferences = Constants.Preferences;
 import $ from 'jquery';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedDate} from 'react-intl';
 
 export function renderView(props) {
     return (
