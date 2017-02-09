@@ -460,7 +460,6 @@ export default class RhsComment extends React.Component {
             );
         }
 
-
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
                 <div className='post__content'>
