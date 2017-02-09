@@ -174,3 +174,35 @@ func TestGetPostsForChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post, resp := Client.GetPost(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+
+	if post.Id != th.BasicPost.Id {
+		t.Fatal("post ids don't match")
+	}
+
+	post, resp = Client.GetPost(th.BasicPost.Id, resp.Etag)
+	CheckEtag(t, post, resp)
+
+	_, resp = Client.GetPost("", "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetPost("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPost(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetPost(model.NewId(), "")
+	CheckUnauthorizedStatus(t, resp)
+
+	post, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+}
