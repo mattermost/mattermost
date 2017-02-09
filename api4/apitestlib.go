@@ -27,6 +27,7 @@ type TestHelper struct {
 	BasicTeam     *model.Team
 	BasicChannel  *model.Channel
 	BasicChannel2 *model.Channel
+	BasicPost     *model.Post
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -99,6 +100,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
+	me.BasicPost = me.CreatePost()
 	me.BasicUser = me.CreateUser()
 	LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
@@ -190,6 +192,24 @@ func (me *TestHelper) CreateChannelWithClient(client *model.Client4, channelType
 	rchannel, _ := client.CreateChannel(channel)
 	utils.EnableDebugLogForTest()
 	return rchannel
+}
+
+func (me *TestHelper) CreatePost() *model.Post {
+	return me.CreatePostWithClient(me.Client, me.BasicChannel)
+}
+
+func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
+	id := model.NewId()
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "message_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	rpost, _ := client.CreatePost(post)
+	utils.EnableDebugLogForTest()
+	return rpost
 }
 
 func (me *TestHelper) LoginBasic() {

@@ -16,6 +16,7 @@ func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
 	BaseRoutes.Posts.Handle("", ApiSessionRequired(createPost)).Methods("POST")
+	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -43,4 +44,30 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(rp.ToJson()))
+}
+
+func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	etag := app.GetPostsEtag(c.Params.ChannelId)
+
+	if HandleEtag(etag, "Get Posts", w, r) {
+		return
+	}
+
+	if list, err := app.GetPostsPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(list.ToJson()))
+	}
 }

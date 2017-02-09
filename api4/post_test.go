@@ -95,3 +95,82 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("create at should match")
 	}
 }
+
+func TestGetPostsForChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post4, _ = Client.CreatePost(post4)
+
+	posts, resp := Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+	CheckNoError(t, resp)
+
+	if posts.Order[0] != post4.Id {
+		t.Fatal("wrong order")
+	}
+
+	if posts.Order[1] != post3.Id {
+		t.Fatal("wrong order")
+	}
+
+	if posts.Order[2] != post2.Id {
+		t.Fatal("wrong order")
+	}
+
+	if posts.Order[3] != post1.Id {
+		t.Fatal("wrong order")
+	}
+
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, resp.Etag)
+	CheckEtag(t, posts, resp)
+
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != 3 {
+		t.Fatal("wrong number returned")
+	}
+
+	if _, ok := posts.Posts[post4.Id]; !ok {
+		t.Fatal("missing comment")
+	}
+
+	if _, ok := posts.Posts[post1.Id]; !ok {
+		t.Fatal("missing root post")
+	}
+
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 1, 1, "")
+	CheckNoError(t, resp)
+
+	if posts.Order[0] != post3.Id {
+		t.Fatal("wrong order")
+	}
+
+	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Order) != 0 {
+		t.Fatal("should be no posts")
+	}
+
+	_, resp = Client.GetPostsForChannel("", 0, 60, "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPostsForChannel(model.NewId(), 0, 60, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetPostsForChannel(model.NewId(), 0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+	CheckNoError(t, resp)
+}

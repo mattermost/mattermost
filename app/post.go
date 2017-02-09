@@ -306,6 +306,14 @@ func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	}
 }
 
+func GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
 func GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Post().GetPosts(channelId, offset, limit, true); result.Err != nil {
 		return nil, result.Err

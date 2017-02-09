@@ -487,5 +487,16 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 	}
 }
 
+// GetPostsForChannel gets a page of posts with an array for ordering for a channel.
+func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Files Section
 // to be filled in..
