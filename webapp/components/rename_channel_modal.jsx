@@ -28,7 +28,7 @@ const holders = defineMessages({
     },
     url: {
         id: 'rename_channel.url',
-        defaultMessage: 'Url'
+        defaultMessage: 'URL'
     },
     defaultError: {
         id: 'rename_channel.defaultError',
@@ -224,7 +224,7 @@ export class RenameChannelModal extends React.Component {
         }
 
         const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
-        const shortUrl = getShortenedURL(fullUrl);
+        const shortUrl = getShortenedURL(fullUrl, 35);
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
         );

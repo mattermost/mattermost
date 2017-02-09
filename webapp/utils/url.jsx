@@ -9,9 +9,10 @@ export function cleanUpUrlable(input) {
     return cleaned;
 }
 
-export function getShortenedURL(url = '') {
+export function getShortenedURL(url = '', getLength = 27) {
     if (url.length > 35) {
-        return url.substring(0, 10) + '...' + url.substring(url.length - 12, url.length) + '/';
+        const subLength = getLength - 14;
+        return url.substring(0, 10) + '...' + url.substring(url.length - subLength, url.length) + '/';
     }
     return url + '/';
 }
