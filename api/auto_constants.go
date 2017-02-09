@@ -22,15 +22,15 @@ const (
 )
 
 var (
-	TEAM_NAME_LEN            = utils.Range{10, 20}
-	TEAM_DOMAIN_NAME_LEN     = utils.Range{10, 20}
-	TEAM_EMAIL_LEN           = utils.Range{15, 30}
-	USER_NAME_LEN            = utils.Range{5, 20}
-	USER_EMAIL_LEN           = utils.Range{15, 30}
-	CHANNEL_DISPLAY_NAME_LEN = utils.Range{10, 20}
-	CHANNEL_NAME_LEN         = utils.Range{5, 20}
-	POST_MESSAGE_LEN         = utils.Range{100, 400}
-	POST_HASHTAGS_NUM        = utils.Range{5, 10}
-	POST_MENTIONS_NUM        = utils.Range{0, 3}
+	TEAM_NAME_LEN            = utils.Range{Begin: 10, End: 20}
+	TEAM_DOMAIN_NAME_LEN     = utils.Range{Begin: 10, End: 20}
+	TEAM_EMAIL_LEN           = utils.Range{Begin: 15, End: 30}
+	USER_NAME_LEN            = utils.Range{Begin: 5, End: 20}
+	USER_EMAIL_LEN           = utils.Range{Begin: 15, End: 30}
+	CHANNEL_DISPLAY_NAME_LEN = utils.Range{Begin: 10, End: 20}
+	CHANNEL_NAME_LEN         = utils.Range{Begin: 5, End: 20}
+	POST_MESSAGE_LEN         = utils.Range{Begin: 100, End: 400}
+	POST_HASHTAGS_NUM        = utils.Range{Begin: 5, End: 10}
+	POST_MENTIONS_NUM        = utils.Range{Begin: 0, End: 3}
 	TEST_IMAGE_FILENAMES     = []string{"test.png", "testjpg.jpg", "testgif.gif"}
 )

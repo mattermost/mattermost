@@ -513,7 +513,7 @@ func TestImportImportTeam(t *testing.T) {
 	// Check that one more team is in the DB.
 	if r := <-Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64)-1 != teamsCount {
-			t.Fatalf("Team did not get saved in apply run mode.", r.Data.(int64), teamsCount)
+			t.Fatalf("Team did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
 		}
 	} else {
 		t.Fatalf("Failed to get team count.")
@@ -542,7 +542,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	if r := <-Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64)-1 != teamsCount {
-			t.Fatalf("Team alterations did not get saved in apply run mode.", r.Data.(int64), teamsCount)
+			t.Fatalf("Team alterations did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
 		}
 	} else {
 		t.Fatalf("Failed to get team count.")
