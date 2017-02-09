@@ -323,7 +323,8 @@ func GetUser(userId string) (*model.User, *model.AppError) {
 }
 
 func GetUserByUsername(username string) (*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
+	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil  && result.Err.Id == "store.sql_user.get_by_username.app_error"  {
+		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.User), nil

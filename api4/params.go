@@ -26,6 +26,7 @@ type ApiParams struct {
 	HookId    string
 	EmojiId   string
 	Email     string
+	Username  string
 	Page      int
 	PerPage   int
 }
@@ -69,6 +70,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["email"]; ok {
 		params.Email = val
+	}
+
+	if val, ok := props["username"]; ok {
+		params.Username = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil {
