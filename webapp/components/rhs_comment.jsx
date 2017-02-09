@@ -8,6 +8,7 @@ import PostMessageContainer from 'components/post_view/components/post_message_c
 import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
+import PostTime from './post_view/components/post_time.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
@@ -459,14 +460,6 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        const timeOptions = {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: !this.props.useMilitaryTime
-        };
 
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
@@ -479,12 +472,11 @@ export default class RhsComment extends React.Component {
                             </li>
                             {botIndicator}
                             <li className='col'>
-                                <time
-                                    className='post__time'
-                                    dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
-                                >
-                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
-                                </time>
+                                <PostTime
+                                    eventTime={post.create_at}
+                                    compactDisplay={this.props.compactDisplay}
+                                    useMilitaryTime={this.props.useMilitaryTime}
+                                />
                                 {flagTrigger}
                             </li>
                             {options}

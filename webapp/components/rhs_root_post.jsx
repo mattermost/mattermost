@@ -8,6 +8,7 @@ import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
+import PostTime from './post_view/components/post_time.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -407,15 +408,6 @@ export default class RhsRootPost extends React.Component {
             flagFunc = this.flagPost;
         }
 
-        const timeOptions = {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: !this.props.useMilitaryTime
-        };
-
         return (
             <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
                 <div className='post-right-channel__name'>{channelName}</div>
@@ -426,12 +418,11 @@ export default class RhsRootPost extends React.Component {
                             <li className='col__name'>{userProfile}</li>
                             {botIndicator}
                             <li className='col'>
-                                <time
-                                    className='post__time'
-                                    dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
-                                >
-                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
-                                </time>
+                                <PostTime
+                                    eventTime={post.create_at}
+                                    compactDisplay={this.props.compactDisplay}
+                                    useMilitaryTime={this.props.useMilitaryTime}
+                                />
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
