@@ -8,6 +8,7 @@ import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
 import FileUploadOverlay from './file_upload_overlay.jsx';
 import FloatingTimestamp from './post_view/components/floating_timestamp.jsx';
+import DateSeparator from './post_view/components/date_separator.jsx';
 
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -386,20 +387,9 @@ export default class RhsThread extends React.Component {
                         onScroll={this.handleScroll}
                     >
                         <div className='post-right__scroll'>
-                            <div
-                                className='date-separator'
-                            >
-                                <hr className='separator__hr'/>
-                                <div className='separator__text'>
-                                    <FormattedDate
-                                        value={previousPostDay}
-                                        weekday='short'
-                                        month='short'
-                                        day='2-digit'
-                                        year='numeric'
-                                    />
-                                </div>
-                            </div>
+                            <DateSeparator
+                                date={previousPostDay}
+                            />
                             <RootPost
                                 ref={selected.id}
                                 post={selected}
@@ -443,21 +433,9 @@ export default class RhsThread extends React.Component {
                                     if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
                                         previousPostDay = currentPostDay;
                                         separator = (
-                                            <div
-                                                key={currentPostDay.toDateString()}
-                                                className='date-separator'
-                                            >
-                                                <hr className='separator__hr'/>
-                                                <div className='separator__text'>
-                                                    <FormattedDate
-                                                        value={currentPostDay}
-                                                        weekday='short'
-                                                        month='short'
-                                                        day='2-digit'
-                                                        year='numeric'
-                                                    />
-                                                </div>
-                                            </div>);
+                                            <DateSeparator
+                                                date={currentPostDay}
+                                            />);
                                     }
 
                                     return (
