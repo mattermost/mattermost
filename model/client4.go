@@ -56,6 +56,10 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
+func (c *Client4) GetUserByUsernameRoute(userName string) string {
+	return fmt.Sprintf(c.GetUsersRoute()+"/username/%v", userName)
+}
+
 func (c *Client4) GetUserByEmailRoute(email string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/email/%v", email)
 }
@@ -219,6 +223,16 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 // GetUser returns a user based on the provided user id string.
 func (c *Client4) GetUser(userId, etag string) (*User, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUserByUsername returns a user based on the provided user name string.
+func (c *Client4) GetUserByUsername(userName, etag string) (*User, *Response) {
+	if r, err := c.DoApiGet(c.GetUserByUsernameRoute(userName), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
