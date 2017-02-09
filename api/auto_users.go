@@ -81,7 +81,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	ruser := result.Data.(*model.User)
 
-	status := &model.Status{ruser.Id, model.STATUS_ONLINE, false, model.GetMillis(), ""}
+	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	if result := <-app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		result.Err.Translate(utils.T)
 		l4g.Error(result.Err.Error())

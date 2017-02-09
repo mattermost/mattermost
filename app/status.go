@@ -100,7 +100,7 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	var err *model.AppError
 
 	if status, err = GetStatus(userId); err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), ""}
+		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 		broadcast = true
 	} else {
 		if status.Manual && !manual {
@@ -157,7 +157,7 @@ func SetStatusOffline(userId string, manual bool) {
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{userId, model.STATUS_OFFLINE, manual, model.GetMillis(), ""}
+	status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	AddStatusCache(status)
 
@@ -175,7 +175,7 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 	status, err := GetStatus(userId)
 
 	if err != nil {
-		status = &model.Status{userId, model.STATUS_OFFLINE, manual, 0, ""}
+		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	if !manual && status.Manual {
