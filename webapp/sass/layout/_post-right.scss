@@ -64,7 +64,8 @@
             margin-bottom: 10px;
             
             &.disabled {
-                color: grey;
+                background: grey !important;
+                border-color: transparent !important;
             }
         }
 
