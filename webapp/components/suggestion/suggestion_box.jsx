@@ -279,6 +279,7 @@ SuggestionBox.propTypes = {
     value: React.PropTypes.string.isRequired,
     providers: React.PropTypes.arrayOf(React.PropTypes.object),
     listStyle: React.PropTypes.string,
+    rows: React.PropTypes.string,
     renderDividers: React.PropTypes.bool,
 
     // explicitly name any input event handlers we override and need to manually call

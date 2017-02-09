@@ -24,6 +24,7 @@ export default class Textbox extends React.Component {
     static propTypes = {
         id: React.PropTypes.string.isRequired,
         channelId: React.PropTypes.string,
+        rows: React.PropTypes.string,
         value: React.PropTypes.string.isRequired,
         onChange: React.PropTypes.func.isRequired,
         onKeyPress: React.PropTypes.func.isRequired,
@@ -265,6 +266,7 @@ export default class Textbox extends React.Component {
                     channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={true}
+                    rows={this.props.rows}
                 />
                 <div
                     ref='preview'

@@ -60,6 +60,7 @@ export default class AutosizeTextarea extends React.Component {
         Reflect.deleteProperty(props, 'channelId');
 
         const {
+            rows,
             value,
             placeholder,
             ...otherProps
@@ -85,7 +86,7 @@ export default class AutosizeTextarea extends React.Component {
                         ref='reference'
                         style={{height: 'auto', width: '100%'}}
                         value={value || placeholder}
-                        rows='1'
+                        rows={rows || '1'}
                         {...otherProps}
                     />
                 </div>
