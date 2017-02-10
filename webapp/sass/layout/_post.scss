@@ -1199,6 +1199,19 @@
         font-size: .9em;
     }
 
+    .post__permalink {
+        color: #333;
+        &:hover, &:focus {
+            color: #333;
+        }
+        &:focus {
+            text-decoration: none;
+        }
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
     .post-loading-gif {
         height: 10px;
         margin-top: 6px;

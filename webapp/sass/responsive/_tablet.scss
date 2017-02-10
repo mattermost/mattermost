@@ -366,7 +366,9 @@
                         text-rendering: auto;
                         top: -2px;
                         width: 51px;
-
+                        &:hover {
+                            text-decoration: underline;
+                        }
                     }
                 }
             }
