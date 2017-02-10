@@ -8,6 +8,7 @@ type MetricsInterface interface {
 	StopServer()
 
 	IncrementPostCreate()
+	IncrementWebhookPost()
 	IncrementPostSentEmail()
 	IncrementPostSentPush()
 	IncrementPostBroadcast()
