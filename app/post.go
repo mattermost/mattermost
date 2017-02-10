@@ -118,15 +118,23 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 }
 
 func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
-	tchan := Srv.Store.Team().Get(teamId)
+	var tchan store.StoreChannel
+	if len(teamId) > 0 {
+		tchan = Srv.Store.Team().Get(teamId)
+	}
 	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team
-	if result := <-tchan; result.Err != nil {
-		return result.Err
+	if tchan != nil {
+		if result := <-tchan; result.Err != nil {
+			return result.Err
+		} else {
+			team = result.Data.(*model.Team)
+		}
 	} else {
-		team = result.Data.(*model.Team)
+		// Blank team for DMs
+		team = &model.Team{}
 	}
 
 	var channel *model.Channel
