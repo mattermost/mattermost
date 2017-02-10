@@ -22,15 +22,11 @@
 
     .post-create__container {
         form {
-            padding: .5em 0;
+            padding: .5em 0 0;
         }
 
         .post-create-footer {
-            padding: 0 45px 0 45px;
-
-            .msg-typing {
-                display: none;
-            }
+            padding: 0 45px;
 
             .post-error {
                 position: relative;
