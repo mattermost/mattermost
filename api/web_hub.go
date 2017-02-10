@@ -99,17 +99,17 @@ func (h *Hub) Start() {
 					continue
 				}
 
-				found := false
-				for webCon := range h.connections {
-					if userId == webCon.UserId {
-						found = true
-						break
-					}
-				}
+				// found := false
+				// for webCon := range h.connections {
+				// 	if userId == webCon.UserId {
+				// 		found = true
+				// 		break
+				// 	}
+				// }
 
-				if !found {
-					go SetStatusOffline(userId, false)
-				}
+				// if !found {
+				// 	go SetStatusOffline(userId, false)
+				// }
 			case userId := <-h.invalidateUser:
 				for webCon := range h.connections {
 					if webCon.UserId == userId {

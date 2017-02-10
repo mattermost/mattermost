@@ -49,14 +49,13 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		if session == nil || session.IsExpired() {
 			conn.WebSocket.Close()
 		} else {
-			go SetStatusOnline(session.UserId, session.Id, false)
-
 			conn.SessionToken = session.Token
 			conn.UserId = session.UserId
 
 			resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 			conn.Send <- resp
 			conn.SendHello()
+			go SetStatusOnline(session.UserId, session.Id, false)
 		}
 
 		return
