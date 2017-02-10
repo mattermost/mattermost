@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "无效的其他用户 ID "
+    "translation": "Invalid user ID for direct channel creation"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "尝试保存更新的频道标题消息 %v 时获取用户信息失败"
+    "translation": "更新频道 DisplayName 字段时获取用户失败"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Failed to post update channel header message"
+    "translation": "更新频道头部消息失败"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "尝试保存更新的频道标题消息 %v 时获取用户信息失败"
+    "translation": "尝试保存更新的频道标题时获取用户信息失败"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -796,6 +796,10 @@
     "translation": "对不起，我们找不到该页面。"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "请求消息体有无效或缺少 {{.Name}}"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "无效 {{.Name}} 参数"
   },
@@ -810,6 +814,10 @@
   {
     "id": "api.context.invalid_token.error",
     "translation": "无效会话令牌 token={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "请求网址有无效或缺少 {{.Name}}"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1509,7 +1517,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "消息创建者不在频道中，未发送推送 post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1561,7 +1569,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "发送推送失败 device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -1581,7 +1589,7 @@
   },
   {
     "id": "api.post.update_post.permissions_denied.app_error",
-    "translation": "团队创建被禁用。详细请询问您的系统管理员。"
+    "translation": "消息修改已禁用。详细请询问您的系统管理员。"
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1589,7 +1597,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+    "translation": "消息只允许在 {{.limeLimit}} 秒内编辑。详情请咨询您的系统管理员。"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2501,19 +2509,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "未能发送电子邮件通知电子邮件成功 err=%v"
+    "translation": "未能发送电子邮件通知电子邮件成功"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "未能发送用户名更改通知邮件 err=%v"
+    "translation": "未能发送用户名更改通知邮件"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "未能发送电子邮件更改验证电子邮件成功 err=%v"
+    "translation": "未能发送电子邮件更改验证电子邮件成功"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "未能发送更新密码电子邮件成功 err=%v"
+    "translation": "未能发送更新密码电子邮件成功"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2529,15 +2537,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "未能发送更新密码电子邮件成功 err=%v"
+    "translation": "未能发送更新密码电子邮件成功"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "未能发送验证电子邮件成功 err=%v"
+    "translation": "未能发送验证电子邮件成功"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "未能成功发送欢迎电子邮件 err=%v"
+    "translation": "未能成功发送欢迎电子邮件"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2760,40 +2768,220 @@
     "translation": "无效的参数 {{.Name}}"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Must specify the team ID to create a channel"
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "发送频道作用消息失败"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": "%s 删除了频道标题 (原为: %s)"
+    "translation": "%s 删除了频道作用 (原为: %s)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "尝试保存更新的频道标题消息 %v 时获取用户信息失败"
+    "translation": "尝试保存更新的频道作用消息 %v 时获取用户信息失败"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
-    "translation": "%s 将频道标题从 %s 更新为 %s"
+    "translation": "%s 将频道作用从: %s 更新为: %s"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
-    "translation": "%s 更新频道标题为: %s"
+    "translation": "%s 更新了频道作用为: %s"
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "读取数据导入文件错误。"
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSON 解码行失败。"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "导入频道失败。团队名 \"{{.TeamName}}\" 无法找到。"
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "导入数据行有类型 \"channel\" 但频道对象是无。"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "导入数据行有类型 \"team\" 但团队对象是无。"
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "导入数据行有类型 \"user\" 但用户对象是无。"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "导入数据行有无效的类型 \"{{.Type}}\"。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "如果提供频道 create_at 则不能为 0。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "频道 display_name 不在允许的长度范围内。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "缺少频道必须属性：display_name。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "频道标题过长。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "频道名称包含无效字符。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "频道名称过长。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "缺少频道必须属性：name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "频道作用过长。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "缺少频道必须属性：team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "无效频道类型。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "缺少频道必须属性：type。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "团队 allowed_domains 过长。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "如果提供团队 create_at 则不能为 0。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "团队简介过长。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "团队 display_name 不在允许的长度范围内。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "缺少频道必须属性：display_name"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "团队名包含非法字符。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "团队名过长。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "缺少频道必须属性：name。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "团队名含有预留词。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "无效团队类型。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "缺少频道必须属性：type"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Channel name missing from User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "用户 AuthData 过长。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "如果提供用户 AuthService 则不能留空。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "用户邮箱地址拥有无效长度。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "缺少用户必须属性：email。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "用户名子过长。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "用户姓氏过长。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "用户昵称过长。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "用户职位过长。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "无效用户角色。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "无效的用户名。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "缺少用户必须属性：username。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Team name missing from User's Team Membership."
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Ability to create new teams"
+    "translation": "能创建新团队"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Create Teams"
+    "translation": "创建团队"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
+    "translation": "能修改团队成员的角色"
   },
   {
     "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
+    "translation": "管理团队角色"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3417,7 +3605,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "当机群启用时没法启动批量电子邮件"
+    "translation": "当机群启用时没法启动批量电子邮件。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3642,6 +3830,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL 设置中最大开启连接数无效。必须是正整数。"
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
@@ -4316,6 +4508,14 @@
     "translation": "没有找到频道"
   },
   {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "我们找不到存在的已删除频道"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "没有用于此名的已删频道"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "我们无法获得额外的信息频道成员"
   },
@@ -4356,6 +4556,10 @@
     "translation": "我们不能增加提及数"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "我们无法删除频道"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "我们无法删除频道"
   },
@@ -4389,7 +4593,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "已存在使用该 URL 的频道"
+    "translation": "A channel with that name already exists on the same team"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4720,6 +4924,10 @@
     "translation": "我们不能删除用户的评论"
   },
   {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "我们无法删除频道"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
     "translation": "我们不能为用户选择要删除的信息"
   },
@@ -5029,7 +5237,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "该网域的团队已存在"
+    "translation": "已有团队拥有此名称"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -5125,7 +5333,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "我们无法从这个团队找到一个现有匹配您的电子邮件的帐户。此团队或许需要从团队拥有者获得邀请才可加入。"
+    "translation": "无法找到该用户。"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
