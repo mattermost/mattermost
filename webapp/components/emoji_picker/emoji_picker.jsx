@@ -341,23 +341,23 @@ class EmojiPicker extends React.Component {
                         selected={this.state.category === 'custom'}
                     />
                 </div>
+                <div className='emoji-picker__search-container'>
+                    <span className='fa fa-search emoji-picker__search-icon'/>
+                    <input
+                        ref={(input) => {
+                            this.searchInput = input;
+                        }}
+                        className='emoji-picker__search'
+                        type='text'
+                        onChange={this.handleFilterChange}
+                        placeholder={Utils.localizeMessage('emoji_picker.search', 'search')}
+                    />
+                </div>
                 <div
                     ref='items'
                     className='emoji-picker__items'
                     onScroll={this.handleScroll}
                 >
-                    <div className='emoji-picker__search-container'>
-                        <span className='fa fa-search emoji-picker__search-icon'/>
-                        <input
-                            ref={(input) => {
-                                this.searchInput = input;
-                            }}
-                            className='emoji-picker__search'
-                            type='text'
-                            onChange={this.handleFilterChange}
-                            placeholder={Utils.localizeMessage('emoji_picker.search', 'search')}
-                        />
-                    </div>
                     {items}
                 </div>
                 <EmojiPickerPreview emoji={this.state.selected}/>
