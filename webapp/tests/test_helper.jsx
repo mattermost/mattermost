@@ -2,11 +2,18 @@
 // See License.txt for license information.
 
 import Client from 'client/client.jsx';
+import WebSocketClient from 'client/websocket_client.jsx';
 import jqd from 'jquery-deferred';
+
+var HEADER_TOKEN = 'token';
 
 class TestHelperClass {
     basicClient = () => {
         return this.basicc;
+    }
+
+    basicWebSocketClient = () => {
+        return this.basicwsc;
     }
 
     basicTeam = () => {
@@ -53,6 +60,12 @@ class TestHelperClass {
         return c;
     }
 
+    createWebSocketClient(token) {
+        var ws = new WebSocketClient();
+        ws.initialize('http://localhost:8065/api/v3/users/websocket', token);
+        return ws;
+    }
+
     fakeEmail = () => {
         return 'success' + this.generateId() + '@simulator.amazonses.com';
     }
@@ -90,7 +103,7 @@ class TestHelperClass {
         return post;
     }
 
-    initBasic = (callback) => {
+    initBasic = (callback, connectWS) => {
         this.basicc = this.createClient();
 
         var d1 = jqd.Deferred();
@@ -122,7 +135,10 @@ class TestHelperClass {
                             rteamSignup.user.email,
                             password,
                             null,
-                            function() {
+                            function(data, res) {
+                                if (connectWS) {
+                                    outer.basicwsc = outer.createWebSocketClient(res.header[HEADER_TOKEN]);
+                                }
                                 outer.basicClient().useHeaderToken();
                                 var channel = outer.fakeChannel();
                                 channel.team_id = outer.basicTeam().id;

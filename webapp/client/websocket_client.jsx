@@ -29,6 +29,10 @@ export default class WebSocketClient {
         this.conn = new WebSocket(connectionUrl);
 
         this.conn.onopen = () => {
+            if (token) {
+                this.sendMessage('authentication_challenge', {token});
+            }
+
             if (this.reconnectCallback) {
                 this.reconnectCallback();
             }
@@ -146,12 +150,12 @@ export default class WebSocketClient {
         }
     }
 
-    userTyping(channelId, parentId) {
+  userTyping(channelId, parentId, callback) {
         const data = {};
         data.channel_id = channelId;
         data.parent_id = parentId;
 
-        this.sendMessage('user_typing', data);
+    this.sendMessage('user_typing', data, callback);
     }
 
     getStatuses(callback) {

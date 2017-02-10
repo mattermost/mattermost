@@ -4,20 +4,24 @@
 package api
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
-	WRITE_WAIT  = 10 * time.Second
-	PONG_WAIT   = 60 * time.Second
-	PING_PERIOD = (PONG_WAIT * 9) / 10
-	MAX_SIZE    = 512
-	REDIS_WAIT  = 60 * time.Second
+	WRITE_WAIT   = 10 * time.Second
+	PONG_WAIT    = 60 * time.Second
+	PING_PERIOD  = (PONG_WAIT * 9) / 10
+	MAX_SIZE     = 512
+	REDIS_WAIT   = 60 * time.Second
+	AUTH_TIMEOUT = 5 * time.Second
 )
 
 type WebConn struct {
@@ -32,7 +36,9 @@ type WebConn struct {
 }
 
 func NewWebConn(c *Context, ws *websocket.Conn) *WebConn {
-	go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+	if len(c.Session.UserId) > 0 {
+		go SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+	}
 
 	return &WebConn{
 		Send:                    make(chan model.WebSocketMessage, 64),
@@ -55,13 +61,21 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
-		go SetStatusAwayIfNeeded(c.UserId, false)
+		if c.isAuthenticated() {
+			go SetStatusAwayIfNeeded(c.UserId, false)
+		}
 		return nil
 	})
 
 	for {
 		var req model.WebSocketRequest
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
+			// browsers will appear as CloseNoStatusReceived
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+				l4g.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v", c.UserId))
+			} else {
+				l4g.Debug(fmt.Sprintf("websocket.read: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+			}
 			return
 		} else {
 			BaseRoutes.WebSocket.ServeWebSocket(c, &req)
@@ -71,9 +85,11 @@ func (c *WebConn) readPump() {
 
 func (c *WebConn) writePump() {
 	ticker := time.NewTicker(PING_PERIOD)
+	authTicker := time.NewTicker(AUTH_TIMEOUT)
 
 	defer func() {
 		ticker.Stop()
+		authTicker.Stop()
 		c.WebSocket.Close()
 	}()
 
@@ -88,6 +104,12 @@ func (c *WebConn) writePump() {
 
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.WebSocket.WriteJSON(msg); err != nil {
+				// browsers will appear as CloseNoStatusReceived
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
+				} else {
+					l4g.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
+				}
 				return
 			}
 
@@ -96,6 +118,12 @@ func (c *WebConn) writePump() {
 			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				return
 			}
+		case <-authTicker.C:
+			if c.SessionToken == "" {
+				l4g.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
+				return
+			}
+			authTicker.Stop()
 		}
 	}
 }
@@ -109,7 +137,21 @@ func (c *WebConn) InvalidateCacheForChannel(channelId string) {
 	delete(c.hasPermissionsToChannel, channelId)
 }
 
+func (webCon *WebConn) isAuthenticated() bool {
+	return webCon.SessionToken != ""
+}
+
+func (webCon *WebConn) SendHello() {
+	msg := model.NewWebSocketEvent("", "", webCon.UserId, model.WEBSOCKET_EVENT_HELLO)
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash))
+
+	webCon.Send <- msg
+}
+
 func (c *WebConn) HasPermissionsToTeam(teamId string) bool {
+	if !c.isAuthenticated() {
+		return false
+	}
 	perm, ok := c.hasPermissionsToTeam[teamId]
 	if !ok {
 		session := GetSession(c.SessionToken)
@@ -134,6 +176,9 @@ func (c *WebConn) HasPermissionsToTeam(teamId string) bool {
 }
 
 func (c *WebConn) HasPermissionsToChannel(channelId string) bool {
+	if !c.isAuthenticated() {
+		return false
+	}
 	perm, ok := c.hasPermissionsToChannel[channelId]
 	if !ok {
 		if cresult := <-Srv.Store.Channel().CheckPermissionsToNoTeam(channelId, c.UserId); cresult.Err != nil {

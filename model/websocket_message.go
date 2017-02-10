@@ -25,6 +25,7 @@ const (
 	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE  = "ephemeral_message"
 	WEBSOCKET_EVENT_STATUS_CHANGE      = "status_change"
 	WEBSOCKET_EVENT_HELLO              = "hello"
+	WEBSOCKET_AUTHENTICATION_CHALLENGE = "authentication_challenge"
 )
 
 type WebSocketMessage interface {

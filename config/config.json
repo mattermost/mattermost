@@ -6,8 +6,18 @@
         "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
-        "JwtAudience": "fred",
-        "JwtKey": "abc",
+        "JwtKeys": [
+            {
+                "Audience": "fred",
+                "Key": "abc",
+                "SigningMethod": "HMAC"
+            },
+            {
+                "Audience": "fred",
+                "Key": "abc",
+                "SigningMethod": "RSA"
+            }
+        ],
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
         "EnableCommands": true,
@@ -21,6 +31,7 @@
         "EnableMultifactorAuthentication": false,
         "AllowCorsFrom": "",
         "AllowCorsCredentials": false,
+        "AllowCorsHeaders": null,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
@@ -36,7 +47,7 @@
         "MaxUsersPerTeam": 50,
         "EnableTeamCreation": true,
         "EnableUserCreation": true,
-        "EnableOpenServer": true,
+        "EnableOpenServer": false,
         "RestrictCreationToDomains": "",
         "RestrictTeamNames": true,
         "EnableCustomBrand": false,
