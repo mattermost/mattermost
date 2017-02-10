@@ -938,12 +938,19 @@
         @include single-transition(transform, .35s, ease);
         @include translate3d(290px, 0, 0);
         border: none;
-        display: block;
         width: 290px;
+        visibility: hidden;
+
+        &.visible {
+            display: block;
+            visibility: visible;
+        }
 
         &.move--left,
         &.webrtc--show {
             @include translate3d(0, 0, 0);
+            display: block;
+            visibility: visible;
         }
     }
 

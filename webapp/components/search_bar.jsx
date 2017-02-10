@@ -54,11 +54,19 @@ export default class SearchBar extends React.Component {
     componentDidMount() {
         SearchStore.addSearchTermChangeListener(this.onListenerChange);
         this.mounted = true;
+
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .sidebar--menu').classList.remove('visible');
+                $('#sidebar-right').find('input').focus();
+            });
+        }
     }
 
     componentWillUnmount() {
         SearchStore.removeSearchTermChangeListener(this.onListenerChange);
         this.mounted = false;
+        $('#sidebar-right').find('input').blur();
     }
 
     onListenerChange(doSearch, isMentionSearch) {
@@ -75,6 +83,12 @@ export default class SearchBar extends React.Component {
 
     handleClose(e) {
         e.preventDefault();
+
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .sidebar--menu').classList.add('visible');
+            });
+        }
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH,
