@@ -17,6 +17,9 @@ type MetricsInterface interface {
 	IncrementHttpError()
 	ObserveHttpRequestDuration(elapsed float64)
 
+	IncrementClusterRequest()
+	ObserveClusterRequestDuration(elapsed float64)
+
 	IncrementLogin()
 	IncrementLoginFail()
 
