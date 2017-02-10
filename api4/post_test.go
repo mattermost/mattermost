@@ -206,3 +206,44 @@ func TestGetPost(t *testing.T) {
 	post, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetPostThread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: th.BasicPost.Id}
+	post, _ = Client.CreatePost(post)
+
+	list, resp := Client.GetPostThread(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+
+	var list2 *model.PostList
+	list2, resp = Client.GetPostThread(th.BasicPost.Id, resp.Etag)
+	CheckEtag(t, list2, resp)
+
+	if list.Order[0] != th.BasicPost.Id {
+		t.Fatal("wrong order")
+	}
+
+	if _, ok := list.Posts[th.BasicPost.Id]; !ok {
+		t.Fatal("should have had post")
+	}
+
+	if _, ok := list.Posts[post.Id]; !ok {
+		t.Fatal("should have had post")
+	}
+
+	_, resp = Client.GetPostThread("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPostThread(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetPostThread(model.NewId(), "")
+	CheckUnauthorizedStatus(t, resp)
+
+	list, resp = th.SystemAdminClient.GetPostThread(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+}

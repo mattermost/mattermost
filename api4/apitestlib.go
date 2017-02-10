@@ -207,7 +207,10 @@ func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, _ := client.CreatePost(post)
+	rpost, resp := client.CreatePost(post)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
 	utils.EnableDebugLogForTest()
 	return rpost
 }

@@ -497,6 +497,16 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	}
 }
 
+// GetPostThread gets a post with all the other posts in the same thread.
+func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Response) {
+	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/thread", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
 func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

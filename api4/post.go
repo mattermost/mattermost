@@ -17,6 +17,7 @@ func InitPost() {
 
 	BaseRoutes.Posts.Handle("", ApiSessionRequired(createPost)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(getPost)).Methods("GET")
+	BaseRoutes.Post.Handle("/thread", ApiSessionRequired(getPostThread)).Methods("GET")
 	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
 }
 
@@ -92,5 +93,27 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
 		w.Write([]byte(post.ToJson()))
+	}
+}
+
+func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if list, err := app.GetPostThread(c.Params.PostId); err != nil {
+		c.Err = err
+		return
+	} else if HandleEtag(list.Etag(), "Get Post Thread", w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
+		w.Write([]byte(list.ToJson()))
 	}
 }
