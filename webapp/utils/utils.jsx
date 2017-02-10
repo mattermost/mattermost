@@ -1287,3 +1287,7 @@ export function isEmptyObject(object) {
 
     return false;
 }
+
+export function updateWindowDimensions(component) {
+    component.setState({width: window.innerWidth, height: window.innerHeight});
+}
