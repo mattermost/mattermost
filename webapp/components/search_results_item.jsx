@@ -286,20 +286,17 @@ export default class SearchResultsItem extends React.Component {
             );
         }
 
-        const postCreateDate = new Date(Utils.getDateForUnixTicks(post.create_at).setUTCHours(0, 0, 0, 0));
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
                     <hr className='separator__hr'/>
                     <div className='separator__text'>
-                        <time dateTime={postCreateDate.toISOString()}>
-                            <FormattedDate
-                                value={postCreateDate}
-                                day='numeric'
-                                month='long'
-                                year='numeric'
-                            />
-                        </time>
+                        <FormattedDate
+                            value={post.create_at}
+                            day='numeric'
+                            month='long'
+                            year='numeric'
+                        />
                     </div>
                 </div>
                 <div

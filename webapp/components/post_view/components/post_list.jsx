@@ -354,7 +354,7 @@ export default class PostList extends React.Component {
                 />
             );
 
-            const currentPostDay = new Date(Utils.getDateForUnixTicks(post.create_at).setUTCHours(0, 0, 0, 0));
+            const currentPostDay = Utils.getDateForUnixTicks(post.create_at);
             if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
                 postCtls.push(
                     <div
@@ -363,15 +363,13 @@ export default class PostList extends React.Component {
                     >
                         <hr className='separator__hr'/>
                         <div className='separator__text'>
-                            <time dateTime={currentPostDay.toISOString()}>
-                                <FormattedDate
-                                    value={currentPostDay}
-                                    weekday='short'
-                                    month='short'
-                                    day='2-digit'
-                                    year='numeric'
-                                />
-                            </time>
+                            <FormattedDate
+                                value={currentPostDay}
+                                weekday='short'
+                                month='short'
+                                day='2-digit'
+                                year='numeric'
+                            />
                         </div>
                     </div>
                 );
