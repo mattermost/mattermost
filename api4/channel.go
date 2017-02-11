@@ -98,19 +98,10 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowed := false
-
-	if !allowed && !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
-	} else {
-		allowed = true
-	}
-
-	if !allowed && !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
+	} 
 
 	if channel, err := app.GetChannel(c.Params.ChannelId); err != nil {
 		c.Err = err
@@ -127,7 +118,6 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allowed := false
 	var channel *model.Channel
 	var err *model.AppError
 
@@ -136,15 +126,8 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} 
 
-	if !allowed && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-		return
-	} else {
-		allowed = true
-	}
-
-	if !allowed && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 	
@@ -158,7 +141,6 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	allowed := false
 	var channel *model.Channel
 	var err *model.AppError
 
@@ -170,14 +152,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
-	} else {
-		allowed = true
-	}
-
-	if !allowed && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
+	} 
 
 	w.Write([]byte(channel.ToJson()))
 	return
