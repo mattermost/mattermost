@@ -503,7 +503,6 @@ export default class RhsComment extends React.Component {
             );
         }
 
-<<<<<<< HEAD
         const timeOptions = {
             day: 'numeric',
             month: 'short',
@@ -513,8 +512,6 @@ export default class RhsComment extends React.Component {
             hour12: !this.props.useMilitaryTime
         };
 
-=======
->>>>>>> fix lint error
         return (
             <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
                 <div className='post__content'>
