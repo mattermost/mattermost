@@ -504,9 +504,6 @@ export default class RhsComment extends React.Component {
         }
 
         const timeOptions = {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
             hour12: !this.props.useMilitaryTime
