@@ -7,6 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 import FileUploadProgress from './file_upload_progress.jsx';
+import TruncateText from "./truncate_text.jsx";
 
 export default class FilePreview extends React.Component {
     constructor(props) {
@@ -48,15 +49,16 @@ export default class FilePreview extends React.Component {
                 <div
                     key={info.id}
                     className={className}
+                    title={info.name}
                 >
                     {previewImage}
-                    {info.name}
                     <a
                         className='file-preview__remove'
                         onClick={this.handleRemove.bind(this, info.id)}
                     >
                         <i className='fa fa-remove'/>
                     </a>
+                    <TruncateText length="15">{info.name}</TruncateText>
                 </div>
             );
         });
@@ -74,15 +76,16 @@ export default class FilePreview extends React.Component {
                     key={clientId}
                     className='file-preview'
                     data-client-id={clientId}
+                    title={fileName}
                 >
                     <FileUploadProgress percent={Math.min(percent, 98)}/>
-                    <p>{fileName}</p>
                     <a
                         className='file-preview__remove'
                         onClick={this.handleRemove.bind(this, clientId)}
                     >
                         <i className='fa fa-remove'/>
                     </a>
+                    <p>Uploading <TruncateText length="10">{fileName}</TruncateText></p>
                 </div>
             );
         });

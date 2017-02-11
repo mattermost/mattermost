@@ -13,7 +13,6 @@
 
 .file-preview {
     @include clearfix;
-    border: 1px solid $light-gray;
     display: inline-block;
     height: 100px;
     margin: 0 0 0 10px;
@@ -26,6 +25,7 @@
 
     &.custom-file {
         .file-preview__image, .file-icon.generic {
+            border: 1px solid $light-gray;
             height: 80%;
         }
     }
