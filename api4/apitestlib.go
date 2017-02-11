@@ -85,6 +85,18 @@ func TearDown() {
 		teams := result.Data.([]*model.Team)
 
 		for _, t := range teams {
+			if cres := <-app.Srv.Store.Channel().SearchInTeam(t.Id, "fakechannel"); cres.Err != nil {
+				l4g.Error("Error tearing down test channel")
+			} else {
+				channels := cres.Data.(*model.ChannelList)
+
+				for _, c := range *channels {
+					if err := app.PermanentDeleteChannel(c); err != nil {
+						l4g.Error(err.Error())
+					}
+				}
+			}
+
 			if err := app.PermanentDeleteTeam(t); err != nil {
 				l4g.Error(err.Error())
 			}
@@ -278,11 +290,11 @@ func GenerateTestUsername() string {
 }
 
 func GenerateTestTeamName() string {
-	return "faketeam" + model.NewId()
+	return "faketeam" + model.NewRandomString(6)
 }
 
 func GenerateTestChannelName() string {
-	return "fakechannel" + model.NewId()
+	return "fakechannel" + model.NewRandomString(10)
 }
 
 func VerifyUserEmail(userId string) {

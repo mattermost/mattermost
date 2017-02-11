@@ -386,6 +386,38 @@ func (c *Context) RequirePostId() *Context {
 	return c
 }
 
+func (c *Context) RequireTeamName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.TeamName) < 2 {
+		c.SetInvalidUrlParam("team_name")
+	} 
+
+	if len(c.Params.TeamName) > 15 {
+		c.SetInvalidUrlParam("team_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireChannelName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.ChannelName) < 2 {
+		c.SetInvalidUrlParam("channel_name")
+	} 
+
+	if len(c.Params.ChannelName) > 22 {
+		c.SetInvalidUrlParam("channel_name")
+	}
+
+	return c
+}
+
 func (c *Context) RequireEmail() *Context {
 	if c.Err != nil {
 		return c
@@ -398,4 +430,5 @@ func (c *Context) RequireEmail() *Context {
 
 	return c
 }
+
 
