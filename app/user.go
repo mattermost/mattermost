@@ -321,7 +321,7 @@ func GetUser(userId string) (*model.User, *model.AppError) {
 }
 
 func GetUserByUsername(username string) (*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil  && result.Err.Id == "store.sql_user.get_by_username.app_error"  {
+	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil && result.Err.Id == "store.sql_user.get_by_username.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
@@ -331,7 +331,7 @@ func GetUserByUsername(username string) (*model.User, *model.AppError) {
 
 func GetUserByEmail(email string) (*model.User, *model.AppError) {
 
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const"{
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else if result.Err != nil {
@@ -389,8 +389,8 @@ func GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
 	}
 }
 
-func GetUsersMap(page int, perPage int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := GetUsers(page*perPage, perPage)
+func GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsers(offset, limit)
 	if err != nil {
 		return nil, err
 	}
