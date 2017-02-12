@@ -1306,7 +1306,11 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	ogDataCacheMissCount := 0
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ogDataCacheMissCount++
+
 		if r.URL.Path == "/og-data/" {
 			fmt.Fprintln(w, `
 				<html><head><meta property="og:type" content="article" />
@@ -1319,15 +1323,35 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}))
 
-	for _, data := range [](map[string]string){{"path": "/og-data/", "title": "Test Title"}, {"path": "/no-og-data/", "title": ""}} {
-		res, err := Client.DoApiPost("/get_opengraph_metadata", fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"]))
+	for _, data := range [](map[string]interface{}){
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 1},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+
+		// Data should be cached for following
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 2},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+	} {
+		res, err := Client.DoApiPost(
+			"/get_opengraph_metadata",
+			fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"].(string)),
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		ogData := model.StringInterfaceFromJson(res.Body)
-		if strings.Compare(ogData["title"].(string), data["title"]) != 0 {
-			t.Fatal(fmt.Sprintf("OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"", data["path"], data["title"], ogData["title"]))
+		if strings.Compare(ogData["title"].(string), data["title"].(string)) != 0 {
+			t.Fatal(fmt.Sprintf(
+				"OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"",
+				data["path"].(string), data["title"].(string), ogData["title"].(string),
+			))
+		}
+
+		if ogDataCacheMissCount != data["cacheMissCount"].(int) {
+			t.Fatal(fmt.Sprintf(
+				"Cache miss count didn't match. Expected value %d. Actual value %d.",
+				data["cacheMissCount"].(int), ogDataCacheMissCount,
+			))
 		}
 	}
 }
