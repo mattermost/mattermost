@@ -157,14 +157,15 @@ class CustomThemeChooser extends React.Component {
     }
 
     getColors(text) {
-        const colorsText = text.split(', ');
+        const colorsText = text.split(',');
         return colorsText.map((colorText) => {
-            const keyValue = colorText.split(': ');
-            const color = keyValue[1] || colorText;
+            const trimText = colorText.trim();
+            const keyValue = trimText.split(':');
+            const color = keyValue[1].trim() || trimText;
             if (Utils.isHexColor(color)) {
                 return color;
             } else if (keyValue[0] === 'Code Theme') {
-                return keyValue[1];
+                return keyValue[1].trim();
             }
             return '#FFF';
         });
