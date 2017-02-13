@@ -15,11 +15,11 @@ import (
 )
 
 func MakeDirectChannelVisible(channelId string) *model.AppError {
-	var members []model.ChannelMember
-	if result := <-Srv.Store.Channel().GetMembers(channelId); result.Err != nil {
+	var members model.ChannelMembers
+	if result := <-Srv.Store.Channel().GetMembers(channelId, 0, 100); result.Err != nil {
 		return result.Err
 	} else {
-		members = result.Data.([]model.ChannelMember)
+		members = *(result.Data.(*model.ChannelMembers))
 	}
 
 	if len(members) != 2 {
@@ -582,6 +582,14 @@ func GetChannelMember(channelId string, userId string) (*model.ChannelMember, *m
 	}
 }
 
+func GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelMembers), nil
+	}
+}
+
 func GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	if result := <-Srv.Store.Channel().GetMembersByIds(channelId, userIds); result.Err != nil {
 		return nil, result.Err
@@ -797,7 +805,7 @@ func GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 func SetActiveChannel(userId string, channelId string) *model.AppError {
 	status, err := GetStatus(userId)
 	if err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
+		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelId}
 	} else {
 		status.ActiveChannel = channelId
 		if !status.Manual {

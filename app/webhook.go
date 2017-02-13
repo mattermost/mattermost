@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -125,6 +126,10 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 
 	post := &model.Post{UserId: userId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
+
+	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
+		metrics.IncrementWebhookPost()
+	}
 
 	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
 		if len(overrideUsername) != 0 {

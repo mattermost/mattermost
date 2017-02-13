@@ -136,7 +136,7 @@ func TestCreatePost(t *testing.T) {
 	} else if rpost9 := resp.Data.(*model.Post); len(rpost9.FileIds) != 3 {
 		t.Fatal("post should have 3 files")
 	} else {
-		infos := store.Must(app.Srv.Store.FileInfo().GetForPost(rpost9.Id)).([]*model.FileInfo)
+		infos := store.Must(app.Srv.Store.FileInfo().GetForPost(rpost9.Id, true)).([]*model.FileInfo)
 
 		if len(infos) != 3 {
 			t.Fatal("should've attached all 3 files to post")
@@ -1184,6 +1184,7 @@ func TestGetMessageForNotification(t *testing.T) {
 
 	post.FileIds = model.StringArray{testPng.Id, testJpg1.Id}
 	store.Must(app.Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
+	app.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
 	if message := app.GetMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" && message != "2 images sent: test2.jpg, test1.png" {
 		t.Fatal("should've returned number of images:", message)
 	}
@@ -1196,6 +1197,7 @@ func TestGetMessageForNotification(t *testing.T) {
 	}
 
 	store.Must(app.Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
+	app.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
 	post.FileIds = model.StringArray{testFile.Id, testJpg2.Id}
 	if message := app.GetMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" && message != "2 files sent: test3.jpg, test1.go" {
 		t.Fatal("should've returned number of mixed files:", message)
@@ -1304,7 +1306,11 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	ogDataCacheMissCount := 0
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ogDataCacheMissCount++
+
 		if r.URL.Path == "/og-data/" {
 			fmt.Fprintln(w, `
 				<html><head><meta property="og:type" content="article" />
@@ -1317,15 +1323,35 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}))
 
-	for _, data := range [](map[string]string){{"path": "/og-data/", "title": "Test Title"}, {"path": "/no-og-data/", "title": ""}} {
-		res, err := Client.DoApiPost("/get_opengraph_metadata", fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"]))
+	for _, data := range [](map[string]interface{}){
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 1},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+
+		// Data should be cached for following
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 2},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+	} {
+		res, err := Client.DoApiPost(
+			"/get_opengraph_metadata",
+			fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"].(string)),
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		ogData := model.StringInterfaceFromJson(res.Body)
-		if strings.Compare(ogData["title"].(string), data["title"]) != 0 {
-			t.Fatal(fmt.Sprintf("OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"", data["path"], data["title"], ogData["title"]))
+		if strings.Compare(ogData["title"].(string), data["title"].(string)) != 0 {
+			t.Fatal(fmt.Sprintf(
+				"OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"",
+				data["path"].(string), data["title"].(string), ogData["title"].(string),
+			))
+		}
+
+		if ogDataCacheMissCount != data["cacheMissCount"].(int) {
+			t.Fatal(fmt.Sprintf(
+				"Cache miss count didn't match. Expected value %d. Actual value %d.",
+				data["cacheMissCount"].(int), ogDataCacheMissCount,
+			))
 		}
 	}
 }

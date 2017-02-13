@@ -6,8 +6,10 @@ package api4
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -120,6 +122,70 @@ func TestGetUser(t *testing.T) {
 
 	// System admins should ignore privacy settings
 	ruser, resp = th.SystemAdminClient.GetUser(user.Id, resp.Etag)
+	if ruser.Email == "" {
+		t.Fatal("email should not be blank")
+	}
+	if ruser.FirstName == "" {
+		t.Fatal("first name should not be blank")
+	}
+	if ruser.LastName == "" {
+		t.Fatal("last name should not be blank")
+	}
+}
+
+func TestGetUserByUsername(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+
+	ruser, resp := Client.GetUserByUsername(user.Username, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	ruser, resp = Client.GetUserByUsername(user.Username, resp.Etag)
+	CheckEtag(t, ruser, resp)
+
+	_, resp = Client.GetUserByUsername(GenerateTestUsername(), "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetUserByUsername(model.NewRandomString(25), "")
+	CheckBadRequestStatus(t, resp)
+
+	// Check against privacy config settings
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	ruser, resp = Client.GetUserByUsername(user.Username, "")
+	CheckNoError(t, resp)
+
+	if ruser.Email != "" {
+		t.Fatal("email should be blank")
+	}
+	if ruser.FirstName != "" {
+		t.Fatal("first name should be blank")
+	}
+	if ruser.LastName != "" {
+		t.Fatal("last name should be blank")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUserByUsername(user.Username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	// System admins should ignore privacy settings
+	ruser, resp = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
 	if ruser.Email == "" {
 		t.Fatal("email should not be blank")
 	}
@@ -580,4 +646,92 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	_, resp = Client.Login(th.BasicUser.Email, adminSetPassword)
 	CheckNoError(t, resp)
+}
+
+func TestResetPassword(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.Client
+
+	Client.Logout()
+
+	user := th.BasicUser
+
+	// Delete all the messages before check the reset password
+	utils.DeleteMailBox(user.Email)
+
+	success, resp := Client.SendPasswordResetEmail(user.Email)
+	CheckNoError(t, resp)
+	if !success {
+		t.Fatal("should have succeeded")
+	}
+
+	_, resp = Client.SendPasswordResetEmail("")
+	CheckBadRequestStatus(t, resp)
+
+	// Should not leak whether the email is attached to an account or not
+	success, resp = Client.SendPasswordResetEmail("notreal@example.com")
+	CheckNoError(t, resp)
+	if !success {
+		t.Fatal("should have succeeded")
+	}
+
+	var recovery *model.PasswordRecovery
+	if result := <-app.Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		recovery = result.Data.(*model.PasswordRecovery)
+	}
+
+	// Check if the email was send to the right email address and the recovery key match
+	if resultsMailbox, err := utils.GetMailBox(user.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
+		t.Fatal("Wrong To recipient")
+	} else {
+		if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			if !strings.Contains(resultsEmail.Body.Text, recovery.Code) {
+				t.Log(resultsEmail.Body.Text)
+				t.Log(recovery.Code)
+				t.Fatal("Received wrong recovery code")
+			}
+		}
+	}
+
+	_, resp = Client.ResetPassword(recovery.Code, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ResetPassword(recovery.Code, "newp")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ResetPassword("", "newpwd")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ResetPassword("junk", "newpwd")
+	CheckBadRequestStatus(t, resp)
+
+	code := ""
+	for i := 0; i < model.PASSWORD_RECOVERY_CODE_SIZE; i++ {
+		code += "a"
+	}
+
+	_, resp = Client.ResetPassword(code, "newpwd")
+	CheckBadRequestStatus(t, resp)
+
+	success, resp = Client.ResetPassword(recovery.Code, "newpwd")
+	CheckNoError(t, resp)
+	if !success {
+		t.Fatal("should have succeeded")
+	}
+
+	Client.Login(user.Email, "newpwd")
+	Client.Logout()
+
+	_, resp = Client.ResetPassword(recovery.Code, "newpwd")
+	CheckBadRequestStatus(t, resp)
+
+	authData := model.NewId()
+	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	_, resp = Client.SendPasswordResetEmail(user.Email)
+	CheckBadRequestStatus(t, resp)
 }

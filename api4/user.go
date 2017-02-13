@@ -24,10 +24,13 @@ func InitUser() {
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
+	BaseRoutes.Users.Handle("/password/reset", ApiHandler(resetPassword)).Methods("POST")
+	BaseRoutes.Users.Handle("/password/reset/send", ApiHandler(sendPasswordReset)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
 
+	BaseRoutes.UserByUsername.Handle("", ApiSessionRequired(getUserByUsername)).Methods("GET")
 	BaseRoutes.UserByEmail.Handle("", ApiSessionRequired(getUserByEmail)).Methods("GET")
 
 }
@@ -75,6 +78,34 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if user, err = app.GetUser(c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+
+	if HandleEtag(etag, "Get User", w, r) {
+		return
+	} else {
+		app.SanitizeProfile(user, c.IsSystemAdmin())
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write([]byte(user.ToJson()))
+		return
+	}
+}
+
+func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUsername()
+	if c.Err != nil {
+		return
+	}
+
+	// No permission check required
+
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = app.GetUserByUsername(c.Params.Username); err != nil {
 		c.Err = err
 		return
 	}
@@ -224,7 +255,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
+func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -236,7 +267,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
-	
+
 	var user *model.User
 	var err *model.AppError
 
@@ -247,7 +278,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request){
 
 	if _, err := app.UpdateActive(user, false); err != nil {
 		c.Err = err
-		return	
+		return
 	}
 
 	ReturnStatusOK(w)
@@ -317,6 +348,49 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("completed")
 		ReturnStatusOK(w)
 	}
+}
+
+func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	code := props["code"]
+	if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
+		c.SetInvalidParam("code")
+		return
+	}
+
+	newPassword := props["new_password"]
+
+	c.LogAudit("attempt - code=" + code)
+
+	if err := app.ResetPasswordFromCode(code, newPassword, c.GetSiteURL()); err != nil {
+		c.LogAudit("fail - code=" + code)
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - code=" + code)
+
+	ReturnStatusOK(w)
+}
+
+func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("email")
+		return
+	}
+
+	if sent, err := app.SendPasswordReset(email, c.GetSiteURL()); err != nil {
+		c.Err = err
+		return
+	} else if sent {
+		c.LogAudit("sent=" + email)
+	}
+
+	ReturnStatusOK(w)
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {

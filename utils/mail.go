@@ -104,8 +104,8 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 
 	l4g.Debug(T("utils.mail.send_mail.sending.debug"), to, subject)
 
-	fromMail := mail.Address{config.EmailSettings.FeedbackName, config.EmailSettings.FeedbackEmail}
-	toMail := mail.Address{"", to}
+	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
+	toMail := mail.Address{Name: "", Address: to}
 
 	headers := make(map[string]string)
 	headers["From"] = fromMail.String()

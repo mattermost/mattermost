@@ -12,6 +12,8 @@ import RhsDropdown from 'components/rhs_dropdown.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 
+import TeamStore from 'stores/team_store.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
@@ -24,6 +26,7 @@ import {FormattedMessage} from 'react-intl';
 import loadingGif from 'images/load.gif';
 
 import React from 'react';
+import {Link} from 'react-router/es6';
 
 export default class RhsComment extends React.Component {
     constructor(props) {
@@ -38,7 +41,23 @@ export default class RhsComment extends React.Component {
         this.canDelete = false;
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
-        this.state = {};
+        this.state = {
+            currentTeamDisplayName: TeamStore.getCurrent().name,
+            width: '',
+            height: ''
+        };
+    }
+
+    componentDidMount() {
+        window.addEventListener('resize', () => {
+            Utils.updateWindowDimensions(this);
+        });
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', () => {
+            Utils.updateWindowDimensions(this);
+        });
     }
 
     handlePermalink(e) {
@@ -233,6 +252,31 @@ export default class RhsComment extends React.Component {
         return (
             <RhsDropdown dropdownContents={dropdownContents}/>
         );
+    }
+
+    timeTag(post, timeOptions) {
+        return (
+            <time
+                className='post__time'
+                dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
+            >
+                {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
+            </time>
+        );
+    }
+
+    renderTimeTag(post, timeOptions) {
+        return Utils.isMobile() ?
+            this.timeTag(post, timeOptions) :
+            (
+                <Link
+                    to={`/${this.state.currentTeamDisplayName}/pl/${post.id}`}
+                    target='_blank'
+                    className='post__permalink'
+                >
+                    {this.timeTag(post, timeOptions)}
+                </Link>
+            );
     }
 
     render() {
@@ -479,12 +523,7 @@ export default class RhsComment extends React.Component {
                             </li>
                             {botIndicator}
                             <li className='col'>
-                                <time
-                                    className='post__time'
-                                    dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
-                                >
-                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
-                                </time>
+                                {this.renderTimeTag(post, timeOptions)}
                                 {flagTrigger}
                             </li>
                             {options}

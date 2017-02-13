@@ -307,11 +307,9 @@ func IsUsernameTaken(name string) bool {
 
 	if result := <-Srv.Store.User().GetByUsername(name); result.Err != nil {
 		return false
-	} else {
-		return true
 	}
 
-	return false
+	return true
 }
 
 func GetUser(userId string) (*model.User, *model.AppError) {
@@ -323,7 +321,8 @@ func GetUser(userId string) (*model.User, *model.AppError) {
 }
 
 func GetUserByUsername(username string) (*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
+	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil && result.Err.Id == "store.sql_user.get_by_username.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.User), nil
@@ -332,7 +331,7 @@ func GetUserByUsername(username string) (*model.User, *model.AppError) {
 
 func GetUserByEmail(email string) (*model.User, *model.AppError) {
 
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const"{
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else if result.Err != nil {
@@ -390,8 +389,8 @@ func GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
 	}
 }
 
-func GetUsersMap(page int, perPage int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := GetUsers(page*perPage, perPage)
+func GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsers(offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -966,7 +965,7 @@ func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
 	}
 
 	if user.AuthData != nil && len(*user.AuthData) != 0 {
-		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id)
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	var recovery *model.PasswordRecovery
@@ -1001,7 +1000,7 @@ func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
 		return err
 	} else {
 		if model.GetMillis()-recovery.CreateAt >= model.PASSWORD_RECOVER_EXPIRY_TIME {
-			return model.NewLocAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "")
+			return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1011,7 +1010,7 @@ func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
 	}
 
 	if user.IsSSOUser() {
-		return model.NewLocAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id)
+		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	T := utils.GetUserTranslations(user.Locale)
@@ -1040,7 +1039,7 @@ func CreatePasswordRecovery(userId string) (*model.PasswordRecovery, *model.AppE
 
 func GetPasswordRecovery(code string) (*model.PasswordRecovery, *model.AppError) {
 	if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
-		return nil, model.NewLocAppError("GetPasswordRecovery", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error())
+		return nil, model.NewAppError("GetPasswordRecovery", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	} else {
 		return result.Data.(*model.PasswordRecovery), nil
 	}

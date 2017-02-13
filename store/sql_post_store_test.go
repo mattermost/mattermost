@@ -61,6 +61,10 @@ func TestPostStoreGet(t *testing.T) {
 	if err := (<-store.Post().Get("123")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
+
+	if err := (<-store.Post().Get("")).Err; err == nil {
+		t.Fatal("should fail for blank post ids")
+	}
 }
 
 func TestPostStoreGetSingle(t *testing.T) {
