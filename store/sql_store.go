@@ -34,7 +34,7 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
-	MAX_DB_CONN_LIFETIME = 15
+	MAX_DB_CONN_LIFETIME = 60
 )
 
 const (
