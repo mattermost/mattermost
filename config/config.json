@@ -41,7 +41,6 @@
         "PostEditTimeLimit": 300,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnableUserTypingMessages": true,
-        "EnableUserTypingMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
     "TeamSettings": {
@@ -56,10 +55,10 @@
         "CustomDescriptionText": "",
         "RestrictDirectMessage": "any",
         "RestrictTeamInvite": "all",
-        "RestrictPublicChannelCreation": "all",
-        "RestrictPrivateChannelCreation": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
+        "RestrictPublicChannelCreation": "all",
+        "RestrictPrivateChannelCreation": "all",
         "RestrictPublicChannelDeletion": "all",
         "RestrictPrivateChannelDeletion": "all",
         "UserStatusAwayTimeout": 300,
@@ -73,7 +72,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "tkigo7y1je8y4eemk6t6suaffmwbo6ec"
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -97,7 +96,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "z88deqi9s36nnffn9ifgppdtki8k6zhk",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -126,8 +125,8 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
-        "PasswordResetSalt": "",
+        "InviteSalt": "159y7ofmorg6q87nsczwy1wud9hbeany",
+        "PasswordResetSalt": "rbie6bkuhggqbd1jpqbxy735rqqyb7s7",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
