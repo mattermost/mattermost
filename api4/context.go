@@ -375,6 +375,17 @@ func (c *Context) RequireUsername() *Context {
 	return c
 }
 
+func (c *Context) RequirePostId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.PostId) != 26 {
+		c.SetInvalidUrlParam("post_id")
+	}
+	return c
+}
+
 func (c *Context) RequireEmail() *Context {
 	if c.Err != nil {
 		return c

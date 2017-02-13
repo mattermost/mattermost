@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func CreatePostAsUser(post *model.Post, teamId string) (*model.Post, *model.AppError) {
+func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
@@ -32,7 +32,7 @@ func CreatePostAsUser(post *model.Post, teamId string) (*model.Post, *model.AppE
 		return nil, err
 	}
 
-	if rp, err := CreatePost(post, teamId, true); err != nil {
+	if rp, err := CreatePost(post, channel.TeamId, true); err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
 			err.Id == "api.post.create_post.parent_id.app_error" {
@@ -118,15 +118,23 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 }
 
 func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
-	tchan := Srv.Store.Team().Get(teamId)
+	var tchan store.StoreChannel
+	if len(teamId) > 0 {
+		tchan = Srv.Store.Team().Get(teamId)
+	}
 	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
 	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team
-	if result := <-tchan; result.Err != nil {
-		return result.Err
+	if tchan != nil {
+		if result := <-tchan; result.Err != nil {
+			return result.Err
+		} else {
+			team = result.Data.(*model.Team)
+		}
 	} else {
-		team = result.Data.(*model.Team)
+		// Blank team for DMs
+		team = &model.Team{}
 	}
 
 	var channel *model.Channel
@@ -306,6 +314,14 @@ func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	}
 }
 
+func GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
 func GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Post().GetPosts(channelId, offset, limit, true); result.Err != nil {
 		return nil, result.Err
@@ -456,7 +472,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 }
 
 func GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
-	pchan := Srv.Store.Post().Get(postId)
+	pchan := Srv.Store.Post().GetSingle(postId)
 	fchan := Srv.Store.FileInfo().GetForPost(postId, true)
 
 	var infos []*model.FileInfo
@@ -472,7 +488,7 @@ func GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
 		if result := <-pchan; result.Err != nil {
 			return nil, result.Err
 		} else {
-			post = result.Data.(*model.PostList).Posts[postId]
+			post = result.Data.(*model.Post)
 		}
 
 		if len(post.Filenames) > 0 {

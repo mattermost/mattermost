@@ -75,7 +75,12 @@ func (o *PostList) Etag() string {
 		}
 	}
 
-	return Etag(id, t)
+	orderId := ""
+	if len(o.Order) > 0 {
+		orderId = o.Order[0]
+	}
+
+	return Etag(orderId, id, t)
 }
 
 func (o *PostList) IsChannelId(channelId string) bool {

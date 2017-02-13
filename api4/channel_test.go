@@ -331,8 +331,8 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	members, resp := Client.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
 
-	if len(*members) != 3 {
-		t.Fatal("should have 3 members on team")
+	if len(*members) != 4 {
+		t.Fatal("should have 4 members on team")
 	}
 
 	_, resp = Client.GetChannelMembersForUser("", th.BasicTeam.Id, "")

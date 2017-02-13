@@ -92,6 +92,14 @@ func (c *Client4) GetChannelMemberRoute(channelId, userId string) string {
 	return fmt.Sprintf(c.GetChannelMembersRoute(channelId)+"/%v", userId)
 }
 
+func (c *Client4) GetPostsRoute() string {
+	return fmt.Sprintf("/posts")
+}
+
+func (c *Client4) GetPostRoute(postId string) string {
+	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -468,4 +476,47 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 }
 
 // Post Section
+
+// CreatePost creates a post based on the provided post struct.
+func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
+	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPost gets a single post.
+func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
+	if r, err := c.DoApiGet(c.GetPostRoute(postId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPostThread gets a post with all the other posts in the same thread.
+func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Response) {
+	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/thread", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPostsForChannel gets a page of posts with an array for ordering for a channel.
+func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Files Section
 // to be filled in..
