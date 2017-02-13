@@ -2976,6 +2976,10 @@
     "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
   {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "Failed to save the provided preferences for the user."
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },
