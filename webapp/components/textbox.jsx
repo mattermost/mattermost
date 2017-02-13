@@ -44,7 +44,7 @@ export default class Textbox extends React.Component {
 
         this.focus = this.focus.bind(this);
         this.recalculateSize = this.recalculateSize.bind(this);
-        this.onRecievedError = this.onRecievedError.bind(this);
+        this.onReceivedError = this.onReceivedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
@@ -67,7 +67,7 @@ export default class Textbox extends React.Component {
     }
 
     componentDidMount() {
-        ErrorStore.addChangeListener(this.onRecievedError);
+        ErrorStore.addChangeListener(this.onReceivedError);
     }
 
     componentWillMount() {
@@ -75,10 +75,10 @@ export default class Textbox extends React.Component {
     }
 
     componentWillUnmount() {
-        ErrorStore.removeChangeListener(this.onRecievedError);
+        ErrorStore.removeChangeListener(this.onReceivedError);
     }
 
-    onRecievedError() {
+    onReceivedError() {
         const errorCount = ErrorStore.getConnectionErrorCount();
 
         if (errorCount > 1) {
