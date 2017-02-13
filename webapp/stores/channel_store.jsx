@@ -10,6 +10,7 @@ import UserStore from 'stores/user_store.jsx';
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
+const PostTypes = Constants.PostTypes;
 
 const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
@@ -500,6 +501,10 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECEIVED_POST:
+        if (action.post.type === PostTypes.JOIN_LEAVE || action.post.type === PostTypes.JOIN_CHANNEL || action.post.type === PostTypes.LEAVE_CHANNEL) {
+            return;
+        }
+
         var id = action.post.channel_id;
         var teamId = action.websocketMessageProps ? action.websocketMessageProps.team_id : null;
 
