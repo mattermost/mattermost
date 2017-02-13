@@ -186,7 +186,12 @@ export default class Sidebar extends React.Component {
     }
 
     onChange() {
-        this.setState(this.getStateFromStores());
+        let newState = this.getStateFromStores();
+        const team = this.state.currentTeam;
+        if (team.id !== TeamStore.getCurrentId()) {
+            newState = Object.assign(newState, this.emptyChannelList());
+        }
+        this.setState(newState);
         this.updateTitle();
     }
 
@@ -328,6 +333,16 @@ export default class Sidebar extends React.Component {
 
     getDisplayedChannels() {
         return this.state.favoriteChannels.concat(this.state.publicChannels).concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
+    }
+
+    emptyChannelList() {
+        return {
+            favoriteChannels: [],
+            publicChannels: [],
+            privateChannels: [],
+            directChannels: [],
+            directNonTeamChannels: []
+        };
     }
 
     handleLeaveDirectChannel(e, channel) {
