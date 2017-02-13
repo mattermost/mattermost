@@ -5,7 +5,6 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {loadStatusesForChannel} from 'actions/status_actions.jsx';
@@ -18,28 +17,9 @@ const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 
 export function handleNewPost(post, msg) {
-    const teamId = TeamStore.getCurrentId();
-
-    if (ChannelStore.getCurrentId() === post.channel_id) {
-        if (window.isActive) {
-            AsyncClient.viewChannel();
-        } else {
-            AsyncClient.getChannel(post.channel_id);
-        }
-    } else if (msg && (teamId === msg.data.team_id || msg.data.channel_type === Constants.DM_CHANNEL)) {
-        if (Client.teamId) {
-            AsyncClient.getChannel(post.channel_id);
-        }
-    }
-
     let websocketMessageProps = null;
     if (msg) {
         websocketMessageProps = msg.data;
-    }
-
-    const myTeams = TeamStore.getMyTeamMembers();
-    if (msg.data.team_id !== teamId && myTeams.filter((m) => m.team_id === msg.data.team_id).length) {
-        AsyncClient.getMyTeamsUnread(teamId);
     }
 
     if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {
