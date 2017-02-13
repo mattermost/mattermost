@@ -29,6 +29,7 @@ export default class SearchBar extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
+        this.handleClear = this.handleClear.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -72,10 +73,6 @@ export default class SearchBar extends React.Component {
         }
     }
 
-    clearFocus() {
-        $('.search-bar__container').removeClass('focused');
-    }
-
     handleClose(e) {
         e.preventDefault();
 
@@ -108,9 +105,12 @@ export default class SearchBar extends React.Component {
         this.setState({focused: false});
     }
 
+    handleClear() {
+        this.setState({searchTerm: ''});
+    }
+
     handleUserFocus() {
         this.setState({focused: true});
-        $('.search-bar__container').addClass('focused');
     }
 
     performSearch(terms, isMentionSearch) {
@@ -141,7 +141,6 @@ export default class SearchBar extends React.Component {
         e.preventDefault();
         this.performSearch(this.state.searchTerm.trim());
         $(this.search).find('input').blur();
-        this.clearFocus();
     }
 
     searchMentions(e) {
@@ -262,6 +261,11 @@ export default class SearchBar extends React.Component {
             );
         }
 
+        let clearClass = 'sidebar__clear-icon';
+        if (!this.state.isSearching && this.state.searchTerm && this.state.searchTerm.trim() !== '') {
+            clearClass += ' visible';
+        }
+
         return (
             <div>
                 <div
@@ -270,15 +274,6 @@ export default class SearchBar extends React.Component {
                 >
                     <span className='fa fa-angle-left'/>
                 </div>
-                <span
-                    className='search__clear'
-                    onClick={this.clearFocus}
-                >
-                    <FormattedMessage
-                        id='search_bar.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </span>
                 <form
                     role='form'
                     className='search__form'
@@ -301,6 +296,12 @@ export default class SearchBar extends React.Component {
                         providers={this.suggestionProviders}
                         type='search'
                     />
+                    <span
+                        className={clearClass}
+                        onClick={this.handleClear}
+                    >
+                        <i className='fa fa-times'/>
+                    </span>
                     {isSearching}
                     {this.renderHintPopover(helpClass)}
                 </form>

@@ -1758,7 +1758,6 @@
   "rhs_root.mobile.flag": "Flag",
   "rhs_root.mobile.unflag": "Unflag",
   "rhs_root.permalink": "Permalink",
-  "search_bar.cancel": "Cancel",
   "search_bar.search": "Search",
   "search_bar.usage": "<h4>Search Options</h4><ul><li><span>Use </span><b>\"quotation marks\"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>",
   "search_header.results": "Search Results",
