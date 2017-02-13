@@ -364,12 +364,8 @@ func (c *Context) RequireUsername() *Context {
 		return c
 	}
 
-	if len(c.Params.Username) < 3 {
-		c.SetInvalidUrlParam("username")
-	} 
-
-	if len(c.Params.Username) > 22 {
-		c.SetInvalidUrlParam("username")
+	if !model.IsValidUsername(c.Params.Username) {
+		c.SetInvalidParam("username")
 	}
 
 	return c
@@ -391,11 +387,7 @@ func (c *Context) RequireTeamName() *Context {
 		return c
 	}
 
-	if len(c.Params.TeamName) < 2 {
-		c.SetInvalidUrlParam("team_name")
-	} 
-
-	if len(c.Params.TeamName) > 15 {
+	if !model.IsValidTeamName(c.Params.TeamName){
 		c.SetInvalidUrlParam("team_name")
 	}
 
@@ -407,13 +399,9 @@ func (c *Context) RequireChannelName() *Context {
 		return c
 	}
 
-	if len(c.Params.ChannelName) < 2 {
+	if !model.IsValidChannelIdentifier(c.Params.ChannelName) {
 		c.SetInvalidUrlParam("channel_name")
 	} 
-
-	if len(c.Params.ChannelName) > 22 {
-		c.SetInvalidUrlParam("channel_name")
-	}
 
 	return c
 }
@@ -423,8 +411,7 @@ func (c *Context) RequireEmail() *Context {
 		return c
 	}
 
-	pos := strings.Index(c.Params.Email, "@")
-	if pos < 0 {
+	if !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidUrlParam("email")
 	}
 

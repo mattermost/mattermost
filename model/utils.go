@@ -284,10 +284,6 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
-	if len(s) > CHANNEL_NAME_MAX_LENGTH {
-		return false
-	}
-
 	return true
 }
 
