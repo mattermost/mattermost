@@ -137,7 +137,7 @@ export default class Navbar extends React.Component {
 
     toggleLeftSidebar() {
         $('.app__body .inner-wrap').toggleClass('move--right');
-        $('.app__body .sidebar--left').toggleClass('move--right');
+        $('.app__body .sidebar--left').addClass('move--right');
         $('.multi-teams .team-sidebar').toggleClass('move--right');
     }
 

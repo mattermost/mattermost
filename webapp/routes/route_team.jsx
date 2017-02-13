@@ -139,7 +139,13 @@ function selectLastChannel(nextState, replace, callback) {
         channelName = channel.name;
     }
 
-    replace(`/${team.name}/channels/${channelName}`);
+    if (nextState.location.query.mobile) {
+        document.querySelector('.app__body .inner-wrap').classList.add('move--right');
+        document.querySelector('.app__body .sidebar--left').classList.add('move--right');
+        document.querySelector('.app__body .team-sidebar').classList.add('move--right');
+    }
+
+    replace(`/${team.name}/channels/${channelName}${nextState.location.search}`);
     callback();
 }
 
