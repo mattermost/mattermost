@@ -858,7 +858,7 @@ func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPus
 	if len(view.PrevChannelId) > 0 {
 		channelIds = append(channelIds, view.PrevChannelId)
 
-		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications {
+		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
 			pchan = Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
 		}
 	}
