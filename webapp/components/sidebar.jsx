@@ -187,8 +187,7 @@ export default class Sidebar extends React.Component {
 
     onChange() {
         let newState = this.getStateFromStores();
-        const team = this.state.currentTeam;
-        if (team.id !== TeamStore.getCurrentId()) {
+        if (this.state.currentTeam.id !== TeamStore.getCurrentId()) {
             newState = Object.assign(newState, this.emptyChannelList());
         }
         this.setState(newState);
