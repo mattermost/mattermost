@@ -4,8 +4,10 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
 import Constants from 'utils/constants.jsx';
+const NotificationPrefs = Constants.NotificationPrefs;
 import {getSiteURL} from 'utils/url.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -317,7 +319,12 @@ class TeamStoreClass extends EventEmitter {
         }
     }
 
-    incrementMessages(id) {
+    incrementMessages(id, channelId) {
+        const channelMember = ChannelStore.getMyMember(channelId);
+        if (channelMember && channelMember.notify_props && channelMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
+            return;
+        }
+
         const member = this.my_team_members.filter((m) => m.team_id === id)[0];
         member.msg_count++;
     }
@@ -390,7 +397,7 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_POST:
         var id = action.websocketMessageProps ? action.websocketMessageProps.team_id : '';
         if (TeamStore.getCurrentId() !== id && id.length > 0) {
-            TeamStore.incrementMessages(id);
+            TeamStore.incrementMessages(id, action.post.channel_id);
             TeamStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             TeamStore.emitChange();
         }

@@ -501,10 +501,10 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_POST:
         var id = action.post.channel_id;
-        var teamId = action.websocketMessageProps ? action.websocketMessageProps.team_id : '';
+        var teamId = action.websocketMessageProps ? action.websocketMessageProps.team_id : null;
 
         // Current team and not current channel or the window is inactive
-        if (TeamStore.getCurrentId() === teamId && (ChannelStore.getCurrentId() !== id || !window.isActive)) {
+        if ((TeamStore.getCurrentId() === teamId || teamId === '') && (ChannelStore.getCurrentId() !== id || !window.isActive)) {
             ChannelStore.incrementMessages(id);
             ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             ChannelStore.emitChange();
