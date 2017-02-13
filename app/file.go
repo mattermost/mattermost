@@ -15,6 +15,7 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -368,6 +369,54 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	hash.Write([]byte(fileId))
 
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
+}
+
+func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	resStruct := &model.FileUploadResponse{
+		FileInfos: []*model.FileInfo{},
+		ClientIds: []string{},
+	}
+
+	previewPathList := []string{}
+	thumbnailPathList := []string{}
+	imageDataList := [][]byte{}
+
+	for i, fileHeader := range fileHeaders {
+		file, fileErr := fileHeader.Open()
+		defer file.Close()
+		if fileErr != nil {
+			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.bad_parse.app_error", nil, fileErr.Error(), http.StatusBadRequest)
+		}
+
+		buf := bytes.NewBuffer(nil)
+		io.Copy(buf, file)
+		data := buf.Bytes()
+
+		info, err := DoUploadFile(teamId, channelId, userId, fileHeader.Filename, data)
+		if err != nil {
+			return nil, err
+		}
+
+		if info.PreviewPath != "" || info.ThumbnailPath != "" {
+			previewPathList = append(previewPathList, info.PreviewPath)
+			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
+			imageDataList = append(imageDataList, data)
+		}
+
+		resStruct.FileInfos = append(resStruct.FileInfos, info)
+
+		if len(clientIds) > 0 {
+			resStruct.ClientIds = append(resStruct.ClientIds, clientIds[i])
+		}
+	}
+
+	HandleImages(previewPathList, thumbnailPathList, imageDataList)
+
+	return resStruct, nil
 }
 
 func DoUploadFile(teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {

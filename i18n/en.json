@@ -1166,6 +1166,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
+  },
+  {
     "id": "api.file.write_file.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },

@@ -4,7 +4,10 @@
 package model
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
@@ -112,6 +115,10 @@ func (c *Client4) GetPostRoute(postId string) string {
 	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
 }
 
+func (c *Client4) GetFilesRoute() string {
+	return fmt.Sprintf("/files")
+}
+
 func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
@@ -153,6 +160,25 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 		return rp, AppErrorFromJson(rp.Body)
 	} else {
 		return rp, nil
+	}
+}
+
+func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response) {
+	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq.Header.Set("Content-Type", contentType)
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), rp.StatusCode)}
+	} else if rp.StatusCode >= 300 {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return FileUploadResponseFromJson(rp.Body), BuildResponse(rp)
 	}
 }
 
@@ -574,6 +600,34 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 	}
 }
 
+// File Section
+
+// UploadFile will upload a file to a channel, to be later attached to a post.
+func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*FileUploadResponse, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("files", filename); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if part, err := writer.CreateFormField("channel_id"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, strings.NewReader(channelId)); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	return c.DoUploadFile(c.GetFilesRoute(), body.Bytes(), writer.FormDataContentType())
+}
+
+// General Section
+
 func (c *Client4) GetPing() (bool, *Response) {
 	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
@@ -582,6 +636,3 @@ func (c *Client4) GetPing() (bool, *Response) {
 		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
-
-// Files Section
-// to be filled in..
