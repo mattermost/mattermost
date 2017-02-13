@@ -398,6 +398,11 @@ class ChannelStoreClass extends EventEmitter {
             return;
         }
 
+        const member = this.getMyMember(id);
+        if (member && member.notify_props && member.notify_props.mark_unread === NotificationPrefs.MENTION) {
+            return;
+        }
+
         this.unreadCounts[id].msgs++;
         this.get(id).total_msg_count++;
     }
