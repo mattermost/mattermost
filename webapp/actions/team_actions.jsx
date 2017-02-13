@@ -92,3 +92,8 @@ export function updateTeamMemberRoles(teamId, userId, newRoles, success, error) 
         }
     );
 }
+
+export function switchTeams(url) {
+    AsyncClient.viewChannel();
+    browserHistory.push(url);
+}

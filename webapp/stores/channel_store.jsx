@@ -5,6 +5,7 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
@@ -343,6 +344,31 @@ class ChannelStoreClass extends EventEmitter {
 
         return channelNamesMap;
     }
+
+    incrementMessages(id) {
+        if (!this.unreadCounts[id]) {
+            return;
+        }
+
+        this.unreadCounts[id].msgs++;
+        this.get(id).total_msg_count++;
+    }
+
+    incrementMentionsIfNeeded(id, msgProps) {
+        let mentions = [];
+        if (msgProps && msgProps.mentions) {
+            mentions = JSON.parse(msgProps.mentions);
+        }
+
+        if (!this.unreadCounts[id]) {
+            return;
+        }
+
+        if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
+            this.unreadCounts[id].mentions++;
+            this.getMyMember(id).mention_count++;
+        }
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
@@ -415,6 +441,18 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         stats[action.stats.channel_id] = action.stats;
         ChannelStore.storeStats(stats);
         ChannelStore.emitStatsChange();
+        break;
+
+    case ActionTypes.RECEIVED_POST:
+        var id = action.post.channel_id;
+        var teamId = action.websocketMessageProps ? action.websocketMessageProps.team_id : '';
+
+        // Current team and not current channel or the window is inactive
+        if (TeamStore.getCurrentId() === teamId && (ChannelStore.getCurrentId() !== id || !window.isActive)) {
+            ChannelStore.incrementMessages(id);
+            ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            ChannelStore.emitChange();
+        }
         break;
 
     default:

@@ -1257,12 +1257,11 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(view.ChannelId) == 0 {
-		ReturnStatusOK(w)
-		return
-	}
+	channelIds := []string{}
 
-	channelIds := []string{view.ChannelId}
+	if len(view.ChannelId) > 0 {
+		channelIds = append(channelIds, view.ChannelId)
+	}
 
 	var pchan store.StoreChannel
 	if len(view.PrevChannelId) > 0 {
@@ -1271,6 +1270,11 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() {
 			pchan = Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, view.ChannelId)
 		}
+	}
+
+	if len(channelIds) == 0 {
+		ReturnStatusOK(w)
+		return
 	}
 
 	uchan := Srv.Store.Channel().UpdateLastViewedAt(channelIds, c.Session.UserId)
@@ -1290,10 +1294,6 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	}
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", view.ChannelId)
-	go Publish(message)
 
 	ReturnStatusOK(w)
 }
