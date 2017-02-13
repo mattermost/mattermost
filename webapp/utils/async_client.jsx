@@ -138,6 +138,35 @@ export function getMyChannelMembers() {
     });
 }
 
+export function getMyChannelMembersForTeam(teamId) {
+    return new Promise((resolve, reject) => {
+        if (isCallInProgress(`getMyChannelMembers${teamId}`)) {
+            resolve();
+            return;
+        }
+
+        callTracker[`getMyChannelMembers${teamId}`] = utils.getTimestamp();
+
+        Client.getMyChannelMembersForTeam(
+            teamId,
+            (data) => {
+                callTracker[`getMyChannelMembers${teamId}`] = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+                    members: data
+                });
+                resolve();
+            },
+            (err) => {
+                callTracker[`getMyChannelMembers${teamId}`] = 0;
+                dispatchError(err, 'getMyChannelMembersForTeam');
+                reject();
+            }
+        );
+    });
+}
+
 export function viewChannel(channelId = ChannelStore.getCurrentId(), prevChannelId = '', time = 0) {
     if (channelId == null || !Client.teamId) {
         return;
