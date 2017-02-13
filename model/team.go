@@ -225,11 +225,11 @@ func IsReservedTeamName(s string) bool {
 
 func IsValidTeamName(s string) bool {
 
-	if !IsValidAlphaNum(s, true) {
+	if !IsValidAlphaNum(s, false) {
 		return false
 	}
 
-	if len(s) <= TEAM_NAME_MIN_LENGTH {
+	if len(s) < TEAM_NAME_MIN_LENGTH {
 		return false
 	}
 
