@@ -352,6 +352,21 @@ describe('Client.Channels', function() {
         });
     });
 
+    it('getMyChannelMembersForTeam', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMyChannelMembersForTeam(
+                TestHelper.basicTeam().id,
+                function(data) {
+                    assert.equal(data.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('getChannelStats', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getChannelStats(
