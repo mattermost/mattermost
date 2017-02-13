@@ -401,8 +401,8 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
             return;
         }
 
-        var id = action.websocketMessageProps ? action.websocketMessageProps.team_id : '';
-        if (TeamStore.getCurrentId() !== id && id.length > 0) {
+        var id = action.websocketMessageProps ? action.websocketMessageProps.team_id : null;
+        if (id && TeamStore.getCurrentId() !== id) {
             TeamStore.incrementMessages(id, action.post.channel_id);
             TeamStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             TeamStore.emitChange();
