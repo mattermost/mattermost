@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Invalid user ID for direct channel creation"
+    "translation": "用于创建私信频道的用户 ID 无效"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -2769,7 +2769,7 @@
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "Must specify the team ID to create a channel"
+    "translation": "必须指定团队ID才能创建频道"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2909,11 +2909,19 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "Channel name missing from User's Channel Membership."
+    "translation": "用户频道会员资格中缺少频道名称。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "Invalid roles for User's Channel Membership."
+    "translation": "用户频道成员资格的角色无效。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -2961,11 +2969,11 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "Invalid roles for User's Team Membership."
+    "translation": "用户团队成员资格的角色无效。"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Team name missing from User's Team Membership."
+    "translation": "用户的团队成员资格中缺少团队名称。"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3833,7 +3841,7 @@
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
-    "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
+    "translation": "用户键入更新间隔不应设置为小于1000毫秒。"
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
@@ -4557,7 +4565,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "我们无法删除频道"
+    "translation": "我们无法删除这个频道"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
@@ -4593,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "频道名称在团队中已存在"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4925,7 +4933,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "我们无法删除频道"
+    "translation": "我们无法在频道中删除这些消息"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",

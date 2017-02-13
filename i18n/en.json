@@ -2912,6 +2912,14 @@
     "translation": "Channel name missing from User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
     "translation": "Invalid roles for User's Channel Membership."
   },
@@ -2966,26 +2974,6 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
-  },
-  {
-    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
-  },
-  {
-    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
-  },
-  {
-    "id": "app.import.import_user.save_preferences.error",
-    "translation": "Failed to save the provided preferences for the user."
-  },
-  {
-    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "Did not find a valid version type object in the first line of the import data file."
-  },
-  {
-    "id": "app.import.bulk_import.unsupported_version.error",
-    "translation": "The version of the import data file format of the provided file is not supported by this version of Mattermost."
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
