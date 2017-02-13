@@ -844,7 +844,15 @@ func SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.
 }
 
 func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPushNotifications bool) *model.AppError {
-	channelIds := []string{view.ChannelId}
+	if err := SetActiveChannel(userId, view.ChannelId); err != nil {
+		return err
+	}
+
+	channelIds := []string{}
+
+	if len(view.ChannelId) > 0 {
+		channelIds = append(channelIds, view.ChannelId)
+	}
 
 	var pchan store.StoreChannel
 	if len(view.PrevChannelId) > 0 {
@@ -853,6 +861,10 @@ func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPus
 		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications {
 			pchan = Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
 		}
+	}
+
+	if len(channelIds) == 0 {
+		return nil
 	}
 
 	uchan := Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
@@ -870,10 +882,6 @@ func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPus
 	if result := <-uchan; result.Err != nil {
 		return result.Err
 	}
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, teamId, "", userId, nil)
-	message.Add("channel_id", view.ChannelId)
-	go Publish(message)
 
 	return nil
 }
