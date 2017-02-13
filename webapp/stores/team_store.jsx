@@ -8,6 +8,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
+const PostTypes = Constants.PostTypes;
+
 import {getSiteURL} from 'utils/url.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -395,6 +397,10 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         break;
     case ActionTypes.RECEIVED_POST:
+        if (action.post.type === PostTypes.JOIN_LEAVE || action.post.type === PostTypes.JOIN_CHANNEL || action.post.type === PostTypes.LEAVE_CHANNEL) {
+            return;
+        }
+
         var id = action.websocketMessageProps ? action.websocketMessageProps.team_id : '';
         if (TeamStore.getCurrentId() !== id && id.length > 0) {
             TeamStore.incrementMessages(id, action.post.channel_id);
