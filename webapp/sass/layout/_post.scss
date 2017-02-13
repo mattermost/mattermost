@@ -1200,13 +1200,17 @@
     }
 
     .post__permalink {
-        color: #333;
-        &:hover, &:focus {
-            color: #333;
+        color: inherit;
+
+        &:hover,
+        &:focus {
+            color: inherit;
         }
+
         &:focus {
             text-decoration: none;
         }
+
         &:hover {
             text-decoration: underline;
         }
