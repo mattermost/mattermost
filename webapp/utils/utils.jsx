@@ -711,6 +711,17 @@ export function changeCss(className, classValue) {
 
     // Grab style sheet
     const styleSheet = styleEl.sheet;
+    const rules = styleSheet.cssRules || styleSheet.rules;
+    const style = classValue.substr(0, classValue.indexOf(':'));
+    const value = classValue.substr(classValue.indexOf(':') + 1);
+
+    for (let i = 0; i < rules.length; i++) {
+        if (rules[i].selectorText === className) {
+            rules[i].style[style] = value;
+            return;
+        }
+    }
+
     let mediaQuery = '';
     if (className.indexOf('@media') >= 0) {
         mediaQuery = '}';
