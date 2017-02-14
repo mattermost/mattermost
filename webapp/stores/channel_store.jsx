@@ -394,7 +394,7 @@ class ChannelStoreClass extends EventEmitter {
         return false;
     }
 
-    incrementMessages(id) {
+    incrementMessages(id, markRead = false) {
         if (!this.unreadCounts[id]) {
             return;
         }
@@ -404,8 +404,13 @@ class ChannelStoreClass extends EventEmitter {
             return;
         }
 
-        this.unreadCounts[id].msgs++;
         this.get(id).total_msg_count++;
+
+        if (markRead) {
+            this.resetCounts(id);
+        } else {
+            this.unreadCounts[id].msgs++;
+        }
     }
 
     incrementMentionsIfNeeded(id, msgProps) {
@@ -510,14 +515,15 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
         // Current team and not current channel or the window is inactive
         if ((TeamStore.getCurrentId() === teamId || teamId === '') && (ChannelStore.getCurrentId() !== id || !window.isActive)) {
-            ChannelStore.incrementMessages(id);
+            ChannelStore.incrementMessages(id, action.post.user_id === UserStore.getCurrentId());
             ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             ChannelStore.emitChange();
         }
         break;
 
     case ActionTypes.CREATE_POST:
-        ChannelStore.incrementMessages(action.post.channel_id);
+        ChannelStore.incrementMessages(action.post.channel_id, true);
+        ChannelStore.emitChange();
         break;
 
     default:
