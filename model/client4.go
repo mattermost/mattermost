@@ -132,6 +132,10 @@ func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
 
+func (c *Client4) GetIncomingWebhooksRoute() string {
+	return fmt.Sprintf("/hooks/incoming")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -729,5 +733,17 @@ func (c *Client4) GetPing() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Webhooks Section
+
+// CreateIncomingWebhook creates an incoming webhook for a channel.
+func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
+	if r, err := c.DoApiPost(c.GetIncomingWebhooksRoute(), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
 	}
 }
