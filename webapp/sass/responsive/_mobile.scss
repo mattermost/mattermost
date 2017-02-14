@@ -1561,10 +1561,9 @@
         top: 0;
 
         .tutorial__content {
-            vertical-align: top;
-
             .tutorial__steps {
                 margin-top: 20px;
+                min-height: auto;
                 padding: 0 20px;
                 width: 100%;
 
