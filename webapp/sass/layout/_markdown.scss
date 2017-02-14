@@ -3,6 +3,13 @@
 .markdown__heading {
     font-weight: 700;
     line-height: 1.5;
+
+    .emoticon {
+        display: inline-block;
+        min-height: 1em;
+        min-width: 1em;
+        vertical-align: middle;
+    }
 }
 
 .markdown__paragraph-inline {
