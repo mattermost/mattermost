@@ -377,7 +377,17 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     isChannelAdminForCurrentChannel() {
-        return this.isChannelAdmin(UserStore.getCurrentId(), this.getCurrentId());
+        if (!Utils) {
+            Utils = require('utils/utils.jsx'); //eslint-disable-line global-require
+        }
+
+        const member = this.getMyMember(this.getCurrentId());
+
+        if (!member) {
+            return false;
+        }
+
+        return Utils.isChannelAdmin(member.roles);
     }
 
     isChannelAdmin(userId, channelId) {
