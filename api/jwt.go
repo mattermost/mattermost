@@ -80,7 +80,7 @@ func jwtTokenDecode(token string) (*jwt.MapClaims, error) {
 func newSessionForJwtToken(token string, claims *jwt.MapClaims) (*model.Session, error) {
 	sub := (*claims)["sub"].(string)
 	id := ""
-	if res := <-Srv.Store.User().GetByAuth(&sub, "jwt"); res.Err != nil {
+	if res := <-Srv.Store.User().GetByAuth(&sub, ""); res.Err != nil {
 		l4g.Debug("Error getting user for token: %v", res.Err)
 		if res.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
 			l4g.Debug("Creating user %s on first access", sub)
