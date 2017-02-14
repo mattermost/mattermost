@@ -333,16 +333,6 @@ export default class Sidebar extends React.Component {
         return this.state.favoriteChannels.concat(this.state.publicChannels).concat(this.state.privateChannels).concat(this.state.directChannels).concat(this.state.directNonTeamChannels);
     }
 
-    emptyChannelList() {
-        return {
-            favoriteChannels: [],
-            publicChannels: [],
-            privateChannels: [],
-            directChannels: [],
-            directNonTeamChannels: []
-        };
-    }
-
     handleLeaveDirectChannel(e, channel) {
         e.preventDefault();
 
