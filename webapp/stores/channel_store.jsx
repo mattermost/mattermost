@@ -345,7 +345,7 @@ class ChannelStoreClass extends EventEmitter {
         return channelNamesMap;
     }
 
-    incrementMessages(id) {
+    incrementMessages(id, markRead = false) {
         if (!this.unreadCounts[id]) {
             return;
         }
@@ -355,8 +355,13 @@ class ChannelStoreClass extends EventEmitter {
             return;
         }
 
-        this.unreadCounts[id].msgs++;
         this.get(id).total_msg_count++;
+
+        if (markRead) {
+            this.resetCounts(id);
+        } else {
+            this.unreadCounts[id].msgs++;
+        }
     }
 
     incrementMentionsIfNeeded(id, msgProps) {
@@ -465,7 +470,8 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.CREATE_POST:
-        ChannelStore.incrementMessages(action.post.channel_id);
+        ChannelStore.incrementMessages(action.post.channel_id, true);
+        ChannelStore.emitChange();
         break;
 
     default:
