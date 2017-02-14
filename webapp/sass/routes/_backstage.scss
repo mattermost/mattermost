@@ -396,22 +396,29 @@
 }
 
 .emoji-list__name {
-    padding: 20px 0px 20px 15px;
+    padding: 20px 0 20px 15px;
     width: 30%;
 }
 
 .emoji-list__image {
-    padding: 15px 0px;
+    padding: 15px 0;
     width: 15%;
+
+    .emoticon {
+        height: auto;
+        max-height: 20px;
+        vertical-align: middle;
+        width: 20px;
+    }
 }
 
 .emoji-list__creator {
-    padding: 15px 0px;
+    padding: 15px 0;
     width: 40%;
 }
 
 .emoji-list__actions {
-    padding: 20px 15px 20px 0px;
+    padding: 20px 15px 20px 0;
     width: 15%;
 }
 
