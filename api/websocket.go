@@ -34,7 +34,11 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	wc := app.NewWebConn(ws, c.Session, c.T, c.Locale)
-	app.HubRegister(wc)
+
+	if len(c.Session.UserId) > 0 {
+		app.HubRegister(wc)
+	}
+
 	go wc.WritePump()
 	wc.ReadPump()
 }
