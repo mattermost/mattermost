@@ -22,6 +22,7 @@ const (
 	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
 	TEAM_EMAIL_MAX_LENGTH           = 128
 	TEAM_NAME_MAX_LENGTH            = 64
+	TEAM_NAME_MIN_LENGTH            = 2
 )
 
 type Team struct {
@@ -228,7 +229,7 @@ func IsValidTeamName(s string) bool {
 		return false
 	}
 
-	if len(s) <= 1 {
+	if len(s) < TEAM_NAME_MIN_LENGTH {
 		return false
 	}
 

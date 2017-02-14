@@ -29,6 +29,8 @@ const (
 	USER_FIRST_NAME_MAX_RUNES = 64
 	USER_LAST_NAME_MAX_RUNES  = 64
 	USER_AUTH_DATA_MAX_LENGTH = 128
+	USER_NAME_MAX_LENGTH      = 64
+	USER_NAME_MIN_LENGTH      = 3
 )
 
 type User struct {
@@ -487,7 +489,7 @@ var restrictedUsernames = []string{
 }
 
 func IsValidUsername(s string) bool {
-	if len(s) == 0 || len(s) > 64 {
+	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
 		return false
 	}
 
