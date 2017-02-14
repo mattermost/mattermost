@@ -58,6 +58,8 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			conn.SessionToken = session.Token
 			conn.UserId = session.UserId
 
+			HubRegister(conn)
+
 			resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 			resp.DoPreComputeJson()
 			conn.Send <- resp
