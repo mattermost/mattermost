@@ -464,6 +464,10 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         break;
 
+    case ActionTypes.CREATE_POST:
+        ChannelStore.incrementMessages(action.post.channel_id);
+        break;
+
     default:
         break;
     }
