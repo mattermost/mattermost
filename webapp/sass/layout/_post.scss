@@ -575,14 +575,16 @@
 
             .status {
                 bottom: auto;
-                left: -3px;
+                height: 13px;
+                left: -2px;
                 position: relative;
                 right: auto;
                 top: auto;
+                width: 13px;
             }
 
             svg {
-                top: 0;
+                top: 1px;
             }
 
             &:after {
@@ -1023,7 +1025,7 @@
         word-wrap: break-word;
 
         div {
-            margin: 0 0 .4em;
+            margin-bottom: .4em;
         }
 
         p + p {
