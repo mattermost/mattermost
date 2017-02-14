@@ -403,16 +403,6 @@
 .emoji-list__image {
     padding: 15px 0;
     width: 15%;
-
-    .emoticon {
-        height: auto;
-        max-height: 20px;
-        max-width: 20px;
-        min-height: auto;
-        min-width: auto;
-        vertical-align: middle;
-        width: auto;
-    }
 }
 
 .emoji-list__creator {
@@ -444,14 +434,4 @@
 .add-emoji__filename,
 .add-emoji__preview {
     padding-top: 7px;
-
-    .emoticon {
-        margin-bottom: 0;
-        height: auto;
-        max-height: 1.5em;
-        max-width: 1.5em;
-        min-height: auto;
-        min-width: auto;
-        width: auto;
-    }
 }
