@@ -57,6 +57,14 @@ type UserImportData struct {
 	Locale      *string `json:"locale"`
 
 	Teams *[]UserTeamImportData `json:"teams"`
+
+	Theme              *string `json:"theme"`
+	SelectedFont       *string `json:"display_font"`
+	UseMilitaryTime    *string `json:"military_time"`
+	NameFormat         *string `json:"teammate_name_display"`
+	CollapsePreviews   *string `json:"link_previews"`
+	MessageDisplay     *string `json:"message_display"`
+	ChannelDisplayMode *string `json:"channel_display_mode"`
 }
 
 type UserTeamImportData struct {
@@ -392,6 +400,78 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			if err := VerifyUserEmail(user.Id); err != nil {
 				return err
 			}
+		}
+	}
+
+	// Preferences.
+	var preferences model.Preferences
+
+	if data.Theme != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_THEME,
+			Name:     "",
+			Value:    *data.Theme,
+		})
+	}
+
+	if data.SelectedFont != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "selected_font",
+			Value:    *data.SelectedFont,
+		})
+	}
+
+	if data.UseMilitaryTime != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "use_military_time",
+			Value:    *data.UseMilitaryTime,
+		})
+	}
+
+	if data.NameFormat != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "name_format",
+			Value:    *data.NameFormat,
+		})
+	}
+
+	if data.CollapsePreviews != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "collapse_previews",
+			Value:    *data.CollapsePreviews,
+		})
+	}
+
+	if data.MessageDisplay != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "message_display",
+			Value:    *data.MessageDisplay,
+		})
+	}
+
+	if data.ChannelDisplayMode != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "channel_display_mode",
+			Value:    *data.ChannelDisplayMode,
+		})
+	}
+
+	if len(preferences) > 0 {
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, "", http.StatusInternalServerError)
 		}
 	}
 

@@ -1203,6 +1203,130 @@ func TestImportImportUser(t *testing.T) {
 	} else if cmc != channelMemberCount+1 {
 		t.Fatalf("Number of channel members not as expected")
 	}
+
+	// Add a user with some preferences.
+	username = model.NewId()
+	data = UserImportData{
+		Username:  &username,
+		Email:     ptrStr(model.NewId() + "@example.com"),
+		Theme: ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		SelectedFont: ptrStr("Roboto Slab"),
+		UseMilitaryTime: ptrStr("true"),
+		NameFormat: ptrStr("nickname_full_name"),
+		CollapsePreviews: ptrStr("true"),
+		MessageDisplay: ptrStr("compact"),
+		ChannelDisplayMode: ptrStr("centered"),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check their values.
+	user, err = GetUserByUsername(username);
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
+		t.Fatalf("Failed to get theme category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "" && preference.Value != *data.Theme {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
+
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
+		t.Fatalf("Failed to get display category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "selected_font" && preference.Value != *data.SelectedFont {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "message_display" && preference.Value != *data.MessageDisplay {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "channel_display_mode" && preference.Value != *data.ChannelDisplayMode {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
+
+	// Change those preferences.
+	data = UserImportData{
+		Username:  &username,
+		Email:     ptrStr(model.NewId() + "@example.com"),
+		Theme: ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		SelectedFont: ptrStr("Lato"),
+		UseMilitaryTime: ptrStr("false"),
+		NameFormat: ptrStr("full_name"),
+		CollapsePreviews: ptrStr("false"),
+		MessageDisplay: ptrStr("clean"),
+		ChannelDisplayMode: ptrStr("full"),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check their values again.
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
+		t.Fatalf("Failed to get theme category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "" && preference.Value != *data.Theme {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
+
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
+		t.Fatalf("Failed to get display category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "selected_font" && preference.Value != *data.SelectedFont {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "message_display" && preference.Value != *data.MessageDisplay {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "channel_display_mode" && preference.Value != *data.ChannelDisplayMode {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
 }
 
 func TestImportImportLine(t *testing.T) {
