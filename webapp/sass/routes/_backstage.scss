@@ -407,8 +407,11 @@
     .emoticon {
         height: auto;
         max-height: 20px;
+        max-width: 20px;
+        min-height: auto;
+        min-width: auto;
         vertical-align: middle;
-        width: 20px;
+        width: auto;
     }
 }
 
@@ -444,5 +447,11 @@
 
     .emoticon {
         margin-bottom: 0;
+        height: auto;
+        max-height: 1.5em;
+        max-width: 1.5em;
+        min-height: auto;
+        min-width: auto;
+        width: auto;
     }
 }
