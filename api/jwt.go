@@ -7,7 +7,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -82,26 +81,6 @@ func newSessionForJwtToken(token string, claims *jwt.MapClaims) (*model.Session,
 	id := ""
 	if res := <-Srv.Store.User().GetByAuth(&sub, ""); res.Err != nil {
 		l4g.Debug("Error getting user for token: %v", res.Err)
-		if res.Err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			l4g.Debug("Creating user %s on first access", sub)
-			email := (*claims)["email"].(string)
-			user := &model.User{
-				// Id:       id,
-				Username:    sub,
-				Email:       email,
-				AuthData:    &sub,
-				AuthService: "jwt",
-				// TODO: set nickname, firstname and lastname
-				// TODO: roles for admins
-			}
-			if res := <-Srv.Store.User().Save(user); res.Err != nil {
-				return nil, res.Err
-			}
-			id = res.Data.(*model.User).Id
-
-			// TODO create user channel and add user to channel
-			// TODO add webhook for channel
-		}
 		return nil, res.Err
 	} else {
 		id = res.Data.(*model.User).Id
