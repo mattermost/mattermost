@@ -58,7 +58,6 @@ export default class SearchBar extends React.Component {
         if (Utils.isMobile()) {
             setTimeout(() => {
                 document.querySelector('.app__body .sidebar--menu').classList.remove('visible');
-                $('#sidebar-right').find('input').focus();
             });
         }
     }
@@ -66,7 +65,6 @@ export default class SearchBar extends React.Component {
     componentWillUnmount() {
         SearchStore.removeSearchTermChangeListener(this.onListenerChange);
         this.mounted = false;
-        $('#sidebar-right').find('input').blur();
     }
 
     onListenerChange(doSearch, isMentionSearch) {
@@ -309,6 +307,7 @@ export default class SearchBar extends React.Component {
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                         type='search'
+                        autoFocus={this.props.isFocus}
                     />
                     <span
                         className={clearClass}
@@ -328,10 +327,12 @@ export default class SearchBar extends React.Component {
 }
 
 SearchBar.defaultProps = {
-    showMentionFlagBtns: true
+    showMentionFlagBtns: true,
+    isFocus: false
 };
 
 SearchBar.propTypes = {
     showMentionFlagBtns: React.PropTypes.bool,
-    isCommentsPage: React.PropTypes.bool
+    isCommentsPage: React.PropTypes.bool,
+    isFocus: React.PropTypes.bool
 };
