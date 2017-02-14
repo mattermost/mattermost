@@ -5,9 +5,11 @@
     background-repeat: no-repeat;
     background-size: contain;
     display: inline-block;
-    height: 1.5em;
-    vertical-align: text-top;
-    width: 1.5em;
+    height: 20px;
+    min-height: 1em;
+    min-width: 1em;
+    vertical-align: middle;
+    width: 20px;
 }
 
 .emoticon-suggestion {
