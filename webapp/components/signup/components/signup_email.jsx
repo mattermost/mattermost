@@ -459,7 +459,7 @@ export default class SignupEmail extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <Link to='/signup_user_complete'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'
