@@ -20,3 +20,8 @@ export default class TruncateText extends React.Component {
         return text;
     }
 }
+
+TruncateText.propTypes = {
+    length: React.PropTypes.number,
+    children: React.PropTypes.node
+};

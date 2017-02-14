@@ -7,7 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
 import FileUploadProgress from './file_upload_progress.jsx';
-import TruncateText from "./truncate_text.jsx";
+import TruncateText from './truncate_text.jsx';
 
 export default class FilePreview extends React.Component {
     constructor(props) {
@@ -58,7 +58,7 @@ export default class FilePreview extends React.Component {
                     >
                         <i className='fa fa-remove'/>
                     </a>
-                    <TruncateText length="15">{info.name}</TruncateText>
+                    <TruncateText length='15'>{info.name}</TruncateText>
                 </div>
             );
         });
@@ -66,11 +66,11 @@ export default class FilePreview extends React.Component {
         this.props.uploadsInProgress.forEach((clientId) => {
             let percent;
             let fileName;
-            let uploadComponent = <p>Starting upload...</p>;
+            let uploadComponent = <p>{'Starting upload...'}</p>;
             if (this.props.uploadsProgressPercent[clientId]) {
                 percent = this.props.uploadsProgressPercent[clientId].percent;
                 fileName = this.props.uploadsProgressPercent[clientId].fileName;
-                uploadComponent = <p>Uploading <TruncateText length="10">{fileName}</TruncateText></p>;
+                uploadComponent = <p>{'Uploading '} <TruncateText length='10'>{fileName}</TruncateText></p>;
             }
             previews.push(
                 <div
