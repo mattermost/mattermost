@@ -364,12 +364,8 @@ func (c *Context) RequireUsername() *Context {
 		return c
 	}
 
-	if len(c.Params.Username) < 3 {
-		c.SetInvalidUrlParam("username")
-	} 
-
-	if len(c.Params.Username) > 22 {
-		c.SetInvalidUrlParam("username")
+	if !model.IsValidUsername(c.Params.Username) {
+		c.SetInvalidParam("username")
 	}
 
 	return c
@@ -386,16 +382,40 @@ func (c *Context) RequirePostId() *Context {
 	return c
 }
 
+func (c *Context) RequireTeamName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidTeamName(c.Params.TeamName){
+		c.SetInvalidUrlParam("team_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireChannelName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidChannelIdentifier(c.Params.ChannelName) {
+		c.SetInvalidUrlParam("channel_name")
+	} 
+
+	return c
+}
+
 func (c *Context) RequireEmail() *Context {
 	if c.Err != nil {
 		return c
 	}
 
-	pos := strings.Index(c.Params.Email, "@")
-	if pos < 0 {
+	if !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidUrlParam("email")
 	}
 
 	return c
 }
+
 

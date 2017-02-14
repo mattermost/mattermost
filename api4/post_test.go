@@ -159,7 +159,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	}
 
 	_, resp = Client.GetPostsForChannel("", 0, 60, "")
-	CheckNotFoundStatus(t, resp)
+	CheckUnauthorizedStatus(t, resp)
 
 	_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
 	CheckBadRequestStatus(t, resp)

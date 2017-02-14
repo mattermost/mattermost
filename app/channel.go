@@ -543,7 +543,11 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 }
 
 func GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	if result := <-Srv.Store.Channel().Get(channelId, true); result.Err != nil {
+	if result := <-Srv.Store.Channel().Get(channelId, true); result.Err != nil && result.Err.Id == "store.sql_channel.get.existing.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Channel), nil
@@ -551,7 +555,32 @@ func GetChannel(channelId string) (*model.Channel, *model.AppError) {
 }
 
 func GetChannelByName(channelName, teamId string) (*model.Channel, *model.AppError) {
-	if result := <-Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Channel), nil
+	}
+}
+
+func GetChannelByNameForTeamName(channelName, teamName string) (*model.Channel, *model.AppError) {
+	var team *model.Team
+
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if result := <-Srv.Store.Channel().GetByName(team.Id, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Channel), nil

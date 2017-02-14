@@ -280,7 +280,7 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
-	if len(s) < 2 {
+	if len(s) < CHANNEL_NAME_MIN_LENGTH {
 		return false
 	}
 

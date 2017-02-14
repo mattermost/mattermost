@@ -278,11 +278,11 @@ func GenerateTestUsername() string {
 }
 
 func GenerateTestTeamName() string {
-	return "faketeam" + model.NewId()
+	return "faketeam" + model.NewRandomString(6)
 }
 
 func GenerateTestChannelName() string {
-	return "fakechannel" + model.NewId()
+	return "fakechannel" + model.NewRandomString(10)
 }
 
 func VerifyUserEmail(userId string) {
