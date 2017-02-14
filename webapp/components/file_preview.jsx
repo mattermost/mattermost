@@ -66,9 +66,11 @@ export default class FilePreview extends React.Component {
         this.props.uploadsInProgress.forEach((clientId) => {
             let percent;
             let fileName;
+            let uploadComponent = <p>Starting upload...</p>;
             if (this.props.uploadsProgressPercent[clientId]) {
                 percent = this.props.uploadsProgressPercent[clientId].percent;
                 fileName = this.props.uploadsProgressPercent[clientId].fileName;
+                uploadComponent = <p>Uploading <TruncateText length="10">{fileName}</TruncateText></p>;
             }
             previews.push(
                 <div
@@ -85,7 +87,7 @@ export default class FilePreview extends React.Component {
                     >
                         <i className='fa fa-remove'/>
                     </a>
-                    <p>Uploading <TruncateText length="10">{fileName}</TruncateText></p>
+                    {uploadComponent}
                 </div>
             );
         });

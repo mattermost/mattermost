@@ -2,8 +2,8 @@ import React from 'react';
 
 export default class TruncateText extends React.Component {
     render() {
-        const {type, length, children} = this.props;
-        const truncatedText = this.truncateText({type, length, text: children});
+        const {length, children} = this.props;
+        const truncatedText = this.truncateText({length, text: children});
         return (<span title={children}>{truncatedText}</span>);
     }
 
@@ -13,7 +13,10 @@ export default class TruncateText extends React.Component {
             text
         } = options;
 
-        const halfTruncated = length / 2;
-        return text.substr(0, halfTruncated) + '...' + text.substr(-halfTruncated);
+        if (text && length < text.length) {
+            const halfTruncated = length / 2;
+            return text.substr(0, halfTruncated) + '...' + text.substr(-halfTruncated);
+        }
+        return text;
     }
 }

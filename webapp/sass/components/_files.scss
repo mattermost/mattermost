@@ -24,7 +24,7 @@
     }
 
     &.custom-file {
-        .file-preview__image, .file-icon.generic {
+        .file-preview__image, .file-icon {
             border: 1px solid $light-gray;
             height: 80%;
         }
