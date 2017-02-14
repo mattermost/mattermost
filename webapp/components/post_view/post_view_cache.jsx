@@ -2,7 +2,6 @@
 // See License.txt for license information
 
 import PostViewController from './post_view_controller.jsx';
-import LoadingScreen from 'components/loading_screen.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -68,45 +67,25 @@ export default class PostViewCache extends React.Component {
         });
     }
 
-    shouldComponentUpdate(nextProps) {
-        return Boolean(nextProps.channelId);
-    }
-
     render() {
         const channels = this.state.channels;
         const currentChannelId = this.state.currentChannelId;
-        const valid = this.props.channelId === this.state.currentChannelId;
-        const postViews = [];
-        let content;
 
-        if (valid) {
-            for (let i = 0; i < channels.length; i++) {
-                postViews.push(
-                    <PostViewController
-                        key={'postviewcontroller_' + channels[i].id}
-                        channel={channels[i]}
-                        active={channels[i].id === currentChannelId}
-                    />
-                );
-            }
-            content = postViews;
-        } else {
-            content = (
-                <LoadingScreen
-                    position='absolute'
-                    key='loading'
+        const postViews = [];
+        for (let i = 0; i < channels.length; i++) {
+            postViews.push(
+                <PostViewController
+                    key={'postviewcontroller_' + channels[i].id}
+                    channel={channels[i]}
+                    active={channels[i].id === currentChannelId}
                 />
             );
         }
 
         return (
             <div id='post-list'>
-                {content}
+                {postViews}
             </div>
         );
     }
 }
-
-PostViewCache.propTypes = {
-    channelId: React.PropTypes.string.isRequired
-};
