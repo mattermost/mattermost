@@ -408,7 +408,7 @@ run: run-server run-client
 
 run-fullmap: run-server run-client-fullmap
 
-stop-server:
+stop-server: stop-docker
 	@echo Stopping mattermost
 
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
