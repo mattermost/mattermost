@@ -747,3 +747,25 @@ func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook
 		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
 	}
 }
+
+// GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
+func (c *Client4) GetIncomingWebhooks(page int, perPage int, etag string) ([]*IncomingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetIncomingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
+func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*IncomingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
+	if r, err := c.DoApiGet(c.GetIncomingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}

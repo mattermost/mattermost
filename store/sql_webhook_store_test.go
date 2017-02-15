@@ -60,6 +60,40 @@ func TestWebhookStoreGetIncoming(t *testing.T) {
 	}
 }
 
+func TestWebhookStoreGetIncomingList(t *testing.T) {
+	Setup()
+
+	o1 := &model.IncomingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.TeamId = model.NewId()
+
+	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+
+	if r1 := <-store.Webhook().GetIncomingList(0, 1000); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		found := false
+		hooks := r1.Data.([]*model.IncomingWebhook)
+		for _, hook := range hooks {
+			if hook.Id == o1.Id {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatal("missing webhook")
+		}
+	}
+
+	if result := <-store.Webhook().GetIncomingList(0, 1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if len(result.Data.([]*model.IncomingWebhook)) != 1 {
+			t.Fatal("only 1 should be returned")
+		}
+	}
+}
+
 func TestWebhookStoreGetIncomingByTeam(t *testing.T) {
 	Setup()
 
@@ -70,7 +104,7 @@ func TestWebhookStoreGetIncomingByTeam(t *testing.T) {
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-store.Webhook().GetIncomingByTeam(o1.TeamId); r1.Err != nil {
+	if r1 := <-store.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.([]*model.IncomingWebhook)[0].CreateAt != o1.CreateAt {
@@ -78,7 +112,7 @@ func TestWebhookStoreGetIncomingByTeam(t *testing.T) {
 		}
 	}
 
-	if result := <-store.Webhook().GetIncomingByTeam("123"); result.Err != nil {
+	if result := <-store.Webhook().GetIncomingByTeam("123", 0, 100); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		if len(result.Data.([]*model.IncomingWebhook)) != 0 {

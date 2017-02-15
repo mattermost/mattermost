@@ -16,6 +16,7 @@ func InitWebhook() {
 	l4g.Debug(utils.T("api.webhook.init.debug"))
 
 	BaseRoutes.IncomingHooks.Handle("", ApiSessionRequired(createIncomingHook)).Methods("POST")
+	BaseRoutes.IncomingHooks.Handle("", ApiSessionRequired(getIncomingHooks)).Methods("GET")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -51,4 +52,34 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("success")
 		w.Write([]byte(incomingHook.ToJson()))
 	}
+}
+
+func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamId := r.URL.Query().Get("team_id")
+
+	var hooks []*model.IncomingWebhook
+	var err *model.AppError
+
+	if len(teamId) > 0 {
+		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+			return
+		}
+
+		hooks, err = app.GetIncomingWebhooksForTeamPage(teamId, c.Params.Page, c.Params.PerPage)
+	} else {
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_WEBHOOKS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+			return
+		}
+
+		hooks, err = app.GetIncomingWebhooksPage(c.Params.Page, c.Params.PerPage)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.IncomingWebhookListToJson(hooks)))
 }

@@ -117,23 +117,15 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewLocAppError("getIncomingHooks", "api.webhook.get_incoming.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
-		c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 		return
 	}
 
-	if result := <-app.Srv.Store.Webhook().GetIncomingByTeam(c.TeamId); result.Err != nil {
-		c.Err = result.Err
+	if hooks, err := app.GetIncomingWebhooksForTeamPage(c.TeamId, 0, 100); err != nil {
+		c.Err = err
 		return
 	} else {
-		hooks := result.Data.([]*model.IncomingWebhook)
 		w.Write([]byte(model.IncomingWebhookListToJson(hooks)))
 	}
 }

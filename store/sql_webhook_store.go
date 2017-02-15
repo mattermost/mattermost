@@ -183,7 +183,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingList(offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -191,7 +191,28 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
 
 		var webhooks []*model.IncomingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncomingList", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "err="+err.Error())
+		}
+
+		result.Data = webhooks
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var webhooks []*model.IncomingWebhook
+
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		}
 
