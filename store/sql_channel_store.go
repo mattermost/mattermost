@@ -142,7 +142,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel) StoreResult {
 	result := StoreResult{}
 
-	if len(channel.Id) > 0 {
+	if channel.CreateAt > 0 {
 		result.Err = model.NewLocAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+channel.Id)
 		return result
 	}
