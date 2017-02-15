@@ -21,6 +21,7 @@ func InitUser() {
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
+	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
@@ -247,6 +248,32 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ruser, err := app.UpdateUserAsUser(user, c.GetSiteURL(), c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("")
+		w.Write([]byte(ruser.ToJson()))
+	}
+}
+
+func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	patch := model.UserPatchFromJson(r.Body)
+	if patch == nil {
+		c.SetInvalidParam("user")
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if ruser, err := app.PatchUser(c.Params.UserId, patch, c.GetSiteURL(), c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {

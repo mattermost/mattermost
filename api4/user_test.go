@@ -349,6 +349,73 @@ func TestUpdateUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPatchUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+
+	patch := &model.UserPatch{}
+
+	patch.Nickname = new(string)
+	*patch.Nickname = "Joram Wilander"
+	patch.FirstName = new(string)
+	*patch.FirstName = "Joram"
+	patch.LastName = new(string)
+	*patch.LastName = "Wilander"
+	patch.Position = new(string)
+
+	ruser, resp := Client.PatchUser(user.Id, patch)
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Nickname != "Joram Wilander" {
+		t.Fatal("Nickname did not update properly")
+	}
+	if ruser.FirstName != "Joram" {
+		t.Fatal("FirstName did not update properly")
+	}
+	if ruser.LastName != "Wilander" {
+		t.Fatal("LastName did not update properly")
+	}
+	if ruser.Position != "" {
+		t.Fatal("Position did not update properly")
+	}
+	if ruser.Username != user.Username {
+		t.Fatal("Username should not have updated")
+	}
+
+	_, resp = Client.PatchUser("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	ruser.Id = model.NewId()
+	_, resp = Client.PatchUser(model.NewId(), patch)
+	CheckForbiddenStatus(t, resp)
+
+	if r, err := Client.DoApiPut("/users/"+user.Id+"/patch", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	Client.Logout()
+	_, resp = Client.PatchUser(user.Id, patch)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic()
+	_, resp = Client.PatchUser(user.Id, patch)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchUser(user.Id, patch)
+	CheckNoError(t, resp)
+}
+
 func TestDeleteUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.Client

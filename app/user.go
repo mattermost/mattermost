@@ -855,13 +855,37 @@ func UpdateUserAsUser(user *model.User, siteURL string, asAdmin bool) (*model.Us
 
 	SanitizeProfile(updatedUser, asAdmin)
 
-	omitUsers := make(map[string]bool, 1)
-	omitUsers[updatedUser.Id] = true
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
-	message.Add("user", updatedUser)
-	go Publish(message)
+	sendUpdatedUserEvent(updatedUser)
 
 	return updatedUser, nil
+}
+
+func PatchUser(userId string, patch *model.UserPatch, siteURL string, asAdmin bool) (*model.User, *model.AppError) {
+	user, err := GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Patch(patch)
+
+	updatedUser, err := UpdateUser(user, siteURL, true)
+	if err != nil {
+		return nil, err
+	}
+
+	SanitizeProfile(updatedUser, asAdmin)
+
+	sendUpdatedUserEvent(updatedUser)
+
+	return updatedUser, nil
+}
+
+func sendUpdatedUserEvent(user *model.User) {
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[user.Id] = true
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+	message.Add("user", user)
+	go Publish(message)
 }
 
 func UpdateUser(user *model.User, siteURL string, sendNotifications bool) (*model.User, *model.AppError) {

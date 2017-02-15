@@ -61,6 +61,18 @@ type User struct {
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
+type UserPatch struct {
+	Username    *string    `json:"username"`
+	Nickname    *string    `json:"nickname"`
+	FirstName   *string    `json:"first_name"`
+	LastName    *string    `json:"last_name"`
+	Position    *string    `json:"position"`
+	Email       *string    `json:"email"`
+	Props       *StringMap `json:"props,omitempty"`
+	NotifyProps *StringMap `json:"notify_props,omitempty"`
+	Locale      *string    `json:"locale"`
+}
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
@@ -215,8 +227,55 @@ func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	}
 }
 
+func (u *User) Patch(patch *UserPatch) {
+	if patch.Username != nil {
+		u.Username = *patch.Username
+	}
+
+	if patch.Nickname != nil {
+		u.Nickname = *patch.Nickname
+	}
+
+	if patch.FirstName != nil {
+		u.FirstName = *patch.FirstName
+	}
+
+	if patch.LastName != nil {
+		u.LastName = *patch.LastName
+	}
+
+	if patch.Position != nil {
+		u.Position = *patch.Position
+	}
+
+	if patch.Email != nil {
+		u.Email = *patch.Email
+	}
+
+	if patch.Props != nil {
+		u.Props = *patch.Props
+	}
+
+	if patch.NotifyProps != nil {
+		u.NotifyProps = *patch.NotifyProps
+	}
+
+	if patch.Locale != nil {
+		u.Locale = *patch.Locale
+	}
+}
+
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (u *UserPatch) ToJson() string {
 	b, err := json.Marshal(u)
 	if err != nil {
 		return ""
@@ -411,6 +470,17 @@ func (u *User) IsLDAPUser() bool {
 func UserFromJson(data io.Reader) *User {
 	decoder := json.NewDecoder(data)
 	var user User
+	err := decoder.Decode(&user)
+	if err == nil {
+		return &user
+	} else {
+		return nil
+	}
+}
+
+func UserPatchFromJson(data io.Reader) *UserPatch {
+	decoder := json.NewDecoder(data)
+	var user UserPatch
 	err := decoder.Decode(&user)
 	if err == nil {
 		return &user
