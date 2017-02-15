@@ -72,7 +72,7 @@ const holders = defineMessages({
         defaultMessage: 'Custom'
     }
 
-})
+});
 
 class EmojiPicker extends React.Component {
     static propTypes = {
