@@ -1274,19 +1274,27 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var etag string
 
-	if result := <-Srv.Store.User().Get(id); result.Err != nil {
+	if result := <-Srv.Store.User().GetProfileByIds([]string{id}, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
+		users := result.Data.([]*model.User)
+		if len(users) == 0 {
+			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, nil)
+			return
+		}
+
+		user := users[0]
+
 		var img []byte
-		etag = strconv.FormatInt(result.Data.(*model.User).LastPictureUpdate, 10)
+		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
 		if HandleEtag(etag, "Profile Image", w, r) {
 			return
 		}
 
 		if len(utils.Cfg.FileSettings.DriverName) == 0 {
 			var err *model.AppError
-			if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
+			if img, err = createProfileImage(user.Username, id); err != nil {
 				c.Err = err
 				return
 			}
@@ -1296,12 +1304,12 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			if data, err := ReadFile(path); err != nil {
 				readFailed = true
 
-				if img, err = createProfileImage(result.Data.(*model.User).Username, id); err != nil {
+				if img, err = createProfileImage(user.Username, id); err != nil {
 					c.Err = err
 					return
 				}
 
-				if result.Data.(*model.User).LastPictureUpdate == 0 {
+				if user.LastPictureUpdate == 0 {
 					if err := WriteFile(img, path); err != nil {
 						c.Err = err
 						return
@@ -1313,12 +1321,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if c.Session.UserId == id || readFailed {
-			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
-		} else {
-			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
-		}
-
+		w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
 		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write(img)
