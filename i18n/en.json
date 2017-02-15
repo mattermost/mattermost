@@ -1219,7 +1219,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} was mentioned, but they did not receive a notification because they do not belong to this channel."
+    "translation": "You mentioned {{.Username}}, but they did not receive a notification because they are not in this channel or they disabled mention notifications."
   },
   {
     "id": "api.post.create_post.attach_files.error",
