@@ -29,7 +29,6 @@ class EditChannelHeaderModal extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
@@ -90,7 +89,7 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handlePostError(postError) {
-        this.setState({postError});
+        this.setState({serverError: postError});
     }
 
     onHide() {
@@ -105,10 +104,6 @@ class EditChannelHeaderModal extends React.Component {
             e.preventDefault();
             this.handleSubmit(e);
         }
-    }
-
-    handleKeyDown(e) {
-        e.preventDefault();
     }
 
     render() {
@@ -159,7 +154,6 @@ class EditChannelHeaderModal extends React.Component {
                         ref='textbox'
                         onChange={this.handleChange}
                         onKeyPress={this.handleKeyPress}
-                        onKeyDown={this.handleKeyDown}
                         handlePostError={this.handlePostError}
                         value={this.state.header}
                         initialText=''
