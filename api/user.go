@@ -590,6 +590,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
+	readFailed := false
 
 	var etag string
 
