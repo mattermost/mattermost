@@ -590,26 +590,33 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
+	readFailed := false
 
 	var etag string
 
-	if user, err := app.GetUser(id); err != nil {
+	if users, err := app.GetUsersByIds([]string{id}, false); err != nil {
 		c.Err = err
 		return
 	} else {
+		if len(users) == 0 {
+			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, "")
+			return
+		}
+
+		user := users[0]
 		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
 		if HandleEtag(etag, "Profile Image", w, r) {
 			return
 		}
 
 		var img []byte
-		img, err = app.GetProfileImage(user)
+		img, readFailed, err = app.GetProfileImage(user)
 		if err != nil {
 			c.Err = err
 			return
 		}
 
-		if c.Session.UserId == id {
+		if readFailed {
 			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
 		} else {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
