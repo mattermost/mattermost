@@ -1280,7 +1280,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		users := result.Data.([]*model.User)
 		if len(users) == 0 {
-			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, nil)
+			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, "")
 			return
 		}
 
