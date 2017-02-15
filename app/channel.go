@@ -817,7 +817,7 @@ func SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.
 	}
 }
 
-func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPushNotifications bool) *model.AppError {
+func ViewChannel(view *model.ChannelView, userId string, clearPushNotifications bool) *model.AppError {
 	if err := SetActiveChannel(userId, view.ChannelId); err != nil {
 		return err
 	}

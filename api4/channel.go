@@ -25,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
+	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -101,7 +102,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
-	} 
+	}
 
 	if channel, err := app.GetChannel(c.Params.ChannelId); err != nil {
 		c.Err = err
@@ -124,13 +125,13 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel, err = app.GetChannelByName(c.Params.ChannelName, c.Params.TeamId); err != nil {
 		c.Err = err
 		return
-	} 
+	}
 
 	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
-	
+
 	w.Write([]byte(channel.ToJson()))
 	return
 }
@@ -152,7 +153,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
-	} 
+	}
 
 	w.Write([]byte(channel.ToJson()))
 	return
@@ -218,4 +219,29 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 	} else {
 		w.Write([]byte(members.ToJson()))
 	}
+}
+
+func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	view := model.ChannelViewFromJson(r.Body)
+	if view == nil {
+		c.SetInvalidParam("channel_view")
+		return
+	}
+
+	if err := app.ViewChannel(view, c.Params.UserId, !c.Session.IsMobileApp()); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

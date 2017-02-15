@@ -753,7 +753,7 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	view := model.ChannelViewFromJson(r.Body)
 
-	if err := app.ViewChannel(view, c.TeamId, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
+	if err := app.ViewChannel(view, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
 		c.Err = err
 		return
 	}

@@ -226,8 +226,12 @@ func TestGetChannel(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	_, resp := Client.GetChannel(th.BasicChannel.Id, "")
+	channel, resp := Client.GetChannel(th.BasicChannel.Id, "")
 	CheckNoError(t, resp)
+
+	if channel.Id != th.BasicChannel.Id {
+		t.Fatal("ids did not match")
+	}
 
 	_, resp = Client.GetChannel(model.NewId(), "")
 	CheckForbiddenStatus(t, resp)
@@ -253,8 +257,12 @@ func TestGetChannelByName(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	_, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	channel, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicChannel.Name {
+		t.Fatal("names did not match")
+	}
 
 	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -277,8 +285,12 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	_, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	channel, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicChannel.Name {
+		t.Fatal("names did not match")
+	}
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
@@ -441,5 +453,60 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
+}
+
+func TestViewChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	view := &model.ChannelView{
+		ChannelId: th.BasicChannel.Id,
+	}
+
+	pass, resp := Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	view.PrevChannelId = th.BasicChannel.Id
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	view.PrevChannelId = ""
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	view.PrevChannelId = "junk"
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+	channel, resp := Client.GetChannel(th.BasicChannel.Id, "")
+	CheckNoError(t, resp)
+
+	if member.MsgCount != channel.TotalMsgCount {
+		t.Fatal("should match message counts")
+	}
+
+	if member.MentionCount != 0 {
+		t.Fatal("should have no mentions")
+	}
+
+	_, resp = Client.ViewChannel("junk", view)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ViewChannel(th.BasicUser2.Id, view)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.ViewChannel(th.BasicUser.Id, view)
 	CheckNoError(t, resp)
 }

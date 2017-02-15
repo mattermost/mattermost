@@ -457,32 +457,32 @@ func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Respo
 }
 
 // GetChannel returns a channel based on the provided channel id string.
-func (c *Client4) GetChannel(channelId, etag string) (*User, *Response) {
+func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
-func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*User, *Response) {
+func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
-func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*User, *Response) {
+func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -514,6 +514,17 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 	} else {
 		defer closeBody(r)
 		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
+func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response) {
+	url := fmt.Sprintf(c.GetChannelsRoute()+"/members/%v/view", userId)
+	if r, err := c.DoApiPost(url, view.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
