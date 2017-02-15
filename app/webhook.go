@@ -222,7 +222,7 @@ func GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.
 
 func GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.webhook.get_incoming.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.webhook.get_incoming.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if result := <-Srv.Store.Webhook().GetIncomingList(page*perPage, perPage); result.Err != nil {
