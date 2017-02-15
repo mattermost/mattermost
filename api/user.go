@@ -1278,13 +1278,12 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
-		users := result.Data.([]*model.User)
-		if len(users) == 0 {
+		users := result.Data.(map[string]*model.User)
+		user := users[id]
+		if user == nil {
 			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, "")
 			return
 		}
-
-		user := users[0]
 
 		var img []byte
 		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
