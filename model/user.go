@@ -91,13 +91,13 @@ func (u *User) IsValid() *AppError {
 		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id)
-	}
+	// if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
+	// 	return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id)
+	// }
 
-	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
-	}
+	// if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
+	// 	return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
+	// }
 
 	return nil
 }
