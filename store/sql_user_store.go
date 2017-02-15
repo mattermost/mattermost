@@ -58,7 +58,7 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if len(user.Id) > 0 {
+		if user.CreateAt > 0 {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.existing.app_error", nil, "user_id="+user.Id)
 			storeChannel <- result
 			close(storeChannel)
