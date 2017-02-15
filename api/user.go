@@ -593,10 +593,16 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var etag string
 
-	if user, err := app.GetUser(id); err != nil {
+	if users, err := app.GetUsersByIds([]string{id}, false); err != nil {
 		c.Err = err
 		return
 	} else {
+		if len(users) == 0 {
+			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, nil)
+			return
+		}
+
+		user := users[0]
 		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
 		if HandleEtag(etag, "Profile Image", w, r) {
 			return
@@ -609,12 +615,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if c.Session.UserId == id {
-			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
-		} else {
-			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
-		}
-
+		w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
 		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write(img)
