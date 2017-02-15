@@ -437,7 +437,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := app.GetUsersEtag()
+	etag := app.GetUsersEtag() + params["offset"] + params["limit"]
 	if HandleEtag(etag, "Get Profiles", w, r) {
 		return
 	}
