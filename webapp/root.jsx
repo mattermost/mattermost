@@ -12,6 +12,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Websockets from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
@@ -60,7 +61,9 @@ function preRenderSetup(callwhendone) {
     $(window).on('beforeunload',
          () => {
              BrowserStore.setLastServerVersion('');
-             AsyncClient.viewChannel('', ChannelStore.getCurrentId() || '');
+             if (UserStore.getCurrentUser()) {
+                 AsyncClient.viewChannel('', ChannelStore.getCurrentId() || '');
+             }
              Websockets.close();
          }
     );
