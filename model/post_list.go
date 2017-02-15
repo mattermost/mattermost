@@ -72,6 +72,9 @@ func (o *PostList) Etag() string {
 		if v.UpdateAt > t {
 			t = v.UpdateAt
 			id = v.Id
+		} else if v.UpdateAt == t && v.Id > id {
+			t = v.UpdateAt
+			id = v.Id
 		}
 	}
 
