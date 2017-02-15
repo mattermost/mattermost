@@ -8,6 +8,7 @@ import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {loadStatusesForChannel} from 'actions/status_actions.jsx';
+import {loadNewDMIfNeeded} from 'actions/user_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -20,6 +21,10 @@ export function handleNewPost(post, msg) {
     let websocketMessageProps = null;
     if (msg) {
         websocketMessageProps = msg.data;
+    }
+
+    if (msg && msg.data && msg.data.channel_type === Constants.DM_CHANNEL) {
+        loadNewDMIfNeeded(post.user_id);
     }
 
     if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {

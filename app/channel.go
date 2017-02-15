@@ -14,61 +14,6 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func MakeDirectChannelVisible(channelId string) *model.AppError {
-	var members model.ChannelMembers
-	if result := <-Srv.Store.Channel().GetMembers(channelId, 0, 100); result.Err != nil {
-		return result.Err
-	} else {
-		members = *(result.Data.(*model.ChannelMembers))
-	}
-
-	if len(members) != 2 {
-		return model.NewLocAppError("MakeDirectChannelVisible", "api.post.make_direct_channel_visible.get_2_members.error", map[string]interface{}{"ChannelId": channelId}, "")
-	}
-
-	// make sure the channel is visible to both members
-	for i, member := range members {
-		otherUserId := members[1-i].UserId
-
-		if result := <-Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId); result.Err != nil {
-			// create a new preference since one doesn't exist yet
-			preference := &model.Preference{
-				UserId:   member.UserId,
-				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-				Name:     otherUserId,
-				Value:    "true",
-			}
-
-			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
-				return saveResult.Err
-			} else {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", member.UserId, nil)
-				message.Add("preference", preference.ToJson())
-
-				go Publish(message)
-			}
-		} else {
-			preference := result.Data.(model.Preference)
-
-			if preference.Value != "true" {
-				// update the existing preference to make the channel visible
-				preference.Value = "true"
-
-				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
-					return updateResult.Err
-				} else {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", member.UserId, nil)
-					message.Add("preference", preference.ToJson())
-
-					go Publish(message)
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
 func CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
 	townSquare := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.town_square"), Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: teamId}
 
