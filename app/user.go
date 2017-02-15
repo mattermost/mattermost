@@ -674,7 +674,7 @@ func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
 		var err *model.AppError
 		if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	} else {
 		path := "users/" + user.Id + "/profile.png"
@@ -683,12 +683,12 @@ func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 			readFailed = true
 
 			if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
 			if user.LastPictureUpdate == 0 {
 				if err := WriteFile(img, path); err != nil {
-					return nil, err
+					return nil, false, err
 				}
 			}
 
