@@ -23,6 +23,7 @@
         .post-create__container{
             .post-create-body {
                 .icon__emoji_picker {
+                    display:none;
                     top: -7px;
                 }
             }
@@ -32,7 +33,7 @@
         form {
             padding: .5em 0 0;
         }
-        
+
         .post-create-footer {
             padding: 0 45px 0 8px;
 
@@ -52,7 +53,8 @@
 
             .post-body__cell {
                 display: table-cell;
-                padding-left: 70px;
+                padding-left: 45px;
+
 
                 .sidebar--right & {
                     padding-left: 0;
@@ -66,7 +68,7 @@
                     line-height: 36px;
                     padding: 0;
                     top: auto;
-                    width: 50px;
+                    width: 25px;
                 }
             }
 
@@ -80,6 +82,7 @@
 
             .icon__emoji_picker {
                 position: relative;
+                display: none;
                 top: 1px;
                 right: -1px;
             }

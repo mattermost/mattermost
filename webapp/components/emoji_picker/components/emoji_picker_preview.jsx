@@ -30,13 +30,19 @@ export default class EmojiPickerPreview extends React.Component {
 
             return (
                 <div className='emoji-picker__preview'>
-                    <img
-                        className='emoji-picker__preview-image'
-                        align='absmiddle'
-                        src={EmojiStore.getEmojiImageUrl(emoji)}
-                    />
-                    <span className='emoji-picker__preview-name'>{name}</span>
-                    <span className='emoji-picker__preview-aliases'>{aliases.map((alias) => ':' + alias + ':').join(' ')}</span>
+                    <div className='emoji-picker__preview-image-box'>
+                        <img
+                            className='emoji-picker__preview-image'
+                            align='absmiddle'
+                            src={EmojiStore.getEmojiImageUrl(emoji)}
+                        />
+                    </div>
+                    <div className='emoji-picker__preview-image-box'>
+                        <span className='emoji-picker__preview-name'>{name}</span>
+                        <span
+                            className='emoji-picker__preview-aliases'
+                        >{aliases.map((alias) => ':' + alias + ':').join(' ')}</span>
+                    </div>
                 </div>
             );
         }

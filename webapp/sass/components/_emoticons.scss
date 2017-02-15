@@ -45,6 +45,8 @@
     }
 }
 
+
+
 .emoji-picker-bottom {
     display: flex;
     flex-direction: column;
@@ -89,7 +91,7 @@
     flex-direction: column;
     @include user-select(none);
     position: absolute;
-    top: -347px;
+    top: -360px;
     right: 0px;
     width: 278px;
     border: 1px solid;
@@ -112,6 +114,10 @@
 .emoji-picker__categories {
     flex-grow: 0;
     flex-shrink: 0;
+
+    .fa-futbol-o:hover {
+        color:black;
+    }
 
     .emoji-picker__category {
         color: #333333;
@@ -154,26 +160,30 @@
 }
 
 .emoji-picker__preview {
+    display: table-row;
     border-top: 1px solid;
     flex-grow: 0;
     flex-shrink: 0;
-    height: 45px;
+    height:45px;
     padding: 3px 10px;
 
     &.emoji-picker__preview-placeholder {
         padding: 12px;
     }
 
+    .emoji-picker__preview-image-box {
+        display: table-cell;
+        vertical-align: middle;
+    }
     .emoji-picker__preview-image {
         max-height: 36px;
         max-width: 42px;
-        position: absolute;
-        padding-top: 4px;
-        padding-right: 4px;
+        padding: 0 10px 0 0;
+
     }
 
     .emoji-picker__preview-name {
-        padding-left: 45px;
+
         font-size: 13px;
         font-weight: bold;
     }
@@ -181,7 +191,7 @@
     .emoji-picker__preview-aliases {
         display: block;
         font-size: 12px;
-        padding-left: 45px;
+
         font-weight: bold;
     }
 }
