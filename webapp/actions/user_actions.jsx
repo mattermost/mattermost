@@ -16,7 +16,7 @@ import {getDirectChannelName} from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
-import {ActionTypes, Preferences} from 'utils/constants.jsx';
+import {Constants, ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
 
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
@@ -225,6 +225,19 @@ function populateDMChannelsWithProfiles(userIds) {
     }
 }
 
+export function loadNewDMIfNeeded(userId) {
+    if (userId === UserStore.getCurrentId()) {
+        return;
+    }
+
+    const pref = PreferenceStore.get(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'false');
+    if (pref === 'false') {
+        PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+        AsyncClient.savePreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+        loadProfilesAndTeamMembersForDMSidebar();
+    }
+}
+
 export function loadProfilesAndTeamMembersForDMSidebar() {
     const dmPrefs = PreferenceStore.getCategory(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
     const teamId = TeamStore.getCurrentId();
@@ -238,6 +251,37 @@ export function loadProfilesAndTeamMembersForDMSidebar() {
             }
             membersToLoad.push(key);
         }
+    }
+
+    const channelMembers = ChannelStore.getMyMembers();
+    const channels = ChannelStore.getChannels();
+    const newPreferences = [];
+    for (let i = 0; i < channels.length; i++) {
+        const channel = channels[i];
+        if (channel.type !== Constants.DM_CHANNEL) {
+            continue;
+        }
+
+        const member = channelMembers[channel.id];
+        if (!member) {
+            continue;
+        }
+
+        const teammateId = channel.name.replace(member.user_id, '').replace('__', '');
+
+        if (member.mention_count > 0 && membersToLoad.indexOf(teammateId) === -1) {
+            membersToLoad.push(teammateId);
+            newPreferences.push({
+                user_id: UserStore.getCurrentId(),
+                category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+                name: teammateId,
+                value: 'true'
+            });
+        }
+    }
+
+    if (newPreferences.length > 0) {
+        AsyncClient.savePreferences(newPreferences);
     }
 
     if (profilesToLoad.length > 0) {

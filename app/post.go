@@ -166,14 +166,6 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 		}()
 	}
 
-	if channel.Type == model.CHANNEL_DIRECT {
-		go func() {
-			if err := MakeDirectChannelVisible(post.ChannelId); err != nil {
-				l4g.Error(err.Error())
-			}
-		}()
-	}
-
 	return nil
 }
 
