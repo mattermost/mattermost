@@ -667,8 +667,9 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	}
 }
 
-func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
+func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	var img []byte
+	readFailed := false
 
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
 		var err *model.AppError
@@ -679,6 +680,8 @@ func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
 		path := "users/" + user.Id + "/profile.png"
 
 		if data, err := ReadFile(path); err != nil {
+			readFailed = true
+
 			if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
 				return nil, err
 			}
@@ -694,7 +697,7 @@ func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
 		}
 	}
 
-	return img, nil
+	return img, readFailed, nil
 }
 
 func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {

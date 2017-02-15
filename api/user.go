@@ -609,13 +609,18 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		var img []byte
-		img, err = app.GetProfileImage(user)
+		img, readFailed, err = app.GetProfileImage(user)
 		if err != nil {
 			c.Err = err
 			return
 		}
 
-		w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
+		if readFailed {
+			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
+		} else {
+			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
+		}
+
 		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write(img)
