@@ -868,40 +868,6 @@ func TestFuzzyPosts(t *testing.T) {
 	}
 }
 
-func TestMakeDirectChannelVisible(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	user1 := th.BasicUser
-	user2 := th.BasicUser2
-
-	th.LoginBasic2()
-
-	preferences := &model.Preferences{
-		{
-			UserId:   user2.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-			Name:     user1.Id,
-			Value:    "false",
-		},
-	}
-	Client.Must(Client.SetPreferences(preferences))
-
-	Client.Must(Client.Logout())
-	th.LoginBasic()
-	th.BasicClient.SetTeamId(team.Id)
-
-	channel := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
-
-	makeDirectChannelVisible(channel.Id)
-
-	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
-		t.Fatal("Errored trying to set direct channel to be visible for user1")
-	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
-		t.Fatal("Failed to set direct channel to be visible for user1")
-	}
-}
-
 func TestGetMentionKeywords(t *testing.T) {
 	// user with username or custom mentions enabled
 	user1 := &model.User{
