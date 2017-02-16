@@ -196,6 +196,10 @@ export function loadProfilesAndTeamMembersForDMSidebar() {
                 name: teammateId,
                 value: 'true'
             });
+
+            if (!UserStore.hasProfile(teammateId)) {
+                profilesToLoad.push(teammateId);
+            }
         }
     }
 
