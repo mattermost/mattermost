@@ -334,6 +334,16 @@ func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	}
 }
 
+// PatchUser partially updates a user in the system. Any missing fields are not updated.
+func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) {
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/patch", patch.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *Response) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
