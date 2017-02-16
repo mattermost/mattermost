@@ -6,7 +6,9 @@
     background-size: contain;
     display: inline-block;
     height: 20px;
-    vertical-align: text-top;
+    min-height: 1em;
+    min-width: 1em;
+    vertical-align: middle;
     width: 20px;
 }
 
