@@ -304,7 +304,7 @@ type PasswordRecoveryStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string, allowFromCache bool) StoreChannel
 	GetByName(name string) StoreChannel
 	GetAll() StoreChannel
 	Delete(id string, time int64) StoreChannel
