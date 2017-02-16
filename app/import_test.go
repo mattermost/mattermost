@@ -18,6 +18,10 @@ func ptrInt64(i int64) *int64 {
 	return &i
 }
 
+func ptrInt(i int) *int {
+	return &i
+}
+
 func ptrBool(b bool) *bool {
 	return &b
 }
@@ -1367,7 +1371,8 @@ func TestImportBulkImport(t *testing.T) {
 	channelName := model.NewId()
 
 	// Run bulk import with a valid 1 of everything.
-	data1 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+	data1 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
@@ -1377,8 +1382,40 @@ func TestImportBulkImport(t *testing.T) {
 	}
 
 	// Run bulk import using a string that contains a line with invalid json.
-	data2 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "vinewy665jam3n6oxzhsdgajly"}`
+	data2 := `{"type": "version", "version": 1`
 	if err, line := BulkImport(strings.NewReader(data2), false); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to invalid JSON on line 1.")
+	}
+
+	// Run bulk import using valid JSON but missing version line at the start.
+	data3:= `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
+{"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
+	if err, line := BulkImport(strings.NewReader(data3), false); err == nil || line != 1 {
+		t.Fatalf("Should have failed due to missing version line on line 1.")
+	}
+}
+
+func TestImportProcessImportDataFileVersionLine(t *testing.T) {
+	_ = Setup()
+
+	data := LineImportData{
+		Type: "version",
+		Version: ptrInt(1),
+	}
+	if version, err := processImportDataFileVersionLine(data); err != nil || version != 1 {
+		t.Fatalf("Expected no error and version 1.")
+	}
+
+	data.Type = "NotVersion"
+	if _, err := processImportDataFileVersionLine(data); err == nil {
+		t.Fatalf("Expected error on invalid version line.")
+	}
+
+	data.Type = "version"
+	data.Version = nil
+	if _, err := processImportDataFileVersionLine(data); err == nil {
+		t.Fatalf("Expected error on invalid version line.")
 	}
 }

@@ -25,6 +25,7 @@ type LineImportData struct {
 	Team    *TeamImportData    `json:"team"`
 	Channel *ChannelImportData `json:"channel"`
 	User    *UserImportData    `json:"user"`
+	Version *int               `json:"version"`
 }
 
 type TeamImportData struct {
@@ -101,7 +102,16 @@ func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
 		if err := decoder.Decode(&line); err != nil {
 			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error()), lineNumber
 		} else {
-			if err := ImportLine(line, dryRun); err != nil {
+			if lineNumber == 1 {
+				importDataFileVersion, apperr := processImportDataFileVersionLine(line)
+				if apperr != nil {
+					return apperr, lineNumber
+				}
+
+				if importDataFileVersion != 1 {
+					return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
+				}
+			} else if err := ImportLine(line, dryRun); err != nil {
 				return err, lineNumber
 			}
 		}
@@ -112,6 +122,14 @@ func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
 	}
 
 	return nil, 0
+}
+
+func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError) {
+	if line.Type != "version" || line.Version == nil {
+		return -1, model.NewAppError("BulkImport", "app.import.process_import_data_file_version_line.invalid_version.error", nil, "", http.StatusBadRequest)
+	}
+
+	return *line.Version, nil
 }
 
 func ImportLine(line LineImportData, dryRun bool) *model.AppError {
