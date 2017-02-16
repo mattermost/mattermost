@@ -193,11 +193,9 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 		return nil, NewInvalidParamError("getFileInfoForRequest", "file_id")
 	}
 
-	var info *model.FileInfo
-	if result := <-app.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
-		return nil, result.Err
-	} else {
-		info = result.Data.(*model.FileInfo)
+	info, err := app.GetFileInfo(fileId)
+	if err != nil {
+		return nil, err
 	}
 
 	// only let users access files visible in a channel, unless they're the one who uploaded the file

@@ -3536,6 +3536,10 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.client.read_file.app_error",
+    "translation": "We encountered an error while reading the file"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },

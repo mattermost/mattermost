@@ -576,3 +576,11 @@ func generatePreviewImage(img image.Image, previewPath string, width int) {
 		return
 	}
 }
+
+func GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	if result := <-Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.FileInfo), nil
+	}
+}

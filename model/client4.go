@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -119,6 +120,10 @@ func (c *Client4) GetFilesRoute() string {
 	return fmt.Sprintf("/files")
 }
 
+func (c *Client4) GetFileRoute(fileId string) string {
+	return fmt.Sprintf(c.GetFilesRoute()+"/%v", fileId)
+}
+
 func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
@@ -173,7 +178,7 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), rp.StatusCode)}
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
 	} else if rp.StatusCode >= 300 {
 		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
 	} else {
@@ -626,8 +631,20 @@ func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*F
 	return c.DoUploadFile(c.GetFilesRoute(), body.Bytes(), writer.FormDataContentType())
 }
 
+// GetFile gets the bytes for a file by id.
+func (c *Client4) GetFile(fileId string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
 // General Section
 
+// GetPing will ping the server and to see if it is up and running.
 func (c *Client4) GetPing() (bool, *Response) {
 	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}

@@ -10,10 +10,11 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestUploadFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
 
@@ -21,7 +22,9 @@ func TestUploadFile(t *testing.T) {
 	channel := th.BasicChannel
 
 	var uploadInfo *model.FileInfo
-	if data, err := readTestFile("test.png"); err != nil {
+	var data []byte
+	var err error
+	if data, err = readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else if fileResp, resp := Client.UploadFile(data, channel.Id, "test.png"); resp.Error != nil {
 		t.Fatal(resp.Error)
@@ -90,4 +93,59 @@ func TestUploadFile(t *testing.T) {
 	if err := cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
+
+	_, resp := Client.UploadFile(data, model.NewId(), "test.png")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
+	CheckNoError(t, resp)
+}
+
+func TestGetFile(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	fileId := ""
+	var sent []byte
+	var err error
+	if sent, err = readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	data, resp := Client.GetFile(fileId)
+	CheckNoError(t, resp)
+
+	if data == nil || len(data) == 0 {
+		t.Fatal("should not be empty")
+	}
+
+	for i := range data {
+		if data[i] != sent[i] {
+			t.Fatal("received file didn't match sent one")
+		}
+	}
+
+	_, resp = Client.GetFile("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFile(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFile(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetFile(fileId)
+	CheckNoError(t, resp)
 }
