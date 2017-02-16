@@ -84,6 +84,12 @@ func TestEmojiGet(t *testing.T) {
 			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
 		}
 	}
+
+	for _, emoji := range emojis {
+		if result := <-store.Emoji().Get(emoji.Id, true); result.Err != nil {
+			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		}
+	}
 }
 
 func TestEmojiGetByName(t *testing.T) {
