@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -509,4 +510,83 @@ func TestViewChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.ViewChannel(th.BasicUser.Id, view)
 	CheckNoError(t, resp)
+}
+
+func TestUpdateChannelRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	const CHANNEL_ADMIN = "channel_admin channel_user"
+	const CHANNEL_MEMBER = "channel_user"
+
+	// User 1 creates a channel, making them channel admin by default.
+	channel := th.CreatePublicChannel()
+
+	// Adds User 2 to the channel, making them a channel member by default.
+	app.AddUserToChannel(th.BasicUser2, channel)
+
+	// User 1 promotes User 2
+	pass, resp := Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	member, resp := Client.GetChannelMember(channel.Id, th.BasicUser2.Id, "")
+	CheckNoError(t, resp)
+
+	if member.Roles != CHANNEL_ADMIN {
+		t.Fatal("roles don't match")
+	}
+
+	// User 1 demotes User 2
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_MEMBER)
+	CheckNoError(t, resp)
+
+	th.LoginBasic2()
+
+	// User 2 cannot demote User 1
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckForbiddenStatus(t, resp)
+
+	// User 2 cannot promote self
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	// User 1 demotes self
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckNoError(t, resp)
+
+	// System Admin promotes User 1
+	_, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
+	CheckNoError(t, resp)
+
+	// System Admin demotes User 1
+	_, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckNoError(t, resp)
+
+	// System Admin promotes User 1
+	pass, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
+	CheckNoError(t, resp)
+
+	th.LoginBasic()
+
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles(channel.Id, "junk", CHANNEL_MEMBER)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles("junk", th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles(channel.Id, model.NewId(), CHANNEL_MEMBER)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles(model.NewId(), th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckForbiddenStatus(t, resp)
 }

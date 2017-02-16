@@ -528,6 +528,17 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response
 	}
 }
 
+// UpdateChannelRoles will update the roles on a channel for a user.
+func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
+	requestBody := map[string]string{"roles": roles}
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/roles", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
