@@ -450,7 +450,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 		}
 	}
 
-	posts := &model.PostList{}
+	posts := model.NewPostList()
 	for _, channel := range channels {
 		if result := <-channel; result.Err != nil {
 			return nil, result.Err

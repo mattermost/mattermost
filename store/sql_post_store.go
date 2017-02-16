@@ -161,7 +161,7 @@ func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) Stor
 	storeChannel := make(StoreChannel, 1)
 	go func() {
 		result := StoreResult{}
-		pl := &model.PostList{}
+		pl := model.NewPostList()
 
 		var posts []*model.Post
 		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
@@ -187,7 +187,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 
 	go func() {
 		result := StoreResult{}
-		pl := &model.PostList{}
+		pl := model.NewPostList()
 
 		if len(id) == 0 {
 			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id)
@@ -492,7 +492,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 			posts := rpr.Data.([]*model.Post)
 			parents := cpr.Data.([]*model.Post)
 
-			list := &model.PostList{Order: make([]string, 0, len(posts))}
+			list := model.NewPostList()
 
 			for _, p := range posts {
 				list.AddPost(p)
@@ -533,7 +533,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 				if metrics != nil {
 					metrics.IncrementMemCacheHitCounter("Last Post Time")
 				}
-				list := &model.PostList{Order: make([]string, 0, 0)}
+				list := model.NewPostList()
 				result.Data = list
 				storeChannel <- result
 				close(storeChannel)
@@ -582,9 +582,7 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 			result.Err = model.NewLocAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error())
 		} else {
 
-			list := &model.PostList{Order: make([]string, 0, len(posts))}
-
-			list.MakeNonNil()
+			list := model.NewPostList()
 
 			var latestUpdate int64 = 0
 
@@ -678,7 +676,7 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 			result.Err = model.NewLocAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err2.Error())
 		} else {
 
-			list := &model.PostList{Order: make([]string, 0, len(posts))}
+			list := model.NewPostList()
 
 			// We need to flip the order if we selected backwards
 			if before {
@@ -940,7 +938,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		}
 
-		list := &model.PostList{Order: make([]string, 0, len(posts))}
+		list := model.NewPostList()
 
 		for _, p := range posts {
 			if searchType == "Hashtags" {
