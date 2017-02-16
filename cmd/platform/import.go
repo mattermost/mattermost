@@ -106,12 +106,12 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 		if lineNumber != 0 {
 			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
 		}
-	}
-
-	if apply {
-		CommandPrettyPrintln("Finished Bulk Import.")
 	} else {
-		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
+		if apply {
+			CommandPrettyPrintln("Finished Bulk Import.")
+		} else {
+			CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
+		}
 	}
 
 	return nil
