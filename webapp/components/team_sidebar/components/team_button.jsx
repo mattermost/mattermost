@@ -3,6 +3,8 @@
 
 import Constants from 'utils/constants.jsx';
 
+import {switchTeams} from 'actions/team_actions.jsx';
+
 import React from 'react';
 import {Link} from 'react-router/es6';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
@@ -11,7 +13,13 @@ export default class TeamButton extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleSwitch = this.handleSwitch.bind(this);
         this.handleDisabled = this.handleDisabled.bind(this);
+    }
+
+    handleSwitch(e) {
+        e.preventDefault();
+        switchTeams(this.props.url);
     }
 
     handleDisabled(e) {
@@ -22,7 +30,7 @@ export default class TeamButton extends React.Component {
         let teamClass = this.props.active ? 'active' : '';
         const btnClass = this.props.btnClass;
         const disabled = this.props.disabled ? 'team-disabled' : '';
-        const handleClick = (this.props.active || this.props.disabled) ? this.handleDisabled : null;
+        const handleClick = (this.props.active || this.props.disabled) ? this.handleDisabled : this.handleSwitch;
         let badge;
 
         if (!teamClass) {

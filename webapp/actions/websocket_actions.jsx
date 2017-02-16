@@ -136,10 +136,6 @@ function handleEvent(msg) {
         handleUserUpdatedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_VIEWED:
-        handleChannelViewedEvent(msg);
-        break;
-
     case SocketEvents.CHANNEL_DELETED:
         handleChannelDeletedEvent(msg);
         break;
@@ -278,15 +274,6 @@ function handleUserUpdatedEvent(msg) {
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
         UserStore.emitChange(user.id);
-    }
-}
-
-function handleChannelViewedEvent(msg) {
-    // Useful for when multiple devices have the app open to different channels
-    if (TeamStore.getCurrentId() === msg.broadcast.team_id &&
-            ChannelStore.getCurrentId() !== msg.data.channel_id &&
-            UserStore.getCurrentId() === msg.broadcast.user_id) {
-        AsyncClient.getChannel(msg.data.channel_id);
     }
 }
 

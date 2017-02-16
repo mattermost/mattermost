@@ -4,8 +4,10 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
 import Constants from 'utils/constants.jsx';
+const NotificationPrefs = Constants.NotificationPrefs;
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
@@ -321,6 +323,28 @@ class TeamStoreClass extends EventEmitter {
             member.mention_count -= channelMember.mention_count;
         }
     }
+
+    incrementMessages(id, channelId) {
+        const channelMember = ChannelStore.getMyMember(channelId);
+        if (channelMember && channelMember.notify_props && channelMember.notify_props.mark_unread === NotificationPrefs.MENTION) {
+            return;
+        }
+
+        const member = this.my_team_members.filter((m) => m.team_id === id)[0];
+        member.msg_count++;
+    }
+
+    incrementMentionsIfNeeded(id, msgProps) {
+        let mentions = [];
+        if (msgProps && msgProps.mentions) {
+            mentions = JSON.parse(msgProps.mentions);
+        }
+
+        if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
+            const member = this.my_team_members.filter((m) => m.team_id === id)[0];
+            member.mention_count++;
+        }
+    }
 }
 
 var TeamStore = new TeamStoreClass();
@@ -373,6 +397,18 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         if (action.channelMember) {
             TeamStore.updateUnreadCount(action.team_id, action.total_msg_count, action.channelMember);
             TeamStore.emitUnreadChange();
+        }
+        break;
+    case ActionTypes.RECEIVED_POST:
+        if (action.post.type === Constants.POST_TYPE_JOIN_LEAVE) {
+            return;
+        }
+
+        var id = action.websocketMessageProps ? action.websocketMessageProps.team_id : null;
+        if (id && TeamStore.getCurrentId() !== id) {
+            TeamStore.incrementMessages(id, action.post.channel_id);
+            TeamStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            TeamStore.emitChange();
         }
         break;
     default:

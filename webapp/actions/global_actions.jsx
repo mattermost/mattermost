@@ -47,16 +47,17 @@ export function emitChannelClickEvent(channel) {
     function switchToChannel(chan) {
         const channelMember = ChannelStore.getMyMember(chan.id);
         const getMyChannelMembersPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
+        const oldChannelId = ChannelStore.getCurrentId();
 
         getMyChannelMembersPromise.then(() => {
             AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.viewChannel(chan.id, ChannelStore.getCurrentId());
+            AsyncClient.viewChannel(chan.id, oldChannelId);
             loadPosts(chan.id);
             trackPage();
         });
 
         // Mark previous and next channel as read
-        ChannelStore.resetCounts(ChannelStore.getCurrentId());
+        ChannelStore.resetCounts(oldChannelId);
         ChannelStore.resetCounts(chan.id);
 
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
@@ -68,7 +69,7 @@ export function emitChannelClickEvent(channel) {
             team_id: chan.team_id,
             total_msg_count: chan.total_msg_count,
             channelMember,
-            prev: ChannelStore.getCurrentId()
+            prev: oldChannelId
         });
     }
 

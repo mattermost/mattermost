@@ -34,7 +34,7 @@ function doChannelChange(state, replace, callback) {
     } else {
         channel = ChannelStore.getByName(state.params.channel);
 
-        if (channel.type === Constants.DM_CHANNEL) {
+        if (channel && channel.type === Constants.DM_CHANNEL) {
             loadNewDMIfNeeded(Utils.getUserIdFromChannelName(channel));
         }
 
@@ -106,7 +106,12 @@ function preNeedsTeam(nextState, replace, callback) {
     if (nextState.location.pathname.indexOf('/channels/') > -1 ||
         nextState.location.pathname.indexOf('/pl/') > -1) {
         AsyncClient.getMyTeamsUnread();
-        AsyncClient.getMyChannelMembers();
+        const teams = TeamStore.getAll();
+        for (const id in teams) {
+            if (teams.hasOwnProperty(id)) {
+                AsyncClient.getMyChannelMembersForTeam(id);
+            }
+        }
     }
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap

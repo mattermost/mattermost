@@ -1469,6 +1469,15 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getMyChannelMembers', success, error));
     }
 
+    getMyChannelMembersForTeam(teamId, success, error) {
+        request.
+        get(`${this.getTeamsRoute()}/${teamId}/channels/members`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getMyChannelMembersForTeam', success, error));
+    }
+
     getChannelByName(channelName, success, error) {
         request.
         get(`${this.getChannelsRoute()}/name/${channelName}`).
