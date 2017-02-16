@@ -9,6 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
+import {isSystemMessage} from 'utils/post_utils.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
 const PostTypes = Constants.PostTypes;
 
@@ -510,18 +511,27 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
             return;
         }
 
+        if (action.post.user_id === UserStore.getCurrentId() && !isSystemMessage(action.post)) {
+            return;
+        }
+
         var id = action.post.channel_id;
         var teamId = action.websocketMessageProps ? action.websocketMessageProps.team_id : null;
+        var markRead = id === ChannelStore.getCurrentId() && window.isActive;
 
-        // Current team and not current channel or the window is inactive
-        if ((TeamStore.getCurrentId() === teamId || teamId === '') && (ChannelStore.getCurrentId() !== id || !window.isActive)) {
-            ChannelStore.incrementMessages(id, action.post.user_id === UserStore.getCurrentId());
+        if (TeamStore.getCurrentId() === teamId || teamId === '') {
             ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            ChannelStore.incrementMessages(id, markRead);
             ChannelStore.emitChange();
         }
         break;
 
     case ActionTypes.CREATE_POST:
+        ChannelStore.incrementMessages(action.post.channel_id, true);
+        ChannelStore.emitChange();
+        break;
+
+    case ActionTypes.CREATE_COMMENT:
         ChannelStore.incrementMessages(action.post.channel_id, true);
         ChannelStore.emitChange();
         break;
