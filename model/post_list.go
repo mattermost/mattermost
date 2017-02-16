@@ -13,6 +13,13 @@ type PostList struct {
 	Posts map[string]*Post `json:"posts"`
 }
 
+func NewPostList() *PostList {
+	return &PostList{
+		Order: make([]string, 0),
+		Posts: make(map[string]*Post),
+	}
+}
+
 func (o *PostList) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
