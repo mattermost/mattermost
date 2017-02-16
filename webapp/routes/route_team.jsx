@@ -34,7 +34,7 @@ function doChannelChange(state, replace, callback) {
     } else {
         channel = ChannelStore.getByName(state.params.channel);
 
-        if (channel.type === Constants.DM_CHANNEL) {
+        if (channel && channel.type === Constants.DM_CHANNEL) {
             loadNewDMIfNeeded(Utils.getUserIdFromChannelName(channel));
         }
 
