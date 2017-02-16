@@ -79,7 +79,7 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) StoreChannel {
 				if metrics != nil {
 					metrics.IncrementMemCacheHitCounter("Emoji")
 				}
-				result.Data = cacheItem.(map[string]*model.Emoji)
+				result.Data = cacheItem.(*model.Emoji)
 				storeChannel <- result
 				close(storeChannel)
 				return
