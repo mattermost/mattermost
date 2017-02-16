@@ -1556,17 +1556,24 @@
     }
 
     .tutorial-steps__container {
+        left: 0;
+        position: fixed;
+        top: 0;
+
         .tutorial__content {
             .tutorial__steps {
+                margin-top: 20px;
+                min-height: auto;
                 padding: 0 20px;
                 width: 100%;
 
                 h1 {
-                    font-size: 35px;
+                    font-size: 2em;
                     margin: -5px 0 20px;
                 }
 
                 h3 {
+                    font-size: 1.5em;
                     margin-bottom: 10px;
                 }
 
@@ -1575,14 +1582,14 @@
                 }
 
                 .tutorial__circles {
-                    bottom: 60px;
-                    margin: 0 0 15px;
-                    position: absolute;
+                    bottom: auto;
+                    margin: 15px 0 20px;
+                    position: relative;
                 }
 
                 .tutorial__footer {
-                    bottom: 30px;
-                    position: absolute;
+                    bottom: auto;
+                    position: relative;
                 }
             }
         }

@@ -575,14 +575,16 @@
 
             .status {
                 bottom: auto;
-                left: -3px;
+                height: 13px;
+                left: -2px;
                 position: relative;
                 right: auto;
                 top: auto;
+                width: 13px;
             }
 
             svg {
-                top: 0;
+                top: 1px;
             }
 
             &:after {
@@ -1023,7 +1025,7 @@
         word-wrap: break-word;
 
         div {
-            margin: 0 0 .4em;
+            margin-bottom: .4em;
         }
 
         p + p {
@@ -1135,10 +1137,11 @@
             padding: 0 4px 0 3px;
 
             .post-reaction__emoji {
-                height: 16px;
+                height: auto;
                 margin: 2px 3px 0 0;
-                vertical-align: top;
-                width: 16px;
+                max-height: 16px;
+                max-width: 16px;
+                vertical-align: middle;
             }
 
             .post-reaction__count {
