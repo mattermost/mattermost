@@ -590,3 +590,49 @@ func TestUpdateChannelRoles(t *testing.T) {
 	_, resp = Client.UpdateChannelRoles(model.NewId(), th.BasicUser.Id, CHANNEL_MEMBER)
 	CheckForbiddenStatus(t, resp)
 }
+
+func TestRemoveChannelMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pass, resp := Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+
+	app.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	th.LoginBasic()
+	private := th.CreatePrivateChannel()
+	app.AddUserToChannel(th.BasicUser2, private)
+
+	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+}

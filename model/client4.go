@@ -124,7 +124,7 @@ func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) 
 	return c.DoApiRequest(http.MethodPut, url, data, "")
 }
 
-func (c *Client4) DoApiDelete(url string, data string) (*http.Response, *AppError) {
+func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodDelete, url, "", "")
 }
 
@@ -358,7 +358,7 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 
 // DeleteUser deactivates a user in the system based on the provided user id string.
 func (c *Client4) DeleteUser(userId string) (bool, *Response) {
-	if r, err := c.DoApiDelete(c.GetUserRoute(userId), ""); err != nil {
+	if r, err := c.DoApiDelete(c.GetUserRoute(userId)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -532,6 +532,16 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response
 func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
 	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/roles", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
+func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetChannelMemberRoute(channelId, userId)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)

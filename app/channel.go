@@ -670,7 +670,7 @@ func LeaveChannel(channelId string, userId string) *model.AppError {
 			return err
 		}
 
-		if err := RemoveUserFromChannel(userId, userId, channel); err != nil {
+		if err := removeUserFromChannel(userId, userId, channel); err != nil {
 			return err
 		}
 
@@ -735,7 +735,7 @@ func PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User,
 	return nil
 }
 
-func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	if channel.DeleteAt > 0 {
 		err := model.NewLocAppError("RemoveUserFromChannel", "api.channel.remove_user_from_channel.deleted.app_error", nil, "")
 		err.StatusCode = http.StatusBadRequest
@@ -763,6 +763,22 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
 	go Publish(userMsg)
+
+	return nil
+}
+
+func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	var err *model.AppError
+	if err = removeUserFromChannel(userIdToRemove, removerUserId, channel); err != nil {
+		return err
+	}
+
+	var user *model.User
+	if user, err = GetUser(userIdToRemove); err != nil {
+		return err
+	}
+
+	go PostRemoveFromChannelMessage(removerUserId, user, channel)
 
 	return nil
 }

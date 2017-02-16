@@ -35,7 +35,6 @@ func SessionHasPermissionToChannel(session model.Session, channelId string, perm
 	channelMember, err := GetChannelMember(channelId, session.UserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
-		l4g.Debug(roles)
 		if CheckIfRolesGrantPermission(roles, permission.Id) {
 			return true
 		}

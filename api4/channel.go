@@ -25,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
+	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
 	BaseRoutes.ChannelMember.Handle("/roles", ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
 	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 }
@@ -270,6 +271,39 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = err
 		return
 	}
+
+	ReturnStatusOK(w)
+}
+
+func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	var channel *model.Channel
+	var err *model.AppError
+	if channel, err = app.GetChannel(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+		return
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+		return
+	}
+
+	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
 
 	ReturnStatusOK(w)
 }
