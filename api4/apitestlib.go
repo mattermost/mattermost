@@ -260,6 +260,20 @@ func (me *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 	utils.EnableDebugLogForTest()
 }
 
+func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
+	utils.DisableDebugLogForTest()
+
+	_, err := app.UpdateActive(user, active)
+	if err != nil {
+		l4g.Error(err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
 func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
