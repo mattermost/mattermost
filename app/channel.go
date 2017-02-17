@@ -77,7 +77,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 }
 
 func CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -194,6 +194,60 @@ func WaitForChannelMembership(channelId string, userId string) {
 		}
 
 		l4g.Error("WaitForChannelMembership giving up channelId=%v userId=%v", channelId, userId)
+	}
+}
+
+func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var users []*model.User
+	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users = result.Data.([]*model.User)
+	}
+
+	if len(users) != len(userIds) {
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
+	}
+
+	group := &model.Channel{
+		Name:        model.GetGroupNameFromUserIds(userIds),
+		DisplayName: model.GetGroupDisplayNameFromUsers(users),
+		Type:        model.CHANNEL_GROUP,
+	}
+
+	if result := <-Srv.Store.Channel().Save(group); result.Err != nil {
+		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
+			return result.Data.(*model.Channel), nil
+		} else {
+			return nil, result.Err
+		}
+	} else {
+		channel := result.Data.(*model.Channel)
+
+		for _, user := range users {
+			cm := &model.ChannelMember{
+				UserId:      user.Id,
+				ChannelId:   group.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+				Roles:       model.ROLE_CHANNEL_USER.Id,
+			}
+
+			if result := <-Srv.Store.Channel().SaveMember(cm); result.Err != nil {
+				return nil, result.Err
+			}
+
+			InvalidateCacheForUser(user.Id)
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", group.Id, "", nil)
+		message.Add("teammate_ids", model.ArrayToJson(userIds))
+		Publish(message)
+
+		return channel, nil
 	}
 }
 
@@ -702,7 +756,7 @@ func LeaveChannel(channelId string, userId string) *model.AppError {
 		user := uresult.Data.(*model.User)
 		membersCount := ccmresult.Data.(int64)
 
-		if channel.Type == model.CHANNEL_DIRECT {
+		if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 			err := model.NewLocAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "")
 			err.StatusCode = http.StatusBadRequest
 			return err
