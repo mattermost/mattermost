@@ -18,9 +18,9 @@ import (
 const (
 	MISSING_ACCOUNT_ERROR                      = "store.sql_user.missing_account.const"
 	MISSING_AUTH_ACCOUNT_ERROR                 = "store.sql_user.get_by_auth.missing_account.app_error"
-	PROFILES_IN_CHANNEL_CACHE_SIZE             = 5000
+	PROFILES_IN_CHANNEL_CACHE_SIZE             = model.CHANNEL_CACHE_SIZE
 	PROFILES_IN_CHANNEL_CACHE_SEC              = 900 // 15 mins
-	PROFILE_BY_IDS_CACHE_SIZE                  = 20000
+	PROFILE_BY_IDS_CACHE_SIZE                  = model.SESSION_CACHE_SIZE
 	PROFILE_BY_IDS_CACHE_SEC                   = 900 // 15 mins
 	USER_SEARCH_OPTION_NAMES_ONLY              = "names_only"
 	USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME = "names_only_no_full_name"

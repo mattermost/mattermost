@@ -24,11 +24,10 @@ const (
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
 
-	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = 20000
-	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 900 // 15 mins
+	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
-	CHANNEL_CACHE_SIZE = 5000
-	CHANNEL_CACHE_SEC  = 900 // 15 mins
+	CHANNEL_CACHE_SEC = 900 // 15 mins
 )
 
 type SqlChannelStore struct {
@@ -37,8 +36,8 @@ type SqlChannelStore struct {
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
-var channelCache = utils.NewLru(CHANNEL_CACHE_SIZE)
-var channelByNameCache = utils.NewLru(CHANNEL_CACHE_SIZE)
+var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
+var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func ClearChannelCaches() {
 	channelMemberCountsCache.Purge()
@@ -360,7 +359,7 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) StoreC
 			result.Err = model.NewLocAppError("SqlChannelStore.Get", "store.sql_channel.get.existing.app_error", nil, "id="+id)
 		} else {
 			result.Data = obj.(*model.Channel)
-			channelCache.AddWithExpiresInSecs(id, obj.(*model.Channel), CHANNEL_MEMBERS_COUNTS_CACHE_SEC)
+			channelCache.AddWithExpiresInSecs(id, obj.(*model.Channel), CHANNEL_CACHE_SEC)
 		}
 
 		storeChannel <- result
