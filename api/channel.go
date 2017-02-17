@@ -25,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/view", ApiUserRequired(viewChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/create_group", ApiUserRequired(createGroupChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
@@ -91,6 +92,38 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sc, err := app.CreateDirectChannel(c.Session.UserId, userId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(sc.ToJson()))
+	}
+}
+
+func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_CREATE_GROUP_CHANNEL)
+		return
+	}
+
+	userIds := model.ArrayFromJson(r.Body)
+	if len(userIds) == 0 {
+		c.SetInvalidParam("createGroupChannel", "user_ids")
+		return
+	}
+
+	found := false
+	for _, id := range userIds {
+		if id == c.Session.UserId {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		userIds = append(userIds, c.Session.UserId)
+	}
+
+	if sc, err := app.CreateGroupChannel(userIds); err != nil {
 		c.Err = err
 		return
 	} else {

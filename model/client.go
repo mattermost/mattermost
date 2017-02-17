@@ -1120,6 +1120,16 @@ func (c *Client) CreateDirectChannel(userId string) (*Result, *AppError) {
 	}
 }
 
+func (c *Client) CreateGroupChannel(userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create_group", ArrayToJson(userIds)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) UpdateChannel(channel *Channel) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/update", channel.ToJson()); err != nil {
 		return nil, err

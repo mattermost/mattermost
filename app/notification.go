@@ -299,8 +299,8 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 }
 
 func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
-	if channel.Type == model.CHANNEL_DIRECT && channel.TeamId != team.Id {
-		// this message is a cross-team DM so it we need to find a team that the recipient is on to use in the link
+	if (channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP) && channel.TeamId != team.Id {
+		// this message is a cross-team DM/GM so we need to find a team that the recipient is on to use in the link
 		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
 		} else {
@@ -358,7 +358,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	year := fmt.Sprintf("%d", tm.Year())
 	zone, _ := tm.Zone()
 
-	if channel.Type == model.CHANNEL_DIRECT {
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		bodyText = userLocale("api.post.send_notifications_and_forget.message_body")
 		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
 
@@ -481,7 +481,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Category = model.CATEGORY_DM
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned {
+		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
