@@ -399,6 +399,27 @@ func (c *Client4) ResetPassword(code, newPassword string) (bool, *Response) {
 	}
 }
 
+// GetSessions returns a list of sessions based on the provided user id string.
+func (c *Client4) GetSessions(userId, etag string) ([]*Session, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/sessions", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return SessionsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RevokeSession revokes a user session based on the provided user id and session id strings.
+func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
+	requestBody := map[string]string{"session_id": sessionId}
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/sessions/revoke", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
