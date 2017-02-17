@@ -226,17 +226,14 @@ func TestGetTeamStats(t *testing.T) {
 	// deactivate BasicUser2
 	th.UpdateActiveUser(th.BasicUser2, false)
 
-	sstats, resp := th.SystemAdminClient.GetTeamStats(team.Id, "")
+	rstats, resp = th.SystemAdminClient.GetTeamStats(team.Id, "")
 	CheckNoError(t, resp)
 
-	t.Logf("sstats: %+v\n", rstats)
-
-	if sstats.TotalMemberCount != 3 {
+	if rstats.TotalMemberCount != 3 {
 		t.Fatal("wrong count")
 	}
 
-	if sstats.ActiveMemberCount != 2 {
-		t.Logf("wrong ActiveMemberCount: %v", sstats.ActiveMemberCount)
+	if rstats.ActiveMemberCount != 2 {
 		t.Fatal("wrong count")
 	}
 
