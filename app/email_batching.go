@@ -244,6 +244,8 @@ func renderBatchedPost(template *utils.HTMLTemplate, post *model.Post, teamName 
 		return ""
 	} else if channel := result.Data.(*model.Channel); channel.Type == model.CHANNEL_DIRECT {
 		template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.direct_message")
+	} else if channel.Type == model.CHANNEL_GROUP {
+		template.Props["ChannelName"] = translateFunc("api.email_batching.render_batched_post.group_message")
 	} else {
 		template.Props["ChannelName"] = channel.DisplayName
 	}
