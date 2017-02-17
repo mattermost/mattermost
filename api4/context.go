@@ -382,12 +382,24 @@ func (c *Context) RequirePostId() *Context {
 	return c
 }
 
+func (c *Context) RequireFileId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.FileId) != 26 {
+		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
 func (c *Context) RequireTeamName() *Context {
 	if c.Err != nil {
 		return c
 	}
 
-	if !model.IsValidTeamName(c.Params.TeamName){
+	if !model.IsValidTeamName(c.Params.TeamName) {
 		c.SetInvalidUrlParam("team_name")
 	}
 
@@ -401,7 +413,7 @@ func (c *Context) RequireChannelName() *Context {
 
 	if !model.IsValidChannelIdentifier(c.Params.ChannelName) {
 		c.SetInvalidUrlParam("channel_name")
-	} 
+	}
 
 	return c
 }
@@ -417,5 +429,3 @@ func (c *Context) RequireEmail() *Context {
 
 	return c
 }
-
-

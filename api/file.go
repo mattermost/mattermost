@@ -4,9 +4,6 @@
 package api
 
 import (
-	"bytes"
-	_ "image/gif"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -16,7 +13,6 @@ import (
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	_ "golang.org/x/image/bmp"
 )
 
 func InitFile() {
@@ -35,12 +31,6 @@ func InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
 		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
@@ -70,47 +60,11 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resStruct := &model.FileUploadResponse{
-		FileInfos: []*model.FileInfo{},
-		ClientIds: []string{},
+	resStruct, err := app.UploadFiles(c.TeamId, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+	if err != nil {
+		c.Err = err
+		return
 	}
-
-	previewPathList := []string{}
-	thumbnailPathList := []string{}
-	imageDataList := [][]byte{}
-
-	for i, fileHeader := range m.File["files"] {
-		file, fileErr := fileHeader.Open()
-		defer file.Close()
-		if fileErr != nil {
-			http.Error(w, fileErr.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
-		data := buf.Bytes()
-
-		info, err := app.DoUploadFile(c.TeamId, channelId, c.Session.UserId, fileHeader.Filename, data)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		if info.PreviewPath != "" || info.ThumbnailPath != "" {
-			previewPathList = append(previewPathList, info.PreviewPath)
-			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
-			imageDataList = append(imageDataList, data)
-		}
-
-		resStruct.FileInfos = append(resStruct.FileInfos, info)
-
-		if len(m.Value["client_ids"]) > 0 {
-			resStruct.ClientIds = append(resStruct.ClientIds, m.Value["client_ids"][i])
-		}
-	}
-
-	app.HandleImages(previewPathList, thumbnailPathList, imageDataList)
 
 	w.Write([]byte(resStruct.ToJson()))
 }
@@ -239,11 +193,9 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 		return nil, NewInvalidParamError("getFileInfoForRequest", "file_id")
 	}
 
-	var info *model.FileInfo
-	if result := <-app.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
-		return nil, result.Err
-	} else {
-		info = result.Data.(*model.FileInfo)
+	info, err := app.GetFileInfo(fileId)
+	if err != nil {
+		return nil, err
 	}
 
 	// only let users access files visible in a channel, unless they're the one who uploaded the file
