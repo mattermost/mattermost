@@ -802,3 +802,100 @@ func TestResetPassword(t *testing.T) {
 	_, resp = Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
 }
+
+func TestGetSessions(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+
+	Client.Login(user.Email, user.Password)
+	
+	sessions, resp := Client.GetSessions(user.Id, "")
+	for _, session := range sessions {
+		if session.UserId != user.Id {
+			t.Fatal("user id does not match session user id")
+		}
+	}
+	CheckNoError(t, resp)
+
+	_, resp = Client.RevokeSession("junk", model.NewId())
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetSessions(th.BasicUser2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetSessions(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetSessions(th.BasicUser2.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetSessions(user.Id, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetSessions(th.BasicUser2.Id, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetSessions(model.NewId(), "")
+	CheckNoError(t, resp)
+
+}
+
+func TestRevokeSessions(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	Client.Login(user.Email, user.Password)
+	sessions, _ := Client.GetSessions(user.Id, "")
+	if len(sessions) == 0 {
+		t.Fatal("sessions should exist")
+	}
+	for _, session := range sessions {
+		if session.UserId != user.Id {
+			t.Fatal("user id does not match session user id")
+		}
+	}
+	session := sessions[0]
+
+	_, resp := Client.RevokeSession(user.Id, model.NewId())
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RevokeSession(th.BasicUser2.Id, model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.RevokeSession("junk", model.NewId())
+	CheckBadRequestStatus(t, resp)
+
+	status, resp := Client.RevokeSession(user.Id, session.Id)
+	if status == false {
+		t.Fatal("user session revoke unsuccessful")
+	}
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.RevokeSession(user.Id, model.NewId())
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RevokeSession(user.Id, model.NewId())
+	CheckBadRequestStatus(t, resp)
+
+	sessions, _ = th.SystemAdminClient.GetSessions(th.SystemAdminUser.Id, "")
+	if len(sessions) == 0 {
+		t.Fatal("sessions should exist")
+	}
+	for _, session := range sessions {
+		if session.UserId != th.SystemAdminUser.Id {
+			t.Fatal("user id does not match session user id")
+		}
+	}
+	session = sessions[0]
+
+	_, resp = th.SystemAdminClient.RevokeSession(th.SystemAdminUser.Id, session.Id)
+	CheckNoError(t, resp)
+
+}
