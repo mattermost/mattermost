@@ -805,6 +805,7 @@ func TestResetPassword(t *testing.T) {
 
 func TestGetSessions(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
 	Client := th.Client
 
 	user := th.BasicUser
@@ -860,20 +861,10 @@ func TestRevokeSessions(t *testing.T) {
 	_, resp = Client.RevokeSession(user.Id, model.NewId())
 	CheckUnauthorizedStatus(t, resp)
 
-
 	_, resp = th.SystemAdminClient.RevokeSession(user.Id, model.NewId())
 	CheckBadRequestStatus(t, resp)
 
-	sessions, _ = Client.GetSessions(th.BasicUser2.Id, "")
-	if len(sessions) == 0 {
-		t.Fatal("sessions should exist")
-	}
-	session = sessions[0]
-
-	_, resp = th.SystemAdminClient.RevokeSession(th.BasicUser2.Id, session.Id)
-	CheckNoError(t, resp)
-
-	sessions, _ = Client.GetSessions(th.SystemAdminUser.Id, "")
+	sessions, _ = th.SystemAdminClient.GetSessions(th.SystemAdminUser.Id, "")
 	if len(sessions) == 0 {
 		t.Fatal("sessions should exist")
 	}
