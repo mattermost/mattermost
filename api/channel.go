@@ -197,12 +197,7 @@ func WaitForChannelMembership(channelId string, userId string) {
 			}
 
 			// If we recieved a error but it wasn't a missing channel member then return
-			if result.Err != nil && result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
-				return
-			}
-
-			// we have a membership
-			if result.Data != nil {
+			if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 				return
 			}
 		}
