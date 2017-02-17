@@ -200,6 +200,14 @@
     "translation": "Must use createDirectChannel API service for direct message channel creation"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "One of the provided users does not exist"
+  },
+  {
     "id": "api.channel.create_channel.invalid_character.app_error",
     "translation": "Invalid character '__' in channel name for non-direct channel"
   },
@@ -886,6 +894,10 @@
   {
     "id": "api.email_batching.render_batched_post.direct_message",
     "translation": "Direct Message"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "Group Message"
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -2982,6 +2994,34 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.import_user.save_preferences.error",
+    "translation": "Failed to save the provided preferences for the user."
+  },
+  {
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
+    "translation": "Did not find a valid version type object in the first line of the import data file."
+  },
+  {
+    "id": "app.import.bulk_import.unsupported_version.error",
+    "translation": "The version of the import data file format of the provided file is not supported by this version of Mattermost."
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "Ability to create new group message channels"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "Create Group Message"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
