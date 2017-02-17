@@ -1730,7 +1730,7 @@
   "rename_channel.defaultError": " - 預設頻道不能更改",
   "rename_channel.displayName": "顯示名稱",
   "rename_channel.displayNameHolder": "請輸入顯示名稱",
-  "rename_channel.handle": "識別名",
+  "rename_channel.url": "鏈接地址",
   "rename_channel.handleHolder": "僅限小寫英數字",
   "rename_channel.lowercase": "請用小寫英數字",
   "rename_channel.maxLength": "此欄位必須少於22個字元",

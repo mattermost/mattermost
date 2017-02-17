@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
-import {getShortenedTeamURL} from 'utils/url.jsx';
+import {getShortenedURL} from 'utils/url.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
@@ -190,7 +190,7 @@ export default class NewChannelModal extends React.Component {
             break;
         }
 
-        const prettyTeamURL = getShortenedTeamURL();
+        const prettyTeamURL = getShortenedURL();
 
         return (
             <span>
