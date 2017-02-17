@@ -160,7 +160,7 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 		}
 	} else if user.AuthService != "" {
 		authService := user.AuthService
-		if authService == model.USER_AUTH_SERVICE_SAML || authService == model.USER_AUTH_SERVICE_LDAP {
+		if authService == model.USER_AUTH_SERVICE_SAML {
 			authService = strings.ToUpper(authService)
 		}
 		err := model.NewLocAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "")
