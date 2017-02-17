@@ -814,6 +814,9 @@ func TestGetSessions(t *testing.T) {
 	_, resp := Client.GetSessions(user.Id, "")
 	CheckNoError(t, resp)
 
+	_, resp = Client.RevokeSession("junk", model.NewId())
+	CheckBadRequestStatus(t, resp)
+
 	_, resp = Client.GetSessions(th.BasicUser2.Id, "")
 	CheckForbiddenStatus(t, resp)
 
@@ -853,6 +856,9 @@ func TestRevokeSessions(t *testing.T) {
 
 	_, resp = Client.RevokeSession(th.BasicUser2.Id, model.NewId())
 	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.RevokeSession("junk", model.NewId())
+	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.RevokeSession(user.Id, session.Id)
 	CheckNoError(t, resp)
