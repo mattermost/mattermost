@@ -1730,7 +1730,7 @@
   "rename_channel.defaultError": "-不能改变默认频道",
   "rename_channel.displayName": "显示名称",
   "rename_channel.displayNameHolder": "输入显示名",
-  "rename_channel.handle": "识别名",
+  "rename_channel.url": "链接地址",
   "rename_channel.handleHolder": "小写字母数字#39;只有",
   "rename_channel.lowercase": "必须小写字母数字字符",
   "rename_channel.maxLength": "这个字段必须少于22个字符",

@@ -135,10 +135,10 @@ export default class ChangeUrlModal extends React.Component {
             );
         }
 
-        const fullTeamUrl = TeamStore.getCurrentTeamUrl();
-        const teamURL = URL.getShortenedTeamURL(TeamStore.getCurrentTeamUrl());
+        const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
+        const shortURL = URL.getShortenedURL(fullUrl);
         const urlTooltip = (
-            <Tooltip id='urlTooltip'>{fullTeamUrl}</Tooltip>
+            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
         );
 
         return (
@@ -165,7 +165,7 @@ export default class ChangeUrlModal extends React.Component {
                                         placement='top'
                                         overlay={urlTooltip}
                                     >
-                                        <span className='input-group-addon'>{teamURL}</span>
+                                        <span className='input-group-addon'>{shortURL}</span>
                                     </OverlayTrigger>
                                     <input
                                         type='text'

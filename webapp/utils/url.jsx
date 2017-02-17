@@ -9,11 +9,12 @@ export function cleanUpUrlable(input) {
     return cleaned;
 }
 
-export function getShortenedTeamURL(teamURL = '') {
-    if (teamURL.length > 35) {
-        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length) + '/';
+export function getShortenedURL(url = '', getLength = 27) {
+    if (url.length > 35) {
+        const subLength = getLength - 14;
+        return url.substring(0, 10) + '...' + url.substring(url.length - subLength, url.length) + '/';
     }
-    return teamURL + '/';
+    return url + '/';
 }
 
 export function getSiteURL() {
