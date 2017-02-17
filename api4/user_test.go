@@ -889,13 +889,11 @@ func TestRevokeSessions(t *testing.T) {
 	if len(sessions) == 0 {
 		t.Fatal("sessions should exist")
 	}
-
 	for _, session := range sessions {
 		if session.UserId != th.SystemAdminUser.Id {
 			t.Fatal("user id does not match session user id")
 		}
-    }
-
+	}
 	session = sessions[0]
 
 	_, resp = th.SystemAdminClient.RevokeSession(th.SystemAdminUser.Id, session.Id)
