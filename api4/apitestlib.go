@@ -4,7 +4,10 @@
 package api4
 
 import (
+	"bytes"
+	"io"
 	"net/http"
+	"os"
 	"reflect"
 	"runtime/debug"
 	"strconv"
@@ -17,6 +20,8 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+
+	s3 "github.com/minio/minio-go"
 )
 
 type TestHelper struct {
@@ -397,4 +402,67 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
 	}
+}
+
+func readTestFile(name string) ([]byte, error) {
+	path := utils.FindDir("tests")
+	file, err := os.Open(path + "/" + name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	data := &bytes.Buffer{}
+	if _, err := io.Copy(data, file); err != nil {
+		return nil, err
+	} else {
+		return data.Bytes(), nil
+	}
+}
+
+func cleanupTestFile(info *model.FileInfo) error {
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		if err != nil {
+			return err
+		}
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
+			return err
+		}
+
+		if info.ThumbnailPath != "" {
+			if err := s3Clnt.RemoveObject(bucket, info.ThumbnailPath); err != nil {
+				return err
+			}
+		}
+
+		if info.PreviewPath != "" {
+			if err := s3Clnt.RemoveObject(bucket, info.PreviewPath); err != nil {
+				return err
+			}
+		}
+	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if err := os.Remove(utils.Cfg.FileSettings.Directory + info.Path); err != nil {
+			return err
+		}
+
+		if info.ThumbnailPath != "" {
+			if err := os.Remove(utils.Cfg.FileSettings.Directory + info.ThumbnailPath); err != nil {
+				return err
+			}
+		}
+
+		if info.PreviewPath != "" {
+			if err := os.Remove(utils.Cfg.FileSettings.Directory + info.PreviewPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

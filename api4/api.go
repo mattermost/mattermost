@@ -143,6 +143,7 @@ func InitApi(full bool) {
 	InitTeam()
 	InitChannel()
 	InitPost()
+	InitFile()
 	InitSystem()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
