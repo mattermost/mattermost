@@ -4,6 +4,8 @@
 package app
 
 import (
+	"strings"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 )
@@ -32,16 +34,20 @@ func SessionHasPermissionToChannel(session model.Session, channelId string, perm
 		return false
 	}
 
-	channelMember, err := GetChannelMember(channelId, session.UserId)
-	if err == nil {
-		roles := channelMember.GetRoles()
-		if CheckIfRolesGrantPermission(roles, permission.Id) {
-			return true
+	cmc := Srv.Store.Channel().GetAllChannelMembersForUser(session.UserId, true)
+
+	var channelRoles []string
+	if cmcresult := <-cmc; cmcresult.Err == nil {
+		ids := cmcresult.Data.(map[string]string)
+		if roles, ok := ids[channelId]; ok {
+			channelRoles = strings.Fields(roles)
+			if CheckIfRolesGrantPermission(channelRoles, permission.Id) {
+				return true
+			}
 		}
 	}
 
-	var channel *model.Channel
-	channel, err = GetChannel(channelId)
+	channel, err := GetChannel(channelId)
 	if err == nil {
 		return SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
