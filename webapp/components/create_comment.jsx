@@ -45,7 +45,7 @@ export default class CreateComment extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
-        this.handleUploadClick = this.handleUploadClick.bind(this);
+        this.handleFileUploadChange = this.handleFileUploadChange.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -314,7 +314,7 @@ export default class CreateComment extends React.Component {
         }
     }
 
-    handleUploadClick() {
+    handleFileUploadChange() {
         // [PLT-5445] Mobile view: Set focus back to message box after uploading a file
         this.focusTextbox(true);
     }
@@ -401,9 +401,9 @@ export default class CreateComment extends React.Component {
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        const enableAddButton = this.handleEnableAddButton(this.state.message, fileInfos);
+        this.setState({fileInfos, uploadsInProgress});
 
-        this.setState({fileInfos, uploadsInProgress, enableAddButton});
+        this.handleFileUploadChange();
     }
 
     componentWillReceiveProps(newProps) {
@@ -525,7 +525,7 @@ export default class CreateComment extends React.Component {
                             <FileUpload
                                 ref='fileUpload'
                                 getFileCount={this.getFileCount}
-                                onClick={this.handleUploadClick}
+                                onFileUploadChange={this.handleFileUploadChange}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
                                 onUploadError={this.handleUploadError}
