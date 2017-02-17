@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
@@ -153,6 +154,8 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	} else {
 		channel := result.Data.(*model.Channel)
 
+		WaitForChannelMembership(channel.Id, userId)
+
 		InvalidateCacheForUser(userId)
 		InvalidateCacheForUser(otherUserId)
 
@@ -161,6 +164,31 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 		Publish(message)
 
 		return channel, nil
+	}
+}
+
+func WaitForChannelMembership(channelId string, userId string) {
+	if len(utils.Cfg.SqlSettings.DataSourceReplicas) > 0 {
+		now := model.GetMillis()
+
+		for model.GetMillis()-now < 12000 {
+
+			time.Sleep(100 * time.Millisecond)
+
+			result := <-Srv.Store.Channel().GetMember(channelId, userId)
+
+			// If the membership was found then return
+			if result.Err == nil {
+				return
+			}
+
+			// If we recieved a error but it wasn't a missing channel member then return
+			if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
+				return
+			}
+		}
+
+		l4g.Error("WaitForChannelMembership giving up channelId=%v userId=%v", channelId, userId)
 	}
 }
 
@@ -326,6 +354,8 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
 	}
+
+	WaitForChannelMembership(channel.Id, user.Id)
 
 	InvalidateCacheForUser(user.Id)
 	InvalidateCacheForChannelMembers(channel.Id)
