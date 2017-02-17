@@ -773,7 +773,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+ВВЕРХ: Следующий канал или диалог в левом боковом меню с непрочитанными сообщениями\n"
+    "translation": "ALT+SHIFT+ВНИЗ: Следующий канал или диалог в левом боковом меню с непрочитанными сообщениями\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_prev",
@@ -939,7 +939,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Невозможно создать смайлик. Изображение должно быть не более 1 Мб."
+    "translation": "Невозможно создать эмодзи. Изображение должно быть не более 1 MB."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
@@ -1027,7 +1027,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Не удалось получить публичную ссылку на файл. Файл должен быть прикреплен к сообщению, которое может быть прочитано текущим пользователем."
+    "translation": "Не удалось получить публичную ссылку для файла. Файл должен быть прикреплен к сообщению, которое может быть прочитано текущим пользователем."
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
@@ -1489,7 +1489,7 @@
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.event_post.error",
-    "translation": "Ошибка отправки события, err=%s"
+    "translation": "Ошибка события POST, err=%s"
   },
   {
     "id": "api.post.init.debug",
@@ -1517,7 +1517,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "Создатель сообщения отсутствует в канале, уведомление не отправлено post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1569,7 +1569,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "Не удалось отправить push-уведомление device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -1757,7 +1757,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Не найден файл с идентификатором {{.FileId}}, в экспорте из Слак, для загрузки сообщения"
+    "translation": "Не найден файл с идентификатором {{.FileId}} в экспорте из Slack для загрузки сообщения"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
@@ -2077,7 +2077,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost позволяет обмениваться сообщениями и файлами с компьютера или телефона, с возможностью моментального поиска и архивирования. После того, как Вы присоединитесь к команде <strong>{{.TeamDisplayName}}</strong>, Вы сможете получить доступ к этим функциям в любое время через Веб-сайт:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost позволяет обмениваться сообщениями и файлами с компьютера или телефона с возможностью моментального поиска и архивирования. После того, как Вы присоединитесь к команде <strong>{{.TeamDisplayName}}</strong>, Вы сможете получить доступ к этим функциям в любое время через Веб-сайт:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -2101,7 +2101,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Ваша МПП обновлена на {{ .SiteName }}"
+    "translation": "Ваша MFA обновлена на {{ .SiteName }}"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2909,15 +2909,23 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
-    "translation": "Channel name missing from User's Channel Membership."
+    "translation": "Пропущено имя канала в «Участие пользователей на каналах»"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "Invalid roles for User's Channel Membership."
+    "translation": "Не правильные роли в «Участие пользователей на каналах»"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
-    "translation": "User AuthData is too long."
+    "translation": "Структура AuthData пользователя слишком большая."
   },
   {
     "id": "app.import.validate_user_import_data.auth_service_length.error",
@@ -2961,11 +2969,11 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "Invalid roles for User's Team Membership."
+    "translation": "Неправильные роли в «Участие пользователей в команде»"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "Team name missing from User's Team Membership."
+    "translation": "Пропущено имя команды в «Участие пользователей в команде»"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3605,7 +3613,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Невозможно включить почтовые объединения при включенной кластеризации"
+    "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4509,7 +4517,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Не удалось найти существующий канал"
+    "translation": "Не удалось найти существующий удалённый канал"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
@@ -4557,7 +4565,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Неудачная попытка удалить канал"
+    "translation": "Не удалось удалить канал"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
@@ -4925,7 +4933,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Неудачная попытка удалить канал"
+    "translation": "Не удалось удалить сообщения на канале"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5237,7 +5245,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "Команда с таким доменом уже существует"
+    "translation": "Команда с таким именем уже существует"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -5333,7 +5341,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Мы не смогли найти пользователя"
+    "translation": "Не удалось найти пользователя"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",

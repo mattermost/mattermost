@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Invalid user ID for direct channel creation"
+    "translation": "ID del usuario no válido para la creación del canal directo"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -2912,6 +2912,14 @@
     "translation": "Channel name missing from User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
     "translation": "Invalid roles for User's Channel Membership."
   },
@@ -4593,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "Un canal con ese nombre ya existe en el mismo equipo"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4925,7 +4933,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "No pudimos eliminar el canal"
+    "translation": "No pudimos eliminar los mensajes de canal"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",

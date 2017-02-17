@@ -2813,7 +2813,7 @@
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "インポートデータに \"user\" という型がありましたが、そのユーザーのオブジェクトがnullでした。"
+    "translation": "インポートデータに \"user\" という型がありましたが、そのユーザーのオブジェクトはnullです。"
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
@@ -2910,6 +2910,14 @@
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
     "translation": "ユーザーのチャンネルメンバーシップにチャンネル名が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "ユーザーのチャンネルメンバーシップのデスクトップ通知設定が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "ユーザーのチャンネルメンバーシップの未読マーク設定が不正です。"
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",

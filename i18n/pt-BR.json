@@ -2813,7 +2813,7 @@
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "A linha de dados de importação tem o tipo \"user\", mas o objeto user é nulo."
+    "translation": "A linha de dados de importação é do tipo \"user\" mas o objeto user é nulo."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
@@ -2910,6 +2910,14 @@
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
     "translation": "Falta nome do canal em Usuário Membro do Canal."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",

@@ -2081,7 +2081,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "L'équipe {{.SenderStatus}} <strong>{{.SenderName}}</strong>, vous a invité à rejoindre <strong>{{.TeamDisplayName}}</strong>."
+    "translation": "<strong>{{.SenderName}}</strong>, {{.SenderStatus}} de l'équipe, vous invite à rejoindre <strong>{{.TeamDisplayName}}</strong>."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2813,7 +2813,7 @@
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "Import data line has type \"user\" but the user objcet is null."
+    "translation": "Import data line has type \"user\" but the user object is null."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
@@ -2910,6 +2910,14 @@
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
     "translation": "Channel name missing from User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",

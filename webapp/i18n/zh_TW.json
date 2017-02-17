@@ -1758,7 +1758,6 @@
   "rhs_root.mobile.flag": "標記",
   "rhs_root.mobile.unflag": "取消標記",
   "rhs_root.permalink": "永久網址",
-  "search_bar.cancel": "取消",
   "search_bar.search": "搜尋",
   "search_bar.usage": "<h4>搜尋選項</h4><ul><li><span>用</span><b>\"雙引號\"</b><span>來搜尋語句</span></li><li><span>用</span><b>from:</b><span>來搜尋特定使用者的訊息，用</span><b>in:</b><span>來搜尋特定頻道</span></li></ul>",
   "search_header.results": "搜尋結果",
