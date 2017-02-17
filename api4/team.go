@@ -21,7 +21,7 @@ func InitTeam() {
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
-
+	BaseRoutes.TeamStats.Handle("", ApiSessionRequired(getTeamStats)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -101,6 +101,26 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(team.ToJson()))
+		return
+	}
+}
+
+func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	if stats, err := app.GetTeamStats(c.Params.TeamId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(stats.ToJson()))
 		return
 	}
 }

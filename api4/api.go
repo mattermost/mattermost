@@ -31,6 +31,7 @@ type Routes struct {
 	TeamByName   *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
 	TeamMembers  *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
 	TeamMember   *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
+	TeamStats    *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/stats'
 
 	Channels                 *mux.Router // 'api/v4/channels'
 	Channel                  *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}'
@@ -100,6 +101,7 @@ func InitApi(full bool) {
 	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
 	BaseRoutes.TeamMember = BaseRoutes.TeamMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.TeamStats = BaseRoutes.Team.PathPrefix("/stats").Subrouter()
 
 	BaseRoutes.Channels = BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
 	BaseRoutes.Channel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()

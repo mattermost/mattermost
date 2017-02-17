@@ -80,6 +80,10 @@ func (c *Client4) GetTeamMemberRoute(teamId, userId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId)+"/members/%v", userId)
 }
 
+func (c *Client4) GetTeamStatsRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/stats")
+}
+
 func (c *Client4) GetChannelsRoute() string {
 	return fmt.Sprintf("/channels")
 }
@@ -429,6 +433,17 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 	} else {
 		defer closeBody(r)
 		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamStats returns a team stats based on the team id string.
+// Must be authenticated.
+func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamStatsRoute(teamId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamStatsFromJson(r.Body), BuildResponse(r)
 	}
 }
 

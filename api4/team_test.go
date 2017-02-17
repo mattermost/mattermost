@@ -192,3 +192,57 @@ func TestGetTeamMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetTeamMember(team.Id, user.Id, "")
 	CheckNoError(t, resp)
 }
+
+func TestGetTeamStats(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	rstats, resp := Client.GetTeamStats(team.Id, "")
+	CheckNoError(t, resp)
+
+	if rstats.TeamId != team.Id {
+		t.Fatal("wrong team id")
+	}
+
+	if rstats.TotalMemberCount != 3 {
+		t.Fatal("wrong count")
+	}
+
+	if rstats.ActiveMemberCount != 3 {
+		t.Fatal("wrong count")
+	}
+
+	_, resp = Client.GetTeamStats("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamStats(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetTeamStats(team.Id, "")
+	CheckNoError(t, resp)
+
+	// deactivate BasicUser2
+	th.UpdateActiveUser(th.BasicUser2, false)
+
+	sstats, resp := th.SystemAdminClient.GetTeamStats(team.Id, "")
+	CheckNoError(t, resp)
+
+	t.Logf("sstats: %+v\n", rstats)
+
+	if sstats.TotalMemberCount != 3 {
+		t.Fatal("wrong count")
+	}
+
+	if sstats.ActiveMemberCount != 2 {
+		t.Logf("wrong ActiveMemberCount: %v", sstats.ActiveMemberCount)
+		t.Fatal("wrong count")
+	}
+
+	// login with different user and test if forbidden
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetTeamStats(th.BasicTeam.Id, "")
+	CheckForbiddenStatus(t, resp)
+}
