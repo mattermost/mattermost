@@ -1297,7 +1297,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(view.PrevChannelId) > 0 {
 		channelIds = append(channelIds, view.PrevChannelId)
 
-		if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() {
+		if *utils.Cfg.EmailSettings.SendPushNotifications && !c.Session.IsMobileApp() && len(view.ChannelId) > 0 {
 			pchan = Srv.Store.User().GetUnreadCountForChannel(c.Session.UserId, view.ChannelId)
 		}
 	}
