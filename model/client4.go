@@ -112,6 +112,10 @@ func (c *Client4) GetPostRoute(postId string) string {
 	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
 }
 
+func (c *Client4) GetSystemRoute() string {
+	return fmt.Sprintf("/system")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -567,6 +571,15 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 	} else {
 		defer closeBody(r)
 		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+func (c *Client4) GetPing() (bool, *Response) {
+	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
