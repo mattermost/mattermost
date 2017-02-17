@@ -19,9 +19,9 @@ func InitTeam() {
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
+	BaseRoutes.Team.Handle("/stats", ApiHandler(getTeamStats)).Methods("GET")
 
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
-	BaseRoutes.TeamStats.Handle("", ApiSessionRequired(getTeamStats)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
