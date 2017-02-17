@@ -811,12 +811,13 @@ func TestGetSessions(t *testing.T) {
 	user := th.BasicUser
 
 	Client.Login(user.Email, user.Password)
+	
 	sessions, resp := Client.GetSessions(user.Id, "")
 	for _, session := range sessions {
 		if session.UserId != user.Id {
 			t.Fatal("user id does not match session user id")
 		}
-    }
+	}
 	CheckNoError(t, resp)
 
 	_, resp = Client.RevokeSession("junk", model.NewId())
@@ -854,13 +855,11 @@ func TestRevokeSessions(t *testing.T) {
 	if len(sessions) == 0 {
 		t.Fatal("sessions should exist")
 	}
-
 	for _, session := range sessions {
 		if session.UserId != user.Id {
 			t.Fatal("user id does not match session user id")
 		}
-    }
-
+	}
 	session := sessions[0]
 
 	_, resp := Client.RevokeSession(user.Id, model.NewId())
