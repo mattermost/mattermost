@@ -11,7 +11,7 @@ import (
 
 const (
 	EMOJI_CACHE_SIZE = 5000
-	EMOJI_CACHE_SEC  = 1800 // 60 mins
+	EMOJI_CACHE_SEC  = 1800 // 30 mins
 )
 
 var emojiCache *utils.Cache = utils.NewLru(EMOJI_CACHE_SIZE)
