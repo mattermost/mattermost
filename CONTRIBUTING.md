@@ -44,8 +44,8 @@ The Product Manager may come back with some bugs or UI improvements to fix befor
    - Once changes are made, PM regenerates test server and repeats testing.
  - If bugs are found that are also on `master`, submit a new bug report in JIRA and link them in the PR so the submitter is aware they exist
  - If PR is approved, PM submits review as "Approved" commenting with areas that were tested
-  - PM removes `1: PM Review` and `Setup Test Server` labels
-  - PM applies the `Stage 2: Dev Review` label, which moves the PR to Stage 2
+   - PM removes `1: PM Review` and `Setup Test Server` labels
+   - PM applies the `Stage 2: Dev Review` label, which moves the PR to Stage 2
 
 #### Stage 2: Dev Review
 
@@ -59,7 +59,7 @@ Any comments will need to be addressed before the pull request moves on to the l
 
 The review process is complete, and the pull request will be merged. 
 
-#### Merged
+#### PR Merged
 
 - External Contributions: PM closes the [Help Wanted] issue and related Jira ticket
 - Internal Contributions: Dev resolves JIRA ticket
