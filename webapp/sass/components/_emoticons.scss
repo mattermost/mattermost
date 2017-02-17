@@ -53,7 +53,7 @@
     @include user-select(none);
     position: absolute;
     z-index: 40;
-    right: 1%;
+    right: 0%;
     width: 278px;
     border: 1px solid;
     min-height: 298px;
@@ -91,7 +91,7 @@
     flex-direction: column;
     @include user-select(none);
     position: absolute;
-    top: -360px;
+    top: -361px;
     right: 0px;
     width: 278px;
     border: 1px solid;
@@ -148,6 +148,7 @@
         margin-top: 3px;
         margin-bottom: 6px;
         padding-top: 3px;
+        // padding-bottom: 10px;
     }
 
     .emoji-picker__item {

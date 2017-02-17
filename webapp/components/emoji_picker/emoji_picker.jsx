@@ -217,6 +217,7 @@ class EmojiPicker extends React.Component {
                 <EmojiPickerItem
                     key={'system_' + (category === 'recent' ? 'recent_' : '') + (emoji.name || emoji.aliases[0])}
                     emoji={emoji}
+                    category={category}
                     onItemOver={this.handleItemOver}
                     onItemOut={this.handleItemOut}
                     onItemClick={this.handleItemClick}
@@ -237,6 +238,7 @@ class EmojiPicker extends React.Component {
                     <EmojiPickerItem
                         key={'custom_' + emoji.name}
                         emoji={emoji}
+                        category={category}
                         onItemOver={this.handleItemOver}
                         onItemOut={this.handleItemOut}
                         onItemClick={this.handleItemClick}

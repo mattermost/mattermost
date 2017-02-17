@@ -11,7 +11,8 @@ export default class EmojiPickerItem extends React.Component {
         onItemOver: React.PropTypes.func.isRequired,
         onItemOut: React.PropTypes.func.isRequired,
         onItemClick: React.PropTypes.func.isRequired,
-        onItemUnmount: React.PropTypes.func.isRequired
+        onItemUnmount: React.PropTypes.func.isRequired,
+        category: React.PropTypes.string.isRequired
     }
 
     constructor(props) {
@@ -39,15 +40,26 @@ export default class EmojiPickerItem extends React.Component {
     }
 
     render() {
-        return (
-            <img
-                className='emoji-picker__item emoticon'
-                onMouseOver={this.handleMouseOver}
-                onMouseOut={this.handleMouseOut}
-                onClick={this.handleClick}
-                src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
-
-            />
-        );
+        let item = null;
+        if (this.props.category === 'recent' || this.props.category === 'custom') {
+            item =
+                (<img
+                    className='emoji-picker__item emoticon'
+                    onMouseOver={this.handleMouseOver}
+                    onMouseOut={this.handleMouseOut}
+                    onClick={this.handleClick}
+                    src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
+                 />);
+        } else {
+            item =
+                (<img
+                    src='/static/emoji/img_trans.gif'
+                    className={'  emojisprite emoji-' + this.props.emoji.filename + ' '}
+                    onMouseOver={this.handleMouseOver}
+                    onMouseOut={this.handleMouseOut}
+                    onClick={this.handleClick}
+                 />);
+        }
+        return item;
     }
 }
