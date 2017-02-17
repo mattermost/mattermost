@@ -10,14 +10,14 @@ The one exception may be around release time, where the review process may take 
 
 #### PR submitted
 Dev applies labels and alerts PMs that there is a PR awaiting review by posting in the [PM/Docs PR Review channel](https://pre-release.mattermost.com/core/channels/pmdocs-pr-review-pub)
- 1. `Awaiting PR`
+ - `Awaiting PR`
   - Applied if the PR is awaiting for another to be merged. For exampl,e when a client PR is awaiting a server PR to be merged first.
   - PR is on hold until it's no longer blocked, then dev removes the `Awaiting PR` label
- 2. `1: PM Review`
+ - `1: PM Review`
   - Applied if PR has UI changes or functionality that PMs can test on spinmints
- 3. `Setup Test Server`
+ - `Setup Test Server`
   - Applied if the PR is queued for PM review for testing
- 4. `Work in Progress`
+ - `Work in Progress`
   - Applied if the PR is unfinished
   - PR is not reviewed until the label is removed
 
@@ -33,12 +33,12 @@ This step is sometimes skipped for bugs or small improvements with a ticket, but
 
 The Product Manager may come back with some bugs or UI improvements to fix before the pull request moves on to the next stage.
 
-1. PM applies milestone:
+- PM applies milestone:
  - Set for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete.
  - Set for a future release if PR is too large to test and merge prior to code complete date
    - PM responds to submitter letting them know that PR may have a delay in review due to the release cycle and can be taken in `master` after the release branch is cut 
 
-2. PM tests on spinmint:
+- PM tests on spinmint:
  - If changes are required, PM submits review as "Changes Requested", with a comment on the areas that require updates. Comment explains why changes are needed linking back to design principles.
    - PM applies "Awaiting Submitter Action" label to more easily review the PM PR review queue
    - Once changes are made, PM regenerates test server and repeats testing.
