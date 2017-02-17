@@ -14,7 +14,7 @@ type SqlFileInfoStore struct {
 
 const (
 	FILE_INFO_CACHE_SIZE = 25000
-	FILE_INFO_CACHE_SEC  = 900 // 15 minutes
+	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
