@@ -124,7 +124,7 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireTeamId() //.RequireUserId()
+	c.RequireTeamId()
 	if c.Err != nil {
 		return
 	}
