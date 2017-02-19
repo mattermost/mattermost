@@ -811,7 +811,7 @@ func TestGetSessions(t *testing.T) {
 	user := th.BasicUser
 
 	Client.Login(user.Email, user.Password)
-	
+
 	sessions, resp := Client.GetSessions(user.Id, "")
 	for _, session := range sessions {
 		if session.UserId != user.Id {
@@ -898,4 +898,29 @@ func TestRevokeSessions(t *testing.T) {
 	_, resp = th.SystemAdminClient.RevokeSession(th.SystemAdminUser.Id, session.Id)
 	CheckNoError(t, resp)
 
+}
+
+func TestGetAudits(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	audits, resp := Client.GetAudits(user.Id, "")
+	for _, audit := range audits {
+		if audit.UserId != user.Id {
+			t.Fatal("user id does not match audit user id")
+		}
+	}
+	CheckNoError(t, resp)
+
+	_, resp = Client.GetAudits(th.BasicUser2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetAudits(user.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetAudits(user.Id, "")
+	CheckNoError(t, resp)
 }
