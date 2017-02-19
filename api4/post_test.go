@@ -207,6 +207,44 @@ func TestGetPost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestDeletePost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	_, resp := Client.DeletePost("")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.DeletePost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.DeletePost(th.BasicPost.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	_, resp = Client.DeletePost(th.BasicPost.Id)
+	CheckNoError(t, resp)
+
+	post := th.CreatePost()
+	user := th.CreateUser()
+
+ 	Client.Logout()
+	Client.Login(user.Email, user.Password)
+
+	_, resp = Client.DeletePost(post.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.DeletePost(model.NewId())
+	CheckUnauthorizedStatus(t, resp)
+
+	status, resp := th.SystemAdminClient.DeletePost(post.Id)
+	if status == false {
+		t.Fatal("post should return status OK")
+	}
+	CheckNoError(t, resp)
+}
+
 func TestGetPostThread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

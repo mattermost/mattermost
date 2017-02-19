@@ -17,6 +17,7 @@ func InitPost() {
 
 	BaseRoutes.Posts.Handle("", ApiSessionRequired(createPost)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(getPost)).Methods("GET")
+	BaseRoutes.Post.Handle("", ApiSessionRequired(deletePost)).Methods("DELETE")
 	BaseRoutes.Post.Handle("/thread", ApiSessionRequired(getPostThread)).Methods("GET")
 	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
 }
@@ -94,6 +95,25 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
 		w.Write([]byte(post.ToJson()))
 	}
+}
+
+func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+		return
+	}
+
+	if _, err := app.DeletePost(c.Params.PostId); err != nil {
+		c.Err = err
+		return
+	} 
+
+	ReturnStatusOK(w)
 }
 
 func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {

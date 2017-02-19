@@ -400,6 +400,7 @@ func GetPostsAroundPost(postId, channelId string, offset, limit int, before bool
 
 func DeletePost(postId string) (*model.Post, *model.AppError) {
 	if result := <-Srv.Store.Post().GetSingle(postId); result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		post := result.Data.(*model.Post)
