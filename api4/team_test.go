@@ -114,6 +114,43 @@ func TestGetTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetTeamByName(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	rteam, resp := Client.GetTeamByName(team.Name, "")
+	CheckNoError(t, resp)
+
+	if rteam.Name != team.Name {
+		t.Fatal("wrong team")
+	}
+
+	_, resp = Client.GetTeamByName("junk", "")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetTeamByName("", "")
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamByName(team.Name, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginTeamAdmin()
+
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	rteam2, _ := Client.CreateTeam(team2)
+
+	th.LoginBasic()
+	_, resp = Client.GetTeamByName(rteam2.Name, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetTeamByName(rteam2.Name, "")
+	CheckNoError(t, resp)
+}
+
 func TestGetTeamsForUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

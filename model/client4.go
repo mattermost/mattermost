@@ -481,6 +481,16 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
 	}
 }
 
+// GetTeamByName returns a team based on the provided team name string.
+func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamsForUser returns a list of teams a user is on. Must be logged in as the user
 // or be a system administrator.
 func (c *Client4) GetTeamsForUser(userId, etag string) ([]*Team, *Response) {

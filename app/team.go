@@ -304,6 +304,7 @@ func GetTeam(teamId string) (*model.Team, *model.AppError) {
 
 func GetTeamByName(name string) (*model.Team, *model.AppError) {
 	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Team), nil
