@@ -137,6 +137,9 @@ func TestGetTeamByName(t *testing.T) {
 	_, resp = Client.GetTeamByName(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
 
+	_, resp = th.SystemAdminClient.GetTeamByName(team.Name, "")
+	CheckNoError(t, resp)
+
 	th.LoginTeamAdmin()
 
 	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
@@ -145,10 +148,6 @@ func TestGetTeamByName(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.GetTeamByName(rteam2.Name, "")
 	CheckForbiddenStatus(t, resp)
-
-	Client.Logout()
-	_, resp = th.SystemAdminClient.GetTeamByName(rteam2.Name, "")
-	CheckNoError(t, resp)
 }
 
 func TestGetTeamsForUser(t *testing.T) {
