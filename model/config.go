@@ -105,6 +105,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                        *int
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
 	EnableUserTypingMessages                 *bool
+	ClusterLogTimeoutMilliseconds            *int
 }
 
 type ClusterSettings struct {
@@ -1082,6 +1083,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableUserTypingMessages == nil {
 		o.ServiceSettings.EnableUserTypingMessages = new(bool)
 		*o.ServiceSettings.EnableUserTypingMessages = true
+	}
+
+	if o.ServiceSettings.ClusterLogTimeoutMilliseconds == nil {
+		o.ServiceSettings.ClusterLogTimeoutMilliseconds = new(int)
+		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
 	}
 
 	o.defaultWebrtcSettings()

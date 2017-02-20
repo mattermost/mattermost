@@ -376,6 +376,7 @@ export default class PostInfo extends React.Component {
                         sameUser={this.props.sameUser}
                         compactDisplay={this.props.compactDisplay}
                         useMilitaryTime={this.props.useMilitaryTime}
+                        postId={post.id}
                     />
                     {flagTrigger}
                 </li>

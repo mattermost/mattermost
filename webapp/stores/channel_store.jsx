@@ -9,7 +9,9 @@ import UserStore from 'stores/user_store.jsx';
 
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
+import {isSystemMessage} from 'utils/post_utils.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
+const PostTypes = Constants.PostTypes;
 
 const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
@@ -392,6 +394,41 @@ class ChannelStoreClass extends EventEmitter {
 
         return false;
     }
+
+    incrementMessages(id, markRead = false) {
+        if (!this.unreadCounts[id]) {
+            return;
+        }
+
+        const member = this.getMyMember(id);
+        if (member && member.notify_props && member.notify_props.mark_unread === NotificationPrefs.MENTION) {
+            return;
+        }
+
+        this.get(id).total_msg_count++;
+
+        if (markRead) {
+            this.resetCounts(id);
+        } else {
+            this.unreadCounts[id].msgs++;
+        }
+    }
+
+    incrementMentionsIfNeeded(id, msgProps) {
+        let mentions = [];
+        if (msgProps && msgProps.mentions) {
+            mentions = JSON.parse(msgProps.mentions);
+        }
+
+        if (!this.unreadCounts[id]) {
+            return;
+        }
+
+        if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
+            this.unreadCounts[id].mentions++;
+            this.getMyMember(id).mention_count++;
+        }
+    }
 }
 
 var ChannelStore = new ChannelStoreClass();
@@ -467,6 +504,36 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         stats[action.stats.channel_id] = action.stats;
         ChannelStore.storeStats(stats);
         ChannelStore.emitStatsChange();
+        break;
+
+    case ActionTypes.RECEIVED_POST:
+        if (action.post.type === PostTypes.JOIN_LEAVE || action.post.type === PostTypes.JOIN_CHANNEL || action.post.type === PostTypes.LEAVE_CHANNEL) {
+            return;
+        }
+
+        if (action.post.user_id === UserStore.getCurrentId() && !isSystemMessage(action.post)) {
+            return;
+        }
+
+        var id = action.post.channel_id;
+        var teamId = action.websocketMessageProps ? action.websocketMessageProps.team_id : null;
+        var markRead = id === ChannelStore.getCurrentId() && window.isActive;
+
+        if (TeamStore.getCurrentId() === teamId || teamId === '') {
+            ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            ChannelStore.incrementMessages(id, markRead);
+            ChannelStore.emitChange();
+        }
+        break;
+
+    case ActionTypes.CREATE_POST:
+        ChannelStore.incrementMessages(action.post.channel_id, true);
+        ChannelStore.emitChange();
+        break;
+
+    case ActionTypes.CREATE_COMMENT:
+        ChannelStore.incrementMessages(action.post.channel_id, true);
+        ChannelStore.emitChange();
         break;
 
     default:

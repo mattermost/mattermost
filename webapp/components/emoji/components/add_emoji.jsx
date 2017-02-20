@@ -186,9 +186,9 @@ export default class AddEmoji extends React.Component {
                             defaultMessage='This is a sentence with {image} in it.'
                             values={{
                                 image: (
-                                    <img
+                                    <span
                                         className='emoticon'
-                                        src={this.state.imageUrl}
+                                        style={{backgroundImage: 'url(' + this.state.imageUrl + ')'}}
                                     />
                                 )
                             }}

@@ -18,6 +18,10 @@ func ptrInt64(i int64) *int64 {
 	return &i
 }
 
+func ptrInt(i int) *int {
+	return &i
+}
+
 func ptrBool(b bool) *bool {
 	return &b
 }
@@ -513,7 +517,7 @@ func TestImportImportTeam(t *testing.T) {
 	// Check that one more team is in the DB.
 	if r := <-Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64)-1 != teamsCount {
-			t.Fatalf("Team did not get saved in apply run mode.", r.Data.(int64), teamsCount)
+			t.Fatalf("Team did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
 		}
 	} else {
 		t.Fatalf("Failed to get team count.")
@@ -542,7 +546,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	if r := <-Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64)-1 != teamsCount {
-			t.Fatalf("Team alterations did not get saved in apply run mode.", r.Data.(int64), teamsCount)
+			t.Fatalf("Team alterations did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
 		}
 	} else {
 		t.Fatalf("Failed to get team count.")
@@ -1203,6 +1207,130 @@ func TestImportImportUser(t *testing.T) {
 	} else if cmc != channelMemberCount+1 {
 		t.Fatalf("Number of channel members not as expected")
 	}
+
+	// Add a user with some preferences.
+	username = model.NewId()
+	data = UserImportData{
+		Username:  &username,
+		Email:     ptrStr(model.NewId() + "@example.com"),
+		Theme: ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		SelectedFont: ptrStr("Roboto Slab"),
+		UseMilitaryTime: ptrStr("true"),
+		NameFormat: ptrStr("nickname_full_name"),
+		CollapsePreviews: ptrStr("true"),
+		MessageDisplay: ptrStr("compact"),
+		ChannelDisplayMode: ptrStr("centered"),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check their values.
+	user, err = GetUserByUsername(username);
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
+		t.Fatalf("Failed to get theme category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "" && preference.Value != *data.Theme {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
+
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
+		t.Fatalf("Failed to get display category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "selected_font" && preference.Value != *data.SelectedFont {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "message_display" && preference.Value != *data.MessageDisplay {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "channel_display_mode" && preference.Value != *data.ChannelDisplayMode {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
+
+	// Change those preferences.
+	data = UserImportData{
+		Username:  &username,
+		Email:     ptrStr(model.NewId() + "@example.com"),
+		Theme: ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		SelectedFont: ptrStr("Lato"),
+		UseMilitaryTime: ptrStr("false"),
+		NameFormat: ptrStr("full_name"),
+		CollapsePreviews: ptrStr("false"),
+		MessageDisplay: ptrStr("clean"),
+		ChannelDisplayMode: ptrStr("full"),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	// Check their values again.
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
+		t.Fatalf("Failed to get theme category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "" && preference.Value != *data.Theme {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
+
+	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
+		t.Fatalf("Failed to get display category preferences")
+	} else {
+		preferences := res.Data.(model.Preferences)
+		for _, preference := range preferences {
+			if preference.Name == "selected_font" && preference.Value != *data.SelectedFont {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "message_display" && preference.Value != *data.MessageDisplay {
+				t.Fatalf("Preference does not match.")
+			}
+
+			if preference.Name == "channel_display_mode" && preference.Value != *data.ChannelDisplayMode {
+				t.Fatalf("Preference does not match.")
+			}
+		}
+	}
 }
 
 func TestImportImportLine(t *testing.T) {
@@ -1243,7 +1371,8 @@ func TestImportBulkImport(t *testing.T) {
 	channelName := model.NewId()
 
 	// Run bulk import with a valid 1 of everything.
-	data1 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+	data1 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
@@ -1253,8 +1382,40 @@ func TestImportBulkImport(t *testing.T) {
 	}
 
 	// Run bulk import using a string that contains a line with invalid json.
-	data2 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "vinewy665jam3n6oxzhsdgajly"}`
+	data2 := `{"type": "version", "version": 1`
 	if err, line := BulkImport(strings.NewReader(data2), false); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to invalid JSON on line 1.")
+	}
+
+	// Run bulk import using valid JSON but missing version line at the start.
+	data3:= `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
+{"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
+	if err, line := BulkImport(strings.NewReader(data3), false); err == nil || line != 1 {
+		t.Fatalf("Should have failed due to missing version line on line 1.")
+	}
+}
+
+func TestImportProcessImportDataFileVersionLine(t *testing.T) {
+	_ = Setup()
+
+	data := LineImportData{
+		Type: "version",
+		Version: ptrInt(1),
+	}
+	if version, err := processImportDataFileVersionLine(data); err != nil || version != 1 {
+		t.Fatalf("Expected no error and version 1.")
+	}
+
+	data.Type = "NotVersion"
+	if _, err := processImportDataFileVersionLine(data); err == nil {
+		t.Fatalf("Expected error on invalid version line.")
+	}
+
+	data.Type = "version"
+	data.Version = nil
+	if _, err := processImportDataFileVersionLine(data); err == nil {
+		t.Fatalf("Expected error on invalid version line.")
 	}
 }

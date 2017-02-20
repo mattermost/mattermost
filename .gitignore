@@ -71,6 +71,7 @@ web/sass-files/sass/.sass-cache/
 data/*
 webapp/data/*
 api/data/*
+api4/data/*
 
 enterprise
 
@@ -80,3 +81,4 @@ ecover.out
 .agignore
 .ctags
 tags
+.idea

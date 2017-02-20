@@ -29,7 +29,7 @@ class NotificationStoreClass extends EventEmitter {
         this.inFocus = focus;
     }
 
-    handleRecievedPost(post, msgProps) {
+    handleReceivedPost(post, msgProps) {
         // Send desktop notification
         if ((UserStore.getCurrentId() !== post.user_id || post.props.from_webhook === 'true')) {
             if (PostUtils.isSystemMessage(post)) {
@@ -129,7 +129,7 @@ NotificationStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_POST:
-        NotificationStore.handleRecievedPost(action.post, action.websocketMessageProps);
+        NotificationStore.handleReceivedPost(action.post, action.websocketMessageProps);
         NotificationStore.emitChange();
         break;
     case ActionTypes.BROWSER_CHANGE_FOCUS:

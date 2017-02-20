@@ -244,7 +244,7 @@ export default class ProfilePopover extends React.Component {
                 <div
                     data-toggle='tooltip'
                     key='user-popover-dm'
-                    className='popover-dm__content'
+                    className='popover__row'
                 >
                     <a
                         href='#'

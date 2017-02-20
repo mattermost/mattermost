@@ -1,6 +1,14 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .post-create__container {
+        padding-bottom: 10px;
+
+        .msg-typing {
+            display: none;
+        }
+    }
+
     .suggestion-list__content {
         max-height: 145px;
     }
@@ -136,6 +144,14 @@
         @include opacity(.6);
         @include transition(none);
         display: block;
+    }
+
+    .post-code {
+        &:hover {
+            .post-code__language {
+                @include opacity(.6);
+            }
+        }
     }
 
     .backstage-filters {
@@ -738,28 +754,6 @@
         margin-top: 0;
     }
 
-    .file-preview__remove {
-        @include alpha-property(background, $black, .5);
-        height: 28px;
-        left: auto;
-        right: 0;
-        text-align: center;
-        top: 0;
-        width: 28px;
-
-        &:after {
-            display: none;
-        }
-
-        i {
-            font-size: 16px;
-            line-height: 29px;
-            position: relative;
-            right: auto;
-            top: auto;
-        }
-    }
-
     // Since system console is not responsive we're overriding bootstrap styles for it
     .admin-sidebar {
         .navbar-nav {
@@ -902,31 +896,11 @@
         }
     }
 
-    .search__clear {
-        display: block;
-    }
-
     .search-bar__container {
         @include flex(0 0 44px);
         background: $primary-color;
         color: $white;
         padding: 0;
-
-        &.focused {
-            .sidebar__collapse {
-                @include translateX(-45px);
-            }
-
-            .search__form {
-                @include translateX(-45px);
-                padding-left: 55px;
-                padding-right: 24px;
-            }
-
-            .search__clear {
-                @include translateX(0);
-            }
-        }
 
         .search__form {
             @include single-transition(all, .2s, linear);
@@ -951,7 +925,7 @@
                 background: $white;
                 border: none;
                 color: $dark-gray;
-                padding: 0 10px 0 31px;
+                padding: 0 31px 0 31px;
             }
         }
 
@@ -1106,6 +1080,17 @@
         .sidebar__collapse,
         .sidebar__search-icon {
             display: block;
+        }
+
+        .sidebar__clear-icon {
+            display: block;
+            &.visible {
+                visibility: visible;
+            }
+        }
+
+        .fa-times {
+            margin-left: 15px;
         }
 
         .sidebar--right__close {
@@ -1571,17 +1556,24 @@
     }
 
     .tutorial-steps__container {
+        left: 0;
+        position: fixed;
+        top: 0;
+
         .tutorial__content {
             .tutorial__steps {
+                margin-top: 20px;
+                min-height: auto;
                 padding: 0 20px;
                 width: 100%;
 
                 h1 {
-                    font-size: 35px;
+                    font-size: 2em;
                     margin: -5px 0 20px;
                 }
 
                 h3 {
+                    font-size: 1.5em;
                     margin-bottom: 10px;
                 }
 
@@ -1590,14 +1582,14 @@
                 }
 
                 .tutorial__circles {
-                    bottom: 60px;
-                    margin: 0 0 15px;
-                    position: absolute;
+                    bottom: auto;
+                    margin: 15px 0 20px;
+                    position: relative;
                 }
 
                 .tutorial__footer {
-                    bottom: 30px;
-                    position: absolute;
+                    bottom: auto;
+                    position: relative;
                 }
             }
         }

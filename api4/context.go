@@ -364,12 +364,55 @@ func (c *Context) RequireUsername() *Context {
 		return c
 	}
 
-	if len(c.Params.Username) < 3 {
-		c.SetInvalidUrlParam("username")
-	} 
+	if !model.IsValidUsername(c.Params.Username) {
+		c.SetInvalidParam("username")
+	}
 
-	if len(c.Params.Username) > 22 {
-		c.SetInvalidUrlParam("username")
+	return c
+}
+
+func (c *Context) RequirePostId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.PostId) != 26 {
+		c.SetInvalidUrlParam("post_id")
+	}
+	return c
+}
+
+func (c *Context) RequireFileId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.FileId) != 26 {
+		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireTeamName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidTeamName(c.Params.TeamName) {
+		c.SetInvalidUrlParam("team_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireChannelName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidChannelIdentifier(c.Params.ChannelName) {
+		c.SetInvalidUrlParam("channel_name")
 	}
 
 	return c
@@ -380,11 +423,9 @@ func (c *Context) RequireEmail() *Context {
 		return c
 	}
 
-	pos := strings.Index(c.Params.Email, "@")
-	if pos < 0 {
+	if !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidUrlParam("email")
 	}
 
 	return c
 }
-

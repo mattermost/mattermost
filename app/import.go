@@ -25,6 +25,7 @@ type LineImportData struct {
 	Team    *TeamImportData    `json:"team"`
 	Channel *ChannelImportData `json:"channel"`
 	User    *UserImportData    `json:"user"`
+	Version *int               `json:"version"`
 }
 
 type TeamImportData struct {
@@ -57,6 +58,14 @@ type UserImportData struct {
 	Locale      *string `json:"locale"`
 
 	Teams *[]UserTeamImportData `json:"teams"`
+
+	Theme              *string `json:"theme"`
+	SelectedFont       *string `json:"display_font"`
+	UseMilitaryTime    *string `json:"military_time"`
+	NameFormat         *string `json:"teammate_name_display"`
+	CollapsePreviews   *string `json:"link_previews"`
+	MessageDisplay     *string `json:"message_display"`
+	ChannelDisplayMode *string `json:"channel_display_mode"`
 }
 
 type UserTeamImportData struct {
@@ -93,7 +102,16 @@ func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
 		if err := decoder.Decode(&line); err != nil {
 			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error()), lineNumber
 		} else {
-			if err := ImportLine(line, dryRun); err != nil {
+			if lineNumber == 1 {
+				importDataFileVersion, apperr := processImportDataFileVersionLine(line)
+				if apperr != nil {
+					return apperr, lineNumber
+				}
+
+				if importDataFileVersion != 1 {
+					return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
+				}
+			} else if err := ImportLine(line, dryRun); err != nil {
 				return err, lineNumber
 			}
 		}
@@ -104,6 +122,14 @@ func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
 	}
 
 	return nil, 0
+}
+
+func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError) {
+	if line.Type != "version" || line.Version == nil {
+		return -1, model.NewAppError("BulkImport", "app.import.process_import_data_file_version_line.invalid_version.error", nil, "", http.StatusBadRequest)
+	}
+
+	return *line.Version, nil
 }
 
 func ImportLine(line LineImportData, dryRun bool) *model.AppError {
@@ -392,6 +418,78 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			if err := VerifyUserEmail(user.Id); err != nil {
 				return err
 			}
+		}
+	}
+
+	// Preferences.
+	var preferences model.Preferences
+
+	if data.Theme != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_THEME,
+			Name:     "",
+			Value:    *data.Theme,
+		})
+	}
+
+	if data.SelectedFont != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "selected_font",
+			Value:    *data.SelectedFont,
+		})
+	}
+
+	if data.UseMilitaryTime != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "use_military_time",
+			Value:    *data.UseMilitaryTime,
+		})
+	}
+
+	if data.NameFormat != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "name_format",
+			Value:    *data.NameFormat,
+		})
+	}
+
+	if data.CollapsePreviews != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "collapse_previews",
+			Value:    *data.CollapsePreviews,
+		})
+	}
+
+	if data.MessageDisplay != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "message_display",
+			Value:    *data.MessageDisplay,
+		})
+	}
+
+	if data.ChannelDisplayMode != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+			Name:     "channel_display_mode",
+			Value:    *data.ChannelDisplayMode,
+		})
+	}
+
+	if len(preferences) > 0 {
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, "", http.StatusInternalServerError)
 		}
 	}
 

@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Id de otro usuario no válido "
+    "translation": "ID del usuario no válido para la creación del canal directo"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "No se pudo recuperar el usuario al actualizar el mensaje del encabezado del canal %v"
+    "translation": "No se pudo recuperar el usuario al actualizar el mensaje del encabezado del canal"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -796,6 +796,10 @@
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "{{.Name}} no válido o no se encuentra en el cuerpo de solicitud"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "Parámetro {{.Name}} inválido"
   },
@@ -810,6 +814,10 @@
   {
     "id": "api.context.invalid_token.error",
     "translation": "Token {{.Token}} de sesión no válido, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "El parámetro {{.Name}} no es válido o no se encuentra en la URL solicitada"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -2760,6 +2768,10 @@
     "translation": "Parámetro {{.Name}} inválido"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Debe especificar el ID del equipo crear un canal"
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
     "translation": "No pudo publicar el mensaje del propósito del canal"
   },
@@ -2780,20 +2792,204 @@
     "translation": "%s actualizó el propósito del canal a: %s"
   },
   {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Error al leer el archivo de importación de datos."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "Falla al decodificar la línea en el JSON,"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Error al importar el canal. El equipo con el nombre \"{{.TeamName}}\" no pudo ser encontrado."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "La linea a importar tiene un tipo de \"canal\" pero el objeto del canal es null."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "La linea a importar tiene un tipo de \"equipo\" pero el objeto del equipo es null."
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "La linea a importar tiene un tipo de \"usuario\" pero el objeto del usuario es null."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "La línea a importar tiene un tipo desconocido de \"{{.Type}}\""
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "La propiedad create_at del canal no debe ser 0 si se proporciona."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "La propiedad del canal display_name no se encuentra dentro de las restricciones de longitud permitida."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "Falta la propiedad obligatoria del canal: display_name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Encabezado del canal es demasiado largo."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Nombre del canal contiene caracteres no válidos."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Nombre del canal es demasiado largo."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Falta la propiedad obligatoria del canal: name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Propósito del canal es demasiado largo."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Falta la propiedad obligatoria del canal: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Tipo de canal no es válido."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Falta la propiedad obligatoria del canal: type"
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "La propiedad del equipo allowed_domains es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "La propiedad create_at del equipo no debe ser 0 si se proporciona."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Descripción del equipo es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "La propiedad del equipo display_name no se encuentra dentro de las restricciones de longitud permitida."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Falta la propiedad obligatoria del equipo: display_name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Nombre de equipo contiene caracteres no válidos."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Nombre del equipo es demasiado largo."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Falta la propiedad obligatoria del equipo: name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Nombre de equipo contiene palabra(s) reservada(s)."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Tipo de equipo no es válido."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Falta la propiedad obligatoria del equipo: type."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Channel name missing from User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "La propiedad AuthData del usuario es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "La propiedad AuthService del usuario no debe estar vacía si se proporciona"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "El correo electrónico del usuario tiene una longitud no válida."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Falta la propiedad obligatoria del usuario: email."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "La propiedad First Name del usuario es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "La propiedad Last Name del usuario es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "La propiedad nickname del usuario es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "La propiedad Position del usuario es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "Los roles del usuario no son válidos."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "El nombre de usuario no es válido."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Falta la propiedad obligatoria del usuario: username."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Team name missing from User's Team Membership."
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Ability to create new teams"
+    "translation": "Capacidad para crear equipos nuevos"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Create Teams"
+    "translation": "Crear Equipos"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
+    "translation": "Capacidad para cambiar los roles de un miembro del equipo"
   },
   {
     "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
+    "translation": "Administrar los roles del Equipo"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3417,7 +3613,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "No puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada"
+    "translation": "No se puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3642,6 +3838,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "El tiempo transcurrido para actualizar que el usuario está escribiendo no debe ser menor a 1000 milisegundos."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
@@ -4316,6 +4516,14 @@
     "translation": "No se encontró ningún canal"
   },
   {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "No pudimos encontrar el canal eliminado"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "No existe un canal eliminado con ese nombre"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "No pudimos obtener información extra de los miembros del canal"
   },
@@ -4356,6 +4564,10 @@
     "translation": "No pudimos incrementar la cantidad de menciones"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "No pudimos eliminar el canal"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "No pudimos eliminar los canales"
   },
@@ -4389,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "Un canal con este URL ya existe"
+    "translation": "Un canal con ese nombre ya existe en el mismo equipo"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4720,6 +4932,10 @@
     "translation": "No pudimos eliminar los comentarios para el usuario"
   },
   {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "No pudimos eliminar los mensajes de canal"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
     "translation": "No pudimos seleccionar los mensajes a borrar para el usuario"
   },
@@ -5029,7 +5245,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "Ya existe un equipo con ese dominio"
+    "translation": "Ya existe un equipo con ese nombre"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -5125,7 +5341,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "No pudimos encontrar una cuenta existente que coincida con tu dirección de correo electrónico para este equipo. Es posible que necesites una invitación del dueño del equipo para poder unirte."
+    "translation": "No pudimos encontrar el usuario"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",

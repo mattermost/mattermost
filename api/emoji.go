@@ -211,7 +211,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var emoji *model.Emoji
-	if result := <-app.Srv.Store.Emoji().Get(id); result.Err != nil {
+	if result := <-app.Srv.Store.Emoji().Get(id, false); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -269,7 +269,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Emoji().Get(id); result.Err != nil {
+	if result := <-app.Srv.Store.Emoji().Get(id, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -288,6 +288,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "image/"+imageType)
 		}
 
+		w.Header().Set("Cache-Control", "max-age=2592000, public")
 		w.Write(img)
 	}
 }

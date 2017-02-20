@@ -3,6 +3,9 @@
 package store
 
 import (
+	"database/sql"
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -14,7 +17,7 @@ type SqlFileInfoStore struct {
 
 const (
 	FILE_INFO_CACHE_SIZE = 25000
-	FILE_INFO_CACHE_SEC  = 900 // 15 minutes
+	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
 )
 
 var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
@@ -91,7 +94,11 @@ func (fs SqlFileInfoStore) Get(id string) StoreChannel {
 			WHERE
 				Id = :Id
 				AND DeleteAt = 0`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err = model.NewAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
+			} else {
+				result.Err = model.NewLocAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error())
+			}
 		} else {
 			result.Data = info
 		}

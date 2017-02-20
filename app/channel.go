@@ -7,67 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
-
-func MakeDirectChannelVisible(channelId string) *model.AppError {
-	var members model.ChannelMembers
-	if result := <-Srv.Store.Channel().GetMembers(channelId, 0, 100); result.Err != nil {
-		return result.Err
-	} else {
-		members = *(result.Data.(*model.ChannelMembers))
-	}
-
-	if len(members) != 2 {
-		return model.NewLocAppError("MakeDirectChannelVisible", "api.post.make_direct_channel_visible.get_2_members.error", map[string]interface{}{"ChannelId": channelId}, "")
-	}
-
-	// make sure the channel is visible to both members
-	for i, member := range members {
-		otherUserId := members[1-i].UserId
-
-		if result := <-Srv.Store.Preference().Get(member.UserId, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId); result.Err != nil {
-			// create a new preference since one doesn't exist yet
-			preference := &model.Preference{
-				UserId:   member.UserId,
-				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-				Name:     otherUserId,
-				Value:    "true",
-			}
-
-			if saveResult := <-Srv.Store.Preference().Save(&model.Preferences{*preference}); saveResult.Err != nil {
-				return saveResult.Err
-			} else {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", member.UserId, nil)
-				message.Add("preference", preference.ToJson())
-
-				go Publish(message)
-			}
-		} else {
-			preference := result.Data.(model.Preference)
-
-			if preference.Value != "true" {
-				// update the existing preference to make the channel visible
-				preference.Value = "true"
-
-				if updateResult := <-Srv.Store.Preference().Save(&model.Preferences{preference}); updateResult.Err != nil {
-					return updateResult.Err
-				} else {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", member.UserId, nil)
-					message.Add("preference", preference.ToJson())
-
-					go Publish(message)
-				}
-			}
-		}
-	}
-
-	return nil
-}
 
 func CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
 	townSquare := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.town_square"), Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: teamId}
@@ -208,6 +154,8 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	} else {
 		channel := result.Data.(*model.Channel)
 
+		WaitForChannelMembership(channel.Id, userId)
+
 		InvalidateCacheForUser(userId)
 		InvalidateCacheForUser(otherUserId)
 
@@ -216,6 +164,31 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 		Publish(message)
 
 		return channel, nil
+	}
+}
+
+func WaitForChannelMembership(channelId string, userId string) {
+	if len(utils.Cfg.SqlSettings.DataSourceReplicas) > 0 {
+		now := model.GetMillis()
+
+		for model.GetMillis()-now < 12000 {
+
+			time.Sleep(100 * time.Millisecond)
+
+			result := <-Srv.Store.Channel().GetMember(channelId, userId)
+
+			// If the membership was found then return
+			if result.Err == nil {
+				return
+			}
+
+			// If we recieved a error but it wasn't a missing channel member then return
+			if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
+				return
+			}
+		}
+
+		l4g.Error("WaitForChannelMembership giving up channelId=%v userId=%v", channelId, userId)
 	}
 }
 
@@ -382,6 +355,8 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "")
 	}
 
+	WaitForChannelMembership(channel.Id, user.Id)
+
 	InvalidateCacheForUser(user.Id)
 	InvalidateCacheForChannelMembers(channel.Id)
 
@@ -543,7 +518,11 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 }
 
 func GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	if result := <-Srv.Store.Channel().Get(channelId, true); result.Err != nil {
+	if result := <-Srv.Store.Channel().Get(channelId, true); result.Err != nil && result.Err.Id == "store.sql_channel.get.existing.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Channel), nil
@@ -551,7 +530,32 @@ func GetChannel(channelId string) (*model.Channel, *model.AppError) {
 }
 
 func GetChannelByName(channelName, teamId string) (*model.Channel, *model.AppError) {
-	if result := <-Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Channel), nil
+	}
+}
+
+func GetChannelByNameForTeamName(channelName, teamName string) (*model.Channel, *model.AppError) {
+	var team *model.Team
+
+	if result := <-Srv.Store.Team().GetByName(teamName); result.Err != nil {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	if result := <-Srv.Store.Channel().GetByName(team.Id, channelName, true); result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		result.Err.StatusCode = http.StatusNotFound
+		return nil, result.Err
+	} else if result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Channel), nil
@@ -805,7 +809,7 @@ func GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 func SetActiveChannel(userId string, channelId string) *model.AppError {
 	status, err := GetStatus(userId)
 	if err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), channelId}
+		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelId}
 	} else {
 		status.ActiveChannel = channelId
 		if !status.Manual {
@@ -844,15 +848,27 @@ func SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.
 }
 
 func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPushNotifications bool) *model.AppError {
-	channelIds := []string{view.ChannelId}
+	if err := SetActiveChannel(userId, view.ChannelId); err != nil {
+		return err
+	}
+
+	channelIds := []string{}
+
+	if len(view.ChannelId) > 0 {
+		channelIds = append(channelIds, view.ChannelId)
+	}
 
 	var pchan store.StoreChannel
 	if len(view.PrevChannelId) > 0 {
 		channelIds = append(channelIds, view.PrevChannelId)
 
-		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications {
+		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
 			pchan = Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
 		}
+	}
+
+	if len(channelIds) == 0 {
+		return nil
 	}
 
 	uchan := Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
@@ -870,10 +886,6 @@ func ViewChannel(view *model.ChannelView, teamId string, userId string, clearPus
 	if result := <-uchan; result.Err != nil {
 		return result.Err
 	}
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, teamId, "", userId, nil)
-	message.Add("channel_id", view.ChannelId)
-	go Publish(message)
 
 	return nil
 }

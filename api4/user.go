@@ -21,6 +21,7 @@ func InitUser() {
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
+	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
@@ -32,6 +33,9 @@ func InitUser() {
 
 	BaseRoutes.UserByUsername.Handle("", ApiSessionRequired(getUserByUsername)).Methods("GET")
 	BaseRoutes.UserByEmail.Handle("", ApiSessionRequired(getUserByEmail)).Methods("GET")
+
+	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
+	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 
 }
 
@@ -255,6 +259,32 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	patch := model.UserPatchFromJson(r.Body)
+	if patch == nil {
+		c.SetInvalidParam("user")
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if ruser, err := app.PatchUser(c.Params.UserId, patch, c.GetSiteURL(), c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("")
+		w.Write([]byte(ruser.ToJson()))
+	}
+}
+
 func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -448,4 +478,54 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
+    c.RequireUserId()
+    if c.Err != nil {
+        return
+    }
+
+    if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+        c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+        return
+    }
+
+    if sessions, err := app.GetSessions(c.Params.UserId); err != nil {
+        c.Err = err
+        return
+    } else {
+        for _, session := range sessions {
+            session.Sanitize()
+        }
+
+        w.Write([]byte(model.SessionsToJson(sessions)))
+        return
+    }
+}
+
+func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
+    c.RequireUserId()
+    if c.Err != nil {
+        return
+    }
+
+    if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+        c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+        return
+    }
+
+    props := model.MapFromJson(r.Body)
+    sessionId := props["session_id"]
+
+    if sessionId == "" {
+        c.SetInvalidParam("session_id")
+    }
+
+    if err := app.RevokeSessionById(sessionId); err != nil {
+        c.Err = err
+        return
+    }
+
+    ReturnStatusOK(w)
 }

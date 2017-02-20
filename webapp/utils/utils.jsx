@@ -548,6 +548,7 @@ export function applyTheme(theme) {
 
     if (theme.centerChannelBg) {
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg);
+        changeCss('@media(max-width: 320px){.tutorial-steps__container', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
         changeCss('#post-list .post-list-holder-by-time, .app__body .post .dropdown-menu a', 'background:' + theme.centerChannelBg);
         changeCss('#post-create', 'background:' + theme.centerChannelBg);
@@ -594,7 +595,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .popover.left>.arrow', 'border-left-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .popover.top>.arrow', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover-title', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover-dm__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover__row', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .suggestion-list__divider:before, .app__body .dropdown-menu .divider, .app__body .search-help-popover .search-autocomplete__divider:before', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .custom-textarea', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
@@ -711,6 +712,17 @@ export function changeCss(className, classValue) {
 
     // Grab style sheet
     const styleSheet = styleEl.sheet;
+    const rules = styleSheet.cssRules || styleSheet.rules;
+    const style = classValue.substr(0, classValue.indexOf(':'));
+    const value = classValue.substr(classValue.indexOf(':') + 1);
+
+    for (let i = 0; i < rules.length; i++) {
+        if (rules[i].selectorText === className) {
+            rules[i].style[style] = value;
+            return;
+        }
+    }
+
     let mediaQuery = '';
     if (className.indexOf('@media') >= 0) {
         mediaQuery = '}';
@@ -1286,4 +1298,8 @@ export function isEmptyObject(object) {
     }
 
     return false;
+}
+
+export function updateWindowDimensions(component) {
+    component.setState({width: window.innerWidth, height: window.innerHeight});
 }

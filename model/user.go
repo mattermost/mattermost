@@ -29,6 +29,8 @@ const (
 	USER_FIRST_NAME_MAX_RUNES = 64
 	USER_LAST_NAME_MAX_RUNES  = 64
 	USER_AUTH_DATA_MAX_LENGTH = 128
+	USER_NAME_MAX_LENGTH      = 64
+	USER_NAME_MIN_LENGTH      = 3
 )
 
 type User struct {
@@ -57,6 +59,18 @@ type User struct {
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
+}
+
+type UserPatch struct {
+	Username    *string    `json:"username"`
+	Nickname    *string    `json:"nickname"`
+	FirstName   *string    `json:"first_name"`
+	LastName    *string    `json:"last_name"`
+	Position    *string    `json:"position"`
+	Email       *string    `json:"email"`
+	Props       *StringMap `json:"props,omitempty"`
+	NotifyProps *StringMap `json:"notify_props,omitempty"`
+	Locale      *string    `json:"locale"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -213,8 +227,55 @@ func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	}
 }
 
+func (u *User) Patch(patch *UserPatch) {
+	if patch.Username != nil {
+		u.Username = *patch.Username
+	}
+
+	if patch.Nickname != nil {
+		u.Nickname = *patch.Nickname
+	}
+
+	if patch.FirstName != nil {
+		u.FirstName = *patch.FirstName
+	}
+
+	if patch.LastName != nil {
+		u.LastName = *patch.LastName
+	}
+
+	if patch.Position != nil {
+		u.Position = *patch.Position
+	}
+
+	if patch.Email != nil {
+		u.Email = *patch.Email
+	}
+
+	if patch.Props != nil {
+		u.Props = *patch.Props
+	}
+
+	if patch.NotifyProps != nil {
+		u.NotifyProps = *patch.NotifyProps
+	}
+
+	if patch.Locale != nil {
+		u.Locale = *patch.Locale
+	}
+}
+
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (u *UserPatch) ToJson() string {
 	b, err := json.Marshal(u)
 	if err != nil {
 		return ""
@@ -417,6 +478,17 @@ func UserFromJson(data io.Reader) *User {
 	}
 }
 
+func UserPatchFromJson(data io.Reader) *UserPatch {
+	decoder := json.NewDecoder(data)
+	var user UserPatch
+	err := decoder.Decode(&user)
+	if err == nil {
+		return &user
+	} else {
+		return nil
+	}
+}
+
 func UserMapToJson(u map[string]*User) string {
 	b, err := json.Marshal(u)
 	if err != nil {
@@ -487,7 +559,7 @@ var restrictedUsernames = []string{
 }
 
 func IsValidUsername(s string) bool {
-	if len(s) == 0 || len(s) > 64 {
+	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
 		return false
 	}
 

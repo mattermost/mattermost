@@ -34,7 +34,7 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
-	MAX_DB_CONN_LIFETIME = 15
+	MAX_DB_CONN_LIFETIME = 60
 )
 
 const (
@@ -220,16 +220,14 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 
 	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
 		return 0
-	} else {
-		count := 0
-		for _, db := range ss.replicas {
-			count = count + db.Db.Stats().OpenConnections
-		}
-
-		return count
 	}
 
-	return 0
+	count := 0
+	for _, db := range ss.replicas {
+		count = count + db.Db.Stats().OpenConnections
+	}
+
+	return count
 }
 
 func (ss *SqlStore) GetCurrentSchemaVersion() string {
@@ -722,7 +720,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
 		}
-		return gorp.CustomScanner{new(string), target, binder}, true
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringArray:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
@@ -732,7 +730,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
 		}
-		return gorp.CustomScanner{new(string), target, binder}, true
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.EncryptStringMap:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
@@ -748,7 +746,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 			b := []byte(ue)
 			return json.Unmarshal(b, target)
 		}
-		return gorp.CustomScanner{new(string), target, binder}, true
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringInterface:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
@@ -758,7 +756,7 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 			b := []byte(*s)
 			return json.Unmarshal(b, target)
 		}
-		return gorp.CustomScanner{new(string), target, binder}, true
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	}
 
 	return gorp.CustomScanner{}, false

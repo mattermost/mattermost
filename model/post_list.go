@@ -13,6 +13,13 @@ type PostList struct {
 	Posts map[string]*Post `json:"posts"`
 }
 
+func NewPostList() *PostList {
+	return &PostList{
+		Order: make([]string, 0),
+		Posts: make(map[string]*Post),
+	}
+}
+
 func (o *PostList) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -72,10 +79,18 @@ func (o *PostList) Etag() string {
 		if v.UpdateAt > t {
 			t = v.UpdateAt
 			id = v.Id
+		} else if v.UpdateAt == t && v.Id > id {
+			t = v.UpdateAt
+			id = v.Id
 		}
 	}
 
-	return Etag(id, t)
+	orderId := ""
+	if len(o.Order) > 0 {
+		orderId = o.Order[0]
+	}
+
+	return Etag(orderId, id, t)
 }
 
 func (o *PostList) IsChannelId(channelId string) bool {

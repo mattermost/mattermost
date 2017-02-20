@@ -22,7 +22,7 @@ const ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
 import {FormattedMessage, FormattedDate} from 'react-intl';
-import {browserHistory} from 'react-router/es6';
+import {browserHistory, Link} from 'react-router/es6';
 
 export default class SearchResultsItem extends React.Component {
     constructor(props) {
@@ -32,6 +32,24 @@ export default class SearchResultsItem extends React.Component {
         this.shrinkSidebar = this.shrinkSidebar.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
         this.flagPost = this.flagPost.bind(this);
+
+        this.state = {
+            currentTeamDisplayName: TeamStore.getCurrent().name,
+            width: '',
+            height: ''
+        };
+    }
+
+    componentDidMount() {
+        window.addEventListener('resize', () => {
+            Utils.updateWindowDimensions(this);
+        });
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', () => {
+            Utils.updateWindowDimensions(this);
+        });
     }
 
     hideSidebar() {
@@ -57,6 +75,33 @@ export default class SearchResultsItem extends React.Component {
     unflagPost(e) {
         e.preventDefault();
         unflagPost(this.props.post.id);
+    }
+
+    timeTag(post) {
+        return (
+            <time className='search-item-time'>
+                <FormattedDate
+                    value={post.create_at}
+                    hour12={!this.props.useMilitaryTime}
+                    hour='2-digit'
+                    minute='2-digit'
+                />
+            </time>
+        );
+    }
+
+    renderTimeTag(post) {
+        return Utils.isMobile() ?
+            this.timeTag(post) :
+            (
+                <Link
+                    to={`/${this.state.currentTeamDisplayName}/pl/${post.id}`}
+                    target='_blank'
+                    className='post__permalink'
+                >
+                    {this.timeTag(post)}
+                </Link>
+            );
     }
 
     render() {
@@ -241,20 +286,17 @@ export default class SearchResultsItem extends React.Component {
             );
         }
 
-        const postCreateDate = new Date(Utils.getDateForUnixTicks(post.create_at).setUTCHours(0, 0, 0, 0));
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
                     <hr className='separator__hr'/>
                     <div className='separator__text'>
-                        <time dateTime={postCreateDate.toISOString()}>
-                            <FormattedDate
-                                value={postCreateDate}
-                                day='numeric'
-                                month='long'
-                                year='numeric'
-                            />
-                        </time>
+                        <FormattedDate
+                            value={post.create_at}
+                            day='numeric'
+                            month='long'
+                            year='numeric'
+                        />
                     </div>
                 </div>
                 <div
@@ -276,14 +318,7 @@ export default class SearchResultsItem extends React.Component {
                                 </strong></li>
                                 {botIndicator}
                                 <li className='col'>
-                                    <time className='search-item-time'>
-                                        <FormattedDate
-                                            value={post.create_at}
-                                            hour12={!this.props.useMilitaryTime}
-                                            hour='2-digit'
-                                            minute='2-digit'
-                                        />
-                                    </time>
+                                    {this.renderTimeTag(post)}
                                     {flagContent}
                                 </li>
                                 {rhsControls}

@@ -58,6 +58,7 @@ class InviteMemberModal extends React.Component {
         this.clearFields = this.clearFields.bind(this);
         this.removeInviteFields = this.removeInviteFields.bind(this);
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
 
         const team = TeamStore.getCurrent();
 
@@ -234,6 +235,13 @@ class InviteMemberModal extends React.Component {
         GlobalActions.showGetTeamInviteLinkModal();
     }
 
+    handleKeyDown(e) {
+        if (e.keyCode === Constants.KeyCodes.ENTER) {
+            e.preventDefault();
+            this.handleSubmit();
+        }
+    }
+
     render() {
         var currentUser = UserStore.getCurrentUser();
         const {formatMessage} = this.props.intl;
@@ -290,6 +298,7 @@ class InviteMemberModal extends React.Component {
                         <div className='col-sm-6'>
                             <div className={firstNameClass}>
                                 <input
+                                    onKeyDown={this.handleKeyDown}
                                     type='text'
                                     className='form-control'
                                     ref={'first_name' + index}
@@ -304,6 +313,7 @@ class InviteMemberModal extends React.Component {
                         <div className='col-sm-6'>
                             <div className={lastNameClass}>
                                 <input
+                                    onKeyDown={this.handleKeyDown}
                                     type='text'
                                     className='form-control'
                                     ref={'last_name' + index}
@@ -324,6 +334,7 @@ class InviteMemberModal extends React.Component {
                         <div className={emailClass}>
                             <input
                                 onKeyUp={this.displayNameKeyUp}
+                                onKeyDown={this.handleKeyDown}
                                 type='text'
                                 ref={'email' + index}
                                 className='form-control'

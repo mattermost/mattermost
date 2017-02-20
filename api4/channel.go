@@ -18,6 +18,10 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("", ApiSessionRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 
+	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
+	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
+	BaseRoutes.ChannelByNameForTeamName.Handle("", ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
+
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
@@ -86,6 +90,72 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(sc.ToJson()))
 	}
+}
+
+func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	} 
+
+	if channel, err := app.GetChannel(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(channel.ToJson()))
+		return
+	}
+}
+
+func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId().RequireChannelName()
+	if c.Err != nil {
+		return
+	}
+
+	var channel *model.Channel
+	var err *model.AppError
+
+	if channel, err = app.GetChannelByName(c.Params.ChannelName, c.Params.TeamId); err != nil {
+		c.Err = err
+		return
+	} 
+
+	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+	
+	w.Write([]byte(channel.ToJson()))
+	return
+}
+
+func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamName().RequireChannelName()
+	if c.Err != nil {
+		return
+	}
+
+	var channel *model.Channel
+	var err *model.AppError
+
+	if channel, err = app.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName); err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	} 
+
+	w.Write([]byte(channel.ToJson()))
+	return
 }
 
 func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {

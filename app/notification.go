@@ -196,22 +196,18 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	}
 
 	if hereNotification {
-		if result := <-Srv.Store.Status().GetOnline(); result.Err != nil {
-			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-			for _, status := range statuses {
-				if status.UserId == post.UserId {
-					continue
-				}
+		statuses := GetAllStatuses()
+		for _, status := range statuses {
+			if status.UserId == post.UserId {
+				continue
+			}
 
-				_, profileFound := profileMap[status.UserId]
-				_, alreadyMentioned := mentionedUserIds[status.UserId]
+			_, profileFound := profileMap[status.UserId]
+			_, alreadyMentioned := mentionedUserIds[status.UserId]
 
-				if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
-					mentionedUsersList = append(mentionedUsersList, status.UserId)
-					updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
-				}
+			if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
+				mentionedUsersList = append(mentionedUsersList, status.UserId)
+				updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
 			}
 		}
 	}
@@ -241,7 +237,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
-				status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
+				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
@@ -254,7 +250,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				var status *model.Status
 				var err *model.AppError
 				if status, err = GetStatus(id); err != nil {
-					status = &model.Status{id, model.STATUS_OFFLINE, false, 0, ""}
+					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
@@ -535,7 +531,8 @@ func sendToPushProxy(msg model.PushNotification) *model.AppError {
 	msg.ServerId = utils.CfgDiagnosticId
 
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+		TLSClientConfig:   &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+		DisableKeepAlives: true,
 	}
 	httpClient := &http.Client{Transport: tr}
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))

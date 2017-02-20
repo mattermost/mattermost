@@ -13,6 +13,7 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
+import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
@@ -20,7 +21,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
 
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadNewDMIfNeeded, loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 
 function onChannelEnter(nextState, replace, callback) {
     doChannelChange(nextState, replace, callback);
@@ -32,6 +33,10 @@ function doChannelChange(state, replace, callback) {
         channel = JSON.parse(state.location.query.fakechannel);
     } else {
         channel = ChannelStore.getByName(state.params.channel);
+
+        if (channel && channel.type === Constants.DM_CHANNEL) {
+            loadNewDMIfNeeded(Utils.getUserIdFromChannelName(channel));
+        }
 
         if (!channel) {
             Client.joinChannelByName(
@@ -100,9 +105,13 @@ function preNeedsTeam(nextState, replace, callback) {
 
     if (nextState.location.pathname.indexOf('/channels/') > -1 ||
         nextState.location.pathname.indexOf('/pl/') > -1) {
-        loadProfilesAndTeamMembersForDMSidebar();
         AsyncClient.getMyTeamsUnread();
-        AsyncClient.getMyChannelMembers();
+        const teams = TeamStore.getAll();
+        for (const id in teams) {
+            if (teams.hasOwnProperty(id)) {
+                AsyncClient.getMyChannelMembersForTeam(id);
+            }
+        }
     }
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap
@@ -115,6 +124,7 @@ function preNeedsTeam(nextState, replace, callback) {
             });
 
             loadStatusesForChannelAndSidebar();
+            loadProfilesAndTeamMembersForDMSidebar();
 
             d1.resolve();
         },

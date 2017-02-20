@@ -307,11 +307,9 @@ func IsUsernameTaken(name string) bool {
 
 	if result := <-Srv.Store.User().GetByUsername(name); result.Err != nil {
 		return false
-	} else {
-		return true
 	}
 
-	return false
+	return true
 }
 
 func GetUser(userId string) (*model.User, *model.AppError) {
@@ -323,7 +321,7 @@ func GetUser(userId string) (*model.User, *model.AppError) {
 }
 
 func GetUserByUsername(username string) (*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil  && result.Err.Id == "store.sql_user.get_by_username.app_error"  {
+	if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil && result.Err.Id == "store.sql_user.get_by_username.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
@@ -333,7 +331,7 @@ func GetUserByUsername(username string) (*model.User, *model.AppError) {
 
 func GetUserByEmail(email string) (*model.User, *model.AppError) {
 
-	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const"{
+	if result := <-Srv.Store.User().GetByEmail(email); result.Err != nil && result.Err.Id == "store.sql_user.missing_account.const" {
 		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else if result.Err != nil {
@@ -391,8 +389,8 @@ func GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
 	}
 }
 
-func GetUsersMap(page int, perPage int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := GetUsers(page*perPage, perPage)
+func GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := GetUsers(offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -669,25 +667,28 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	}
 }
 
-func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
+func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	var img []byte
+	readFailed := false
 
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
 		var err *model.AppError
 		if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	} else {
 		path := "users/" + user.Id + "/profile.png"
 
 		if data, err := ReadFile(path); err != nil {
+			readFailed = true
+
 			if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
 			if user.LastPictureUpdate == 0 {
 				if err := WriteFile(img, path); err != nil {
-					return nil, err
+					return nil, false, err
 				}
 			}
 
@@ -696,7 +697,7 @@ func GetProfileImage(user *model.User) ([]byte, *model.AppError) {
 		}
 	}
 
-	return img, nil
+	return img, readFailed, nil
 }
 
 func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
@@ -857,13 +858,37 @@ func UpdateUserAsUser(user *model.User, siteURL string, asAdmin bool) (*model.Us
 
 	SanitizeProfile(updatedUser, asAdmin)
 
-	omitUsers := make(map[string]bool, 1)
-	omitUsers[updatedUser.Id] = true
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
-	message.Add("user", updatedUser)
-	go Publish(message)
+	sendUpdatedUserEvent(updatedUser)
 
 	return updatedUser, nil
+}
+
+func PatchUser(userId string, patch *model.UserPatch, siteURL string, asAdmin bool) (*model.User, *model.AppError) {
+	user, err := GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Patch(patch)
+
+	updatedUser, err := UpdateUser(user, siteURL, true)
+	if err != nil {
+		return nil, err
+	}
+
+	SanitizeProfile(updatedUser, asAdmin)
+
+	sendUpdatedUserEvent(updatedUser)
+
+	return updatedUser, nil
+}
+
+func sendUpdatedUserEvent(user *model.User) {
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[user.Id] = true
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+	message.Add("user", user)
+	go Publish(message)
 }
 
 func UpdateUser(user *model.User, siteURL string, sendNotifications bool) (*model.User, *model.AppError) {

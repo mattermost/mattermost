@@ -14,8 +14,8 @@ type ScheduledTask struct {
 	Name      string        `json:"name"`
 	Interval  time.Duration `json:"interval"`
 	Recurring bool          `json:"recurring"`
-	function  TaskFunc      `json:",omitempty"`
-	timer     *time.Timer   `json:",omitempty"`
+	function  TaskFunc
+	timer     *time.Timer
 }
 
 var tasks = make(map[string]*ScheduledTask)

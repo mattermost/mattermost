@@ -997,51 +997,51 @@ func TestDeletePosts(t *testing.T) {
 
 }
 
-func TestEmailMention(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	channel1 := th.BasicChannel
-	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
+// func TestEmailMention(t *testing.T) {
+// 	th := Setup().InitBasic()
+// 	Client := th.BasicClient
+// 	channel1 := th.BasicChannel
+// 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
 
-	th.LoginBasic2()
-	//Set the notification properties
-	data := make(map[string]string)
-	data["user_id"] = th.BasicUser2.Id
-	data["email"] = "true"
-	data["desktop"] = "all"
-	data["desktop_sound"] = "false"
-	data["comments"] = "any"
-	Client.Must(Client.UpdateUserNotify(data))
+// 	th.LoginBasic2()
+// 	//Set the notification properties
+// 	data := make(map[string]string)
+// 	data["user_id"] = th.BasicUser2.Id
+// 	data["email"] = "true"
+// 	data["desktop"] = "all"
+// 	data["desktop_sound"] = "false"
+// 	data["comments"] = "any"
+// 	Client.Must(Client.UpdateUserNotify(data))
 
-	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
-		UserId:   th.BasicUser2.Id,
-		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
-		Value:    "0",
-	}}))
+// 	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
+// 		UserId:   th.BasicUser2.Id,
+// 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+// 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+// 		Value:    "0",
+// 	}}))
 
-	//Delete all the messages before create a mention post
-	utils.DeleteMailBox(th.BasicUser2.Email)
+// 	//Delete all the messages before create a mention post
+// 	utils.DeleteMailBox(th.BasicUser2.Email)
 
-	//Send a mention message from user1 to user2
-	th.LoginBasic()
-	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "@" + th.BasicUser2.Username + " this is a test"}
-	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+// 	//Send a mention message from user1 to user2
+// 	th.LoginBasic()
+// 	time.Sleep(10 * time.Millisecond)
+// 	post1 := &model.Post{ChannelId: channel1.Id, Message: "@" + th.BasicUser2.Username + " this is a test"}
+// 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
-	//Check if the email was send to the rigth email address and the mention
-	if resultsMailbox, err := utils.GetMailBox(th.BasicUser2.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
-		t.Fatal("Wrong To recipient")
-	} else {
-		if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
-			if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
-				t.Log(resultsEmail.Body.Text)
-				t.Fatal("Received wrong Message")
-			}
-		}
-	}
+// 	//Check if the email was send to the rigth email address and the mention
+// 	if resultsMailbox, err := utils.GetMailBox(th.BasicUser2.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
+// 		t.Fatal("Wrong To recipient")
+// 	} else {
+// 		if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
+// 			if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
+// 				t.Log(resultsEmail.Body.Text)
+// 				t.Fatal("Received wrong Message")
+// 			}
+// 		}
+// 	}
 
-}
+// }
 
 func TestFuzzyPosts(t *testing.T) {
 	th := Setup().InitBasic()
@@ -1055,42 +1055,6 @@ func TestFuzzyPosts(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-	}
-}
-
-func TestMakeDirectChannelVisible(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	user1 := th.BasicUser
-	user2 := th.BasicUser2
-
-	th.LoginBasic2()
-
-	preferences := &model.Preferences{
-		{
-			UserId:   user2.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-			Name:     user1.Id,
-			Value:    "false",
-		},
-	}
-	Client.Must(Client.SetPreferences(preferences))
-
-	Client.Must(Client.Logout())
-	th.LoginBasic()
-	th.BasicClient.SetTeamId(team.Id)
-
-	channel := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
-
-	if err := app.MakeDirectChannelVisible(channel.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
-		t.Fatal("Errored trying to set direct channel to be visible for user1")
-	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
-		t.Fatal("Failed to set direct channel to be visible for user1")
 	}
 }
 
@@ -1306,7 +1270,11 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	ogDataCacheMissCount := 0
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ogDataCacheMissCount++
+
 		if r.URL.Path == "/og-data/" {
 			fmt.Fprintln(w, `
 				<html><head><meta property="og:type" content="article" />
@@ -1319,15 +1287,35 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}))
 
-	for _, data := range [](map[string]string){{"path": "/og-data/", "title": "Test Title"}, {"path": "/no-og-data/", "title": ""}} {
-		res, err := Client.DoApiPost("/get_opengraph_metadata", fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"]))
+	for _, data := range [](map[string]interface{}){
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 1},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+
+		// Data should be cached for following
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 2},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+	} {
+		res, err := Client.DoApiPost(
+			"/get_opengraph_metadata",
+			fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"].(string)),
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		ogData := model.StringInterfaceFromJson(res.Body)
-		if strings.Compare(ogData["title"].(string), data["title"]) != 0 {
-			t.Fatal(fmt.Sprintf("OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"", data["path"], data["title"], ogData["title"]))
+		if strings.Compare(ogData["title"].(string), data["title"].(string)) != 0 {
+			t.Fatal(fmt.Sprintf(
+				"OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"",
+				data["path"].(string), data["title"].(string), ogData["title"].(string),
+			))
+		}
+
+		if ogDataCacheMissCount != data["cacheMissCount"].(int) {
+			t.Fatal(fmt.Sprintf(
+				"Cache miss count didn't match. Expected value %d. Actual value %d.",
+				data["cacheMissCount"].(int), ogDataCacheMissCount,
+			))
 		}
 	}
 }

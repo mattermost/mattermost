@@ -188,9 +188,9 @@ export default class Reaction extends React.Component {
                     className={className}
                     onClick={handleClick}
                 >
-                    <img
-                        className='post-reaction__emoji'
-                        src={EmojiStore.getEmojiImageUrl(EmojiStore.get(this.props.emojiName))}
+                    <span
+                        className='post-reaction__emoji emoticon'
+                        style={{backgroundImage: 'url(' + EmojiStore.getEmojiImageUrl(EmojiStore.get(this.props.emojiName)) + ')'}}
                     />
                     <span className='post-reaction__count'>
                         {this.props.reactions.length}
