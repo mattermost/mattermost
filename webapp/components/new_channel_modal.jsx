@@ -331,6 +331,7 @@ export default class NewChannelModal extends React.Component {
                                         handlePostError={this.handlePostError}
                                         value={this.state.header}
                                         createMessage={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
+                                        suggestionListStyle='bottom'
                                         id='channel_header'
                                         hideHelp={true}
                                         rows='4'
