@@ -1154,6 +1154,10 @@
     "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -3538,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Authenticatie tokens komen niet overeen"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",

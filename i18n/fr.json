@@ -1154,6 +1154,10 @@
     "translation": "Une erreur est survenue lors de la lecture depuis le stockage local du serveur"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Le fichier est au-dessus des limites de dimensions, il n'a pas pu être envoyé : {{.Filename}}"
   },
@@ -3538,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Les jetons d’authentification ne correspondent pas"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la recherche des profils utilisateurs"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",

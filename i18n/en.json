@@ -1154,6 +1154,10 @@
     "translation": "Encountered an error reading from local server storage"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -1164,10 +1168,6 @@
   {
     "id": "api.file.upload_file.too_large.app_error",
     "translation": "Unable to upload file. File is too large."
-  },
-  {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
   },
   {
     "id": "api.file.write_file.configured.app_error",
@@ -3524,10 +3524,6 @@
     "translation": "Invalid user id"
   },
   {
-    "id": "model.client.read_file.app_error",
-    "translation": "We encountered an error while reading the file"
-  },
-  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },
@@ -3546,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Authentication tokens didn't match"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "We encountered an error while reading the file"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
