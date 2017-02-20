@@ -84,7 +84,8 @@ export default class CreatePost extends React.Component {
             showPostDeletedModal: false,
             enableSendButton: false,
             lastBlurAt: 0,
-            showEmojiPicker: false
+            showEmojiPicker: false,
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         };
 
         this.lastBlurAt = 0;
@@ -442,7 +443,8 @@ export default class CreatePost extends React.Component {
         this.setState({
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
             ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN
+            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         });
     }
 
@@ -659,6 +661,7 @@ export default class CreatePost extends React.Component {
                                 postType='post'
                                 channelId=''
                                 onEmojiClick={this.handleEmojiPickerClick}
+                                emojiEnabled={this.state.emojiPickerEnabled}
                                 navBarName='main'
                             />
 

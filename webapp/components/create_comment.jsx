@@ -75,7 +75,8 @@ export default class CreateComment extends React.Component {
             showPostDeletedModal: false,
             enableAddButton,
             showEmojiPicker: false,
-            emojiOffset: 0
+            emojiOffset: 0,
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         };
 
         this.lastBlurAt = 0;
@@ -149,7 +150,8 @@ export default class CreateComment extends React.Component {
 
     onPreferenceChange() {
         this.setState({
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         });
     }
 
@@ -618,6 +620,7 @@ export default class CreateComment extends React.Component {
                                 postType='comment'
                                 channelId={this.props.channelId}
                                 onEmojiClick={this.handleEmojiPickerClick}
+                                emojiEnabled={this.state.emojiPickerEnabled}
                                 navBarName='rhs'
                             />
 

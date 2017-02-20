@@ -350,7 +350,10 @@ class FileUpload extends React.Component {
         const channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
-
+        const emojiSpan = (<span
+            className={'fa fa-smile-o icon__emoji_picker emoji-' + this.props.navBarName}
+            onClick={this.emojiClick}
+                           />);
         return (
             <span
                 ref='input'
@@ -369,10 +372,7 @@ class FileUpload extends React.Component {
                     multiple={multiple}
                     accept={accept}
                 />
-                <span
-                    className={'fa fa-smile-o icon__emoji_picker emoji-' + this.props.navBarName}
-                    onClick={this.emojiClick}
-                />
+                {this.props.emojiEnabled ? emojiSpan : ''}
             </span>
         );
     }
@@ -390,7 +390,8 @@ FileUpload.propTypes = {
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string,
     onEmojiClick: React.PropTypes.func,
-    navBarName: React.PropTypes.string
+    navBarName: React.PropTypes.string,
+    emojiEnabled: React.PropTypes.bool
 };
 
 export default injectIntl(FileUpload, {withRef: true});
