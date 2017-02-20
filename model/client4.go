@@ -665,7 +665,7 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(postId string) (bool, *Response) {
-	if r, err := c.DoApiDelete(c.GetPostRoute(postId), ""); err != nil {
+	if r, err := c.DoApiDelete(c.GetPostRoute(postId)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
