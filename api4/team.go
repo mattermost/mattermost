@@ -21,6 +21,7 @@ func InitTeam() {
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("/stats", ApiHandler(getTeamStats)).Methods("GET")
 
+	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
 }
 
@@ -53,6 +54,21 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if team, err := app.GetTeam(c.Params.TeamId); err != nil {
+		c.Err = err
+		return
+	} else {
+		if team.Type != model.TEAM_OPEN && !app.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		w.Write([]byte(team.ToJson()))
+		return
+	}
+}
+
+func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	if team, err := app.GetTeamByName(c.Params.TeamName); err != nil {
 		c.Err = err
 		return
 	} else {
