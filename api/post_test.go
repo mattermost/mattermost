@@ -136,7 +136,7 @@ func TestCreatePost(t *testing.T) {
 	} else if rpost9 := resp.Data.(*model.Post); len(rpost9.FileIds) != 3 {
 		t.Fatal("post should have 3 files")
 	} else {
-		infos := store.Must(app.Srv.Store.FileInfo().GetForPost(rpost9.Id, true)).([]*model.FileInfo)
+		infos := store.Must(app.Srv.Store.FileInfo().GetForPost(rpost9.Id, true, true)).([]*model.FileInfo)
 
 		if len(infos) != 3 {
 			t.Fatal("should've attached all 3 files to post")

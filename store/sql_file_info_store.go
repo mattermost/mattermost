@@ -143,7 +143,7 @@ func (s SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	fileInfoCache.Remove(postId)
 }
 
-func (fs SqlFileInfoStore) GetForPost(postId string, allowFromCache bool) StoreChannel {
+func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -174,7 +174,13 @@ func (fs SqlFileInfoStore) GetForPost(postId string, allowFromCache bool) StoreC
 
 		var infos []*model.FileInfo
 
-		if _, err := fs.GetReplica().Select(&infos,
+		dbmap := fs.GetReplica()
+
+		if readFromMaster {
+			dbmap = fs.GetMaster()
+		}
+
+		if _, err := dbmap.Select(&infos,
 			`SELECT
 				*
 			FROM
@@ -187,7 +193,10 @@ func (fs SqlFileInfoStore) GetForPost(postId string, allowFromCache bool) StoreC
 			result.Err = model.NewLocAppError("SqlFileInfoStore.GetForPost",
 				"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error())
 		} else {
-			fileInfoCache.AddWithExpiresInSecs(postId, infos, FILE_INFO_CACHE_SEC)
+			if len(infos) > 0 {
+				fileInfoCache.AddWithExpiresInSecs(postId, infos, FILE_INFO_CACHE_SEC)
+			}
+
 			result.Data = infos
 		}
 
