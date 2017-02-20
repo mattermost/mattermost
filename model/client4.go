@@ -460,8 +460,9 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 }
 
 // GetAudits returns a list of audit based on the provided user id string.
-func (c *Client4) GetAudits(userId, etag string) (Audits, *Response) {
-	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits", etag); err != nil {
+func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)

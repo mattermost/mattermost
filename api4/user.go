@@ -542,7 +542,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if audits, err := app.GetAudits(c.Params.UserId, 20); err != nil {
+	if audits, err := app.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {

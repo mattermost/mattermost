@@ -208,7 +208,7 @@ type SessionStore interface {
 
 type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
-	Get(user_id string, limit int) StoreChannel
+	Get(user_id string, offset int, limit int) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 }
 
