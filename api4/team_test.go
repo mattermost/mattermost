@@ -242,4 +242,8 @@ func TestGetTeamStats(t *testing.T) {
 	Client.Login(user.Email, user.Password)
 	_, resp = Client.GetTeamStats(th.BasicTeam.Id, "")
 	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamStats(th.BasicTeam.Id, "")
+	CheckUnauthorizedStatus(t, resp)
 }
