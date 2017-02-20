@@ -17,6 +17,7 @@ import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
@@ -36,7 +37,7 @@ export function initialize() {
         return;
     }
 
-    let connUrl = Utils.getSiteURL();
+    let connUrl = getSiteURL();
 
     // replace the protocol with a websocket one
     if (connUrl.startsWith('https:')) {
@@ -134,10 +135,6 @@ function handleEvent(msg) {
 
     case SocketEvents.USER_UPDATED:
         handleUserUpdatedEvent(msg);
-        break;
-
-    case SocketEvents.CHANNEL_VIEWED:
-        handleChannelViewedEvent(msg);
         break;
 
     case SocketEvents.CHANNEL_DELETED:
@@ -278,15 +275,6 @@ function handleUserUpdatedEvent(msg) {
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
         UserStore.emitChange(user.id);
-    }
-}
-
-function handleChannelViewedEvent(msg) {
-    // Useful for when multiple devices have the app open to different channels
-    if (TeamStore.getCurrentId() === msg.broadcast.team_id &&
-            ChannelStore.getCurrentId() !== msg.data.channel_id &&
-            UserStore.getCurrentId() === msg.broadcast.user_id) {
-        AsyncClient.getChannel(msg.data.channel_id);
     }
 }
 

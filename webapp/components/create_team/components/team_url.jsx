@@ -1,11 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from 'utils/utils.jsx';
-
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
 import {track} from 'actions/analytics_actions.jsx';
 import Constants from 'utils/constants.jsx';
+import * as URL from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
@@ -38,7 +37,7 @@ export default class TeamUrl extends React.Component {
         e.preventDefault();
 
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
-        const cleanedName = Utils.cleanUpUrlable(name);
+        const cleanedName = URL.cleanUpUrlable(name);
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
 
         if (!name) {
@@ -78,9 +77,9 @@ export default class TeamUrl extends React.Component {
         for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
             if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
                 this.setState({nameError: (
-                    <FormattedHTMLMessage
+                    <FormattedMessage
                         id='create_team.team_url.taken'
-                        defaultMessage='This URL <a href="https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url" target="_blank">starts with a reserved word</a> or is unavailable. Please try another.'
+                        defaultMessage='URL is taken or contains a reserved word'
                     />)
                 });
                 return;
@@ -98,7 +97,7 @@ export default class TeamUrl extends React.Component {
                     this.setState({nameError: (
                         <FormattedMessage
                             id='create_team.team_url.unavailable'
-                            defaultMessage='This URL is taken or unavailable. Please try another.'
+                            defaultMessage='This URL is unavailable. Please try another.'
                         />)
                     });
                     this.setState({isLoading: false});
@@ -136,7 +135,7 @@ export default class TeamUrl extends React.Component {
             nameDivClass += ' has-error';
         }
 
-        const title = `${Utils.getSiteURL()}/`;
+        const title = `${URL.getSiteURL()}/`;
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{title}</Tooltip>
         );

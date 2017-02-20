@@ -1,5 +1,6 @@
 {
   "name": "mattermost-webapp",
+  "browser": {"./client/web_client.jsx": "./client/browser_web_client.jsx"},
   "version": "0.0.1",
   "private": true,
   "dependencies": {

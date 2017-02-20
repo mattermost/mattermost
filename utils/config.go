@@ -68,7 +68,7 @@ func FindDir(dir string) string {
 func DisableDebugLogForTest() {
 	if l4g.Global["stdout"] != nil {
 		originalDisableDebugLvl = l4g.Global["stdout"].Level
-		l4g.Global["stdout"].Level = l4g.WARNING
+		l4g.Global["stdout"].Level = l4g.ERROR
 	}
 }
 

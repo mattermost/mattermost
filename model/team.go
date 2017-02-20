@@ -22,6 +22,7 @@ const (
 	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
 	TEAM_EMAIL_MAX_LENGTH           = 128
 	TEAM_NAME_MAX_LENGTH            = 64
+	TEAM_NAME_MIN_LENGTH            = 2
 )
 
 type Team struct {
@@ -104,6 +105,26 @@ func TeamMapToJson(u map[string]*Team) string {
 func TeamMapFromJson(data io.Reader) map[string]*Team {
 	decoder := json.NewDecoder(data)
 	var teams map[string]*Team
+	err := decoder.Decode(&teams)
+	if err == nil {
+		return teams
+	} else {
+		return nil
+	}
+}
+
+func TeamListToJson(t []*Team) string {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func TeamListFromJson(data io.Reader) []*Team {
+	decoder := json.NewDecoder(data)
+	var teams []*Team
 	err := decoder.Decode(&teams)
 	if err == nil {
 		return teams
@@ -208,7 +229,7 @@ func IsValidTeamName(s string) bool {
 		return false
 	}
 
-	if len(s) <= 1 {
+	if len(s) < TEAM_NAME_MIN_LENGTH {
 		return false
 	}
 

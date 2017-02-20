@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -148,6 +149,7 @@ func RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId 
 
 func RevokeSessionById(sessionId string) *model.AppError {
 	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return result.Err
 	} else {
 		return RevokeSession(result.Data.(*model.Session))

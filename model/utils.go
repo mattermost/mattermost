@@ -34,14 +34,14 @@ type StringArray []string
 type EncryptStringMap map[string]string
 
 type AppError struct {
-	Id            string                 `json:"id"`
-	Message       string                 `json:"message"`               // Message to be display to the end user without debugging information
-	DetailedError string                 `json:"detailed_error"`        // Internal error string to help the developer
-	RequestId     string                 `json:"request_id,omitempty"`  // The RequestId that's also set in the header
-	StatusCode    int                    `json:"status_code,omitempty"` // The http status code
-	Where         string                 `json:"-"`                     // The function where it happened in the form of Struct.Func
-	IsOAuth       bool                   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
-	params        map[string]interface{} `json:"-"`
+	Id            string `json:"id"`
+	Message       string `json:"message"`               // Message to be display to the end user without debugging information
+	DetailedError string `json:"detailed_error"`        // Internal error string to help the developer
+	RequestId     string `json:"request_id,omitempty"`  // The RequestId that's also set in the header
+	StatusCode    int    `json:"status_code,omitempty"` // The http status code
+	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
+	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
+	params        map[string]interface{}
 }
 
 func (er *AppError) Error() string {
@@ -280,7 +280,7 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
-	if len(s) < 2 {
+	if len(s) < CHANNEL_NAME_MIN_LENGTH {
 		return false
 	}
 
@@ -382,7 +382,7 @@ func ClearMentionTags(post string) string {
 var UrlRegex = regexp.MustCompile(`^((?:[a-z]+:\/\/)?(?:(?:[a-z0-9\-]+\.)+(?:[a-z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|local|internal))(:[0-9]{1,5})?(?:\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(?:\?[a-z0-9+_~\-\.%=&amp;]*)?)?(?:#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)(?:\s+|$)$`)
 var PartialUrlRegex = regexp.MustCompile(`/([A-Za-z0-9]{26})/([A-Za-z0-9]{26})/((?:[A-Za-z0-9]{26})?.+(?:\.[A-Za-z0-9]{3,})?)`)
 
-var SplitRunes = map[rune]bool{',': true, ' ': true, '.': true, '!': true, '?': true, ':': true, ';': true, '\n': true, '<': true, '>': true, '(': true, ')': true, '{': true, '}': true, '[': true, ']': true, '+': true, '/': true, '\\': true}
+var SplitRunes = map[rune]bool{',': true, ' ': true, '.': true, '!': true, '?': true, ':': true, ';': true, '\n': true, '<': true, '>': true, '(': true, ')': true, '{': true, '}': true, '[': true, ']': true, '+': true, '/': true, '\\': true, '^': true, '#': true, '$': true, '&': true}
 
 func IsValidHttpUrl(rawUrl string) bool {
 	if strings.Index(rawUrl, "http://") != 0 && strings.Index(rawUrl, "https://") != 0 {

@@ -120,16 +120,9 @@ export default class PostList extends React.Component {
                 break;
             }
         }
-        this.wasAtBottom = this.isAtBottom();
         if (!this.jumpToPostNode && childNodes.length > 0) {
             this.jumpToPostNode = childNodes[childNodes.length - 1];
         }
-
-        // --- --------
-
-        this.props.postListScrolled(this.isAtBottom());
-        this.prevScrollHeight = this.refs.postlist.scrollHeight;
-        this.prevOffsetTop = this.jumpToPostNode.offsetTop;
 
         this.updateFloatingTimestamp();
 
@@ -138,6 +131,15 @@ export default class PostList extends React.Component {
                 isScrolling: true
             });
         }
+
+        // Postpone all DOM related calculations to next frame.
+        // scrollHeight etc might return wrong data at this point
+        setTimeout(() => {
+            this.wasAtBottom = this.isAtBottom();
+            this.props.postListScrolled(this.isAtBottom());
+            this.prevScrollHeight = this.refs.postlist.scrollHeight;
+            this.prevOffsetTop = this.jumpToPostNode.offsetTop;
+        }, 0);
 
         this.scrollStopAction.fireAfter(Constants.SCROLL_DELAY);
     }

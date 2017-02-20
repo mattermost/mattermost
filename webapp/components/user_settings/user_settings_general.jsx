@@ -500,7 +500,6 @@ class UserSettingsGeneralTab extends React.Component {
                                 }}
                             />
                         </div>
-                        {helpText}
                     </div>
                 );
             } else if (this.props.user.auth_service === Constants.SAML_SERVICE) {

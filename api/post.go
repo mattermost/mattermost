@@ -14,6 +14,10 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
+
+var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
+
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
@@ -54,7 +58,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := app.CreatePostAsUser(post, c.TeamId)
+	rp, err := app.CreatePostAsUser(post)
 	if err != nil {
 		c.Err = err
 		return
@@ -432,8 +436,14 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 
+	ogJSONGeneric, ok := openGraphDataCache.Get(props["url"])
+	if ok {
+		w.Write(ogJSONGeneric.([]byte))
+		return
+	}
+
 	url := ""
-	ok := false
+	ok = false
 	if url, ok = props["url"].(string); len(url) == 0 || !ok {
 		c.SetInvalidParam("getOpenGraphMetadata", "url")
 		return
@@ -441,9 +451,12 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	og := app.GetOpenGraphMetadata(url)
 
-	ogJson, err := og.ToJSON()
+	ogJSON, err := og.ToJSON()
 	if err != nil {
 		w.Write([]byte(`{"url": ""}`))
+		return
 	}
-	w.Write(ogJson)
+
+	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 houre
+	w.Write(ogJSON)
 }

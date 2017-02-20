@@ -31,16 +31,16 @@ func GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppEr
 
 	if name == "standard" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 10)
-		rows[0] = &model.AnalyticsRow{"channel_open_count", 0}
-		rows[1] = &model.AnalyticsRow{"channel_private_count", 0}
-		rows[2] = &model.AnalyticsRow{"post_count", 0}
-		rows[3] = &model.AnalyticsRow{"unique_user_count", 0}
-		rows[4] = &model.AnalyticsRow{"team_count", 0}
-		rows[5] = &model.AnalyticsRow{"total_websocket_connections", 0}
-		rows[6] = &model.AnalyticsRow{"total_master_db_connections", 0}
-		rows[7] = &model.AnalyticsRow{"total_read_db_connections", 0}
-		rows[8] = &model.AnalyticsRow{"daily_active_users", 0}
-		rows[9] = &model.AnalyticsRow{"monthly_active_users", 0}
+		rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
+		rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
+		rows[2] = &model.AnalyticsRow{Name: "post_count", Value: 0}
+		rows[3] = &model.AnalyticsRow{Name: "unique_user_count", Value: 0}
+		rows[4] = &model.AnalyticsRow{Name: "team_count", Value: 0}
+		rows[5] = &model.AnalyticsRow{Name: "total_websocket_connections", Value: 0}
+		rows[6] = &model.AnalyticsRow{Name: "total_master_db_connections", Value: 0}
+		rows[7] = &model.AnalyticsRow{Name: "total_read_db_connections", Value: 0}
+		rows[8] = &model.AnalyticsRow{Name: "daily_active_users", Value: 0}
+		rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
 
 		openChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
@@ -139,7 +139,7 @@ func GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppEr
 		return rows, nil
 	} else if name == "post_counts_day" {
 		if skipIntensiveQueries {
-			rows := model.AnalyticsRows{&model.AnalyticsRow{"", -1}}
+			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
 
@@ -150,7 +150,7 @@ func GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppEr
 		}
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
-			rows := model.AnalyticsRows{&model.AnalyticsRow{"", -1}}
+			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
 
@@ -161,12 +161,12 @@ func GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppEr
 		}
 	} else if name == "extra_counts" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
-		rows[0] = &model.AnalyticsRow{"file_post_count", 0}
-		rows[1] = &model.AnalyticsRow{"hashtag_post_count", 0}
-		rows[2] = &model.AnalyticsRow{"incoming_webhook_count", 0}
-		rows[3] = &model.AnalyticsRow{"outgoing_webhook_count", 0}
-		rows[4] = &model.AnalyticsRow{"command_count", 0}
-		rows[5] = &model.AnalyticsRow{"session_count", 0}
+		rows[0] = &model.AnalyticsRow{Name: "file_post_count", Value: 0}
+		rows[1] = &model.AnalyticsRow{Name: "hashtag_post_count", Value: 0}
+		rows[2] = &model.AnalyticsRow{Name: "incoming_webhook_count", Value: 0}
+		rows[3] = &model.AnalyticsRow{Name: "outgoing_webhook_count", Value: 0}
+		rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
+		rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
 		iHookChan := Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
 		oHookChan := Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)

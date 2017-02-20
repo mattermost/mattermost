@@ -165,7 +165,7 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 		if obj, err := s.GetReplica().Get(model.Team{}, id); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.Get", "store.sql_team.get.finding.app_error", nil, "id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id)
+			result.Err = model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id, http.StatusNotFound)
 		} else {
 			team := obj.(*model.Team)
 			if len(team.InviteId) == 0 {
@@ -455,7 +455,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
 		err := s.GetReplica().SelectOne(&member, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 		if err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+				result.Err = model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusNotFound)
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
 			}

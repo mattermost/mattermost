@@ -753,16 +753,6 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	view := model.ChannelViewFromJson(r.Body)
 
-	if err := app.SetActiveChannel(c.Session.UserId, view.ChannelId); err != nil {
-		c.Err = err
-		return
-	}
-
-	if len(view.ChannelId) == 0 {
-		ReturnStatusOK(w)
-		return
-	}
-
 	if err := app.ViewChannel(view, c.TeamId, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
 		c.Err = err
 		return
