@@ -277,7 +277,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 	Client.Logout()
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
-	CheckForbiddenStatus(t, resp)
+	CheckUnauthorizedStatus(t, resp)
 
 	rmembers, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
