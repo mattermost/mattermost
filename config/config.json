@@ -63,7 +63,7 @@
         "RestrictPrivateChannelDeletion": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
-        "MaxNotificationsPerChannel": 1000000
+        "MaxNotificationsPerChannel": 1000
     },
     "SqlSettings": {
         "DriverName": "mysql",

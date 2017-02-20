@@ -465,7 +465,7 @@
         }
 
 
-        .icon__emoji_picker
+        .icon__postcontent_picker
         {
             @include opacity(.5);
             @include single-transition(all, .15s);
@@ -473,8 +473,9 @@
             top: -8px;
             right: -4px;
             font-size: 19px;
-            padding: 9px 11px 8px;
+            padding: 9px 5px 8px;
             position: relative;
+            cursor: pointer;
             &:hover,
             &:active {
                 @include opacity(.9);

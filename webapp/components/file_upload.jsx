@@ -351,7 +351,7 @@ class FileUpload extends React.Component {
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
         const emojiSpan = (<span
-            className={'fa fa-smile-o icon__emoji_picker emoji-' + this.props.navBarName}
+            className={'fa fa-smile-o icon__postcontent_picker emoji-' + this.props.navBarName}
             onClick={this.emojiClick}
                            />);
         return (
@@ -361,8 +361,8 @@ class FileUpload extends React.Component {
             >
 
                 <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                    className='fa fa-paperclip icon__postcontent_picker'
+
                 />
                 <input
                     ref='fileInput'

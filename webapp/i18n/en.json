@@ -2002,7 +2002,7 @@
   "user.settings.advance.slashCmd_autocmp": "Enable external application to offer slash command autocomplete",
   "user.settings.advance.title": "Advanced Settings",
   "user.settings.advance.webrtc_preview": "Enable the ability to make and receive one-on-one WebRTC calls",
-  "user.settings.advance.emojipicker": "Enable the emoji picker",
+  "user.settings.advance.emojipicker": "Enable emoji selector in message input box",
   "user.settings.custom_theme.awayIndicator": "Away Indicator",
   "user.settings.custom_theme.buttonBg": "Button BG",
   "user.settings.custom_theme.buttonColor": "Button Text",

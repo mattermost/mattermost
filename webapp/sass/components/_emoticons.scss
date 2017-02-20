@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@charset "UTF-8";
 
 .emoticon {
     background-position: 50% 50%;
@@ -114,8 +114,6 @@
 .emoji-picker__categories {
     flex-grow: 0;
     flex-shrink: 0;
-
-
 
     .emoji-picker__category {
         color: #333333;
