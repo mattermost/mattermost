@@ -649,25 +649,12 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = app.GetChannelMember(channel.Id, c.Session.UserId); err != nil {
-		c.Err = err
-		return
-	}
-
 	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
-		c.Err = model.NewLocAppError("removeMember", "api.channel.remove_member.unable.app_error", nil, err.Message)
+		c.Err = err
 		return
 	}
 
 	c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove)
-
-	var user *model.User
-	if user, err = app.GetUser(userIdToRemove); err != nil {
-		c.Err = err
-		return
-	}
-
-	go app.PostRemoveFromChannelMessage(c.Session.UserId, user, channel)
 
 	result := make(map[string]string)
 	result["channel_id"] = channel.Id
@@ -753,7 +740,7 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	view := model.ChannelViewFromJson(r.Body)
 
-	if err := app.ViewChannel(view, c.TeamId, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
+	if err := app.ViewChannel(view, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
 		c.Err = err
 		return
 	}

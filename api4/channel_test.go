@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -226,8 +227,12 @@ func TestGetChannel(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	_, resp := Client.GetChannel(th.BasicChannel.Id, "")
+	channel, resp := Client.GetChannel(th.BasicChannel.Id, "")
 	CheckNoError(t, resp)
+
+	if channel.Id != th.BasicChannel.Id {
+		t.Fatal("ids did not match")
+	}
 
 	_, resp = Client.GetChannel(model.NewId(), "")
 	CheckForbiddenStatus(t, resp)
@@ -253,8 +258,12 @@ func TestGetChannelByName(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	_, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	channel, resp := Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
 	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicChannel.Name {
+		t.Fatal("names did not match")
+	}
 
 	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
@@ -277,8 +286,12 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	_, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	channel, resp := th.SystemAdminClient.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicChannel.Name {
+		t.Fatal("names did not match")
+	}
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
@@ -441,5 +454,185 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetChannelMembersForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
+}
+
+func TestViewChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	view := &model.ChannelView{
+		ChannelId: th.BasicChannel.Id,
+	}
+
+	pass, resp := Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	view.PrevChannelId = th.BasicChannel.Id
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	view.PrevChannelId = ""
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	view.PrevChannelId = "junk"
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
+	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+	channel, resp := Client.GetChannel(th.BasicChannel.Id, "")
+	CheckNoError(t, resp)
+
+	if member.MsgCount != channel.TotalMsgCount {
+		t.Fatal("should match message counts")
+	}
+
+	if member.MentionCount != 0 {
+		t.Fatal("should have no mentions")
+	}
+
+	_, resp = Client.ViewChannel("junk", view)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ViewChannel(th.BasicUser2.Id, view)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+}
+
+func TestUpdateChannelRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	const CHANNEL_ADMIN = "channel_admin channel_user"
+	const CHANNEL_MEMBER = "channel_user"
+
+	// User 1 creates a channel, making them channel admin by default.
+	channel := th.CreatePublicChannel()
+
+	// Adds User 2 to the channel, making them a channel member by default.
+	app.AddUserToChannel(th.BasicUser2, channel)
+
+	// User 1 promotes User 2
+	pass, resp := Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	member, resp := Client.GetChannelMember(channel.Id, th.BasicUser2.Id, "")
+	CheckNoError(t, resp)
+
+	if member.Roles != CHANNEL_ADMIN {
+		t.Fatal("roles don't match")
+	}
+
+	// User 1 demotes User 2
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_MEMBER)
+	CheckNoError(t, resp)
+
+	th.LoginBasic2()
+
+	// User 2 cannot demote User 1
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckForbiddenStatus(t, resp)
+
+	// User 2 cannot promote self
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser2.Id, CHANNEL_ADMIN)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	// User 1 demotes self
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckNoError(t, resp)
+
+	// System Admin promotes User 1
+	_, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
+	CheckNoError(t, resp)
+
+	// System Admin demotes User 1
+	_, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckNoError(t, resp)
+
+	// System Admin promotes User 1
+	pass, resp = th.SystemAdminClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN)
+	CheckNoError(t, resp)
+
+	th.LoginBasic()
+
+	_, resp = Client.UpdateChannelRoles(channel.Id, th.BasicUser.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles(channel.Id, "junk", CHANNEL_MEMBER)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles("junk", th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles(channel.Id, model.NewId(), CHANNEL_MEMBER)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.UpdateChannelRoles(model.NewId(), th.BasicUser.Id, CHANNEL_MEMBER)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestRemoveChannelMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pass, resp := Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+
+	app.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(th.BasicChannel2.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	th.LoginBasic()
+	private := th.CreatePrivateChannel()
+	app.AddUserToChannel(th.BasicUser2, private)
+
+	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 }
