@@ -25,6 +25,9 @@ func InitChannel() {
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
+	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
+	BaseRoutes.ChannelMember.Handle("/roles", ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
+	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -101,7 +104,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
-	} 
+	}
 
 	if channel, err := app.GetChannel(c.Params.ChannelId); err != nil {
 		c.Err = err
@@ -124,13 +127,13 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel, err = app.GetChannelByName(c.Params.ChannelName, c.Params.TeamId); err != nil {
 		c.Err = err
 		return
-	} 
+	}
 
 	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
-	
+
 	w.Write([]byte(channel.ToJson()))
 	return
 }
@@ -152,7 +155,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
-	} 
+	}
 
 	w.Write([]byte(channel.ToJson()))
 	return
@@ -218,4 +221,89 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 	} else {
 		w.Write([]byte(members.ToJson()))
 	}
+}
+
+func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	view := model.ChannelViewFromJson(r.Body)
+	if view == nil {
+		c.SetInvalidParam("channel_view")
+		return
+	}
+
+	if err := app.ViewChannel(view, c.Params.UserId, !c.Session.IsMobileApp()); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+
+	newRoles := props["roles"]
+	if !(model.IsValidUserRoles(newRoles)) {
+		c.SetInvalidParam("roles")
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_CHANNEL_ROLES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_CHANNEL_ROLES)
+		return
+	}
+
+	if _, err := app.UpdateChannelMemberRoles(c.Params.ChannelId, c.Params.UserId, newRoles); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	var channel *model.Channel
+	var err *model.AppError
+	if channel, err = app.GetChannel(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+		return
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+		return
+	}
+
+	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
+
+	ReturnStatusOK(w)
 }

@@ -144,7 +144,7 @@ func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) 
 	return c.DoApiRequest(http.MethodPut, url, data, "")
 }
 
-func (c *Client4) DoApiDelete(url string, data string) (*http.Response, *AppError) {
+func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodDelete, url, "", "")
 }
 
@@ -407,7 +407,7 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 
 // DeleteUser deactivates a user in the system based on the provided user id string.
 func (c *Client4) DeleteUser(userId string) (bool, *Response) {
-	if r, err := c.DoApiDelete(c.GetUserRoute(userId), ""); err != nil {
+	if r, err := c.DoApiDelete(c.GetUserRoute(userId)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -548,32 +548,32 @@ func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Respo
 }
 
 // GetChannel returns a channel based on the provided channel id string.
-func (c *Client4) GetChannel(channelId, etag string) (*User, *Response) {
+func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
-func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*User, *Response) {
+func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetChannelByNameForTeamName returns a channel based on the provided channel name and team name strings.
-func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*User, *Response) {
+func (c *Client4) GetChannelByNameForTeamName(channelName, teamName string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameForTeamNameRoute(channelName, teamName), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -605,6 +605,38 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 	} else {
 		defer closeBody(r)
 		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
+func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response) {
+	url := fmt.Sprintf(c.GetChannelsRoute()+"/members/%v/view", userId)
+	if r, err := c.DoApiPost(url, view.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateChannelRoles will update the roles on a channel for a user.
+func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
+	requestBody := map[string]string{"roles": roles}
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/roles", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
+func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetChannelMemberRoute(channelId, userId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
