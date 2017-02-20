@@ -163,13 +163,13 @@ func TestFileInfoAttachToPost(t *testing.T) {
 		Path:      "file.txt",
 	})).(*model.FileInfo)
 
-	if result := <-store.FileInfo().AttachToPost(info2.Id, true, postId); result.Err != nil {
+	if result := <-store.FileInfo().AttachToPost(info2.Id, postId); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		info2 = Must(store.FileInfo().Get(info2.Id)).(*model.FileInfo)
 	}
 
-	if result := <-store.FileInfo().GetForPost(postId, false); result.Err != nil {
+	if result := <-store.FileInfo().GetForPost(postId, true, false); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if infos := result.Data.([]*model.FileInfo); len(infos) != 2 {
 		t.Fatal("should've returned exactly 2 file infos")
