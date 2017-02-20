@@ -114,7 +114,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := app.DeletePost(c.Params.PostId); err != nil {
 		c.Err = err
 		return
-	} 
+	}
 
 	ReturnStatusOK(w)
 }

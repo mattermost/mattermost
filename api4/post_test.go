@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/app"
+	"github.com/mattermost/platform/model"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -230,7 +230,7 @@ func TestDeletePost(t *testing.T) {
 	post := th.CreatePost()
 	user := th.CreateUser()
 
- 	Client.Logout()
+	Client.Logout()
 	Client.Login(user.Email, user.Password)
 
 	_, resp = Client.DeletePost(post.Id)
@@ -288,7 +288,6 @@ func TestGetPostThread(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-
 func TestSearchPosts(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
@@ -299,13 +298,13 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePost(message)
 
 	message = "search for post2"
-	post2 := th.CreateMessagePost(message)	
+	post2 := th.CreateMessagePost(message)
 
 	message = "#hashtag search for post3"
-	post3 := th.CreateMessagePost(message)	
+	post3 := th.CreateMessagePost(message)
 
 	message = "hashtag for post4"
-	_ = th.CreateMessagePost(message)	
+	_ = th.CreateMessagePost(message)
 
 	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "search", false)
 	CheckNoError(t, resp)
@@ -315,7 +314,7 @@ func TestSearchPosts(t *testing.T) {
 
 	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "post2", false)
 	CheckNoError(t, resp)
-	if len(posts.Order) != 1 && posts.Order[0] == post2.Id  {
+	if len(posts.Order) != 1 && posts.Order[0] == post2.Id {
 		t.Fatal("wrong search")
 	}
 
@@ -325,7 +324,7 @@ func TestSearchPosts(t *testing.T) {
 		t.Fatal("wrong search")
 	}
 
-	if posts, resp = Client.SearchPosts(th.BasicTeam.Id, "*", false); len(posts.Order) != 0{
+	if posts, resp = Client.SearchPosts(th.BasicTeam.Id, "*", false); len(posts.Order) != 0 {
 		t.Fatal("searching for just * shouldn't return any results")
 	}
 
@@ -397,47 +396,47 @@ func TestSearchPostsInChannel(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(Client, channel, message)
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:", false); len(posts.Order) != 0 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "in:", false); len(posts.Order) != 0 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:" + th.BasicChannel.Name, false); len(posts.Order) != 2 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:"+th.BasicChannel.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "in:" + th.BasicChannel2.Name, false); len(posts.Order) != 2 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "in:"+th.BasicChannel2.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:" + th.BasicChannel2.Name, false); len(posts.Order) != 2 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:"+th.BasicChannel2.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
-	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "ChAnNeL:" + th.BasicChannel2.Name, false); len(posts.Order) != 2 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "ChAnNeL:"+th.BasicChannel2.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview", false); len(posts.Order) != 2 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview channel:"+th.BasicChannel.Name, false); len(posts.Order) != 1 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview in: "+th.BasicChannel2.Name, false); len(posts.Order) != 1 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview channel: "+th.BasicChannel2.Name, false); len(posts.Order) != 1 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel: "+th.BasicChannel2.Name+" channel: "+channel.Name, false); len(posts.Order) != 3 {
-		t.Fatalf("wrong number of posts returned %v", len(posts.Order))	
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 
 }
