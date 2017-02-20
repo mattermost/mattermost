@@ -19,13 +19,20 @@
     height: 30px;
     line-height: 30px;
     width: 100%;
+
+    > div {
+        &:first-child {
+            text-align: center;
+            width: 30px;
+        }
+    }
 }
 
 .emoticon-suggestion__image {
-    height: 20px;
-    margin: 6px 6px 0 5px;
+    margin-top: -2px;
+    max-height: 20px;
+    max-width: 20px;
     padding: 0;
     text-align: center;
-    vertical-align: top;
-    width: 20px;
+    vertical-align: middle;
 }
