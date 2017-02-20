@@ -463,9 +463,9 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 	return posts, nil
 }
 
-func GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
+func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo, *model.AppError) {
 	pchan := Srv.Store.Post().GetSingle(postId)
-	fchan := Srv.Store.FileInfo().GetForPost(postId, true)
+	fchan := Srv.Store.FileInfo().GetForPost(postId, readFromMaster, true)
 
 	var infos []*model.FileInfo
 	if result := <-fchan; result.Err != nil {

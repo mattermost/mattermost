@@ -26,7 +26,11 @@ import (
 
 func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
-	fchan := Srv.Store.FileInfo().GetForPost(post.Id, true)
+	var fchan store.StoreChannel
+
+	if len(post.FileIds) != 0 {
+		fchan = Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+	}
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
@@ -268,7 +272,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	message.Add("sender_name", senderUsername)
 	message.Add("team_id", team.Id)
 
-	if len(post.FileIds) != 0 {
+	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
@@ -410,7 +414,7 @@ func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 
 	// extract the filenames from their paths and determine what type of files are attached
 	var infos []*model.FileInfo
-	if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true); result.Err != nil {
+	if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true, true); result.Err != nil {
 		l4g.Warn(utils.T("api.post.get_message_for_notification.get_files.error"), post.Id, result.Err)
 	} else {
 		infos = result.Data.([]*model.FileInfo)
