@@ -783,7 +783,7 @@ func (c *Client) GetSessions(id string) (*Result, *AppError) {
 }
 
 func (c *Client) EmailToOAuth(m map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/claim/email_to_sso", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/users/claim/email_to_oauth", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
