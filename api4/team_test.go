@@ -254,8 +254,11 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	const TEAM_ADMIN = "team_user team_admin"
 
 	// user 1 tries to promote user 2
-	_, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
 	CheckForbiddenStatus(t, resp)
+	if ok {
+		t.Fatal("should have returned false")
+	}
 
 	// user 1 tries to promote himself
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
@@ -266,8 +269,11 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// system admin promotes user 1
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
 	CheckNoError(t, resp)
+	if !ok {
+		t.Fatal("should have returned true")
+	}
 
 	// user 1 (team admin) promotes user 2
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
