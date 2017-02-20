@@ -276,6 +276,6 @@ func TestZZWebSocketTearDown(t *testing.T) {
 	// This should be the last function in any test file
 	// that calls Setup()
 	// Should be in the last file too sorted by name
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	TearDown()
 }

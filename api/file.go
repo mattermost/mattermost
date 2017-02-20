@@ -630,7 +630,7 @@ func migrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		if result := <-Srv.Store.FileInfo().GetForPost(post.Id, false); result.Err != nil {
+		if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
 			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error"), post.Id, result.Err)
 			return []*model.FileInfo{}
 		} else {

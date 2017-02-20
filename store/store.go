@@ -317,7 +317,7 @@ type FileInfoStore interface {
 	Save(info *model.FileInfo) StoreChannel
 	Get(id string) StoreChannel
 	GetByPath(path string) StoreChannel
-	GetForPost(postId string, allowFromCache bool) StoreChannel
+	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
