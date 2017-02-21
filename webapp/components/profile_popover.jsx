@@ -81,7 +81,7 @@ export default class ProfilePopover extends React.Component {
         this.setState({loadingDMChannel: user.id});
 
         openDirectChannelToUser(
-            user,
+            user.id,
             (channel) => {
                 if (Utils.isMobile()) {
                     GlobalActions.emitCloseRightHandSide();
