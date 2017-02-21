@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
+	"time"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -207,6 +209,44 @@ func TestGetPost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestDeletePost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	_, resp := Client.DeletePost("")
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.DeletePost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.DeletePost(th.BasicPost.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	_, resp = Client.DeletePost(th.BasicPost.Id)
+	CheckNoError(t, resp)
+
+	post := th.CreatePost()
+	user := th.CreateUser()
+
+	Client.Logout()
+	Client.Login(user.Email, user.Password)
+
+	_, resp = Client.DeletePost(post.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.DeletePost(model.NewId())
+	CheckUnauthorizedStatus(t, resp)
+
+	status, resp := th.SystemAdminClient.DeletePost(post.Id)
+	if status == false {
+		t.Fatal("post should return status OK")
+	}
+	CheckNoError(t, resp)
+}
+
 func TestGetPostThread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -246,4 +286,221 @@ func TestGetPostThread(t *testing.T) {
 
 	list, resp = th.SystemAdminClient.GetPostThread(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
+}
+
+func TestSearchPosts(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	th.LoginBasic()
+	Client := th.Client
+
+	message := "search for post1"
+	_ = th.CreateMessagePost(message)
+
+	message = "search for post2"
+	post2 := th.CreateMessagePost(message)
+
+	message = "#hashtag search for post3"
+	post3 := th.CreateMessagePost(message)
+
+	message = "hashtag for post4"
+	_ = th.CreateMessagePost(message)
+
+	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "search", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 3 {
+		t.Fatal("wrong search")
+	}
+
+	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "post2", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 1 && posts.Order[0] == post2.Id {
+		t.Fatal("wrong search")
+	}
+
+	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "#hashtag", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 1 && posts.Order[0] == post3.Id {
+		t.Fatal("wrong search")
+	}
+
+	if posts, resp = Client.SearchPosts(th.BasicTeam.Id, "*", false); len(posts.Order) != 0 {
+		t.Fatal("searching for just * shouldn't return any results")
+	}
+
+	posts, resp = Client.SearchPosts(th.BasicTeam.Id, "post1 post2", true)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 2 {
+		t.Fatal("wrong search results")
+	}
+
+	_, resp = Client.SearchPosts("junk", "#sgtitlereview", false)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.SearchPosts(model.NewId(), "#sgtitlereview", false)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.SearchPosts(th.BasicTeam.Id, "", false)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	CheckUnauthorizedStatus(t, resp)
+
+}
+
+func TestSearchHashtagPosts(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	th.LoginBasic()
+	Client := th.Client
+
+	message := "#sgtitlereview with space"
+	_ = th.CreateMessagePost(message)
+
+	message = "#sgtitlereview\n with return"
+	_ = th.CreateMessagePost(message)
+
+	message = "no hashtag"
+	_ = th.CreateMessagePost(message)
+
+	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	CheckNoError(t, resp)
+	if len(posts.Order) != 2 {
+		t.Fatal("wrong search results")
+	}
+
+	Client.Logout()
+	_, resp = Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestSearchPostsInChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	th.LoginBasic()
+	Client := th.Client
+
+	channel := th.CreatePublicChannel()
+
+	message := "sgtitlereview with space"
+	_ = th.CreateMessagePost(message)
+
+	message = "sgtitlereview\n with return"
+	_ = th.CreateMessagePostWithClient(Client, th.BasicChannel2, message)
+
+	message = "other message with no return"
+	_ = th.CreateMessagePostWithClient(Client, th.BasicChannel2, message)
+
+	message = "other message with no return"
+	_ = th.CreateMessagePostWithClient(Client, channel, message)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "in:", false); len(posts.Order) != 0 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:"+th.BasicChannel.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "in:"+th.BasicChannel2.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel:"+th.BasicChannel2.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "ChAnNeL:"+th.BasicChannel2.Name, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview", false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview channel:"+th.BasicChannel.Name, false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview in: "+th.BasicChannel2.Name, false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "sgtitlereview channel: "+th.BasicChannel2.Name, false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "channel: "+th.BasicChannel2.Name+" channel: "+channel.Name, false); len(posts.Order) != 3 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+}
+
+func TestSearchPostsFromUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	th.LoginTeamAdmin()
+	user := th.CreateUser()
+	LinkUserToTeam(user, th.BasicTeam)
+	app.AddUserToChannel(user, th.BasicChannel)
+	app.AddUserToChannel(user, th.BasicChannel2)
+
+	message := "sgtitlereview with space"
+	_ = th.CreateMessagePost(message)
+
+	Client.Logout()
+	th.LoginBasic2()
+
+	message = "sgtitlereview\n with return"
+	_ = th.CreateMessagePostWithClient(Client, th.BasicChannel2, message)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" sgtitlereview", false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	message = "hullo"
+	_ = th.CreateMessagePost(message)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" in:"+th.BasicChannel.Name, false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	Client.Login(user.Email, user.Password)
+
+	// wait for the join/leave messages to be created for user3 since they're done asynchronously
+	time.Sleep(100 * time.Millisecond)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username, false); len(posts.Order) != 2 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name, false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+
+	message = "coconut"
+	_ = th.CreateMessagePostWithClient(Client, th.BasicChannel2, message)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.BasicUser2.Username+" from: "+user.Username+" in:"+th.BasicChannel2.Name+" coconut", false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
 }

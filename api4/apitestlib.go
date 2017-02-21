@@ -203,12 +203,31 @@ func (me *TestHelper) CreatePost() *model.Post {
 	return me.CreatePostWithClient(me.Client, me.BasicChannel)
 }
 
+func (me *TestHelper) CreateMessagePost(message string) *model.Post {
+	return me.CreateMessagePostWithClient(me.Client, me.BasicChannel, message)
+}
+
 func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	rpost, resp := client.CreatePost(post)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
+	utils.EnableDebugLogForTest()
+	return rpost
+}
+
+func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel *model.Channel, message string) *model.Post {
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
 	}
 
 	utils.DisableDebugLogForTest()

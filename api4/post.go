@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -17,8 +18,11 @@ func InitPost() {
 
 	BaseRoutes.Posts.Handle("", ApiSessionRequired(createPost)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(getPost)).Methods("GET")
+	BaseRoutes.Post.Handle("", ApiSessionRequired(deletePost)).Methods("DELETE")
 	BaseRoutes.Post.Handle("/thread", ApiSessionRequired(getPostThread)).Methods("GET")
 	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
+
+	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -96,6 +100,25 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
+		return
+	}
+
+	if _, err := app.DeletePost(c.Params.PostId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
 func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -116,4 +139,38 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
 		w.Write([]byte(list.ToJson()))
 	}
+}
+
+func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+	terms := props["terms"]
+
+	if len(terms) == 0 {
+		c.SetInvalidParam("terms")
+		return
+	}
+
+	isOrSearch := false
+	if val, ok := props["is_or_search"]; ok && val != "" {
+		isOrSearch, _ = strconv.ParseBool(val)
+	}
+
+	posts, err := app.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(posts.ToJson()))
 }
