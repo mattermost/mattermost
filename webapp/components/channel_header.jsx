@@ -419,23 +419,22 @@ export default class ChannelHeader extends React.Component {
             );
 
             dropdownContents.push(
-                    <li
-                        key='add_members'
-                        role='presentation'
+                <li
+                    key='add_members'
+                    role='presentation'
+                >
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.openDirectMessageModal}
                     >
-                        <a
-                            role='menuitem'
-                            href='#'
-                            onClick={this.openDirectMessageModal}
-                        >
-                            <FormattedMessage
-                                id='channel_header.addMembers'
-                                defaultMessage='Add Members'
-                            />
-                        </a>
-                    </li>
-                );
-
+                        <FormattedMessage
+                            id='channel_header.addMembers'
+                            defaultMessage='Add Members'
+                        />
+                    </a>
+                </li>
+            );
         } else {
             dropdownContents.push(
                 <li
