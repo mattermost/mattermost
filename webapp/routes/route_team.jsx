@@ -21,7 +21,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
 
-import {loadNewDMIfNeeded, loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions.jsx';
 
 function onChannelEnter(nextState, replace, callback) {
     doChannelChange(nextState, replace, callback);
@@ -36,6 +36,8 @@ function doChannelChange(state, replace, callback) {
 
         if (channel && channel.type === Constants.DM_CHANNEL) {
             loadNewDMIfNeeded(Utils.getUserIdFromChannelName(channel));
+        } else if (channel && channel.type === Constants.GM_CHANNEL) {
+            loadNewGMIfNeeded(channel.id);
         }
 
         if (!channel) {
@@ -120,7 +122,7 @@ function preNeedsTeam(nextState, replace, callback) {
             });
 
             loadStatusesForChannelAndSidebar();
-            loadProfilesAndTeamMembersForDMSidebar();
+            loadProfilesForSidebar();
 
             d1.resolve();
         },

@@ -8,7 +8,7 @@ import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {loadStatusesForChannel} from 'actions/status_actions.jsx';
-import {loadNewDMIfNeeded} from 'actions/user_actions.jsx';
+import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Client from 'client/web_client.jsx';
@@ -24,8 +24,12 @@ export function handleNewPost(post, msg) {
         websocketMessageProps = msg.data;
     }
 
-    if (msg && msg.data && msg.data.channel_type === Constants.DM_CHANNEL) {
-        loadNewDMIfNeeded(post.user_id);
+    if (msg && msg.data) {
+        if (msg.data.channel_type === Constants.DM_CHANNEL) {
+            loadNewDMIfNeeded(post.user_id);
+        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
+            loadNewGMIfNeeded(post.channel_id, post.user_id);
+        }
     }
 
     if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {
