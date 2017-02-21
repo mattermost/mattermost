@@ -2128,6 +2128,7 @@
   "user.settings.notifications.emailNotifications": "Email notifications",
   "user.settings.notifications.header": "Notifications",
   "user.settings.notifications.info": "Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps.",
+  "user.settings.notifications.mentionsInfo": "Mentions trigger when someone sends a message that includes your username (\"@{username}\") or any of the options selected above.",
   "user.settings.notifications.never": "Never",
   "user.settings.notifications.noWords": "No words configured",
   "user.settings.notifications.off": "Off",
