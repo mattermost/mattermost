@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import MultiSelect from 'components/multiselect/multiselect.jsx';
+import ProfilePicture from 'components/profile_picture.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 import {openDirectChannelToUser, openGroupChannelToUsers} from 'actions/channel_actions.jsx';
@@ -11,6 +12,8 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
+import {displayUsernameForUser} from 'utils/utils.jsx';
+import Client from 'client/web_client.jsx';
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -183,6 +186,44 @@ export default class MoreDirectChannels extends React.Component {
         this.setState({values});
     }
 
+    renderOption(option, isSelected, onAdd, buttonText) {
+        const style = {width: '100%', margin: '15px'};
+        if (isSelected) {
+            style.backgroundColor = 'green';
+        }
+
+        return (
+            <div
+                key={option.id}
+                className='asaad-please-fix'
+                style={style}
+            >
+                <ProfilePicture
+                    src={`${Client.getUsersRoute()}/${option.id}/image?time=${option.last_picture_update}`}
+                    width='32'
+                    height='32'
+                />
+                <div
+                    className='asaad-please-fix'
+                >
+                    <div className='asaad-please-fix'>
+                        {displayUsernameForUser(option)}
+                    </div>
+                    <div className='asaad-please-fix'>
+                        {option.email}
+                    </div>
+                </div>
+                <button
+                    className='btn btn-primary btn-sm'
+                    style={{position: 'absolute', right: '0'}}
+                    onClick={() => onAdd(option)}
+                >
+                    {buttonText}
+                </button>
+            </div>
+        );
+    }
+
     renderValue(user) {
         return user.username;
     }
@@ -217,6 +258,7 @@ export default class MoreDirectChannels extends React.Component {
                     <MultiSelect
                         key={'moreDirectChannelsList'}
                         options={this.state.users}
+                        optionRenderer={this.renderOption}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
                         perPage={USERS_PER_PAGE}
