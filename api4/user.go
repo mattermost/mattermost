@@ -9,6 +9,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -36,6 +37,8 @@ func InitUser() {
 
 	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
+
+	BaseRoutes.Users.Handle("/autocomplete/", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 
 }
 
@@ -481,51 +484,107 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
-    c.RequireUserId()
-    if c.Err != nil {
-        return
-    }
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
 
-    if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
-        c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-        return
-    }
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
 
-    if sessions, err := app.GetSessions(c.Params.UserId); err != nil {
-        c.Err = err
-        return
-    } else {
-        for _, session := range sessions {
-            session.Sanitize()
-        }
+	if sessions, err := app.GetSessions(c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		for _, session := range sessions {
+			session.Sanitize()
+		}
 
-        w.Write([]byte(model.SessionsToJson(sessions)))
-        return
-    }
+		w.Write([]byte(model.SessionsToJson(sessions)))
+		return
+	}
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
-    c.RequireUserId()
-    if c.Err != nil {
-        return
-    }
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
 
-    if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
-        c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-        return
-    }
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
 
-    props := model.MapFromJson(r.Body)
-    sessionId := props["session_id"]
+	props := model.MapFromJson(r.Body)
+	sessionId := props["session_id"]
 
-    if sessionId == "" {
-        c.SetInvalidParam("session_id")
-    }
+	if sessionId == "" {
+		c.SetInvalidParam("session_id")
+	}
 
-    if err := app.RevokeSessionById(sessionId); err != nil {
-        c.Err = err
-        return
-    }
+	if err := app.RevokeSessionById(sessionId); err != nil {
+		c.Err = err
+		return
+	}
 
-    ReturnStatusOK(w)
+	ReturnStatusOK(w)
+}
+
+func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelId := r.URL.Query().Get("in_channel")
+	teamId := r.URL.Query().Get("in_team")
+	term := r.URL.Query().Get("name")
+
+	if c.Session.GetTeamByTeamId(teamId) == nil {
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			return
+		}
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	searchOptions := map[string]bool{}
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	for _, p := range autocomplete.InChannel {
+		sanitizeProfile(c, p)
+	}
+
+	for _, p := range autocomplete.OutOfChannel {
+		sanitizeProfile(c, p)
+	}
+
+	w.Write([]byte(autocomplete.ToJson()))
+}
+
+func sanitizeProfile(c *Context, user *model.User) *model.User {
+	options := utils.Cfg.GetSanitizeOptions()
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		options["email"] = true
+		options["fullname"] = true
+		options["authservice"] = true
+	}
+
+	user.SanitizeProfile(options)
+
+	return user
 }
