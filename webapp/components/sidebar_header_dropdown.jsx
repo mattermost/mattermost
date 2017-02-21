@@ -319,7 +319,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         const teams = [];
         let moreTeams = false;
 
-        if (config.EnableTeamCreation === 'true') {
+        if (config.EnableTeamCreation === 'true' || UserStore.isSystemAdminForCurrentUser()) {
             teams.push(
                 <li key='newTeam_li'>
                     <Link
