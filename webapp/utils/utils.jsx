@@ -1305,6 +1305,6 @@ export function updateWindowDimensions(component) {
 }
 
 export function openInNewTab(url) {
-    let origin = window.location.host;
+    const origin = window.location.host;
     window.open(origin + url, '_blank');
 }
