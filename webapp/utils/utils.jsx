@@ -1303,3 +1303,8 @@ export function isEmptyObject(object) {
 export function updateWindowDimensions(component) {
     component.setState({width: window.innerWidth, height: window.innerHeight});
 }
+
+export function openInNewTab(url) {
+    let origin = window.location.host;
+    window.open(origin + url, '_blank');
+}
