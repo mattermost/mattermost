@@ -490,7 +490,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT {
+	if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP {
 		c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelId": id, "TeamId": c.TeamId}, "")
 		return
 	}
