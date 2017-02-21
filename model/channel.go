@@ -155,8 +155,8 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 
 	name := strings.Join(usernames, ", ")
 
-	if truncate && len(name) > 64 {
-		name = name[:64]
+	if truncate && len(name) > CHANNEL_NAME_MAX_LENGTH {
+		name = name[:CHANNEL_NAME_MAX_LENGTH]
 	}
 
 	return name
