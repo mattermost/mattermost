@@ -243,7 +243,8 @@ export default class ChannelHeader extends React.Component {
         let channelTitle = channel.display_name;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
-        const isDirect = (this.state.channel.type === 'D');
+        const isDirect = (this.state.channel.type === Constants.DM_CHANNEL);
+        const isGroup = (this.state.channel.type === Constants.GM_CHANNEL);
         let webrtc;
 
         if (isDirect) {
@@ -314,6 +315,10 @@ export default class ChannelHeader extends React.Component {
                     </div>
                 );
             }
+        }
+
+        if (isGroup) {
+            channelTitle = ChannelUtils.buildGroupChannelName(channel.id);
         }
 
         let channelTerm = (
