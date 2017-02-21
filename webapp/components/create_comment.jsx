@@ -315,7 +315,6 @@ export default class CreateComment extends React.Component {
     }
 
     handleFileUploadChange() {
-        // [PLT-5445] Mobile view: Set focus back to message box after uploading a file
         this.focusTextbox(true);
     }
 
