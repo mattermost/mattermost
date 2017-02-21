@@ -15,6 +15,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import ModalStore from 'stores/modal_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -22,7 +23,7 @@ import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
-import Constants from 'utils/constants.jsx';
+import {ActionTypes, Constants} from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -49,6 +50,7 @@ export default class Sidebar extends React.Component {
         this.getStateFromStores = this.getStateFromStores.bind(this);
 
         this.onChange = this.onChange.bind(this);
+        this.onModalChange = this.onModalChange.bind(this);
         this.onInChannelChange = this.onInChannelChange.bind(this);
         this.onScroll = this.onScroll.bind(this);
         this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
@@ -142,6 +144,7 @@ export default class Sidebar extends React.Component {
         UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_DM_MODAL, this.onModalChange);
 
         this.updateTitle();
         this.updateUnreadIndicators();
@@ -190,8 +193,13 @@ export default class Sidebar extends React.Component {
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_DM_MODAL, this.onModalChange);
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
+    }
+
+    onModalChange(value, args) {
+        this.showMoreDirectChannelsModal(args.startingUsers);
     }
 
     onChange() {
@@ -402,13 +410,13 @@ export default class Sidebar extends React.Component {
         this.setState({newChannelModalType: ''});
     }
 
-    showMoreDirectChannelsModal() {
+    showMoreDirectChannelsModal(startingUsers) {
         trackEvent('ui', 'ui_channels_more_direct');
-        this.setState({showDirectChannelsModal: true});
+        this.setState({showDirectChannelsModal: true, startingUsers});
     }
 
     hideMoreDirectChannelsModal() {
-        this.setState({showDirectChannelsModal: false});
+        this.setState({showDirectChannelsModal: false, startingUsers: null});
     }
 
     openLeftSidebar() {
@@ -667,7 +675,7 @@ export default class Sidebar extends React.Component {
             <li key='more'>
                 <a
                     href='#'
-                    onClick={this.showMoreDirectChannelsModal}
+                    onClick={() => this.showMoreDirectChannelsModal()}
                 >
                     <FormattedMessage
                         id='sidebar.moreElips'
@@ -761,6 +769,7 @@ export default class Sidebar extends React.Component {
             moreDirectChannelsModal = (
                 <MoreDirectChannels
                     onModalDismissed={this.hideMoreDirectChannelsModal}
+                    startingUsers={this.state.startingUsers}
                 />
             );
         }
