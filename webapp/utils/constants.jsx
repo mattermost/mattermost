@@ -35,6 +35,7 @@ import windows10ThemeImage from 'images/themes/windows_dark.png';
 
 export const Preferences = {
     CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
+    CATEGORY_GROUP_CHANNEL_SHOW: 'group_channel_show',
     CATEGORY_DISPLAY_SETTINGS: 'display_settings',
     DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
     DISPLAY_PREFER_FULL_NAME: 'full_name',
@@ -385,8 +386,11 @@ export const Constants = {
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
+    MAX_USERS_IN_GM: 8,
+    MIN_USERS_IN_GM: 3,
     MAX_CHANNEL_POPOVER_COUNT: 100,
     DM_CHANNEL: 'D',
+    GM_CHANNEL: 'G',
     OPEN_CHANNEL: 'O',
     PRIVATE_CHANNEL: 'P',
     INVITE_TEAM: 'I',

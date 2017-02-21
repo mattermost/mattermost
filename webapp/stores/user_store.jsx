@@ -414,13 +414,18 @@ class UserStoreClass extends EventEmitter {
         userIds.splice(index, 1);
     }
 
-    getProfileListInChannel(channelId = ChannelStore.getCurrentId()) {
+    getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false) {
         const userIds = this.profiles_in_channel[channelId] || [];
+        const currentId = this.getCurrentId();
         const profiles = [];
 
         for (let i = 0; i < userIds.length; i++) {
             const profile = this.getProfile(userIds[i]);
             if (profile) {
+                if (skipCurrent && profile.id === currentId) {
+                    continue;
+                }
+
                 profiles.push(profile);
             }
         }

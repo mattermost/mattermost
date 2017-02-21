@@ -1278,6 +1278,16 @@ export default class Client {
         this.trackEvent('api', 'api_channels_create_direct', {team_id: this.getTeamId()});
     }
 
+    createGroupChannel(userIds, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/create_group`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'createGroupChannel', success, error));
+    }
+
     updateChannel(channel, success, error) {
         request.
             post(`${this.getChannelsRoute()}/update`).

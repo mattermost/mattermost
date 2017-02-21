@@ -1,21 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SearchableUserList from 'components/searchable_user_list.jsx';
-import SpinnerButton from 'components/spinner_button.jsx';
+import ProfilePicture from 'components/profile_picture.jsx';
 
-import {searchUsers} from 'actions/user_actions.jsx';
-import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
+import {searchUsers, loadProfiles} from 'actions/user_actions.jsx';
+import {openDirectChannelToUser, openGroupChannelToUsers} from 'actions/channel_actions.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
-import {localizeMessage} from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
+import Client from 'client/web_client.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
+import ReactSelect from 'react-select';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -28,39 +26,21 @@ export default class MoreDirectChannels extends React.Component {
 
         this.handleHide = this.handleHide.bind(this);
         this.handleExit = this.handleExit.bind(this);
-        this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
-        this.onChange = this.onChange.bind(this);
-        this.createJoinDirectChannelButton = this.createJoinDirectChannelButton.bind(this);
-        this.toggleList = this.toggleList.bind(this);
-        this.nextPage = this.nextPage.bind(this);
-        this.search = this.search.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleChange = this.handleChange.bind(this);
 
         this.searchTimeoutId = 0;
 
         this.state = {
             users: null,
-            loadingDMChannel: -1,
-            listType: 'team',
+            loadingChannel: -1,
             show: true,
-            search: false
+            values: []
         };
     }
 
     componentDidMount() {
-        UserStore.addChangeListener(this.onChange);
-        UserStore.addInTeamChangeListener(this.onChange);
-        UserStore.addStatusesChangeListener(this.onChange);
-        TeamStore.addChangeListener(this.onChange);
-
-        AsyncClient.getProfiles(0, Constants.PROFILE_CHUNK_SIZE);
-        AsyncClient.getProfilesInTeam(TeamStore.getCurrentId(), 0, Constants.PROFILE_CHUNK_SIZE);
-    }
-
-    componentWillUnmount() {
-        UserStore.removeChangeListener(this.onChange);
-        UserStore.removeInTeamChangeListener(this.onChange);
-        UserStore.removeStatusesChangeListener(this.onChange);
-        TeamStore.removeChangeListener(this.onChange);
+        this.refs.select.focus();
     }
 
     handleHide() {
@@ -68,8 +48,8 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleExit() {
-        if (this.exitToDirectChannel) {
-            browserHistory.push(this.exitToDirectChannel);
+        if (this.exitToChannel) {
+            browserHistory.push(this.exitToChannel);
         }
 
         if (this.props.onModalDismissed) {
@@ -77,158 +57,129 @@ export default class MoreDirectChannels extends React.Component {
         }
     }
 
-    handleShowDirectChannel(teammate, e) {
+    handleChange(users) {
+        const values = users.map((n) => {
+            return n.value;
+        });
+
+        this.setState({values});
+    }
+
+    handleSubmit(e) {
         e.preventDefault();
 
-        if (this.state.loadingDMChannel !== -1) {
+        if (this.state.loadingChannel !== -1) {
             return;
         }
 
-        this.setState({loadingDMChannel: teammate.id});
-        openDirectChannelToUser(
-            teammate,
-            (channel) => {
-                // Due to how react-overlays Modal handles focus, we delay pushing
-                // the new channel information until the modal is fully exited.
-                // The channel information will be pushed in `handleExit`
-                this.exitToDirectChannel = TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name;
-                this.setState({loadingDMChannel: -1});
-                this.handleHide();
-            },
-            () => {
-                this.setState({loadingDMChannel: -1});
-            }
-        );
-    }
+        this.setState({loadingChannel: 1});
 
-    onChange(force) {
-        if (this.state.search && !force) {
-            return;
-        }
+        const success = (channel) => {
+            // Due to how react-overlays Modal handles focus, we delay pushing
+            // the new channel information until the modal is fully exited.
+            // The channel information will be pushed in `handleExit`
+            this.exitToChannel = TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name;
+            this.setState({loadingChannel: -1});
+            this.handleHide();
+        };
 
-        let users;
-        if (this.state.listType === 'any') {
-            users = UserStore.getProfileList(true);
+        const error = () => {
+            this.setState({loadingChannel: -1});
+        };
+
+        const userIds = this.state.values;
+        if (userIds.length === 1) {
+            openDirectChannelToUser(userIds[0], success, error);
         } else {
-            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
-        }
-
-        this.setState({
-            users
-        });
-    }
-
-    toggleList(e) {
-        const listType = e.target.value;
-        let users;
-        if (listType === 'any') {
-            users = UserStore.getProfileList(true);
-        } else {
-            users = UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true, true);
-        }
-
-        this.setState({
-            users,
-            listType
-        });
-    }
-
-    createJoinDirectChannelButton({user}) {
-        return (
-            <SpinnerButton
-                className='btn btm-sm btn-primary'
-                spinning={this.state.loadingDMChannel === user.id}
-                onClick={this.handleShowDirectChannel.bind(this, user)}
-            >
-                <FormattedMessage
-                    id='more_direct_channels.message'
-                    defaultMessage='Message'
-                />
-            </SpinnerButton>
-        );
-    }
-
-    nextPage(page) {
-        if (this.state.listType === 'any') {
-            AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
-        } else {
-            AsyncClient.getProfilesInTeam(TeamStore.getCurrentId(), (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+            openGroupChannelToUsers(userIds, success, error);
         }
     }
 
-    search(term) {
-        if (term === '') {
-            this.onChange(true);
-            this.setState({search: false});
-            return;
-        }
-
-        let teamId;
-        if (this.state.listType === 'any') {
-            teamId = '';
-        } else {
-            teamId = TeamStore.getCurrentId();
-        }
-
-        clearTimeout(this.searchTimeoutId);
-
-        this.searchTimeoutId = setTimeout(
-            () => {
-                searchUsers(
-                    term,
-                    teamId,
-                    {},
-                    (users) => {
-                        for (let i = 0; i < users.length; i++) {
-                            if (users[i].id === UserStore.getCurrentId()) {
-                                users.splice(i, 1);
-                                break;
-                            }
+    search(input, callback) {
+        if (input === '') {
+            loadProfiles(
+                0,
+                USERS_PER_PAGE,
+                (users) => {
+                    const userList = [];
+                    for (const key in users) {
+                        if (!users.hasOwnProperty(key)) {
+                            continue;
                         }
-                        this.setState({search: true, users});
+
+                        const user = users[key];
+                        if (user.id !== UserStore.getCurrentId()) {
+                            user.value = user.id;
+                            user.label = '@' + user.username;
+                            userList.push(user);
+                        }
                     }
-                );
-            },
-            Constants.SEARCH_TIMEOUT_MILLISECONDS
+
+                    callback(null, {
+                        options: userList,
+                        complete: true
+                    });
+                }
+            );
+        } else {
+            searchUsers(
+                input,
+                '',
+                {},
+                (users) => {
+                    let indexToDelete = -1;
+                    for (let i = 0; i < users.length; i++) {
+                        if (users[i].id === UserStore.getCurrentId()) {
+                            indexToDelete = i;
+                        }
+                        users[i].value = users[i].username.id;
+                        users[i].label = '@' + users[i].username;
+                    }
+
+                    users.splice(indexToDelete, 1);
+
+                    callback(null, {
+                        options: users,
+                        complete: true
+                    });
+                }
+            );
+        }
+    }
+
+    renderOption(user) {
+        return (
+            <div
+                key={user.id}
+                className='asaad-please-fix'
+            >
+                <ProfilePicture
+                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.last_picture_update}`}
+                    width='32'
+                    height='32'
+                />
+                <div
+                    className='asaad-please-fix'
+                >
+                    <div className='asaad-please-fix'>
+                        {Utils.displayUsernameForUser(user)}
+                    </div>
+                    <div className='asaad-please-fix'>
+                        {user.email}
+                    </div>
+                </div>
+            </div>
         );
+    }
+
+    renderValue(user) {
+        return user.username;
     }
 
     render() {
-        let teamToggle;
-        let memberClass = '';
-        if (global.window.mm_config.RestrictDirectMessage === 'any') {
-            memberClass = 'more-system-members';
-            teamToggle = (
-                <div className='member-select__container'>
-                    <select
-                        className='form-control'
-                        id='restrictList'
-                        ref='restrictList'
-                        defaultValue='team'
-                        onChange={this.toggleList}
-                    >
-                        <option value='any'>
-                            {localizeMessage('filtered_user_list.any_team', 'All Users')}
-                        </option>
-                        <option value='team'>
-                            {localizeMessage('filtered_user_list.team_only', 'Members of this Team')}
-                        </option>
-                    </select>
-                    <span
-                        className='member-show'
-                    >
-                        <FormattedMessage
-                            id='filtered_user_list.show'
-                            defaultMessage='Filter:'
-                        />
-                    </span>
-                </div>
-            );
-        }
-
         return (
             <Modal
-                dialogClassName={'more-modal more-direct-channels ' + memberClass}
+                dialogClassName={'more-modal more-direct-channels'}
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
@@ -241,17 +192,29 @@ export default class MoreDirectChannels extends React.Component {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    {teamToggle}
-                    <SearchableUserList
-                        key={'moreDirectChannelsList_' + this.state.listType}
-                        users={this.state.users}
-                        usersPerPage={USERS_PER_PAGE}
-                        nextPage={this.nextPage}
-                        search={this.search}
-                        actions={[this.createJoinDirectChannelButton]}
-                        focusOnMount={!UserAgent.isMobile()}
+                <Modal.Body style={{overflow: 'visible'}}>
+                    <ReactSelect.Async
+                        ref='select'
+                        multi={true}
+                        loadOptions={this.search}
+                        optionRenderer={this.renderOption}
+                        joinValues={true}
+                        clearable={false}
+                        openOnFocus={true}
+                        onChange={this.handleChange}
+                        value={this.state.values}
+                        valueRenderer={this.renderValue}
                     />
+                    <button
+                        className='btn btn-primary pull-right'
+                        onClick={this.handleSubmit}
+                        disabled={this.state.values.length === 0}
+                    >
+                        <FormattedMessage
+                            id='dm.list.go'
+                            defaultMessage='Go'
+                        />
+                    </button>
                 </Modal.Body>
             </Modal>
         );

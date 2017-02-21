@@ -21,7 +21,7 @@ import {getSiteURL} from 'utils/url.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
@@ -238,7 +238,7 @@ function handleUpdateTeamEvent(msg) {
 
 function handleDirectAddedEvent(msg) {
     AsyncClient.getChannel(msg.broadcast.channel_id);
-    loadProfilesAndTeamMembersForDMSidebar();
+    loadProfilesForSidebar();
 }
 
 function handleUserAddedEvent(msg) {
