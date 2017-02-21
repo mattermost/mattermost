@@ -1,4 +1,8 @@
 {
+  "multiselect.go": "Go",
+  "multiselect.instructions": "Use up/down arrows to navigate and enter to select",
+  "multiselect.placeholder": "Search and add members",
+  "multiselect.numRemaining": "You can add {num, number} more",
   "about.close": "Close",
   "about.copyright": "Copyright 2016 Mattermost, Inc. All rights reserved",
   "about.database": "Database:",
