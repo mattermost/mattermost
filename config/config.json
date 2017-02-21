@@ -41,6 +41,7 @@
         "PostEditTimeLimit": 300,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnableUserTypingMessages": true,
+        "EnableUserTypingMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
     "TeamSettings": {
