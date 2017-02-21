@@ -32,7 +32,9 @@ import {getSiteURL} from 'utils/url.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
 
-import {Constants, Preferences, UserStatuses} from 'utils/constants.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+
+import {Constants, Preferences, UserStatuses, ActionTypes} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -53,6 +55,7 @@ export default class ChannelHeader extends React.Component {
         this.getFlagged = this.getFlagged.bind(this);
         this.initWebrtc = this.initWebrtc.bind(this);
         this.onBusy = this.onBusy.bind(this);
+        this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -194,6 +197,14 @@ export default class ChannelHeader extends React.Component {
 
     onBusy(isBusy) {
         this.setState({isBusy});
+    }
+
+    openDirectMessageModal() {
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.TOGGLE_DM_MODAL,
+            value: true,
+            startingUsers: UserStore.getProfileListInChannel(this.props.channelId, true)
+        });
     }
 
     render() {
@@ -366,6 +377,65 @@ export default class ChannelHeader extends React.Component {
                     </ToggleModalButton>
                 </li>
             );
+        } else if (isGroup) {
+            dropdownContents.push(
+                <li
+                    key='edit_header_direct'
+                    role='presentation'
+                >
+                    <ToggleModalButton
+                        role='menuitem'
+                        dialogType={EditChannelHeaderModal}
+                        dialogProps={{channel}}
+                    >
+                        <FormattedMessage
+                            id='channel_header.channelHeader'
+                            defaultMessage='Edit Channel Header'
+                        />
+                    </ToggleModalButton>
+                </li>
+            );
+
+            dropdownContents.push(
+                <li
+                    key='notification_preferences'
+                    role='presentation'
+                >
+                    <ToggleModalButton
+                        role='menuitem'
+                        dialogType={ChannelNotificationsModal}
+                        dialogProps={{
+                            channel,
+                            channelMember: this.state.memberChannel,
+                            currentUser: this.state.currentUser
+                        }}
+                    >
+                        <FormattedMessage
+                            id='channel_header.notificationPreferences'
+                            defaultMessage='Notification Preferences'
+                        />
+                    </ToggleModalButton>
+                </li>
+            );
+
+            dropdownContents.push(
+                    <li
+                        key='add_members'
+                        role='presentation'
+                    >
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={this.openDirectMessageModal}
+                        >
+                            <FormattedMessage
+                                id='channel_header.addMembers'
+                                defaultMessage='Add Members'
+                            />
+                        </a>
+                    </li>
+                );
+
         } else {
             dropdownContents.push(
                 <li

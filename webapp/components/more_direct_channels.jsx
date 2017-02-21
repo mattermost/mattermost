@@ -1,19 +1,18 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ProfilePicture from 'components/profile_picture.jsx';
+import MultiSelect from 'components/multiselect/multiselect.jsx';
 
-import {searchUsers, loadProfiles} from 'actions/user_actions.jsx';
+import {searchUsers} from 'actions/user_actions.jsx';
 import {openDirectChannelToUser, openGroupChannelToUsers} from 'actions/channel_actions.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as Utils from 'utils/utils.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
-import ReactSelect from 'react-select';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -27,20 +26,44 @@ export default class MoreDirectChannels extends React.Component {
         this.handleHide = this.handleHide.bind(this);
         this.handleExit = this.handleExit.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleChange = this.handleChange.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.search = this.search.bind(this);
+        this.addValue = this.addValue.bind(this);
 
         this.searchTimeoutId = 0;
 
+        const values = [];
+        if (props.startingUsers) {
+            for (let i = 0; i < props.startingUsers.length; i++) {
+                const user = Object.assign({}, props.startingUsers[i]);
+                user.value = user.id;
+                user.label = '@' + user.username;
+                values.push(user);
+            }
+        }
+
         this.state = {
             users: null,
-            loadingChannel: -1,
+            values,
             show: true,
-            values: []
+            search: false,
+            loadingChannel: -1
         };
     }
 
     componentDidMount() {
-        this.refs.select.focus();
+        UserStore.addChangeListener(this.onChange);
+        UserStore.addStatusesChangeListener(this.onChange);
+        TeamStore.addChangeListener(this.onChange);
+
+        AsyncClient.getProfiles(0, USERS_PER_PAGE * 2);
+    }
+
+    componentWillUnmount() {
+        UserStore.removeChangeListener(this.onChange);
+        UserStore.removeStatusesChangeListener(this.onChange);
+        TeamStore.removeChangeListener(this.onChange);
     }
 
     handleHide() {
@@ -55,14 +78,6 @@ export default class MoreDirectChannels extends React.Component {
         if (this.props.onModalDismissed) {
             this.props.onModalDismissed();
         }
-    }
-
-    handleChange(users) {
-        const values = users.map((n) => {
-            return n.value;
-        });
-
-        this.setState({values});
     }
 
     handleSubmit(e) {
@@ -87,7 +102,7 @@ export default class MoreDirectChannels extends React.Component {
             this.setState({loadingChannel: -1});
         };
 
-        const userIds = this.state.values;
+        const userIds = this.state.values.map((v) => v.id);
         if (userIds.length === 1) {
             openDirectChannelToUser(userIds[0], success, error);
         } else {
@@ -95,81 +110,77 @@ export default class MoreDirectChannels extends React.Component {
         }
     }
 
-    search(input, callback) {
-        if (input === '') {
-            loadProfiles(
-                0,
-                USERS_PER_PAGE,
-                (users) => {
-                    const userList = [];
-                    for (const key in users) {
-                        if (!users.hasOwnProperty(key)) {
-                            continue;
-                        }
+    addValue(value) {
+        const values = Object.assign([], this.state.values);
+        if (values.indexOf(value) === -1) {
+            values.push(value);
+        }
 
-                        const user = users[key];
-                        if (user.id !== UserStore.getCurrentId()) {
-                            user.value = user.id;
-                            user.label = '@' + user.username;
-                            userList.push(user);
-                        }
-                    }
+        this.setState({values});
+    }
 
-                    callback(null, {
-                        options: userList,
-                        complete: true
-                    });
-                }
-            );
-        } else {
-            searchUsers(
-                input,
-                '',
-                {},
-                (users) => {
-                    let indexToDelete = -1;
-                    for (let i = 0; i < users.length; i++) {
-                        if (users[i].id === UserStore.getCurrentId()) {
-                            indexToDelete = i;
-                        }
-                        users[i].value = users[i].username.id;
-                        users[i].label = '@' + users[i].username;
-                    }
+    onChange(force) {
+        if (this.state.search && !force) {
+            return;
+        }
 
-                    users.splice(indexToDelete, 1);
+        const users = Object.assign([], UserStore.getProfileList(true));
+        for (let i = 0; i < users.length; i++) {
+            const user = Object.assign({}, users[i]);
+            user.value = user.id;
+            user.label = '@' + user.username;
+            users[i] = user;
+        }
 
-                    callback(null, {
-                        options: users,
-                        complete: true
-                    });
-                }
-            );
+        this.setState({
+            users
+        });
+    }
+
+    handlePageChange(page, prevPage) {
+        if (page > prevPage) {
+            AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
         }
     }
 
-    renderOption(user) {
-        return (
-            <div
-                key={user.id}
-                className='asaad-please-fix'
-            >
-                <ProfilePicture
-                    src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.last_picture_update}`}
-                    width='32'
-                    height='32'
-                />
-                <div
-                    className='asaad-please-fix'
-                >
-                    <div className='asaad-please-fix'>
-                        {Utils.displayUsernameForUser(user)}
-                    </div>
-                    <div className='asaad-please-fix'>
-                        {user.email}
-                    </div>
-                </div>
-            </div>
+    search(term) {
+        if (term === '') {
+            this.onChange(true);
+            this.setState({search: false});
+            return;
+        }
+
+        clearTimeout(this.searchTimeoutId);
+
+        this.searchTimeoutId = setTimeout(
+            () => {
+                searchUsers(
+                    term,
+                    '',
+                    {},
+                    (users) => {
+                        let indexToDelete = -1;
+                        for (let i = 0; i < users.length; i++) {
+                            if (users[i].id === UserStore.getCurrentId()) {
+                                indexToDelete = i;
+                            }
+                            users[i].value = users[i].id;
+                            users[i].label = '@' + users[i].username;
+                        }
+
+                        if (indexToDelete !== -1) {
+                            users.splice(indexToDelete, 1);
+                        }
+                        this.setState({search: true, users});
+                    }
+                );
+            },
+            Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
+    }
+
+    handleDelete(values) {
+        this.setState({values});
     }
 
     renderValue(user) {
@@ -177,6 +188,16 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
+        let note;
+        if (this.props.startingUsers) {
+            note = (
+                <FormattedMessage
+                    id='more_direct_channels.new_convo_note'
+                    defaultMessage='This will start a new conversation. If you’re adding a lot of people, consider creating a private group instead.'
+                />
+            );
+        }
+
         return (
             <Modal
                 dialogClassName={'more-modal more-direct-channels'}
@@ -192,29 +213,22 @@ export default class MoreDirectChannels extends React.Component {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{overflow: 'visible'}}>
-                    <ReactSelect.Async
-                        ref='select'
-                        multi={true}
-                        loadOptions={this.search}
-                        optionRenderer={this.renderOption}
-                        joinValues={true}
-                        clearable={false}
-                        openOnFocus={true}
-                        onChange={this.handleChange}
-                        value={this.state.values}
+                <Modal.Body>
+                    <MultiSelect
+                        key={'moreDirectChannelsList'}
+                        options={this.state.users}
+                        values={this.state.values}
                         valueRenderer={this.renderValue}
+                        perPage={USERS_PER_PAGE}
+                        handlePageChange={this.handlePageChange}
+                        handleInput={this.search}
+                        handleDelete={this.handleDelete}
+                        handleAdd={this.addValue}
+                        handleSubmit={this.handleSubmit}
+                        buttonText={'Message'}
+                        noteText={note}
+                        maxValues={Constants.MAX_USERS_IN_GM - 1}
                     />
-                    <button
-                        className='btn btn-primary pull-right'
-                        onClick={this.handleSubmit}
-                        disabled={this.state.values.length === 0}
-                    >
-                        <FormattedMessage
-                            id='dm.list.go'
-                            defaultMessage='Go'
-                        />
-                    </button>
                 </Modal.Body>
             </Modal>
         );
@@ -222,5 +236,6 @@ export default class MoreDirectChannels extends React.Component {
 }
 
 MoreDirectChannels.propTypes = {
+    startingUsers: React.PropTypes.arrayOf(React.PropTypes.object),
     onModalDismissed: React.PropTypes.func
 };
