@@ -4,9 +4,10 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestSqlAuditStore(t *testing.T) {
@@ -25,7 +26,7 @@ func TestSqlAuditStore(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	c := store.Audit().Get(audit.UserId, 100)
+	c := store.Audit().Get(audit.UserId, 0, 100)
 	result := <-c
 	audits := result.Data.(model.Audits)
 
@@ -37,7 +38,7 @@ func TestSqlAuditStore(t *testing.T) {
 		t.Fatal("Failed to save property for extra info")
 	}
 
-	c = store.Audit().Get("missing", 100)
+	c = store.Audit().Get("missing", 0, 100)
 	result = <-c
 	audits = result.Data.(model.Audits)
 
@@ -45,7 +46,7 @@ func TestSqlAuditStore(t *testing.T) {
 		t.Fatal("Should have returned empty because user_id is missing")
 	}
 
-	c = store.Audit().Get("", 100)
+	c = store.Audit().Get("", 0, 100)
 	result = <-c
 	audits = result.Data.(model.Audits)
 
