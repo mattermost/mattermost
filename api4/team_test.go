@@ -283,3 +283,81 @@ func TestGetTeamStats(t *testing.T) {
 	_, resp = Client.GetTeamStats(th.BasicTeam.Id, "")
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestUpdateTeamMemberRoles(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	SystemAdminClient := th.SystemAdminClient
+
+	const TEAM_MEMBER = "team_user"
+	const TEAM_ADMIN = "team_user team_admin"
+
+	// user 1 tries to promote user 2
+	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	CheckForbiddenStatus(t, resp)
+	if ok {
+		t.Fatal("should have returned false")
+	}
+
+	// user 1 tries to promote himself
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	CheckForbiddenStatus(t, resp)
+
+	// user 1 tries to demote someone
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	CheckForbiddenStatus(t, resp)
+
+	// system admin promotes user 1
+	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	CheckNoError(t, resp)
+	if !ok {
+		t.Fatal("should have returned true")
+	}
+
+	// user 1 (team admin) promotes user 2
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	CheckNoError(t, resp)
+
+	// user 1 (team admin) demotes user 2 (team admin)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	CheckNoError(t, resp)
+
+	// user 1 (team admin) tries to demote system admin (not member of a team)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	CheckBadRequestStatus(t, resp)
+
+	// user 1 (team admin) demotes system admin (member of a team)
+	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	CheckNoError(t, resp)
+	// Note from API v3
+	// Note to anyone who thinks this (above) test is wrong:
+	// This operation will not affect the system admin's permissions because they have global access to all teams.
+	// Their team level permissions are irrelavent. A team admin should be able to manage team level permissions.
+
+	// System admins should be able to manipulate permission no matter what their team level permissions are.
+	// system admin promotes user 2
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	CheckNoError(t, resp)
+
+	// system admin demotes user 2 (team admin)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	CheckNoError(t, resp)
+
+	// user 1 (team admin) tries to promote himself to a random team
+	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TEAM_ADMIN)
+	CheckForbiddenStatus(t, resp)
+
+	// user 1 (team admin) tries to promote a random user
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
+	CheckBadRequestStatus(t, resp)
+
+	// user 1 (team admin) tries to promote invalid team permission
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	// user 1 (team admin) demotes himself
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
+	CheckNoError(t, resp)
+}
