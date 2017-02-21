@@ -36,6 +36,7 @@ func InitUser() {
 
 	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
+	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
 
 }
 
@@ -481,51 +482,71 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
-    c.RequireUserId()
-    if c.Err != nil {
-        return
-    }
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
 
-    if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
-        c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-        return
-    }
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
 
-    if sessions, err := app.GetSessions(c.Params.UserId); err != nil {
-        c.Err = err
-        return
-    } else {
-        for _, session := range sessions {
-            session.Sanitize()
-        }
+	if sessions, err := app.GetSessions(c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		for _, session := range sessions {
+			session.Sanitize()
+		}
 
-        w.Write([]byte(model.SessionsToJson(sessions)))
-        return
-    }
+		w.Write([]byte(model.SessionsToJson(sessions)))
+		return
+	}
 }
 
 func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
-    c.RequireUserId()
-    if c.Err != nil {
-        return
-    }
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
 
-    if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
-        c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-        return
-    }
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
 
-    props := model.MapFromJson(r.Body)
-    sessionId := props["session_id"]
+	props := model.MapFromJson(r.Body)
+	sessionId := props["session_id"]
 
-    if sessionId == "" {
-        c.SetInvalidParam("session_id")
-    }
+	if sessionId == "" {
+		c.SetInvalidParam("session_id")
+	}
 
-    if err := app.RevokeSessionById(sessionId); err != nil {
-        c.Err = err
-        return
-    }
+	if err := app.RevokeSessionById(sessionId); err != nil {
+		c.Err = err
+		return
+	}
 
-    ReturnStatusOK(w)
+	ReturnStatusOK(w)
+}
+
+func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if audits, err := app.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(audits.ToJson()))
+		return
+	}
 }
