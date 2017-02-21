@@ -133,6 +133,10 @@ func (o *Channel) ExtraUpdated() {
 	o.ExtraUpdateAt = GetMillis()
 }
 
+func (o *Channel) IsGroupOrDirect() bool {
+	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
+}
+
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {
 		return userId2 + "__" + userId1
@@ -141,7 +145,7 @@ func GetDMNameFromIds(userId1, userId2 string) string {
 	}
 }
 
-func GetGroupDisplayNameFromUsers(users []*User) string {
+func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 	usernames := make([]string, len(users))
 	for index, user := range users {
 		usernames[index] = user.Username
@@ -151,7 +155,7 @@ func GetGroupDisplayNameFromUsers(users []*User) string {
 
 	name := strings.Join(usernames, ", ")
 
-	if len(name) > 64 {
+	if truncate && len(name) > 64 {
 		name = name[:64]
 	}
 

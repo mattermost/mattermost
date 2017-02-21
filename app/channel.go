@@ -77,7 +77,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 }
 
 func CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -215,7 +215,7 @@ func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 
 	group := &model.Channel{
 		Name:        model.GetGroupNameFromUserIds(userIds),
-		DisplayName: model.GetGroupDisplayNameFromUsers(users),
+		DisplayName: model.GetGroupDisplayNameFromUsers(users, true),
 		Type:        model.CHANNEL_GROUP,
 	}
 
@@ -756,7 +756,7 @@ func LeaveChannel(channelId string, userId string) *model.AppError {
 		user := uresult.Data.(*model.User)
 		membersCount := ccmresult.Data.(int64)
 
-		if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+		if channel.IsGroupOrDirect() {
 			err := model.NewLocAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "")
 			err.StatusCode = http.StatusBadRequest
 			return err

@@ -239,6 +239,17 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		}
 	}
 
+	channelName := channel.DisplayName
+	if channel.Type == model.CHANNEL_GROUP {
+		userList := []*model.User{}
+		for _, u := range profileMap {
+			if u.Id != post.UserId {
+				userList = append(userList, u)
+			}
+		}
+		channelName = model.GetGroupDisplayNameFromUsers(userList, false)
+	}
+
 	sendPushNotifications := false
 	if *utils.Cfg.EmailSettings.SendPushNotifications {
 		pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
@@ -259,7 +270,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
+				sendPushNotification(post, profileMap[id], channel, channelName, senderName[id], true)
 			}
 		}
 
@@ -272,7 +283,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 
 				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
-					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
+					sendPushNotification(post, profileMap[id], channel, channelName, senderName[id], false)
 				}
 			}
 		}
@@ -313,7 +324,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 }
 
 func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
-	if (channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP) && channel.TeamId != team.Id {
+	if channel.IsGroupOrDirect() && channel.TeamId != team.Id {
 		// this message is a cross-team DM/GM so we need to find a team that the recipient is on to use in the link
 		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
@@ -372,7 +383,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	year := fmt.Sprintf("%d", tm.Year())
 	zone, _ := tm.Zone()
 
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+	if channel.IsGroupOrDirect() {
 		bodyText = userLocale("api.post.send_notifications_and_forget.message_body")
 		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
 
@@ -456,18 +467,14 @@ func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 	}
 }
 
-func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) *model.AppError {
+func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName, channelName string, wasMentioned bool) *model.AppError {
 	sessions, err := getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
 
-	var channelName string
-
 	if channel.Type == model.CHANNEL_DIRECT {
 		channelName = senderName
-	} else {
-		channelName = channel.DisplayName
 	}
 
 	userLocale := utils.GetUserTranslations(user.Locale)
