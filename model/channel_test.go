@@ -112,14 +112,14 @@ func TestGetGroupDisplayNameFromUsers(t *testing.T) {
 	users[2] = &User{Username: NewId()}
 	users[3] = &User{Username: NewId()}
 
-	name := GetGroupDisplayNameFromUsers(users)
+	name := GetGroupDisplayNameFromUsers(users, true)
 	if len(name) > CHANNEL_NAME_MAX_LENGTH {
 		t.Fatal("name too long")
 	}
 }
 
 func TestGetGroupNameFromUserIds(t *testing.T) {
-	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()}, true)
+	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()})
 
 	if len(name) > CHANNEL_NAME_MAX_LENGTH {
 		t.Fatal("name too long")
