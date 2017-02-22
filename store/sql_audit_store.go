@@ -54,7 +54,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
+func (s SqlAuditStore) Get(user_id string, offset int, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -75,10 +75,10 @@ func (s SqlAuditStore) Get(user_id string, limit int) StoreChannel {
 			query += " WHERE UserId = :user_id"
 		}
 
-		query += " ORDER BY CreateAt DESC LIMIT :limit"
+		query += " ORDER BY CreateAt DESC LIMIT :limit OFFSET :offset"
 
 		var audits model.Audits
-		if _, err := s.GetReplica().Select(&audits, query, map[string]interface{}{"user_id": user_id, "limit": limit}); err != nil {
+		if _, err := s.GetReplica().Select(&audits, query, map[string]interface{}{"user_id": user_id, "limit": limit, "offset": offset}); err != nil {
 			result.Err = model.NewLocAppError("SqlAuditStore.Get", "store.sql_audit.get.finding.app_error", nil, "user_id="+user_id)
 		} else {
 			result.Data = audits

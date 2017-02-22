@@ -23,6 +23,7 @@ func InitTeam() {
 
 	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
+	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -139,4 +140,31 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(stats.ToJson()))
 		return
 	}
+}
+
+func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+
+	newRoles := props["roles"]
+	if !model.IsValidUserRoles(newRoles) {
+		c.SetInvalidParam("team_member_roles")
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM_ROLES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM_ROLES)
+		return
+	}
+
+	if _, err := app.UpdateTeamMemberRoles(c.Params.TeamId, c.Params.UserId, newRoles); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
