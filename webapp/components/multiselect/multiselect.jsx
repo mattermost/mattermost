@@ -18,9 +18,10 @@ export default class MultiSelect extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onSelect = this.onSelect.bind(this);
         this.onAdd = this.onAdd.bind(this);
+        this.onInput = this.onInput.bind(this);
         this.handleEnterPress = this.handleEnterPress.bind(this);
 
-        this.selected = this.props.options && this.props.options.length > 0 ? this.props.options[0] : null;
+        this.selected = null;
     }
 
     componentDidMount() {
@@ -48,17 +49,29 @@ export default class MultiSelect extends React.Component {
         }
 
         this.props.handleAdd(value);
+        this.selected = null;
+    }
+
+    onInput(input) {
+        if (input === '') {
+            this.refs.list.setSelected(-1);
+        } else {
+            this.refs.list.setSelected(0);
+        }
+        this.selected = null;
+
+        this.props.handleInput(input);
     }
 
     handleEnterPress(e) {
-        if (this.selected == null) {
-            return;
-        }
-
         switch (e.keyCode) {
         case KeyCodes.ENTER:
+            if (this.selected == null) {
+                this.props.handleSubmit();
+                return;
+            }
             this.onAdd(this.selected);
-            this.props.handleInput('');
+            this.onInput('');
             break;
         }
     }
@@ -93,7 +106,7 @@ export default class MultiSelect extends React.Component {
                         joinValues={true}
                         clearable={false}
                         openOnFocus={true}
-                        onInputChange={this.props.handleInput}
+                        onInputChange={this.onInput}
                         onBlurResetsInput={false}
                         onChange={this.onChange}
                         value={this.props.values}
@@ -122,6 +135,7 @@ export default class MultiSelect extends React.Component {
                 {numRemainingText}
                 {this.props.noteText}
                 <MultiSelectList
+                    ref='list'
                     options={this.props.options}
                     optionRenderer={this.props.optionRenderer}
                     perPage={this.props.perPage}
