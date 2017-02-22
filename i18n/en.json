@@ -2021,7 +2021,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "Your email address has changed for {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Your email address has changed for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2037,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Verify new email address for {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Verify new email address for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2093,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2105,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your MFA has been updated on {{ .SiteName }}"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2125,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2157,7 +2157,7 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "Reset your password"
+    "translation": "[{{ .SiteName }}] Reset your password"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2189,7 +2189,7 @@
   },
   {
     "id": "api.templates.singin_change_email.subject",
-    "translation": "You updated your sign-in method on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2209,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "Your username has changed for {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Your username has changed for {{.TeamDisplayName}}"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2253,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "You joined {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",

@@ -34,7 +34,7 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -70,7 +70,7 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(newUserEmail, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -110,7 +110,7 @@ func TestSendEmailChangeEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(oldEmail, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -146,7 +146,7 @@ func TestSendVerifyEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(userEmail, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -172,7 +172,7 @@ func TestSendSignInChangeEmail(t *testing.T) {
 	var siteURL string = ""
 	var method string = "AD/LDAP"
 	var expectedPartialMessage string = "You updated your sign-in method on Mattermost to " + method + "."
-	var expectedSubject string = "You updated your sign-in method on " + utils.Cfg.TeamSettings.SiteName
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] You updated your sign-in method on " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
@@ -186,7 +186,7 @@ func TestSendSignInChangeEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -223,7 +223,7 @@ func TestSendWelcomeEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -292,7 +292,7 @@ func TestSendPasswordChangeEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -328,7 +328,7 @@ func TestSendMfaChangeEmail(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
@@ -376,7 +376,7 @@ func TestSendInviteEmails(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	invites := []string{email1, email2}
 	var expectedPartialMessage string = "The team member *" + senderName + "* , has invited you to join *" + th.BasicTeam.DisplayName + "*"
-	var expectedSubject string = senderName + " invited you to join " + th.BasicTeam.DisplayName + " Team on " + utils.Cfg.TeamSettings.SiteName
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] " + senderName + " invited you to join " + th.BasicTeam.DisplayName + " Team on " + utils.Cfg.TeamSettings.SiteName
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email1)
@@ -389,7 +389,7 @@ func TestSendInviteEmails(t *testing.T) {
 		t.Fatal("Wrong To recipient")
 	} else {
 		if resultsEmail, err := utils.GetMessageFromMailbox(email1, resultsMailbox[0].ID); err == nil {
-			if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+			if resultsEmail.Subject != expectedSubject {
 				t.Log(resultsEmail.Subject)
 				t.Log(expectedSubject)
 				t.Fatal("Wrong Subject")
@@ -440,7 +440,7 @@ func TestSendPasswordReset(t *testing.T) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser.Email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Subject, expectedSubject) {
+				if resultsEmail.Subject != expectedSubject {
 					t.Log(resultsEmail.Subject)
 					t.Fatal("Wrong Subject")
 				}
