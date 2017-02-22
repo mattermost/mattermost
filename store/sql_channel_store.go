@@ -933,21 +933,27 @@ type allChannelMemberNotifyProps struct {
 	NotifyProps model.StringMap
 }
 
-func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string) StoreChannel {
+func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 		metrics := einterfaces.GetMetricsInterface()
 
-		if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
-			if metrics != nil {
-				metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
+		if allowFromCache {
+			if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
+				}
+				result.Data = cacheItem.(map[string]model.StringMap)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
+				}
 			}
-			result.Data = cacheItem.(map[string]model.StringMap)
-			storeChannel <- result
-			close(storeChannel)
-			return
 		} else {
 			if metrics != nil {
 				metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
