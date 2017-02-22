@@ -924,3 +924,51 @@ func TestGetAudits(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetAudits(user.Id, 0, 100, "")
 	CheckNoError(t, resp)
 }
+
+func TestAutocompleteUsers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+	channelId := th.BasicChannel.Id
+	username := th.BasicUser.Username
+
+	rusers, resp := Client.AutocompleteUsers(teamId, channelId, username, "")
+	CheckNoError(t, resp)
+	for _, u := range rusers {
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.AutocompleteUsers(teamId, channelId, username, resp.Etag)
+	CheckEtag(t, rusers, resp)
+
+	rusers, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should have returned 1 user in")
+	}
+
+	rusers, resp = Client.AutocompleteUsers(teamId, channelId, "amazonses", "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should have returned 0 users")
+	}
+
+	rusers, resp = Client.AutocompleteUsers(teamId, channelId, "", "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should have many users")
+	}
+
+	Client.Logout()
+	_, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.AutocompleteUsers(teamId, channelId, username, "")
+	CheckNoError(t, resp)
+}

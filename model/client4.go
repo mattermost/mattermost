@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -131,10 +130,6 @@ func (c *Client4) GetFileRoute(fileId string) string {
 
 func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
-}
-
-func (c *Client4) GetIncomingWebhooksRoute() string {
-	return fmt.Sprintf("/hooks/incoming")
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -464,17 +459,6 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
-// GetAudits returns a list of audit based on the provided user id string.
-func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return AuditsFromJson(r.Body), BuildResponse(r)
-	}
-}
-
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
@@ -525,17 +509,6 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 	} else {
 		defer closeBody(r)
 		return TeamMemberFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// UpdateTeamMemberRoles will update the roles on a team for a user
-func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, *Response) {
-	requestBody := map[string]string{"roles": newRoles}
-	if r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/roles", MapToJson(requestBody)); err != nil {
-		return false, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -689,16 +662,6 @@ func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	}
 }
 
-// DeletePost deletes a post from the provided post id string.
-func (c *Client4) DeletePost(postId string) (bool, *Response) {
-	if r, err := c.DoApiDelete(c.GetPostRoute(postId)); err != nil {
-		return false, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
-	}
-}
-
 // GetPostThread gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/thread", etag); err != nil {
@@ -713,17 +676,6 @@ func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Respons
 func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return PostListFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// SearchPosts returns any posts with matching terms string.
-func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
-	requestBody := map[string]string{"terms": terms, "is_or_search": strconv.FormatBool(isOrSearch)}
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", MapToJson(requestBody)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -780,36 +732,13 @@ func (c *Client4) GetPing() (bool, *Response) {
 	}
 }
 
-// Webhooks Section
-
-// CreateIncomingWebhook creates an incoming webhook for a channel.
-func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
-	if r, err := c.DoApiPost(c.GetIncomingWebhooksRoute(), hook.ToJson()); err != nil {
+// AutocompleteUsers returns a page of users on a team based on search term
+func (c *Client4) AutocompleteUsers(teamId string, channelId string, username string, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// GetIncomingWebhooks returns a page of incoming webhooks on the system. Page counting starts at 0.
-func (c *Client4) GetIncomingWebhooks(page int, perPage int, etag string) ([]*IncomingWebhook, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if r, err := c.DoApiGet(c.GetIncomingWebhooksRoute()+query, etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// GetIncomingWebhooksForTeam returns a page of incoming webhooks for a team. Page counting starts at 0.
-func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*IncomingWebhook, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
-	if r, err := c.DoApiGet(c.GetIncomingWebhooksRoute()+query, etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
 	}
 }
