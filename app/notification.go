@@ -147,7 +147,9 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		for _, id := range mentionedUsersList {
 			userAllowsEmails := profileMap[id].NotifyProps["email"] != "false"
 			if channelEmail, ok := channelMemberNotifyPropsMap[id]["email"]; ok {
-				userAllowsEmails = channelEmail != "false"
+				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
+					userAllowsEmails = channelEmail != "false"
+				}
 			}
 
 			var status *model.Status

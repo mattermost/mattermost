@@ -141,14 +141,14 @@ func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
 }
 
 func IsSendEmailValid(sendEmail string) bool {
-	return sendEmail == "true" || sendEmail == "false"
+	return sendEmail == CHANNEL_NOTIFY_DEFAULT || sendEmail == "true" || sendEmail == "false"
 }
 
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
 		"desktop":     CHANNEL_NOTIFY_DEFAULT,
 		"mark_unread": CHANNEL_MARK_UNREAD_ALL,
-		"push":        CHANNEL_NOTIFY_ALL,
-		"email":       "true",
+		"push":        CHANNEL_NOTIFY_DEFAULT,
+		"email":       CHANNEL_NOTIFY_DEFAULT,
 	}
 }
