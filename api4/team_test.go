@@ -229,6 +229,60 @@ func TestGetTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetTeamMembers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	userNotMember := th.CreateUser()
+
+	rmembers, resp := Client.GetTeamMembers(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	t.Logf("rmembers count %v\n", len(rmembers))
+
+	if len(rmembers) == 0 {
+		t.Fatal("should have results")
+	}
+
+	for _, rmember := range rmembers {
+		if rmember.TeamId != team.Id || rmember.UserId == userNotMember.Id {
+			t.Fatal("user should be a member of team")
+		}
+	}
+
+	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rmembers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rmembers, resp = Client.GetTeamMembers(team.Id, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(rmembers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "")
+	CheckNoError(t, resp)
+	if len(rmembers) != 0 {
+		t.Fatal("should be no member")
+	}
+
+	_, resp = Client.GetTeamMembers("junk", 0, 100, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamMembers(model.NewId(), 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	rmembers, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+}
+
 func TestGetTeamStats(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
