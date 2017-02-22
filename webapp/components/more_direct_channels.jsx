@@ -84,9 +84,16 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     handleSubmit(e) {
-        e.preventDefault();
+        if (e) {
+            e.preventDefault();
+        }
 
         if (this.state.loadingChannel !== -1) {
+            return;
+        }
+
+        const userIds = this.state.values.map((v) => v.id);
+        if (userIds.length === 0) {
             return;
         }
 
@@ -105,7 +112,6 @@ export default class MoreDirectChannels extends React.Component {
             this.setState({loadingChannel: -1});
         };
 
-        const userIds = this.state.values.map((v) => v.id);
         if (userIds.length === 1) {
             openDirectChannelToUser(userIds[0], success, error);
         } else {

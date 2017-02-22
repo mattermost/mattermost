@@ -16,10 +16,13 @@ export default class MultiSelectList extends React.Component {
         this.nextPage = this.nextPage.bind(this);
         this.prevPage = this.prevPage.bind(this);
         this.handleArrowPress = this.handleArrowPress.bind(this);
+        this.setSelected = this.setSelected.bind(this);
+
+        this.toSelect = -1;
 
         this.state = {
             page: 0,
-            selected: 0
+            selected: -1
         };
     }
 
@@ -32,15 +35,17 @@ export default class MultiSelectList extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (JSON.stringify(this.props.options) === JSON.stringify(nextProps.options)) {
-            return;
-        }
+        this.setState({selected: this.toSelect});
 
         const options = this.getOptionsToDisplay(nextProps.options, this.state.page, nextProps.perPage);
-        this.setState({selected: 0});
-        if (options && options.length > 0) {
-            this.props.onSelect(options[0]);
+
+        if (options.length > 0 && this.toSelect >= 0) {
+            this.props.onSelect(options[this.toSelect]);
         }
+    }
+
+    setSelected(selected) {
+        this.toSelect = selected;
     }
 
     getOptionsToDisplay(options, page, perPage) {
@@ -59,19 +64,31 @@ export default class MultiSelectList extends React.Component {
         }
 
         const options = this.getOptionsToDisplay(this.props.options, this.state.page, this.props.perPage);
-        let selected;
+        if (options.length === 0) {
+            return;
+        }
 
+        let selected;
         switch (e.keyCode) {
         case KeyCodes.DOWN:
+            if (this.state.selected === -1) {
+                selected = 0;
+                break;
+            }
             selected = Math.min(this.state.selected + 1, options.length - 1);
             break;
         case KeyCodes.UP:
+            if (this.state.selected === -1) {
+                selected = 0;
+                break;
+            }
             selected = Math.max(this.state.selected - 1, 0);
             break;
         default:
             return;
         }
 
+        e.preventDefault();
         this.setState({selected});
         this.props.onSelect(options[selected]);
     }
