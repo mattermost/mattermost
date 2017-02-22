@@ -37,37 +37,23 @@ func InitWebhook() {
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewLocAppError("createIncomingHook", "api.webhook.create_incoming.disabled.app_errror", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
-		return
-	}
-
-	c.LogAudit("attempt")
-
 	hook := model.IncomingWebhookFromJson(r.Body)
-
 	if hook == nil {
 		c.SetInvalidParam("createIncomingHook", "webhook")
 		return
 	}
 
-	cchan := app.Srv.Store.Channel().Get(hook.ChannelId, true)
-
-	hook.UserId = c.Session.UserId
-	hook.TeamId = c.TeamId
-
-	var channel *model.Channel
-	if result := <-cchan; result.Err != nil {
-		c.Err = result.Err
+	channel, err := app.GetChannel(hook.ChannelId)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		channel = result.Data.(*model.Channel)
+	}
+
+	c.LogAudit("attempt")
+
+	if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+		return
 	}
 
 	if channel.Type != model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
@@ -76,13 +62,12 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
-		c.Err = result.Err
+	if incomingHook, err := app.CreateIncomingWebhookForChannel(c.Session.UserId, channel, hook); err != nil {
+		c.Err = err
 		return
 	} else {
 		c.LogAudit("success")
-		rhook := result.Data.(*model.IncomingWebhook)
-		w.Write([]byte(rhook.ToJson()))
+		w.Write([]byte(incomingHook.ToJson()))
 	}
 }
 
@@ -132,23 +117,15 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		c.Err = model.NewLocAppError("getIncomingHooks", "api.webhook.get_incoming.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
-		c.Err = model.NewLocAppError("getIncomingHooks", "api.command.admin_only.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 		return
 	}
 
-	if result := <-app.Srv.Store.Webhook().GetIncomingByTeam(c.TeamId); result.Err != nil {
-		c.Err = result.Err
+	if hooks, err := app.GetIncomingWebhooksForTeamPage(c.TeamId, 0, 100); err != nil {
+		c.Err = err
 		return
 	} else {
-		hooks := result.Data.([]*model.IncomingWebhook)
 		w.Write([]byte(model.IncomingWebhookListToJson(hooks)))
 	}
 }

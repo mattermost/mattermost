@@ -52,11 +52,11 @@ type Routes struct {
 	Command         *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
 	CommandsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/commands'
 
-	Hooks         *mux.Router // 'api/v4/teams/hooks'
-	IncomingHooks *mux.Router // 'api/v4/teams/hooks/incoming'
-	IncomingHook  *mux.Router // 'api/v4/teams/hooks/incoming/{hook_id:[A-Za-z0-9]+}'
-	OutgoingHooks *mux.Router // 'api/v4/teams/hooks/outgoing'
-	OutgoingHook  *mux.Router // 'api/v4/teams/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
+	Hooks         *mux.Router // 'api/v4/hooks'
+	IncomingHooks *mux.Router // 'api/v4/hooks/incoming'
+	IncomingHook  *mux.Router // 'api/v4/hooks/incoming/{hook_id:[A-Za-z0-9]+}'
+	OutgoingHooks *mux.Router // 'api/v4/hooks/outgoing'
+	OutgoingHook  *mux.Router // 'api/v4/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
 
 	OAuth *mux.Router // 'api/v4/oauth'
 
@@ -145,6 +145,7 @@ func InitApi(full bool) {
 	InitPost()
 	InitFile()
 	InitSystem()
+	InitWebhook()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
