@@ -234,6 +234,7 @@ export const PostTypes = {
     LEAVE_CHANNEL: 'system_leave_channel',
     ADD_TO_CHANNEL: 'system_add_to_channel',
     REMOVE_FROM_CHANNEL: 'system_remove_from_channel',
+    ADD_REMOVE: 'system_add_remove',
     HEADER_CHANGE: 'system_header_change',
     DISPLAYNAME_CHANGE: 'system_displayname_change',
     PURPOSE_CHANGE: 'system_purpose_change',
@@ -250,6 +251,7 @@ export const Constants = {
     UserSearchOptions,
     TutorialSteps,
     PostTypes,
+    IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_TO_CHANNEL, PostTypes.ADD_REMOVE],
 
     PayloadSources: keyMirror({
         SERVER_ACTION: null,
