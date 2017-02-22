@@ -475,6 +475,17 @@ func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (
 	}
 }
 
+// AutocompleteUsers returns a page of users on a team based on search term
+func (c *Client4) AutocompleteUsers(teamId string, channelId string, username string, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
@@ -811,17 +822,5 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 	} else {
 		defer closeBody(r)
 		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-
-// AutocompleteUsers returns a page of users on a team based on search term
-func (c *Client4) AutocompleteUsers(teamId string, channelId string, username string, etag string) ([]*User, *Response) {
-	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
-	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return UserListFromJson(r.Body), BuildResponse(r)
 	}
 }
