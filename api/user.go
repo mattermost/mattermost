@@ -206,11 +206,6 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(strings.HasPrefix(deviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(deviceId, model.PUSH_NOTIFY_ANDROID+":")) {
-		c.SetInvalidParam("attachDevice", "deviceId")
-		return
-	}
-
 	// A special case where we logout of all other sessions with the same device id
 	if err := app.RevokeSessionsForDeviceId(c.Session.UserId, deviceId, c.Session.Id); err != nil {
 		c.Err = err

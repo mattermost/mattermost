@@ -1097,7 +1097,7 @@ func TestUserUpdateDeviceId(t *testing.T) {
 
 	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
-	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
+	deviceId := model.PUSH_NOTIFY_APPLE_V1 + ":1234567890"
 
 	if _, err := Client.AttachDeviceId(deviceId); err != nil {
 		t.Fatal(err)
