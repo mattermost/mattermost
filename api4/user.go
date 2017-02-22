@@ -5,7 +5,7 @@ package api4
 
 import (
 	"net/http"
-	
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
@@ -559,21 +559,17 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	autocomplete, err := app.SearchUsersInChannel(channelId, term, searchOptions)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	for _, p := range autocomplete.InChannel {
+	for _, p := range autocomplete {
 		sanitizeProfile(c, p)
 	}
 
-	for _, p := range autocomplete.OutOfChannel {
-		sanitizeProfile(c, p)
-	}
-
-	w.Write([]byte(autocomplete.ToJson()))
+	w.Write([]byte(model.UserListToJson(autocomplete)))
 }
 
 func sanitizeProfile(c *Context, user *model.User) *model.User {
