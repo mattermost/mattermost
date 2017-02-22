@@ -933,27 +933,21 @@ type allChannelMemberNotifyProps struct {
 	NotifyProps model.StringMap
 }
 
-func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel {
+func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 		metrics := einterfaces.GetMetricsInterface()
 
-		if allowFromCache {
-			if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
-				}
-				result.Data = cacheItem.(map[string]model.StringMap)
-				storeChannel <- result
-				close(storeChannel)
-				return
-			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
-				}
+		if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
 			}
+			result.Data = cacheItem.(map[string]model.StringMap)
+			storeChannel <- result
+			close(storeChannel)
+			return
 		} else {
 			if metrics != nil {
 				metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
@@ -964,7 +958,7 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 		_, err := s.GetReplica().Select(&data, `
 			SELECT ChannelMembers.UserId, ChannelMembers.NotifyProps
 			FROM Channels, ChannelMembers
-			WHERE Channels.Id = ChannelMembers.ChannelId AND ChannelMembers.ChannelId = :ChannelId AND Channels.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
+			WHERE Channels.Id = ChannelMembers.ChannelId AND ChannelMembers.ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
 
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlChannelStore.GetAllChannelMembersPropsForChannel", "store.sql_channel.get_members.app_error", nil, "channelId="+channelId+", err="+err.Error())
@@ -977,9 +971,7 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 
 			result.Data = props
 
-			if allowFromCache {
-				allChannelMembersNotifyPropsForChannelCache.AddWithExpiresInSecs(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC)
-			}
+			allChannelMembersNotifyPropsForChannelCache.AddWithExpiresInSecs(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC)
 		}
 
 		storeChannel <- result
