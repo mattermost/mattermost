@@ -11,7 +11,6 @@ var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
 import {isSystemMessage} from 'utils/post_utils.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
-const PostTypes = Constants.PostTypes;
 
 const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
@@ -507,7 +506,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECEIVED_POST:
-        if (action.post.type === PostTypes.JOIN_LEAVE || action.post.type === PostTypes.JOIN_CHANNEL || action.post.type === PostTypes.LEAVE_CHANNEL) {
+        if (Constants.IGNORE_POST_TYPES.indexOf(action.post.type) !== -1) {
             return;
         }
 
