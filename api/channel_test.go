@@ -1584,6 +1584,25 @@ func TestUpdateNotifyProps(t *testing.T) {
 		t.Fatal("NotifyProps[\"mark_unread\"] did not update properly")
 	}
 
+	// test updating push notification preferences
+	delete(data, "desktop")
+	delete(data, "mark_unread")
+	data["push"] = model.CHANNEL_NOTIFY_MENTION
+	if result, err := Client.UpdateNotifyProps(data); err != nil {
+		t.Fatal(err)
+	} else if notifyProps := result.Data.(map[string]string); notifyProps["push"] != model.CHANNEL_NOTIFY_MENTION {
+		t.Fatal("NotifyProps[\"push\"] did not update properly")
+	}
+
+	// test updating email preferences
+	delete(data, "push")
+	data["email"] = "true"
+	if result, err := Client.UpdateNotifyProps(data); err != nil {
+		t.Fatal(err)
+	} else if notifyProps := result.Data.(map[string]string); notifyProps["email"] != "true" {
+		t.Fatal("NotifyProps[\"email\"] did not update properly")
+	}
+
 	// test error cases
 	data["user_id"] = "junk"
 	if _, err := Client.UpdateNotifyProps(data); err == nil {
@@ -1616,6 +1635,20 @@ func TestUpdateNotifyProps(t *testing.T) {
 	data["mark_unread"] = "junk"
 	if _, err := Client.UpdateNotifyProps(data); err == nil {
 		t.Fatal("Should have errored - bad mark unread level")
+	}
+
+	data["desktop"] = model.CHANNEL_NOTIFY_ALL
+	data["mark_unread"] = model.CHANNEL_MARK_UNREAD_ALL
+	data["push"] = "junk"
+	data["email"] = "true"
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
+		t.Fatal("Should have errored - bad push level")
+	}
+
+	data["push"] = model.CHANNEL_NOTIFY_ALL
+	data["email"] = "junk"
+	if _, err := Client.UpdateNotifyProps(data); err == nil {
+		t.Fatal("Should have errored - bad email notification option")
 	}
 
 	th.LoginBasic2()
