@@ -2372,6 +2372,10 @@
     "translation": "User sign-up with email is disabled."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.signup_link_expired.app_error",
     "translation": "The signup link has expired"
   },
