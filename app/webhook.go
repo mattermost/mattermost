@@ -192,3 +192,42 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 
 	return post, nil
 }
+
+func CreateIncomingWebhookForChannel(userId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.webhook.create_incoming.disabled.app_errror", nil, "", http.StatusNotImplemented)
+	}
+
+	hook.UserId = userId
+	hook.TeamId = channel.TeamId
+
+	if result := <-Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.IncomingWebhook), nil
+	}
+}
+
+func GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.webhook.get_incoming.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-Srv.Store.Webhook().GetIncomingByTeam(teamId, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.IncomingWebhook), nil
+	}
+}
+
+func GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.webhook.get_incoming.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-Srv.Store.Webhook().GetIncomingList(page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.IncomingWebhook), nil
+	}
+}
