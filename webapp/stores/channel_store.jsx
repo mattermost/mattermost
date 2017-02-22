@@ -455,7 +455,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECEIVED_POST:
-        if (action.post.type === Constants.POST_TYPE_JOIN_LEAVE) {
+        if (action.post.type === Constants.POST_TYPE_JOIN_LEAVE || action.post.type === Constants.POST_TYPE_ADD_REMOVE) {
             return;
         }
 
