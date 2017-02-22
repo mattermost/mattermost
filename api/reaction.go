@@ -52,26 +52,23 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := app.Srv.Store.Post().Get(reaction.PostId)
+	var post *model.Post
 
-	var postHadReactions bool
-	if result := <-pchan; result.Err != nil {
+	if result := <-app.Srv.Store.Post().Get(reaction.PostId); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if post := result.Data.(*model.PostList).Posts[postId]; post.ChannelId != channelId {
+	} else if post = result.Data.(*model.PostList).Posts[postId]; post.ChannelId != channelId {
 		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.mismatched_channel_id.app_error",
 			nil, "channelId="+channelId+", post.ChannelId="+post.ChannelId+", postId="+postId)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
-	} else {
-		postHadReactions = post.HasReactions
 	}
 
 	if result := <-app.Srv.Store.Reaction().Save(reaction); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, channelId, reaction, postHadReactions)
+		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, channelId, reaction, post)
 
 		reaction := result.Data.(*model.Reaction)
 
@@ -111,57 +108,43 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pchan := app.Srv.Store.Post().Get(reaction.PostId)
+	var post *model.Post
 
-	var postHadReactions bool
-	if result := <-pchan; result.Err != nil {
+	if result := <-app.Srv.Store.Post().Get(reaction.PostId); result.Err != nil {
 		c.Err = result.Err
 		return
-	} else if post := result.Data.(*model.PostList).Posts[postId]; post.ChannelId != channelId {
+	} else if post = result.Data.(*model.PostList).Posts[postId]; post.ChannelId != channelId {
 		c.Err = model.NewLocAppError("deleteReaction", "api.reaction.delete_reaction.mismatched_channel_id.app_error",
 			nil, "channelId="+channelId+", post.ChannelId="+post.ChannelId+", postId="+postId)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
-	} else {
-		postHadReactions = post.HasReactions
 	}
 
 	if result := <-app.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, channelId, reaction, postHadReactions)
+		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, channelId, reaction, post)
 
 		ReturnStatusOK(w)
 	}
 }
 
-func sendReactionEvent(event string, channelId string, reaction *model.Reaction, postHadReactions bool) {
+func sendReactionEvent(event string, channelId string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
-	go func() {
-		message := model.NewWebSocketEvent(event, "", channelId, "", nil)
-		message.Add("reaction", reaction.ToJson())
 
-		app.Publish(message)
-	}()
+	message := model.NewWebSocketEvent(event, "", channelId, "", nil)
+	message.Add("reaction", reaction.ToJson())
+	app.Publish(message)
 
-	// send out that a post was updated if post.HasReactions has changed
-	go func() {
-		var post *model.Post
-		if result := <-app.Srv.Store.Post().Get(reaction.PostId); result.Err != nil {
-			l4g.Warn(utils.T("api.reaction.send_reaction_event.post.app_error"))
-			return
-		} else {
-			post = result.Data.(*model.PostList).Posts[reaction.PostId]
-		}
+	// THe post is always modified since the UpdateAt always changes
+	app.InvalidateCacheForChannelPosts(post.ChannelId)
+	post.HasReactions = true
+	post.UpdateAt = model.GetMillis()
+	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", channelId, "", nil)
+	umessage.Add("post", post.ToJson())
+	app.Publish(umessage)
 
-		if post.HasReactions != postHadReactions {
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", channelId, "", nil)
-			message.Add("post", post.ToJson())
-
-			app.Publish(message)
-		}
-	}()
 }
 
 func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {
