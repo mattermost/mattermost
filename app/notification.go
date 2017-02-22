@@ -26,6 +26,7 @@ import (
 
 func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+	cmnchan := Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
 
 	if len(post.FileIds) != 0 {
@@ -37,6 +38,13 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		return nil, result.Err
 	} else {
 		profileMap = result.Data.(map[string]*model.User)
+	}
+
+	var channelMemberNotifyPropsMap map[string]model.StringMap
+	if result := <-cmnchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		channelMemberNotifyPropsMap = result.Data.(map[string]model.StringMap)
 	}
 
 	mentionedUserIds := make(map[string]bool)
@@ -138,6 +146,9 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
 			userAllowsEmails := profileMap[id].NotifyProps["email"] != "false"
+			if channelEmail, ok := channelMemberNotifyPropsMap[id]["email"]; ok {
+				userAllowsEmails = channelEmail != "false"
+			}
 
 			var status *model.Status
 			var err *model.AppError
@@ -245,7 +256,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
+				sendPushNotification(post, profileMap[id], channel, senderName[id], channelMemberNotifyPropsMap[id], true)
 			}
 		}
 
@@ -258,7 +269,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
+					sendPushNotification(post, profileMap[id], channel, senderName[id], channelMemberNotifyPropsMap[id], false)
 				}
 			}
 		}
@@ -442,13 +453,21 @@ func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 	}
 }
 
-func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) *model.AppError {
+func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, channelNotifyProps model.StringMap, wasMentioned bool) *model.AppError {
 	sessions, err := getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
 
 	var channelName string
+
+	if channelNotify, ok := channelNotifyProps["push"]; ok {
+		if channelNotify == model.USER_NOTIFY_NONE {
+			return nil
+		} else if channelNotify == model.USER_NOTIFY_MENTION && !wasMentioned {
+			return nil
+		}
+	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		channelName = senderName
@@ -711,4 +730,14 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 	}
 
 	return keywords
+}
+
+func shouldSendPushNotification(channelNotifyProps model.StringMap) bool {
+	if push, exists := channelNotifyProps["push"]; exists {
+		if push == "none" {
+			return false
+		}
+	}
+
+	return true
 }

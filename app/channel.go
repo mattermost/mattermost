@@ -234,10 +234,19 @@ func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, us
 		member.NotifyProps["desktop"] = desktop
 	}
 
+	if email, exists := data["email"]; exists {
+		member.NotifyProps["email"] = email
+	}
+
+	if push, exists := data["push"]; exists {
+		member.NotifyProps["push"] = push
+	}
+
 	if result := <-Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
 	} else {
 		InvalidateCacheForUser(userId)
+		InvalidateCacheForChannelMembersNotifyProps(channelId)
 		return member, nil
 	}
 }

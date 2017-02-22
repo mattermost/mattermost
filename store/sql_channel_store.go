@@ -25,6 +25,9 @@ const (
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
 
+	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE = model.SESSION_CACHE_SIZE
+	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC  = 1800 // 30 mins
+
 	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
@@ -37,12 +40,14 @@ type SqlChannelStore struct {
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
+var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func ClearChannelCaches() {
 	channelMemberCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
+	allChannelMembersNotifyPropsForChannelCache.Purge()
 	channelCache.Purge()
 	channelByNameCache.Purge()
 }
@@ -909,6 +914,71 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 
 			if allowFromCache {
 				allChannelMembersForUserCache.AddWithExpiresInSecs(userId, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
+			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
+	allChannelMembersNotifyPropsForChannelCache.Remove(channelId)
+}
+
+type allChannelMemberNotifyProps struct {
+	UserId      string
+	NotifyProps model.StringMap
+}
+
+func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
+
+		if allowFromCache {
+			if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
+				}
+				result.Data = cacheItem.(map[string]model.StringMap)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
+			}
+		}
+
+		var data []allChannelMemberNotifyProps
+		_, err := s.GetReplica().Select(&data, `
+			SELECT ChannelMembers.UserId, ChannelMembers.NotifyProps
+			FROM Channels, ChannelMembers
+			WHERE Channels.Id = ChannelMembers.ChannelId AND ChannelMembers.ChannelId = :ChannelId AND Channels.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetAllChannelMembersPropsForChannel", "store.sql_channel.get_members.app_error", nil, "channelId="+channelId+", err="+err.Error())
+		} else {
+
+			props := make(map[string]model.StringMap)
+			for i := range data {
+				props[data[i].UserId] = data[i].NotifyProps
+			}
+
+			result.Data = props
+
+			if allowFromCache {
+				allChannelMembersNotifyPropsForChannelCache.AddWithExpiresInSecs(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC)
 			}
 		}
 
