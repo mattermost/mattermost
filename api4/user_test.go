@@ -938,7 +938,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
-	
+
 	rusers, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 	if len(rusers) != 1 {
@@ -947,13 +947,13 @@ func TestAutocompleteUsers(t *testing.T) {
 
 	rusers, resp = Client.AutocompleteUsers(teamId, channelId, "amazonses", "")
 	CheckNoError(t, resp)
-	if len(rusers) != 1 {
+	if len(rusers) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
 	rusers, resp = Client.AutocompleteUsers(teamId, channelId, "", "")
 	CheckNoError(t, resp)
-	if len(rusers) != 0 {
+	if len(rusers) < 2 {
 		t.Fatal("should have many users")
 	}
 
