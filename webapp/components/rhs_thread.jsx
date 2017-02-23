@@ -415,7 +415,7 @@ export default class RhsThread extends React.Component {
                                     }
 
                                     let status = 'offline';
-                                    if (this.state.statuses) {
+                                    if (this.state.statuses && p && p.id) {
                                         status = this.state.statuses[p.id] || 'offline';
                                     }
 
