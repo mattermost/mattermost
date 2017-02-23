@@ -5,7 +5,6 @@ import SettingItemMin from 'components/setting_item_min.jsx';
 import SettingItemMax from 'components/setting_item_max.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -13,7 +12,6 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import {updateChannelNotifyProps} from 'actions/channel_actions.jsx';
-import {Preferences} from 'utils/constants.jsx';
 
 export default class ChannelNotificationsModal extends React.Component {
     constructor(props) {
@@ -429,59 +427,28 @@ export default class ChannelNotificationsModal extends React.Component {
 
         // Get glabal user setting for notifications
         const globalNotifyLevel = this.props.currentUser.notify_props ? this.props.currentUser.notify_props.email : 'true';
-        const emailInterval = PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE);
 
         let globalNotifyLevelName;
-        let dynamicOptionName;
         if (globalNotifyLevel === 'false') {
             globalNotifyLevelName = (
                 <FormattedMessage
-                    id='user.settings.notifications.email.never'
-                    defaultMessage='Never'
-                />
-            );
-
-            dynamicOptionName = (
-                <FormattedMessage
-                    id='user.settings.notifications.email.immediately'
-                    defaultMessage='Immediately'
+                    id='channel_notifications.off'
+                    defaultMessage='Off'
                 />
             );
         } else {
-            switch (emailInterval) {
-            case Preferences.INTERVAL_IMMEDIATE:
-                globalNotifyLevelName = (
-                    <FormattedMessage
-                        id='user.settings.notifications.email.immediately'
-                        defaultMessage='Immediately'
-                    />
-                );
-                break;
-            case Preferences.INTERVAL_HOUR:
-                globalNotifyLevelName = (
-                    <FormattedMessage
-                        id='user.settings.notifications.email.everyHour'
-                        defaultMessage='Every hour'
-                    />
-                );
-                break;
-            default:
-                globalNotifyLevelName = (
-                    <FormattedMessage
-                        id='user.settings.notifications.email.everyXMinutes'
-                        defaultMessage='Every {count, plural, one {minute} other {{count, number} minutes}}'
-                        values={{count: emailInterval / 60}}
-                    />
-                );
-            }
-
-            dynamicOptionName = globalNotifyLevelName;
+            globalNotifyLevelName = (
+                <FormattedMessage
+                    id='channel_notifications.on'
+                    defaultMessage='On'
+                />
+            );
         }
 
         const sendEmailNotifications = (
             <FormattedMessage
                 id='channel_notifications.email'
-                defaultMessage='Email notifications'
+                defaultMessage='Send email notifications'
             />
         );
 
@@ -528,7 +495,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[1]}
                                 onChange={this.handleUpdateEmailNotification.bind(this, 'true')}
                             />
-                            {dynamicOptionName}
+                            <FormattedMessage id='channel_notifications.on'/>
                         </label>
                         <br/>
                     </div>
@@ -540,7 +507,7 @@ export default class ChannelNotificationsModal extends React.Component {
                                 checked={notifyActive[2]}
                                 onChange={this.handleUpdateEmailNotification.bind(this, 'false')}
                             />
-                            <FormattedMessage id='channel_notifications.never'/>
+                            <FormattedMessage id='channel_notifications.off'/>
                         </label>
                     </div>
                 </div>
@@ -555,7 +522,7 @@ export default class ChannelNotificationsModal extends React.Component {
                 <span>
                     <FormattedHTMLMessage
                         id='channel_notifications.overrideEmail'
-                        defaultMessage='To change the global default, go to <strong>Account Settings > Notifications > Email notifications<strong>.'
+                        defaultMessage='If on, email notifications are sent for mentions and direct messages when you are offline or away from Mattermost for more than 5 minutes. To change the global default, go to <strong>Account Settings > Notifications > Email notifications<strong>.'
                     />
                 </span>
             );
@@ -582,7 +549,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     />
                 );
             } else if (notificationLevel === 'true') {
-                describe = dynamicOptionName;
+                describe = (<FormattedMessage id='channel_notifications.on'/>);
             } else if (notificationLevel === 'false') {
                 describe = (<FormattedMessage id='channel_notifications.never'/>);
             }
@@ -675,7 +642,7 @@ export default class ChannelNotificationsModal extends React.Component {
         const sendPushNotifications = (
             <FormattedMessage
                 id='channel_notifications.push'
-                defaultMessage='Mobile push notifications'
+                defaultMessage='Send mobile push notifications'
             />
         );
 
@@ -848,10 +815,10 @@ export default class ChannelNotificationsModal extends React.Component {
                                 <br/>
                                 <div className='divider-dark first'/>
                                 {this.createDesktopNotifyLevelSection(serverError)}
-                                <div className='divider-light'/>
-                                {this.createMarkUnreadLevelSection(serverError)}
                                 {this.createEmailNotificationSection(serverError)}
                                 {this.createPushNotificationLevelSection(serverError)}
+                                <div className='divider-light'/>
+                                {this.createMarkUnreadLevelSection(serverError)}
                                 <div className='divider-dark'/>
                             </div>
                         </div>
