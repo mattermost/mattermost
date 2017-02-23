@@ -413,7 +413,7 @@ export default class LoginController extends React.Component {
                         </div>
                         <div className='form-group'>
                             <button
-                                id='login_button'
+                                id='loginButton'
                                 type='submit'
                                 className='btn btn-primary'
                             >
