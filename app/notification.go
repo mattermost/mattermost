@@ -551,7 +551,7 @@ func sendToPushProxy(msg model.PushNotification, session *model.Session) *model.
 		}
 
 		if m != nil && m[model.STATUS] == model.STATUS_REMOVE {
-			l4g.Info("Device was reported as removed for UserId=%v SessionId=% removing push for this session", session.UserId, session.Id)
+			l4g.Info("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id)
 			AttachDeviceId(session.Id, "", session.ExpiresAt)
 			ClearSessionCacheForUser(session.UserId)
 		}
