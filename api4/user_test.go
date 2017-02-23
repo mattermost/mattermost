@@ -960,15 +960,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
 	CheckUnauthorizedStatus(t, resp)
-
-	user := th.CreateUser()
-	Client.Login(user.Email, user.Password)
-	_, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
-	CheckNoError(t, resp)
-	if len(rusers) != 0 {
-		t.Fatal("should have returned 0 users")
-	}
-
+	
 	_, resp = th.SystemAdminClient.AutocompleteUsers(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 }
