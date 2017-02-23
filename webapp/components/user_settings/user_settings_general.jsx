@@ -672,6 +672,7 @@ class UserSettingsGeneralTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='firstName'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateFirstName}
@@ -694,6 +695,7 @@ class UserSettingsGeneralTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='lastName'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateLastName}
@@ -1111,6 +1113,7 @@ class UserSettingsGeneralTab extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeUserSettings'
                         type='button'
                         className='close'
                         data-dismiss='modal'
