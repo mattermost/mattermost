@@ -142,7 +142,6 @@ export default class MultiSelect extends React.Component {
                     onPageChange={this.props.handlePageChange}
                     onAdd={this.onAdd}
                     onSelect={this.onSelect}
-                    buttonText={this.props.buttonText}
                 />
             </div>
         );
@@ -160,7 +159,6 @@ MultiSelect.propTypes = {
     handlePageChange: React.PropTypes.func,
     handleAdd: React.PropTypes.func,
     handleSubmit: React.PropTypes.func,
-    buttonText: React.PropTypes.node,
     noteText: React.PropTypes.node,
     maxValues: React.PropTypes.number
 };
