@@ -694,6 +694,16 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 	}
 }
 
+// UpdatePost updates a post based on the provided post struct.
+func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPost gets a single post.
 func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId), etag); err != nil {
