@@ -1157,7 +1157,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check channel member properties.
 	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member from database.")
-	} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps["desktop"] != "default" || channelMember.NotifyProps["mark_unread"] != "all" {
+	} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != "default" || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != "all" {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
@@ -1171,8 +1171,8 @@ func TestImportImportUser(t *testing.T) {
 					Name:  &channelName,
 					Roles: ptrStr("channel_user channel_admin"),
 					NotifyProps: &UserChannelNotifyPropsImportData{
-						Desktop:    ptrStr("mention"),
-						MarkUnread: ptrStr("mention"),
+						Desktop:    ptrStr(model.USER_NOTIFY_MENTION),
+						MarkUnread: ptrStr(model.USER_NOTIFY_MENTION),
 					},
 				},
 			},
@@ -1191,7 +1191,7 @@ func TestImportImportUser(t *testing.T) {
 
 	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member Desktop from database.")
-	} else if channelMember.Roles != "channel_user channel_admin" && channelMember.NotifyProps["desktop"] == "mention" && channelMember.NotifyProps["mark_unread"] == "mention" {
+	} else if channelMember.Roles != "channel_user channel_admin" && channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] == model.USER_NOTIFY_MENTION && channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.USER_NOTIFY_MENTION {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
@@ -1211,14 +1211,14 @@ func TestImportImportUser(t *testing.T) {
 	// Add a user with some preferences.
 	username = model.NewId()
 	data = UserImportData{
-		Username:  &username,
-		Email:     ptrStr(model.NewId() + "@example.com"),
-		Theme: ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		SelectedFont: ptrStr("Roboto Slab"),
-		UseMilitaryTime: ptrStr("true"),
-		NameFormat: ptrStr("nickname_full_name"),
-		CollapsePreviews: ptrStr("true"),
-		MessageDisplay: ptrStr("compact"),
+		Username:           &username,
+		Email:              ptrStr(model.NewId() + "@example.com"),
+		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		SelectedFont:       ptrStr("Roboto Slab"),
+		UseMilitaryTime:    ptrStr("true"),
+		NameFormat:         ptrStr("nickname_full_name"),
+		CollapsePreviews:   ptrStr("true"),
+		MessageDisplay:     ptrStr("compact"),
 		ChannelDisplayMode: ptrStr("centered"),
 	}
 	if err := ImportUser(&data, false); err != nil {
@@ -1226,12 +1226,12 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check their values.
-	user, err = GetUserByUsername(username);
+	user, err = GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
 
-	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
+	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
 		t.Fatalf("Failed to get theme category preferences")
 	} else {
 		preferences := res.Data.(model.Preferences)
@@ -1242,7 +1242,7 @@ func TestImportImportUser(t *testing.T) {
 		}
 	}
 
-	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
+	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
 		t.Fatalf("Failed to get display category preferences")
 	} else {
 		preferences := res.Data.(model.Preferences)
@@ -1275,14 +1275,14 @@ func TestImportImportUser(t *testing.T) {
 
 	// Change those preferences.
 	data = UserImportData{
-		Username:  &username,
-		Email:     ptrStr(model.NewId() + "@example.com"),
-		Theme: ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		SelectedFont: ptrStr("Lato"),
-		UseMilitaryTime: ptrStr("false"),
-		NameFormat: ptrStr("full_name"),
-		CollapsePreviews: ptrStr("false"),
-		MessageDisplay: ptrStr("clean"),
+		Username:           &username,
+		Email:              ptrStr(model.NewId() + "@example.com"),
+		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+		SelectedFont:       ptrStr("Lato"),
+		UseMilitaryTime:    ptrStr("false"),
+		NameFormat:         ptrStr("full_name"),
+		CollapsePreviews:   ptrStr("false"),
+		MessageDisplay:     ptrStr("clean"),
 		ChannelDisplayMode: ptrStr("full"),
 	}
 	if err := ImportUser(&data, false); err != nil {
@@ -1290,7 +1290,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check their values again.
-	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
+	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
 		t.Fatalf("Failed to get theme category preferences")
 	} else {
 		preferences := res.Data.(model.Preferences)
@@ -1301,7 +1301,7 @@ func TestImportImportUser(t *testing.T) {
 		}
 	}
 
-	if res := <- Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
+	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
 		t.Fatalf("Failed to get display category preferences")
 	} else {
 		preferences := res.Data.(model.Preferences)
@@ -1388,7 +1388,7 @@ func TestImportBulkImport(t *testing.T) {
 	}
 
 	// Run bulk import using valid JSON but missing version line at the start.
-	data3:= `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+	data3 := `{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
@@ -1401,7 +1401,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	_ = Setup()
 
 	data := LineImportData{
-		Type: "version",
+		Type:    "version",
 		Version: ptrInt(1),
 	}
 	if version, err := processImportDataFileVersionLine(data); err != nil || version != 1 {

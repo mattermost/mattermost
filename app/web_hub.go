@@ -134,6 +134,18 @@ func InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
 	Srv.Store.Channel().InvalidateMemberCount(channelId)
 }
 
+func InvalidateCacheForChannelMembersNotifyProps(channelId string) {
+	InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForChannelMembersNotifyProps(channelId)
+	}
+}
+
+func InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
+	Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
+}
+
 func InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
 	Srv.Store.Channel().InvalidateChannelByName(teamId, name)
 }
