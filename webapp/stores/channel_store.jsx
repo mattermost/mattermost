@@ -7,11 +7,11 @@ import EventEmitter from 'events';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+var ChannelUtils;
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
 import {isSystemMessage} from 'utils/post_utils.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
-const PostTypes = Constants.PostTypes;
 
 const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
@@ -205,11 +205,11 @@ class ChannelStoreClass extends EventEmitter {
             channels.push(channel);
         }
 
-        if (!Utils) {
-            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
+        if (!ChannelUtils) {
+            ChannelUtils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
         }
 
-        channels = channels.sort(Utils.sortChannelsByDisplayName);
+        channels = channels.sort(ChannelUtils.sortChannelsByDisplayName);
         this.storeChannels(channels);
     }
 
@@ -287,11 +287,11 @@ class ChannelStoreClass extends EventEmitter {
     getMoreChannelsList(teamId = TeamStore.getCurrentId()) {
         const teamChannels = this.moreChannels[teamId] || {};
 
-        if (!Utils) {
-            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
+        if (!ChannelUtils) {
+            ChannelUtils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
         }
 
-        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(Utils.sortChannelsByDisplayName);
+        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(ChannelUtils.sortChannelsByDisplayName);
     }
 
     storeStats(stats) {
@@ -507,7 +507,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
 
     case ActionTypes.RECEIVED_POST:
-        if (action.post.type === PostTypes.JOIN_LEAVE || action.post.type === PostTypes.JOIN_CHANNEL || action.post.type === PostTypes.LEAVE_CHANNEL) {
+        if (Constants.IGNORE_POST_TYPES.indexOf(action.post.type) !== -1) {
             return;
         }
 

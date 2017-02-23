@@ -106,12 +106,8 @@ function preNeedsTeam(nextState, replace, callback) {
     if (nextState.location.pathname.indexOf('/channels/') > -1 ||
         nextState.location.pathname.indexOf('/pl/') > -1) {
         AsyncClient.getMyTeamsUnread();
-        const teams = TeamStore.getAll();
-        for (const id in teams) {
-            if (teams.hasOwnProperty(id)) {
-                AsyncClient.getMyChannelMembersForTeam(id);
-            }
-        }
+        const members = TeamStore.getMyTeamMembers();
+        members.forEach((m) => AsyncClient.getMyChannelMembersForTeam(m.team_id));
     }
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap

@@ -85,6 +85,10 @@ func (c *Client4) GetTeamMemberRoute(teamId, userId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId)+"/members/%v", userId)
 }
 
+func (c *Client4) GetTeamMembersRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/members")
+}
+
 func (c *Client4) GetTeamStatsRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/stats")
 }
@@ -547,6 +551,17 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetTeamMembers returns team members based on the provided team id string.
+func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -6,6 +6,7 @@ package api
 import (
 	"strings"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -55,7 +56,7 @@ func (me *InvitePeopleProvider) DoCommand(c *Context, args *model.CommandArgs, m
 	}
 
 	if err := app.InviteNewUsersToTeam(emailList, c.TeamId, c.Session.UserId, c.GetSiteURL()); err != nil {
-		c.Err = err
+		l4g.Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: c.T("api.command.invite_people.fail")}
 	}
 
