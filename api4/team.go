@@ -26,6 +26,7 @@ func InitTeam() {
 
 	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
+	BaseRoutes.TeamByName.Handle("/exists", ApiSessionRequired(teamExists)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
 }
 
@@ -72,6 +73,11 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamName()
+	if c.Err != nil {
+		return
+	}
+
 	if team, err := app.GetTeamByName(c.Params.TeamName); err != nil {
 		c.Err = err
 		return
@@ -231,4 +237,22 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.TeamListToJson(teams)))
+}
+
+func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamName()
+	if c.Err != nil {
+		return
+	}
+
+	resp := make(map[string]bool)
+
+	if _, err := app.GetTeamByName(c.Params.TeamName); err != nil {
+		resp["exists"] = false
+	} else {
+		resp["exists"] = true
+	}
+
+	w.Write([]byte(model.MapBoolToJson(resp)))
+	return
 }
