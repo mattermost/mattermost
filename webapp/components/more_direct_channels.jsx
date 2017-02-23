@@ -192,7 +192,7 @@ export default class MoreDirectChannels extends React.Component {
         this.setState({values});
     }
 
-    renderOption(option, isSelected, onAdd, buttonText) {
+    renderOption(option, isSelected, onAdd) {
         const style = {width: '100%', margin: '15px'};
         if (isSelected) {
             style.backgroundColor = 'green';
@@ -203,6 +203,7 @@ export default class MoreDirectChannels extends React.Component {
                 key={option.id}
                 className='asaad-please-fix'
                 style={style}
+                onClick={() => onAdd(option)}
             >
                 <ProfilePicture
                     src={`${Client.getUsersRoute()}/${option.id}/image?time=${option.last_picture_update}`}
@@ -219,13 +220,6 @@ export default class MoreDirectChannels extends React.Component {
                         {option.email}
                     </div>
                 </div>
-                <button
-                    className='btn btn-primary btn-sm'
-                    style={{position: 'absolute', right: '0'}}
-                    onClick={() => onAdd(option)}
-                >
-                    {buttonText}
-                </button>
             </div>
         );
     }
@@ -273,7 +267,6 @@ export default class MoreDirectChannels extends React.Component {
                         handleDelete={this.handleDelete}
                         handleAdd={this.addValue}
                         handleSubmit={this.handleSubmit}
-                        buttonText={'Message'}
                         noteText={note}
                         maxValues={Constants.MAX_USERS_IN_GM - 1}
                     />

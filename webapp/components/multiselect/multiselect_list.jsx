@@ -111,7 +111,7 @@ export default class MultiSelectList extends React.Component {
         this.setState({page: this.state.page - 1, selected: 0});
     }
 
-    defaultOptionRenderer(option, isSelected, onAdd, buttonText) {
+    defaultOptionRenderer(option, isSelected, onAdd) {
         const style = {width: '100%', margin: '15px'};
         if (isSelected) {
             style.backgroundColor = 'green';
@@ -121,15 +121,9 @@ export default class MultiSelectList extends React.Component {
             <div
                 style={style}
                 key={'multiselectoption' + option.value}
+                onClick={() => onAdd(option)}
             >
                 {option.label}
-                <button
-                    className='btn btn-primary btn-sm'
-                    style={{position: 'absolute', right: '0'}}
-                    onClick={() => onAdd(option)}
-                >
-                    {buttonText}
-                </button>
             </div>
         );
     }
@@ -200,7 +194,7 @@ export default class MultiSelectList extends React.Component {
             renderer = this.defaultOptionRenderer;
         }
 
-        const optionControls = optionsToDisplay.map((o, i) => renderer(o, this.state.selected === i, this.props.onAdd, this.props.buttonText));
+        const optionControls = optionsToDisplay.map((o, i) => renderer(o, this.state.selected === i, this.props.onAdd));
 
         return (
             <div>
@@ -226,6 +220,5 @@ MultiSelectList.propTypes = {
     perPage: React.PropTypes.number,
     onPageChange: React.PropTypes.func,
     onAdd: React.PropTypes.func,
-    onSelect: React.PropTypes.func,
-    buttonText: React.PropTypes.node
+    onSelect: React.PropTypes.func
 };
