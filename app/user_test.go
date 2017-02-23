@@ -4,7 +4,12 @@
 package app
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/model/gitlab"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestIsUsernameTaken(t *testing.T) {
@@ -50,4 +55,33 @@ func TestCheckUserDomain(t *testing.T) {
 			t.FailNow()
 		}
 	}
+}
+
+func TestCreateOAuthUser(t *testing.T) {
+	th := Setup().InitBasic()
+	glUser := oauthgitlab.GitLabUser{Id: 1000, Username: model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+
+	json := glUser.ToJson()
+	user, err := CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if user.Username != glUser.Username {
+		t.Fatal("usernames didn't match")
+	}
+
+	PermanentDeleteUser(user)
+
+	userCreation := utils.Cfg.TeamSettings.EnableUserCreation
+	defer func() {
+		utils.Cfg.TeamSettings.EnableUserCreation = userCreation
+	}()
+	utils.Cfg.TeamSettings.EnableUserCreation = false
+
+	_, err = CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	if err == nil {
+		t.Fatal("should have failed - user creation disabled")
+	}
+
 }

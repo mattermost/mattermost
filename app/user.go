@@ -218,6 +218,10 @@ func createUser(user *model.User) (*model.User, *model.AppError) {
 }
 
 func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+	if !utils.Cfg.TeamSettings.EnableUserCreation {
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
