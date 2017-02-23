@@ -55,7 +55,10 @@ export const Preferences = {
     CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     CATEGORY_FAVORITE_CHANNEL: 'favorite_channel',
-    EMAIL_INTERVAL: 'email_interval'
+    EMAIL_INTERVAL: 'email_interval',
+    INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
+    INTERVAL_FIFTEEN_MINUTES: 15 * 60,
+    INTERVAL_HOUR: 60 * 60
 };
 
 export const ActionTypes = keyMirror({
