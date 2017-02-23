@@ -938,10 +938,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
-
-	rusers, resp = Client.AutocompleteUsers(teamId, channelId, username, resp.Etag)
-	CheckEtag(t, rusers, resp)
-
+	
 	rusers, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 	if len(rusers) != 1 {
