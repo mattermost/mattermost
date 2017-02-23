@@ -46,7 +46,7 @@ export default class CreatePost extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.handleUploadClick = this.handleUploadClick.bind(this);
+        this.handleFileUploadChange = this.handleFileUploadChange.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -244,8 +244,8 @@ export default class CreatePost extends React.Component {
         PostStore.storeCurrentDraft(draft);
     }
 
-    handleUploadClick() {
-        this.focusTextbox();
+    handleFileUploadChange() {
+        this.focusTextbox(true);
     }
 
     handleUploadStart(clientIds, channelId) {
@@ -337,6 +337,8 @@ export default class CreatePost extends React.Component {
         const enableSendButton = this.handleEnableSendButton(this.state.message, fileInfos);
 
         this.setState({fileInfos, uploadsInProgress, enableSendButton});
+
+        this.handleFileUploadChange();
     }
 
     componentWillMount() {
@@ -577,7 +579,7 @@ export default class CreatePost extends React.Component {
                         <FileUpload
                             ref='fileUpload'
                             getFileCount={this.getFileCount}
-                            onClick={this.handleUploadClick}
+                            onFileUploadChange={this.handleFileUploadChange}
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
