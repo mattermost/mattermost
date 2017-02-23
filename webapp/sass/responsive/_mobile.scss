@@ -1086,6 +1086,13 @@
                 padding: .5em 1em;
             }
 
+            .emoji-rhs {
+                position: relative;
+                display: none;
+                top: 1px;
+                right: -1px;
+            }
+
             .msg-typing:empty {
                 display: none;
             }

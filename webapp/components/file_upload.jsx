@@ -361,8 +361,8 @@ class FileUpload extends React.Component {
             >
 
                 <span
-                    className='fa fa-paperclip icon__postcontent_picker'
-
+                    className='icon'
+                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
                 />
                 <input
                     ref='fileInput'
