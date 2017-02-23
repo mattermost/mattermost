@@ -16,9 +16,14 @@ import (
 )
 
 const (
-	USER_NOTIFY_ALL            = "all"
-	USER_NOTIFY_MENTION        = "mention"
-	USER_NOTIFY_NONE           = "none"
+	USER_NOTIFY_ALL         = "all"
+	USER_NOTIFY_MENTION     = "mention"
+	USER_NOTIFY_NONE        = "none"
+	DESKTOP_NOTIFY_PROP     = "desktop"
+	MARK_UNREAD_NOTIFY_PROP = "mark_unread"
+	PUSH_NOTIFY_PROP        = "push"
+	EMAIL_NOTIFY_PROP       = "email"
+
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"

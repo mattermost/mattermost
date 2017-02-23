@@ -3520,8 +3520,16 @@
     "translation": "Invalid role"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Invalid mark unread level"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
