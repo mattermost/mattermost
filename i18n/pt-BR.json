@@ -1154,6 +1154,10 @@
     "translation": "Encontrado um erro ao ler a partir do servidor de armazenamento local"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Arquivo acima das dimensões máximas não pode ser enviado: {{.Filename}}"
   },
@@ -2913,11 +2917,11 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+    "translation": "Desktop NotifyProps inválido para Usuário Membro do Canal."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+    "translation": "MarkUnread NotifyProps inválido para Usuário Membro do Canal."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
@@ -3538,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Tokens de autenticação não são iguais"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "Encontramos um erro enquanto procurava os perfis de usuários"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",

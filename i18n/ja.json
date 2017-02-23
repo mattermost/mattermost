@@ -1154,6 +1154,10 @@
     "translation": "ローカルサーバーストレージからの読み込みに失敗しました"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "ファイルをアップロードできません。ヘッダーを解析できません。"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },
@@ -3538,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "認証トークンが一致しません"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "ファイルを読み込む際にエラーが発生しました"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",

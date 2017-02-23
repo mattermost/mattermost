@@ -1154,6 +1154,10 @@
     "translation": "Se encontró un error al leer desde el almacenamiento del servidor local"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "No se puedo subir el archivo. El encabezado no puede ser analizado."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "No se pudo subir el archivo que supera las dimensiones máximas: {{.Filename}}"
   },
@@ -2913,11 +2917,11 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+    "translation": "Las NotifyProps de escritorio para el Canal del Usuario en la Afiliación no es válido."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+    "translation": "Las NotifyProps de MarkUnread para el Canal del Usuario en la Afiliación no es válido."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
@@ -3538,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Token de autenticación no coincidió"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "Encontramos un error mientras se leía el archivo"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4953,7 +4961,7 @@
   },
   {
     "id": "store.sql_post.search.app_error",
-    "translation": "Encontramos un error mientras buscabamos los mensajes"
+    "translation": "Encontramos un error mientras buscamos los mensajes"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -4969,15 +4977,15 @@
   },
   {
     "id": "store.sql_preference.get.app_error",
-    "translation": "Encontramos un error mientras buscabamos las preferencias"
+    "translation": "Encontramos un error mientras buscamos las preferencias"
   },
   {
     "id": "store.sql_preference.get_all.app_error",
-    "translation": "Encontramos un error mientras buscabamos las preferencias"
+    "translation": "Encontramos un error mientras buscamos las preferencias"
   },
   {
     "id": "store.sql_preference.get_category.app_error",
-    "translation": "Encontramos un error mientras buscabamos las preferencias"
+    "translation": "Encontramos un error mientras buscamos las preferencias"
   },
   {
     "id": "store.sql_preference.insert.exists.app_error",
@@ -4989,7 +4997,7 @@
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "Encontramos un error mientras buscabamos las preferencias de las características de pre-lanzamiento"
+    "translation": "Encontramos un error mientras buscamos las preferencias de las características de pre-lanzamiento"
   },
   {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
@@ -5073,7 +5081,7 @@
   },
   {
     "id": "store.sql_session.get_sessions.app_error",
-    "translation": "Encontramos un error mientras buscabamos las sesiones de usuario"
+    "translation": "Encontramos un error mientras buscamos las sesiones de usuario"
   },
   {
     "id": "store.sql_session.get_sessions.error",
@@ -5225,7 +5233,7 @@
   },
   {
     "id": "store.sql_team.get_teams_for_email.app_error",
-    "translation": "Encontramos un problema cuando buscabamos los equipos"
+    "translation": "Encontramos un problema cuando buscamos los equipos"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
@@ -5313,7 +5321,7 @@
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
+    "translation": "Encontramos un error mientras buscamos los perfiles de usuario"
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
@@ -5321,7 +5329,7 @@
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Encontramos un error mientras buscabamos los perfiles de usuario"
+    "translation": "Encontramos un error mientras buscamos los perfiles de usuario"
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",

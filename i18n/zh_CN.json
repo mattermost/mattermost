@@ -1154,6 +1154,10 @@
     "translation": "读取本地存储时遇到错误"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "无法上传超过最大尺寸的文件：{{.Filename}}"
   },
@@ -3538,6 +3542,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "认证令牌不匹配"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "我们查找用户配置文件遇到了一个错误"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
