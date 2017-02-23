@@ -7,6 +7,7 @@ import EventEmitter from 'events';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+var ChannelUtils;
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
 import {isSystemMessage} from 'utils/post_utils.jsx';
@@ -204,11 +205,11 @@ class ChannelStoreClass extends EventEmitter {
             channels.push(channel);
         }
 
-        if (!Utils) {
-            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
+        if (!ChannelUtils) {
+            ChannelUtils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
         }
 
-        channels = channels.sort(Utils.sortChannelsByDisplayName);
+        channels = channels.sort(ChannelUtils.sortChannelsByDisplayName);
         this.storeChannels(channels);
     }
 
@@ -286,11 +287,11 @@ class ChannelStoreClass extends EventEmitter {
     getMoreChannelsList(teamId = TeamStore.getCurrentId()) {
         const teamChannels = this.moreChannels[teamId] || {};
 
-        if (!Utils) {
-            Utils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
+        if (!ChannelUtils) {
+            ChannelUtils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
         }
 
-        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(Utils.sortChannelsByDisplayName);
+        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(ChannelUtils.sortChannelsByDisplayName);
     }
 
     storeStats(stats) {
