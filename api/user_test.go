@@ -1097,7 +1097,38 @@ func TestUserUpdateDeviceId(t *testing.T) {
 
 	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
-	deviceId := model.PUSH_NOTIFY_APPLE_V1 + ":1234567890"
+	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
+
+	if _, err := Client.AttachDeviceId(deviceId); err != nil {
+		t.Fatal(err)
+	}
+
+	if result := <-app.Srv.Store.Session().GetSessions(user.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		sessions := result.Data.([]*model.Session)
+
+		if sessions[0].DeviceId != deviceId {
+			t.Fatal("Missing device Id")
+		}
+	}
+}
+
+func TestUserUpdateDeviceId2(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
+
+	user := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+	LinkUserToTeam(user, team)
+	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
+
+	Client.Login(user.Email, "passwd1")
+	Client.SetTeamId(team.Id)
+	deviceId := model.PUSH_NOTIFY_APPLE_REACT_NATIVE + ":1234567890"
 
 	if _, err := Client.AttachDeviceId(deviceId); err != nil {
 		t.Fatal(err)

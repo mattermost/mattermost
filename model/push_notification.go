@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	PUSH_NOTIFY_APPLE_V1   = "apple"
-	PUSH_NOTIFY_ANDROID_V1 = "android"
-	PUSH_NOTIFY_APPLE_V2   = "apple2"
-	PUSH_NOTIFY_ANDROID_V2 = "android2"
+	PUSH_NOTIFY_APPLE                = "apple"
+	PUSH_NOTIFY_ANDROID              = "android"
+	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
+	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
 
 	PUSH_TYPE_MESSAGE = "message"
 	PUSH_TYPE_CLEAR   = "clear"
