@@ -111,8 +111,7 @@ func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (me *Session) IsMobileApp() bool {
-	return len(me.DeviceId) > 0 &&
-		(strings.HasPrefix(me.DeviceId, PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(me.DeviceId, PUSH_NOTIFY_ANDROID+":"))
+	return len(me.DeviceId) > 0
 }
 
 func (me *Session) GetUserRoles() []string {
