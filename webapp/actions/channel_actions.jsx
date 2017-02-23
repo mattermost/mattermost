@@ -132,7 +132,6 @@ export function makeUserChannelAdmin(channelId, userId, success, error) {
         userId,
         'channel_user channel_admin',
         () => {
-            AsyncClient.getChannelMember(channelId, userId);
             getChannelMembersForUserIds(channelId, [userId]);
 
             if (success) {
@@ -153,7 +152,6 @@ export function makeUserChannelMember(channelId, userId, success, error) {
         userId,
         'channel_user',
         () => {
-            AsyncClient.getChannelMember(channelId, userId);
             getChannelMembersForUserIds(channelId, [userId]);
 
             if (success) {
