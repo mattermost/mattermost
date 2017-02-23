@@ -493,7 +493,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		go sendToPushProxy(tmpMessage)
+		go sendToPushProxy(tmpMessage, session)
 
 		if einterfaces.GetMetricsInterface() != nil {
 			einterfaces.GetMetricsInterface().IncrementPostSentPush()
@@ -525,13 +525,13 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		go sendToPushProxy(tmpMessage)
+		go sendToPushProxy(tmpMessage, session)
 	}
 
 	return nil
 }
 
-func sendToPushProxy(msg model.PushNotification) *model.AppError {
+func sendToPushProxy(msg model.PushNotification, session *model.Session) *model.AppError {
 	msg.ServerId = utils.CfgDiagnosticId
 
 	tr := &http.Transport{
@@ -544,8 +544,17 @@ func sendToPushProxy(msg model.PushNotification) *model.AppError {
 	if resp, err := httpClient.Do(request); err != nil {
 		return model.NewLocAppError("sendToPushProxy", "api.post.send_notifications_and_forget.push_notification.error", map[string]interface{}{"DeviceId": msg.DeviceId, "Error": err.Error()}, "")
 	} else {
-		ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
+		m := model.MapFromJson(resp.Body)
+		if resp.Body != nil {
+			ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+		}
+
+		if m != nil && m[model.STATUS] == model.STATUS_REMOVE {
+			l4g.Info("Device was reported as removed for UserId=%v SessionId=% removing push for this session", session.UserId, session.Id)
+			AttachDeviceId(session.Id, "", session.ExpiresAt)
+			ClearSessionCacheForUser(session.UserId)
+		}
 	}
 
 	return nil
