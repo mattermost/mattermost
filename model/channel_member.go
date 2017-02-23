@@ -146,9 +146,9 @@ func IsSendEmailValid(sendEmail string) bool {
 
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
-		"desktop":     CHANNEL_NOTIFY_DEFAULT,
-		"mark_unread": CHANNEL_MARK_UNREAD_ALL,
-		"push":        CHANNEL_NOTIFY_DEFAULT,
-		"email":       CHANNEL_NOTIFY_DEFAULT,
+		DESKTOP_NOTIFY_PROP:     CHANNEL_NOTIFY_DEFAULT,
+		MARK_UNREAD_NOTIFY_PROP: CHANNEL_MARK_UNREAD_ALL,
+		PUSH_NOTIFY_PROP:        CHANNEL_NOTIFY_DEFAULT,
+		EMAIL_NOTIFY_PROP:       CHANNEL_NOTIFY_DEFAULT,
 	}
 }

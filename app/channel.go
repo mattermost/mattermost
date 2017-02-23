@@ -226,20 +226,20 @@ func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, us
 	}
 
 	// update whichever notify properties have been provided, but don't change the others
-	if markUnread, exists := data["mark_unread"]; exists {
-		member.NotifyProps["mark_unread"] = markUnread
+	if markUnread, exists := data[model.MARK_UNREAD_NOTIFY_PROP]; exists {
+		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = markUnread
 	}
 
-	if desktop, exists := data["desktop"]; exists {
-		member.NotifyProps["desktop"] = desktop
+	if desktop, exists := data[model.DESKTOP_NOTIFY_PROP]; exists {
+		member.NotifyProps[model.DESKTOP_NOTIFY_PROP] = desktop
 	}
 
-	if email, exists := data["email"]; exists {
-		member.NotifyProps["email"] = email
+	if email, exists := data[model.EMAIL_NOTIFY_PROP]; exists {
+		member.NotifyProps[model.EMAIL_NOTIFY_PROP] = email
 	}
 
-	if push, exists := data["push"]; exists {
-		member.NotifyProps["push"] = push
+	if push, exists := data[model.PUSH_NOTIFY_PROP]; exists {
+		member.NotifyProps[model.PUSH_NOTIFY_PROP] = push
 	}
 
 	if result := <-Srv.Store.Channel().UpdateMember(member); result.Err != nil {

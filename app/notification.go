@@ -102,7 +102,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 		// find which users in the channel are set up to always receive mobile notifications
 		for _, profile := range profileMap {
-			if profile.NotifyProps["push"] == model.USER_NOTIFY_ALL &&
+			if profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL &&
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
 				!post.IsSystemMessage() {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
@@ -145,8 +145,8 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 	if utils.Cfg.EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
-			userAllowsEmails := profileMap[id].NotifyProps["email"] != "false"
-			if channelEmail, ok := channelMemberNotifyPropsMap[id]["email"]; ok {
+			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
+			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
 				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
 					userAllowsEmails = channelEmail != "false"
 				}
@@ -463,7 +463,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 
 	var channelName string
 
-	if channelNotify, ok := channelNotifyProps["push"]; ok {
+	if channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]; ok {
 		if channelNotify == model.USER_NOTIFY_NONE {
 			return nil
 		} else if channelNotify == model.USER_NOTIFY_MENTION && !wasMentioned {
@@ -732,14 +732,4 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 	}
 
 	return keywords
-}
-
-func shouldSendPushNotification(channelNotifyProps model.StringMap) bool {
-	if push, exists := channelNotifyProps["push"]; exists {
-		if push == "none" {
-			return false
-		}
-	}
-
-	return true
 }

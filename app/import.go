@@ -581,11 +581,11 @@ func ImportUserChannels(user *model.User, team *model.Team, data *[]UserChannelI
 			notifyProps := member.NotifyProps
 
 			if cdata.NotifyProps.Desktop != nil {
-				notifyProps["desktop"] = *cdata.NotifyProps.Desktop
+				notifyProps[model.DESKTOP_NOTIFY_PROP] = *cdata.NotifyProps.Desktop
 			}
 
 			if cdata.NotifyProps.MarkUnread != nil {
-				notifyProps["mark_unread"] = *cdata.NotifyProps.MarkUnread
+				notifyProps[model.MARK_UNREAD_NOTIFY_PROP] = *cdata.NotifyProps.MarkUnread
 			}
 
 			if _, err := UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id); err != nil {
