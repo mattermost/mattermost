@@ -261,6 +261,39 @@ func TestGetUserByEmail(t *testing.T) {
 	}
 }
 
+func TestGetProfileImage(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	data, resp := Client.GetProfileImage(user.Id, "")
+	CheckNoError(t, resp)
+	if data == nil || len(data) == 0 {
+		t.Fatal("Should not be empty")
+	}
+
+	_, resp = Client.GetProfileImage(user.Id, resp.Etag)
+	if resp.StatusCode != http.StatusNotModified {
+		t.Fatal("Should have hit etag")
+	}
+
+	_, resp = Client.GetProfileImage("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetProfileImage(user.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetProfileImage(user.Id, "")
+	CheckNoError(t, resp)
+
+	info := &model.FileInfo{Path: "/users/" + user.Id + "/profile.png"}
+	if err := cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestGetUsersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.Client

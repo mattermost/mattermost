@@ -4,6 +4,9 @@
 package app
 
 import (
+	"bytes"
+	"image"
+	"image/color"
 	"strings"
 	"testing"
 
@@ -83,5 +86,25 @@ func TestCreateOAuthUser(t *testing.T) {
 	if err == nil {
 		t.Fatal("should have failed - user creation disabled")
 	}
+}
 
+func TestCreateProfileImage(t *testing.T) {
+	utils.LoadConfig("config.json")
+
+	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rdr := bytes.NewReader(b)
+	img, _, err2 := image.Decode(rdr)
+	if err2 != nil {
+		t.Fatal(err)
+	}
+
+	colorful := color.RGBA{116, 49, 196, 255}
+
+	if img.At(1, 1) != colorful {
+		t.Fatal("Failed to create correct color")
+	}
 }
