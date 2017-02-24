@@ -2692,23 +2692,15 @@
     "translation": "team hub stopping for teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_error",
+    "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.update_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.update_incoming.permissions.app_error",
-    "translation": "Invalid permissions to update incoming webhook"
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Cannot update webhook across teams"
   },
   {
-    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
@@ -2728,48 +2720,24 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.update_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "Invalid permissions to delete incoming webhook"
   },
   {
     "id": "api.webhook.update_outgoing.not_open.app_error",
     "translation": "Outgoing webhooks can only be updated to public channels."
   },
   {
-    "id": "api.webhook.update_outgoing.permissions.app_error",
-    "translation": "Invalid permissions to update outgoing webhook."
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
     "id": "api.webhook.update_outgoing.triggers.app_error",
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.delete_incoming.permissions.app_error",
-    "translation": "Invalid permissions to delete incoming webhook"
-  },
-  {
-    "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
-  },
-  {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
     "translation": "Invalid permissions to delete outgoing webhook"
-  },
-  {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2782,10 +2750,6 @@
   {
     "id": "api.webhook.init.debug",
     "translation": "Initializing webhook API routes"
-  },
-  {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",

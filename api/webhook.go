@@ -263,12 +263,6 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
-		c.Err = model.NewLocAppError("deleteOutgoingHook", "api.webhook.delete_outgoing.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	props := model.MapFromJson(r.Body)
 
 	id := props["id"]
