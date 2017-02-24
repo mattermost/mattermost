@@ -497,7 +497,7 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("Member update time incorrect on delete")
 	}
 
-	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId)).Data.(*model.ChannelMember)
+	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId, false)).Data.(*model.ChannelMember)
 	if member.ChannelId != o1.ChannelId {
 		t.Fatal("should have go member")
 	}
@@ -968,15 +968,15 @@ func TestGetMember(t *testing.T) {
 	}
 	Must(store.Channel().SaveMember(m2))
 
-	if result := <-store.Channel().GetMember(model.NewId(), userId); result.Err == nil {
+	if result := <-store.Channel().GetMember(model.NewId(), userId, false); result.Err == nil {
 		t.Fatal("should've failed to get member for non-existant channel")
 	}
 
-	if result := <-store.Channel().GetMember(c1.Id, model.NewId()); result.Err == nil {
+	if result := <-store.Channel().GetMember(c1.Id, model.NewId(), false); result.Err == nil {
 		t.Fatal("should've failed to get member for non-existant user")
 	}
 
-	if result := <-store.Channel().GetMember(c1.Id, userId); result.Err != nil {
+	if result := <-store.Channel().GetMember(c1.Id, userId, false); result.Err != nil {
 		t.Fatal("shouldn't have errored when getting member", result.Err)
 	} else if member := result.Data.(*model.ChannelMember); member.ChannelId != c1.Id {
 		t.Fatal("should've gotten member of channel 1")
@@ -984,7 +984,7 @@ func TestGetMember(t *testing.T) {
 		t.Fatal("should've gotten member for user")
 	}
 
-	if result := <-store.Channel().GetMember(c2.Id, userId); result.Err != nil {
+	if result := <-store.Channel().GetMember(c2.Id, userId, false); result.Err != nil {
 		t.Fatal("shouldn't have errored when getting member", result.Err)
 	} else if member := result.Data.(*model.ChannelMember); member.ChannelId != c2.Id {
 		t.Fatal("should've gotten member of channel 2")
