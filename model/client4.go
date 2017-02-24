@@ -479,6 +479,17 @@ func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (
 	}
 }
 
+// Verify user email user id and hash strings.
+func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
+	requestBody := map[string]string{"uid": userId, "hid": hashId}
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
