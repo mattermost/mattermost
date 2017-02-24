@@ -243,6 +243,7 @@ export default class ChannelHeader extends React.Component {
         let channelTitle = channel.display_name;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
         const isDirect = (this.state.channel.type === 'D');
         let webrtc;
 
@@ -476,7 +477,7 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
-            if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+            if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
                 dropdownContents.push(
                     <li
                         key='set_channel_header'
@@ -541,7 +542,7 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin)) {
+            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
                 if (!ChannelStore.isDefault(channel)) {
                     dropdownContents.push(deleteOption);
                 }

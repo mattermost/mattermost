@@ -322,6 +322,7 @@
   "admin.general.policy.permissionsDeletePostAll": "Message authors can delete their own messages, and Administrators can delete any message",
   "admin.general.policy.permissionsDeletePostSystemAdmin": "System Admins",
   "admin.general.policy.permissionsSystemAdmin": "System Admins",
+  "admin.general.policy.permissionsChannelAdmin": "Channel, Team and System Admins",
   "admin.general.policy.restrictPostDeleteDescription": "Set policy on who has permission to delete messages.",
   "admin.general.policy.restrictPostDeleteTitle": "Allow which users to delete messages:",
   "admin.general.policy.restrictPrivateChannelCreationDescription": "Set policy on who can create private groups.",

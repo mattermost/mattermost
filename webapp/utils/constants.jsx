@@ -877,6 +877,7 @@ export const Constants = {
     LICENSE_EXPIRY_NOTIFICATION: 1000 * 60 * 60 * 24 * 15, // 15 days
     LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15, // 15 days
     PERMISSIONS_ALL: 'all',
+    PERMISSIONS_CHANNEL_ADMIN: 'channel_admin',
     PERMISSIONS_TEAM_ADMIN: 'team_admin',
     PERMISSIONS_SYSTEM_ADMIN: 'system_admin',
     PERMISSIONS_DELETE_POST_ALL: 'all',
