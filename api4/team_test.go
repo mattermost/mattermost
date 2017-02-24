@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-
+	
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -126,9 +126,26 @@ func TestGetAllTeams(t *testing.T) {
 	rrteams, resp := Client.GetAllTeams("")
 	CheckNoError(t, resp)
 
-	if len(rrteams) == 0 {
+	if (len(rrteams) == 0) {
 		t.Fatal("wrong number of teams")
 	}
+
+	for _, rt := range rrteams {
+		if rt.Type != model.TEAM_OPEN {
+			t.Fatal("not all teams are open")
+		}
+	}
+
+	rrteams1, resp := th.SystemAdminClient.GetAllTeams("")
+	CheckNoError(t, resp)
+
+	if (len(rrteams1) == 0) {
+		t.Fatal("wrong number of teams")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetAllTeams("")
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetTeamByName(t *testing.T) {
