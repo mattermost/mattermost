@@ -193,16 +193,15 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     renderOption(option, isSelected, onAdd) {
-        const style = {width: '100%', margin: '15px'};
+        var rowSelected = '';
         if (isSelected) {
-            style.backgroundColor = 'green';
+            rowSelected = 'more-modal__row--selected';
         }
 
         return (
             <div
                 key={option.id}
-                className='asaad-please-fix'
-                style={style}
+                className={'more-modal__row clickable ' + rowSelected}
                 onClick={() => onAdd(option)}
             >
                 <ProfilePicture
@@ -211,13 +210,18 @@ export default class MoreDirectChannels extends React.Component {
                     height='32'
                 />
                 <div
-                    className='asaad-please-fix'
+                    className='more-modal__details'
                 >
-                    <div className='asaad-please-fix'>
+                    <div className='more-modal__name'>
                         {displayUsernameForUser(option)}
                     </div>
-                    <div className='asaad-please-fix'>
+                    <div className='more-modal__description'>
                         {option.email}
+                    </div>
+                </div>
+                <div className='more-modal__actions'>
+                    <div className='more-modal__actions--round'>
+                        <i className='fa fa-plus'/>
                     </div>
                 </div>
             </div>

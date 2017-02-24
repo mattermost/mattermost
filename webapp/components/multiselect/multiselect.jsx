@@ -97,43 +97,47 @@ export default class MultiSelect extends React.Component {
         }
 
         return (
-            <div>
-                <div style={{width: '90%', display: 'inline-block'}}>
-                    <ReactSelect
-                        ref='select'
-                        multi={true}
-                        options={this.props.options}
-                        joinValues={true}
-                        clearable={false}
-                        openOnFocus={true}
-                        onInputChange={this.onInput}
-                        onBlurResetsInput={false}
-                        onChange={this.onChange}
-                        value={this.props.values}
-                        valueRenderer={this.props.valueRenderer}
-                        menuRenderer={() => null}
-                        arrowRenderer={() => null}
-                        noResultsText={null}
-                        placeholder={localizeMessage('multiselect.placeholder', 'Search and add members')}
-                    />
+            <div className='filtered-user-list'>
+                <div className='filter-row filter-row--full'>
+                    <div className='multi-select__container'>
+                        <ReactSelect
+                            ref='select'
+                            multi={true}
+                            options={this.props.options}
+                            joinValues={true}
+                            clearable={false}
+                            openOnFocus={true}
+                            onInputChange={this.onInput}
+                            onBlurResetsInput={false}
+                            onChange={this.onChange}
+                            value={this.props.values}
+                            valueRenderer={this.props.valueRenderer}
+                            menuRenderer={() => null}
+                            arrowRenderer={() => null}
+                            noResultsText={null}
+                            placeholder={localizeMessage('multiselect.placeholder', 'Search and add members')}
+                        />
+                        <button
+                            className='btn btn-primary btn-sm'
+                            style={{display: 'inline-block'}}
+                            onClick={this.props.handleSubmit}
+                        >
+                            <FormattedMessage
+                                id='multiselect.go'
+                                defaultMessage='Go'
+                            />
+                        </button>
+                    </div>
+                    <div className='multi-select__help'>
+                        <FormattedMessage
+                            id='multiselect.instructions'
+                            defaultMessage='Use up/down arrows to navigate and enter to select'
+                        />
+                        <br/>
+                        {numRemainingText}
+                        {this.props.noteText}
+                    </div>
                 </div>
-                <button
-                    className='btn btn-primary btn-sm'
-                    style={{display: 'inline-block'}}
-                    onClick={this.props.handleSubmit}
-                >
-                    <FormattedMessage
-                        id='multiselect.go'
-                        defaultMessage='Go'
-                    />
-                </button>
-                <FormattedMessage
-                    id='multiselect.instructions'
-                    defaultMessage='Use up/down arrows to navigate and enter to select'
-                />
-                <br/>
-                {numRemainingText}
-                {this.props.noteText}
                 <MultiSelectList
                     ref='list'
                     options={this.props.options}
