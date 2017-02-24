@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	PUSH_NOTIFY_APPLE   = "apple"
-	PUSH_NOTIFY_ANDROID = "android"
+	PUSH_NOTIFY_APPLE                = "apple"
+	PUSH_NOTIFY_ANDROID              = "android"
+	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
+	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
 
 	PUSH_TYPE_MESSAGE = "message"
 	PUSH_TYPE_CLEAR   = "clear"
@@ -46,12 +48,11 @@ func (me *PushNotification) ToJson() string {
 }
 
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-	if strings.HasPrefix(deviceId, PUSH_NOTIFY_APPLE+":") {
-		me.Platform = PUSH_NOTIFY_APPLE
-		me.DeviceId = strings.TrimPrefix(deviceId, PUSH_NOTIFY_APPLE+":")
-	} else if strings.HasPrefix(deviceId, PUSH_NOTIFY_ANDROID+":") {
-		me.Platform = PUSH_NOTIFY_ANDROID
-		me.DeviceId = strings.TrimPrefix(deviceId, PUSH_NOTIFY_ANDROID+":")
+
+	parts := strings.Split(deviceId, ":")
+	if len(parts) == 2 {
+		me.Platform = parts[0]
+		me.DeviceId = parts[1]
 	}
 }
 

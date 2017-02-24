@@ -126,7 +126,7 @@ export function showCreateOption(channelType, isAdmin, isSystemAdmin) {
     return true;
 }
 
-export function showManagementOptions(channel, isAdmin, isSystemAdmin) {
+export function showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin) {
     if (global.window.mm_license.IsLicensed !== 'true') {
         return true;
     }
@@ -138,6 +138,9 @@ export function showManagementOptions(channel, isAdmin, isSystemAdmin) {
         if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
             return false;
         }
+        if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
+            return false;
+        }
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
@@ -145,12 +148,15 @@ export function showManagementOptions(channel, isAdmin, isSystemAdmin) {
         if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
             return false;
         }
+        if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
+            return false;
+        }
     }
 
     return true;
 }
 
-export function showDeleteOption(channel, isAdmin, isSystemAdmin) {
+export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) {
     if (global.window.mm_license.IsLicensed !== 'true') {
         return true;
     }
@@ -162,11 +168,17 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin) {
         if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
             return false;
         }
+        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
+            return false;
+        }
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
         }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+            return false;
+        }
+        if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
             return false;
         }
     }

@@ -214,7 +214,7 @@ export default class Navbar extends React.Component {
         }
     };
 
-    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent) {
+    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, popoverContent) {
         if (channel) {
             let channelTerm = (
                 <FormattedMessage
@@ -346,7 +346,7 @@ export default class Navbar extends React.Component {
                     </li>
                 );
 
-                if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin)) {
+                if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
                     setChannelHeaderOption = (
                         <li role='presentation'>
                             <a
@@ -402,7 +402,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin) || this.state.userCount === 1) {
+                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) || this.state.userCount === 1) {
                     if (!ChannelStore.isDefault(channel)) {
                         deleteChannelOption = (
                             <li role='presentation'>
@@ -617,6 +617,7 @@ export default class Navbar extends React.Component {
         var popoverContent;
         var isAdmin = false;
         var isSystemAdmin = false;
+        var isChannelAdmin = false;
         var isDirect = false;
 
         var editChannelHeaderModal = null;
@@ -647,6 +648,7 @@ export default class Navbar extends React.Component {
 
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
             isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+            isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
 
             if (channel.type === 'O') {
                 channelTitle = channel.display_name;
@@ -753,7 +755,7 @@ export default class Navbar extends React.Component {
             </button>
         );
 
-        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isDirect, popoverContent);
+        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, popoverContent);
 
         return (
             <div>
