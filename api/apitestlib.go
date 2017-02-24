@@ -194,13 +194,15 @@ func UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id, true); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
 		cm.Roles = "channel_admin channel_user"
 		if sr := <-app.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
 		}
+
+		app.InvalidateCacheForChannelMember(cm.ChannelId, cm.UserId)
 	} else {
 		utils.EnableDebugLogForTest()
 		panic(cmr.Err)
@@ -212,13 +214,15 @@ func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 func MakeUserChannelUser(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id, true); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
 		cm.Roles = "channel_user"
 		if sr := <-app.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
 		}
+
+		app.InvalidateCacheForChannelMember(cm.ChannelId, cm.UserId)
 	} else {
 		utils.EnableDebugLogForTest()
 		panic(cmr.Err)
