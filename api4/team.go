@@ -25,6 +25,7 @@ func InitTeam() {
 	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
+	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAll)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -188,4 +189,27 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
+	var teams []*model.Team
+	var err *model.AppError
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		teams, err = app.GetAllTeams()
+	} else {
+		teams, err = app.GetAllOpenTeams()
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	m := make(map[string]*model.Team)
+	for _, v := range teams {
+		m[v.Id] = v
+	}
+
+	w.Write([]byte(model.TeamMapToJson(m)))
 }

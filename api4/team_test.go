@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-
+	"fmt"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -112,6 +112,26 @@ func TestGetTeam(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetTeam(rteam2.Id, "")
 	CheckNoError(t, resp)
+}
+
+func TestGetAllTeams(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	rteam, resp := Client.CreateTeam(team)
+	CheckNoError(t, resp)
+
+	rrteam, resp := Client.GetAllTeams("")
+	CheckNoError(t, resp)
+
+	fmt.Println(rteam)
+
+	if rteam.Id != rrteam.Id {
+		t.Fatal("wrong team")
+	}
+
 }
 
 func TestGetTeamByName(t *testing.T) {

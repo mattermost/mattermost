@@ -501,6 +501,16 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
 	}
 }
 
+// GetAllTeams returns all teams based on permissions.
+func (c *Client4) GetAllTeams(etag string) (*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamsRoute(), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamByName returns a team based on the provided team name string.
 func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	if r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag); err != nil {
