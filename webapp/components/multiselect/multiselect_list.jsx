@@ -112,14 +112,14 @@ export default class MultiSelectList extends React.Component {
     }
 
     defaultOptionRenderer(option, isSelected, onAdd) {
-        const style = {width: '100%', margin: '15px'};
+        var rowSelected = '';
         if (isSelected) {
-            style.backgroundColor = 'green';
+            rowSelected = 'more-modal__row--selected';
         }
 
         return (
             <div
-                style={style}
+                className={rowSelected}
                 key={'multiselectoption' + option.value}
                 onClick={() => onAdd(option)}
             >
@@ -198,7 +198,11 @@ export default class MultiSelectList extends React.Component {
 
         return (
             <div>
-                {optionControls}
+                <div className='more-modal__list'>
+                    <div>
+                        {optionControls}
+                    </div>
+                </div>
                 <div className='filter-controls'>
                     {previousButton}
                     {nextButton}
