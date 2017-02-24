@@ -9,7 +9,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import $ from 'jquery';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {updateChannelNotifyProps} from 'actions/channel_actions.jsx';
 
@@ -28,10 +28,6 @@ export default class ChannelNotificationsModal extends React.Component {
         this.handleUpdateMarkUnreadLevel = this.handleUpdateMarkUnreadLevel.bind(this);
         this.createMarkUnreadLevelSection = this.createMarkUnreadLevelSection.bind(this);
 
-        this.handleSubmitEmailNotification = this.handleSubmitEmailNotification.bind(this);
-        this.handleUpdateEmailNotification = this.handleUpdateEmailNotification.bind(this);
-        this.createEmailNotificationSection = this.createEmailNotificationSection.bind(this);
-
         this.handleSubmitPushNotificationLevel = this.handleSubmitPushNotificationLevel.bind(this);
         this.handleUpdatePushNotificationLevel = this.handleUpdatePushNotificationLevel.bind(this);
         this.createPushNotificationLevelSection = this.createPushNotificationLevelSection.bind(this);
@@ -41,8 +37,7 @@ export default class ChannelNotificationsModal extends React.Component {
             show: true,
             notifyLevel: props.channelMember.notify_props.desktop,
             unreadLevel: props.channelMember.notify_props.mark_unread,
-            pushLevel: props.channelMember.notify_props.push || 'default',
-            shouldSendEmail: props.channelMember.notify_props.email || 'default'
+            pushLevel: props.channelMember.notify_props.push || 'default'
         };
     }
 
@@ -385,194 +380,6 @@ export default class ChannelNotificationsModal extends React.Component {
         return content;
     }
 
-    handleSubmitEmailNotification() {
-        const channelId = this.props.channel.id;
-        const shouldSendEmail = this.state.shouldSendEmail;
-        const currentUserId = this.props.currentUser.id;
-
-        if (this.props.channelMember.notify_props.email === shouldSendEmail) {
-            this.updateSection('');
-            return;
-        }
-
-        const data = {
-            channel_id: channelId,
-            user_id: currentUserId,
-            email: shouldSendEmail
-        };
-
-        updateChannelNotifyProps(data,
-            () => {
-                // YUCK
-                const member = ChannelStore.getMyMember(channelId);
-                member.notify_props.email = shouldSendEmail;
-                ChannelStore.storeMyChannelMember(member);
-
-                this.updateSection('');
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
-    }
-
-    handleUpdateEmailNotification(shouldSendEmail) {
-        this.setState({shouldSendEmail});
-    }
-
-    createEmailNotificationSection(serverError) {
-        if (global.mm_config.SendEmailNotifications === 'false') {
-            return null;
-        }
-
-        // Get glabal user setting for notifications
-        const globalNotifyLevel = this.props.currentUser.notify_props ? this.props.currentUser.notify_props.email : 'true';
-
-        let globalNotifyLevelName;
-        if (globalNotifyLevel === 'false') {
-            globalNotifyLevelName = (
-                <FormattedMessage
-                    id='channel_notifications.off'
-                    defaultMessage='Off'
-                />
-            );
-        } else {
-            globalNotifyLevelName = (
-                <FormattedMessage
-                    id='channel_notifications.on'
-                    defaultMessage='On'
-                />
-            );
-        }
-
-        const sendEmailNotifications = (
-            <FormattedMessage
-                id='channel_notifications.email'
-                defaultMessage='Send email notifications'
-            />
-        );
-
-        const notificationLevel = this.state.shouldSendEmail;
-
-        let content;
-        if (this.state.activeSection === 'email') {
-            const notifyActive = [false, false, false];
-            if (notificationLevel === 'default') {
-                notifyActive[0] = true;
-            } else if (notificationLevel === 'true') {
-                notifyActive[1] = true;
-            } else if (notificationLevel === 'false') {
-                notifyActive[2] = true;
-            }
-
-            const inputs = [];
-
-            inputs.push(
-                <div key='channel-notification-level-radio'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='emailNotificationLevel'
-                                checked={notifyActive[0]}
-                                onChange={this.handleUpdateEmailNotification.bind(this, 'default')}
-                            />
-                            <FormattedMessage
-                                id='channel_notifications.globalDefault'
-                                defaultMessage='Global default ({notifyLevel})'
-                                values={{
-                                    notifyLevel: (globalNotifyLevelName)
-                                }}
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='emailNotificationLevel'
-                                checked={notifyActive[1]}
-                                onChange={this.handleUpdateEmailNotification.bind(this, 'true')}
-                            />
-                            <FormattedMessage id='channel_notifications.on'/>
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                type='radio'
-                                name='emailNotificationLevel'
-                                checked={notifyActive[2]}
-                                onChange={this.handleUpdateEmailNotification.bind(this, 'false')}
-                            />
-                            <FormattedMessage id='channel_notifications.off'/>
-                        </label>
-                    </div>
-                </div>
-            );
-
-            const handleUpdateSection = function updateSection(e) {
-                this.updateSection('');
-                e.preventDefault();
-            }.bind(this);
-
-            const extraInfo = (
-                <span>
-                    <FormattedHTMLMessage
-                        id='channel_notifications.overrideEmail'
-                        defaultMessage='If on, email notifications are sent for mentions and direct messages when you are offline or away from Mattermost for more than 5 minutes. To change the global default, go to <strong>Account Settings > Notifications > Email notifications<strong>.'
-                    />
-                </span>
-            );
-
-            content = (
-                <SettingItemMax
-                    title={sendEmailNotifications}
-                    inputs={inputs}
-                    submit={this.handleSubmitEmailNotification}
-                    server_error={serverError}
-                    updateSection={handleUpdateSection}
-                    extraInfo={extraInfo}
-                />
-            );
-        } else {
-            let describe;
-            if (notificationLevel === 'default') {
-                describe = (
-                    <FormattedMessage
-                        id='channel_notifications.globalDefault'
-                        values={{
-                            notifyLevel: (globalNotifyLevelName)
-                        }}
-                    />
-                );
-            } else if (notificationLevel === 'true') {
-                describe = (<FormattedMessage id='channel_notifications.on'/>);
-            } else if (notificationLevel === 'false') {
-                describe = (<FormattedMessage id='channel_notifications.never'/>);
-            }
-
-            content = (
-                <SettingItemMin
-                    title={sendEmailNotifications}
-                    describe={describe}
-                    updateSection={() => {
-                        this.updateSection('email');
-                    }}
-                />
-            );
-        }
-
-        return (
-            <div>
-                <div className='divider-light'/>
-                {content}
-            </div>
-        );
-    }
-
     handleSubmitPushNotificationLevel() {
         const channelId = this.props.channel.id;
         const notifyLevel = this.state.pushLevel;
@@ -815,7 +622,6 @@ export default class ChannelNotificationsModal extends React.Component {
                                 <br/>
                                 <div className='divider-dark first'/>
                                 {this.createDesktopNotifyLevelSection(serverError)}
-                                {this.createEmailNotificationSection(serverError)}
                                 {this.createPushNotificationLevelSection(serverError)}
                                 <div className='divider-light'/>
                                 {this.createMarkUnreadLevelSection(serverError)}
