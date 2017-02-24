@@ -192,6 +192,7 @@ export default class SearchableUserList extends React.Component {
                         users={usersToDisplay}
                         extraInfo={this.props.extraInfo}
                         actions={this.props.actions}
+                        rowAction={this.props.rowAction}
                         actionProps={this.props.actionProps}
                         actionUserProps={this.props.actionUserProps}
                     />
@@ -210,6 +211,7 @@ SearchableUserList.defaultProps = {
     usersPerPage: 50, //eslint-disable-line no-magic-numbers
     extraInfo: {},
     actions: [],
+    rowAction: null,
     actionProps: {},
     actionUserProps: {},
     showTeamToggle: false,
@@ -224,6 +226,7 @@ SearchableUserList.propTypes = {
     nextPage: React.PropTypes.func.isRequired,
     search: React.PropTypes.func.isRequired,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
+    rowAction: React.PropTypes.func,
     actionProps: React.PropTypes.object,
     actionUserProps: React.PropTypes.object,
     focusOnMount: React.PropTypes.bool.isRequired

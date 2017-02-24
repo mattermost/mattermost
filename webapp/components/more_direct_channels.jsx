@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import SearchableUserList from 'components/searchable_user_list.jsx';
-import SpinnerButton from 'components/spinner_button.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
@@ -66,7 +65,9 @@ export default class MoreDirectChannels extends React.Component {
 
     handleExit() {
         if (this.exitToDirectChannel) {
-            browserHistory.push(this.exitToDirectChannel);
+            setTimeout(() => {
+                browserHistory.push(this.exitToDirectChannel);
+            }, 500);
         }
 
         if (this.props.onModalDismissed) {
@@ -74,9 +75,7 @@ export default class MoreDirectChannels extends React.Component {
         }
     }
 
-    handleShowDirectChannel(teammate, e) {
-        e.preventDefault();
-
+    handleShowDirectChannel(teammate) {
         if (this.state.loadingDMChannel !== -1) {
             return;
         }
@@ -91,6 +90,7 @@ export default class MoreDirectChannels extends React.Component {
                 this.exitToDirectChannel = TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name;
                 this.setState({loadingDMChannel: -1});
                 this.handleHide();
+                this.handleExit();
             },
             () => {
                 this.setState({loadingDMChannel: -1});
@@ -130,19 +130,8 @@ export default class MoreDirectChannels extends React.Component {
         });
     }
 
-    createJoinDirectChannelButton({user}) {
-        return (
-            <SpinnerButton
-                className='btn btm-sm btn-primary'
-                spinning={this.state.loadingDMChannel === user.id}
-                onClick={this.handleShowDirectChannel.bind(this, user)}
-            >
-                <FormattedMessage
-                    id='more_direct_channels.message'
-                    defaultMessage='Message'
-                />
-            </SpinnerButton>
-        );
+    createJoinDirectChannelButton(user) {
+        return Reflect.apply(this.handleShowDirectChannel, this, [user]);
     }
 
     nextPage(page) {
@@ -225,7 +214,6 @@ export default class MoreDirectChannels extends React.Component {
                 dialogClassName='more-modal more-direct-channels'
                 show={this.state.show}
                 onHide={this.handleHide}
-                onExited={this.handleExit}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -243,7 +231,7 @@ export default class MoreDirectChannels extends React.Component {
                         usersPerPage={USERS_PER_PAGE}
                         nextPage={this.nextPage}
                         search={this.search}
-                        actions={[this.createJoinDirectChannelButton]}
+                        rowAction={this.createJoinDirectChannelButton}
                         focusOnMount={!UserAgent.isMobile()}
                     />
                 </Modal.Body>
