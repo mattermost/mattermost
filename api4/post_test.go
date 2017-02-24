@@ -573,3 +573,63 @@ func TestSearchPostsFromUser(t *testing.T) {
 		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
 	}
 }
+
+func TestGetFileInfosForPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	fileIds := make([]string, 3, 3)
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		for i := 0; i < 3; i++ {
+			fileResp, _ := Client.UploadFile(data, th.BasicChannel.Id, "test.png")
+			fileIds[i] = fileResp.FileInfos[0].Id
+		}
+	}
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", FileIds: fileIds}
+	post, _ = Client.CreatePost(post)
+
+	infos, resp := Client.GetFileInfosForPost(post.Id, "")
+	CheckNoError(t, resp)
+
+	if len(infos) != 3 {
+		t.Fatal("missing file infos")
+	}
+
+	found := false
+	for _, info := range infos {
+		if info.Id == fileIds[0] {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("missing file info")
+	}
+
+	infos, resp = Client.GetFileInfosForPost(post.Id, resp.Etag)
+	CheckEtag(t, infos, resp)
+
+	infos, resp = Client.GetFileInfosForPost(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+
+	if len(infos) != 0 {
+		t.Fatal("should have no file infos")
+	}
+
+	_, resp = Client.GetFileInfosForPost("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFileInfosForPost(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFileInfosForPost(model.NewId(), "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetFileInfosForPost(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+}

@@ -793,6 +793,16 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response) {
 	}
 }
 
+// GetFileInfosForPost gets all the file info objects attached to a post.
+func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response) {
+	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/files/info", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return FileInfosFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // General Section
 
 // GetPing will ping the server and to see if it is up and running.
