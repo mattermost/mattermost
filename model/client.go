@@ -35,6 +35,7 @@ const (
 	STATUS                    = "status"
 	STATUS_OK                 = "OK"
 	STATUS_FAIL               = "FAIL"
+	STATUS_REMOVE             = "REMOVE"
 
 	CLIENT_DIR = "webapp/dist"
 
