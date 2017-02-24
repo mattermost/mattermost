@@ -144,11 +144,7 @@ export default class Client {
         }
     }
 
-    track(category, action, label, property, value) { // eslint-disable-line no-unused-vars
-        // NO-OP for inherited classes to override
-    }
-
-    trackPage() {
+    trackEvent(category, event, properties) { // eslint-disable-line no-unused-vars
         // NO-OP for inherited classes to override
     }
 
@@ -196,8 +192,6 @@ export default class Client {
                 console.error(msg); // eslint-disable-line no-console
                 console.error(e); // eslint-disable-line no-console
             }
-
-            this.track('api', 'api_weberror', methodName, 'message', msg);
 
             this.handleError(err, res);
 
@@ -425,7 +419,7 @@ export default class Client {
             attach('license', license, license.name).
             end(this.handleResponse.bind(this, 'uploadLicenseFile', success, error));
 
-        this.track('api', 'api_license_upload');
+        this.trackEvent('api', 'api_license_upload');
     }
 
     importSlack(fileData, success, error) {
@@ -472,7 +466,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'adminResetPassword', success, error));
 
-        this.track('api', 'api_admin_reset_password');
+        this.trackEvent('api', 'api_admin_reset_password');
     }
 
     ldapSyncNow(success, error) {
@@ -523,7 +517,7 @@ export default class Client {
             send(team).
             end(this.handleResponse.bind(this, 'createTeam', success, error));
 
-        this.track('api', 'api_users_create', '', 'email', team.name);
+        this.trackEvent('api', 'api_teams_create');
     }
 
     updateTeam(team, success, error) {
@@ -535,7 +529,7 @@ export default class Client {
             send(team).
             end(this.handleResponse.bind(this, 'updateTeam', success, error));
 
-        this.track('api', 'api_teams_update_name');
+        this.trackEvent('api', 'api_teams_update_name', {team_id: this.getTeamId()});
     }
 
     getAllTeams(success, error) {
@@ -635,7 +629,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'inviteMembers', success, error));
 
-        this.track('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members', {team_id: this.getTeamId()});
     }
 
     addUserToTeam(teamId, userId, success, error) {
@@ -652,7 +646,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
-        this.track('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members', {team_id: nonEmptyTeamId});
     }
 
     addUserToTeamFromInvite(data, hash, inviteId, success, error) {
@@ -664,7 +658,7 @@ export default class Client {
             send({hash, data, invite_id: inviteId}).
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
-        this.track('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members');
     }
 
     removeUserFromTeam(teamId, userId, success, error) {
@@ -681,7 +675,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'removeUserFromTeam', success, error));
 
-        this.track('api', 'api_teams_remove_members');
+        this.trackEvent('api', 'api_teams_remove_members', {team_id: nonEmptyTeamId});
     }
 
     getInviteInfo(inviteId, success, error) {
@@ -713,6 +707,14 @@ export default class Client {
             url += '&iid=' + encodeURIComponent(inviteId);
         }
 
+        if (emailHash) {
+            this.trackEvent('api', 'api_users_create_email');
+        } else if (inviteId) {
+            this.trackEvent('api', 'api_users_create_link');
+        } else {
+            this.trackEvent('api', 'api_users_create_spontaneous');
+        }
+
         request.
             post(url).
             set(this.defaultHeaders).
@@ -721,7 +723,7 @@ export default class Client {
             send(user).
             end(this.handleResponse.bind(this, 'createUser', success, error));
 
-        this.track('api', 'api_users_create', '', 'email', user.email);
+        this.trackEvent('api', 'api_users_create');
     }
 
     updateUser(user, type, success, error) {
@@ -734,9 +736,9 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateUser', success, error));
 
         if (type) {
-            this.track('api', 'api_users_update_' + type);
+            this.trackEvent('api', 'api_users_update_' + type);
         } else {
-            this.track('api', 'api_users_update');
+            this.trackEvent('api', 'api_users_update');
         }
     }
 
@@ -754,7 +756,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updatePassword', success, error));
 
-        this.track('api', 'api_users_newpassword');
+        this.trackEvent('api', 'api_users_newpassword');
     }
 
     updateUserNotifyProps(notifyProps, success, error) {
@@ -766,7 +768,7 @@ export default class Client {
             send(notifyProps).
             end(this.handleResponse.bind(this, 'updateUserNotifyProps', success, error));
 
-        this.track('api', 'api_users_update_notification_settings');
+        this.trackEvent('api', 'api_users_update_notification_settings');
     }
 
     updateUserRoles(userId, newRoles, success, error) {
@@ -782,7 +784,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateUserRoles', success, error));
 
-        this.track('api', 'api_users_update_user_roles');
+        this.trackEvent('api', 'api_users_update_roles');
     }
 
     updateTeamMemberRoles(teamId, userId, newRoles, success, error) {
@@ -799,7 +801,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateTeamMemberRoles', success, error));
 
-        this.track('api', 'api_teams_update_member_roles');
+        this.trackEvent('api', 'api_teams_update_member_roles', {team_id: teamId});
     }
 
     updateActive(userId, active, success, error) {
@@ -815,7 +817,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateActive', success, error));
 
-        this.track('api', 'api_users_update_active');
+        this.trackEvent('api', 'api_users_update_active');
     }
 
     sendPasswordReset(email, success, error) {
@@ -830,7 +832,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'sendPasswordReset', success, error));
 
-        this.track('api', 'api_users_send_password_reset');
+        this.trackEvent('api', 'api_users_send_password_reset');
     }
 
     resetPassword(code, newPassword, success, error) {
@@ -846,7 +848,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'resetPassword', success, error));
 
-        this.track('api', 'api_users_reset_password');
+        this.trackEvent('api', 'api_users_reset_password');
     }
 
     emailToOAuth(email, password, token, service, success, error) {
@@ -858,7 +860,7 @@ export default class Client {
             send({password, email, token, service}).
             end(this.handleResponse.bind(this, 'emailToOAuth', success, error));
 
-        this.track('api', 'api_users_email_to_oauth');
+        this.trackEvent('api', 'api_users_email_to_oauth');
     }
 
     oauthToEmail(email, password, success, error) {
@@ -874,7 +876,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'oauthToEmail', success, error));
 
-        this.track('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_oauth_to_email');
     }
 
     emailToLdap(email, password, token, ldapId, ldapPassword, success, error) {
@@ -893,7 +895,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'emailToLdap', success, error));
 
-        this.track('api', 'api_users_email_to_ldap');
+        this.trackEvent('api', 'api_users_email_to_ldap');
     }
 
     ldapToEmail(email, emailPassword, token, ldapPassword, success, error) {
@@ -911,7 +913,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'ldapToEmail', success, error));
 
-        this.track('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_ldap_to_email');
     }
 
     getInitialLoad(success, error) {
@@ -962,19 +964,20 @@ export default class Client {
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 
-        this.track('api', 'api_users_login', '', 'login_id', loginId);
+        this.trackEvent('api', 'api_users_login');
     }
 
     loginById(id, password, mfaToken, success, error) {
         this.doLogin({id, password, token: mfaToken}, success, error);
 
-        this.track('api', 'api_users_login', '', 'id', id);
+        this.trackEvent('api', 'api_users_login');
     }
 
     loginByLdap(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken, ldap_only: 'true'}, success, error);
 
-        this.track('api', 'api_users_login', '', 'login_id', loginId);
+        this.trackEvent('api', 'api_users_login');
+        this.trackEvent('api', 'api_users_login_ldap');
     }
 
     doLogin(outgoingData, success, error) {
@@ -1014,7 +1017,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'logout', success, error));
 
-        this.track('api', 'api_users_logout');
+        this.trackEvent('api', 'api_users_logout');
     }
 
     checkMfa(loginId, success, error) {
@@ -1030,7 +1033,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'checkMfa', success, error));
 
-        this.track('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_oauth_to_email');
     }
 
     generateMfaSecret(success, error) {
@@ -1086,6 +1089,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
+
+        this.trackEvent('api', 'api_profiles_get');
     }
 
     getProfilesInTeam(teamId, offset, limit, success, error) {
@@ -1095,6 +1100,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInTeam', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_in_team', {team_id: teamId});
     }
 
     getProfilesInChannel(channelId, offset, limit, success, error) {
@@ -1104,6 +1111,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInChannel', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getProfilesNotInChannel(channelId, offset, limit, success, error) {
@@ -1113,6 +1122,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_not_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getProfilesByIds(userIds, success, error) {
@@ -1123,6 +1134,8 @@ export default class Client {
             accept('application/json').
             send(userIds).
             end(this.handleResponse.bind(this, 'getProfilesByIds', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_by_ids');
     }
 
     searchUsers(term, teamId, options, success, error) {
@@ -1190,6 +1203,8 @@ export default class Client {
             accept('application/json').
             send({channel_id: id}).
             end(this.handleResponse.bind(this, 'setActiveChannel', success, error));
+
+        this.trackEvent('api', 'api_channels_set_active', {channel_id: id});
     }
 
     verifyEmail(uid, hid, success, error) {
@@ -1234,7 +1249,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
 
-        this.track('api', 'api_users_update_profile_picture');
+        this.trackEvent('api', 'api_users_update_profile_picture');
     }
 
     // Channel Routes Section
@@ -1248,7 +1263,7 @@ export default class Client {
             send(channel).
             end(this.handleResponse.bind(this, 'createChannel', success, error));
 
-        this.track('api', 'api_channels_create', channel.type, 'name', channel.name);
+        this.trackEvent('api', 'api_channels_create', {team_id: this.getTeamId()});
     }
 
     createDirectChannel(userId, success, error) {
@@ -1259,6 +1274,8 @@ export default class Client {
             accept('application/json').
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'createDirectChannel', success, error));
+
+        this.trackEvent('api', 'api_channels_create_direct', {team_id: this.getTeamId()});
     }
 
     updateChannel(channel, success, error) {
@@ -1270,7 +1287,7 @@ export default class Client {
             send(channel).
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
-        this.track('api', 'api_channels_update');
+        this.trackEvent('api', 'api_channels_update', {team_id: this.getTeamId(), channel_id: channel.id});
     }
 
     updateChannelHeader(channelId, header, success, error) {
@@ -1287,7 +1304,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
-        this.track('api', 'api_channels_header');
+        this.trackEvent('api', 'api_channels_header', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelPurpose(channelId, purpose, success, error) {
@@ -1304,7 +1321,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateChannelPurpose', success, error));
 
-        this.track('api', 'api_channels_purpose');
+        this.trackEvent('api', 'api_channels_purpose', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelNotifyProps(data, success, error) {
@@ -1325,7 +1342,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'leaveChannel', success, error));
 
-        this.track('api', 'api_channels_leave');
+        this.trackEvent('api', 'api_channels_leave', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     joinChannel(channelId, success, error) {
@@ -1336,7 +1353,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'joinChannel', success, error));
 
-        this.track('api', 'api_channels_join');
+        this.trackEvent('api', 'api_channels_join', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     joinChannelByName(name, success, error) {
@@ -1347,7 +1364,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'joinChannelByName', success, error));
 
-        this.track('api', 'api_channels_join_name');
+        this.trackEvent('api', 'api_channels_join_name', {team_id: this.getTeamId()});
     }
 
     deleteChannel(channelId, success, error) {
@@ -1358,7 +1375,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'deleteChannel', success, error));
 
-        this.track('api', 'api_channels_delete');
+        this.trackEvent('api', 'api_channels_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     viewChannel(channelId, prevChannelId = '', time = 0, success, error) {
@@ -1410,7 +1427,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getChannel', success, error));
 
-        this.track('api', 'api_channel_get');
+        this.trackEvent('api', 'api_channel_get', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
@@ -1421,6 +1438,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+
+        this.trackEvent('api', 'api_channels_more', {team_id: this.getTeamId()});
     }
 
     getMoreChannelsPage(offset, limit, success, error) {
@@ -1430,6 +1449,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
+
+        this.trackEvent('api', 'api_channels_more_page', {team_id: this.getTeamId()});
     }
 
     searchMoreChannels(term, success, error) {
@@ -1524,7 +1545,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'addChannelMember', success, error));
 
-        this.track('api', 'api_channels_add_member');
+        this.trackEvent('api', 'api_channels_add_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     removeChannelMember(channelId, userId, success, error) {
@@ -1536,7 +1557,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'removeChannelMember', success, error));
 
-        this.track('api', 'api_channels_remove_member');
+        this.trackEvent('api', 'api_channels_remove_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelMemberRoles(channelId, userId, newRoles, success, error) {
@@ -1574,7 +1595,7 @@ export default class Client {
             send({command, ...commandArgs}).
             end(this.handleResponse.bind(this, 'executeCommand', success, error));
 
-        this.track('api', 'api_integrations_used');
+        this.trackEvent('api', 'api_integrations_used');
     }
 
     addCommand(command, success, error) {
@@ -1586,7 +1607,7 @@ export default class Client {
             send(command).
             end(this.handleResponse.bind(this, 'addCommand', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created');
     }
 
     editCommand(command, success, error) {
@@ -1598,7 +1619,7 @@ export default class Client {
             send(command).
             end(this.handleResponse.bind(this, 'editCommand', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created');
     }
 
     deleteCommand(commandId, success, error) {
@@ -1610,7 +1631,7 @@ export default class Client {
             send({id: commandId}).
             end(this.handleResponse.bind(this, 'deleteCommand', success, error));
 
-        this.track('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted');
     }
 
     listTeamCommands(success, error) {
@@ -1643,14 +1664,10 @@ export default class Client {
             send({...post, create_at: 0}).
             end(this.handleResponse.bind(this, 'createPost', success, error));
 
-        this.track('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
+        this.trackEvent('api', 'api_posts_create', {team_id: this.getTeamId(), channel_id: post.channel_id});
 
-        if (post.message.match(/\s#./)) {
-            this.track('api', 'api_posts_hashtag');
-        }
-
-        if (post.message.match(/\s@./)) {
-            this.track('api', 'api_posts_mentions');
+        if (post.parent_id != null && post.parent_id !== '') {
+            this.trackEvent('api', 'api_posts_replied', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
     }
 
@@ -1663,6 +1680,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPermalinkTmp', success, error));
+
+        this.trackEvent('api', 'api_channels_permalink', {team_id: this.getTeamId()});
     }
 
     getPostById(postId, success, error) {
@@ -1692,7 +1711,7 @@ export default class Client {
             send(post).
             end(this.handleResponse.bind(this, 'updatePost', success, error));
 
-        this.track('api', 'api_posts_update');
+        this.trackEvent('api', 'api_posts_update', {team_id: this.getTeamId(), channel_id: post.channel_id});
     }
 
     deletePost(channelId, postId, success, error) {
@@ -1703,7 +1722,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'deletePost', success, error));
 
-        this.track('api', 'api_posts_delete');
+        this.trackEvent('api', 'api_posts_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     search(terms, isOrSearch, success, error) {
@@ -1719,7 +1738,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'search', success, error));
 
-        this.track('api', 'api_posts_search');
+        this.trackEvent('api', 'api_posts_search', {team_id: this.getTeamId()});
     }
 
     getPostsPage(channelId, offset, limit, success, error) {
@@ -1747,6 +1766,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsBefore', success, error));
+
+        this.trackEvent('api', 'api_posts_get_before', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getPostsAfter(channelId, postId, offset, numPost, success, error) {
@@ -1756,6 +1777,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsAfter', success, error));
+
+        this.trackEvent('api', 'api_posts_get_after', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getFlaggedPosts(offset, limit, success, error) {
@@ -1765,6 +1788,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
+
+        this.trackEvent('api', 'api_posts_get_flagged', {team_id: this.getTeamId()});
     }
 
     getFileInfosForPost(channelId, postId, success, error) {
@@ -1789,6 +1814,8 @@ export default class Client {
     // Routes for Files
 
     uploadFile(file, filename, channelId, clientId, success, error) {
+        this.trackEvent('api', 'api_files_upload', {team_id: this.getTeamId(), channel_id: channelId});
+
         return request.
             post(`${this.getTeamFilesRoute()}/upload`).
             set(this.defaultHeaders).
@@ -1855,7 +1882,7 @@ export default class Client {
             send(app).
             end(this.handleResponse.bind(this, 'registerOAuthApp', success, error));
 
-        this.track('api', 'api_apps_register');
+        this.trackEvent('api', 'api_apps_register');
     }
 
     allowOAuth2(responseType, clientId, redirectUri, state, scope, success, error) {
@@ -1890,6 +1917,8 @@ export default class Client {
         accept('application/json').
         send({id}).
         end(this.handleResponse.bind(this, 'deleteOAuthApp', success, error));
+
+        this.trackEvent('api', 'api_apps_delete');
     }
 
     getOAuthAppInfo(id, success, error) {
@@ -1943,7 +1972,7 @@ export default class Client {
             send(hook).
             end(this.handleResponse.bind(this, 'addIncomingHook', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
     deleteIncomingHook(hookId, success, error) {
@@ -1955,7 +1984,7 @@ export default class Client {
             send({id: hookId}).
             end(this.handleResponse.bind(this, 'deleteIncomingHook', success, error));
 
-        this.track('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
     listIncomingHooks(success, error) {
@@ -1976,7 +2005,7 @@ export default class Client {
             send(hook).
             end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
     deleteOutgoingHook(hookId, success, error) {
@@ -1988,7 +2017,7 @@ export default class Client {
             send({id: hookId}).
             end(this.handleResponse.bind(this, 'deleteOutgoingHook', success, error));
 
-        this.track('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
     listOutgoingHooks(success, error) {
@@ -2069,6 +2098,8 @@ export default class Client {
             attach('image', image, image.name).
             field('emoji', JSON.stringify(emoji)).
             end(this.handleResponse.bind(this, 'addEmoji', success, error));
+
+        this.trackEvent('api', 'api_emoji_custom_add');
     }
 
     deleteEmoji(id, success, error) {
@@ -2078,6 +2109,8 @@ export default class Client {
             accept('application/json').
             send({id}).
             end(this.handleResponse.bind(this, 'deleteEmoji', success, error));
+
+        this.trackEvent('api', 'api_emoji_custom_delete');
     }
 
     getCustomEmojiImageUrl(id) {
@@ -2127,6 +2160,8 @@ export default class Client {
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'saveReaction', success, error));
+
+        this.trackEvent('api', 'api_reactions_save', {team_id: this.getTeamId(), channel_id: channelId, post_id: reaction.post_id});
     }
 
     deleteReaction(channelId, reaction, success, error) {
@@ -2136,6 +2171,8 @@ export default class Client {
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'deleteReaction', success, error));
+
+        this.trackEvent('api', 'api_reactions_delete', {team_id: this.getTeamId(), channel_id: channelId, post_id: reaction.post_id});
     }
 
     listReactions(channelId, postId, success, error) {

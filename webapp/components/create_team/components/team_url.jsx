@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
 import * as URL from 'utils/url.jsx';
 
@@ -25,6 +25,10 @@ export default class TeamUrl extends React.Component {
             nameError: '',
             isLoading: false
         };
+    }
+
+    componentDidMount() {
+        trackEvent('signup', 'signup_team_02_url');
     }
 
     submitBack(e) {
@@ -106,7 +110,7 @@ export default class TeamUrl extends React.Component {
 
                 createTeam(teamSignup.team,
                     () => {
-                        track('signup', 'signup_team_08_complete');
+                        trackEvent('signup', 'signup_team_03_complete');
                     },
                     (err) => {
                         this.setState({nameError: err.message});
@@ -126,8 +130,6 @@ export default class TeamUrl extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_team_03_url');
-
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
