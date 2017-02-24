@@ -323,6 +323,10 @@ func GenerateTestChannelName() string {
 	return "fakechannel" + model.NewRandomString(10)
 }
 
+func GenerateTestId() string {
+	return model.NewId()
+}
+
 func VerifyUserEmail(userId string) {
 	store.Must(app.Srv.Store.User().VerifyEmail(userId))
 }
