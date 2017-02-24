@@ -54,7 +54,7 @@ export default class PostInfo extends React.Component {
 
     createDropdown() {
         const post = this.props.post;
-        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
             return '';
@@ -300,17 +300,20 @@ export default class PostInfo extends React.Component {
                 </li>
             );
         } else {
-            options = (
-                <li className='col col__reply'>
-                    <div
-                        className='dropdown'
-                        ref='dotMenu'
-                    >
-                        {this.createDropdown()}
-                    </div>
-                    {comments}
-                </li>
-            );
+            const dropdown = this.createDropdown();
+            if (dropdown) {
+                options = (
+                    <li className='col col__reply'>
+                        <div
+                            className='dropdown'
+                            ref='dotMenu'
+                        >
+                            {dropdown}
+                        </div>
+                        {comments}
+                    </li>
+                );
+            }
         }
 
         let flag;
