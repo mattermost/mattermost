@@ -206,10 +206,5 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := make(map[string]*model.Team)
-	for _, v := range teams {
-		m[v.Id] = v
-	}
-
-	w.Write([]byte(model.TeamMapToJson(m)))
+	w.Write([]byte(model.TeamListToJson(teams)))
 }

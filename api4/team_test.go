@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	"fmt"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -120,18 +120,15 @@ func TestGetAllTeams(t *testing.T) {
 	Client := th.Client
 
 	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
-	rteam, resp := Client.CreateTeam(team)
+	_, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 
-	rrteam, resp := Client.GetAllTeams("")
+	rrteams, resp := Client.GetAllTeams("")
 	CheckNoError(t, resp)
 
-	fmt.Println(rteam)
-
-	if rteam.Id != rrteam.Id {
-		t.Fatal("wrong team")
+	if len(rrteams) == 0 {
+		t.Fatal("wrong number of teams")
 	}
-
 }
 
 func TestGetTeamByName(t *testing.T) {
