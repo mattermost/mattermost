@@ -9,6 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 
 import {loadStatusesForChannel} from 'actions/status_actions.jsx';
 import {loadNewDMIfNeeded} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -64,10 +65,12 @@ export function handleNewPost(post, msg) {
 }
 
 export function flagPost(postId) {
+    trackEvent('api', 'api_posts_flagged');
     AsyncClient.savePreference(Preferences.CATEGORY_FLAGGED_POST, postId, 'true');
 }
 
 export function unflagPost(postId, success) {
+    trackEvent('api', 'api_posts_unflagged');
     const pref = {
         user_id: UserStore.getCurrentId(),
         category: Preferences.CATEGORY_FLAGGED_POST,
