@@ -1625,6 +1625,11 @@ label span {
     pointer-events: none;
 }
 
+// PLT-5281: link inside a localized message was not clickable because of the rule above
+label span a {
+    pointer-events: all;
+}
+
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
     select,
     textarea,
