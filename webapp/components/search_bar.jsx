@@ -273,7 +273,7 @@ export default class SearchBar extends React.Component {
             );
         }
 
-        let clearClass = 'sidebar__clear-icon';
+        let clearClass = 'sidebar__search-clear';
         if (!this.state.isSearching && this.state.searchTerm && this.state.searchTerm.trim() !== '') {
             clearClass += ' visible';
         }
@@ -309,12 +309,12 @@ export default class SearchBar extends React.Component {
                         type='search'
                         autoFocus={this.props.isFocus}
                     />
-                    <span
+                    <div
                         className={clearClass}
                         onClick={this.handleClear}
                     >
-                        <i className='fa fa-times'/>
-                    </span>
+                        <span className='sidebar__search-clear-x'>{'x'}</span>
+                    </div>
                     {isSearching}
                     {this.renderHintPopover(helpClass)}
                 </form>
