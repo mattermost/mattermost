@@ -20,8 +20,14 @@ export default class MultiSelect extends React.Component {
         this.onAdd = this.onAdd.bind(this);
         this.onInput = this.onInput.bind(this);
         this.handleEnterPress = this.handleEnterPress.bind(this);
+        this.nextPage = this.nextPage.bind(this);
+        this.prevPage = this.prevPage.bind(this);
 
         this.selected = null;
+
+        this.state = {
+            page: 0
+        };
     }
 
     componentDidMount() {
@@ -31,6 +37,26 @@ export default class MultiSelect extends React.Component {
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleEnterPress);
+    }
+
+    nextPage() {
+        if (this.props.handlePageChange) {
+            this.props.handlePageChange(this.state.page + 1, this.state.page);
+        }
+        this.refs.list.setSelected(0);
+        this.setState({page: this.state.page + 1});
+    }
+
+    prevPage() {
+        if (this.state.page === 0) {
+            return;
+        }
+
+        if (this.props.handlePageChange) {
+            this.props.handlePageChange(this.state.page - 1, this.state.page);
+        }
+        this.refs.list.setSelected(0);
+        this.setState({page: this.state.page - 1});
     }
 
     onSelect(selected) {
@@ -83,6 +109,8 @@ export default class MultiSelect extends React.Component {
     }
 
     render() {
+        const options = this.props.options;
+
         let numRemainingText;
         if (this.props.maxValues != null) {
             numRemainingText = (
@@ -94,6 +122,46 @@ export default class MultiSelect extends React.Component {
                     }}
                 />
             );
+        }
+
+        let optionsToDisplay = [];
+        let nextButton;
+        let previousButton;
+
+        if (options && options.length > this.props.perPage) {
+            const pageStart = this.state.page * this.props.perPage;
+            const pageEnd = pageStart + this.props.perPage;
+            optionsToDisplay = options.slice(pageStart, pageEnd);
+
+            if (options.length > pageEnd) {
+                nextButton = (
+                    <button
+                        className='btn btn-default filter-control filter-control__next'
+                        onClick={this.nextPage}
+                    >
+                        <FormattedMessage
+                            id='filtered_user_list.next'
+                            defaultMessage='Next'
+                        />
+                    </button>
+                );
+            }
+
+            if (this.state.page > 0) {
+                previousButton = (
+                    <button
+                        className='btn btn-default filter-control filter-control__prev'
+                        onClick={this.prevPage}
+                    >
+                        <FormattedMessage
+                            id='filtered_user_list.prev'
+                            defaultMessage='Previous'
+                        />
+                    </button>
+                );
+            }
+        } else {
+            optionsToDisplay = options;
         }
 
         return (
@@ -140,13 +208,18 @@ export default class MultiSelect extends React.Component {
                 </div>
                 <MultiSelectList
                     ref='list'
-                    options={this.props.options}
+                    options={optionsToDisplay}
                     optionRenderer={this.props.optionRenderer}
+                    page={this.state.page}
                     perPage={this.props.perPage}
                     onPageChange={this.props.handlePageChange}
                     onAdd={this.onAdd}
                     onSelect={this.onSelect}
                 />
+                <div className='filter-controls'>
+                    {previousButton}
+                    {nextButton}
+                </div>
             </div>
         );
     }

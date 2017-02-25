@@ -13,15 +13,12 @@ export default class MultiSelectList extends React.Component {
         super(props);
 
         this.defaultOptionRenderer = this.defaultOptionRenderer.bind(this);
-        this.nextPage = this.nextPage.bind(this);
-        this.prevPage = this.prevPage.bind(this);
         this.handleArrowPress = this.handleArrowPress.bind(this);
         this.setSelected = this.setSelected.bind(this);
 
         this.toSelect = -1;
 
         this.state = {
-            page: 0,
             selected: -1
         };
     }
@@ -37,9 +34,9 @@ export default class MultiSelectList extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.setState({selected: this.toSelect});
 
-        const options = this.getOptionsToDisplay(nextProps.options, this.state.page, nextProps.perPage);
+        const options = nextProps.options;
 
-        if (options.length > 0 && this.toSelect >= 0) {
+        if (options && options.length > 0 && this.toSelect >= 0) {
             this.props.onSelect(options[this.toSelect]);
         }
     }
@@ -48,22 +45,12 @@ export default class MultiSelectList extends React.Component {
         this.toSelect = selected;
     }
 
-    getOptionsToDisplay(options, page, perPage) {
-        if (options == null) {
-            return [];
-        }
-
-        const pageStart = page * perPage;
-        const pageEnd = pageStart + perPage;
-        return options.slice(pageStart, pageEnd);
-    }
-
     handleArrowPress(e) {
         if (cmdOrCtrlPressed(e) && e.shiftKey) {
             return;
         }
 
-        const options = this.getOptionsToDisplay(this.props.options, this.state.page, this.props.perPage);
+        const options = this.props.options;
         if (options.length === 0) {
             return;
         }
@@ -91,24 +78,6 @@ export default class MultiSelectList extends React.Component {
         e.preventDefault();
         this.setState({selected});
         this.props.onSelect(options[selected]);
-    }
-
-    nextPage() {
-        if (this.props.onPageChange) {
-            this.props.onPageChange(this.state.page + 1, this.state.page);
-        }
-        this.setState({page: this.state.page + 1, selected: 0});
-    }
-
-    prevPage() {
-        if (this.state.page === 0) {
-            return;
-        }
-
-        if (this.props.onPageChange) {
-            this.props.onPageChange(this.state.page - 1, this.state.page);
-        }
-        this.setState({page: this.state.page - 1, selected: 0});
     }
 
     defaultOptionRenderer(option, isSelected, onAdd) {
@@ -147,46 +116,6 @@ export default class MultiSelectList extends React.Component {
             );
         }
 
-        let optionsToDisplay = [];
-        let nextButton;
-        let previousButton;
-
-        if (options.length > this.props.perPage) {
-            const pageStart = this.state.page * this.props.perPage;
-            const pageEnd = pageStart + this.props.perPage;
-            optionsToDisplay = this.getOptionsToDisplay(options, this.state.page, this.props.perPage);
-
-            if (options.length > pageEnd) {
-                nextButton = (
-                    <button
-                        className='btn btn-default filter-control filter-control__next'
-                        onClick={this.nextPage}
-                    >
-                        <FormattedMessage
-                            id='filtered_user_list.next'
-                            defaultMessage='Next'
-                        />
-                    </button>
-                );
-            }
-
-            if (this.state.page > 0) {
-                previousButton = (
-                    <button
-                        className='btn btn-default filter-control filter-control__prev'
-                        onClick={this.prevPage}
-                    >
-                        <FormattedMessage
-                            id='filtered_user_list.prev'
-                            defaultMessage='Previous'
-                        />
-                    </button>
-                );
-            }
-        } else {
-            optionsToDisplay = options;
-        }
-
         let renderer;
         if (this.props.optionRenderer) {
             renderer = this.props.optionRenderer;
@@ -194,7 +123,7 @@ export default class MultiSelectList extends React.Component {
             renderer = this.defaultOptionRenderer;
         }
 
-        const optionControls = optionsToDisplay.map((o, i) => renderer(o, this.state.selected === i, this.props.onAdd));
+        const optionControls = options.map((o, i) => renderer(o, this.state.selected === i, this.props.onAdd));
 
         return (
             <div>
@@ -202,10 +131,6 @@ export default class MultiSelectList extends React.Component {
                     <div>
                         {optionControls}
                     </div>
-                </div>
-                <div className='filter-controls'>
-                    {previousButton}
-                    {nextButton}
                 </div>
             </div>
         );
@@ -221,6 +146,7 @@ MultiSelectList.defaultProps = {
 MultiSelectList.propTypes = {
     options: React.PropTypes.arrayOf(React.PropTypes.object),
     optionRenderer: React.PropTypes.func,
+    page: React.PropTypes.number,
     perPage: React.PropTypes.number,
     onPageChange: React.PropTypes.func,
     onAdd: React.PropTypes.func,
