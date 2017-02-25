@@ -141,6 +141,10 @@ func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
 }
 
+func (c *Client4) GetPreferencesRoute() string {
+	return fmt.Sprintf("/preferences")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -847,5 +851,61 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 	} else {
 		defer closeBody(r)
 		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Preferences Section
+
+// GetPreferences returns the user's preferences
+func (c *Client4) GetPreferences() (Preferences, *Response) {
+	if r, err := c.DoApiGet(c.GetPreferencesRoute(), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		defer closeBody(r)
+		return preferences, BuildResponse(r)
+	}
+}
+
+// UpdatePreferences saves the user's preferences
+func (c *Client4) UpdatePreferences(preferences *Preferences) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetPreferencesRoute(), preferences.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return true, BuildResponse(r)
+	}
+}
+
+// DeletePreferences deletes the user's preferences
+func (c *Client4) DeletePreferences(preferences *Preferences) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPreferencesRoute()+"/delete", preferences.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return true, BuildResponse(r)
+	}
+}
+
+// GetPreferencesByCategory returns the user's preferences from the provided category string
+func (c *Client4) GetPreferencesByCategory(category string) (Preferences, *Response) {
+	url := fmt.Sprintf(c.GetPreferencesRoute()+"/%s", category)
+	if r, err := c.DoApiGet(url, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		defer closeBody(r)
+		return preferences, BuildResponse(r)
+	}
+}
+
+// GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string
+func (c *Client4) GetPreferenceByCategoryAndName(category string, preferenceName string) (*Preference, *Response) {
+	url := fmt.Sprintf(c.GetPreferencesRoute()+"/%s/name/%v", category, preferenceName)
+	if r, err := c.DoApiGet(url, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PreferenceFromJson(r.Body), BuildResponse(r)
 	}
 }

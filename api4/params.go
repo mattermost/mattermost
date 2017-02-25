@@ -17,20 +17,22 @@ const (
 )
 
 type ApiParams struct {
-	UserId      string
-	TeamId      string
-	ChannelId   string
-	PostId      string
-	FileId      string
-	CommandId   string
-	HookId      string
-	EmojiId     string
-	Email       string
-	Username    string
-	TeamName    string
-	ChannelName string
-	Page        int
-	PerPage     int
+	UserId         string
+	TeamId         string
+	ChannelId      string
+	PostId         string
+	FileId         string
+	CommandId      string
+	HookId         string
+	EmojiId        string
+	Email          string
+	Username       string
+	TeamName       string
+	ChannelName    string
+	PreferenceName string
+	Category       string
+	Page           int
+	PerPage        int
 }
 
 func ApiParamsFromRequest(r *http.Request) *ApiParams {
@@ -84,6 +86,14 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["channel_name"]; ok {
 		params.ChannelName = val
+	}
+
+	if val, ok := props["category"]; ok {
+		params.Category = val
+	}
+
+	if val, ok := props["preference_name"]; ok {
+		params.PreferenceName = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil {

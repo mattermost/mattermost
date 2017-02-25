@@ -146,6 +146,7 @@ func InitApi(full bool) {
 	InitFile()
 	InitSystem()
 	InitWebhook()
+	InitPreference()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
