@@ -57,10 +57,6 @@ func (c *Client4) GetUsersRoute() string {
 	return fmt.Sprintf("/users")
 }
 
-func (c *Client4) GetAutocompleteUsersRoute() string {
-	return fmt.Sprintf("/users/autocomplete/")
-}
-
 func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
@@ -376,6 +372,28 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	}
 }
 
+// AutoCompleteUsersInTeam returns the users on a team based on search term.
+func (c *Client4) AutoCompleteUsersInTeam(teamId string, username string, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_team=%v&name=%v", teamId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete/"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutoCompleteUsersInChannel returns the users in a channel based on search term.
+func (c *Client4) AutoCompleteUsersInChannel(channelId string, username string, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_channel=%v&name=%v", channelId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete/"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPut(c.GetUserRoute(user.Id), user.ToJson()); err != nil {
@@ -480,17 +498,6 @@ func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (
 	} else {
 		defer closeBody(r)
 		return AuditsFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// AutocompleteUsers returns a page of users on a team based on search term
-func (c *Client4) AutocompleteUsers(teamId string, channelId string, username string, etag string) ([]*User, *Response) {
-	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
-	if r, err := c.DoApiGet(c.GetAutocompleteUsersRoute()+query, etag); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return UserListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

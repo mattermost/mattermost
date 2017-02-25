@@ -933,34 +933,69 @@ func TestAutocompleteUsers(t *testing.T) {
 	channelId := th.BasicChannel.Id
 	username := th.BasicUser.Username
 
-	rusers, resp := Client.AutocompleteUsers(teamId, channelId, username, "")
+	rusers, resp := Client.AutoCompleteUsersInChannel(channelId, username, "")
 	CheckNoError(t, resp)
-	for _, u := range rusers {
-		CheckUserSanitization(t, u)
-	}
 
-	rusers, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
-	CheckNoError(t, resp)
 	if len(rusers) != 1 {
-		t.Fatal("should have returned 1 user in")
+		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutocompleteUsers(teamId, channelId, "amazonses", "")
+	rusers, resp = Client.AutoCompleteUsersInChannel(channelId, "amazonses", "")
 	CheckNoError(t, resp)
 	if len(rusers) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
-	rusers, resp = Client.AutocompleteUsers(teamId, channelId, "", "")
+	rusers, resp = Client.AutoCompleteUsersInChannel(channelId, "", "")
+	CheckNoError(t, resp)
+	if len(rusers) < 2 {
+		t.Fatal("should have many users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckNoError(t, resp)
+
+	if len(rusers) != 1 {
+		t.Fatal("should have returned 1 user")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam("", username, "")
+	CheckNoError(t, resp)
+
+	if len(rusers) != 1 {
+		t.Fatal("should have returned 1 user")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "amazonses", "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should have returned 0 users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "", "")
 	CheckNoError(t, resp)
 	if len(rusers) < 2 {
 		t.Fatal("should have many users")
 	}
 
 	Client.Logout()
-	_, resp = Client.AutocompleteUsers(teamId, channelId, username, "")
+	_, resp = Client.AutoCompleteUsersInChannel(channelId, username, "")
 	CheckUnauthorizedStatus(t, resp)
-	
-	_, resp = th.SystemAdminClient.AutocompleteUsers(teamId, channelId, username, "")
+
+	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.AutoCompleteUsersInChannel(channelId, username, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.AutoCompleteUsersInChannel(channelId, username, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AutoCompleteUsersInTeam(teamId, username, "")
 	CheckNoError(t, resp)
 }

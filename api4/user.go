@@ -539,16 +539,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("in_team")
 	term := r.URL.Query().Get("name")
 
-	if c.Session.GetTeamByTeamId(teamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			return
-		}
-	}
-
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-		return
-	}
+	var autocomplete []*model.User
+	var err *model.AppError
 
 	searchOptions := map[string]bool{}
 
@@ -559,32 +551,33 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	autocomplete, err := app.SearchUsersInChannel(channelId, term, searchOptions)
+	if len(teamId) > 0 {
+		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		autocomplete, err = app.SearchUsersInTeam(teamId, term, searchOptions)
+	} else if len(channelId) > 0 {
+		if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+
+		autocomplete, err = app.SearchUsersInChannel(channelId, term, searchOptions)
+	} else {
+		// No permission check required
+		autocomplete, err = app.SearchUsersInTeam("", term, searchOptions)
+	}
+
 	if err != nil {
 		c.Err = err
 		return
+	} else {
+		w.Write([]byte(model.UserListToJson(autocomplete)))
 	}
-
-	for _, p := range autocomplete {
-		sanitizeProfile(c, p)
-	}
-
-	w.Write([]byte(model.UserListToJson(autocomplete)))
 }
 
-func sanitizeProfile(c *Context, user *model.User) *model.User {
-	options := utils.Cfg.GetSanitizeOptions()
-
-	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		options["email"] = true
-		options["fullname"] = true
-		options["authservice"] = true
-	}
-
-	user.SanitizeProfile(options)
-
-	return user
-}
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
