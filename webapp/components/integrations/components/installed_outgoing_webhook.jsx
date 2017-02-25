@@ -7,6 +7,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import DeleteIntegration from './delete_integration.jsx';
+
 export default class InstalledOutgoingWebhook extends React.Component {
     static get propTypes() {
         return {
@@ -32,9 +34,7 @@ export default class InstalledOutgoingWebhook extends React.Component {
         this.props.onRegenToken(this.props.outgoingWebhook);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.outgoingWebhook);
     }
 
@@ -161,15 +161,10 @@ export default class InstalledOutgoingWebhook extends React.Component {
                         />
                     </a>
                     {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
+                    <DeleteIntegration
+                        messageId='installed_outgoing_webhooks.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
                 </div>
             );
         }
