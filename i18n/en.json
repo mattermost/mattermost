@@ -5580,6 +5580,10 @@
     "translation": "An error occurred while saving the file to {{.Filename}}"
   },
   {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
+  },
+  {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics not initialized"
   },
