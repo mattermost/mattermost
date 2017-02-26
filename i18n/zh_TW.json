@@ -2684,7 +2684,7 @@
     "translation": "正在停止團隊中心 teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "傳入的 Webhook 已被系統管理員停用。"
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "必須設定觸發詞或者頻道 ID"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "傳入的 Webhook 已被系統管理員停用"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "沒有適當的權限刪除傳入的 Webhook"
   },
   {

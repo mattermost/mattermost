@@ -2684,7 +2684,7 @@
     "translation": "остановка командного хаба для teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Входящие вебхуки были отключены системным администратором."
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "Должны быть заданы trigger_words или channel_id"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Входящие вебхуки отключены системным администратором."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Отсутствуют права на удаление входящего вебхука"
   },
   {

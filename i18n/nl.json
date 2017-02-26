@@ -2684,7 +2684,7 @@
     "translation": "Team hub word gestopt voor teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Commando's zijn uitgeschakeld door de beheerder."
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Commando's zijn uitgeschakeld door de beheerder."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Onjuiste rechten voor het verwijderen van de webhook opdracht"
   },
   {
