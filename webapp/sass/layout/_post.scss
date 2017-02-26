@@ -427,7 +427,7 @@
         }
 
         .btn-file {
-            @include opacity(.5);
+           //  @include opacity(.5);
             @include single-transition(all, .15s);
             font-size: 16px;
             padding: 7px 9px 6px;
@@ -443,7 +443,7 @@
 
             &:hover,
             &:active {
-                @include opacity(.9);
+              //  @include opacity(.9);
                 box-shadow: none;
             }
 
@@ -459,7 +459,11 @@
             .icon {
                 position: relative;
                 top: -5px;
+                @include opacity(0.5);
 
+                &:hover {
+                    @include opacity(.9);
+                }
             }
 
         }

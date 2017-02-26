@@ -26,6 +26,15 @@
         }
     }
 
+    .post-create__container{
+        .post-create-body {
+            .icon__postcontent_picker {
+                display:none;
+                top: -7px;
+            }
+        }
+    }
+
     .suggestion-list__content {
         max-height: 145px;
     }
