@@ -1975,6 +1975,18 @@ export default class Client {
         this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
+    updateIncomingHook(hook, success, error) {
+        request.
+            post(`${this.getHooksRoute()}/incoming/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(hook).
+            end(this.handleResponse.bind(this, 'updateIncomingHook', success, error));
+
+        this.trackEvent('api', 'api_integrations_updated', {team_id: this.getTeamId()});
+    }
+
     deleteIncomingHook(hookId, success, error) {
         request.
             post(`${this.getHooksRoute()}/incoming/delete`).
@@ -2006,6 +2018,18 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
 
         this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
+    }
+
+    updateOutgoingHook(hook, success, error) {
+        request.
+            post(`${this.getHooksRoute()}/outgoing/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(hook).
+            end(this.handleResponse.bind(this, 'updateOutgoingHook', success, error));
+
+        this.trackEvent('api', 'api_integrations_updated', {team_id: this.getTeamId()});
     }
 
     deleteOutgoingHook(hookId, success, error) {
