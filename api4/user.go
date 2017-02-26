@@ -41,6 +41,11 @@ func InitUser() {
 	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
+<<<<<<< 72de977c522465bc2ee044cd4a26baf666f299a3
+=======
+	BaseRoutes.User.Handle("/image", ApiSessionRequired(setProfileImage)).Methods("POST")
+
+>>>>>>> APIv4: POST users/{user_id}/image
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -621,5 +626,60 @@ func verify(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
 	c.Err.StatusCode = http.StatusBadRequest
+	return
+}
+
+func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
+		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		return
+	}
+
+	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
+		return
+	}
+
+	m := r.MultipartForm
+
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	imageData := imageArray[0]
+
+	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
 	return
 }
