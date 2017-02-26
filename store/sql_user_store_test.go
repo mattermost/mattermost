@@ -4,10 +4,11 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestUserStoreSave(t *testing.T) {
@@ -102,6 +103,32 @@ func TestUserStoreUpdate(t *testing.T) {
 	u2.Email = model.NewId()
 	if err := (<-store.User().Update(u2, false)).Err; err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	oldEmail := u3.Email
+	u3.AuthService = "gitlab"
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}))
+
+	u3.Email = model.NewId()
+	if result := <-store.User().Update(u3, false); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	} else {
+		newUser := result.Data.([2]*model.User)[0]
+		if newUser.Email != oldEmail {
+			t.Fatal("Email should not have been updated as the update is not trusted")
+		}
+	}
+
+	if result := <-store.User().Update(u3, true); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	} else {
+		newUser := result.Data.([2]*model.User)[0]
+		if newUser.Email != u3.Email {
+			t.Fatal("Email should have been updated as the update is trusted")
+		}
 	}
 }
 
