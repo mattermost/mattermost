@@ -187,7 +187,6 @@ export default class MultiSelect extends React.Component {
                         />
                         <button
                             className='btn btn-primary btn-sm'
-                            style={{display: 'inline-block'}}
                             onClick={this.props.handleSubmit}
                         >
                             <FormattedMessage
