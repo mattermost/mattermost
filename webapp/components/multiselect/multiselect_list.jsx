@@ -41,6 +41,20 @@ export default class MultiSelectList extends React.Component {
         }
     }
 
+    componentDidUpdate() {
+        if (this.refs.list && this.refs.selected) {
+            const elemTop = this.refs.selected.getBoundingClientRect().top;
+            const elemBottom = this.refs.selected.getBoundingClientRect().bottom;
+            const listTop = this.refs.list.getBoundingClientRect().top;
+            const listBottom = this.refs.list.getBoundingClientRect().bottom;
+            if (elemTop <= listBottom && elemBottom > listBottom) {
+                this.refs.selected.scrollIntoView(false);
+            } else if (elemBottom >= listTop && elemTop < listTop) {
+                this.refs.selected.scrollIntoView(true);
+            }
+        }
+    }
+
     setSelected(selected) {
         this.toSelect = selected;
     }
@@ -88,6 +102,7 @@ export default class MultiSelectList extends React.Component {
 
         return (
             <div
+                ref={isSelected ? 'selected' : option.value}
                 className={rowSelected}
                 key={'multiselectoption' + option.value}
                 onClick={() => onAdd(option)}
@@ -127,7 +142,9 @@ export default class MultiSelectList extends React.Component {
 
         return (
             <div className='more-modal__list'>
-                <div>
+                <div
+                    ref='list'
+                >
                     {optionControls}
                 </div>
             </div>

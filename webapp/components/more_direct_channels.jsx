@@ -201,6 +201,7 @@ export default class MoreDirectChannels extends React.Component {
         return (
             <div
                 key={option.id}
+                ref={isSelected ? 'selected' : option.id}
                 className={'more-modal__row clickable ' + rowSelected}
                 onClick={() => onAdd(option)}
             >
