@@ -126,11 +126,9 @@ export default class MultiSelectList extends React.Component {
         const optionControls = options.map((o, i) => renderer(o, this.state.selected === i, this.props.onAdd));
 
         return (
-            <div>
-                <div className='more-modal__list'>
-                    <div>
-                        {optionControls}
-                    </div>
+            <div className='more-modal__list'>
+                <div>
+                    {optionControls}
                 </div>
             </div>
         );
