@@ -4,35 +4,49 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestWebhookStoreSaveIncoming(t *testing.T) {
 	Setup()
+	o1 := buildIncomingWebhook()
 
-	o1 := model.IncomingWebhook{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.TeamId = model.NewId()
-
-	if err := (<-store.Webhook().SaveIncoming(&o1)).Err; err != nil {
+	if err := (<-store.Webhook().SaveIncoming(o1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
-	if err := (<-store.Webhook().SaveIncoming(&o1)).Err; err == nil {
+	if err := (<-store.Webhook().SaveIncoming(o1)).Err; err == nil {
 		t.Fatal("shouldn't be able to update from save")
+	}
+}
+
+func TestWebhookStoreUpdateIncoming(t *testing.T) {
+	Setup()
+	o1 := buildIncomingWebhook()
+	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	previousUpdatedAt := o1.UpdateAt
+
+	o1.DisplayName = "TestHook"
+
+	if result := (<-store.Webhook().UpdateIncoming(o1)); result.Err != nil {
+		t.Fatal("updation of incoming hook failed", result.Err)
+	} else {
+		if result.Data.(*model.IncomingWebhook).UpdateAt == previousUpdatedAt {
+			t.Fatal("should have updated the UpdatedAt of the hook")
+		}
+
+		if result.Data.(*model.IncomingWebhook).DisplayName != "TestHook" {
+			t.Fatal("display name is not updated")
+		}
 	}
 }
 
 func TestWebhookStoreGetIncoming(t *testing.T) {
 	Setup()
 
-	o1 := &model.IncomingWebhook{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.TeamId = model.NewId()
-
+	o1 := buildIncomingWebhook()
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	if r1 := <-store.Webhook().GetIncoming(o1.Id, false); r1.Err != nil {
@@ -96,11 +110,7 @@ func TestWebhookStoreGetIncomingList(t *testing.T) {
 
 func TestWebhookStoreGetIncomingByTeam(t *testing.T) {
 	Setup()
-
-	o1 := &model.IncomingWebhook{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.TeamId = model.NewId()
+	o1 := buildIncomingWebhook()
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
@@ -123,11 +133,7 @@ func TestWebhookStoreGetIncomingByTeam(t *testing.T) {
 
 func TestWebhookStoreDeleteIncoming(t *testing.T) {
 	Setup()
-
-	o1 := &model.IncomingWebhook{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.TeamId = model.NewId()
+	o1 := buildIncomingWebhook()
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
@@ -153,11 +159,7 @@ func TestWebhookStoreDeleteIncoming(t *testing.T) {
 
 func TestWebhookStoreDeleteIncomingByUser(t *testing.T) {
 	Setup()
-
-	o1 := &model.IncomingWebhook{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.TeamId = model.NewId()
+	o1 := buildIncomingWebhook()
 
 	o1 = (<-store.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
@@ -179,6 +181,15 @@ func TestWebhookStoreDeleteIncomingByUser(t *testing.T) {
 		t.Log(r3.Data)
 		t.Fatal("Missing id should have failed")
 	}
+}
+
+func buildIncomingWebhook() *model.IncomingWebhook {
+	o1 := &model.IncomingWebhook{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.TeamId = model.NewId()
+
+	return o1
 }
 
 func TestWebhookStoreSaveOutgoing(t *testing.T) {

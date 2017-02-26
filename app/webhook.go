@@ -195,7 +195,7 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 
 func CreateIncomingWebhookForChannel(userId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
-		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.webhook.create_incoming.disabled.app_errror", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.webhook.create_incoming.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	hook.UserId = userId

@@ -2684,7 +2684,7 @@
     "translation": "deteniendo el hub de equipo para teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "Debe establecerse palabras que desencadenen una acción o un channel_id"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Permisos inapropiados para eliminar un webhook de entrada"
   },
   {

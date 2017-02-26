@@ -2692,8 +2692,20 @@
     "translation": "team hub stopping for teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Invalid permissions to update incoming webhook"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Cannot update webhook across teams"
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
@@ -2716,11 +2728,31 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Outgoing webhooks can only be updated to public channels."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Invalid permissions to update outgoing webhook."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Either trigger_words or channel_id must be set"
+  },
+  {
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Invalid permissions to delete incoming webhook"
   },
   {
@@ -5546,6 +5578,10 @@
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
     "translation": "You cannot overwrite an existing IncomingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "We couldn't update the IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",

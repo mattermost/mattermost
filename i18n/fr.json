@@ -2684,7 +2684,7 @@
     "translation": "Hub d'équipe arrêté pour teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "Les trigger_words ou channel_id doivent être définis"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Les webhooks entrants ont été désactivées par l'administrateur système."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Droits insuffisants pour supprimer le webhook entrant"
   },
   {

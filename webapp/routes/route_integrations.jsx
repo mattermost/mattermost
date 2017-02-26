@@ -27,6 +27,12 @@ export default {
                     getComponents: (location, callback) => {
                         System.import('components/integrations/components/add_incoming_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
                     }
+                },
+                {
+                    path: 'edit',
+                    getComponents: (location, callback) => {
+                        System.import('components/integrations/components/edit_incoming_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    }
                 }
             ]
         },
@@ -42,6 +48,12 @@ export default {
                     path: 'add',
                     getComponents: (location, callback) => {
                         System.import('components/integrations/components/add_outgoing_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    }
+                },
+                {
+                    path: 'edit',
+                    getComponents: (location, callback) => {
+                        System.import('components/integrations/components/edit_outgoing_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
                     }
                 }
             ]
