@@ -392,6 +392,15 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 }
 
 func ValidateLocales(cfg *model.Config) *model.AppError {
+	locales := GetSupportedLocales()
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+	}
+
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+	}
+
 	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
 		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
 			if word == *cfg.LocalizationSettings.DefaultClientLocale {
