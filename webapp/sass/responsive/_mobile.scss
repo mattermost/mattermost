@@ -1,6 +1,24 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .multi-select__container {
+        .Select {
+            display: block;
+            margin-bottom: 1em;
+            padding: 0;
+        }
+
+        .btn {
+            display: block;
+        }
+    }
+
+    .more-modal__list {
+        .more-modal__actions--round {
+            @include opacity(.5);
+        }
+    }
+
     .post-create__container {
         padding-bottom: 10px;
 
