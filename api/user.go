@@ -167,10 +167,16 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 		return nil
 	}
 
+	if err = app.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, c.siteURL); err != nil {
+		c.Err = err
+		return nil
+	}
+
 	doLogin(c, w, r, user, "")
 	if c.Err != nil {
 		return nil
 	}
+
 	return user
 }
 
