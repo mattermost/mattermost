@@ -316,9 +316,13 @@ export function autocompleteChannels(term, success, error) {
     );
 }
 
-export function updateChannelNotifyProps(data, success, error) {
-    Client.updateChannelNotifyProps(data,
+export function updateChannelNotifyProps(data, options, success, error) {
+    Client.updateChannelNotifyProps(Object.assign({}, data, options),
         () => {
+            const member = ChannelStore.getMyMember(data.channel_id);
+            member.notify_props = Object.assign(member.notify_props, options);
+            ChannelStore.storeMyChannelMember(member);
+
             if (success) {
                 success();
             }
