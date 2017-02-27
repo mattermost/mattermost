@@ -203,6 +203,7 @@ export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
     POST_DELETED: 'post_deleted',
+    CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',

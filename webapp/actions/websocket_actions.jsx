@@ -6,6 +6,7 @@ import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -25,7 +26,7 @@ import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
-import {ActionTypes, Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
+import {ActionTypes, Constants, Preferences, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -137,6 +138,10 @@ function handleEvent(msg) {
         handleUserUpdatedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_CREATED:
+        handleChannelCreatedEvent(msg);
+        break;
+
     case SocketEvents.CHANNEL_DELETED:
         handleChannelDeletedEvent(msg);
         break;
@@ -238,6 +243,7 @@ function handleUpdateTeamEvent(msg) {
 
 function handleDirectAddedEvent(msg) {
     AsyncClient.getChannel(msg.broadcast.channel_id);
+    PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, msg.data.teammate_id, 'true');
     loadProfilesAndTeamMembersForDMSidebar();
 }
 
@@ -275,6 +281,14 @@ function handleUserUpdatedEvent(msg) {
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
         UserStore.emitChange(user.id);
+    }
+}
+
+function handleChannelCreatedEvent(msg) {
+    const channelId = msg.data.channel_id;
+
+    if (!ChannelStore.getChannelById(channelId)) {
+        AsyncClient.getChannel(channelId);
     }
 }
 
