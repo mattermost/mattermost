@@ -127,7 +127,7 @@ function autolinkEmails(text, tokens) {
         }
 
         const index = tokens.size;
-        const alias = `MM_EMAIL${index}`;
+        const alias = `$MM_EMAIL${index}`;
 
         tokens.set(alias, {
             value: `<a class="theme" href="${url}">${linkText}</a>`,
@@ -160,7 +160,7 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
 
     function addToken(username, mention) {
         const index = tokens.size;
-        const alias = `MM_ATMENTION${index}`;
+        const alias = `$MM_ATMENTION${index}`;
 
         tokens.set(alias, {
             value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
@@ -199,7 +199,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
     function addToken(channelName, mention, displayName) {
         const index = tokens.size;
-        const alias = `MM_CHANNELMENTION${index}`;
+        const alias = `$MM_CHANNELMENTION${index}`;
         let href = '#';
         if (team) {
             href = '/' + team.name + '/channels/' + channelName;
@@ -260,7 +260,7 @@ function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     for (const [alias, token] of tokens) {
         if (mentionKeys.indexOf(token.originalText) !== -1) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `MM_SELFMENTION${index}`;
+            const newAlias = `$MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
                 value: `<span class='mention--highlight'>${alias}</span>`,
@@ -278,7 +278,7 @@ function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     // look for self mentions in the text
     function replaceCurrentMentionWithToken(fullMatch, prefix, mention) {
         const index = tokens.size;
-        const alias = `MM_SELFMENTION${index}`;
+        const alias = `$MM_SELFMENTION${index}`;
 
         tokens.set(alias, {
             value: `<span class='mention--highlight'>${mention}</span>`,
@@ -306,7 +306,7 @@ function autolinkHashtags(text, tokens) {
     for (const [alias, token] of tokens) {
         if (token.originalText.lastIndexOf('#', 0) === 0) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `MM_HASHTAG${index}`;
+            const newAlias = `$MM_HASHTAG${index}`;
 
             newTokens.set(newAlias, {
                 value: `<a class='mention-link' href='#' data-hashtag='${token.originalText}'>${token.originalText}</a>`,
@@ -326,7 +326,7 @@ function autolinkHashtags(text, tokens) {
     // look for hashtags in the text
     function replaceHashtagWithToken(fullMatch, prefix, originalText) {
         const index = tokens.size;
-        const alias = `MM_HASHTAG${index}`;
+        const alias = `$MM_HASHTAG${index}`;
 
         if (text.length < Constants.MIN_HASHTAG_LINK_LENGTH + 1) {
             // too short to be a hashtag
@@ -433,7 +433,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
 
     function replaceSearchTermWithToken(match, prefix, word) {
         const index = tokens.size;
-        const alias = `MM_SEARCHTERM${index}`;
+        const alias = `$MM_SEARCHTERM${index}`;
 
         tokens.set(alias, {
             value: `<span class='search-highlight'>${word}</span>`,
@@ -449,7 +449,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
         for (const [alias, token] of tokens) {
             if (pattern.test(token.originalText)) {
                 const index = tokens.size + newTokens.size;
-                const newAlias = `MM_SEARCHTERM${index}`;
+                const newAlias = `$MM_SEARCHTERM${index}`;
 
                 newTokens.set(newAlias, {
                     value: `<span class='search-highlight'>${alias}</span>`,
