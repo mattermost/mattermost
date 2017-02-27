@@ -180,7 +180,7 @@ func WaitForChannelMembership(channelId string, userId string) {
 
 			time.Sleep(100 * time.Millisecond)
 
-			result := <-Srv.Store.Channel().GetMember(channelId, userId, true)
+			result := <-Srv.Store.Channel().GetMember(channelId, userId)
 
 			// If the membership was found then return
 			if result.Err == nil {
@@ -219,7 +219,6 @@ func UpdateChannelMemberRoles(channelId string, userId string, newRoles string) 
 		return nil, result.Err
 	}
 
-	InvalidateCacheForChannelMember(channelId, userId)
 	InvalidateCacheForUser(userId)
 	return member, nil
 }
@@ -251,7 +250,6 @@ func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, us
 	if result := <-Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
 	} else {
-		InvalidateCacheForChannelMember(channelId, userId)
 		InvalidateCacheForUser(userId)
 		InvalidateCacheForChannelMembersNotifyProps(channelId)
 		return member, nil
@@ -340,7 +338,7 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	}
 
 	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
-	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id, true)
+	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id)
 
 	if result := <-tmchan; result.Err != nil {
 		return nil, result.Err
@@ -595,7 +593,7 @@ func GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (
 }
 
 func GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
-	if result := <-Srv.Store.Channel().GetMember(channelId, userId, true); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMember(channelId, userId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelMember), nil
@@ -644,7 +642,7 @@ func GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *mode
 
 func JoinChannel(channel *model.Channel, userId string) *model.AppError {
 	userChan := Srv.Store.User().Get(userId)
-	memberChan := Srv.Store.Channel().GetMember(channel.Id, userId, true)
+	memberChan := Srv.Store.Channel().GetMember(channel.Id, userId)
 
 	if uresult := <-userChan; uresult.Err != nil {
 		return uresult.Err
@@ -797,7 +795,6 @@ func removeUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	}
 
 	InvalidateCacheForUser(userIdToRemove)
-	InvalidateCacheForChannelMember(channel.Id, userIdToRemove)
 	InvalidateCacheForChannelMembers(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
