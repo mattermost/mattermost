@@ -153,21 +153,26 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     search(term) {
+        clearTimeout(this.searchTimeoutId);
+
         if (term === '') {
             this.onChange(true);
             this.setState({search: false});
+            this.searchTimeoutId = '';
             return;
         }
 
-        clearTimeout(this.searchTimeoutId);
-
-        this.searchTimeoutId = setTimeout(
+        const searchTimeoutId = setTimeout(
             () => {
                 searchUsers(
                     term,
                     '',
                     {},
                     (users) => {
+                        if (searchTimeoutId !== this.searchTimeoutId) {
+                            return;
+                        }
+
                         let indexToDelete = -1;
                         for (let i = 0; i < users.length; i++) {
                             if (users[i].id === UserStore.getCurrentId()) {
@@ -186,6 +191,8 @@ export default class MoreDirectChannels extends React.Component {
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
+
+        this.searchTimeoutId = searchTimeoutId;
     }
 
     handleDelete(values) {
