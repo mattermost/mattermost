@@ -351,7 +351,7 @@ class FileUpload extends React.Component {
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
         const emojiSpan = (<span
-            className={'fa fa-smile-o icon__postcontent_picker emoji-' + this.props.navBarName}
+            className={'fa fa-smile-o icon--emoji-picker emoji-' + this.props.navBarName}
             onClick={this.emojiClick}
                            />);
         return (
@@ -359,19 +359,17 @@ class FileUpload extends React.Component {
                 ref='input'
                 className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
-
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
-                />
-                <input
-                    ref='fileInput'
-                    type='file'
-                    onChange={this.handleChange}
-                    onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
-                    multiple={multiple}
-                    accept={accept}
-                />
+                <div className='icon--attachment'>
+                    <span dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}/>
+                    <input
+                        ref='fileInput'
+                        type='file'
+                        onChange={this.handleChange}
+                        onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
+                        multiple={multiple}
+                        accept={accept}
+                    />
+                </div>
                 {this.props.emojiEnabled ? emojiSpan : ''}
             </span>
         );

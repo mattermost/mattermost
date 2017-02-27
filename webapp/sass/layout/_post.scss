@@ -23,7 +23,7 @@
 }
 
 .textarea-wrapper {
-    min-height: 36px;
+    min-height: 37px;
     position: relative;
 
     .textbox-preview-area {
@@ -427,13 +427,12 @@
         }
 
         .btn-file {
-           //  @include opacity(.5);
             @include single-transition(all, .15s);
             font-size: 16px;
-            padding: 7px 9px 6px;
+            padding: 8px 9px 4px;
             position: absolute;
             right: 0;
-            top: 5px;
+            top: 0;
             z-index: 5;
 
             svg {
@@ -443,7 +442,6 @@
 
             &:hover,
             &:active {
-              //  @include opacity(.9);
                 box-shadow: none;
             }
 
@@ -456,29 +454,42 @@
                 }
             }
 
-            .icon {
+            .icon--attachment {
+                @include opacity(.5);
+                display: inline-block;
                 position: relative;
-                top: -5px;
-                @include opacity(0.5);
+                vertical-align: top;
+
+                input {
+                    cursor: pointer;
+                    direction: ltr;
+                    filter: alpha(opacity=0);
+                    font-size: 23px;
+                    height: 100%;
+                    margin: 0;
+                    opacity: 0;
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    width: 100%;
+                }
 
                 &:hover {
                     @include opacity(.9);
                 }
             }
-
         }
 
 
-        .icon__postcontent_picker
-        {
+        .icon--emoji-picker {
             @include opacity(.5);
             @include single-transition(all, .15s);
-            // position: absolute;
-            top: -8px;
-            right: -4px;
-            font-size: 19px;
-            position: relative;
             cursor: pointer;
+            font-size: 19px;
+            margin-left: 7px;
+            position: relative;
+            vertical-align: top;
+
             &:hover,
             &:active {
                 @include opacity(.9);
