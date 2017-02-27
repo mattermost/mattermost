@@ -109,9 +109,9 @@ describe('Client.Channels', function() {
             var props = {};
             props.channel_id = TestHelper.basicChannel().id;
             props.user_id = TestHelper.basicUser().id;
-            var option = {desktop: 'all'};
+            props.desktop = 'all';
             TestHelper.basicClient().updateChannelNotifyProps(
-                props, option,
+                props,
                 function(data) {
                     assert.equal(data.desktop, 'all');
                     done();
