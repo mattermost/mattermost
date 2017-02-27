@@ -439,6 +439,9 @@ func TestGetMyTeamsUnread(t *testing.T) {
 	_, resp = Client.GetTeamsUnreadForUser("fail", "")
 	CheckBadRequestStatus(t, resp)
 
+	_, resp = Client.GetTeamsUnreadForUser(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
 	Client.Logout()
 	_, resp = Client.GetTeamsUnreadForUser(user.Id, "")
 	CheckUnauthorizedStatus(t, resp)

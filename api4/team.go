@@ -17,6 +17,7 @@ func InitTeam() {
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
+	BaseRoutes.TeamsForUser.Handle("/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
@@ -25,8 +26,6 @@ func InitTeam() {
 	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
-
-	BaseRoutes.User.Handle("/teams/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -111,10 +110,15 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// optional team id to be excluded from the result
-	teamID := r.URL.Query().Get("id")
+	if c.Session.UserId != c.Params.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
-	unreadTeamsList, err := app.GetTeamsUnreadForUser(teamID, c.Session.UserId)
+	// optional team id to be excluded from the result
+	teamId := r.URL.Query().Get("id")
+
+	unreadTeamsList, err := app.GetTeamsUnreadForUser(teamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
