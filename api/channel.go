@@ -189,7 +189,7 @@ func WaitForChannelMembership(channelId string, userId string) {
 
 			time.Sleep(100 * time.Millisecond)
 
-			result := <-Srv.Store.Channel().GetMember(channelId, userId)
+			result := <-Srv.Store.Channel().GetMember(channelId, userId, true)
 
 			// If the membership was found then return
 			if result.Err == nil {
@@ -245,7 +245,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sc := Srv.Store.Channel().Get(channel.Id, true)
-	cmc := Srv.Store.Channel().GetMember(channel.Id, c.Session.UserId)
+	cmc := Srv.Store.Channel().GetMember(channel.Id, c.Session.UserId, true)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -322,7 +322,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sc := Srv.Store.Channel().Get(channelId, true)
-	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId, true)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -431,7 +431,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sc := Srv.Store.Channel().Get(channelId, true)
-	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId, true)
 
 	if cresult := <-sc; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -588,7 +588,7 @@ func joinChannel(c *Context, channelChannel store.StoreChannel, userChannel stor
 		channel := cresult.Data.(*model.Channel)
 		user := uresult.Data.(*model.User)
 
-		if mresult := <-Srv.Store.Channel().GetMember(channel.Id, user.Id); mresult.Err == nil && mresult.Data != nil {
+		if mresult := <-Srv.Store.Channel().GetMember(channel.Id, user.Id, true); mresult.Err == nil && mresult.Data != nil {
 			// the user is already in the channel so just return successful
 			return nil, channel
 		}
@@ -631,7 +631,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	}
 
 	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
-	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id)
+	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id, true)
 
 	if result := <-tmchan; result.Err != nil {
 		return nil, result.Err
@@ -665,6 +665,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	WaitForChannelMembership(channel.Id, user.Id)
 
 	InvalidateCacheForUser(user.Id)
+	InvalidateCacheForChannelMember(channel.Id, user.Id)
 	InvalidateCacheForChannelMembers(channel.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
@@ -801,7 +802,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["channel_id"]
 
 	sc := Srv.Store.Channel().Get(id, true)
-	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	scm := Srv.Store.Channel().GetMember(id, c.Session.UserId, true)
 	cmc := Srv.Store.Channel().GetMemberCount(id, false)
 	uc := Srv.Store.User().Get(c.Session.UserId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(id)
@@ -905,7 +906,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["channel_id"]
 
 	cchan := Srv.Store.Channel().Get(id, true)
-	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId)
+	cmchan := Srv.Store.Channel().GetMember(id, c.Session.UserId, true)
 
 	if cresult := <-cchan; cresult.Err != nil {
 		c.Err = cresult.Err
@@ -1023,7 +1024,7 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Channel().GetMember(channelId, userId); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetMember(channelId, userId, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -1110,7 +1111,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sc := Srv.Store.Channel().Get(channelId, true)
-	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId)
+	cmc := Srv.Store.Channel().GetMember(channelId, c.Session.UserId, true)
 	ouc := Srv.Store.User().Get(userIdToRemove)
 
 	if oresult := <-ouc; oresult.Err != nil {
@@ -1202,7 +1203,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := <-Srv.Store.Channel().GetMember(channelId, userId)
+	result := <-Srv.Store.Channel().GetMember(channelId, userId, true)
 	if result.Err != nil {
 		c.Err = result.Err
 		return
@@ -1224,6 +1225,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		InvalidateCacheForUser(userId)
+		InvalidateCacheForChannelMember(channelId, userId)
 
 		// return the updated notify properties including any unchanged ones
 		w.Write([]byte(model.MapToJson(member.NotifyProps)))
