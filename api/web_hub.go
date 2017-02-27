@@ -158,6 +158,18 @@ func InvalidateCacheForUser(userId string) {
 	}
 }
 
+func InvalidateCacheForChannelMember(channelId string, userId string) {
+	InvalidateCacheForChannelMemberSkipClusterSend(channelId, userId)
+
+	if einterfaces.GetClusterInterface() != nil {
+		einterfaces.GetClusterInterface().InvalidateCacheForChannelMember(channelId, userId)
+	}
+}
+
+func InvalidateCacheForChannelMemberSkipClusterSend(channelId string, userId string) {
+	Srv.Store.Channel().InvalidateMember(channelId, userId)
+}
+
 func InvalidateCacheForUserSkipClusterSend(userId string) {
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)

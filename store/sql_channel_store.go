@@ -24,6 +24,12 @@ const (
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
 	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
 
+	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE = model.SESSION_CACHE_SIZE
+	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC  = 1800 // 30 mins
+
+	CHANNEL_MEMBER_CACHE_SIZE = model.SESSION_CACHE_SIZE
+	CHANNEL_MEMBER_CACHE_SEC  = 900 // 15 mins
+
 	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
@@ -38,12 +44,14 @@ var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
 var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
+var channelMemberCache = utils.NewLru(CHANNEL_MEMBER_CACHE_SIZE)
 
 func ClearChannelCaches() {
 	channelMemberCountsCache.Purge()
 	allChannelMembersForUserCache.Purge()
 	channelCache.Purge()
 	channelByNameCache.Purge()
+	channelMemberCache.Purge()
 }
 
 func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
@@ -710,11 +718,36 @@ func (s SqlChannelStore) GetMembers(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel {
+func (s SqlChannelStore) InvalidateMember(channelId string, userId string) {
+	channelMemberCache.Remove(channelId + userId)
+}
+
+func (s SqlChannelStore) GetMember(channelId string, userId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
+
+		if allowFromCache {
+			if cacheItem, ok := channelMemberCache.Get(channelId + userId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Channel Member")
+				}
+				result.Data = *cacheItem.(*model.ChannelMember)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Channel Member")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Channel Member")
+			}
+		}
 
 		var member model.ChannelMember
 
@@ -726,6 +759,8 @@ func (s SqlChannelStore) GetMember(channelId string, userId string) StoreChannel
 			}
 		} else {
 			result.Data = member
+
+			channelMemberCache.AddWithExpiresInSecs(channelId+userId, &member, CHANNEL_MEMBER_CACHE_SEC)
 		}
 
 		storeChannel <- result
