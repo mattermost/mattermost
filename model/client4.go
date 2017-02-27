@@ -564,6 +564,15 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
+// UpdateTeam will update a team
+func (c *Client4) UpdateTeam(teamId string, team *Team) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(teamId), team.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
 
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
