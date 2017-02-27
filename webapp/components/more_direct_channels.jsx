@@ -36,6 +36,7 @@ export default class MoreDirectChannels extends React.Component {
         this.addValue = this.addValue.bind(this);
 
         this.searchTimeoutId = 0;
+        this.listType = global.window.mm_config.RestrictDirectMessage;
 
         const values = [];
         if (props.startingUsers) {
@@ -58,16 +59,20 @@ export default class MoreDirectChannels extends React.Component {
 
     componentDidMount() {
         UserStore.addChangeListener(this.onChange);
+        UserStore.addInTeamChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
-        TeamStore.addChangeListener(this.onChange);
 
-        AsyncClient.getProfiles(0, USERS_PER_PAGE * 2);
+        if (this.listType === 'any') {
+            AsyncClient.getProfiles(0, USERS_PER_PAGE * 2);
+        } else {
+            AsyncClient.getProfilesInTeam(TeamStore.getCurrentId(), 0, USERS_PER_PAGE * 2);
+        }
     }
 
     componentWillUnmount() {
         UserStore.removeChangeListener(this.onChange);
+        UserStore.removeInTeamChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
-        TeamStore.removeChangeListener(this.onChange);
     }
 
     handleHide() {
@@ -134,7 +139,13 @@ export default class MoreDirectChannels extends React.Component {
             return;
         }
 
-        const users = Object.assign([], UserStore.getProfileList(true));
+        let users;
+        if (this.listType === 'any') {
+            users = Object.assign([], UserStore.getProfileList(true));
+        } else {
+            users = Object.assign([], UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true));
+        }
+
         for (let i = 0; i < users.length; i++) {
             const user = Object.assign({}, users[i]);
             user.value = user.id;
@@ -163,11 +174,18 @@ export default class MoreDirectChannels extends React.Component {
             return;
         }
 
+        let teamId;
+        if (this.listType === 'any') {
+            teamId = '';
+        } else {
+            teamId = TeamStore.getCurrentId();
+        }
+
         const searchTimeoutId = setTimeout(
             () => {
                 searchUsers(
                     term,
-                    '',
+                    teamId,
                     {},
                     (users) => {
                         if (searchTimeoutId !== this.searchTimeoutId) {

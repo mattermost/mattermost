@@ -115,7 +115,7 @@ export default class MultiSelectList extends React.Component {
     render() {
         const options = this.props.options;
 
-        if (options == null) {
+        if (options == null || options.length === 0) {
             return (
                 <div
                     key='no-users-found'
