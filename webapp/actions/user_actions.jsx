@@ -304,7 +304,7 @@ export function loadProfilesForGM() {
 
         if (!isVisible) {
             const member = ChannelStore.getMyMember(channel.id);
-            if (!member || member.mention_count === 0) {
+            if (!member || (member.mention_count === 0 && member.msg_count < member.total_msg_count)) {
                 continue;
             }
 
