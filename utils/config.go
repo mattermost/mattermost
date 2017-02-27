@@ -49,6 +49,8 @@ func FindConfigFile(fileName string) string {
 		fileName, _ = filepath.Abs("../config/" + fileName)
 	} else if _, err := os.Stat(fileName); err == nil {
 		fileName, _ = filepath.Abs(fileName)
+	} else if _, err := os.Stat("./config/config.default.json"); err == nil {
+		fileName, _ = filepath.Abs("./config/config.default.json")
 	}
 
 	return fileName
