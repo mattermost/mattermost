@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -465,6 +466,23 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// getTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount of
+// unread messages and mentions the current user has for the teams it belongs to.
+// An optional team ID can be set to exclude that team from the results. Must be authenticated.
+func (c *Client4) GetTeamsUnreadForUser(userId, teamId string) ([]*TeamUnread, *Response) {
+	optional := ""
+	if teamId != "" {
+		optional += fmt.Sprintf("?id=%s", url.QueryEscape(teamId))
+	}
+
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/unread"+optional, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamsUnreadFromJson(r.Body), BuildResponse(r)
 	}
 }
 
