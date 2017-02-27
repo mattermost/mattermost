@@ -318,6 +318,17 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 	}
 }
 
+// GetProfileImage gets user's profile image. Must be logged in or be a system administrator.
+func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
 // GetUsers returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
