@@ -4,8 +4,6 @@
 import SettingItemMin from 'components/setting_item_min.jsx';
 import SettingItemMax from 'components/setting_item_max.jsx';
 
-import ChannelStore from 'stores/channel_store.jsx';
-
 import $ from 'jquery';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -62,19 +60,14 @@ export default class ChannelNotificationsModal extends React.Component {
             return;
         }
 
+        const options = {desktop: notifyLevel};
         const data = {
             channel_id: channelId,
-            user_id: currentUserId,
-            desktop: notifyLevel
+            user_id: currentUserId
         };
 
-        updateChannelNotifyProps(data,
+        updateChannelNotifyProps(data, options,
             () => {
-                // YUCK
-                var member = ChannelStore.getMyMember(channelId);
-                member.notify_props.desktop = notifyLevel;
-                ChannelStore.storeMyChannelMember(member);
-
                 this.updateSection('');
             },
             (err) => {
@@ -259,18 +252,14 @@ export default class ChannelNotificationsModal extends React.Component {
             return;
         }
 
+        const options = {mark_unread: markUnreadLevel};
         const data = {
             channel_id: channelId,
-            user_id: this.props.currentUser.id,
-            mark_unread: markUnreadLevel
+            user_id: this.props.currentUser.id
         };
 
-        updateChannelNotifyProps(data,
+        updateChannelNotifyProps(data, options,
             () => {
-                // Yuck...
-                var member = ChannelStore.getMyMember(channelId);
-                member.notify_props.mark_unread = markUnreadLevel;
-                ChannelStore.storeMyChannelMember(member);
                 this.updateSection('');
             },
             (err) => {
@@ -390,19 +379,14 @@ export default class ChannelNotificationsModal extends React.Component {
             return;
         }
 
+        const options = {push: notifyLevel};
         const data = {
             channel_id: channelId,
-            user_id: currentUserId,
-            push: notifyLevel
+            user_id: currentUserId
         };
 
-        updateChannelNotifyProps(data,
+        updateChannelNotifyProps(data, options,
             () => {
-                // YUCK
-                const member = ChannelStore.getMyMember(channelId);
-                member.notify_props.push = notifyLevel;
-                ChannelStore.storeMyChannelMember(member);
-
                 this.updateSection('');
             },
             (err) => {
