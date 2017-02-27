@@ -613,3 +613,64 @@ func TestMyTeamMembersUnread(t *testing.T) {
 		t.Fatal(r1.Err)
 	}
 }
+
+func TestGetTeamUnread(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	uid := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
+	m2 := &model.TeamMember{TeamId: teamId2, UserId: uid}
+	Must(store.Team().SaveMember(m1))
+	Must(store.Team().SaveMember(m2))
+
+	// Setup Team 1
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN}
+	Must(store.Channel().Save(c1))
+	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(cm1))
+
+	// Setup Team 2
+	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square2", Type: model.CHANNEL_OPEN}
+	Must(store.Channel().Save(c2))
+	c3 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square2", Type: model.CHANNEL_OPEN}
+	Must(store.Channel().Save(c3))
+	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(cm2))
+	cm3 := &model.ChannelMember{ChannelId: c3.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	Must(store.Channel().SaveMember(cm3))
+
+	// Check for Team 1
+	if resp := <-store.Team().GetChannelUnreadsForTeam(teamId1); resp.Err != nil {
+		t.Fatal(resp.Err)
+	} else {
+		ms := resp.Data.([]*model.ChannelUnread)
+		for i := range ms {
+			if teamId1 != ms[i].TeamId {
+				t.Fatal("Wrong team id")
+			}
+		}
+
+		if len(ms) != 1 {
+			t.Fatal("Should be just one unread channel for Team1")
+		}
+	}
+
+	// Check for Team 2
+	if resp2 := <-store.Team().GetChannelUnreadsForTeam(teamId2); resp2.Err != nil {
+		t.Fatal(resp2.Err)
+	} else {
+		ms := resp2.Data.([]*model.ChannelUnread)
+		for i := range ms {
+			if teamId2 != ms[i].TeamId {
+				t.Fatal("Wrong team id")
+			}
+		}
+
+		if len(ms) != 2 {
+			t.Fatal("Should be 2 unreads channels for Team2")
+		}
+	}
+}

@@ -692,6 +692,35 @@ func (s SqlTeamStore) GetTeamsUnreadForUser(teamId, userId string) StoreChannel 
 	return storeChannel
 }
 
+func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.ChannelUnread
+		_, err := s.GetReplica().Select(&data,
+			`SELECT
+				Channels.TeamId, Channels.TotalMsgCount, ChannelMembers.MsgCount, ChannelMembers.MentionCount, ChannelMembers.NotifyProps
+			FROM
+				Channels, ChannelMembers
+			WHERE
+				Id = ChannelId AND DeleteAt = 0 AND TeamId = :TeamId`,
+			map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetTeamUnread", "store.sql_team.get_unread.app_error", nil, "teamId="+teamId+" "+err.Error())
+		} else {
+			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

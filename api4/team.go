@@ -23,6 +23,7 @@ func InitTeam() {
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.Team.Handle("/members", ApiSessionRequired(getTeamMembers)).Methods("GET")
+	BaseRoutes.Team.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
 
 	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
@@ -166,6 +167,26 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.TeamMembersToJson(members)))
 		return
 	}
+}
+
+func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	unreadTeam, err := app.GetTeamUnread(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(unreadTeam.ToJson()))
 }
 
 func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {

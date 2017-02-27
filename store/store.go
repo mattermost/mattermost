@@ -78,6 +78,7 @@ type TeamStore interface {
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	GetTeamsUnreadForUser(teamId, userId string) StoreChannel
+	GetChannelUnreadsForTeam(teamId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel

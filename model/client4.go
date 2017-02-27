@@ -654,6 +654,18 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	}
 }
 
+// GetTeamUnread will return a TeamUnread object that contains the amount of
+// unread messages and mentions the current user has for the teams it belongs to.
+// Must be authenticated.
+func (c *Client4) GetTeamUnread(teamId string) (*TeamUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamRoute(teamId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.
