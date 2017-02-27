@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"runtime"
+	"runtime/debug"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -22,6 +23,7 @@ type Hub struct {
 	broadcast      chan *model.WebSocketEvent
 	stop           chan string
 	invalidateUser chan string
+	ExplicitStop   bool
 }
 
 var hubs []*Hub = make([]*Hub, 0)
@@ -34,6 +36,7 @@ func NewWebHub() *Hub {
 		broadcast:      make(chan *model.WebSocketEvent, 4096),
 		stop:           make(chan string),
 		invalidateUser: make(chan string),
+		ExplicitStop:   false,
 	}
 }
 
@@ -213,7 +216,11 @@ func (h *Hub) Stop() {
 }
 
 func (h *Hub) Start() {
-	go func() {
+	var doStart func()
+	var doRecoverableStart func()
+	var doRecover func()
+
+	doStart = func() {
 		for {
 			select {
 			case webCon := <-h.register:
@@ -281,9 +288,31 @@ func (h *Hub) Start() {
 				for _, webCon := range h.connections {
 					webCon.WebSocket.Close()
 				}
+				h.ExplicitStop = true
 
 				return
 			}
 		}
-	}()
+	}
+
+	doRecoverableStart = func() {
+		defer doRecover()
+		doStart()
+	}
+
+	doRecover = func() {
+		if !h.ExplicitStop {
+			if r := recover(); r != nil {
+				l4g.Error(fmt.Sprintf("Recovering from Hub panic. Panic was: %v", r))
+			} else {
+				l4g.Error("Webhub stopped unexpectedly. Recovering.")
+			}
+
+			l4g.Error(string(debug.Stack()))
+
+			go doRecoverableStart()
+		}
+	}
+
+	go doRecoverableStart()
 }
