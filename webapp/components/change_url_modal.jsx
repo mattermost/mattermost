@@ -50,7 +50,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error1'>
                     <FormattedMessage
                         id='change_url.longer'
-                        defaultMessage='Must be longer than two characters'
+                        defaultMessage='URL must be two or more characters.'
                     />
                     <br/>
                 </span>
@@ -61,7 +61,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error2'>
                     <FormattedMessage
                         id='change_url.startWithLetter'
-                        defaultMessage='Must start with a letter or number'
+                        defaultMessage='URL must start with a letter or number.'
                     />
                     <br/>
                 </span>
@@ -72,7 +72,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error3'>
                     <FormattedMessage
                         id='change_url.endWithLetter'
-                        defaultMessage='Must end with a letter or number'
+                        defaultMessage='URL must end with a letter or number.'
                     />
                     <br/>
                 </span>);
@@ -82,7 +82,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error4'>
                     <FormattedMessage
                         id='change_url.noUnderscore'
-                        defaultMessage='Can not contain two underscores in a row.'
+                        defaultMessage='URL can not contain two underscores in a row.'
                     />
                     <br/>
                 </span>);
