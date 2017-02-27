@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -1026,4 +1027,46 @@ func TestSetProfileImage(t *testing.T) {
 	if err := cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestUpdateMfa(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	rteam, _ := Client.CreateTeam(&team)
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	ruser, _ := Client.CreateUser(&user)
+	LinkUserToTeam(ruser, rteam)
+	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
+
+	Client.Logout()
+	_, resp := Client.UpdateMfa(ruser.Id, "12334", true)
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.UpdateMfa("fail", "56789", false)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateMfa(ruser.Id, "", true)
+	CheckErrorMessage(t, resp, "api.context.invalid_body_param.app_error")
+
+	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
+
+	_, resp = Client.UpdateMfa(ruser.Id, "123456", false)
+	CheckNoError(t, resp)
 }
