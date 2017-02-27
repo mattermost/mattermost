@@ -16,7 +16,7 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAll)).Methods("GET")
+	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
@@ -191,7 +191,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
+func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teams []*model.Team
 	var err *model.AppError
 
