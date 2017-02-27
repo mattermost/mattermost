@@ -23,7 +23,17 @@ func InitPreference() {
 }
 
 func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
-	if preferences, err := app.GetPreferencesForUser(c.Session.UserId); err != nil {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if preferences, err := app.GetPreferencesForUser(c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -33,12 +43,17 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireCategory()
+	c.RequireUserId().RequireCategory()
 	if c.Err != nil {
 		return
 	}
 
-	if preferences, err := app.GetPreferenceByCategoryForUser(c.Session.UserId, c.Params.Category); err != nil {
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if preferences, err := app.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -48,12 +63,17 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireCategory().RequirePreferenceName()
+	c.RequireUserId().RequireCategory().RequirePreferenceName()
 	if c.Err != nil {
 		return
 	}
 
-	if preferences, err := app.GetPreferenceByCategoryAndNameForUser(c.Session.UserId, c.Params.Category, c.Params.PreferenceName); err != nil {
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if preferences, err := app.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -63,6 +83,16 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
 		c.SetInvalidParam("preferences")
@@ -70,10 +100,10 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, preference := range preferences {
-		if c.Session.UserId != preference.UserId {
+		if c.Params.UserId != preference.UserId {
 			c.Err = model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
 				c.T("api.preference.update_preferences.set_details.app_error",
-					map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}),
+					map[string]interface{}{"SessionUserId": c.Params.UserId, "PreferenceUserId": preference.UserId}),
 				http.StatusForbidden)
 			return
 		}
@@ -88,6 +118,16 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
 		c.SetInvalidParam("preferences")
@@ -95,16 +135,16 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, preference := range preferences {
-		if c.Session.UserId != preference.UserId {
+		if c.Params.UserId != preference.UserId {
 			c.Err = model.NewAppError("deletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
 				c.T("api.preference.delete_preferences.delete.app_error",
-					map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}),
+					map[string]interface{}{"SessionUserId": c.Params.UserId, "PreferenceUserId": preference.UserId}),
 				http.StatusForbidden)
 			return
 		}
 	}
 
-	if _, err := app.DeletePreferences(c.Session.UserId, preferences); err != nil {
+	if _, err := app.DeletePreferences(c.Params.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}

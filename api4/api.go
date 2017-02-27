@@ -130,7 +130,7 @@ func InitApi(full bool) {
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
 	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
-	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
+	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
 

@@ -35,9 +35,9 @@ func TestGetPreferences(t *testing.T) {
 		},
 	}
 
-	Client.UpdatePreferences(&preferences1)
+	Client.UpdatePreferences(user1.Id, &preferences1)
 
-	prefs, resp := Client.GetPreferences()
+	prefs, resp := Client.GetPreferences(user1.Id)
 	CheckNoError(t, resp)
 	if len(prefs) != 4 {
 		t.Fatal("received the wrong number of preferences")
@@ -51,15 +51,18 @@ func TestGetPreferences(t *testing.T) {
 
 	th.LoginBasic2()
 
-	prefs, resp = Client.GetPreferences()
+	prefs, resp = Client.GetPreferences(th.BasicUser2.Id)
 	CheckNoError(t, resp)
 
 	if len(prefs) == 0 {
 		t.Fatal("received the wrong number of preferences")
 	}
 
+	_, resp = Client.GetPreferences(th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+
 	Client.Logout()
-	_, resp = Client.GetPreferences()
+	_, resp = Client.GetPreferences(th.BasicUser2.Id)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -90,24 +93,27 @@ func TestGetPreferencesByCategory(t *testing.T) {
 		},
 	}
 
-	Client.UpdatePreferences(&preferences1)
+	Client.UpdatePreferences(user1.Id, &preferences1)
 
-	prefs, resp := Client.GetPreferencesByCategory(category)
+	prefs, resp := Client.GetPreferencesByCategory(user1.Id, category)
 	CheckNoError(t, resp)
 
 	if len(prefs) != 2 {
 		t.Fatalf("received the wrong number of preferences %v:%v", len(prefs), 2)
 	}
 
-	prefs, resp = Client.GetPreferencesByCategory("junk")
+	prefs, resp = Client.GetPreferencesByCategory(user1.Id, "junk")
 	CheckNotFoundStatus(t, resp)
 
 	th.LoginBasic2()
 
-	prefs, resp = Client.GetPreferencesByCategory(category)
+	prefs, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, category)
 	CheckNotFoundStatus(t, resp)
 
-	prefs, resp = Client.GetPreferencesByCategory("junk")
+	prefs, resp = Client.GetPreferencesByCategory(user1.Id, category)
+	CheckForbiddenStatus(t, resp)
+
+	prefs, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, "junk")
 	CheckNotFoundStatus(t, resp)
 
 	if len(prefs) != 0 {
@@ -115,7 +121,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	}
 
 	Client.Logout()
-	_, resp = Client.GetPreferencesByCategory(category)
+	_, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, category)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -144,9 +150,9 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 		},
 	}
 
-	Client.UpdatePreferences(&preferences)
+	Client.UpdatePreferences(user.Id, &preferences)
 
-	pref, resp := Client.GetPreferenceByCategoryAndName(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, name)
+	pref, resp := Client.GetPreferenceByCategoryAndName(user.Id, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, name)
 	CheckNoError(t, resp)
 
 	if (pref.UserId != preferences[0].UserId) && (pref.Category != preferences[0].Category) && (pref.Name != preferences[0].Name) {
@@ -154,19 +160,22 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	}
 
 	preferences[0].Value = model.NewId()
-	Client.UpdatePreferences(&preferences)
+	Client.UpdatePreferences(user.Id, &preferences)
 
-	_, resp = Client.GetPreferenceByCategoryAndName("junk", preferences[0].Name)
+	_, resp = Client.GetPreferenceByCategoryAndName(user.Id, "junk", preferences[0].Name)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetPreferenceByCategoryAndName(preferences[0].Category, "junk")
+	_, resp = Client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetPreferenceByCategoryAndName(preferences[0].Category, preferences[0].Name)
+	_, resp = Client.GetPreferenceByCategoryAndName(th.BasicUser2.Id, preferences[0].Category, "junk")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
 	CheckNoError(t, resp)
 
 	Client.Logout()
-	_, resp = Client.GetPreferenceByCategoryAndName(preferences[0].Category, preferences[0].Name)
+	_, resp = Client.GetPreferenceByCategoryAndName(user.Id, preferences[0].Category, preferences[0].Name)
 	CheckUnauthorizedStatus(t, resp)
 
 }
@@ -198,7 +207,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp := Client.UpdatePreferences(&preferences1)
+	_, resp := Client.UpdatePreferences(user1.Id, &preferences1)
 	CheckNoError(t, resp)
 
 	preferences := model.Preferences{
@@ -209,7 +218,7 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp = Client.UpdatePreferences(&preferences)
+	_, resp = Client.UpdatePreferences(user1.Id, &preferences)
 	CheckForbiddenStatus(t, resp)
 
 	preferences = model.Preferences{
@@ -219,11 +228,14 @@ func TestUpdatePreferences(t *testing.T) {
 		},
 	}
 
-	_, resp = Client.UpdatePreferences(&preferences)
+	_, resp = Client.UpdatePreferences(user1.Id, &preferences)
 	CheckBadRequestStatus(t, resp)
 
+	_, resp = Client.UpdatePreferences(th.BasicUser2.Id, &preferences)
+	CheckForbiddenStatus(t, resp)
+
 	Client.Logout()
-	_, resp = Client.UpdatePreferences(&preferences1)
+	_, resp = Client.UpdatePreferences(user1.Id, &preferences1)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -234,7 +246,7 @@ func TestDeletePreferences(t *testing.T) {
 
 	th.LoginBasic()
 
-	prefs, resp := Client.GetPreferences()
+	prefs, resp := Client.GetPreferences(th.BasicUser.Id)
 	originalCount := len(prefs)
 
 	// save 10 preferences
@@ -248,25 +260,28 @@ func TestDeletePreferences(t *testing.T) {
 		preferences = append(preferences, preference)
 	}
 
-	Client.UpdatePreferences(&preferences)
+	Client.UpdatePreferences(th.BasicUser.Id, &preferences)
 
 	// delete 10 preferences
 	th.LoginBasic2()
 
-	_, resp = Client.DeletePreferences(&preferences)
+	_, resp = Client.DeletePreferences(th.BasicUser2.Id, &preferences)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
 
-	_, resp = Client.DeletePreferences(&preferences)
+	_, resp = Client.DeletePreferences(th.BasicUser.Id, &preferences)
 	CheckNoError(t, resp)
 
-	prefs, resp = Client.GetPreferences()
+	_, resp = Client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	CheckForbiddenStatus(t, resp)
+
+	prefs, resp = Client.GetPreferences(th.BasicUser.Id)
 	if len(prefs) != originalCount {
 		t.Fatal("should've deleted preferences")
 	}
 
 	Client.Logout()
-	_, resp = Client.DeletePreferences(&preferences)
+	_, resp = Client.DeletePreferences(th.BasicUser.Id, &preferences)
 	CheckUnauthorizedStatus(t, resp)
 }
