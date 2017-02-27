@@ -321,6 +321,14 @@ class TeamStoreClass extends EventEmitter {
         }
     }
 
+    subtractUnread(teamId, msgs, mentions) {
+        const member = this.my_team_members.filter((m) => m.team_id === teamId)[0];
+        if (member) {
+            member.msg_count -= msgs;
+            member.mention_count -= mentions;
+        }
+    }
+
     incrementMessages(id, channelId) {
         const channelMember = ChannelStore.getMyMember(channelId);
         if (channelMember && channelMember.notify_props && channelMember.notify_props.mark_unread === NotificationPrefs.MENTION) {

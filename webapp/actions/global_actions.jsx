@@ -55,6 +55,10 @@ export function emitChannelClickEvent(channel) {
             loadPosts(chan.id);
         });
 
+        // Subtract mentions for the team
+        const {msgs, mentions} = ChannelStore.getUnreadCounts()[chan.id] || {msgs: 0, mentions: 0};
+        TeamStore.subtractUnread(chan.team_id, msgs, mentions);
+
         // Mark previous and next channel as read
         ChannelStore.resetCounts(oldChannelId);
         ChannelStore.resetCounts(chan.id);
