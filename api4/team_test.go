@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -123,11 +123,11 @@ func TestGetAllTeams(t *testing.T) {
 	_, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 
-	rrteams, resp := Client.GetAllTeams("")
+	rrteams, resp := Client.GetAllTeams("", 1, 1)
 	CheckNoError(t, resp)
 
-	if (len(rrteams) == 0) {
-		t.Fatal("wrong number of teams")
+	if (len(rrteams) != 1) {
+		t.Fatal("wrong number of teams - should be 1")
 	}
 
 	for _, rt := range rrteams {
@@ -136,15 +136,29 @@ func TestGetAllTeams(t *testing.T) {
 		}
 	}
 
-	rrteams1, resp := th.SystemAdminClient.GetAllTeams("")
+	rrteams1, resp := Client.GetAllTeams("", 1, 0)
 	CheckNoError(t, resp)
 
-	if (len(rrteams1) == 0) {
-		t.Fatal("wrong number of teams")
+	if (len(rrteams1) != 0) {
+		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	rrteams2, resp := th.SystemAdminClient.GetAllTeams("", 1, 1)
+	CheckNoError(t, resp)
+
+	if (len(rrteams2) != 1) {
+		t.Fatal("wrong number of teams - should be 1")
+	}
+
+	rrteams2, resp = Client.GetAllTeams("", 1, 0)
+	CheckNoError(t, resp)
+
+	if (len(rrteams2) != 0) {
+		t.Fatal("wrong number of teams - should be 0")
 	}
 
 	Client.Logout()
-	_, resp = Client.GetAllTeams("")
+	_, resp = Client.GetAllTeams("", 1, 10)
 	CheckUnauthorizedStatus(t, resp)
 }
 

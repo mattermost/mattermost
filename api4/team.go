@@ -196,9 +196,9 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		teams, err = app.GetAllTeams()
+		teams, err = app.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
 	} else {
-		teams, err = app.GetAllOpenTeams()
+		teams, err = app.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
 	}
 
 	if err != nil {
