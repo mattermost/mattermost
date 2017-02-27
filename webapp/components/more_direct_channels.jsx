@@ -21,6 +21,7 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const USERS_PER_PAGE = 50;
+const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 
 export default class MoreDirectChannels extends React.Component {
     constructor(props) {
@@ -251,6 +252,16 @@ export default class MoreDirectChannels extends React.Component {
             );
         }
 
+        const numRemainingText = (
+            <FormattedMessage
+                id='multiselect.numPeopleRemaining'
+                defaultMessage='You can add {num, number} more {num, plural, =0 {people} one {person} other {people}}'
+                values={{
+                    num: MAX_SELECTABLE_VALUES - this.state.values.length
+                }}
+            />
+        );
+
         return (
             <Modal
                 dialogClassName={'more-modal more-direct-channels'}
@@ -268,7 +279,7 @@ export default class MoreDirectChannels extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <MultiSelect
-                        key={'moreDirectChannelsList'}
+                        key='moreDirectChannelsList'
                         options={this.state.users}
                         optionRenderer={this.renderOption}
                         values={this.state.values}
@@ -280,7 +291,8 @@ export default class MoreDirectChannels extends React.Component {
                         handleAdd={this.addValue}
                         handleSubmit={this.handleSubmit}
                         noteText={note}
-                        maxValues={Constants.MAX_USERS_IN_GM - 1}
+                        maxValues={MAX_SELECTABLE_VALUES}
+                        numRemainingText={numRemainingText}
                     />
                 </Modal.Body>
             </Modal>
