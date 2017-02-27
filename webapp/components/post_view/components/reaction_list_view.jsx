@@ -9,7 +9,8 @@ export default class ReactionListView extends React.Component {
     static propTypes = {
         post: React.PropTypes.object.isRequired,
         currentUserId: React.PropTypes.string.isRequired,
-        reactions: React.PropTypes.arrayOf(React.PropTypes.object)
+        reactions: React.PropTypes.arrayOf(React.PropTypes.object),
+        emojis: React.PropTypes.object.isRequired
     }
 
     render() {
@@ -35,6 +36,7 @@ export default class ReactionListView extends React.Component {
                     currentUserId={this.props.currentUserId}
                     emojiName={emojiName}
                     reactions={reactionsByName.get(emojiName)}
+                    emojis={this.props.emojis}
                 />
             );
         });
