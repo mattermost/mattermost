@@ -3,6 +3,8 @@
   "multiselect.instructions": "Use up/down arrows to navigate and enter to select",
   "multiselect.placeholder": "Search and add members",
   "multiselect.numRemaining": "You can add {num, number} more",
+  "multiselect.numPeopleRemaining": "You can add {num, number} more {num, plural, =0 {people} one {person} other {people}}",
+  "filtered_channels_list.count": "{count} {count, plural, =0 {0 channels} one {channel} other {channels}}",
   "about.close": "Close",
   "about.copyright": "Copyright 2016 Mattermost, Inc. All rights reserved",
   "about.database": "Database:",

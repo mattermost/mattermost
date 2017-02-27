@@ -112,7 +112,9 @@ export default class MultiSelect extends React.Component {
         const options = this.props.options;
 
         let numRemainingText;
-        if (this.props.maxValues != null) {
+        if (this.props.numRemainingText) {
+            numRemainingText = this.props.numRemainingText;
+        } else if (this.props.maxValues != null) {
             numRemainingText = (
                 <FormattedMessage
                     id='multiselect.numRemaining'
@@ -236,5 +238,6 @@ MultiSelect.propTypes = {
     handleAdd: React.PropTypes.func,
     handleSubmit: React.PropTypes.func,
     noteText: React.PropTypes.node,
-    maxValues: React.PropTypes.number
+    maxValues: React.PropTypes.number,
+    numRemainingText: React.PropTypes.node
 };
