@@ -317,12 +317,17 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	c.LogAudit("attempt")
 
+	if c.TeamId != hook.TeamId {
+		c.Err = model.NewAppError("regenOutgoingHookToken", "api.webhook.team_mismatch.app_error", nil, "user_id="+c.Session.UserId, http.StatusForbidden)
+		return
+	}
+
 	if !app.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 		return
 	}
 
-	if c.TeamId != hook.TeamId && c.Session.UserId != hook.CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+	if c.Session.UserId != hook.CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
 		return

@@ -716,19 +716,17 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	Client.Logout()
 	Client.Must(Client.LoginById(user2.Id, user2.Password))
 	Client.SetTeamId(team.Id)
-	t.Run("UpdateByUserWithoutPermissions", func(t *testing.T) {
-		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
-			t.Fatal("should have failed - user does not have permissions to manage webhooks")
-		}
+	if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+		t.Fatal("should have failed - user does not have permissions to manage webhooks")
+	}
 
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
-		utils.SetDefaultRolesBasedOnConfig()
-		t.Run("WithoutOnlyAdminIntegrations", func(t *testing.T) {
-			if _, err := Client.UpdateOutgoingWebhook(hook); err != nil {
-				t.Fatal("update webhook failed when admin only integrations is turned off")
-			}
-		})
-	})
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+	hook2 := createOutgoingWebhook(channel1.Id, []string{"http://nowhereelse.com"}, []string{"dogs"}, Client, t)
+
+	if _, err := Client.UpdateOutgoingWebhook(hook2); err != nil {
+		t.Fatal("update webhook failed when admin only integrations is turned off")
+	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
 	utils.SetDefaultRolesBasedOnConfig()
@@ -917,6 +915,11 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		if result.Data.(*model.OutgoingWebhook).Token == hook.Token {
 			t.Fatal("regen didn't work properly")
 		}
+	}
+
+	Client.SetTeamId(model.NewId())
+	if _, err := Client.RegenOutgoingWebhookToken(hook.Id); err == nil {
+		t.Fatal("should have failed - wrong team id")
 	}
 
 	Client.Logout()
