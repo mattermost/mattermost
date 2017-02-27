@@ -2684,7 +2684,7 @@
     "translation": "teamId=%v用のチームハブを停止しています"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "内向きのウェブフックを削除するのに十分な権限が付与されていません"
   },
   {

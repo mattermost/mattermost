@@ -27,6 +27,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -1252,4 +1253,46 @@ func AutocompleteUsersInTeam(teamId string, term string, searchOptions map[strin
 	}
 
 	return autocomplete, nil
+}
+
+func UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string, siteURL string) *model.AppError {
+	oauthUser := provider.GetUserFromJson(userData)
+
+	if oauthUser == nil {
+		return model.NewLocAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, "")
+	}
+
+	userAttrsChanged := false
+
+	if oauthUser.Username != user.Username {
+		if existingUser, _ := GetUserByUsername(oauthUser.Username); existingUser == nil {
+			user.Username = oauthUser.Username
+			userAttrsChanged = true
+		}
+	}
+
+	if oauthUser.GetFullName() != user.GetFullName() {
+		user.FirstName = oauthUser.FirstName
+		user.LastName = oauthUser.LastName
+		userAttrsChanged = true
+	}
+
+	if oauthUser.Email != user.Email {
+		if existingUser, _ := GetUserByEmail(oauthUser.Email); existingUser == nil {
+			user.Email = oauthUser.Email
+			userAttrsChanged = true
+		}
+	}
+
+	if userAttrsChanged {
+		var result store.StoreResult
+		if result = <-Srv.Store.User().Update(user, true); result.Err != nil {
+			return result.Err
+		}
+
+		user = result.Data.([2]*model.User)[0]
+		InvalidateCacheForUser(user.Id)
+	}
+
+	return nil
 }

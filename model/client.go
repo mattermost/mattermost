@@ -2008,6 +2008,16 @@ func (c *Client) CreateIncomingWebhook(hook *IncomingWebhook) (*Result, *AppErro
 	}
 }
 
+func (c *Client) UpdateIncomingWebhook(hook *IncomingWebhook) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/incoming/update", hook.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) PostToWebhook(id, payload string) (*Result, *AppError) {
 	if r, err := c.DoPost("/hooks/"+id, payload, "application/x-www-form-urlencoded"); err != nil {
 		return nil, err
@@ -2091,6 +2101,16 @@ func (c *Client) DeletePreferences(preferences *Preferences) (bool, *AppError) {
 
 func (c *Client) CreateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/create", hook.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OutgoingWebhookFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/update", hook.ToJson()); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

@@ -12,6 +12,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -70,6 +71,10 @@ export default class SidebarRight extends React.Component {
     componentWillUpdate(nextProps, nextState) {
         const isOpen = this.state.searchVisible || this.state.postRightVisible;
         const willOpen = nextState.searchVisible || nextState.postRightVisible;
+
+        if (!isOpen && willOpen) {
+            trackEvent('ui', 'ui_rhs_opened');
+        }
 
         if (isOpen !== willOpen) {
             PostStore.jumpPostsViewSidebarOpen();

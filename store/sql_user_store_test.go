@@ -4,10 +4,11 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestUserStoreSave(t *testing.T) {
@@ -102,6 +103,32 @@ func TestUserStoreUpdate(t *testing.T) {
 	u2.Email = model.NewId()
 	if err := (<-store.User().Update(u2, false)).Err; err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	oldEmail := u3.Email
+	u3.AuthService = "gitlab"
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}))
+
+	u3.Email = model.NewId()
+	if result := <-store.User().Update(u3, false); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	} else {
+		newUser := result.Data.([2]*model.User)[0]
+		if newUser.Email != oldEmail {
+			t.Fatal("Email should not have been updated as the update is not trusted")
+		}
+	}
+
+	if result := <-store.User().Update(u3, true); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	} else {
+		newUser := result.Data.([2]*model.User)[0]
+		if newUser.Email != u3.Email {
+			t.Fatal("Email should have been updated as the update is trusted")
+		}
 	}
 }
 
@@ -1474,6 +1501,73 @@ func TestUserStoreSearch(t *testing.T) {
 
 		if !found {
 			t.Fatal("should have found user")
+		}
+	}
+}
+
+func TestUserStoreAnalyticsGetInactiveUsersCount(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+
+	var count int64
+
+	if result := <-store.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		count = result.Data.(int64)
+	}
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.DeleteAt = model.GetMillis()
+	Must(store.User().Save(u2))
+
+	if result := <-store.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		newCount := result.Data.(int64)
+		if count != newCount-1 {
+			t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
+		}
+	}
+}
+
+func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
+	Setup()
+
+	var countBefore int64
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		countBefore = result.Data.(int64)
+	}
+
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = model.NewId()
+	u2.Username = model.NewId()
+
+	if err := (<-store.User().Save(&u1)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if err := (<-store.User().Save(&u2)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		// We expect to find 1 more system admin than there was at the start of this test function.
+		if count := result.Data.(int64); count != countBefore+1 {
+			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
 		}
 	}
 }

@@ -106,7 +106,8 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
-	GetMember(channelId string, userId string) StoreChannel
+	GetMember(channelId string, userId string, allowFromCache bool) StoreChannel
+	InvalidateMember(channelId string, userId string)
 	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
@@ -128,6 +129,7 @@ type ChannelStore interface {
 	SearchInTeam(teamId string, term string) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
+	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 }
 
 type PostStore interface {
@@ -192,6 +194,8 @@ type UserStore interface {
 	Search(teamId string, term string, options map[string]bool) StoreChannel
 	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
+	AnalyticsGetInactiveUsersCount() StoreChannel
+	AnalyticsGetSystemAdminCount() StoreChannel
 }
 
 type SessionStore interface {
@@ -256,9 +260,11 @@ type WebhookStore interface {
 	GetIncoming(id string, allowFromCache bool) StoreChannel
 	GetIncomingList(offset, limit int) StoreChannel
 	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
+	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
+
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
 	GetOutgoing(id string) StoreChannel
 	GetOutgoingByChannel(channelId string) StoreChannel
@@ -266,6 +272,7 @@ type WebhookStore interface {
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)

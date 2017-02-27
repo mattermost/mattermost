@@ -16,6 +16,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
 import {updateUser, uploadProfileImage} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -127,6 +128,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.username = username;
 
+        trackEvent('settings', 'user_settings_update', {field: 'username'});
+
         this.submitUser(user, Constants.UserUpdateEvents.USERNAME, false);
     }
 
@@ -142,6 +145,8 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.nickname = nickname;
+
+        trackEvent('settings', 'user_settings_update', {field: 'username'});
 
         this.submitUser(user, Constants.UserUpdateEvents.NICKNAME, false);
     }
@@ -160,6 +165,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.first_name = firstName;
         user.last_name = lastName;
+
+        trackEvent('settings', 'user_settings_update', {field: 'fullname'});
 
         this.submitUser(user, Constants.UserUpdateEvents.FULLNAME, false);
     }
@@ -189,6 +196,7 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
+        trackEvent('settings', 'user_settings_update', {field: 'email'});
         this.submitUser(user, Constants.UserUpdateEvents.EMAIL, true);
     }
 
@@ -227,6 +235,8 @@ class UserSettingsGeneralTab extends React.Component {
         if (!this.submitActive) {
             return;
         }
+
+        trackEvent('settings', 'user_settings_update', {field: 'picture'});
 
         const {formatMessage} = this.props.intl;
         const picture = this.state.picture;
@@ -267,6 +277,8 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.position = position;
+
+        trackEvent('settings', 'user_settings_update', {field: 'position'});
 
         this.submitUser(user, Constants.UserUpdateEvents.Position, false);
     }

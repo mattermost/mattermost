@@ -1324,6 +1324,29 @@ export function addIncomingHook(hook, success, error) {
     );
 }
 
+export function updateIncomingHook(hook, success, error) {
+    Client.updateIncomingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_INCOMING_WEBHOOK,
+                incomingWebhook: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'updateIncomingHook');
+            }
+        }
+    );
+}
+
 export function addOutgoingHook(hook, success, error) {
     Client.addOutgoingHook(
         hook,
@@ -1342,6 +1365,29 @@ export function addOutgoingHook(hook, success, error) {
                 error(err);
             } else {
                 dispatchError(err, 'addOutgoingHook');
+            }
+        }
+    );
+}
+
+export function updateOutgoingHook(hook, success, error) {
+    Client.updateOutgoingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'updateOutgoingHook');
             }
         }
     );

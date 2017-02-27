@@ -2684,7 +2684,7 @@
     "translation": "Team-Hub wird gestoppt für teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Ungültige Berechtigungen um eingehenden Webhook zu löschen"
   },
   {
