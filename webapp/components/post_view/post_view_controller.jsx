@@ -8,6 +8,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -25,6 +26,7 @@ export default class PostViewController extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
+        this.onTeamChange = this.onTeamChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onPostsViewJumpRequest = this.onPostsViewJumpRequest.bind(this);
         this.onSetNewMessageIndicator = this.onSetNewMessageIndicator.bind(this);
@@ -55,6 +57,7 @@ export default class PostViewController extends React.Component {
             channel,
             postList: PostStore.filterPosts(channel.id, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
+            currentTeamId: TeamStore.getCurrentId(),
             isBusy: WebrtcStore.isBusy(),
             profiles,
             statuses,
@@ -131,9 +134,20 @@ export default class PostViewController extends React.Component {
         this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
     }
 
+    onTeamChange() {
+        const currentTeamId = TeamStore.getCurrentId();
+        if (this.state.channel.team_id !== currentTeamId) {
+            this.setState({
+                currentTeamId,
+                loading: true
+            });
+        }
+    }
+
     onActivate() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        TeamStore.addChangeListener(this.onTeamChange);
         UserStore.addStatusesChangeListener(this.onStatusChange);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
@@ -144,6 +158,7 @@ export default class PostViewController extends React.Component {
     onDeactivate() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
+        TeamStore.removeChangeListener(this.onTeamChange);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);

@@ -501,6 +501,17 @@ func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (
 	}
 }
 
+// Verify user email user id and hash strings.
+func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
+	requestBody := map[string]string{"uid": userId, "hid": hashId}
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
@@ -802,6 +813,16 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response) {
 		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
 	} else {
 		return data, BuildResponse(r)
+	}
+}
+
+// GetFileInfosForPost gets all the file info objects attached to a post.
+func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response) {
+	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/files/info", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return FileInfosFromJson(r.Body), BuildResponse(r)
 	}
 }
 

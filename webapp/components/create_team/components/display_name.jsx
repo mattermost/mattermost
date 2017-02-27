@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {track} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 import {cleanUpUrlable} from 'utils/url.jsx';
@@ -20,6 +20,10 @@ export default class TeamSignupDisplayNamePage extends React.Component {
         this.submitNext = this.submitNext.bind(this);
 
         this.state = {};
+    }
+
+    componentDidMount() {
+        trackEvent('signup', 'signup_team_01_name');
     }
 
     submitNext(e) {
@@ -60,8 +64,6 @@ export default class TeamSignupDisplayNamePage extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_team_02_name');
-
         var nameError = null;
         var nameDivClass = 'form-group';
         if (this.state.nameError) {

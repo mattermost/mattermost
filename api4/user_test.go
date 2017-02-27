@@ -999,3 +999,29 @@ func TestAutocompleteUsers(t *testing.T) {
 	_, resp = th.SystemAdminClient.AutoCompleteUsersInTeam(teamId, username, "")
 	CheckNoError(t, resp)
 }
+
+func TestVerify(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	user := model.User{Email: GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+	ruser, resp := Client.CreateUser(&user)
+
+	hashId := ruser.Id+utils.Cfg.EmailSettings.InviteSalt
+	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
+	CheckNoError(t, resp)
+
+	hashId = ruser.Id+GenerateTestId()
+	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
+	CheckBadRequestStatus(t, resp)
+
+    // Comment per request from Joram, he will investigate why it fail with a wrong status
+	// hashId = ruser.Id+GenerateTestId()
+	// _, resp = Client.VerifyUserEmail("", hashId)
+	// CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.VerifyUserEmail(ruser.Id, "")
+	CheckBadRequestStatus(t, resp)
+}

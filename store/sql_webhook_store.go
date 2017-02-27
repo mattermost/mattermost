@@ -107,6 +107,27 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChann
 	return storeChannel
 }
 
+func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		hook.UpdateAt = model.GetMillis()
+
+		if _, err := s.GetMaster().Update(hook); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.UpdateIncoming", "store.sql_webhooks.update_incoming.app_error", nil, "id="+hook.Id+", "+err.Error())
+		} else {
+			result.Data = hook
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

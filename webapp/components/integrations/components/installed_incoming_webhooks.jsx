@@ -110,6 +110,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
                     onDelete={this.deleteIncomingWebhook}
                     creator={this.state.users[incomingWebhook.user_id] || {}}
                     canChange={canChange}
+                    team={this.props.team}
                 />
             );
         });

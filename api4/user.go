@@ -28,6 +28,7 @@ func InitUser() {
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
 	BaseRoutes.Users.Handle("/password/reset", ApiHandler(resetPassword)).Methods("POST")
 	BaseRoutes.Users.Handle("/password/reset/send", ApiHandler(sendPasswordReset)).Methods("POST")
+	BaseRoutes.User.Handle("/email/verify", ApiHandler(verify)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
@@ -597,4 +598,35 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(audits.ToJson()))
 		return
 	}
+}
+
+func verify(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	userId := props["uid"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("uid")
+		return
+	}
+
+	hashedId := props["hid"]
+	if len(hashedId) == 0 {
+		c.SetInvalidParam("hid")
+		return
+	}
+
+	hashed := model.HashPassword(hashedId)
+	if model.ComparePassword(hashed, userId+utils.Cfg.EmailSettings.InviteSalt) {
+		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
+			return
+		} else {
+			c.LogAudit("Email Verified")
+			ReturnStatusOK(w)
+			return
+		}
+	}
+
+	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
+	c.Err.StatusCode = http.StatusBadRequest
+	return
 }

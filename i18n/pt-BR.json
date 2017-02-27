@@ -2684,7 +2684,7 @@
     "translation": "central de equipes parou para teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Webhooks de entrada foram desabilitados pelo administrador do sistema."
   },
   {
@@ -2708,11 +2708,11 @@
     "translation": "Ou trigger_words ou channel_id precisa ser definido"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Webhooks de entrada foram desabilitados pelo administrador do sistema."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Permissões inadequadas para deletar o webhook de entrada"
   },
   {

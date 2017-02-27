@@ -497,7 +497,7 @@ func TestChannelMemberStore(t *testing.T) {
 		t.Fatal("Member update time incorrect on delete")
 	}
 
-	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId)).Data.(*model.ChannelMember)
+	member := (<-store.Channel().GetMember(o1.ChannelId, o1.UserId, false)).Data.(*model.ChannelMember)
 	if member.ChannelId != o1.ChannelId {
 		t.Fatal("should have go member")
 	}
@@ -968,15 +968,15 @@ func TestGetMember(t *testing.T) {
 	}
 	Must(store.Channel().SaveMember(m2))
 
-	if result := <-store.Channel().GetMember(model.NewId(), userId); result.Err == nil {
+	if result := <-store.Channel().GetMember(model.NewId(), userId, false); result.Err == nil {
 		t.Fatal("should've failed to get member for non-existant channel")
 	}
 
-	if result := <-store.Channel().GetMember(c1.Id, model.NewId()); result.Err == nil {
+	if result := <-store.Channel().GetMember(c1.Id, model.NewId(), false); result.Err == nil {
 		t.Fatal("should've failed to get member for non-existant user")
 	}
 
-	if result := <-store.Channel().GetMember(c1.Id, userId); result.Err != nil {
+	if result := <-store.Channel().GetMember(c1.Id, userId, false); result.Err != nil {
 		t.Fatal("shouldn't have errored when getting member", result.Err)
 	} else if member := result.Data.(*model.ChannelMember); member.ChannelId != c1.Id {
 		t.Fatal("should've gotten member of channel 1")
@@ -984,7 +984,7 @@ func TestGetMember(t *testing.T) {
 		t.Fatal("should've gotten member for user")
 	}
 
-	if result := <-store.Channel().GetMember(c2.Id, userId); result.Err != nil {
+	if result := <-store.Channel().GetMember(c2.Id, userId, false); result.Err != nil {
 		t.Fatal("shouldn't have errored when getting member", result.Err)
 	} else if member := result.Data.(*model.ChannelMember); member.ChannelId != c2.Id {
 		t.Fatal("should've gotten member of channel 2")
@@ -1399,5 +1399,97 @@ func TestChannelStoreGetMembersByIds(t *testing.T) {
 
 	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{}); r.Err == nil {
 		t.Fatal("empty user ids - should have failed")
+	}
+}
+
+func TestChannelStoreAnalyticsDeletedTypeCount(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "ChannelA"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	p3 := model.Channel{}
+	p3.TeamId = model.NewId()
+	p3.DisplayName = "Channel3"
+	p3.Name = "a" + model.NewId() + "b"
+	p3.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&p3))
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(u2))
+
+	var d4 *model.Channel
+	if result := <-store.Channel().CreateDirectChannel(u1.Id, u2.Id); result.Err != nil {
+		t.Fatalf(result.Err.Error())
+	} else {
+		d4 = result.Data.(*model.Channel)
+	}
+
+	var openStartCount int64
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		openStartCount = result.Data.(int64)
+	}
+
+	var privateStartCount int64
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "P"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		privateStartCount = result.Data.(int64)
+	}
+
+	var directStartCount int64
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "D"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		directStartCount = result.Data.(int64)
+	}
+
+	Must(store.Channel().Delete(o1.Id, model.GetMillis()))
+	Must(store.Channel().Delete(o2.Id, model.GetMillis()))
+	Must(store.Channel().Delete(p3.Id, model.GetMillis()))
+	Must(store.Channel().Delete(d4.Id, model.GetMillis()))
+
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		if result.Data.(int64) != openStartCount+2 {
+			t.Fatalf("Wrong open channel deleted count.")
+		}
+	}
+
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "P"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		if result.Data.(int64) != privateStartCount+1 {
+			t.Fatalf("Wrong private channel deleted count.")
+		}
+	}
+
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "D"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		if result.Data.(int64) != directStartCount+1 {
+			t.Fatalf("Wrong direct channel deleted count.")
+		}
 	}
 }

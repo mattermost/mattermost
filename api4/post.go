@@ -20,6 +20,7 @@ func InitPost() {
 	BaseRoutes.Post.Handle("", ApiSessionRequired(getPost)).Methods("GET")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(deletePost)).Methods("DELETE")
 	BaseRoutes.Post.Handle("/thread", ApiSessionRequired(getPostThread)).Methods("GET")
+	BaseRoutes.Post.Handle("/files/info", ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
 
 	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
@@ -173,4 +174,27 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(posts.ToJson()))
+}
+
+func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if infos, err := app.GetFileInfosForPost(c.Params.PostId, false); err != nil {
+		c.Err = err
+		return
+	} else if HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
+		return
+	} else {
+		w.Header().Set("Cache-Control", "max-age=2592000, public")
+		w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
+		w.Write([]byte(model.FileInfosToJson(infos)))
+	}
 }
