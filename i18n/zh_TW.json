@@ -2356,6 +2356,10 @@
     "translation": "您提供的電子郵件地址不屬於一個可接受的網域。請聯繫系統管理員或使用另一個不同的電子郵件地址註冊。"
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "加入預設頻道時遇到錯誤 user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "本機不支援或尚未設定多重要素驗證"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "無法建立用於 {{.Service}} 的使用者物件"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "更新密碼失敗，目前的 user_id 與要變更的使用者 ID 不符"
   },
@@ -2709,7 +2717,7 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "傳入的 Webhook 已被系統管理員停用"
+    "translation": "傳入的 Webhook 已被系統管理員停用。"
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_error",
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "沒有適當的權限重新產生傳出的 Webhook Token"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "無法更新不同團隊的指令"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "傳入的 Webhook 已被系統管理員停用。"
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "沒有適當的權限刪除傳入的 Webhook"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "傳出的 Webhook 已被系統管理員停用。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "同一頻道的傳出的 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "只有公開頻道可以建立傳出的 Webhook。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "沒有適當的權限建立傳出的 Webhook。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "必須設定觸發詞或者頻道 ID"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "無效的頻道 ID"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "無效的通知等級"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "儲存稽核紀錄時遇到錯誤"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "無法取得頻道類別數量"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "無法取得頻道類別數量"
   },
@@ -5288,6 +5340,14 @@
     "translation": "無法更新團隊名稱"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "無法計算活躍使用者的數量"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "無法取得不重複的帳戶數量"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "無法複蓋一個已存在的傳出的 Webhook"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "無法儲存傳入的 Webhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

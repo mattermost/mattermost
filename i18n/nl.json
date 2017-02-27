@@ -2356,6 +2356,10 @@
     "translation": "Het email adress dat is opgegeven behoord niet tot een van de geldige domeinen. Neem contact op met de beheerder, of log in met een ander e-mail adres."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Er is een fout opgetreden tijdens het deelnemen aan de standaard kanalen user_id=%s, team_id=%s, fout=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "'MFA' is niet geconfigueerd of niet beschikbaar op deze server"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Kan geen gebruiker creeeren voor service {{.Service}}"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Wachtwoord bijwerken is niet gelukt, want de context user_id kom niet overeen met de opgegeven user_id"
   },
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Ongeldige rechten om tokens voor uitgaande webhooks opnieuw te genereren"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Fout bij het bijwerken van commando's voor meerdere teams"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Commando's zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Onjuiste rechten voor het verwijderen van de webhook opdracht"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Uitgaande webhooks zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Uitgaande webhooks van hetzelfde kanaal kunnen niet dezelfde trigger-woorden/callback URL's hebben."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Uitgaande webhooks kunnen alleen aan publieke kanalen gekoppeld worden."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Onjuiste rechten voor het aanmaken van een uitgaande webhook."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Ongeldig kanaal id"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Ongeldig waarschuwings nivo"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "Fout bij het opslaan van de audit data"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "We kunnen de kanalen typen niet tellen"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "We kunnen de kanalen typen niet tellen"
   },
@@ -5288,6 +5340,14 @@
     "translation": "De teamnaam kan niet bijgewerkt worden"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "De gebruikers kunnen niet geteld worden"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "We kunnen het aantal unieke gebruikers niet tellen"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Een uitgaande webhook kan niet overschreven worden"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "De binnenkomende webhook kan niet opgeslagen worden"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

@@ -2356,6 +2356,10 @@
     "translation": "您提供的电子邮件不属于允许的域名。请与您的管理员联系或使用一个不同的电子邮件注册。"
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "加入默认通道遇到一个问题 user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "此服务器没有配置或者不支持多重验证"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "无法创建用户 {{.Service}} 用户对象"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "更新密码失败因为 user_id 提供用户ID不匹配"
   },
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "无效的重新生成传出的 webhook 令牌权限"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "无法跨团队更新命令"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "传入的webhooks已被系统管理员禁用。"
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "无效的删除传入的 webhook 权限"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "传出的webhooks已被系统管理员禁用。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "同一频道的传出 webhooks 不能具有同样的触发词/回调URLs。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "只有公共频道可以创建传出 webhooks。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "无效的创建传出的 webhook 权限。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "无论是trigger_words或channel_id必须设置"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "无效的频道id"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "无效通知级别"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "我们保持审核时出错"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "我们无法获取频道类型数"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "我们无法获取频道类型数"
   },
@@ -5288,6 +5340,14 @@
     "translation": "我们无法更新团队名称"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "我们无法计算启用的用户数"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "我们无法获得不重复的用户数量"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "你不能覆盖现有的传出的 webhook"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "我们不能保存传入的 webhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

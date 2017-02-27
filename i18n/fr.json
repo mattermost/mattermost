@@ -2356,6 +2356,10 @@
     "translation": "Votre adresse e-mail ne correspond pas à un domaine valide. Veuillez contacter votre administrateur ou enregistrez-vous avec une autre adresse e-mail."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Problème en tentant de rejoindre les canaux par défaut user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "MFA non configuré ou disponible sur ce serveur"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Impossible de créer un utilisateur à partir du user object {{.Service}}"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Mise à jour du mot de passe refusée car le user_id du contexte ne correspond pas à l'identifiant d'utilisateur fourni"
   },
@@ -2709,7 +2717,7 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "Les webhooks entrants ont été désactivées par l'administrateur système."
+    "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_error",
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Droits insuffisants pour regénérer le jeton du webhook sortant"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Impossible de mettre à jour les commandes entre équipes"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Droits insuffisants pour supprimer le webhook entrant"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Les webhooks sortants d'un même canal ne peuvent pas avoir les mêmes mots de déclenchement/URLs de rappel."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Les webhooks sortants ne peuvent être créés que pour les canaux publics."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Droits insuffisants pour créer le webhook sortant."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Les trigger_words ou channel_id doivent être définis"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Id canal invalide"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Niveau de notification invalide"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "Nous avons rencontré une erreur lors de l'enregistrement des audits"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "Nous n'avons pas pu obtenir le nombre de type de canaux"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "Nous n'avons pas pu obtenir le nombre de type de canaux"
   },
@@ -5288,6 +5340,14 @@
     "translation": "Nous n'avons pas pu mettre à jour le nom de l'équipe"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "Nous n'avons pas pu compter les utilisateurs"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Nous n'avons pas pu obtenir le nombre d'utilisateurs uniques"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Vous ne pouvez pas écraser un OutgoingWebhook existant"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "Nous n'avons pas pu enregistrer le IncomongWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
