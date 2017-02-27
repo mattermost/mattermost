@@ -107,6 +107,7 @@ func CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channe
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CREATED, "", "", userId, nil)
 	message.Add("channel_id", channel.Id)
+	message.Add("team_id", channel.TeamId)
 	Publish(message)
 
 	return rchannel, nil

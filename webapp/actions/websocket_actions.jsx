@@ -286,8 +286,9 @@ function handleUserUpdatedEvent(msg) {
 
 function handleChannelCreatedEvent(msg) {
     const channelId = msg.data.channel_id;
+    const teamId = msg.data.team_id;
 
-    if (!ChannelStore.getChannelById(channelId)) {
+    if (TeamStore.getCurrentId() === teamId && !ChannelStore.getChannelById(channelId)) {
         AsyncClient.getChannel(channelId);
     }
 }
