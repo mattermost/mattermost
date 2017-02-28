@@ -290,18 +290,20 @@ func (h *Hub) Start() {
 				}
 
 			case msg := <-h.broadcast:
-				for _, webCon := range h.connections {
-					if webCon.ShouldSendEvent(msg) {
-						select {
-						case webCon.Send <- msg:
-						default:
-							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
-							close(webCon.Send)
-							for i, webConCandidate := range h.connections {
-								if webConCandidate == webCon {
-									h.connections[i] = h.connections[len(h.connections)-1]
-									h.connections = h.connections[:len(h.connections)-1]
-									break
+				if OkToSendTypingMessage(msg) {
+					for _, webCon := range h.connections {
+						if webCon.ShouldSendEvent(msg) {
+							select {
+							case webCon.Send <- msg:
+							default:
+								l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+								close(webCon.Send)
+								for i, webConCandidate := range h.connections {
+									if webConCandidate == webCon {
+										h.connections[i] = h.connections[len(h.connections)-1]
+										h.connections = h.connections[:len(h.connections)-1]
+										break
+									}
 								}
 							}
 						}
@@ -339,4 +341,15 @@ func (h *Hub) Start() {
 	}
 
 	go doRecoverableStart()
+}
+
+func OkToSendTypingMessage(msg *model.WebSocketEvent) bool {
+	// Only broadcast typing messages if less than 1K people in channel
+	if msg.Event == model.WEBSOCKET_EVENT_TYPING {
+		if Srv.Store.Channel().GetMemberCountFromCache(msg.Broadcast.ChannelId) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
+			return false
+		}
+	}
+
+	return true
 }
