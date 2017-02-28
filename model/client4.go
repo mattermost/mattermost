@@ -505,6 +505,40 @@ func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
 	}
 }
 
+// SetProfileImage sets profile image of the user
+func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", "profile.png"); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		// set to http.StatusForbidden(403)
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else if rp.StatusCode >= 300 {
+		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return CheckStatusOK(rp), BuildResponse(rp)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
