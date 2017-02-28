@@ -91,6 +91,7 @@ export default class Navbar extends React.Component {
         ChannelStore.addChangeListener(this.onChange);
         ChannelStore.addStatsChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
+        UserStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.showChannelSwitchModal);
@@ -100,6 +101,7 @@ export default class Navbar extends React.Component {
         ChannelStore.removeChangeListener(this.onChange);
         ChannelStore.removeStatsChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
+        UserStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
         document.removeEventListener('keydown', this.showChannelSwitchModal);
     }
