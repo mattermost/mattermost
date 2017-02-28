@@ -1823,16 +1823,19 @@ func TestUpdateMfa(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
+	}()
+	utils.IsLicensed = false
+	utils.License = &model.License{Features: &model.Features{}}
 	if utils.License.Features.MFA == nil {
 		utils.License.Features.MFA = new(bool)
 	}
-
-	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
-	defer func() {
-		utils.IsLicensed = false
-		*utils.License.Features.MFA = false
-		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
-	}()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
