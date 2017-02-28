@@ -196,6 +196,10 @@ func LoadConfig(fileName string) {
 		}
 	}
 
+	if err := ValidateLocales(&config); err != nil {
+		panic(T(err.Id))
+	}
+
 	if err := ValidateLdapFilter(&config); err != nil {
 		panic(T(err.Id))
 	}
@@ -384,6 +388,29 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 			return err
 		}
 	}
+	return nil
+}
+
+func ValidateLocales(cfg *model.Config) *model.AppError {
+	locales := GetSupportedLocales()
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+	}
+
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+	}
+
+	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
+		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+			if word == *cfg.LocalizationSettings.DefaultClientLocale {
+				return nil
+			}
+		}
+
+		return model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+	}
+
 	return nil
 }
 
