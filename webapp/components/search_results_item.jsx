@@ -79,7 +79,10 @@ export default class SearchResultsItem extends React.Component {
 
     timeTag(post) {
         return (
-            <time className='search-item-time'>
+            <time
+                className='search-item-time'
+                dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
+            >
                 <FormattedDate
                     value={post.create_at}
                     hour12={!this.props.useMilitaryTime}
