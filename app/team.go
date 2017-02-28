@@ -327,8 +327,24 @@ func GetAllTeams() ([]*model.Team, *model.AppError) {
 	}
 }
 
+func GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().GetAllPage(offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
 func GetAllOpenTeams() ([]*model.Team, *model.AppError) {
 	if result := <-Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
+func GetAllOpenTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().GetAllTeamPageListing(offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Team), nil

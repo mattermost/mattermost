@@ -16,6 +16,7 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
@@ -188,4 +189,22 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	var teams []*model.Team
+	var err *model.AppError
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		teams, err = app.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
+	} else {
+		teams, err = app.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamListToJson(teams)))
 }
