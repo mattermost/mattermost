@@ -313,7 +313,12 @@ export default class SearchBar extends React.Component {
                         className={clearClass}
                         onClick={this.handleClear}
                     >
-                        <span className='sidebar__search-clear-x'>{'×'}</span>
+                        <span
+                            className='sidebar__search-clear-x'
+                            aria-hidden='true'
+                        >
+                            {'×'}
+                        </span>
                     </div>
                     {isSearching}
                     {this.renderHintPopover(helpClass)}
