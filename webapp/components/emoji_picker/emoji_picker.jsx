@@ -10,11 +10,11 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import ReactOutsideEvent from 'react-outside-event';
+import {FormattedMessage} from 'react-intl';
 
 import EmojiPickerCategory from './components/emoji_picker_category.jsx';
 import EmojiPickerItem from './components/emoji_picker_item.jsx';
 import EmojiPickerPreview from './components/emoji_picker_preview.jsx';
-import {injectIntl, intlShape, defineMessages, FormattedMessage} from 'react-intl';
 
 // This should include all the categories available in Emoji.CategoryNames
 const CATEGORIES = [
@@ -30,58 +30,13 @@ const CATEGORIES = [
     'custom'
 ];
 
-const holders = defineMessages({
-    recent: {
-        id: 'emoji_picker.recent',
-        defaultMessage: 'Recently Used'
-    },
-    people: {
-        id: 'emoji_picker.people',
-        defaultMessage: 'People'
-    },
-    nature: {
-        id: 'emoji_picker.nature',
-        defaultMessage: 'Nature'
-    },
-    food: {
-        id: 'emoji_picker.food',
-        defaultMessage: 'Food'
-    },
-    activity: {
-        id: 'emoji_picker.activity',
-        defaultMessage: 'Activity'
-    },
-    travel: {
-        id: 'emoji_picker.travel',
-        defaultMessage: 'Travel'
-    },
-    symbols: {
-        id: 'emoji_picker.symbols',
-        defaultMessage: 'Symbols'
-    },
-    objects: {
-        id: 'emoji_picker.objects',
-        defaultMessage: 'Objects'
-    },
-    flags: {
-        id: 'emoji_picker.flags',
-        defaultMessage: 'Flags'
-    },
-    custom: {
-        id: 'emoji_picker.custom',
-        defaultMessage: 'Custom'
-    }
-
-});
-
 class EmojiPicker extends React.Component {
     static propTypes = {
         customEmojis: React.PropTypes.object,
         onEmojiClick: React.PropTypes.func.isRequired,
         topOrBottom: React.PropTypes.string.isRequired,
         emojiOffset: React.PropTypes.number,
-        outsideClick: React.PropTypes.func,
-        intl: intlShape.isRequired
+        outsideClick: React.PropTypes.func
     }
 
     constructor(props) {
@@ -311,7 +266,6 @@ class EmojiPicker extends React.Component {
 
     render() {
         const items = [];
-        const {formatMessage} = this.props.intl;
 
         for (const category of CATEGORIES) {
             if (category === 'custom') {
@@ -332,7 +286,7 @@ class EmojiPicker extends React.Component {
                         category='recent'
                         icon={<i
                             className='fa fa-clock-o'
-                            title={formatMessage(holders.recent)}
+                            title={Utils.localizeMessage('emoji_picker.recent', 'Recently Used')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'recent'}
@@ -341,7 +295,7 @@ class EmojiPicker extends React.Component {
                         category='people'
                         icon={<i
                             className='fa fa-smile-o'
-                            title={formatMessage(holders.people)}
+                            title={Utils.localizeMessage('emoji_picker.people', 'People')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'people'}
@@ -350,7 +304,7 @@ class EmojiPicker extends React.Component {
                         category='nature'
                         icon={<i
                             className='fa fa-leaf'
-                            title={formatMessage(holders.nature)}
+                            title={Utils.localizeMessage('emoji_picker.nature', 'Nature')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'nature'}
@@ -359,7 +313,7 @@ class EmojiPicker extends React.Component {
                         category='food'
                         icon={<i
                             className='fa fa-cutlery'
-                            title={formatMessage(holders.food)}
+                            title={Utils.localizeMessage('emoji_picker.food', 'Food')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'food'}
@@ -368,7 +322,7 @@ class EmojiPicker extends React.Component {
                         category='activity'
                         icon={<i
                             className='fa fa-futbol-o'
-                            title={formatMessage(holders.activity)}
+                            title={Utils.localizeMessage('emoji_picker.activity', 'Activity')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'activity'}
@@ -377,7 +331,7 @@ class EmojiPicker extends React.Component {
                         category='travel'
                         icon={<i
                             className='fa fa-plane'
-                            title={formatMessage(holders.travel)}
+                            title={Utils.localizeMessage('emoji_picker.travel', 'Travel')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'travel'}
@@ -386,7 +340,7 @@ class EmojiPicker extends React.Component {
                         category='objects'
                         icon={<i
                             className='fa fa-lightbulb-o'
-                            title={formatMessage(holders.objects)}
+                            title={Utils.localizeMessage('emoji_picker.objects', 'Objects')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'objects'}
@@ -395,7 +349,7 @@ class EmojiPicker extends React.Component {
                         category='symbols'
                         icon={<i
                             className='fa fa-heart-o'
-                            title={formatMessage(holders.symbols)}
+                            title={Utils.localizeMessage('emoji_picker.symbols', 'Symbols')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'symbols'}
@@ -404,7 +358,7 @@ class EmojiPicker extends React.Component {
                         category='flags'
                         icon={<i
                             className='fa fa-flag-o'
-                            title={formatMessage(holders.flags)}
+                            title={Utils.localizeMessage('emoji_picker.flags', 'Flags')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'flags'}
@@ -413,7 +367,7 @@ class EmojiPicker extends React.Component {
                         category='custom'
                         icon={<i
                             className='fa fa-at'
-                            title={formatMessage(holders.custom)}
+                            title={Utils.localizeMessage('emoji_picker.custom', 'Custom')}
                               />}
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'custom'}
@@ -446,4 +400,4 @@ class EmojiPicker extends React.Component {
 
 // disabling eslint check for outslide click handler
 // eslint-disable-next-line new-cap
-export default injectIntl(ReactOutsideEvent(EmojiPicker, ['click']));
+export default ReactOutsideEvent(EmojiPicker, ['click']);

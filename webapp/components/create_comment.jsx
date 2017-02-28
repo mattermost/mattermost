@@ -577,8 +577,6 @@ export default class CreateComment extends React.Component {
 
         let emojiPicker = null;
         if (this.state.showEmojiPicker) {
-            //TODO: get custom emojis
-
             emojiPicker = (
                 <EmojiPicker
                     onEmojiClick={this.handleEmojiClick}
