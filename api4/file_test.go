@@ -172,6 +172,9 @@ func TestGetFileThumbnail(t *testing.T) {
 		fileId = fileResp.FileInfos[0].Id
 	}
 
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
 	data, resp := Client.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
 
