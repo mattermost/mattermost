@@ -394,18 +394,20 @@ func (c *Client4) AutoCompleteUsersInTeam(teamId string, username string, etag s
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserListFromJson(r.Body), BuildResponse(r)
+		autocompleteUser := UserAutocompleteFromJson(r.Body)
+		return autocompleteUser.InTeam, BuildResponse(r)
 	}
 }
 
 // AutoCompleteUsersInChannel returns the users in a channel based on search term.
-func (c *Client4) AutoCompleteUsersInChannel(channelId string, username string, etag string) ([]*User, *Response) {
-	query := fmt.Sprintf("?in_channel=%v&name=%v", channelId, username)
+func (c *Client4) AutoCompleteUsersInChannel(teamId string, channelId string, username string, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete/"+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return UserListFromJson(r.Body), BuildResponse(r)
+		autocompleteUser := UserAutocompleteFromJson(r.Body)
+		return autocompleteUser.InChannel, BuildResponse(r)
 	}
 }
 

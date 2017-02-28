@@ -655,7 +655,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// rezultatul trebuie sa fie de forma: {"in_team": [], "in_channel": [{..}, {..}], "out_of_channel": [{..}, {..}], "in_system": []}
 			result, _ := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
 			autocomplete.InChannel = result.InChannel
 			autocomplete.OutOfChannel = result.OutOfChannel
@@ -665,13 +664,11 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// rezultatul trebuie sa fie de forma: {"in_team": [ {..}, {..} ], "in_channel": [], "out_of_channel": [], "in_system": []}
 			result, _ := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
 			autocomplete.InTeam = result.InTeam
 		}
 	} else {
 		// No permission check required
-		// rezultatul trebuie sa fie de forma: {"in_team": [], "in_channel": [], "out_of_channel": [], "in_system": [{..}, {..}]}
 		result, _ := app.SearchUsersInTeam("", term, searchOptions)
 		autocomplete.InSystem = result
 	}

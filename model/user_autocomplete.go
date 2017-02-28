@@ -18,7 +18,7 @@ type UserAutocompleteInTeam struct {
 }
 
 type UserAutocomplete struct {
-	InSystem       []*User `json:"in_system"`
+	InSystem     []*User `json:"in_system"`
 	InTeam       []*User `json:"in_team"`
 	InChannel    []*User `json:"in_channel"`
 	OutOfChannel []*User `json:"out_of_channel"`
@@ -39,6 +39,17 @@ func (o *UserAutocompleteInChannel) ToJson() string {
 		return ""
 	} else {
 		return string(b)
+	}
+}
+
+func UserAutocompleteFromJson(data io.Reader) *UserAutocomplete {
+	decoder := json.NewDecoder(data)
+	autocomplete := new(UserAutocomplete)
+	err := decoder.Decode(&autocomplete)
+	if err == nil {
+		return autocomplete
+	} else {
+		return nil
 	}
 }
 

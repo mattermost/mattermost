@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-
+	
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -966,20 +966,20 @@ func TestAutocompleteUsers(t *testing.T) {
 	channelId := th.BasicChannel.Id
 	username := th.BasicUser.Username
 
-	rusers, resp := Client.AutoCompleteUsersInChannel(channelId, username, "")
+	rusers, resp := Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 
 	if len(rusers) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutoCompleteUsersInChannel(channelId, "amazonses", "")
+	rusers, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, "amazonses", "")
 	CheckNoError(t, resp)
 	if len(rusers) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
-	rusers, resp = Client.AutoCompleteUsersInChannel(channelId, "", "")
+	rusers, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, "", "")
 	CheckNoError(t, resp)
 	if len(rusers) < 2 {
 		t.Fatal("should have many users")
@@ -995,8 +995,8 @@ func TestAutocompleteUsers(t *testing.T) {
 	rusers, resp = Client.AutoCompleteUsersInTeam("", username, "")
 	CheckNoError(t, resp)
 
-	if len(rusers) != 1 {
-		t.Fatal("should have returned 1 user")
+	if len(rusers) != 0 {
+		t.Fatal("should have returned 0 users")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "amazonses", "")
@@ -1012,7 +1012,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	}
 
 	Client.Logout()
-	_, resp = Client.AutoCompleteUsersInChannel(channelId, username, "")
+	_, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
@@ -1020,13 +1020,13 @@ func TestAutocompleteUsers(t *testing.T) {
 
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
-	_, resp = Client.AutoCompleteUsersInChannel(channelId, username, "")
+	_, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.AutoCompleteUsersInChannel(channelId, username, "")
+	_, resp = th.SystemAdminClient.AutoCompleteUsersInChannel(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 
 	_, resp = th.SystemAdminClient.AutoCompleteUsersInTeam(teamId, username, "")
