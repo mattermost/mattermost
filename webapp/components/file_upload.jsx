@@ -292,9 +292,11 @@ class FileUpload extends React.Component {
 
                 this.props.onUploadStart([clientId], channelId);
             }
-        }
 
-        this.props.onFileUploadChange();
+            if (numToUpload > 0) {
+                this.props.onFileUploadChange();
+            }
+        }
     }
 
     keyUpload(e) {
