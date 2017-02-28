@@ -431,3 +431,27 @@ func (c *Context) RequireEmail() *Context {
 
 	return c
 }
+
+func (c *Context) RequireCategory() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidAlphaNum(c.Params.Category, true) {
+		c.SetInvalidUrlParam("category")
+	}
+
+	return c
+}
+
+func (c *Context) RequirePreferenceName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidAlphaNum(c.Params.PreferenceName, true) {
+		c.SetInvalidUrlParam("preference_name")
+	}
+
+	return c
+}
