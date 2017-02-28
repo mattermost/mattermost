@@ -237,8 +237,8 @@ export function loadNewDMIfNeeded(userId) {
         return;
     }
 
-    const pref = PreferenceStore.get(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'false');
-    if (pref === 'false') {
+    const pref = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
+    if (pref === false) {
         PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
         AsyncClient.savePreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
         loadProfilesForDM();
@@ -251,8 +251,8 @@ export function loadNewGMIfNeeded(channelId, userId) {
     }
 
     function checkPreference() {
-        const pref = PreferenceStore.get(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'false');
-        if (pref === 'false') {
+        const pref = PreferenceStore.getBool(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
+        if (pref === false) {
             PreferenceStore.setPreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
             AsyncClient.savePreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
             loadProfilesForGM();
