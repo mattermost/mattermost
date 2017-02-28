@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 type SqlPostStore struct {
@@ -148,6 +149,33 @@ func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) StoreChan
 			s.GetMaster().Insert(oldPost)
 
 			result.Data = newPost
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) Overwrite(post *model.Post) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		post.UpdateAt = model.GetMillis()
+
+		if result.Err = post.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if _, err := s.GetMaster().Update(post); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error())
+		} else {
+			result.Data = post
 		}
 
 		storeChannel <- result
@@ -1124,6 +1152,30 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetPostsCreatedAt(channelId string, time int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt`
+
+		var posts []*model.Post
+		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = posts
 		}
 
 		storeChannel <- result
