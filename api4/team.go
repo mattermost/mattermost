@@ -116,7 +116,7 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// optional team id to be excluded from the result
-	teamId := r.URL.Query().Get("id")
+	teamId := r.URL.Query().Get("exclude_team")
 
 	unreadTeamsList, err := app.GetTeamsUnreadForUser(teamId, c.Params.UserId)
 	if err != nil {
