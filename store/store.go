@@ -152,6 +152,8 @@ type PostStore interface {
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
 	InvalidateLastPostTimeCache(channelId string)
+	GetPostsCreatedAt(channelId string, time int64) StoreChannel
+	Overwrite(post *model.Post) StoreChannel
 }
 
 type UserStore interface {
