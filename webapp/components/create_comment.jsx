@@ -96,8 +96,8 @@ export default class CreateComment extends React.Component {
     }
 
     handleEmojiPickerClick() {
-        const threadHeight = $('#thread--root') ? $('#thread--root').outerHeight() : 0;
-        const messagesHeight = $('.post-right-comments-container') ? $('.post-right-comments-container').outerHeight() : 0;
+        const threadHeight = document.getElementById('thread--root') ? document.getElementById('thread--root').offsetHeight : 0;
+        const messagesHeight = document.querySelector('div.post-right-comments-container') ? document.querySelector('div.post-right-comments-container').offsetHeight : 0;
 
         const totalHeight = threadHeight + messagesHeight;
         let pickerOffset = 0;

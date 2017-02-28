@@ -74,8 +74,8 @@ class EmojiPicker extends React.Component {
     handleCategoryClick(category) {
         if (category === CATEGORIES[0]) {
             // First category includes the search box so just scroll to the top
-            const items = $(ReactDOM.findDOMNode(this.refs.items));
-            items.scrollTop(0);
+            const items = ReactDOM.findDOMNode(this.refs.items);
+            items.scrollTop = 0;
         } else {
             ReactDOM.findDOMNode(this.refs[category]).scrollIntoView();
         }
