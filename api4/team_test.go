@@ -114,6 +114,54 @@ func TestGetTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetAllTeams(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	_, resp := Client.CreateTeam(team)
+	CheckNoError(t, resp)
+
+	rrteams, resp := Client.GetAllTeams("", 1, 1)
+	CheckNoError(t, resp)
+
+	if (len(rrteams) != 1) {
+		t.Fatal("wrong number of teams - should be 1")
+	}
+
+	for _, rt := range rrteams {
+		if rt.Type != model.TEAM_OPEN {
+			t.Fatal("not all teams are open")
+		}
+	}
+
+	rrteams1, resp := Client.GetAllTeams("", 1, 0)
+	CheckNoError(t, resp)
+
+	if (len(rrteams1) != 0) {
+		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	rrteams2, resp := th.SystemAdminClient.GetAllTeams("", 1, 1)
+	CheckNoError(t, resp)
+
+	if (len(rrteams2) != 1) {
+		t.Fatal("wrong number of teams - should be 1")
+	}
+
+	rrteams2, resp = Client.GetAllTeams("", 1, 0)
+	CheckNoError(t, resp)
+
+	if (len(rrteams2) != 0) {
+		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetAllTeams("", 1, 10)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

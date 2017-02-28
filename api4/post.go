@@ -24,6 +24,7 @@ func InitPost() {
 	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
 
 	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
+	BaseRoutes.Post.Handle("", ApiSessionRequired(updatePost)).Methods("PUT")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -176,6 +177,31 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(posts.ToJson()))
 }
 
+func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	post := model.PostFromJson(r.Body)
+
+	if post == nil {
+		c.SetInvalidParam("post")
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
+		return
+	}
+
+	post.UserId = c.Session.UserId
+
+	rpost, err := app.UpdatePost(post)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(rpost.ToJson()))
+}
+
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -198,3 +224,4 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
 }
+

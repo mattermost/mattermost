@@ -62,7 +62,9 @@ type TeamStore interface {
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
 	GetAll() StoreChannel
+	GetAllPage(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel
+	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
@@ -106,8 +108,7 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
-	GetMember(channelId string, userId string, allowFromCache bool) StoreChannel
-	InvalidateMember(channelId string, userId string)
+	GetMember(channelId string, userId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool

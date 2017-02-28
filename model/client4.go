@@ -141,6 +141,10 @@ func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
 }
 
+func (c *Client4) GetPreferencesRoute(userId string) string {
+	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -315,6 +319,17 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 	} else {
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetProfileImage gets user's profile image. Must be logged in or be a system administrator.
+func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
 	}
 }
 
@@ -512,6 +527,40 @@ func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
 	}
 }
 
+// SetProfileImage sets profile image of the user
+func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", "profile.png"); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		// set to http.StatusForbidden(403)
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else if rp.StatusCode >= 300 {
+		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return CheckStatusOK(rp), BuildResponse(rp)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.
@@ -531,6 +580,17 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
 	} else {
 		defer closeBody(r)
 		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetAllTeams returns all teams based on permissions.
+func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -727,6 +787,16 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 	}
 }
 
+// UpdatePost updates a post based on the provided post struct.
+func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPost gets a single post.
 func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId), etag); err != nil {
@@ -869,5 +939,61 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 	} else {
 		defer closeBody(r)
 		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Preferences Section
+
+// GetPreferences returns the user's preferences
+func (c *Client4) GetPreferences(userId string) (Preferences, *Response) {
+	if r, err := c.DoApiGet(c.GetPreferencesRoute(userId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		defer closeBody(r)
+		return preferences, BuildResponse(r)
+	}
+}
+
+// UpdatePreferences saves the user's preferences
+func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetPreferencesRoute(userId), preferences.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return true, BuildResponse(r)
+	}
+}
+
+// DeletePreferences deletes the user's preferences
+func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPreferencesRoute(userId)+"/delete", preferences.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return true, BuildResponse(r)
+	}
+}
+
+// GetPreferencesByCategory returns the user's preferences from the provided category string
+func (c *Client4) GetPreferencesByCategory(userId string, category string) (Preferences, *Response) {
+	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s", category)
+	if r, err := c.DoApiGet(url, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		defer closeBody(r)
+		return preferences, BuildResponse(r)
+	}
+}
+
+// GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string
+func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string, preferenceName string) (*Preference, *Response) {
+	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s/name/%v", category, preferenceName)
+	if r, err := c.DoApiGet(url, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PreferenceFromJson(r.Body), BuildResponse(r)
 	}
 }

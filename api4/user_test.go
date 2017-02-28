@@ -261,6 +261,39 @@ func TestGetUserByEmail(t *testing.T) {
 	}
 }
 
+func TestGetProfileImage(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	data, resp := Client.GetProfileImage(user.Id, "")
+	CheckNoError(t, resp)
+	if data == nil || len(data) == 0 {
+		t.Fatal("Should not be empty")
+	}
+
+	_, resp = Client.GetProfileImage(user.Id, resp.Etag)
+	if resp.StatusCode != http.StatusNotModified {
+		t.Fatal("Should have hit etag")
+	}
+
+	_, resp = Client.GetProfileImage("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetProfileImage(user.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetProfileImage(user.Id, "")
+	CheckNoError(t, resp)
+
+	info := &model.FileInfo{Path: "/users/" + user.Id + "/profile.png"}
+	if err := cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestGetUsersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.Client
@@ -1009,19 +1042,63 @@ func TestVerify(t *testing.T) {
 
 	ruser, resp := Client.CreateUser(&user)
 
-	hashId := ruser.Id+utils.Cfg.EmailSettings.InviteSalt
+	hashId := ruser.Id + utils.Cfg.EmailSettings.InviteSalt
 	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
 	CheckNoError(t, resp)
 
-	hashId = ruser.Id+GenerateTestId()
+	hashId = ruser.Id + GenerateTestId()
 	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
 	CheckBadRequestStatus(t, resp)
 
-    // Comment per request from Joram, he will investigate why it fail with a wrong status
+	// Comment per request from Joram, he will investigate why it fail with a wrong status
 	// hashId = ruser.Id+GenerateTestId()
 	// _, resp = Client.VerifyUserEmail("", hashId)
 	// CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.VerifyUserEmail(ruser.Id, "")
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestSetProfileImage(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+
+	data, err := readTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ok, resp := Client.SetProfileImage(user.Id, data)
+	if !ok {
+		t.Fatal(resp.Error)
+	}
+	CheckNoError(t, resp)
+
+	ok, resp = Client.SetProfileImage(model.NewId(), data)
+	if ok {
+		t.Fatal("Should return false, set profile image not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
+	Client.Logout()
+	_, resp = Client.SetProfileImage(user.Id, data)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data)
+	CheckNoError(t, resp)
+
+	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
+	if err := cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
 }
