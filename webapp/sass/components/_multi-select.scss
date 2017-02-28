@@ -25,5 +25,6 @@
 }
 
 .multi-select__help {
+    @include opacity(.6);
     padding: 10px 15px 0;
 }

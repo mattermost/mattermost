@@ -121,7 +121,7 @@
 
         &.dropdown {
             float: left;
-            max-width: 100%;
+            max-width: 90%;
             padding-right: 1em;
 
             .header-dropdown__icon {
@@ -182,7 +182,6 @@
     }
 
     .channel-intro-profile {
-        margin-left: 63px;
         margin-top: 5px;
 
         .user-popover {
@@ -194,6 +193,11 @@
 
     .channel-intro-img {
         float: left;
+
+        .status-wrapper {
+            height: 50px;
+            margin: 0 10px 10px 0;
+        }
 
         img {
             @include border-radius(100px);
