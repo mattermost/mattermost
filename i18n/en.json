@@ -5620,6 +5620,18 @@
     "translation": "An error occurred while saving the file to {{.Filename}}"
   },
   {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
+  },
+  {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics not initialized"
   },
