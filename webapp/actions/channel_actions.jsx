@@ -22,8 +22,12 @@ import {browserHistory} from 'react-router/es6';
 
 export function goToChannel(channel) {
     if (channel.fake) {
+        const user = UserStore.getProfileByUsername(channel.display_name);
+        if (!user) {
+            return;
+        }
         openDirectChannelToUser(
-            UserStore.getProfileByUsername(channel.display_name).id,
+            user.id,
             () => {
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
             },
