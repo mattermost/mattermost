@@ -20,7 +20,7 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 	var locale string = "en"
 	var siteURL string = ""
 	var expectedPartialMessage string = "Your username for " + utils.Cfg.TeamSettings.SiteName + " has been changed to " + newUsername + "."
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your username has changed
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your username has changed"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(emailTo)
@@ -56,7 +56,7 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 	var locale string = "en"
 	var siteURL string = ""
 	var expectedPartialMessage string = "You updated your email"
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Verify new email address
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Verify new email address"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(newUserEmail)
@@ -96,7 +96,7 @@ func TestSendEmailChangeEmail(t *testing.T) {
 	var locale string = "en"
 	var siteURL string = ""
 	var expectedPartialMessage string = "Your email address for Mattermost has been changed to " + newUserEmail
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your email address has changed
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your email address has changed"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(oldEmail)
@@ -278,7 +278,7 @@ func TestSendPasswordChangeEmail(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	var method string = "using a reset password link"
 	var expectedPartialMessage string = "Your password has been updated for " + utils.Cfg.TeamSettings.SiteName + " on " + siteURL + " by " + method
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your password has been updated
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your password has been updated"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
@@ -314,7 +314,7 @@ func TestSendMfaChangeEmail(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	var activated bool = true
 	var expectedPartialMessage string = "Multi-factor authentication has been added to your account on " + siteURL + "."
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your MFA has been updated
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your MFA has been updated"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
@@ -376,7 +376,7 @@ func TestSendInviteEmails(t *testing.T) {
 	var siteURL string = "http://test.mattermost.io"
 	invites := []string{email1, email2}
 	var expectedPartialMessage string = "The team member *" + senderName + "* , has invited you to join *" + th.BasicTeam.DisplayName + "*"
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] " + senderName + " invited you to join " + th.BasicTeam.DisplayName + " Team
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] " + senderName + " invited you to join " + th.BasicTeam.DisplayName + " Team"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email1)
