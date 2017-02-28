@@ -463,3 +463,34 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
 	CheckNoError(t, resp)
 }
+
+func TestGetMyTeamsUnread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	Client.Login(user.Email, user.Password)
+
+	teams, resp := Client.GetTeamsUnreadForUser(user.Id, "")
+	CheckNoError(t, resp)
+	if len(teams) == 0 {
+		t.Fatal("should have results")
+	}
+
+	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
+	CheckNoError(t, resp)
+	if len(teams) != 0 {
+		t.Fatal("should not have results")
+	}
+
+	_, resp = Client.GetTeamsUnreadForUser("fail", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamsUnreadForUser(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamsUnreadForUser(user.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+}
