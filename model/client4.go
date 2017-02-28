@@ -1055,6 +1055,17 @@ func (c *Client4) GetFileLink(fileId string) (string, *Response) {
 	}
 }
 
+// GetFilePreview gets the bytes for a file by id.
+func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/preview", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
 // GetFileInfosForPost gets all the file info objects attached to a post.
 func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/files/info", etag); err != nil {
