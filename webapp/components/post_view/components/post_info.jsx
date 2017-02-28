@@ -53,10 +53,8 @@ export default class PostInfo extends React.Component {
     }
 
     createDropdown() {
-        var post = this.props.post;
-
-        this.canDelete = PostUtils.canDeletePost(post);
-        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
+        const post = this.props.post;
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
             return '';
@@ -131,22 +129,24 @@ export default class PostInfo extends React.Component {
             }
         }
 
-        dropdownContents.push(
-            <li
-                key='copyLink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={this.handlePermalink}
+        if (!isSystemMessage) {
+            dropdownContents.push(
+                <li
+                    key='copyLink'
+                    role='presentation'
                 >
-                    <FormattedMessage
-                        id='post_info.permalink'
-                        defaultMessage='Permalink'
-                    />
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='post_info.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (this.canDelete) {
             dropdownContents.push(
@@ -267,6 +267,9 @@ export default class PostInfo extends React.Component {
         var commentCountText = this.props.commentCount;
         const flagIcon = Constants.FLAG_ICON_SVG;
 
+        this.canDelete = PostUtils.canDeletePost(post);
+        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
+
         if (this.props.commentCount >= 1) {
             showCommentClass = ' icon--show';
         } else {
@@ -296,18 +299,21 @@ export default class PostInfo extends React.Component {
                     {this.createRemovePostButton()}
                 </li>
             );
-        } else if (!PostUtils.isSystemMessage(post)) {
-            options = (
-                <li className='col col__reply'>
-                    <div
-                        className='dropdown'
-                        ref='dotMenu'
-                    >
-                        {this.createDropdown()}
-                    </div>
-                    {comments}
-                </li>
-            );
+        } else {
+            const dropdown = this.createDropdown();
+            if (dropdown) {
+                options = (
+                    <li className='col col__reply'>
+                        <div
+                            className='dropdown'
+                            ref='dotMenu'
+                        >
+                            {dropdown}
+                        </div>
+                        {comments}
+                    </li>
+                );
+            }
         }
 
         let flag;
