@@ -2,14 +2,9 @@
 
 @media screen and (max-width: 768px) {
     .multi-select__container {
-        .Select {
-            display: block;
-            margin-bottom: 1em;
-            padding: 0;
-        }
-
         .btn {
             display: block;
+            min-width: 50px;
         }
     }
 
