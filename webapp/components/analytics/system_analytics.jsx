@@ -217,7 +217,7 @@ class SystemAnalytics extends React.Component {
             );
 
             advancedStats = (
-                <div className='row'>
+                <div>
                     <StatisticCount
                         title={
                             <FormattedMessage
@@ -388,7 +388,7 @@ class SystemAnalytics extends React.Component {
         let secondRow;
         if (isLicensed && skippedIntensiveQueries) {
             firstRow = (
-                <div className='row'>
+                <div>
                     {userCount}
                     {teamCount}
                     {channelCount}
@@ -397,7 +397,7 @@ class SystemAnalytics extends React.Component {
             );
 
             secondRow = (
-                <div className='row'>
+                <div>
                     {commandCount}
                     {incomingCount}
                     {outgoingCount}
@@ -405,7 +405,7 @@ class SystemAnalytics extends React.Component {
             );
         } else if (isLicensed && !skippedIntensiveQueries) {
             firstRow = (
-                <div className='row'>
+                <div>
                     {userCount}
                     {teamCount}
                     {channelCount}
@@ -414,7 +414,7 @@ class SystemAnalytics extends React.Component {
             );
 
             secondRow = (
-                <div className='row'>
+                <div>
                     {sessionCount}
                     {commandCount}
                     {incomingCount}
@@ -423,7 +423,7 @@ class SystemAnalytics extends React.Component {
             );
         } else if (!isLicensed) {
             firstRow = (
-                <div className='row'>
+                <div>
                     {userCount}
                     {teamCount}
                     {channelCount}
@@ -433,7 +433,7 @@ class SystemAnalytics extends React.Component {
         }
 
         const thirdRow = (
-            <div className='row'>
+            <div>
                 {dailyActiveUsers}
                 {monthlyActiveUsers}
             </div>
@@ -448,10 +448,12 @@ class SystemAnalytics extends React.Component {
                     />
                 </h3>
                 {banner}
-                {firstRow}
-                {secondRow}
-                {thirdRow}
-                {advancedStats}
+                <div className='row'>
+                    {firstRow}
+                    {secondRow}
+                    {thirdRow}
+                    {advancedStats}
+                </div>
                 {advancedGraphs}
                 {postTotalGraph}
                 {activeUserGraph}
