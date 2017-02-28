@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"regexp"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -13,6 +14,14 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+)
+
+var (
+	c = &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 )
 
 func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
@@ -168,8 +177,6 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 
 	return nil
 }
-
-var linkWithTextRegex *regexp.Regexp = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
@@ -497,7 +504,7 @@ func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo,
 func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := http.Get(url)
+	res, err := c.Get(url)
 	if err != nil {
 		return og
 	}
