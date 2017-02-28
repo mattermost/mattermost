@@ -540,7 +540,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("in_team")
 	term := r.URL.Query().Get("name")
 
-	var autocomplete []*model.UserAutocomplete
+	var autocomplete *model.UserAutocomplete
 	var err *model.AppError
 
 	searchOptions := map[string]bool{}
@@ -553,34 +553,38 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(teamId) > 0 {
-		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-			return
-		}
+		if len(channelId) > 0 {
+			if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+				return
+			}
 
-		// rezultatul trebuie sa fie de forma: {"in_team": [ {..}, {..} ], "in_channel": [], "out_of_channel": [], "in_system": []}
-		autocomplete.InTeam, err = app.AutocompleteUsersInTeam(teamId, term, searchOptions)
-	} else if len(channelId) > 0 {
-		if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-			return
-		}
+			// rezultatul trebuie sa fie de forma: {"in_team": [], "in_channel": [{..}, {..}], "out_of_channel": [{..}, {..}], "in_system": []}
+			result, _ := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+			autocomplete.InChannel = result.InChannel
+			autocomplete.OutOfChannel = result.OutOfChannel
+		} else {
+			if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+				c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+				return
+			}
 
-		// rezultatul trebuie sa fie de forma: {"in_team": [], "in_channel": [{..}, {..}], "out_of_channel": [{..}, {..}], "in_system": []}
-		results, _ := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
-		autocomplete.InChannel = results.InChannel
-		autocomplete.OutOfChannel = results.OutOfChannel
+			// rezultatul trebuie sa fie de forma: {"in_team": [ {..}, {..} ], "in_channel": [], "out_of_channel": [], "in_system": []}
+			result, _ := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+			autocomplete.InTeam = result.InTeam
+		}
 	} else {
 		// No permission check required
 		// rezultatul trebuie sa fie de forma: {"in_team": [], "in_channel": [], "out_of_channel": [], "in_system": [{..}, {..}]}
-		autocomplete.InSystem, err = app.SearchUsersInTeam("", term, searchOptions)
+		result, _ := app.SearchUsersInTeam("", term, searchOptions)
+		autocomplete.InSystem = result
 	}
 
 	if err != nil {
 		c.Err = err
 		return
 	} else {
-		w.Write([]byte(model.UserAutocompleteToJson(autocomplete)))
+		w.Write([]byte((autocomplete.ToJson())))
 	}
 }
 

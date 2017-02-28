@@ -24,7 +24,7 @@ type UserAutocomplete struct {
 	OutOfChannel []*User `json:"out_of_channel"`
 }
 
-func (o *UserAutocompleteInChannel) ToJson() string {
+func (o *UserAutocomplete) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
@@ -33,9 +33,10 @@ func (o *UserAutocompleteInChannel) ToJson() string {
 	}
 }
 
-func UserAutocompleteToJson(o []*UserAutocomplete) string {
-	if b, err := json.Marshal(o); err != nil {
-		return "[]"
+func (o *UserAutocompleteInChannel) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
 	} else {
 		return string(b)
 	}
