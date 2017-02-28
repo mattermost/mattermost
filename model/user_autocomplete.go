@@ -17,10 +17,25 @@ type UserAutocompleteInTeam struct {
 	InTeam []*User `json:"in_team"`
 }
 
+type UserAutocomplete struct {
+	InSystem       []*User `json:"in_system"`
+	InTeam       []*User `json:"in_team"`
+	InChannel    []*User `json:"in_channel"`
+	OutOfChannel []*User `json:"out_of_channel"`
+}
+
 func (o *UserAutocompleteInChannel) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserAutocompleteToJson(o []*UserAutocomplete) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
 	} else {
 		return string(b)
 	}
