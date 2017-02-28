@@ -12,7 +12,7 @@ import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
+import {sortChannelsByDisplayName, buildGroupChannelName} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 
@@ -25,12 +25,15 @@ class SwitchChannelSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
-        const displayName = item.display_name;
+        let displayName = item.display_name;
         let icon = null;
         if (item.type === Constants.OPEN_CHANNEL) {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
+        } else if (item.type === Constants.GM_CHANNEL) {
+            displayName = buildGroupChannelName(item.id);
+            icon = <div className='status'>{UserStore.getProfileListInChannel(item.id, true).length}</div>;
         } else {
             icon = (
                 <div className='pull-left'>
