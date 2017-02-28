@@ -540,7 +540,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := r.URL.Query().Get("in_team")
 	term := r.URL.Query().Get("name")
 
-	var autocomplete *model.UserAutocomplete
+	autocomplete := new(model.UserAutocomplete)
 	var err *model.AppError
 
 	searchOptions := map[string]bool{}
