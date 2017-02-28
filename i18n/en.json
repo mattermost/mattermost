@@ -3560,6 +3560,14 @@
     "translation": "We encountered an error while reading the file"
   },
   {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "Unable to write request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
