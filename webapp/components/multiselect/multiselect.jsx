@@ -198,11 +198,12 @@ export default class MultiSelect extends React.Component {
                         </button>
                     </div>
                     <div className='multi-select__help'>
-                        <FormattedMessage
-                            id='multiselect.instructions'
-                            defaultMessage='Use up/down arrows to navigate and enter to select'
-                        />
-                        <br/>
+                        <div className='hidden-xs'>
+                            <FormattedMessage
+                                id='multiselect.instructions'
+                                defaultMessage='Use up/down arrows to navigate and enter to select'
+                            />
+                        </div>
                         {numRemainingText}
                         {this.props.noteText}
                     </div>

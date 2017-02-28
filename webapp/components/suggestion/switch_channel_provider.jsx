@@ -33,7 +33,7 @@ class SwitchChannelSuggestion extends Suggestion {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else if (item.type === Constants.GM_CHANNEL) {
             displayName = buildGroupChannelName(item.id);
-            icon = <div className='status'>{UserStore.getProfileListInChannel(item.id, true).length}</div>;
+            icon = <div className='status status--group'>{UserStore.getProfileListInChannel(item.id, true).length}</div>;
         } else {
             icon = (
                 <div className='pull-left'>

@@ -546,7 +546,7 @@ export default class Sidebar extends React.Component {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else if (channel.type === Constants.GM_CHANNEL) {
             displayName = ChannelUtils.buildGroupChannelName(channel.id);
-            icon = <div className='status'>{UserStore.getProfileListInChannel(channel.id, true).length}</div>;
+            icon = <div className='status status--group'>{UserStore.getProfileListInChannel(channel.id, true).length}</div>;
         } else {
             // set up status icon for direct message channels (status is null for other channel types)
             icon = (
