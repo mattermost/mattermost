@@ -552,7 +552,7 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 	return nil
 }
 
-func sendToPushProxy(msg model.PushNotification, session *model.Session) *model.AppError {
+func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = utils.CfgDiagnosticId
 
 	tr := &http.Transport{
@@ -563,22 +563,24 @@ func sendToPushProxy(msg model.PushNotification, session *model.Session) *model.
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
 	if resp, err := httpClient.Do(request); err != nil {
-		return model.NewLocAppError("sendToPushProxy", "api.post.send_notifications_and_forget.push_notification.error", map[string]interface{}{"DeviceId": msg.DeviceId, "Error": err.Error()}, "")
+		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())
 	} else {
-		m := model.MapFromJson(resp.Body)
+		pushResponse := model.PushResponseFromJson(resp.Body)
 		if resp.Body != nil {
 			ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
 		}
 
-		if m[model.STATUS] == model.STATUS_REMOVE {
+		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
 			l4g.Info("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id)
 			AttachDeviceId(session.Id, "", session.ExpiresAt)
 			ClearSessionCacheForUser(session.UserId)
 		}
-	}
 
-	return nil
+		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
+			l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG])
+		}
+	}
 }
 
 func getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
