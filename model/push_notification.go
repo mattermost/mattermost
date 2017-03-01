@@ -42,14 +42,13 @@ func (me *PushNotification) ToJson() string {
 	b, err := json.Marshal(me)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+
+	return string(b)
 }
 
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-
-	parts := strings.Split(deviceId, ":")
+	parts := strings.SplitN(deviceId, ":", 2)
 	if len(parts) == 2 {
 		me.Platform = parts[0]
 		me.DeviceId = parts[1]
@@ -62,7 +61,7 @@ func PushNotificationFromJson(data io.Reader) *PushNotification {
 	err := decoder.Decode(&me)
 	if err == nil {
 		return &me
-	} else {
-		return nil
 	}
+
+	return nil
 }
