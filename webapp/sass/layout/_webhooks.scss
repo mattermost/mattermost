@@ -127,16 +127,22 @@
             margin-bottom: 1em;
             max-height: 300px;
             max-width: 500px;
+
             &.attachment__image--openraph {
                 margin-bottom: 0;
                 max-height: 80px;
-                max-width: 400px;
+                max-width: 200px;
+
                 &.loading {
                     height: 80px;
                 }
+
                 &.large_image {
-                    max-width: 150px;
-                    max-height: 150px;
+                    border-radius: 3px;
+                    margin-top: 10px;
+                    max-height: 200px;
+                    max-width: 400px;
+
                     &.loading {
                         height: 150px;
                     }
