@@ -120,7 +120,7 @@ export default class MultiSelect extends React.Component {
             numRemainingText = (
                 <FormattedMessage
                     id='multiselect.numRemaining'
-                    defaultMessage='You can add {num, number} more'
+                    defaultMessage='You can add {num, number} more. '
                     values={{
                         num: this.props.maxValues - this.props.values.length
                     }}

@@ -22,6 +22,16 @@
     .Select-control {
         border-radius: 1px;
     }
+
+    .Select-value {
+        white-space: nowrap;
+    }
+
+    .Select-value-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: calc(100% - 20px);
+    }
 }
 
 .multi-select__help {
