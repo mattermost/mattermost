@@ -236,10 +236,12 @@ func IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *utils.Cfg.TeamSettings.UserStatusAwayTimeout*1000
 }
 
-func DoesStatusAllowPushNotification(user *model.User, status *model.Status, channelId string) bool {
+func DoesStatusAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, status *model.Status, channelId string) bool {
 	props := user.NotifyProps
 
-	if props["push"] == "none" {
+	if props[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_NONE &&
+		(channelNotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_NONE ||
+		channelNotifyProps[model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_DEFAULT) {
 		return false
 	}
 

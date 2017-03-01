@@ -102,9 +102,10 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 		// find which users in the channel are set up to always receive mobile notifications
 		for _, profile := range profileMap {
-			if profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL &&
+			if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL &&
 				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
-				!post.IsSystemMessage() {
+				!post.IsSystemMessage()) ||
+				channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
 		}
@@ -257,7 +258,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
+			if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], status, post.ChannelId) {
 				sendPushNotification(post, profileMap[id], channel, senderName[id], channelMemberNotifyPropsMap[id], true)
 			}
 		}
@@ -270,7 +271,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
-				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
+				if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], status, post.ChannelId) {
 					sendPushNotification(post, profileMap[id], channel, senderName[id], channelMemberNotifyPropsMap[id], false)
 				}
 			}
@@ -466,7 +467,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	if channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]; ok {
 		if channelNotify == model.USER_NOTIFY_NONE {
 			return nil
-		} else if channelNotify == model.USER_NOTIFY_MENTION && !wasMentioned {
+		} else if channelNotify == model.CHANNEL_NOTIFY_MENTION && !wasMentioned {
 			return nil
 		}
 	}
