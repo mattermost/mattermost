@@ -863,7 +863,6 @@ func TestGetChannel(t *testing.T) {
 	if _, err := Client.GetChannels(""); err == nil {
 		t.Fatal("should have failed - wrong team id")
 	}
-
 }
 
 func TestGetMoreChannelsPage(t *testing.T) {
@@ -1962,6 +1961,10 @@ func TestViewChannel(t *testing.T) {
 		t.Log(rdata.Channel.TotalMsgCount)
 		t.Log(rdata.Member.MsgCount)
 		t.Fatal("message counts don't match")
+	}
+
+	if _, err := Client.DoApiPost(Client.GetTeamRoute()+"/channels/view", "garbage"); err == nil {
+		t.Fatal("should have been an error")
 	}
 }
 
