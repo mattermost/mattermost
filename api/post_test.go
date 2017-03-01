@@ -1237,9 +1237,12 @@ func TestGetPostById(t *testing.T) {
 }
 
 func TestGetPermalinkTmp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
+	team := th.BasicTeam
+
+	th.LoginBasic()
 
 	time.Sleep(10 * time.Millisecond)
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
@@ -1263,6 +1266,40 @@ func TestGetPermalinkTmp(t *testing.T) {
 		t.Fatal(respMetadata.Error)
 	} else if results == nil {
 		t.Fatal("should not be empty")
+	}
+
+	// Test permalink to private channels.
+	channel2 := &model.Channel{DisplayName: "TestGetPermalinkPriv", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+	time.Sleep(10 * time.Millisecond)
+	post3 := &model.Post{ChannelId: channel2.Id, Message: "a" + model.NewId() + "a"}
+	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
+
+	if _, md := Client.GetPermalink(channel2.Id, post3.Id, ""); md.Error != nil {
+		t.Fatal(md.Error)
+	}
+
+	th.LoginBasic2()
+
+	if _, md := Client.GetPermalink(channel2.Id, post3.Id, ""); md.Error == nil {
+		t.Fatal("Expected 403 error")
+	}
+
+	// Test direct channels.
+	th.LoginBasic()
+	channel3 := Client.Must(Client.CreateDirectChannel(th.SystemAdminUser.Id)).Data.(*model.Channel)
+	time.Sleep(10 * time.Millisecond)
+	post4 := &model.Post{ChannelId: channel3.Id, Message: "a" + model.NewId() + "a"}
+	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
+
+	if _, md := Client.GetPermalink(channel3.Id, post4.Id, ""); md.Error != nil {
+		t.Fatal(md.Error)
+	}
+
+	th.LoginBasic2()
+
+	if _, md := Client.GetPermalink(channel3.Id, post4.Id, ""); md.Error == nil {
+		t.Fatal("Expected 403 error")
 	}
 }
 
