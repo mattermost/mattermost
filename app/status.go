@@ -241,7 +241,7 @@ func DoesStatusAllowPushNotification(user *model.User, channelNotifyProps model.
 
 	if props[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_NONE &&
 		(channelNotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_NONE ||
-		channelNotifyProps[model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_DEFAULT) {
+			channelNotifyProps[model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_DEFAULT) {
 		return false
 	}
 
