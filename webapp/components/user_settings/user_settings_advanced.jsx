@@ -393,7 +393,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='user.settings.advance.sendDesc'
-                            defaultMessage="If enabled ENTER inserts a new line and CTRL+ENTER submits the message."
+                            defaultMessage='If enabled ENTER inserts a new line and CTRL+ENTER submits the message.'
                         />
                     </div>
                 </div>
