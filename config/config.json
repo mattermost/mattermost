@@ -54,8 +54,6 @@
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
-        "RestrictPublicChannelCreation": "all",
-        "RestrictPrivateChannelCreation": "all",
         "RestrictPublicChannelDeletion": "all",
         "RestrictPrivateChannelDeletion": "all",
         "UserStatusAwayTimeout": 300,
@@ -69,7 +67,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "5uort5iqi1hquas36ajzg74rgbxczy5d"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -93,7 +91,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "ei4gwgy4fqbpd991mtoor8d15meyium6",
+        "PublicLinkSalt": "",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -122,8 +120,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "hqfg4wes3m1gfikg3kxmwxnqdmcw3zfz",
-        "PasswordResetSalt": "1bjyu64jjq37pdd3kpfy53e1dgetgrj8",
+        "InviteSalt": "",
+        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
