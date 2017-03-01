@@ -239,6 +239,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
 	userIds := model.ArrayFromJson(r.Body)
 
 	if len(userIds) == 0 {
