@@ -258,8 +258,8 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, senderName[id], channelMemberNotifyPropsMap[id], true)
+			if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post.ChannelId) {
+				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
 			}
 		}
 
@@ -271,8 +271,8 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
-				if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], status, post.ChannelId) {
-					sendPushNotification(post, profileMap[id], channel, senderName[id], channelMemberNotifyPropsMap[id], false)
+				if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post.ChannelId) {
+					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
 				}
 			}
 		}
@@ -456,21 +456,13 @@ func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 	}
 }
 
-func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, channelNotifyProps model.StringMap, wasMentioned bool) *model.AppError {
+func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName string, wasMentioned bool) *model.AppError {
 	sessions, err := getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
 
 	var channelName string
-
-	if channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]; ok {
-		if channelNotify == model.USER_NOTIFY_NONE {
-			return nil
-		} else if channelNotify == model.CHANNEL_NOTIFY_MENTION && !wasMentioned {
-			return nil
-		}
-	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		channelName = senderName
