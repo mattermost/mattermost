@@ -163,6 +163,7 @@ func (webCon *WebConn) isAuthenticated() bool {
 		if session == nil || session.IsExpired() {
 			webCon.SessionToken = ""
 			webCon.SessionExpiresAt = 0
+			webCon.Session = nil
 			return false
 		}
 
