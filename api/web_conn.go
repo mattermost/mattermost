@@ -29,6 +29,7 @@ type WebConn struct {
 	Send                      chan model.WebSocketMessage
 	SessionToken              string
 	SessionExpiresAt          int64
+	Session                   *model.Session
 	UserId                    string
 	T                         goi18n.TranslateFunc
 	Locale                    string
@@ -148,6 +149,7 @@ func (webCon *WebConn) InvalidateCache() {
 	webCon.AllChannelMembers = nil
 	webCon.LastAllChannelMembersTime = 0
 	webCon.SessionExpiresAt = 0
+	webCon.Session = nil
 }
 
 func (webCon *WebConn) isAuthenticated() bool {
@@ -161,11 +163,13 @@ func (webCon *WebConn) isAuthenticated() bool {
 		if session == nil || session.IsExpired() {
 			webCon.SessionToken = ""
 			webCon.SessionExpiresAt = 0
+			webCon.Session = nil
 			return false
 		}
 
 		webCon.SessionToken = session.Token
 		webCon.SessionExpiresAt = session.ExpiresAt
+		webCon.Session = session
 	}
 
 	return true
@@ -230,16 +234,21 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 }
 
 func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
-	session := GetSession(webCon.SessionToken)
-	if session == nil {
-		return false
-	} else {
-		member := session.GetTeamByTeamId(teamId)
 
-		if member != nil {
-			return true
-		} else {
+	if webCon.Session == nil {
+		session := GetSession(webCon.SessionToken)
+		if session == nil {
 			return false
+		} else {
+			webCon.Session = session
 		}
+	}
+
+	member := webCon.Session.GetTeamByTeamId(teamId)
+
+	if member != nil {
+		return true
+	} else {
+		return false
 	}
 }

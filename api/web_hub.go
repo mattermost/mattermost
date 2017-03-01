@@ -89,6 +89,15 @@ func HubUnregister(webConn *WebConn) {
 }
 
 func Publish(message *model.WebSocketEvent) {
+
+	if SkipTypingMessage(message) {
+		if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
+			metrics.IncrementWebsocketEvent(message.Event + "_skipped")
+		}
+
+		return
+	}
+
 	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
 		metrics.IncrementWebsocketEvent(message.Event)
 	}
@@ -266,20 +275,18 @@ func (h *Hub) Start() {
 				}
 
 			case msg := <-h.broadcast:
-				if OkToSendTypingMessage(msg) {
-					for _, webCon := range h.connections {
-						if webCon.ShouldSendEvent(msg) {
-							select {
-							case webCon.Send <- msg:
-							default:
-								l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
-								close(webCon.Send)
-								for i, webConCandidate := range h.connections {
-									if webConCandidate == webCon {
-										h.connections[i] = h.connections[len(h.connections)-1]
-										h.connections = h.connections[:len(h.connections)-1]
-										break
-									}
+				for _, webCon := range h.connections {
+					if webCon.ShouldSendEvent(msg) {
+						select {
+						case webCon.Send <- msg:
+						default:
+							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+							close(webCon.Send)
+							for i, webConCandidate := range h.connections {
+								if webConCandidate == webCon {
+									h.connections[i] = h.connections[len(h.connections)-1]
+									h.connections = h.connections[:len(h.connections)-1]
+									break
 								}
 							}
 						}
@@ -319,13 +326,13 @@ func (h *Hub) Start() {
 	go doRecoverableStart()
 }
 
-func OkToSendTypingMessage(msg *model.WebSocketEvent) bool {
+func SkipTypingMessage(msg *model.WebSocketEvent) bool {
 	// Only broadcast typing messages if less than 1K people in channel
 	if msg.Event == model.WEBSOCKET_EVENT_TYPING {
 		if Srv.Store.Channel().GetMemberCountFromCache(msg.Broadcast.ChannelId) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
-			return false
+			return true
 		}
 	}
 
-	return true
+	return false
 }
