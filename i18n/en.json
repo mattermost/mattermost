@@ -2164,6 +2164,14 @@
     "translation": "{{.SubjectText}} in {{.TeamDisplayName}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "Group Message"
+  },
+  {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "New Group Message from {{ .SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
     "id": "api.templates.reset_body.button",
     "translation": "Reset Password"
   },

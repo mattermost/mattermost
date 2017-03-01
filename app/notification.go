@@ -386,7 +386,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	year := fmt.Sprintf("%d", tm.Year())
 	zone, _ := tm.Zone()
 
-	if channel.IsGroupOrDirect() {
+	if channel.Type == model.CHANNEL_DIRECT {
 		bodyText = userLocale("api.post.send_notifications_and_forget.message_body")
 		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
 
@@ -395,6 +395,14 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 		mailTemplate = "api.templates.post_subject_in_direct_message"
 		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
 			"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
+	} else if channel.Type == model.CHANNEL_GROUP {
+		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
+
+		senderDisplayName := senderName
+
+		mailTemplate = "api.templates.post_subject_in_group_message"
+		mailParameters = map[string]interface{}{"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
+		channelName = userLocale("api.templates.channel_name.group")
 	} else {
 		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
 		subjectText = userLocale("api.post.send_notifications_and_forget.mention_subject")
