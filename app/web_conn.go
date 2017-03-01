@@ -169,6 +169,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 
 		webCon.SessionToken = session.Token
 		webCon.SessionExpiresAt = session.ExpiresAt
+		webCon.Session = session
 	}
 
 	return true
