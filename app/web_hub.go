@@ -329,14 +329,3 @@ func (h *Hub) Start() {
 
 	go doRecoverableStart()
 }
-
-func SkipTypingMessage(msg *model.WebSocketEvent) bool {
-	// Only broadcast typing messages if less than 1K people in channel
-	if msg.Event == model.WEBSOCKET_EVENT_TYPING {
-		if Srv.Store.Channel().GetMemberCountFromCache(msg.Broadcast.ChannelId) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
-			return true
-		}
-	}
-
-	return false
-}
