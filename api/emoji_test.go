@@ -92,7 +92,7 @@ func TestGetEmoji(t *testing.T) {
 		}
 
 		if found {
-			t.Fatalf("souldn't have gotten deleted emoji %v", deleted.Id)
+			t.Fatalf("shouldn't have gotten deleted emoji %v", deleted.Id)
 		}
 	}
 }
