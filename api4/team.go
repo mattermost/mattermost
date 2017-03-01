@@ -18,6 +18,7 @@ func InitTeam() {
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
+	BaseRoutes.TeamsForUser.Handle("/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
@@ -102,6 +103,29 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(model.TeamListToJson(teams)))
 	}
+}
+
+func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Session.UserId != c.Params.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	// optional team id to be excluded from the result
+	teamId := r.URL.Query().Get("exclude_team")
+
+	unreadTeamsList, err := app.GetTeamsUnreadForUser(teamId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamsUnreadToJson(unreadTeamsList)))
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {

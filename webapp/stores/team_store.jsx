@@ -324,8 +324,11 @@ class TeamStoreClass extends EventEmitter {
     subtractUnread(teamId, msgs, mentions) {
         const member = this.my_team_members.filter((m) => m.team_id === teamId)[0];
         if (member) {
-            member.msg_count -= msgs;
-            member.mention_count -= mentions;
+            const msgCount = member.msg_count - msgs;
+            const mentionCount = member.mention_count - mentions;
+
+            member.msg_count = (msgCount > 0) ? msgCount : 0;
+            member.mention_count = (mentionCount > 0) ? mentionCount : 0;
         }
     }
 

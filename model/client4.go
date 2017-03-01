@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -507,6 +508,23 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
+// getTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount of
+// unread messages and mentions the current user has for the teams it belongs to.
+// An optional team ID can be set to exclude that team from the results. Must be authenticated.
+func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*TeamUnread, *Response) {
+	optional := ""
+	if teamIdToExclude != "" {
+		optional += fmt.Sprintf("?exclude_team=%s", url.QueryEscape(teamIdToExclude))
+	}
+
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/unread"+optional, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamsUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetAudits returns a list of audit based on the provided user id string.
 func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -883,6 +901,17 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response) {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// GetFileThumbnail gets the bytes for a file by id.
+func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/thumbnail", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
 	} else {
 		return data, BuildResponse(r)
 	}

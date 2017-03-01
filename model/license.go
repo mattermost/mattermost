@@ -8,6 +8,11 @@ import (
 	"io"
 )
 
+const (
+	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
+	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
+)
+
 type LicenseRecord struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`

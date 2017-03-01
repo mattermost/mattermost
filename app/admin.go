@@ -90,6 +90,7 @@ func InvalidateAllCachesSkipSend() {
 	store.ClearUserCaches()
 	store.ClearPostCaches()
 	store.ClearWebhookCaches()
+	LoadLicense()
 }
 
 func GetConfig() *model.Config {
