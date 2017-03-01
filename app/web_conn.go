@@ -245,7 +245,7 @@ func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 
 	}
 
-	member := session.GetTeamByTeamId(teamId)
+	member := webCon.Session.GetTeamByTeamId(teamId)
 
 	if member != nil {
 		return true
