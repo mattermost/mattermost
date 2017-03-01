@@ -49,10 +49,11 @@ func (me *PushNotification) ToJson() string {
 
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
 
-	parts := strings.Split(deviceId, ":")
-	if len(parts) == 2 {
-		me.Platform = parts[0]
-		me.DeviceId = parts[1]
+	index := strings.Index(deviceId, ":")
+
+	if index > -1 {
+		me.Platform = deviceId[:index]
+		me.DeviceId = deviceId[index+1:]
 	}
 }
 
