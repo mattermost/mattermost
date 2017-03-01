@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-
+	
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -492,5 +492,37 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 	Client.Logout()
 	_, resp = Client.GetTeamsUnreadForUser(user.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetTeamMembersByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	tm, resp := Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
+	CheckNoError(t, resp)
+
+	if tm[0].UserId != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+
+	_, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{})
+	CheckBadRequestStatus(t, resp)
+
+	tm1, resp := Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk"})
+	CheckNoError(t, resp)
+	if len(tm1) > 0 {
+		t.Fatal("no users should be returned")
+	}
+
+	tm1, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{"junk", th.BasicUser.Id})
+	CheckNoError(t, resp)
+	if len(tm1) != 1 {
+		t.Fatal("1 user should be returned")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
 	CheckUnauthorizedStatus(t, resp)
 }
