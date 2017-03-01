@@ -316,9 +316,13 @@ export function autocompleteChannels(term, success, error) {
     );
 }
 
-export function updateChannelNotifyProps(data, success, error) {
-    Client.updateChannelNotifyProps(data,
+export function updateChannelNotifyProps(data, options, success, error) {
+    Client.updateChannelNotifyProps(Object.assign({}, data, options),
         () => {
+            const member = ChannelStore.getMyMember(data.channel_id);
+            member.notify_props = Object.assign(member.notify_props, options);
+            ChannelStore.storeMyChannelMember(member);
+
             if (success) {
                 success();
             }
@@ -335,27 +339,34 @@ export function createChannel(channel, success, error) {
     Client.createChannel(
         channel,
         (data) => {
-            Client.getChannel(
-                data.id,
-                (data2) => {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_CHANNEL,
-                        channel: data2.channel,
-                        member: data2.channel
-                    });
-
-                    if (success) {
-                        success(data2);
-                    }
-                },
-                (err) => {
-                    AsyncClient.dispatchError(err, 'getChannel');
-
-                    if (error) {
-                        error(err);
-                    }
+            const existing = ChannelStore.getChannelById(data.id);
+            if (existing) {
+                if (success) {
+                    success({channel: existing});
                 }
-            );
+            } else {
+                Client.getChannel(
+                    data.id,
+                    (data2) => {
+                        AppDispatcher.handleServerAction({
+                            type: ActionTypes.RECEIVED_CHANNEL,
+                            channel: data2.channel,
+                            member: data2.channel
+                        });
+
+                        if (success) {
+                            success(data2);
+                        }
+                    },
+                    (err) => {
+                        AsyncClient.dispatchError(err, 'getChannel');
+
+                        if (error) {
+                            error(err);
+                        }
+                    }
+                );
+            }
         },
         (err) => {
             AsyncClient.dispatchError(err, 'createChannel');

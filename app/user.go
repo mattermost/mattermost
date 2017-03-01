@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
-	"html/template"
 	"image"
 	"image/color"
 	"image/draw"
@@ -18,7 +17,6 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -27,6 +25,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -988,42 +987,6 @@ func UpdatePasswordSendEmail(user *model.User, newPassword, method, siteURL stri
 	return nil
 }
 
-func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
-	var user *model.User
-	var err *model.AppError
-	if user, err = GetUserByEmail(email); err != nil {
-		return false, nil
-	}
-
-	if user.AuthData != nil && len(*user.AuthData) != 0 {
-		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
-	}
-
-	var recovery *model.PasswordRecovery
-	if recovery, err = CreatePasswordRecovery(user.Id); err != nil {
-		return false, err
-	}
-
-	T := utils.GetUserTranslations(user.Locale)
-
-	link := fmt.Sprintf("%s/reset_password_complete?code=%s", siteURL, url.QueryEscape(recovery.Code))
-
-	subject := T("api.templates.reset_subject")
-
-	bodyPage := utils.NewHTMLTemplate("reset_body", user.Locale)
-	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
-	bodyPage.Html["Info"] = template.HTML(T("api.templates.reset_body.info"))
-	bodyPage.Props["ResetUrl"] = link
-	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
-
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
-	}
-
-	return true, nil
-}
-
 func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
 	var recovery *model.PasswordRecovery
 	var err *model.AppError
@@ -1055,6 +1018,29 @@ func ResetPasswordFromCode(code, newPassword, siteURL string) *model.AppError {
 	}
 
 	return nil
+}
+
+func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUserByEmail(email); err != nil {
+		return false, nil
+	}
+
+	if user.AuthData != nil && len(*user.AuthData) != 0 {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	}
+
+	var recovery *model.PasswordRecovery
+	if recovery, err = CreatePasswordRecovery(user.Id); err != nil {
+		return false, err
+	}
+
+	if _, err := SendPasswordResetEmail(email, recovery, user.Locale, siteURL); err != nil {
+		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
+	}
+
+	return true, nil
 }
 
 func CreatePasswordRecovery(userId string) (*model.PasswordRecovery, *model.AppError) {
@@ -1252,4 +1238,46 @@ func AutocompleteUsersInTeam(teamId string, term string, searchOptions map[strin
 	}
 
 	return autocomplete, nil
+}
+
+func UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string, siteURL string) *model.AppError {
+	oauthUser := provider.GetUserFromJson(userData)
+
+	if oauthUser == nil {
+		return model.NewLocAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, "")
+	}
+
+	userAttrsChanged := false
+
+	if oauthUser.Username != user.Username {
+		if existingUser, _ := GetUserByUsername(oauthUser.Username); existingUser == nil {
+			user.Username = oauthUser.Username
+			userAttrsChanged = true
+		}
+	}
+
+	if oauthUser.GetFullName() != user.GetFullName() {
+		user.FirstName = oauthUser.FirstName
+		user.LastName = oauthUser.LastName
+		userAttrsChanged = true
+	}
+
+	if oauthUser.Email != user.Email {
+		if existingUser, _ := GetUserByEmail(oauthUser.Email); existingUser == nil {
+			user.Email = oauthUser.Email
+			userAttrsChanged = true
+		}
+	}
+
+	if userAttrsChanged {
+		var result store.StoreResult
+		if result = <-Srv.Store.User().Update(user, true); result.Err != nil {
+			return result.Err
+		}
+
+		user = result.Data.([2]*model.User)[0]
+		InvalidateCacheForUser(user.Id)
+	}
+
+	return nil
 }

@@ -74,7 +74,7 @@ func runServer(configFileLocation string) {
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {
-		api.LoadLicense()
+		app.LoadLicense()
 	}
 
 	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {

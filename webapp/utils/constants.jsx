@@ -55,7 +55,10 @@ export const Preferences = {
     CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     CATEGORY_FAVORITE_CHANNEL: 'favorite_channel',
-    EMAIL_INTERVAL: 'email_interval'
+    EMAIL_INTERVAL: 'email_interval',
+    INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
+    INTERVAL_FIFTEEN_MINUTES: 15 * 60,
+    INTERVAL_HOUR: 60 * 60
 };
 
 export const ActionTypes = keyMirror({
@@ -105,6 +108,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_INCOMING_WEBHOOKS: null,
     RECEIVED_INCOMING_WEBHOOK: null,
+    UPDATED_INCOMING_WEBHOOK: null,
     REMOVED_INCOMING_WEBHOOK: null,
     RECEIVED_OUTGOING_WEBHOOKS: null,
     RECEIVED_OUTGOING_WEBHOOK: null,
@@ -202,6 +206,7 @@ export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
     POST_DELETED: 'post_deleted',
+    CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',

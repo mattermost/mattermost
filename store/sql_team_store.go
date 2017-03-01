@@ -283,6 +283,32 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) GetAllPage(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -323,6 +349,38 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
+		}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
 		}
 

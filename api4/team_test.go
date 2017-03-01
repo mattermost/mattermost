@@ -114,6 +114,54 @@ func TestGetTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetAllTeams(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	_, resp := Client.CreateTeam(team)
+	CheckNoError(t, resp)
+
+	rrteams, resp := Client.GetAllTeams("", 1, 1)
+	CheckNoError(t, resp)
+
+	if (len(rrteams) != 1) {
+		t.Fatal("wrong number of teams - should be 1")
+	}
+
+	for _, rt := range rrteams {
+		if rt.Type != model.TEAM_OPEN {
+			t.Fatal("not all teams are open")
+		}
+	}
+
+	rrteams1, resp := Client.GetAllTeams("", 1, 0)
+	CheckNoError(t, resp)
+
+	if (len(rrteams1) != 0) {
+		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	rrteams2, resp := th.SystemAdminClient.GetAllTeams("", 1, 1)
+	CheckNoError(t, resp)
+
+	if (len(rrteams2) != 1) {
+		t.Fatal("wrong number of teams - should be 1")
+	}
+
+	rrteams2, resp = Client.GetAllTeams("", 1, 0)
+	CheckNoError(t, resp)
+
+	if (len(rrteams2) != 0) {
+		t.Fatal("wrong number of teams - should be 0")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetAllTeams("", 1, 10)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -414,4 +462,35 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	// user 1 (team admin) demotes himself
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
 	CheckNoError(t, resp)
+}
+
+func TestGetMyTeamsUnread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	Client.Login(user.Email, user.Password)
+
+	teams, resp := Client.GetTeamsUnreadForUser(user.Id, "")
+	CheckNoError(t, resp)
+	if len(teams) == 0 {
+		t.Fatal("should have results")
+	}
+
+	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
+	CheckNoError(t, resp)
+	if len(teams) != 0 {
+		t.Fatal("should not have results")
+	}
+
+	_, resp = Client.GetTeamsUnreadForUser("fail", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamsUnreadForUser(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamsUnreadForUser(user.Id, "")
+	CheckUnauthorizedStatus(t, resp)
 }

@@ -81,6 +81,10 @@ export default class PostAttachmentOpenGraph extends React.Component {
     }
 
     getBestImageUrl() {
+        if (this.state.data.images == null) {
+            return null;
+        }
+
         const nearestPointData = CommonUtils.getNearestPoint(this.imageDimentions, this.state.data.images, 'width', 'height');
 
         const bestImage = nearestPointData.nearestPoint;

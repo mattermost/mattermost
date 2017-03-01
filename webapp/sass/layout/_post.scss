@@ -518,6 +518,17 @@
     position: relative;
     word-wrap: break-word;
 
+    &.post--system {
+        .post__header {
+            .col__reply {
+                min-width: 0;
+            }
+            .dropdown {
+                margin-right: 0;
+            }
+        }
+    }
+
     &:hover {
         .dropdown,
         .comment-icon__container,

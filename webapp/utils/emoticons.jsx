@@ -31,7 +31,7 @@ export function handleEmoticons(text, tokens, emojis) {
 
     function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
         const index = tokens.size;
-        const alias = `MM_EMOTICON${index}`;
+        const alias = `$MM_EMOTICON${index}`;
 
         if (emojis.has(name)) {
             const path = EmojiStore.getEmojiImageUrl(emojis.get(name));

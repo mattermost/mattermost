@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -20,6 +22,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
+	BaseRoutes.User.Handle("/image", ApiSessionRequired(getProfileImage)).Methods("GET")
+	BaseRoutes.User.Handle("/image", ApiSessionRequired(setProfileImage)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
@@ -38,7 +42,6 @@ func InitUser() {
 	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
-
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -154,6 +157,99 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(user.ToJson()))
 		return
 	}
+}
+
+func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if users, err := app.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		if len(users) == 0 {
+			c.Err = err
+		}
+
+		user := users[0]
+		etag := strconv.FormatInt(user.LastPictureUpdate, 10)
+		if HandleEtag(etag, "Get Profile Image", w, r) {
+			return
+		}
+
+		var img []byte
+		img, readFailed, err := app.GetProfileImage(user)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if readFailed {
+			w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
+		} else {
+			w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+		}
+
+		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+		w.Write(img)
+	}
+}
+
+func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
+		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		return
+	}
+
+	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
+		return
+	}
+
+	m := r.MultipartForm
+
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	imageData := imageArray[0]
+
+	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {

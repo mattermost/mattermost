@@ -378,6 +378,7 @@ export default class PostList extends React.Component {
             if ((postUserId !== userId || this.props.ownNewMessage) &&
                     this.props.lastViewed !== 0 &&
                     post.create_at > this.props.lastViewed &&
+                    !Utils.isPostEphemeral(post) &&
                     !renderedLastViewed) {
                 renderedLastViewed = true;
 
