@@ -90,14 +90,6 @@ func HubUnregister(webConn *WebConn) {
 
 func Publish(message *model.WebSocketEvent) {
 
-	if SkipTypingMessage(message) {
-		if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
-			metrics.IncrementWebsocketEvent(message.Event + "_skipped")
-		}
-
-		return
-	}
-
 	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
 		metrics.IncrementWebsocketEvent(message.Event)
 	}
