@@ -117,6 +117,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	}
 
 	senderName := make(map[string]string)
+	channelName := make(map[string]string)
 	for _, id := range mentionedUsersList {
 		senderName[id] = ""
 		if post.IsSystemMessage() {
@@ -133,6 +134,19 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 					senderName[id] = sender.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
 				}
 			}
+		}
+
+		if channel.Type == model.CHANNEL_GROUP {
+			userList := []*model.User{}
+			for _, u := range profileMap {
+				if u.Id != sender.Id && u.Id != id {
+					userList = append(userList, u)
+				}
+			}
+			userList = append(userList, sender)
+			channelName[id] = model.GetGroupDisplayNameFromUsers(userList, false)
+		} else {
+			channelName[id] = channel.DisplayName
 		}
 	}
 
@@ -238,17 +252,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		}
 	}
 
-	channelName := channel.DisplayName
-	if channel.Type == model.CHANNEL_GROUP {
-		userList := []*model.User{}
-		for _, u := range profileMap {
-			if u.Id != post.UserId {
-				userList = append(userList, u)
-			}
-		}
-		channelName = model.GetGroupDisplayNameFromUsers(userList, false)
-	}
-
 	sendPushNotifications := false
 	if *utils.Cfg.EmailSettings.SendPushNotifications {
 		pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
@@ -269,7 +272,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-				sendPushNotification(post, profileMap[id], channel, channelName, senderName[id], channelMemberNotifyPropsMap[id], true)
+				sendPushNotification(post, profileMap[id], channel, senderName[id], channelName[id], channelMemberNotifyPropsMap[id], true)
 			}
 		}
 
@@ -282,7 +285,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 
 				if DoesStatusAllowPushNotification(profileMap[id], status, post.ChannelId) {
-					sendPushNotification(post, profileMap[id], channel, channelName, senderName[id], channelMemberNotifyPropsMap[id], false)
+					sendPushNotification(post, profileMap[id], channel, senderName[id], channelName[id], channelMemberNotifyPropsMap[id], false)
 				}
 			}
 		}

@@ -47,9 +47,9 @@ export default class MultiSelectList extends React.Component {
             const elemBottom = this.refs.selected.getBoundingClientRect().bottom;
             const listTop = this.refs.list.getBoundingClientRect().top;
             const listBottom = this.refs.list.getBoundingClientRect().bottom;
-            if (elemTop <= listBottom && elemBottom > listBottom) {
+            if (elemBottom > listBottom) {
                 this.refs.selected.scrollIntoView(false);
-            } else if (elemBottom >= listTop && elemTop < listTop) {
+            } else if (elemTop < listTop) {
                 this.refs.selected.scrollIntoView(true);
             }
         }
