@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"net/http"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -15,7 +16,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 // Import Data Models
@@ -25,6 +25,7 @@ type LineImportData struct {
 	Team    *TeamImportData    `json:"team"`
 	Channel *ChannelImportData `json:"channel"`
 	User    *UserImportData    `json:"user"`
+	Post    *PostImportData    `json:"post"`
 	Version *int               `json:"version"`
 }
 
@@ -83,6 +84,15 @@ type UserChannelImportData struct {
 type UserChannelNotifyPropsImportData struct {
 	Desktop    *string `json:"desktop"`
 	MarkUnread *string `json:"mark_unread"`
+}
+
+type PostImportData struct {
+	Team    *string `json:"team"`
+	Channel *string `json:"channel"`
+	User    *string `json:"user"`
+
+	Message  *string `json:"message"`
+	CreateAt *int64  `json:"create_at"`
 }
 
 //
@@ -151,6 +161,12 @@ func ImportLine(line LineImportData, dryRun bool) *model.AppError {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		} else {
 			return ImportUser(line.User, dryRun)
+		}
+	case line.Type == "post":
+		if line.Post == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest)
+		} else {
+			return ImportPost(line.Post, dryRun)
 		}
 	default:
 		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "")
@@ -698,13 +714,112 @@ func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppErr
 	return nil
 }
 
+func ImportPost(data *PostImportData, dryRun bool) *model.AppError {
+	if err := validatePostImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(*data.Team); result.Err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, "", http.StatusBadRequest)
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	var channel *model.Channel
+	if result := <-Srv.Store.Channel().GetByName(team.Id, *data.Channel, false); result.Err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, "", http.StatusBadRequest)
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, "", http.StatusBadRequest)
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	// Check if this post already exists.
+	var posts []*model.Post
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt); result.Err != nil {
+		return result.Err
+	} else {
+		posts = result.Data.([]*model.Post)
+	}
+
+	var post *model.Post
+	for _, p := range posts {
+		if p.Message == *data.Message {
+			post = p
+			break
+		}
+	}
+
+	if post == nil {
+		post = &model.Post{}
+	}
+
+	post.ChannelId = channel.Id
+	post.Message = *data.Message
+	post.UserId = user.Id
+	post.CreateAt = *data.CreateAt
+
+	post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+	if post.Id == "" {
+		if result := <-Srv.Store.Post().Save(post); result.Err != nil {
+			return result.Err
+		}
+	} else {
+		if result := <-Srv.Store.Post().Overwrite(post); result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
+}
+
+func validatePostImportData(data *PostImportData) *model.AppError {
+	if data.Team == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.team_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Channel == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Message == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
+	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.CreateAt == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
+	} else if *data.CreateAt == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 //
 // -- Old SlackImport Functions --
 // Import functions are sutible for entering posts and users into the database without
 // some of the usual checks. (IsValid is still run)
 //
 
-func ImportPost(post *model.Post) {
+func OldImportPost(post *model.Post) {
 	// Workaround for empty messages, which may be the case if they are webhook posts.
 	firstIteration := true
 	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
@@ -768,7 +883,7 @@ func OldImportChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-func ImportFile(file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
+func OldImportFile(file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 	data := buf.Bytes()
@@ -787,7 +902,7 @@ func ImportFile(file io.Reader, teamId string, channelId string, userId string, 
 	return fileInfo, nil
 }
 
-func ImportIncomingWebhookPost(post *model.Post, props model.StringInterface) {
+func OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) {
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
 
@@ -838,5 +953,5 @@ func ImportIncomingWebhookPost(post *model.Post, props model.StringInterface) {
 		}
 	}
 
-	ImportPost(post)
+	OldImportPost(post)
 }

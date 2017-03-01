@@ -242,7 +242,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 					newPost.Message = sPost.File.Title
 				}
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 			for _, fileId := range newPost.FileIds {
 				if result := <-Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
 					l4g.Error(utils.T("api.slackimport.slack_add_posts.attach_files.error"), newPost.Id, newPost.FileIds, result.Err)
@@ -266,7 +266,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Message:   sPost.Comment.Comment,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "bot_message":
 			if botUser == nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.bot_user_no_exists.warn"))
@@ -298,7 +298,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Type:      model.POST_SLACK_ATTACHMENT,
 			}
 
-			ImportIncomingWebhookPost(post, props)
+			OldImportIncomingWebhookPost(post, props)
 		case sPost.Type == "message" && (sPost.SubType == "channel_join" || sPost.SubType == "channel_leave"):
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -325,7 +325,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 					"username": users[sPost.User].Username,
 				},
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "me_message":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.without_user.debug"))
@@ -340,7 +340,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Message:   "*" + sPost.Text + "*",
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_topic":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -356,7 +356,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_HEADER_CHANGE,
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_purpose":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -372,7 +372,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_PURPOSE_CHANGE,
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_name":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -388,7 +388,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_DISPLAYNAME_CHANGE,
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		default:
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.unsupported.warn"), sPost.Type, sPost.SubType)
 		}
@@ -405,7 +405,7 @@ func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId strin
 			}
 			defer openFile.Close()
 
-			uploadedFile, err := ImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
+			uploadedFile, err := OldImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
 			if err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_upload_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
 				return nil, false

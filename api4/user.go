@@ -23,6 +23,7 @@ func InitUser() {
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("/image", ApiSessionRequired(getProfileImage)).Methods("GET")
+	BaseRoutes.User.Handle("/image", ApiSessionRequired(setProfileImage)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
@@ -195,6 +196,60 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write(img)
 	}
+}
+
+func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
+		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		return
+	}
+
+	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
+		return
+	}
+
+	m := r.MultipartForm
+
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	imageData := imageArray[0]
+
+	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {

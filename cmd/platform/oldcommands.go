@@ -77,7 +77,7 @@ func doLegacyCommands() {
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {
-		api.LoadLicense()
+		app.LoadLicense()
 	}
 
 	runCmds()
@@ -1002,7 +1002,7 @@ func cmdUploadLicense() {
 			flushLogAndExit(1)
 		}
 
-		if _, err := api.SaveLicense(fileBytes); err != nil {
+		if _, err := app.SaveLicense(fileBytes); err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
 		} else {

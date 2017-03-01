@@ -1127,3 +1127,141 @@ func TestPostStoreGetFlaggedPosts(t *testing.T) {
 		t.Fatal("should have 2 posts")
 	}
 }
+
+func TestPostStoreGetPostsCreatedAt(t *testing.T) {
+	Setup()
+
+	createTime := model.GetMillis()
+
+	o0 := &model.Post{}
+	o0.ChannelId = model.NewId()
+	o0.UserId = model.NewId()
+	o0.Message = "a" + model.NewId() + "b"
+	o0.CreateAt = createTime
+	o0 = (<-store.Post().Save(o0)).Data.(*model.Post)
+
+	o1 := &model.Post{}
+	o1.ChannelId = o0.Id
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "b"
+	o0.CreateAt = createTime
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "a" + model.NewId() + "b"
+	o2.ParentId = o1.Id
+	o2.RootId = o1.Id
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o3 := &model.Post{}
+	o3.ChannelId = model.NewId()
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "b"
+	o3.CreateAt = createTime
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	r1 := (<-store.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
+
+	if len(r1) != 2 {
+		t.Fatalf("Got the wrong number of posts.")
+	}
+}
+
+func TestPostStoreOverwrite(t *testing.T) {
+	Setup()
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "AAAAAAAAAAA"
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "a" + model.NewId() + "CCCCCCCCC"
+	o2.ParentId = o1.Id
+	o2.RootId = o1.Id
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "QQQQQQQQQQ"
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+
+	ro1 := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+	ro2 := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
+	ro3 := (<-store.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+
+	if ro1.Message != o1.Message {
+		t.Fatal("Failed to save/get")
+	}
+
+	o1a := &model.Post{}
+	*o1a = *ro1
+	o1a.Message = ro1.Message + "BBBBBBBBBB"
+	if result := <-store.Post().Overwrite(o1a); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	ro1a := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+
+	if ro1a.Message != o1a.Message {
+		t.Fatal("Failed to overwrite/get")
+	}
+
+	o2a := &model.Post{}
+	*o2a = *ro2
+	o2a.Message = ro2.Message + "DDDDDDD"
+	if result := <-store.Post().Overwrite(o2a); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	ro2a := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
+
+	if ro2a.Message != o2a.Message {
+		t.Fatal("Failed to overwrite/get")
+	}
+
+	o3a := &model.Post{}
+	*o3a = *ro3
+	o3a.Message = ro3.Message + "WWWWWWW"
+	if result := <-store.Post().Overwrite(o3a); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	ro3a := (<-store.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+
+	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
+		t.Fatal("Failed to overwrite/get")
+	}
+
+	o4 := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+		Message:   model.NewId(),
+		Filenames: []string{"test"},
+	})).(*model.Post)
+
+	ro4 := (<-store.Post().Get(o4.Id)).Data.(*model.PostList).Posts[o4.Id]
+
+	o4a := &model.Post{}
+	*o4a = *ro4
+	o4a.Filenames = []string{}
+	o4a.FileIds = []string{model.NewId()}
+	if result := <-store.Post().Overwrite(o4a); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if ro4a := Must(store.Post().Get(o4.Id)).(*model.PostList).Posts[o4.Id]; len(ro4a.Filenames) != 0 {
+		t.Fatal("Failed to clear Filenames")
+	} else if len(ro4a.FileIds) != 1 {
+		t.Fatal("Failed to set FileIds")
+	}
+}

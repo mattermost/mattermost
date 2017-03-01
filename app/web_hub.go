@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"runtime"
+	"runtime/debug"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -22,6 +23,7 @@ type Hub struct {
 	broadcast      chan *model.WebSocketEvent
 	stop           chan string
 	invalidateUser chan string
+	ExplicitStop   bool
 }
 
 var hubs []*Hub = make([]*Hub, 0)
@@ -34,6 +36,7 @@ func NewWebHub() *Hub {
 		broadcast:      make(chan *model.WebSocketEvent, 4096),
 		stop:           make(chan string),
 		invalidateUser: make(chan string),
+		ExplicitStop:   false,
 	}
 }
 
@@ -170,18 +173,6 @@ func InvalidateCacheForUser(userId string) {
 	}
 }
 
-func InvalidateCacheForChannelMember(channelId string, userId string) {
-	InvalidateCacheForChannelMemberSkipClusterSend(channelId, userId)
-
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().InvalidateCacheForChannelMember(channelId, userId)
-	}
-}
-
-func InvalidateCacheForChannelMemberSkipClusterSend(channelId string, userId string) {
-	Srv.Store.Channel().InvalidateMember(channelId, userId)
-}
-
 func InvalidateCacheForUserSkipClusterSend(userId string) {
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
@@ -237,7 +228,11 @@ func (h *Hub) Stop() {
 }
 
 func (h *Hub) Start() {
-	go func() {
+	var doStart func()
+	var doRecoverableStart func()
+	var doRecover func()
+
+	doStart = func() {
 		for {
 			select {
 			case webCon := <-h.register:
@@ -283,18 +278,20 @@ func (h *Hub) Start() {
 				}
 
 			case msg := <-h.broadcast:
-				for _, webCon := range h.connections {
-					if webCon.ShouldSendEvent(msg) {
-						select {
-						case webCon.Send <- msg:
-						default:
-							l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
-							close(webCon.Send)
-							for i, webConCandidate := range h.connections {
-								if webConCandidate == webCon {
-									h.connections[i] = h.connections[len(h.connections)-1]
-									h.connections = h.connections[:len(h.connections)-1]
-									break
+				if OkToSendTypingMessage(msg) {
+					for _, webCon := range h.connections {
+						if webCon.ShouldSendEvent(msg) {
+							select {
+							case webCon.Send <- msg:
+							default:
+								l4g.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+								close(webCon.Send)
+								for i, webConCandidate := range h.connections {
+									if webConCandidate == webCon {
+										h.connections[i] = h.connections[len(h.connections)-1]
+										h.connections = h.connections[:len(h.connections)-1]
+										break
+									}
 								}
 							}
 						}
@@ -305,9 +302,42 @@ func (h *Hub) Start() {
 				for _, webCon := range h.connections {
 					webCon.WebSocket.Close()
 				}
+				h.ExplicitStop = true
 
 				return
 			}
 		}
-	}()
+	}
+
+	doRecoverableStart = func() {
+		defer doRecover()
+		doStart()
+	}
+
+	doRecover = func() {
+		if !h.ExplicitStop {
+			if r := recover(); r != nil {
+				l4g.Error(fmt.Sprintf("Recovering from Hub panic. Panic was: %v", r))
+			} else {
+				l4g.Error("Webhub stopped unexpectedly. Recovering.")
+			}
+
+			l4g.Error(string(debug.Stack()))
+
+			go doRecoverableStart()
+		}
+	}
+
+	go doRecoverableStart()
+}
+
+func OkToSendTypingMessage(msg *model.WebSocketEvent) bool {
+	// Only broadcast typing messages if less than 1K people in channel
+	if msg.Event == model.WEBSOCKET_EVENT_TYPING {
+		if Srv.Store.Channel().GetMemberCountFromCache(msg.Broadcast.ChannelId) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
+			return false
+		}
+	}
+
+	return true
 }

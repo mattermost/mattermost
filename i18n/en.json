@@ -2692,23 +2692,15 @@
     "translation": "team hub stopping for teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_error",
+    "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.update_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.update_incoming.permissions.app_error",
-    "translation": "Invalid permissions to update incoming webhook"
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Cannot update webhook across teams"
   },
   {
-    "id": "api.webhook.create_outgoing.disabled.app_error",
+    "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
@@ -2728,48 +2720,24 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.update_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "translation": "Invalid permissions to delete incoming webhook"
   },
   {
     "id": "api.webhook.update_outgoing.not_open.app_error",
     "translation": "Outgoing webhooks can only be updated to public channels."
   },
   {
-    "id": "api.webhook.update_outgoing.permissions.app_error",
-    "translation": "Invalid permissions to update outgoing webhook."
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
   },
   {
     "id": "api.webhook.update_outgoing.triggers.app_error",
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.delete_incoming.permissions.app_error",
-    "translation": "Invalid permissions to delete incoming webhook"
-  },
-  {
-    "id": "api.webhook.delete_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
-  },
-  {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
     "translation": "Invalid permissions to delete outgoing webhook"
-  },
-  {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2782,10 +2750,6 @@
   {
     "id": "api.webhook.init.debug",
     "translation": "Initializing webhook API routes"
-  },
-  {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
@@ -3018,6 +2982,50 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "Error importing post. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Error importing post. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Missing required Post property: Channel."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Missing required Post property: User."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Missing required Post property: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Missing required Post property: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Post CreateAt must not be zero if it is provided."
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Import data line has type \"post\" but the post object is null."
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3594,6 +3602,14 @@
   {
     "id": "model.client.read_file.app_error",
     "translation": "We encountered an error while reading the file"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "Unable to write request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4972,6 +4988,10 @@
     "translation": "We couldn't get the posts for the channel"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "We couldn't get the parent posts for the channel"
   },
@@ -5018,6 +5038,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "We couldn't update the Post"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "We couldn't overwrite the Post"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -5618,6 +5642,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",

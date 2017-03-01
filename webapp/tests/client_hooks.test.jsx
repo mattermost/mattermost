@@ -22,7 +22,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.create_incoming.disabled.app_error');
+                    assert.equal(err.id, 'api.incoming_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -44,7 +44,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.update_incoming.disabled.app_error');
+                    assert.equal(err.id, 'api.incoming_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -60,7 +60,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.delete_incoming.disabled.app_error');
+                    assert.equal(err.id, 'api.incoming_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -75,7 +75,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.get_incoming.disabled.app_error');
+                    assert.equal(err.id, 'api.incoming_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -97,7 +97,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.create_outgoing.disabled.app_error');
+                    assert.equal(err.id, 'api.outgoing_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -113,7 +113,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.delete_outgoing.disabled.app_error');
+                    assert.equal(err.id, 'api.outgoing_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -128,7 +128,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.get_outgoing.disabled.app_error');
+                    assert.equal(err.id, 'api.outgoing_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -144,7 +144,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.regen_outgoing_token.disabled.app_error');
+                    assert.equal(err.id, 'api.outgoing_webhook.disabled.app_error');
                     done();
                 }
             );
@@ -166,7 +166,7 @@ describe('Client.Hooks', function() {
                     done(new Error('hooks not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.webhook.update_outgoing.disabled.app_error');
+                    assert.equal(err.id, 'api.outgoing_webhook.disabled.app_error');
                     done();
                 }
             );
