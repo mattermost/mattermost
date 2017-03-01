@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -23,6 +23,25 @@ import (
 	"github.com/mattermost/platform/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
+
+var (
+	timeout    = time.Duration(5 * time.Second)
+	httpClient *http.Client
+)
+
+func init() {
+	httpClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
+			DisableKeepAlives: true,
+			Dial:              dialTimeout,
+		},
+	}
+}
+
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, timeout)
+}
 
 func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
@@ -555,22 +574,14 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 func sendToPushProxy(msg model.PushNotification, session *model.Session) *model.AppError {
 	msg.ServerId = utils.CfgDiagnosticId
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-		DisableKeepAlives: true,
-	}
-	httpClient := &http.Client{Transport: tr}
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
 	if resp, err := httpClient.Do(request); err != nil {
 		return model.NewLocAppError("sendToPushProxy", "api.post.send_notifications_and_forget.push_notification.error", map[string]interface{}{"DeviceId": msg.DeviceId, "Error": err.Error()}, "")
 	} else {
-		m := model.MapFromJson(resp.Body)
-		if resp.Body != nil {
-			ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-		}
+		defer resp.Body.Close()
 
+		m := model.MapFromJson(resp.Body)
 		if m[model.STATUS] == model.STATUS_REMOVE {
 			l4g.Info("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id)
 			AttachDeviceId(session.Id, "", session.ExpiresAt)
