@@ -77,7 +77,11 @@ export default class SwitchChannelProvider extends Provider {
                     for (const id of Object.keys(allChannels)) {
                         const channel = allChannels[id];
                         if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
-                            channels.push(channel);
+                            const newChannel = Object.assign({}, channel);
+                            if (newChannel.type === Constants.GM_CHANNEL) {
+                                newChannel.name = buildGroupChannelName(newChannel.id);
+                            }
+                            channels.push(newChannel);
                         }
                     }
 

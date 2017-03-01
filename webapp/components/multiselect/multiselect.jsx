@@ -76,6 +76,9 @@ export default class MultiSelect extends React.Component {
 
         this.props.handleAdd(value);
         this.selected = null;
+        this.refs.select.handleInputChange({target: {value: ''}});
+        this.onInput('');
+        this.refs.select.focus();
     }
 
     onInput(input) {
@@ -97,7 +100,6 @@ export default class MultiSelect extends React.Component {
                 return;
             }
             this.onAdd(this.selected);
-            this.onInput('');
             break;
         }
     }
