@@ -235,14 +235,12 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 
 	if webCon.Session == nil {
-		session, err := GetSession(webCon.SessionToken)
-		if err != nil {
-			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
+		session := GetSession(webCon.SessionToken)
+		if session == nil {
 			return false
 		} else {
 			webCon.Session = session
 		}
-
 	}
 
 	member := webCon.Session.GetTeamByTeamId(teamId)
