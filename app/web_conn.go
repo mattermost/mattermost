@@ -164,6 +164,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			webCon.SessionToken = ""
 			webCon.SessionExpiresAt = 0
+			webCon.Session = nil
 			return false
 		}
 
