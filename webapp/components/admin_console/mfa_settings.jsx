@@ -54,7 +54,7 @@ export default class MfaSettings extends AdminSettings {
                     <div className='banner__content'>
                         <FormattedHTMLMessage
                             id='admin.mfa.bannerDesc'
-                            defaultMessage="<a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>Multi-factor authentication</a> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured the authentication provider."
+                            defaultMessage="<a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>Multi-factor authentication</a> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider."
                         />
                     </div>
                 </div>
