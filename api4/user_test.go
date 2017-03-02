@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	
+
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -969,45 +969,45 @@ func TestAutocompleteUsers(t *testing.T) {
 	rusers, resp := Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 
-	if len(rusers) != 1 {
+	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, "amazonses", "")
 	CheckNoError(t, resp)
-	if len(rusers) != 0 {
+	if len(rusers.Users) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, "", "")
 	CheckNoError(t, resp)
-	if len(rusers) < 2 {
+	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
 	CheckNoError(t, resp)
 
-	if len(rusers) != 1 {
+	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 user")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInTeam("", username, "")
 	CheckNoError(t, resp)
 
-	if len(rusers) != 0 {
-		t.Fatal("should have returned 0 users")
+	if len(rusers.Users) != 1 {
+		t.Fatal("should have returned 1 users")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "amazonses", "")
 	CheckNoError(t, resp)
-	if len(rusers) != 0 {
+	if len(rusers.Users) != 0 {
 		t.Fatal("should have returned 0 users")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "", "")
 	CheckNoError(t, resp)
-	if len(rusers) < 2 {
+	if len(rusers.Users) < 2 {
 		t.Fatal("should have many users")
 	}
 

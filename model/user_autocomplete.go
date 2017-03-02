@@ -18,10 +18,8 @@ type UserAutocompleteInTeam struct {
 }
 
 type UserAutocomplete struct {
-	InSystem     []*User `json:"in_system"`
-	InTeam       []*User `json:"in_team"`
-	InChannel    []*User `json:"in_channel"`
-	OutOfChannel []*User `json:"out_of_channel"`
+	Users        []*User `json:"users"`
+	OutOfChannel []*User `json:"out_of_channel, omitempty"`
 }
 
 func (o *UserAutocomplete) ToJson() string {

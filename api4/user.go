@@ -656,7 +656,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			result, _ := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
-			autocomplete.InChannel = result.InChannel
+			autocomplete.Users = result.InChannel
 			autocomplete.OutOfChannel = result.OutOfChannel
 		} else {
 			if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
@@ -665,12 +665,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			result, _ := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
-			autocomplete.InTeam = result.InTeam
+			autocomplete.Users = result.InTeam
 		}
 	} else {
 		// No permission check required
 		result, _ := app.SearchUsersInTeam("", term, searchOptions)
-		autocomplete.InSystem = result
+		autocomplete.Users = result
 	}
 
 	if err != nil {
