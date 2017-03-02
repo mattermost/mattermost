@@ -1645,6 +1645,7 @@
   "more_channels.title": "More Channels",
   "more_direct_channels.close": "Close",
   "more_direct_channels.new_convo_note": "This will start a new conversation. If you’re adding a lot of people, consider creating a private group instead.",
+  "more_direct_channels.new_convo_note.full": "You’ve reached the maximum number of people for this conversation. Consider creating a private group instead.",
   "more_direct_channels.message": "Message",
   "more_direct_channels.title": "Direct Messages",
   "msg_typing.areTyping": "{users} and {last} are typing...",

@@ -262,12 +262,21 @@ export default class MoreDirectChannels extends React.Component {
     render() {
         let note;
         if (this.props.startingUsers) {
-            note = (
-                <FormattedMessage
-                    id='more_direct_channels.new_convo_note'
-                    defaultMessage='This will start a new conversation. If you’re adding a lot of people, consider creating a private group instead.'
-                />
-            );
+            if (this.state.values && this.state.values.length >= MAX_SELECTABLE_VALUES) {
+                note = (
+                    <FormattedMessage
+                        id='more_direct_channels.new_convo_note.full'
+                        defaultMessage='You’ve reached the maximum number of people for this conversation. Consider creating a private group instead.'
+                    />
+                );
+            } else {
+                note = (
+                    <FormattedMessage
+                        id='more_direct_channels.new_convo_note'
+                        defaultMessage='This will start a new conversation. If you’re adding a lot of people, consider creating a private group instead.'
+                    />
+                );
+            }
         }
 
         const numRemainingText = (
