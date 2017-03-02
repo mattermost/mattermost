@@ -105,13 +105,13 @@ func SendVerifyEmail(userId, userEmail, locale, siteURL string) *model.AppError 
 func SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.singin_change_email.subject",
+	subject := T("api.templates.signin_change_email.subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
 
 	bodyPage := utils.NewHTMLTemplate("signin_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.signin_change_email.body.title")
-	bodyPage.Html["Info"] = template.HTML(T("api.templates.singin_change_email.body.info",
+	bodyPage.Html["Info"] = template.HTML(T("api.templates.signin_change_email.body.info",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
