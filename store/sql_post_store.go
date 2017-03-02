@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -961,27 +962,28 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 		queryParams["Terms"] = terms
 
-		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.app_error", nil, "teamId="+teamId+", err="+err.Error())
-		}
-
 		list := model.NewPostList()
 
-		for _, p := range posts {
-			if searchType == "Hashtags" {
-				exactMatch := false
-				for _, tag := range strings.Split(p.Hashtags, " ") {
-					if termMap[strings.ToUpper(tag)] {
-						exactMatch = true
+		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
+		if err != nil {
+			l4g.Warn(utils.T("store.sql_post.search.warn"), err.Error())
+			// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
+		} else {
+			for _, p := range posts {
+				if searchType == "Hashtags" {
+					exactMatch := false
+					for _, tag := range strings.Split(p.Hashtags, " ") {
+						if termMap[strings.ToUpper(tag)] {
+							exactMatch = true
+						}
+					}
+					if !exactMatch {
+						continue
 					}
 				}
-				if !exactMatch {
-					continue
-				}
+				list.AddPost(p)
+				list.AddOrder(p.Id)
 			}
-			list.AddPost(p)
-			list.AddOrder(p.Id)
 		}
 
 		list.MakeNonNil()
