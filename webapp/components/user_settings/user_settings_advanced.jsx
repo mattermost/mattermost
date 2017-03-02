@@ -393,7 +393,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='user.settings.advance.sendDesc'
-                            defaultMessage="If enabled 'Enter' inserts a new line and 'Ctrl + Enter' submits the message."
+                            defaultMessage='If enabled ENTER inserts a new line and CTRL+ENTER submits the message.'
                         />
                     </div>
                 </div>
@@ -403,7 +403,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     title={
                         <FormattedMessage
                             id='user.settings.advance.sendTitle'
-                            defaultMessage='Send messages on Ctrl + Enter'
+                            defaultMessage='Send messages on CTRL+ENTER'
                         />
                     }
                     inputs={inputs}
@@ -421,7 +421,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     title={
                         <FormattedMessage
                             id='user.settings.advance.sendTitle'
-                            defaultMessage='Send messages on Ctrl + Enter'
+                            defaultMessage='Send messages on CTRL+ENTER'
                         />
                     }
                     describe={this.renderOnOffLabel(this.state.settings.send_on_ctrl_enter)}
