@@ -154,4 +154,49 @@ describe('TextFormatting.Hashtags', function() {
 
         done();
     });
+
+    it('Potential hashtags with other entities nested', function(done) {
+        assert.equal(
+            TextFormatting.formatText('#@test').trim(),
+            '<p>#@test</p>'
+        );
+
+        let options = {
+            usernameMap: {
+                test: {id: '1234', username: 'test'}
+            }
+        };
+        assert.equal(
+            TextFormatting.formatText('#@test', options).trim(),
+            "<p>#<a class='mention-link' href='#' data-mention='test'>@test</a></p>"
+        );
+
+        assert.equal(
+            TextFormatting.formatText('#~test').trim(),
+            '<p>#~test</p>'
+        );
+
+        options = {
+            channelNamesMap: {
+                test: {id: '1234', name: 'test', display_name: 'Test Channel'}
+            },
+            team: {id: 'abcd', name: 'abcd', display_name: 'Alphabet'}
+        };
+        assert.equal(
+            TextFormatting.formatText('#~test', options).trim(),
+            '<p>#~test</p>'
+        );
+
+        assert.equal(
+            TextFormatting.formatText('#:taco:').trim(),
+            '<p>#<span alt=":taco:" class="emoticon" title=":taco:" style="background-image:url(/static/emoji/taco.png)"></span></p>'
+        );
+
+        assert.equal(
+            TextFormatting.formatText('#test@example.com').trim(),
+            "<p><a class='mention-link' href='#' data-hashtag='#test'>#test</a>@example.com</p>"
+        );
+
+        done();
+    });
 });
