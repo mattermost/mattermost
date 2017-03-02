@@ -192,8 +192,6 @@
     }
 
     .channel-intro-img {
-        float: left;
-
         .status-wrapper {
             height: 50px;
             margin: 0 10px 10px 0;
@@ -214,10 +212,6 @@
         @include border-radius(3px);
         background: $bg--gray;
         padding: 10px 15px;
-    }
-
-    .channel-intro-text {
-        margin-top: 35px;
     }
 }
 

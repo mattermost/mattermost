@@ -170,6 +170,7 @@
                 float: left;
                 font-size: 17px;
                 line-height: 27px;
+                max-width: calc(100% - 80px);
 
                 .name {
                     color: $white;

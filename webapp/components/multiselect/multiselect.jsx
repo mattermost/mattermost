@@ -131,6 +131,16 @@ export default class MultiSelect extends React.Component {
         let optionsToDisplay = [];
         let nextButton;
         let previousButton;
+        let noteTextContainer;
+
+        if (this.props.noteText) {
+            noteTextContainer = (
+                <div className='multi-select__note'>
+                    <div className='note__icon'><span className='fa fa-info'/></div>
+                    <div>{this.props.noteText}</div>
+                </div>
+            );
+        }
 
         if (options && options.length > this.props.perPage) {
             const pageStart = this.state.page * this.props.perPage;
@@ -207,7 +217,7 @@ export default class MultiSelect extends React.Component {
                             />
                         </div>
                         {numRemainingText}
-                        {this.props.noteText}
+                        {noteTextContainer}
                     </div>
                 </div>
                 <MultiSelectList
