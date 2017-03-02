@@ -258,7 +258,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post.ChannelId) {
+			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
 				sendPushNotification(post, profileMap[id], channel, senderName[id], true)
 			}
 		}
@@ -271,7 +271,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
-				if DoesStatusAllowPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post.ChannelId) {
+				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
 					sendPushNotification(post, profileMap[id], channel, senderName[id], false)
 				}
 			}
@@ -734,4 +734,49 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 	}
 
 	return keywords
+}
+
+func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
+	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned) &&
+		DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId)
+}
+
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
+	userNotifyProps := user.NotifyProps
+	userNotify := userNotifyProps[model.PUSH_NOTIFY_PROP]
+	channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]
+
+	if post.IsSystemMessage() {
+		return false
+	}
+
+	if channelNotify == model.USER_NOTIFY_NONE {
+		return false
+	} else if (userNotify == model.USER_NOTIFY_MENTION || channelNotify == model.CHANNEL_NOTIFY_MENTION) && !wasMentioned {
+		return false
+	}
+
+	if (userNotify == model.USER_NOTIFY_ALL || channelNotify == model.CHANNEL_NOTIFY_ALL) &&
+		(post.UserId != user.Id || post.Props["from_webhook"] == "true") {
+		return true
+	}
+
+	if userNotify == model.USER_NOTIFY_NONE &&
+		(!ok || channelNotify == model.CHANNEL_NOTIFY_DEFAULT) {
+		return false
+	}
+
+	return true
+}
+
+func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelId string) bool {
+	if pushStatus, ok := userNotifyProps["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
+		return true
+	} else if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
+		return true
+	} else if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
+		return true
+	}
+
+	return false
 }
