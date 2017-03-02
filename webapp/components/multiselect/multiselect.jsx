@@ -191,6 +191,7 @@ export default class MultiSelect extends React.Component {
                             openOnFocus={true}
                             onInputChange={this.onInput}
                             onBlurResetsInput={false}
+                            onCloseResetsInput={false}
                             onChange={this.onChange}
                             value={this.props.values}
                             valueRenderer={this.props.valueRenderer}
