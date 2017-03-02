@@ -105,7 +105,7 @@ export default class SwitchChannelModal extends React.Component {
 
             if (user) {
                 openDirectChannelToUser(
-                    user,
+                    user.id,
                     (ch) => {
                         channel = ch;
                         this.switchToChannel(channel);
@@ -117,7 +117,7 @@ export default class SwitchChannelModal extends React.Component {
                 );
             }
         } else {
-            channel = ChannelStore.getByName(this.selected.name);
+            channel = ChannelStore.get(this.selected.id);
             this.switchToChannel(channel);
         }
     }
