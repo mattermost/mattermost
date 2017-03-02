@@ -171,6 +171,9 @@
                 font-size: 17px;
                 line-height: 27px;
                 max-width: calc(100% - 80px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
 
                 .name {
                     color: $white;
