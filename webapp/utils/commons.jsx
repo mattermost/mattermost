@@ -8,7 +8,6 @@ export function getDistanceBW2Points(point1, point2, xAttr = 'x', yAttr = 'y') {
   */
 export function getNearestPoint(pivotPoint, points, xAttr = 'x', yAttr = 'y') {
     var nearestPoint = {};
-    var nearestPointLte = {};  // Nearest point smaller than or equal to point
     for (const point of points) {
         if (typeof nearestPoint[xAttr] === 'undefined' || typeof nearestPoint[yAttr] === 'undefined') {
             nearestPoint = point;
@@ -16,21 +15,6 @@ export function getNearestPoint(pivotPoint, points, xAttr = 'x', yAttr = 'y') {
         // Check for bestImage
             nearestPoint = point;
         }
-
-        if (typeof nearestPointLte[xAttr] === 'undefined' || typeof nearestPointLte[yAttr] === 'undefined') {
-            if (point[xAttr] <= pivotPoint[xAttr] && point[yAttr] <= pivotPoint[yAttr]) {
-                nearestPointLte = point;
-            }
-        } else if (
-        // Check for bestImageLte
-            getDistanceBW2Points(point, pivotPoint, xAttr, yAttr) < getDistanceBW2Points(nearestPointLte, pivotPoint, xAttr, yAttr) &&
-            point[xAttr] <= pivotPoint[xAttr] && point[yAttr] <= pivotPoint[yAttr]
-        ) {
-            nearestPointLte = point;
-        }
     }
-    return {
-        nearestPoint,
-        nearestPointLte
-    };
+    return nearestPoint;
 }
