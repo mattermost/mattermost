@@ -218,6 +218,10 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+	
 	team := model.TeamFromJson(r.Body)
 
 	if team == nil {
