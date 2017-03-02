@@ -264,9 +264,24 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
+	var channel *model.Channel
+	if result := <-app.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
+		channel = result.Data.(*model.Channel)
+	} else {
+		c.SetInvalidParam("getPermalinkTmp", "postId")
 		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN {
+		if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+			c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
+			return
+		}
+	} else {
+		if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
 	}
 
 	if list, err := app.GetPermalinkPost(postId, c.Session.UserId); err != nil {
