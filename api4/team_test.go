@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -521,6 +521,15 @@ func TestGetTeamMembersByIds(t *testing.T) {
 	if len(tm1) != 1 {
 		t.Fatal("1 user should be returned")
 	}
+
+	tm1, resp = Client.GetTeamMembersByIds("junk", []string{th.BasicUser.Id})
+	CheckBadRequestStatus(t, resp)
+
+	tm1, resp = Client.GetTeamMembersByIds("", []string{th.BasicUser.Id})
+	CheckNotFoundStatus(t, resp)
+
+	tm1, resp = Client.GetTeamMembersByIds(model.NewId(), []string{th.BasicUser.Id})
+	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
