@@ -357,6 +357,55 @@ export default class RhsThread extends React.Component {
             rootStatus = this.state.statuses[selected.user_id] || 'offline';
         }
 
+        const commentsLists = [];
+        for (let i = 0; i < postsArray.length; i++) {
+            const comPost = postsArray[i];
+            let p;
+            if (UserStore.getCurrentId() === comPost.user_id) {
+                p = UserStore.getCurrentUser();
+            } else {
+                p = profiles[comPost.user_id];
+            }
+
+            let isFlagged = false;
+            if (this.state.flaggedPosts) {
+                isFlagged = this.state.flaggedPosts.get(comPost.id) === 'true';
+            }
+
+            let status = 'offline';
+            if (this.state.statuses && p && p.id) {
+                status = this.state.statuses[p.id] || 'offline';
+            }
+
+            const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
+
+            const currentPostDay = Utils.getDateForUnixTicks(comPost.create_at);
+
+            if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
+                previousPostDay = currentPostDay;
+                commentsLists.push(
+                    <DateSeparator
+                        date={currentPostDay}
+                    />);
+            }
+
+            commentsLists.push(
+                <div key={keyPrefix + 'commentKey'}>
+                    <Comment
+                        ref={comPost.id}
+                        post={comPost}
+                        user={p}
+                        currentUser={this.props.currentUser}
+                        compactDisplay={this.state.compactDisplay}
+                        useMilitaryTime={this.props.useMilitaryTime}
+                        isFlagged={isFlagged}
+                        status={status}
+                        isBusy={this.state.isBusy}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className='post-right__container'>
                 <FileUploadOverlay overlayType='right'/>
@@ -406,54 +455,7 @@ export default class RhsThread extends React.Component {
                                 ref='rhspostlist'
                                 className='post-right-comments-container'
                             >
-                                {postsArray.map((comPost) => {
-                                    let p;
-                                    if (UserStore.getCurrentId() === comPost.user_id) {
-                                        p = UserStore.getCurrentUser();
-                                    } else {
-                                        p = profiles[comPost.user_id];
-                                    }
-
-                                    let isFlagged = false;
-                                    if (this.state.flaggedPosts) {
-                                        isFlagged = this.state.flaggedPosts.get(comPost.id) === 'true';
-                                    }
-
-                                    let status = 'offline';
-                                    if (this.state.statuses && p && p.id) {
-                                        status = this.state.statuses[p.id] || 'offline';
-                                    }
-
-                                    const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
-
-                                    let separator = null;
-                                    const currentPostDay = Utils.getDateForUnixTicks(comPost.create_at);
-
-                                    if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
-                                        previousPostDay = currentPostDay;
-                                        separator = (
-                                            <DateSeparator
-                                                date={currentPostDay}
-                                            />);
-                                    }
-
-                                    return (
-                                        <div key={keyPrefix + 'commentKey'}>
-                                            {separator}
-                                            <Comment
-                                                ref={comPost.id}
-                                                post={comPost}
-                                                user={p}
-                                                currentUser={this.props.currentUser}
-                                                compactDisplay={this.state.compactDisplay}
-                                                useMilitaryTime={this.props.useMilitaryTime}
-                                                isFlagged={isFlagged}
-                                                status={status}
-                                                isBusy={this.state.isBusy}
-                                            />
-                                        </div>
-                                    );
-                                })}
+                                {commentsLists}
                             </div>
                             <div className='post-create__container'>
                                 <CreateComment
