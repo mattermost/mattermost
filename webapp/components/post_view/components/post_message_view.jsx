@@ -107,17 +107,18 @@ export default class PostMessageView extends React.Component {
 
         const renderedSystemMessage = renderSystemMessage(this.props.post, options);
         if (renderedSystemMessage) {
-            return renderedSystemMessage;
+            return <div>{renderedSystemMessage}</div>;
         }
+
         return (
-            <span>
+            <div>
                 <span
                     className='post-message__text'
                     onClick={Utils.handleFormattedTextClick}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
                 />
                 {this.renderEditedIndicator()}
-            </span>
+            </div>
         );
     }
 }
