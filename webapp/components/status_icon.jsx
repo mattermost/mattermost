@@ -33,7 +33,7 @@ export default class StatusIcon extends React.Component {
 
         return (
             <span
-                className='status'
+                className={'status ' + this.props.className}
                 dangerouslySetInnerHTML={{__html: statusIcon}}
             />
         );
@@ -41,7 +41,12 @@ export default class StatusIcon extends React.Component {
 
 }
 
+StatusIcon.defaultProps = {
+    className: ''
+};
+
 StatusIcon.propTypes = {
     status: React.PropTypes.string,
+    className: React.PropTypes.string,
     type: React.PropTypes.string
 };

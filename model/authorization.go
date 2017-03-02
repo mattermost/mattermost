@@ -30,6 +30,7 @@ var PERMISSION_MANAGE_ROLES *Permission
 var PERMISSION_MANAGE_TEAM_ROLES *Permission
 var PERMISSION_MANAGE_CHANNEL_ROLES *Permission
 var PERMISSION_CREATE_DIRECT_CHANNEL *Permission
+var PERMISSION_CREATE_GROUP_CHANNEL *Permission
 var PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES *Permission
 var PERMISSION_LIST_TEAM_CHANNELS *Permission
@@ -148,6 +149,11 @@ func InitalizePermissions() {
 		"create_direct_channel",
 		"authentication.permissions.create_direct_channel.name",
 		"authentication.permissions.create_direct_channel.description",
+	}
+	PERMISSION_CREATE_GROUP_CHANNEL = &Permission{
+		"create_group_channel",
+		"authentication.permissions.create_group_channel.name",
+		"authentication.permissions.create_group_channel.description",
 	}
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES = &Permission{
 		"manage__publicchannel_properties",
@@ -350,6 +356,7 @@ func InitalizeRoles() {
 		"authentication.roles.global_user.description",
 		[]string{
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
+			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 			PERMISSION_MANAGE_OAUTH.Id,
 		},
