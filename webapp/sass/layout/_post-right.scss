@@ -53,6 +53,12 @@
         border: none;
     }
 
+    .date-separator {
+        hr {
+            border-top: 1px solid #eee;
+        }
+    }
+
     .post-create__container {
         width: 100%;
 

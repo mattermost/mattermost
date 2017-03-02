@@ -8,6 +8,7 @@ import RootPost from './rhs_root_post.jsx';
 import Comment from './rhs_comment.jsx';
 import FileUploadOverlay from './file_upload_overlay.jsx';
 import FloatingTimestamp from './post_view/components/floating_timestamp.jsx';
+import DateSeparator from './post_view/components/date_separator.jsx';
 
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -325,6 +326,7 @@ export default class RhsThread extends React.Component {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
         const profiles = this.state.profiles || {};
+        let previousPostDay = Utils.getDateForUnixTicks(selected.create_at);
 
         if (postsArray == null || selected == null) {
             return (
@@ -384,6 +386,9 @@ export default class RhsThread extends React.Component {
                         onScroll={this.handleScroll}
                     >
                         <div className='post-right__scroll'>
+                            <DateSeparator
+                                date={previousPostDay}
+                            />
                             <RootPost
                                 ref={selected.id}
                                 post={selected}
@@ -421,19 +426,32 @@ export default class RhsThread extends React.Component {
 
                                     const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
 
+                                    let separator = null;
+                                    const currentPostDay = Utils.getDateForUnixTicks(comPost.create_at);
+
+                                    if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
+                                        previousPostDay = currentPostDay;
+                                        separator = (
+                                            <DateSeparator
+                                                date={currentPostDay}
+                                            />);
+                                    }
+
                                     return (
-                                        <Comment
-                                            ref={comPost.id}
-                                            key={keyPrefix + 'commentKey'}
-                                            post={comPost}
-                                            user={p}
-                                            currentUser={this.props.currentUser}
-                                            compactDisplay={this.state.compactDisplay}
-                                            useMilitaryTime={this.props.useMilitaryTime}
-                                            isFlagged={isFlagged}
-                                            status={status}
-                                            isBusy={this.state.isBusy}
-                                        />
+                                        <div key={keyPrefix + 'commentKey'}>
+                                            {separator}
+                                            <Comment
+                                                ref={comPost.id}
+                                                post={comPost}
+                                                user={p}
+                                                currentUser={this.props.currentUser}
+                                                compactDisplay={this.state.compactDisplay}
+                                                useMilitaryTime={this.props.useMilitaryTime}
+                                                isFlagged={isFlagged}
+                                                status={status}
+                                                isBusy={this.state.isBusy}
+                                            />
+                                        </div>
                                     );
                                 })}
                             </div>
