@@ -530,7 +530,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 	tm1, resp = Client.GetTeamMembersByIds(model.NewId(), []string{th.BasicUser.Id})
 	CheckForbiddenStatus(t, resp)
-
+	
 	Client.Logout()
 	_, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
 	CheckUnauthorizedStatus(t, resp)
