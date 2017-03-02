@@ -52,13 +52,15 @@ export default class EmojiPickerItem extends React.Component {
                  />);
         } else {
             item =
-                (<img
-                    src='/static/emoji/img_trans.gif'
-                    className={'  emojisprite emoji-' + this.props.emoji.filename + ' '}
-                    onMouseOver={this.handleMouseOver}
-                    onMouseOut={this.handleMouseOut}
-                    onClick={this.handleClick}
-                 />);
+                (<div>
+                    <img
+                        src='/static/emoji/img_trans.gif'
+                        className={'  emojisprite emoji-' + this.props.emoji.filename + ' '}
+                        onMouseOver={this.handleMouseOver}
+                        onMouseOut={this.handleMouseOut}
+                        onClick={this.handleClick}
+                    />
+                </div>);
         }
         return item;
     }

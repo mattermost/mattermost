@@ -222,7 +222,9 @@ class EmojiPicker extends React.Component {
                 ref={category}
             >
                 {header}
-                {items}
+                <div className='emoji-picker-items__container'>
+                    {items}
+                </div>
             </div>
         );
     }

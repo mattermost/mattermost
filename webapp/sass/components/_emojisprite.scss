@@ -2,16 +2,15 @@
 
 
 .emojisprite {
+    @include transform(scale(.35));
     background-image: url(../images/emoji/emojilarge.png);
     background-repeat: no-repeat;
-    margin: 12px;
-    //zoom: 0.3125;
-    overflow:hidden;
-    height: 64px;
-    width: 64px;
-    zoom: 31.75%;
+    border-radius: 18px;
     cursor: pointer;
-    border-radius:18px;
+    height: 64px;
+    max-width: none;
+    transform-origin: 0 0;
+    width: 64px;
 
 }
 
