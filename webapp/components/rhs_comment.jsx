@@ -286,7 +286,7 @@ export default class RhsComment extends React.Component {
         const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var currentUserCss = '';
-        if (this.props.currentUser === post.user_id) {
+        if (this.props.currentUser.id === post.user_id) {
             currentUserCss = 'current--user';
         }
 

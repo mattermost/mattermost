@@ -136,7 +136,7 @@ export default class PostViewController extends React.Component {
 
     onTeamChange() {
         const currentTeamId = TeamStore.getCurrentId();
-        if (this.state.channel.team_id !== currentTeamId) {
+        if ((this.state.channel.type === Constants.OPEN_CHANNEL || this.state.channel.type === Constants.PRIVATE_CHANNEL) && this.state.channel.team_id !== currentTeamId) {
             this.setState({
                 currentTeamId,
                 loading: true
