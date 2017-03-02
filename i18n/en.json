@@ -2348,10 +2348,6 @@
     "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
-    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Could not get user from {{.Service}} user object"
-  },
-  {
     "id": "api.user.create_profile_image.default_font.app_error",
     "translation": "Could not create default profile image font"
   },
@@ -2368,6 +2364,10 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
   },
@@ -2382,10 +2382,6 @@
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
     "translation": "User sign-up with email is disabled."
-  },
-  {
-    "id": "api.user.create_user.disabled.app_error",
-    "translation": "User creation is disabled."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
@@ -2580,6 +2576,10 @@
     "translation": "MFA not configured or available on this server"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Could not get user from {{.Service}} user object"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Update password failed because context user_id did not match props user_id"
   },
@@ -2704,11 +2704,7 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Cannot update webhook across teams"
-  },
-  {
-    "id": "api.outgoing_webhook.disabled.app_error",
+    "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
@@ -2728,20 +2724,16 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Invalid permissions to delete incoming webhook"
   },
   {
-    "id": "api.webhook.update_outgoing.not_open.app_error",
-    "translation": "Outgoing webhooks can only be updated to public channels."
-  },
-  {
-    "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
-  },
-  {
-    "id": "api.webhook.update_outgoing.triggers.app_error",
-    "translation": "Either trigger_words or channel_id must be set"
+    "id": "api.webhook.delete_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
@@ -2762,6 +2754,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Invalid permissions to regenerate outgoing webhook token"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Cannot update webhook across teams"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Invalid permissions to update incoming webhook"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Outgoing webhooks can only be updated to public channels."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Invalid permissions to update outgoing webhook."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Either trigger_words or channel_id must be set"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3564,24 +3588,24 @@
     "translation": "Invalid channel id"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
     "translation": "Invalid role"
   },
   {
-    "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Invalid email notification value"
-  },
-  {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Invalid mark unread level"
-  },
-  {
-    "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
@@ -4540,12 +4564,12 @@
     "translation": "We encountered an error saving the audit"
   },
   {
-    "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "We couldn't get channel type counts"
-  },
-  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "We couldn't get deleted channel type counts"
+  },
+  {
+    "id": "store.sql_channel.analytics_type_count.app_error",
+    "translation": "We couldn't get channel type counts"
   },
   {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
@@ -5372,12 +5396,16 @@
     "translation": "We couldn't update the team name"
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "We couldn't get the unique user count"
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "We could not count the inactive users"
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
     "translation": "We couldn't get the system admin count"
+  },
+  {
+    "id": "store.sql_user.analytics_unique_user_count.app_error",
+    "translation": "We couldn't get the unique user count"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -5422,10 +5450,6 @@
   {
     "id": "store.sql_user.get_total_users_count.app_error",
     "translation": "We could not count the users"
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "We could not count the inactive users"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
@@ -5612,16 +5636,16 @@
     "translation": "You cannot overwrite an existing IncomingWebhook"
   },
   {
-    "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "We couldn't update the IncomingWebhook"
-  },
-  {
     "id": "store.sql_webhooks.save_outgoing.app_error",
     "translation": "We couldn't save the OutgoingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "You cannot overwrite an existing OutgoingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "We couldn't update the IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

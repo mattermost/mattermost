@@ -2356,6 +2356,10 @@
     "translation": "Предоставленный вами адрес электронной почты не относится к признанному домену. Пожалуйста, свяжитесь с администратором или зарегистрируйтесь с другим адресом электронной почты."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Возникла проблема при присоединении к каналам по умолчанию user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "МФА не настроена или не поддерживается на этом сервере"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Не удалось обновить пароль, поскольку контекст user_id не соответствовал реквизитам user_id"
   },
@@ -2709,7 +2717,7 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "Входящие вебхуки отключены системным администратором."
+    "translation": "Входящие вебхуки были отключены системным администратором."
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_error",
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Отсутствуют права на пересоздание токена для исходящего вебхука"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Невозможно обновить команды через команды"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Входящие вебхуки были отключены системным администратором."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Отсутствуют права на удаление входящего вебхука"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Исходящие вебхуки были отключены системным администратором."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Исходящие вебхуки одного канала не могут иметь одинаковые слова-триггеры/вызываемые URL."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Исходящие вебхуки могут быть созданы только для общественных каналов."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Несоответствующие права для создания исходящего вебхука."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Должны быть заданы trigger_words или channel_id"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Недопустимый идентификатор канала"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Недопустимый уровень уведомлений"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "Обнаружены проблемы с сохранением аудита"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "Не удалось получить подсчет типов каналов"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "Не удалось получить подсчет типов каналов"
   },
@@ -5288,6 +5340,14 @@
     "translation": "Не удалось обновить имя команды"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "Не удалось подсчитать активных пользователей"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Не удалось подсчитать уникальных пользователей"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Вы не можете перезаписать существующий OutgoingWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "Не удалось сохранить IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

@@ -2356,6 +2356,10 @@
     "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie Ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Die Erstellung von Benutzern ist deaktiviert."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Fehler beim Betreten des Standardkanals user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "MFA ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Konnte keinen Benutzer aus {{.Service}} Benutzerobjekt erstellen"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Aktualisieren des Passworts fehlgeschlagen, da Kontext user_id nicht der props user_id entsprach"
   },
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Ungültige Berechtigungen um ausgehenden Webhook-Token zu regenerieren"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Ungültige Berechtigungen um eingehenden Webhook zu löschen"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Ausgehende Webhooks wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Ausgehende Webhooks des selben Kanals können nicht dieselben Triggerwörter/Callback-URLs haben."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Ausgehende Webhooks können nur für öffentliche Kanäle erstellt werden."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Ungültige Berechtigungen um ausgehenden Webhook zu erstellen."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Ungültige Kanal ID"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Ungültiger E-Mail-Benachrichtigungswert"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Ungültige Benachrichtigungsstufe"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Ungültige Pushbenachrichtigungsstufe"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "Es trat ein Fehler beim Speichern der Audits auf"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "Die Anzahl der gelöschten Kanaltypen konnte nicht geladen werden"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "Der Kanaltyp konnte nicht gefunden werden"
   },
@@ -5288,6 +5340,14 @@
     "translation": "Der Name des Teams konnte nicht aktualisiert werden"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "Die Anzahl der inaktiven Benutzer konnte nicht gezählt werden"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "Die Anzahl der Systemadministratoren konnte nicht geladen werden"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Die Anzahl der einzigartigen Benutzer konnte nicht gezählt werden"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "Der IncomingWebhook konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

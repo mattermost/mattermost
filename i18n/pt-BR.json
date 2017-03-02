@@ -1155,7 +1155,7 @@
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
+    "translation": "Não foi possível carregar o arquivo. O cabeçalho não pode ser analisado."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -2356,6 +2356,10 @@
     "translation": "O email que você forneceu não pertence a um domínio aceito. Por favor contacte o seu administrador ou se inscreve com um email diferente."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Encontrado um problema ao se juntar ao canal padrão user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "MFA não configurado ou disponível neste servidor"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Não foi possível criar o usuário fora do {{.Service}} do objeto de usuário"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Atualização da senha falhou devido ao contexto user_id não combinar com props do usuário fornecido"
   },
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Permissões inadequadas para gerar novo token do webhook de saída"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Não é possível atualizar os comandos entre equipes"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Webhooks de entrada foram desabilitados pelo administrador do sistema."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Permissões inadequadas para deletar o webhook de entrada"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Webhooks de saída foram desabilitados pelo administrador do sistema."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Webhooks de saída do mesmo canal não pode ter as mesmas palavras gatilho/URLs de retorno de chamada."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Webhooks de saída só pode ser criado para canais públicos."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Permissões inadequadas para criar o webhook de saída."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Ou trigger_words ou channel_id precisa ser definido"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Id do canal inválida"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Nível de notificação inválido"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3545,7 +3593,7 @@
   },
   {
     "id": "model.client.read_file.app_error",
-    "translation": "Encontramos um erro enquanto procurava os perfis de usuários"
+    "translation": "Encontramos um erro ao ler o arquivo"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "Encontramos um erro ao salvar o audits"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "Não foi possível obter o número de tipos de canal"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "Não foi possível obter o número de tipos de canal"
   },
@@ -5288,6 +5340,14 @@
     "translation": "Não foi possível atualizar o nome da equipe"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "Não foi possível contar os usuários ativos"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Não foi possível obter o número de usuários únicos"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Você não pode sobre escrever um existente Webhook de Saída"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "Não foi possível salvar o IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
