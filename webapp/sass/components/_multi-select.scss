@@ -30,11 +30,30 @@
     .Select-value-label {
         overflow: hidden;
         text-overflow: ellipsis;
-        width: calc(100% - 20px);
     }
 }
 
 .multi-select__help {
-    @include opacity(.6);
     padding: 10px 15px 0;
+
+    > div:not(.multi-select__note),
+    > span {
+        @include opacity(.6);
+    }
+}
+
+.multi-select__note {
+    @include border-radius(3px);
+    display: table;
+    margin-top: 5px;
+    padding: 8px 13px;
+    width: 100%;
+
+    > div {
+        display: table-cell;
+
+        &.note__icon {
+            width: 15px;
+        }
+    }
 }
