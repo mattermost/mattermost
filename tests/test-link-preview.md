@@ -26,7 +26,7 @@ Link 3 example: https://about.gitlab.com/
 ```
 #### B) Link preview without an image
 
-Link 1 example: coveralls.io/builds/9818822/source?filename=app%2Faudit.go
+Link 1 example: https://coveralls.io/builds/9818822/source?filename=app%2Faudit.go
 ```
 
 ```
@@ -43,6 +43,8 @@ Link 4 example: http://stackoverflow.com/questions/36650437/using-mattermost-api
 
 ```
 #### D) Link preview with image at the bottom
+
+If "Account Settings > Display > Default appearance of image link previews" is set to "Collapsed", you must click the expand arrows to display the image.
 
 Link 1 example: https://www.yahoo.com/news/panasonic-unveils-solar-roof-may-212400917.html
 
