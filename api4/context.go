@@ -455,3 +455,15 @@ func (c *Context) RequirePreferenceName() *Context {
 
 	return c
 }
+
+func (c *Context) RequireHookId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.HookId) != 26 {
+		c.SetInvalidUrlParam("hook_id")
+	}
+
+	return c
+}

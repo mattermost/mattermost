@@ -142,6 +142,10 @@ func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
 }
 
+func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
+	return fmt.Sprintf(c.GetIncomingWebhooksRoute()+"/%v", hookID)
+}
+
 func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
@@ -946,6 +950,26 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 	} else {
 		defer closeBody(r)
 		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetIncomingWebhook returns an Incoming webhook given the hook ID
+func (c *Client4) GetIncomingWebhook(hookID string, etag string) (*IncomingWebhook, *Response) {
+	if r, err := c.DoApiGet(c.GetIncomingWebhookRoute(hookID), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteIncomingWebhook deletes and Incoming Webhook given the hook ID
+func (c *Client4) DeleteIncomingWebhook(hookID string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetIncomingWebhookRoute(hookID)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
