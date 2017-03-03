@@ -1,13 +1,14 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"bytes"
 	"strings"
 
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type ShortcutsProvider struct {
@@ -25,17 +26,17 @@ func (me *ShortcutsProvider) GetTrigger() string {
 	return CMD_SHORTCUTS
 }
 
-func (me *ShortcutsProvider) GetCommand(c *Context) *model.Command {
+func (me *ShortcutsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SHORTCUTS,
 		AutoComplete:     true,
-		AutoCompleteDesc: c.T("api.command_shortcuts.desc"),
+		AutoCompleteDesc: T("api.command_shortcuts.desc"),
 		AutoCompleteHint: "",
-		DisplayName:      c.T("api.command_shortcuts.name"),
+		DisplayName:      T("api.command_shortcuts.name"),
 	}
 }
 
-func (me *ShortcutsProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	shortcutIds := [28]string{
 		"api.command_shortcuts.header",
 		// Nav shortcuts
@@ -73,21 +74,21 @@ func (me *ShortcutsProvider) DoCommand(c *Context, args *model.CommandArgs, mess
 	var osDependentWords map[string]interface{}
 	if strings.Contains(message, "mac") {
 		osDependentWords = map[string]interface{}{
-			"CmdOrCtrl":      c.T("api.command_shortcuts.cmd"),
-			"ChannelPrevCmd": c.T("api.command_shortcuts.browser.channel_prev.cmd_mac"),
-			"ChannelNextCmd": c.T("api.command_shortcuts.browser.channel_next.cmd_mac"),
+			"CmdOrCtrl":      args.T("api.command_shortcuts.cmd"),
+			"ChannelPrevCmd": args.T("api.command_shortcuts.browser.channel_prev.cmd_mac"),
+			"ChannelNextCmd": args.T("api.command_shortcuts.browser.channel_next.cmd_mac"),
 		}
 	} else {
 		osDependentWords = map[string]interface{}{
-			"CmdOrCtrl":      c.T("api.command_shortcuts.ctrl"),
-			"ChannelPrevCmd": c.T("api.command_shortcuts.browser.channel_prev.cmd"),
-			"ChannelNextCmd": c.T("api.command_shortcuts.browser.channel_next.cmd"),
+			"CmdOrCtrl":      args.T("api.command_shortcuts.ctrl"),
+			"ChannelPrevCmd": args.T("api.command_shortcuts.browser.channel_prev.cmd"),
+			"ChannelNextCmd": args.T("api.command_shortcuts.browser.channel_next.cmd"),
 		}
 	}
 
 	var buffer bytes.Buffer
 	for _, element := range shortcutIds {
-		buffer.WriteString(c.T(element, osDependentWords))
+		buffer.WriteString(args.T(element, osDependentWords))
 	}
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: buffer.String()}

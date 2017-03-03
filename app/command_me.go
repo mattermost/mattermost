@@ -1,10 +1,11 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type MeProvider struct {
@@ -22,16 +23,16 @@ func (me *MeProvider) GetTrigger() string {
 	return CMD_ME
 }
 
-func (me *MeProvider) GetCommand(c *Context) *model.Command {
+func (me *MeProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_ME,
 		AutoComplete:     true,
-		AutoCompleteDesc: c.T("api.command_me.desc"),
-		AutoCompleteHint: c.T("api.command_me.hint"),
-		DisplayName:      c.T("api.command_me.name"),
+		AutoCompleteDesc: T("api.command_me.desc"),
+		AutoCompleteHint: T("api.command_me.hint"),
+		DisplayName:      T("api.command_me.name"),
 	}
 }
 
-func (me *MeProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *MeProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: "*" + message + "*"}
 }
