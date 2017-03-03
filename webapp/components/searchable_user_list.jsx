@@ -19,6 +19,7 @@ export default class SearchableUserList extends React.Component {
         this.nextPage = this.nextPage.bind(this);
         this.previousPage = this.previousPage.bind(this);
         this.doSearch = this.doSearch.bind(this);
+        this.focusSearchBar = this.focusSearchBar.bind(this);
 
         this.nextTimeoutId = 0;
 
@@ -30,15 +31,14 @@ export default class SearchableUserList extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.focusOnMount) {
-            this.refs.filter.focus();
-        }
+        this.focusSearchBar();
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (this.state.page !== prevState.page) {
             $(ReactDOM.findDOMNode(this.refs.userList)).scrollTop(0);
         }
+        this.focusSearchBar();
     }
 
     componentWillUnmount() {
@@ -55,6 +55,12 @@ export default class SearchableUserList extends React.Component {
     previousPage(e) {
         e.preventDefault();
         this.setState({page: this.state.page - 1});
+    }
+
+    focusSearchBar() {
+        if (this.props.focusOnMount) {
+            this.refs.filter.focus();
+        }
     }
 
     doSearch() {
