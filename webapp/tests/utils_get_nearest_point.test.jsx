@@ -24,12 +24,10 @@ describe('CommonUtils.getNearestPoint', function() {
                 nearestPointLte: {x: 1, y: 1}
             }
         ]) {
-            const nearestPointData = CommonUtils.getNearestPoint(data.pivotPoint, data.points);
+            const nearestPoint = CommonUtils.getNearestPoint(data.pivotPoint, data.points);
 
-            assert.equal(nearestPointData.nearestPoint.x, data.nearestPoint.x);
-            assert.equal(nearestPointData.nearestPoint.y, data.nearestPoint.y);
-            assert.equal(nearestPointData.nearestPointLte.x, data.nearestPointLte.x);
-            assert.equal(nearestPointData.nearestPointLte.y, data.nearestPointLte.y);
+            assert.equal(nearestPoint.x, data.nearestPoint.x);
+            assert.equal(nearestPoint.y, data.nearestPoint.y);
         }
     });
 });

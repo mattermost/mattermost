@@ -170,6 +170,10 @@
                 float: left;
                 font-size: 17px;
                 line-height: 27px;
+                max-width: calc(100% - 80px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
 
                 .name {
                     color: $white;
@@ -479,6 +483,10 @@
         .filter-row {
             margin: 5px 0 10px;
             width: 300px;
+
+            &.filter-row--full {
+                width: 100%;
+            }
         }
 
         .member-count {
@@ -582,6 +590,24 @@
         border-bottom: 1px solid $light-gray;
         display: flex;
         padding: 10px 15px;
+
+        &.clickable {
+            cursor: pointer;
+        }
+
+        &:hover {
+            .more-modal__actions--round {
+                opacity: .5;
+            }
+        }
+    }
+
+    .more-modal__actions--round {
+        height: 32px;
+        line-height: 32px;
+        opacity: 0;
+        text-align: center;
+        width: 32px;
     }
 
     p {
@@ -611,6 +637,7 @@
 
     .more-modal__list {
         flex-grow: 500;
+        height: 1px;
     }
 
     .filter-button {

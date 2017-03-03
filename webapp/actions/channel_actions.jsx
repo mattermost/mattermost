@@ -9,7 +9,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Client from 'client/web_client.jsx';
@@ -22,8 +22,12 @@ import {browserHistory} from 'react-router/es6';
 
 export function goToChannel(channel) {
     if (channel.fake) {
+        const user = UserStore.getProfileByUsername(channel.display_name);
+        if (!user) {
+            return;
+        }
         openDirectChannelToUser(
-            UserStore.getProfileByUsername(channel.display_name),
+            user.id,
             () => {
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
             },
@@ -167,18 +171,18 @@ export function makeUserChannelMember(channelId, userId, success, error) {
     );
 }
 
-export function openDirectChannelToUser(user, success, error) {
-    const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), user.id);
+export function openDirectChannelToUser(userId, success, error) {
+    const channelName = Utils.getDirectChannelName(UserStore.getCurrentId(), userId);
     const channel = ChannelStore.getByName(channelName);
 
     if (channel) {
         trackEvent('api', 'api_channels_join_direct');
-        PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
-        loadProfilesAndTeamMembersForDMSidebar();
+        PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+        loadProfilesForSidebar();
 
         AsyncClient.savePreference(
             Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-            user.id,
+            userId,
             'true'
         );
 
@@ -190,7 +194,7 @@ export function openDirectChannelToUser(user, success, error) {
     }
 
     Client.createDirectChannel(
-        user.id,
+        userId,
         (data) => {
             Client.getChannel(
                 data.id,
@@ -201,12 +205,12 @@ export function openDirectChannelToUser(user, success, error) {
                         member: data2.member
                     });
 
-                    PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
-                    loadProfilesAndTeamMembersForDMSidebar();
+                    PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+                    loadProfilesForSidebar();
 
                     AsyncClient.savePreference(
                         Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-                        user.id,
+                        userId,
                         'true'
                     );
 
@@ -218,6 +222,43 @@ export function openDirectChannelToUser(user, success, error) {
         },
         () => {
             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
+            if (error) {
+                error();
+            }
+        }
+    );
+}
+
+export function openGroupChannelToUsers(userIds, success, error) {
+    Client.createGroupChannel(
+        userIds,
+        (data) => {
+            Client.getChannelMember(
+                data.id,
+                UserStore.getCurrentId(),
+                (data2) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_CHANNEL,
+                        channel: data,
+                        member: data2
+                    });
+
+                    PreferenceStore.setPreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, data.id, 'true');
+                    loadProfilesForSidebar();
+
+                    AsyncClient.savePreference(
+                        Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
+                        data.id,
+                        'true'
+                    );
+
+                    if (success) {
+                        success(data);
+                    }
+                }
+            );
+        },
+        () => {
             if (error) {
                 error();
             }

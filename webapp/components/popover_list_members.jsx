@@ -48,7 +48,7 @@ export default class PopoverListMembers extends React.Component {
         e.preventDefault();
 
         openDirectChannelToUser(
-            teammate,
+            teammate.id,
             (channel, channelAlreadyExisted) => {
                 browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
                 if (channelAlreadyExisted) {

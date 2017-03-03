@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import DeleteIntegration from './delete_integration.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
 import {getSiteURL} from 'utils/url.jsx';
 
@@ -27,9 +29,7 @@ export default class InstalledIncomingWebhook extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.incomingWebhook);
     }
 
@@ -97,15 +97,10 @@ export default class InstalledIncomingWebhook extends React.Component {
                         />
                     </Link>
                     {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
+                    <DeleteIntegration
+                        messageId='installed_incoming_webhooks.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
                 </div>
             );
         }
