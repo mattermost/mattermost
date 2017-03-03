@@ -410,6 +410,17 @@ func (c *Client4) AutoCompleteUsersInChannel(teamId string, channelId string, us
 	}
 }
 
+// AutoCompleteUsersInChannel returns the users in a channel based on search term.
+func (c *Client4) AutoCompleteUsers(username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?name=%v", username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete/"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPut(c.GetUserRoute(user.Id), user.ToJson()); err != nil {

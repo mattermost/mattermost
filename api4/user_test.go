@@ -992,11 +992,18 @@ func TestAutocompleteUsers(t *testing.T) {
 		t.Fatal("should have returned 1 user")
 	}
 
-	rusers, resp = Client.AutoCompleteUsersInTeam("", username, "")
+	rusers, resp = Client.AutoCompleteUsers(username, "")
 	CheckNoError(t, resp)
 
 	if len(rusers.Users) != 1 {
 		t.Fatal("should have returned 1 users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsers("", "")
+	CheckNoError(t, resp)
+
+	if len(rusers.Users) < 2 {
+		t.Fatal("should have returned many users")
 	}
 
 	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "amazonses", "")
@@ -1018,6 +1025,9 @@ func TestAutocompleteUsers(t *testing.T) {
 	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
 	CheckUnauthorizedStatus(t, resp)
 
+	_, resp = Client.AutoCompleteUsers(username, "")
+	CheckUnauthorizedStatus(t, resp)
+
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
 	_, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
@@ -1026,10 +1036,16 @@ func TestAutocompleteUsers(t *testing.T) {
 	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
 	CheckForbiddenStatus(t, resp)
 
+	_, resp = Client.AutoCompleteUsers(username, "")
+	CheckNoError(t, resp)
+
 	_, resp = th.SystemAdminClient.AutoCompleteUsersInChannel(teamId, channelId, username, "")
 	CheckNoError(t, resp)
 
 	_, resp = th.SystemAdminClient.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AutoCompleteUsers(username, "")
 	CheckNoError(t, resp)
 }
 
