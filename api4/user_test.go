@@ -58,6 +58,12 @@ func TestCreateUser(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
+	ruser.Email = GenerateTestEmail()
+	ruser.Username = "1" + user.Username
+	_, resp = Client.CreateUser(ruser)
+	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
+	CheckBadRequestStatus(t, resp)
+
 	if r, err := Client.DoApiPost("/users", "garbage"); err == nil {
 		t.Fatal("should have errored")
 	} else {
