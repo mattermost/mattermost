@@ -172,6 +172,22 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 	}
 }
 
+func GetChannelUnread(channelId string) (*model.ChannelUnread, *model.AppError) {
+	result := <-Srv.Store.Channel().GetChannelUnread(channelId);
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	channelUnread := result.Data.(*model.ChannelUnread)
+
+	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
+		channelUnread.MsgCount = (channelUnread.TotalMsgCount - channelUnread.MsgCount)
+	} else {
+		channelUnread.MsgCount = 0
+	}
+
+	return channelUnread, nil
+}
+
 func WaitForChannelMembership(channelId string, userId string) {
 	if len(utils.Cfg.SqlSettings.DataSourceReplicas) > 0 {
 		now := model.GetMillis()

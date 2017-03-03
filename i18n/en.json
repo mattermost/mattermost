@@ -4624,6 +4624,10 @@
     "translation": "We couldn't find the existing channel"
   },
   {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel"
   },
