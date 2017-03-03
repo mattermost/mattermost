@@ -314,7 +314,7 @@ func (us SqlChannelStore) InvalidateChannel(id string) {
 }
 
 func (us SqlChannelStore) InvalidateChannelByName(teamId, name string) {
-	channelCache.Remove(teamId + name)
+	channelByNameCache.Remove(teamId + name)
 }
 
 func (s SqlChannelStore) Get(id string, allowFromCache bool) StoreChannel {
@@ -624,7 +624,6 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 				}
 			}
 		}
-
 		if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewLocAppError("SqlChannelStore.GetByName", MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error())

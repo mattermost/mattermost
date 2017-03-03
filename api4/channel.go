@@ -19,6 +19,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
+	BaseRoutes.Channel.Handle("", ApiSessionRequired(updateChannel)).Methods("PUT")
 	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
 	BaseRoutes.ChannelByNameForTeamName.Handle("", ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
 
@@ -55,6 +56,94 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(sc.ToJson()))
 	}
+}
+
+func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	channel := model.ChannelFromJson(r.Body)
+
+	if channel == nil {
+		c.SetInvalidParam("channel")
+		return
+	}
+
+	var oldChannel *model.Channel
+	var err *model.AppError
+	if oldChannel, err = app.GetChannel(channel.Id); err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err = app.GetChannelMember(channel.Id, c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if !CanManageChannel(c, channel) {
+		return
+	}
+
+	if oldChannel.DeleteAt > 0 {
+		c.Err = model.NewLocAppError("updateChannel", "api.channel.update_channel.deleted.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if oldChannel.Name == model.DEFAULT_CHANNEL {
+		if (len(channel.Name) > 0 && channel.Name != oldChannel.Name) || (len(channel.Type) > 0 && channel.Type != oldChannel.Type) {
+			c.Err = model.NewLocAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "")
+			c.Err.StatusCode = http.StatusBadRequest
+			return
+		}
+	}
+
+	oldChannel.Header = channel.Header
+	oldChannel.Purpose = channel.Purpose
+
+	oldChannelDisplayName := oldChannel.DisplayName
+
+	if len(channel.DisplayName) > 0 {
+		oldChannel.DisplayName = channel.DisplayName
+	}
+
+	if len(channel.Name) > 0 {
+		oldChannel.Name = channel.Name
+	}
+
+	if len(channel.Type) > 0 {
+		oldChannel.Type = channel.Type
+	}
+
+	if _, err := app.UpdateChannel(oldChannel); err != nil {
+		c.Err = err
+		return
+	} else {
+		if oldChannelDisplayName != channel.DisplayName {
+			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
+				l4g.Error(err.Error())
+			}
+		}
+		c.LogAudit("name=" + channel.Name)
+		w.Write([]byte(oldChannel.ToJson()))
+	}
+}
+
+func CanManageChannel(c *Context, channel *model.Channel) bool {
+	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES)
+		return false
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)
+		return false
+	}
+
+	return true
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
