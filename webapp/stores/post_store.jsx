@@ -99,11 +99,11 @@ class PostStoreClass extends EventEmitter {
             return null;
         }
 
-        const posts = postInfo.postList;
+        const postList = postInfo.postList;
         let post = null;
 
-        if (posts.posts.hasOwnProperty(postId)) {
-            post = posts.posts[postId];
+        if (postList && postList.posts && postList.posts.hasOwnProperty(postId)) {
+            post = postList.posts[postId];
         }
 
         return post;
