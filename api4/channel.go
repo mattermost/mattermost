@@ -27,7 +27,7 @@ func InitChannel() {
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
 	BaseRoutes.ChannelMember.Handle("/roles", ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
-	BaseRoutes.ChannelMember.Handle("/ids", ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
+	BaseRoutes.ChannelMembers.Handle("/ids", ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
 	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 }
 

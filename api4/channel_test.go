@@ -636,3 +636,42 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 }
+
+func TestGetChannelMembersByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	tm, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
+	CheckNoError(t, resp)
+
+	if (*tm)[0].UserId != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+
+	_, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{})
+	CheckBadRequestStatus(t, resp)
+
+	tm1, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk"})
+	CheckNoError(t, resp)
+	if len(*tm1) > 0 {
+		t.Fatal("no users should be returned")
+	}
+
+	tm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk", th.BasicUser.Id})
+	CheckNoError(t, resp)
+	if len(*tm1) != 1 {
+		t.Fatal("1 user should be returned")
+	}
+
+	tm1, resp = Client.GetChannelMembersByIds("junk", []string{th.BasicUser.Id})
+	CheckBadRequestStatus(t, resp)
+
+	tm1, resp = Client.GetChannelMembersByIds(model.NewId(), []string{th.BasicUser.Id})
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
+	CheckUnauthorizedStatus(t, resp)
+}
+
