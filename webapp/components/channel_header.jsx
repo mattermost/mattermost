@@ -765,7 +765,12 @@ export default class ChannelHeader extends React.Component {
                             <th className='header-list__members'>
                                 {popoverListMembers}
                             </th>
-                            <th className='search-bar__container'><NavbarSearchBox showMentionFlagBtns={false}/></th>
+                            <th className='search-bar__container'>
+                                <NavbarSearchBox
+                                    showMentionFlagBtns={false}
+                                    isFocus={Utils.isMobile()}
+                                />
+                            </th>
                             <th>
                                 <div className='dropdown channel-header__links search-btns'>
                                     <OverlayTrigger
