@@ -41,7 +41,7 @@ export default class MetricsSettings extends AdminSettings {
             <h3>
                 <FormattedMessage
                     id='admin.advance.metrics'
-                    defaultMessage='Performance Monitoring (Beta)'
+                    defaultMessage='Performance Monitoring'
                 />
             </h3>
         );
