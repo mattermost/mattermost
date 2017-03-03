@@ -215,7 +215,7 @@ export default class AbstractIncomingWebhook extends React.Component {
                             />
                             <Link
                                 className='btn btn-sm'
-                                to={`'/${this.props.team.name}/integrations/incoming_webhooks`}
+                                to={`/${this.props.team.name}/integrations/incoming_webhooks`}
                             >
                                 <FormattedMessage
                                     id='add_incoming_webhook.cancel'
