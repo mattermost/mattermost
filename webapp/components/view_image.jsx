@@ -180,7 +180,7 @@ export default class ViewImageModal extends React.Component {
         if (this.state.loaded[this.state.imgId]) {
             const fileType = Utils.getFileType(fileInfo.extension);
 
-            if (fileType === 'image') {
+            if (fileType === 'image' || fileType === 'svg') {
                 content = (
                     <ImagePreview
                         fileInfo={fileInfo}

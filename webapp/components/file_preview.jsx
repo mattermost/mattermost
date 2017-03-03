@@ -33,7 +33,7 @@ export default class FilePreview extends React.Component {
 
             let className = 'file-preview';
             let previewImage;
-            if (type === 'image') {
+            if (type === 'image' || type === 'svg') {
                 previewImage = (
                     <img
                         className='file-preview__image'
