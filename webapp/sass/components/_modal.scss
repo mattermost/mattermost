@@ -90,6 +90,7 @@
         .custom-textarea {
             border-color: $light-gray;
             color: inherit;
+            max-height: 162px !important;
 
             &:focus {
                 border-color: $light-gray;

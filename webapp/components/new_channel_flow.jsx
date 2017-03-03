@@ -165,7 +165,7 @@ class NewChannelFlow extends React.Component {
             channelPurpose: data.purpose,
             channelHeader: data.header
         });
-        if (!this.state.nameModified) {
+        if (!this.state.nameModified && data.displayName) {
             this.setState({channelName: cleanUpUrlable(data.displayName.trim())});
         }
     }

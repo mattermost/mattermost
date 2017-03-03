@@ -1,13 +1,14 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannelHeader} from 'actions/channel_actions.jsx';
+
+import Textbox from './textbox.jsx';
 
 import {Modal} from 'react-bootstrap';
 
@@ -26,8 +27,8 @@ class EditChannelHeaderModal extends React.Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.onShow = this.onShow.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
@@ -37,13 +38,12 @@ class EditChannelHeaderModal extends React.Component {
             header: props.channel.header,
             show: true,
             serverError: '',
-            submitted: false
+            canSubmit: false
         };
     }
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        this.onShow();
     }
 
     componentWillUnmount() {
@@ -51,8 +51,13 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleChange(e) {
+        if (e.target.value === this.props.channel.header) {
+            this.setState({canSubmit: false});
+            return;
+        }
         this.setState({
-            header: e.target.value
+            header: e.target.value,
+            canSubmit: true
         });
     }
 
@@ -61,7 +66,10 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     handleSubmit() {
-        this.setState({submitted: true});
+        if (!this.state.canSubmit) {
+            return;
+        }
+        this.setState({canSubmit: false});
 
         updateChannelHeader(
             this.props.channel.id,
@@ -80,17 +88,15 @@ class EditChannelHeaderModal extends React.Component {
         );
     }
 
-    onShow() {
-        const textarea = ReactDOM.findDOMNode(this.refs.textarea);
-        Utils.placeCaretAtEnd(textarea);
-        this.submitted = false;
+    handlePostError(postError) {
+        this.setState({serverError: postError});
     }
 
     onHide() {
         this.setState({show: false});
     }
 
-    handleKeyDown(e) {
+    handleKeyPress(e) {
         if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
             e.preventDefault();
             this.handleSubmit(e);
@@ -101,9 +107,9 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     render() {
-        var serverError = null;
+        var serverError = <p><br/></p>;
         if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><br/><label className='control-label'>{this.state.serverError}</label></div>;
+            serverError = <div className='has-error'><br/><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
         let headerTitle = null;
@@ -144,15 +150,18 @@ class EditChannelHeaderModal extends React.Component {
                             defaultMessage='Edit the text appearing next to the channel name in the channel header.'
                         />
                     </p>
-                    <textarea
-                        ref='textarea'
-                        className='form-control no-resize'
-                        rows='6'
-                        id='edit_header'
-                        maxLength='1024'
-                        value={this.state.header}
+                    <Textbox
+                        ref='textbox'
                         onChange={this.handleChange}
-                        onKeyDown={this.handleKeyDown}
+                        onKeyPress={this.handleKeyPress}
+                        handlePostError={this.handlePostError}
+                        value={this.state.header}
+                        initialText=''
+                        channelId={this.props.channel.id}
+                        createMessage={Utils.localizeMessage('edit_channel_header.addHeader', 'Add a header...')}
+                        suggestionListStyle='bottom'
+                        id='edit_header'
+                        rows='4'
                     />
                     {serverError}
                 </Modal.Body>
@@ -168,7 +177,7 @@ class EditChannelHeaderModal extends React.Component {
                         />
                     </button>
                     <button
-                        disabled={this.state.submitted}
+                        disabled={!this.state.canSubmit}
                         type='button'
                         className='btn btn-primary'
                         onClick={this.handleSubmit}

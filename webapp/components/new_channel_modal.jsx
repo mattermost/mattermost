@@ -14,6 +14,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
+import Textbox from './textbox.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
@@ -26,13 +27,17 @@ export default class NewChannelModal extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handHeadChange = this.handHeadChange.bind(this);
         this.onEnterKeyDown = this.onEnterKeyDown.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
         this.state = {
-            displayNameError: ''
+            displayNameError: '',
+            postError: '',
+            header: ''
         };
     }
 
@@ -73,6 +78,10 @@ export default class NewChannelModal extends React.Component {
         }
     }
 
+    handlePostError(postError) {
+        this.setState({postError});
+    }
+
     handleSubmit(e) {
         e.preventDefault();
 
@@ -88,15 +97,21 @@ export default class NewChannelModal extends React.Component {
     handleChange() {
         const newData = {
             displayName: this.refs.display_name.value,
-            header: this.refs.channel_header.value,
-            purpose: this.refs.channel_purpose.value
+            purpose: this.refs.channel_purpose.value,
+            header: this.state.header
         };
         this.props.onDataChanged(newData);
+    }
+
+    handHeadChange(e) {
+        this.setState({header: e.target.value});
+        this.handleChange();
     }
 
     render() {
         var displayNameError = null;
         var serverError = null;
+        var postError = null;
         var displayNameClass = 'form-group';
 
         if (this.state.displayNameError) {
@@ -114,6 +129,9 @@ export default class NewChannelModal extends React.Component {
 
         if (this.props.serverError) {
             serverError = <div className='form-group has-error'><p className='input__help error'>{this.props.serverError}</p></div>;
+        }
+        if (this.state.postError) {
+            postError = <div className='has-error'><p className='input__help error'>{this.state.postError}</p></div>;
         }
 
         let createPublicChannelLink = (
@@ -306,16 +324,19 @@ export default class NewChannelModal extends React.Component {
                                     </label>
                                 </div>
                                 <div className='col-sm-9'>
-                                    <textarea
-                                        className='form-control no-resize'
+                                    <Textbox
                                         ref='channel_header'
+                                        onChange={this.handHeadChange}
+                                        onKeyPress={this.onEnterKeyDown}
+                                        handlePostError={this.handlePostError}
+                                        value={this.state.header}
+                                        createMessage={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
+                                        suggestionListStyle='bottom'
+                                        id='channel_header'
+                                        hideHelp={true}
                                         rows='4'
-                                        placeholder={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
-                                        maxLength='1024'
-                                        value={this.props.channelData.header}
-                                        onChange={this.handleChange}
-                                        tabIndex='2'
                                     />
+                                    {postError}
                                     <p className='input__help'>
                                         <FormattedMessage
                                             id='channel_modal.headerHelp'

@@ -24,6 +24,8 @@ export default class Textbox extends React.Component {
     static propTypes = {
         id: React.PropTypes.string.isRequired,
         channelId: React.PropTypes.string,
+        rows: React.PropTypes.string,
+        hideHelp: React.PropTypes.bool,
         value: React.PropTypes.string.isRequired,
         onChange: React.PropTypes.func.isRequired,
         onKeyPress: React.PropTypes.func.isRequired,
@@ -193,53 +195,71 @@ export default class Textbox extends React.Component {
             );
         }
 
-        const helpText = (
-            <div
-                style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.45' : '0'}}
-                className='help__format-text'
-            >
-                <b>
-                    <FormattedMessage
-                        id='textbox.bold'
-                        defaultMessage='**bold**'
-                    />
-                </b>
-                <i>
-                    <FormattedMessage
-                        id='textbox.italic'
-                        defaultMessage='_italic_'
-                    />
-                </i>
-                <span>
-                    {'~~'}
-                    <strike>
+        let helpText = null;
+        let helpLink = null;
+        if (!this.props.hideHelp) {
+            helpText = (
+                <div
+                    style={{visibility: hasText ? 'visible' : 'hidden', opacity: hasText ? '0.45' : '0'}}
+                    className='help__format-text'
+                >
+                    <b>
                         <FormattedMessage
-                            id='textbox.strike'
-                            defaultMessage='strike'
+                            id='textbox.bold'
+                            defaultMessage='**bold**'
                         />
-                    </strike>
-                    {'~~ '}
-                </span>
-                <span>
+                    </b>
+                    <i>
+                        <FormattedMessage
+                            id='textbox.italic'
+                            defaultMessage='_italic_'
+                        />
+                    </i>
+                    <span>
+                        {'~~'}
+                        <strike>
+                            <FormattedMessage
+                                id='textbox.strike'
+                                defaultMessage='strike'
+                            />
+                        </strike>
+                        {'~~ '}
+                    </span>
+                    <span>
+                        <FormattedMessage
+                            id='textbox.inlinecode'
+                            defaultMessage='`inline code`'
+                        />
+                    </span>
+                    <span>
+                        <FormattedMessage
+                            id='textbox.preformatted'
+                            defaultMessage='```preformatted```'
+                        />
+                    </span>
+                    <span>
+                        <FormattedMessage
+                            id='textbox.quote'
+                            defaultMessage='>quote'
+                        />
+                    </span>
+                </div>
+            );
+
+            helpLink = (
+                <a
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    href='/help/messaging'
+                    className='textbox-help-link'
+                >
                     <FormattedMessage
-                        id='textbox.inlinecode'
-                        defaultMessage='`inline code`'
+                        id='textbox.help'
+                        defaultMessage='Help'
                     />
-                </span>
-                <span>
-                    <FormattedMessage
-                        id='textbox.preformatted'
-                        defaultMessage='```preformatted```'
-                    />
-                </span>
-                <span>
-                    <FormattedMessage
-                        id='textbox.quote'
-                        defaultMessage='>quote'
-                    />
-                </span>
-            </div>
-        );
+                </a>
+            );
+        }
 
         return (
             <div
@@ -265,6 +285,7 @@ export default class Textbox extends React.Component {
                     channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={true}
+                    rows={this.props.rows}
                 />
                 <div
                     ref='preview'
@@ -275,17 +296,7 @@ export default class Textbox extends React.Component {
                 <div className='help__text'>
                     {helpText}
                     {previewLink}
-                    <a
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        href='/help/messaging'
-                        className='textbox-help-link'
-                    >
-                        <FormattedMessage
-                            id='textbox.help'
-                            defaultMessage='Help'
-                        />
-                    </a>
+                    {helpLink}
                 </div>
             </div>
         );
