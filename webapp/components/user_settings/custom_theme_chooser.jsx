@@ -156,21 +156,6 @@ class CustomThemeChooser extends React.Component {
         this.props.updateTheme(theme);
     }
 
-    getColors(text) {
-        const colorsText = text.split(',');
-        return colorsText.map((colorText) => {
-            const trimText = colorText.trim();
-            const keyValue = trimText.split(':');
-            const color = keyValue[1].trim() || trimText;
-            if (Utils.isHexColor(color)) {
-                return color;
-            } else if (keyValue[0] === 'Code Theme') {
-                return keyValue[1].trim();
-            }
-            return '#FFF';
-        });
-    }
-
     pasteBoxChange(e) {
         let text = '';
 
@@ -184,20 +169,14 @@ class CustomThemeChooser extends React.Component {
             return;
         }
 
-        // theme vectors are currently represented as a number of hex color codes followed by the code theme
-        const colors = this.getColors(text);
-        const theme = {type: 'custom'};
-        let index = 0;
-        Constants.THEME_ELEMENTS.forEach((element) => {
-            if (index < colors.length - 1) {
-                if (Utils.isHexColor(colors[index])) {
-                    theme[element.id] = colors[index];
-                }
-            }
-            index++;
-        });
-        theme.codeTheme = colors[colors.length - 1];
+        let theme;
+        try {
+            theme = JSON.parse(text);
+        } catch (err) {
+            return;
+        }
 
+        theme.type = 'custom';
         this.props.updateTheme(theme);
     }
 
@@ -229,7 +208,6 @@ class CustomThemeChooser extends React.Component {
         const sidebarElements = [];
         const centerChannelElements = [];
         const linkAndButtonElements = [];
-        let colors = '';
         Constants.THEME_ELEMENTS.forEach((element, index) => {
             if (element.id === 'codeTheme') {
                 const codeThemeOptions = [];
@@ -313,8 +291,6 @@ class CustomThemeChooser extends React.Component {
                         </div>
                     </div>
                 );
-
-                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ', ';
             } else if (element.group === 'sidebarElements') {
                 sidebarElements.push(
                     <div
@@ -335,8 +311,6 @@ class CustomThemeChooser extends React.Component {
                         </div>
                     </div>
                 );
-
-                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ', ';
             } else {
                 linkAndButtonElements.push(
                     <div
@@ -357,12 +331,12 @@ class CustomThemeChooser extends React.Component {
                         </div>
                     </div>
                 );
-
-                colors += formatMessage(messages[element.id]) + ': ' + theme[element.id] + ', ';
             }
         });
 
-        colors += 'Code Theme: ' + theme.codeTheme;
+        const copyTheme = Object.assign({}, theme);
+        delete copyTheme.type;
+        delete copyTheme.image;
 
         const pasteBox = (
             <div className='col-sm-12'>
@@ -374,7 +348,7 @@ class CustomThemeChooser extends React.Component {
                 </label>
                 <textarea
                     className='form-control'
-                    value={colors}
+                    value={JSON.stringify(copyTheme)}
                     onPaste={this.pasteBoxChange}
                     onChange={this.onChangeHandle}
                 />
