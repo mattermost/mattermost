@@ -315,7 +315,7 @@ export default class CreateComment extends React.Component {
     }
 
     handleFileUploadChange() {
-        this.focusTextbox(true);
+        this.focusTextbox();
     }
 
     handleUploadStart(clientIds) {
