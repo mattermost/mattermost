@@ -393,7 +393,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 		senderDisplayName := senderName
 
 		mailTemplate = "api.templates.post_subject_in_direct_message"
-		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
+		mailParameters = map[string]interface{}{"SubjectText": subjectText,
 			"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
 	} else if channel.Type == model.CHANNEL_GROUP {
 		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
