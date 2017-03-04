@@ -2161,7 +2161,7 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.channel_name.group",
