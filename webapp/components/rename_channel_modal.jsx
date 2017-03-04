@@ -40,7 +40,7 @@ const holders = defineMessages({
     },
     handleHolder: {
         id: 'rename_channel.handleHolder',
-        defaultMessage: 'lowercase alphanumeric&#39;s only'
+        defaultMessage: 'lowercase alphanumeric characters'
     }
 });
 

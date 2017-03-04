@@ -1744,7 +1744,7 @@
   "rename_channel.defaultError": " - Cannot be changed for the default channel",
   "rename_channel.displayName": "Display Name",
   "rename_channel.displayNameHolder": "Enter display name",
-  "rename_channel.handleHolder": "lowercase alphanumeric&#39;s only",
+  "rename_channel.handleHolder": "lowercase alphanumeric characters",
   "rename_channel.lowercase": "Must be lowercase alphanumeric characters",
   "rename_channel.maxLength": "This field must be less than 22 characters",
   "rename_channel.required": "This field is required",
