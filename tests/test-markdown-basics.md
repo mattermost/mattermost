@@ -107,6 +107,11 @@ Panorama Image:
 Tall Portrait Image:  
 ![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg)
 
+Tall Portrait Image (resized):  
+![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =x200)
+
+Tall Portrait Image (resized to a square):  
+![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =200x200)
 
 ### Lines
 
