@@ -229,12 +229,12 @@ class AuditTable extends React.Component {
 
             let iContent;
             if (this.props.showIp) {
-                iContent = <td className='word-break--all'>{auditInfo.ip}</td>;
+                iContent = <td className='whitespace--nowrap word-break--all'>{auditInfo.ip}</td>;
             }
 
             let sContent;
             if (this.props.showSession) {
-                sContent = <td className='word-break--all'>{auditInfo.sessionId}</td>;
+                sContent = <td className='whitespace--nowrap word-break--all'>{auditInfo.sessionId}</td>;
             }
 
             const descStyle = {};
@@ -244,7 +244,7 @@ class AuditTable extends React.Component {
 
             accessList[i] = (
                 <tr key={audit.id}>
-                    <td className='word-break--all'>{auditInfo.timestamp}</td>
+                    <td className='whitespace--nowrap word-break--all'>{auditInfo.timestamp}</td>
                     {uContent}
                     <td
                         className='word-break--all'
@@ -615,18 +615,21 @@ export function formatAuditInfo(audit, formatMessage) {
     const auditInfo = {};
     auditInfo.timestamp = (
         <div>
-            <FormattedDate
-                value={date}
-                day='2-digit'
-                month='short'
-                year='numeric'
-            />
-            {' - '}
-            <FormattedTime
-                value={date}
-                hour='2-digit'
-                minute='2-digit'
-            />
+            <div>
+                <FormattedDate
+                    value={date}
+                    day='2-digit'
+                    month='short'
+                    year='numeric'
+                />
+            </div>
+            <div>
+                <FormattedTime
+                    value={date}
+                    hour='2-digit'
+                    minute='2-digit'
+                />
+            </div>
         </div>
     );
     auditInfo.userId = audit.user_id;
