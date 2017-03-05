@@ -1453,8 +1453,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if action == "mobile" {
-			user.Sanitize(map[string]bool{})
-
 			w.Write([]byte(""))
 		} else {
 			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
