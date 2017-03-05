@@ -41,6 +41,7 @@ export default class EmojiPickerItem extends React.Component {
 
     render() {
         let item = null;
+
         if (this.props.category === 'recent' || this.props.category === 'custom') {
             item =
                 (<img
@@ -52,7 +53,7 @@ export default class EmojiPickerItem extends React.Component {
                  />);
         } else {
             item =
-                (<div>
+                (<div >
                     <img
                         src='/static/emoji/img_trans.gif'
                         className={'  emojisprite emoji-' + this.props.emoji.filename + ' '}

@@ -644,6 +644,7 @@ export default class CreatePost extends React.Component {
                                 handlePostError={this.handlePostError}
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
+                                emojiEnabled={this.state.emojiPickerEnabled}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'

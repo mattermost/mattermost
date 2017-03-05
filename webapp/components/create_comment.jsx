@@ -603,6 +603,7 @@ export default class CreateComment extends React.Component {
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
+                                emojiEnabled={this.state.emojiPickerEnabled}
                                 initialText=''
                                 channelId={this.props.channelId}
                                 id='reply_textbox'

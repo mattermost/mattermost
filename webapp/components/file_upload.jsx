@@ -354,16 +354,22 @@ class FileUpload extends React.Component {
             className={'fa fa-smile-o icon--emoji-picker emoji-' + this.props.navBarName}
             onClick={this.emojiClick}
                            />);
+        const filestyle = {visibility: 'hidden'};
+
         return (
             <span
                 ref='input'
                 className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
                 <div className='icon--attachment'>
-                    <span dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}/>
+                    <span
+                        dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                        onClick={() => this.refs.fileInput.click()}
+                    />
                     <input
                         ref='fileInput'
                         type='file'
+                        style={filestyle}
                         onChange={this.handleChange}
                         onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
                         multiple={multiple}

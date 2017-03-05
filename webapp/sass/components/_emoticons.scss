@@ -151,10 +151,10 @@
     .emoji-picker-items__container {
         > div {
             display: inline-block;
-            height: 21px;
+            height: 22px;
             margin: 3px;
             vertical-align: top;
-            width: 21px;
+            width: 22px;
         }
     }
 
@@ -164,6 +164,9 @@
         font-size: 18px;
         margin: 4px;
     }
+}
+.emojisprite-wrapper {
+    cursor: pointer;
 }
 
 .emoji-picker__preview {
@@ -183,6 +186,8 @@
     .emoji-picker__preview-image-box {
         display: table-cell;
         vertical-align: middle;
+        height: 36px;
+        width: 42px;
     }
 
     .emoji-picker__preview-image {

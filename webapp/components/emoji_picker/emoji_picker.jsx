@@ -86,11 +86,12 @@ class EmojiPicker extends React.Component {
     }
 
     handleItemOver(emoji) {
+        clearTimeout(this.timeouthandler);
         this.setState({selected: emoji});
     }
 
     handleItemOut() {
-        this.setState({selected: null});
+        this.timeouthandler = setTimeout(() => this.setState({selected: null}), 500);
     }
 
     handleItemUnmount(emoji) {
