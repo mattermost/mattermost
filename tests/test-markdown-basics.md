@@ -154,3 +154,9 @@ Text between block quotes
 #### Heading 4 font size  
 ##### Heading 5 font size  
 ###### Heading 6 font size  
+
+## Heading followed by two paragraphs: This line displays as H2, followed by Line 1, blank line, Line 2
+
+Line 1
+
+Line 2
