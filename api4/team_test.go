@@ -473,7 +473,7 @@ func TestUpdateTeam(t *testing.T) {
 	team, _ = Client.CreateTeam(team)
 
 	team.Description = "updated description"
-	uteam, resp := Client.UpdateTeam(team)
+	uteam, resp := Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.Description != "updated description" {
@@ -481,7 +481,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.DisplayName = "Updated Name"
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.DisplayName != "Updated Name" {
@@ -489,7 +489,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.AllowOpenInvite = true
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.AllowOpenInvite != true {
@@ -497,7 +497,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.InviteId = "inviteid1"
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.InviteId != "inviteid1" {
@@ -505,7 +505,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Name = "Updated name"
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.Name == "Updated name" {
@@ -513,7 +513,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Email = "test@domain.com"
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.Email == "test@domain.com" {
@@ -521,7 +521,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Type = model.TEAM_INVITE
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.Type == model.TEAM_INVITE {
@@ -529,19 +529,28 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.AllowedDomains = "domain"
-	uteam, resp = Client.UpdateTeam(team)
+	uteam, resp = Client.UpdateTeam(team.Id, team)
 	CheckNoError(t, resp)
 
 	if uteam.AllowedDomains == "domain" {
 		t.Fatal("Should not update allowed_domains")
 	}
 
+	initial_team_id := team.Id
+	team.Id = model.NewId()
+	uteam, resp = Client.UpdateTeam(initial_team_id, team)
+	CheckNoError(t, resp)
+
+	if uteam.Id != initial_team_id {
+		t.Fatal("wrong team id")
+	}
+
 	team.Id = "fake"
-	_, resp = Client.UpdateTeam(team)
+	_, resp = Client.UpdateTeam(team.Id, team)
 	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.UpdateTeam(team)
+	_, resp = Client.UpdateTeam(team.Id, team)
 	CheckUnauthorizedStatus(t, resp)
 }
 

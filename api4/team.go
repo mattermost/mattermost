@@ -221,13 +221,15 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	
+
 	team := model.TeamFromJson(r.Body)
 
 	if team == nil {
 		c.SetInvalidParam("team")
 		return
 	}
+
+	team.Id = c.Params.TeamId
 
 	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)

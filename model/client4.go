@@ -633,8 +633,8 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 }
 
 // UpdateTeam will update a team
-func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
-	if r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson()); err != nil {
+func (c *Client4) UpdateTeam(teamId string, team *Team) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(teamId), team.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
