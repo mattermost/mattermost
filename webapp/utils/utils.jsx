@@ -538,14 +538,14 @@ export function applyTheme(theme) {
 
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
-        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;');
-        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj + '!important;');
+        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj);
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj);
     }
 
     if (theme.mentionColor) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
-        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;');
-        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'color:' + theme.mentionColor + '!important;');
+        changeCss('.app__body .sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
+        changeCss('.app__body .sidebar--left .badge', 'color:' + theme.mentionColor);
+        changeCss('.app__body .multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'color:' + theme.mentionColor);
     }
 
     if (theme.centerChannelBg) {
@@ -669,7 +669,7 @@ export function applyTheme(theme) {
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .mention--highlight, .app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.mention-comment', 'border-color:' + theme.mentionHighlightBg + ' !important');
+        changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
     }
 
