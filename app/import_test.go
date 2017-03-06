@@ -294,7 +294,21 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.Email = ptrStr("bob@example.com")
 
-	// TODO: Auth Service and Auth Data.
+	data.AuthService = ptrStr("")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to 0-length auth service.")
+	}
+
+	data.AuthService = ptrStr("saml")
+	data.AuthData = ptrStr(strings.Repeat("abcdefghij", 15))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long auth data.")
+	}
+
+	data.AuthData = ptrStr("bobbytables")
+	if err := validateUserImportData(&data); err != nil {
+		t.Fatal("Validation should have succeeded with valid auth service and auth data.")
+	}
 
 	// Test a valid User with all fields populated.
 	data = UserImportData{
@@ -571,7 +585,7 @@ func TestImportImportTeam(t *testing.T) {
 	data := TeamImportData{
 		Name:            ptrStr(model.NewId()),
 		DisplayName:     ptrStr("Display Name"),
-		Type:            ptrStr("XXX"),
+		Type:            ptrStr("XYZ"),
 		Description:     ptrStr("The team description."),
 		AllowOpenInvite: ptrBool(true),
 	}
@@ -597,7 +611,7 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Do an invalid team in apply mode, check db changes.
-	data.Type = ptrStr("XXX")
+	data.Type = ptrStr("XYZ")
 	if err := ImportTeam(&data, false); err == nil {
 		t.Fatalf("Import should have failed on invalid team.")
 	}
