@@ -132,7 +132,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	if channel.Type == model.CHANNEL_GROUP {
 		userList := []*model.User{}
 		for _, u := range profileMap {
-			if u.Id != sender.Id && u.Id != id {
+			if u.Id != sender.Id {
 				userList = append(userList, u)
 			}
 		}
