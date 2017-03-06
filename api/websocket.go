@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -25,8 +26,9 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: SOCKET_MAX_MESSAGE_SIZE_KB,
-		CheckOrigin: func(r *http.Request) bool {
-			return true
+		CheckOrigin:     func (r *http.Request) bool {
+			origin := r.Header.Get("Origin")
+			return *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin)
 		},
 	}
 
