@@ -6,3 +6,11 @@
 `:dolphin::hamster::strawberry:` should render as emoticons below: 
 
 :dolphin::hamster::strawberry:
+
+### Emoticons - In headings
+
+`# Squirrel: :squirrel:` should render emoticon scaled to match heading text size:
+
+# H1 Squirrel: :squirrel:
+## H2 Squirrel: :squirrel:
+### H3 Squirrel: :squirrel:
