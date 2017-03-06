@@ -452,6 +452,11 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableLinkPreviews {
+		c.Err = model.NewAppError("getOpenGraphMetadata", "api.post.link_preview_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	props := model.StringInterfaceFromJson(r.Body)
 
 	ogJSONGeneric, ok := openGraphDataCache.Get(props["url"])

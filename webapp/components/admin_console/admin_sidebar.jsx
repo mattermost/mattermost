@@ -690,6 +690,16 @@ export default class AdminSidebar extends React.Component {
                                     }
                                 />
                                 <AdminSidebarSection
+                                    name='link_previews'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.linkPreviews'
+                                            defaultMessage='Link Previews'
+                                        />
+
+                                    }
+                                />
+                                <AdminSidebarSection
                                     name='legal_and_support'
                                     title={
                                         <FormattedMessage

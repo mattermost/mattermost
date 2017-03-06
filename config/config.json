@@ -19,6 +19,7 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
+        "EnableLinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
