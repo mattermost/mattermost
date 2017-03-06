@@ -87,6 +87,7 @@ mailto:test@example.com links to `mailto:test@example.com`
 [email link](mailto:test@example.com) links to `mailto:test@example.com` and not `http://mailto:test@example.com`
 [other link](ts3server://example.com) links to `ts3server://example.com` and not `http://ts3server://example.com`
 test_underscore@example.com links to `mailto:test_underscore@example.com`
+<test@example.com> with angle brackets links to `mailto:test@example.com` and not `http://mailto:test@example.com`
 [link with spaces](example.com/ spaces in the url) links to either `http://example.com/ spaces in the url` or `http://example.com/%20spaces%20in%20the%20url`
 
 #### These links should have tooltips when you hover over them
