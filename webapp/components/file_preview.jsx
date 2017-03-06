@@ -51,14 +51,16 @@ export default class FilePreview extends React.Component {
                     className={className}
                     title={info.name}
                 >
-                    {previewImage}
-                    <a
-                        className='file-preview__remove'
-                        onClick={this.handleRemove.bind(this, info.id)}
-                    >
-                        <i className='fa fa-remove'/>
-                    </a>
-                    <TruncateText length='15'>{info.name}</TruncateText>
+                    <div className='file-preview__image-container'>
+                        {previewImage}
+                        <a
+                            className='file-preview__remove'
+                            onClick={this.handleRemove.bind(this, info.id)}
+                        >
+                            <i className='fa fa-remove'/>
+                        </a>
+                    </div>
+                    <TruncateText length={20}>{info.name}</TruncateText>
                 </div>
             );
         });
@@ -70,7 +72,7 @@ export default class FilePreview extends React.Component {
             if (this.props.uploadsProgressPercent[clientId]) {
                 percent = this.props.uploadsProgressPercent[clientId].percent;
                 fileName = this.props.uploadsProgressPercent[clientId].fileName;
-                uploadComponent = <p>{'Uploading '} <TruncateText length='10'>{fileName}</TruncateText></p>;
+                uploadComponent = <p><TruncateText length={20}>{'Uploading '} {fileName}</TruncateText></p>;
             }
             previews.push(
                 <div
@@ -80,13 +82,15 @@ export default class FilePreview extends React.Component {
                     data-client-id={clientId}
                     title={fileName}
                 >
-                    <FileUploadProgress percent={Math.min(percent, 98)}/>
-                    <a
-                        className='file-preview__remove'
-                        onClick={this.handleRemove.bind(this, clientId)}
-                    >
-                        <i className='fa fa-remove'/>
-                    </a>
+                    <div className='file-preview__image-container'>
+                        <FileUploadProgress percent={Math.min(percent, 98)}/>
+                        <a
+                            className='file-preview__remove'
+                            onClick={this.handleRemove.bind(this, clientId)}
+                        >
+                            <i className='fa fa-remove'/>
+                        </a>
+                    </div>
                     {uploadComponent}
                 </div>
             );

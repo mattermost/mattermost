@@ -1,9 +1,9 @@
 @charset 'UTF-8';
 
 .file-preview__container {
-    height: 100px;
+    height: 120px;
     margin: 1px 0 10px;
-    max-height: 100px;
+    max-height: 120px;
     overflow-x: auto;
     overflow-y: hidden;
     position: relative;
@@ -14,20 +14,29 @@
 .file-preview {
     @include clearfix;
     display: inline-block;
-    height: 100px;
+    height: 80px;
     margin: 0 0 0 10px;
     position: relative;
-    width: 120px;
+    width: 100px;
+    overflow: visible;
 
     &:first-child {
         margin-left: 0;
     }
 
-    &.custom-file {
-        .file-preview__image, .file-icon {
-            border: 1px solid $light-gray;
-            height: 80%;
-        }
+    .truncate-text__wrap {
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+
+    .file-preview__image-container {
+        height: 80%;
+        border: 1px solid $light-gray;
+    }
+
+    .file-preview__image, .file-icon {
+        max-height: 100%;
+        overflow:hidden;
     }
 
     .spinner {
