@@ -729,7 +729,7 @@ func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMemb
 	}
 }
 
-// GetChannelMembersByIds gets all the channel members for a list of users on a channel.
+// GetChannelMembersByIds gets the channel members in a channel for a list of user Ids.
 func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
