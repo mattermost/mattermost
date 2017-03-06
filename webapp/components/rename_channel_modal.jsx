@@ -4,11 +4,14 @@
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {cleanUpUrlable, getShortenedURL} from 'utils/url.jsx';
+
+import TeamStore from 'stores/team_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannel} from 'actions/channel_actions.jsx';
 
-import {Modal} from 'react-bootstrap';
+import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 const holders = defineMessages({
     required: {
@@ -23,9 +26,9 @@ const holders = defineMessages({
         id: 'rename_channel.lowercase',
         defaultMessage: 'Must be lowercase alphanumeric characters'
     },
-    handle: {
-        id: 'rename_channel.handle',
-        defaultMessage: 'Handle'
+    url: {
+        id: 'rename_channel.url',
+        defaultMessage: 'URL'
     },
     defaultError: {
         id: 'rename_channel.defaultError',
@@ -37,7 +40,7 @@ const holders = defineMessages({
     },
     handleHolder: {
         id: 'rename_channel.handleHolder',
-        defaultMessage: 'lowercase alphanumeric&#39;s only'
+        defaultMessage: 'lowercase alphanumeric characters'
     }
 });
 
@@ -145,7 +148,7 @@ export class RenameChannelModal extends React.Component {
             state.nameError = formatMessage(holders.maxLength);
             state.invalid = true;
         } else {
-            const cleanedName = Utils.cleanUpUrlable(channel.name);
+            const cleanedName = cleanUpUrlable(channel.name);
             if (cleanedName === channel.name) {
                 state.nameError = '';
             } else {
@@ -212,13 +215,19 @@ export class RenameChannelModal extends React.Component {
 
         const {formatMessage} = this.props.intl;
 
-        let handleInputLabel = formatMessage(holders.handle);
+        let urlInputLabel = formatMessage(holders.url);
         const handleInputClass = 'form-control';
         let readOnlyHandleInput = false;
         if (this.state.channelName === Constants.DEFAULT_CHANNEL) {
-            handleInputLabel += formatMessage(holders.defaultError);
+            urlInputLabel += formatMessage(holders.defaultError);
             readOnlyHandleInput = true;
         }
+
+        const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
+        const shortUrl = getShortenedURL(fullUrl, 35);
+        const urlTooltip = (
+            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
+        );
 
         return (
             <Modal
@@ -255,17 +264,27 @@ export class RenameChannelModal extends React.Component {
                             {displayNameError}
                         </div>
                         <div className={nameClass}>
-                            <label className='control-label'>{handleInputLabel}</label>
-                            <input
-                                onChange={this.onNameChange}
-                                type='text'
-                                className={handleInputClass}
-                                ref='channelName'
-                                placeholder={formatMessage(holders.handleHolder)}
-                                value={this.state.channelName}
-                                maxLength='64'
-                                readOnly={readOnlyHandleInput}
-                            />
+                            <label className='control-label'>{urlInputLabel}</label>
+
+                            <div className='input-group input-group--limit'>
+                                <OverlayTrigger
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='top'
+                                    overlay={urlTooltip}
+                                >
+                                    <span className='input-group-addon'>{shortUrl}</span>
+                                </OverlayTrigger>
+                                <input
+                                    onChange={this.onNameChange}
+                                    type='text'
+                                    className={handleInputClass}
+                                    ref='channelName'
+                                    placeholder={formatMessage(holders.handleHolder)}
+                                    value={this.state.channelName}
+                                    maxLength='64'
+                                    readOnly={readOnlyHandleInput}
+                                />
+                            </div>
                             {nameError}
                         </div>
                         {serverError}

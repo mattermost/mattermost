@@ -46,7 +46,7 @@ export default class CreatePost extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
-        this.handleUploadClick = this.handleUploadClick.bind(this);
+        this.handleFileUploadChange = this.handleFileUploadChange.bind(this);
         this.handleUploadStart = this.handleUploadStart.bind(this);
         this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
         this.handleUploadError = this.handleUploadError.bind(this);
@@ -76,7 +76,8 @@ export default class CreatePost extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
-            showPostDeletedModal: false
+            showPostDeletedModal: false,
+            enableSendButton: false
         };
 
         this.lastBlurAt = 0;
@@ -116,7 +117,7 @@ export default class CreatePost extends React.Component {
         const isReaction = REACTION_PATTERN.exec(post.message);
         if (post.message.indexOf('/') === 0) {
             PostStore.storeDraft(this.state.channelId, null);
-            this.setState({message: '', postError: null, fileInfos: []});
+            this.setState({message: '', postError: null, fileInfos: [], enableSendButton: false});
 
             const args = {};
             args.channel_id = this.state.channelId;
@@ -132,7 +133,11 @@ export default class CreatePost extends React.Component {
                     }
 
                     if (data.goto_location && data.goto_location.length > 0) {
-                        browserHistory.push(data.goto_location);
+                        if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
+                            browserHistory.push(data.goto_location);
+                        } else {
+                            window.open(data.goto_location);
+                        }
                     }
                 },
                 (err) => {
@@ -152,7 +157,14 @@ export default class CreatePost extends React.Component {
             this.sendMessage(post);
         }
 
-        this.setState({message: '', submitting: false, postError: null, fileInfos: [], serverError: null});
+        this.setState({
+            message: '',
+            submitting: false,
+            postError: null,
+            fileInfos: [],
+            serverError: null,
+            enableSendButton: false
+        });
 
         const fasterThanHumanWillClick = 150;
         const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
@@ -224,15 +236,20 @@ export default class CreatePost extends React.Component {
 
     handleChange(e) {
         const message = e.target.value;
-        this.setState({message});
+        const enableSendButton = this.handleEnableSendButton(message, this.state.fileInfos);
+
+        this.setState({
+            message,
+            enableSendButton
+        });
 
         const draft = PostStore.getCurrentDraft();
         draft.message = message;
         PostStore.storeCurrentDraft(draft);
     }
 
-    handleUploadClick() {
-        this.focusTextbox();
+    handleFileUploadChange() {
+        this.focusTextbox(true);
     }
 
     handleUploadStart(clientIds, channelId) {
@@ -264,7 +281,11 @@ export default class CreatePost extends React.Component {
         PostStore.storeDraft(channelId, draft);
 
         if (channelId === this.state.channelId) {
-            this.setState({uploadsInProgress: draft.uploadsInProgress, fileInfos: draft.fileInfos});
+            this.setState({
+                uploadsInProgress: draft.uploadsInProgress,
+                fileInfos: draft.fileInfos,
+                enableSendButton: true
+            });
         }
     }
 
@@ -317,18 +338,23 @@ export default class CreatePost extends React.Component {
         draft.fileInfos = fileInfos;
         draft.uploadsInProgress = uploadsInProgress;
         PostStore.storeCurrentDraft(draft);
+        const enableSendButton = this.handleEnableSendButton(this.state.message, fileInfos);
 
-        this.setState({fileInfos, uploadsInProgress});
+        this.setState({fileInfos, uploadsInProgress, enableSendButton});
+
+        this.handleFileUploadChange();
     }
 
     componentWillMount() {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+        const enableSendButton = this.handleEnableSendButton(this.state.message, this.state.fileInfos);
 
         // wait to load these since they may have changed since the component was constructed (particularly in the case of skipping the tutorial)
         this.setState({
             ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
-            showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER
+            showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
+            enableSendButton
         });
     }
 
@@ -475,8 +501,13 @@ export default class CreatePost extends React.Component {
                 placement='top'
                 screens={screens}
                 overlayClass='tip-overlay--chat'
+                diagnosticsTag='tutorial_tip_1_sending_messages'
             />
         );
+    }
+
+    handleEnableSendButton(message, fileInfos) {
+        return message.trim().length !== 0 || fileInfos.length !== 0;
     }
 
     render() {
@@ -521,6 +552,11 @@ export default class CreatePost extends React.Component {
             centerClass = 'center';
         }
 
+        let sendButtonClass = 'send-button theme';
+        if (!this.state.enableSendButton) {
+            sendButtonClass += ' disabled';
+        }
+
         return (
             <form
                 id='create_post'
@@ -548,7 +584,7 @@ export default class CreatePost extends React.Component {
                         <FileUpload
                             ref='fileUpload'
                             getFileCount={this.getFileCount}
-                            onClick={this.handleUploadClick}
+                            onFileUploadChange={this.handleFileUploadChange}
                             onUploadStart={this.handleUploadStart}
                             onFileUpload={this.handleFileUploadComplete}
                             onUploadError={this.handleUploadError}
@@ -556,7 +592,7 @@ export default class CreatePost extends React.Component {
                             channelId=''
                         />
                         <a
-                            className='send-button theme'
+                            className={sendButtonClass}
                             onClick={this.handleSubmit}
                         >
                             <i className='fa fa-paper-plane'/>

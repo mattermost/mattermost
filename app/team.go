@@ -231,7 +231,7 @@ func AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *mode
 	return team, nil
 }
 
-func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
+func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) {
 
 	tm := &model.TeamMember{
 		TeamId: team.Id,
@@ -239,11 +239,8 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 		Roles:  model.ROLE_TEAM_USER.Id,
 	}
 
-	channelRole := model.ROLE_CHANNEL_USER.Id
-
 	if team.Email == user.Email {
 		tm.Roles = model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id
-		channelRole = model.ROLE_CHANNEL_USER.Id + " " + model.ROLE_CHANNEL_ADMIN.Id
 	}
 
 	if etmr := <-Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
@@ -252,21 +249,38 @@ func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 		// Do nothing if already added
 		if rtm.DeleteAt == 0 {
-			return nil
+			return true, nil
 		}
 
 		if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
-			return tmr.Err
+			return false, tmr.Err
 		}
 	} else {
 		// Membership appears to be missing.  Lets try to add.
 		if tmr := <-Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
-			return tmr.Err
+			return false, tmr.Err
 		}
 	}
 
 	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return uua.Err
+		return false, uua.Err
+	}
+
+	return false, nil
+}
+
+func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
+
+	if alreadyAdded, err := joinUserToTeam(team, user); err != nil {
+		return err
+	} else if alreadyAdded {
+		return nil
+	}
+
+	channelRole := model.ROLE_CHANNEL_USER.Id
+
+	if team.Email == user.Email {
+		channelRole = model.ROLE_CHANNEL_USER.Id + " " + model.ROLE_CHANNEL_ADMIN.Id
 	}
 
 	// Soft error if there is an issue joining the default channels
@@ -290,6 +304,7 @@ func GetTeam(teamId string) (*model.Team, *model.AppError) {
 
 func GetTeamByName(name string) (*model.Team, *model.AppError) {
 	if result := <-Srv.Store.Team().GetByName(name); result.Err != nil {
+		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Team), nil
@@ -312,8 +327,24 @@ func GetAllTeams() ([]*model.Team, *model.AppError) {
 	}
 }
 
+func GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().GetAllPage(offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
 func GetAllOpenTeams() ([]*model.Team, *model.AppError) {
 	if result := <-Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
+func GetAllOpenTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().GetAllTeamPageListing(offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Team), nil
@@ -407,7 +438,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	}
 
 	for _, channel := range *channelList {
-		if channel.Type != model.CHANNEL_DIRECT {
+		if !channel.IsGroupOrDirect() {
 			InvalidateCacheForChannelMembers(channel.Id)
 			if result := <-Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
 				return result.Err
@@ -525,8 +556,13 @@ func PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.Channel().PermanentDeleteByTeam(team.Id); result.Err != nil {
+	if result := <-Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
 		return result.Err
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		for _, c := range *channels {
+			PermanentDeleteChannel(c)
+		}
 	}
 
 	if result := <-Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {

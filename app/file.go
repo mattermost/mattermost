@@ -15,6 +15,7 @@ import (
 	"image/jpeg"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -318,7 +319,7 @@ func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		if result := <-Srv.Store.FileInfo().GetForPost(post.Id); result.Err != nil {
+		if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
 			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error"), post.Id, result.Err)
 			return []*model.FileInfo{}
 		} else {
@@ -368,6 +369,54 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	hash.Write([]byte(fileId))
 
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
+}
+
+func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	resStruct := &model.FileUploadResponse{
+		FileInfos: []*model.FileInfo{},
+		ClientIds: []string{},
+	}
+
+	previewPathList := []string{}
+	thumbnailPathList := []string{}
+	imageDataList := [][]byte{}
+
+	for i, fileHeader := range fileHeaders {
+		file, fileErr := fileHeader.Open()
+		defer file.Close()
+		if fileErr != nil {
+			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.bad_parse.app_error", nil, fileErr.Error(), http.StatusBadRequest)
+		}
+
+		buf := bytes.NewBuffer(nil)
+		io.Copy(buf, file)
+		data := buf.Bytes()
+
+		info, err := DoUploadFile(teamId, channelId, userId, fileHeader.Filename, data)
+		if err != nil {
+			return nil, err
+		}
+
+		if info.PreviewPath != "" || info.ThumbnailPath != "" {
+			previewPathList = append(previewPathList, info.PreviewPath)
+			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
+			imageDataList = append(imageDataList, data)
+		}
+
+		resStruct.FileInfos = append(resStruct.FileInfos, info)
+
+		if len(clientIds) > 0 {
+			resStruct.ClientIds = append(resStruct.ClientIds, clientIds[i])
+		}
+	}
+
+	HandleImages(previewPathList, thumbnailPathList, imageDataList)
+
+	return resStruct, nil
 }
 
 func DoUploadFile(teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
@@ -525,5 +574,13 @@ func generatePreviewImage(img image.Image, previewPath string, width int) {
 	if err := WriteFile(buf.Bytes(), previewPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err)
 		return
+	}
+}
+
+func GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	if result := <-Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.FileInfo), nil
 	}
 }

@@ -29,17 +29,17 @@ func NewAutoPostCreator(client *model.Client, channelid string) *AutoPostCreator
 		client:         client,
 		channelid:      channelid,
 		Fuzzy:          false,
-		TextLength:     utils.Range{100, 200},
+		TextLength:     utils.Range{Begin: 100, End: 200},
 		HasImage:       false,
 		ImageFilenames: TEST_IMAGE_FILENAMES,
 		Users:          []string{},
-		Mentions:       utils.Range{0, 5},
-		Tags:           utils.Range{0, 7},
+		Mentions:       utils.Range{Begin: 0, End: 5},
+		Tags:           utils.Range{Begin: 0, End: 7},
 	}
 }
 
 func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
-	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{0, len(cfg.ImageFilenames) - 1})]
+	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
 	path := utils.FindDir("web/static/images")
 	file, err := os.Open(path + "/" + filename)

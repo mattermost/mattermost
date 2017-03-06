@@ -155,6 +155,11 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 		}
 
 		email := sUser.Profile["email"]
+		if email == "" {
+			email = sUser.Username + "@example.com"
+			log.WriteString(utils.T("api.slackimport.slack_add_users.missing_email_address", map[string]interface{}{"Email": email, "Username": sUser.Username}))
+			l4g.Warn(utils.T("api.slackimport.slack_add_users.missing_email_address.warn", map[string]interface{}{"Email": email, "Username": sUser.Username}))
+		}
 
 		password := model.NewId()
 
@@ -178,7 +183,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 			Password:  password,
 		}
 
-		if mUser := ImportUser(team, &newUser); mUser != nil {
+		if mUser := OldImportUser(team, &newUser); mUser != nil {
 			addedUsers[sUser.Id] = mUser
 			log.WriteString(utils.T("api.slackimport.slack_add_users.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
 		} else {
@@ -210,7 +215,7 @@ func SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
 		Password:  password,
 	}
 
-	if mUser := ImportUser(team, &botUser); mUser != nil {
+	if mUser := OldImportUser(team, &botUser); mUser != nil {
 		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]interface{}{"Email": botUser.Email, "Password": password}))
 		return mUser
 	} else {
@@ -242,7 +247,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 					newPost.Message = sPost.File.Title
 				}
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 			for _, fileId := range newPost.FileIds {
 				if result := <-Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
 					l4g.Error(utils.T("api.slackimport.slack_add_posts.attach_files.error"), newPost.Id, newPost.FileIds, result.Err)
@@ -266,7 +271,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Message:   sPost.Comment.Comment,
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "bot_message":
 			if botUser == nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.bot_user_no_exists.warn"))
@@ -298,7 +303,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Type:      model.POST_SLACK_ATTACHMENT,
 			}
 
-			ImportIncomingWebhookPost(post, props)
+			OldImportIncomingWebhookPost(post, props)
 		case sPost.Type == "message" && (sPost.SubType == "channel_join" || sPost.SubType == "channel_leave"):
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -325,7 +330,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 					"username": users[sPost.User].Username,
 				},
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "me_message":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.without_user.debug"))
@@ -340,7 +345,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				Message:   "*" + sPost.Text + "*",
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_topic":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -356,7 +361,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_HEADER_CHANGE,
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_purpose":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -372,7 +377,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_PURPOSE_CHANGE,
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		case sPost.Type == "message" && sPost.SubType == "channel_name":
 			if sPost.User == "" {
 				l4g.Debug(utils.T("api.slackimport.slack_add_posts.msg_no_usr.debug"))
@@ -388,7 +393,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 				Type:      model.POST_DISPLAYNAME_CHANGE,
 			}
-			ImportPost(&newPost)
+			OldImportPost(&newPost)
 		default:
 			l4g.Warn(utils.T("api.slackimport.slack_add_posts.unsupported.warn"), sPost.Type, sPost.SubType)
 		}
@@ -405,7 +410,7 @@ func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId strin
 			}
 			defer openFile.Close()
 
-			uploadedFile, err := ImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
+			uploadedFile, err := OldImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
 			if err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_upload_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
 				return nil, false
@@ -564,12 +569,63 @@ func SlackConvertChannelMentions(channels []SlackChannel, posts map[string][]Sla
 }
 
 func SlackConvertPostsMarkup(posts map[string][]SlackPost) map[string][]SlackPost {
-	// Convert URLs in Slack's format to Markdown format.
-	regex := regexp.MustCompile(`<([^|<>]+)\|([^|<>]+)>`)
+	regexReplaceAllString := []struct {
+		regex *regexp.Regexp
+		rpl   string
+	}{
+		// URL
+		{
+			regexp.MustCompile(`<([^|<>]+)\|([^|<>]+)>`),
+			"[$2]($1)",
+		},
+		// bold
+		{
+			regexp.MustCompile(`(^|[\s.;,])\*(\S[^*\n]+)\*`),
+			"$1**$2**",
+		},
+		// strikethrough
+		{
+			regexp.MustCompile(`(^|[\s.;,])\~(\S[^~\n]+)\~`),
+			"$1~~$2~~",
+		},
+		// single paragraph blockquote
+		// Slack converts > character to &gt;
+		{
+			regexp.MustCompile(`(?sm)^&gt;`),
+			">",
+		},
+	}
+
+	regexReplaceAllStringFunc := []struct {
+		regex *regexp.Regexp
+		fn    func(string) string
+	}{
+		// multiple paragraphs blockquotes
+		{
+			regexp.MustCompile(`(?sm)^>&gt;&gt;(.+)$`),
+			func(src string) string {
+				// remove >>> prefix, might have leading \n
+				prefixRegexp := regexp.MustCompile(`^([\n])?>&gt;&gt;(.*)`)
+				src = prefixRegexp.ReplaceAllString(src, "$1$2")
+				// append > to start of line
+				appendRegexp := regexp.MustCompile(`(?m)^`)
+				return appendRegexp.ReplaceAllString(src, ">$0")
+			},
+		},
+	}
 
 	for channelName, channelPosts := range posts {
 		for postIdx, post := range channelPosts {
-			posts[channelName][postIdx].Text = regex.ReplaceAllString(post.Text, "[$2]($1)")
+			result := post.Text
+
+			for _, rule := range regexReplaceAllString {
+				result = rule.regex.ReplaceAllString(result, rule.rpl)
+			}
+
+			for _, rule := range regexReplaceAllStringFunc {
+				result = rule.regex.ReplaceAllStringFunc(result, rule.fn)
+			}
+			posts[channelName][postIdx].Text = result
 		}
 	}
 

@@ -4,13 +4,8 @@
 package main
 
 import (
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
-	"runtime"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -79,7 +74,7 @@ func runServer(configFileLocation string) {
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {
-		api.LoadLicense()
+		app.LoadLicense()
 	}
 
 	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
@@ -101,7 +96,9 @@ func runServer(configFileLocation string) {
 	}
 
 	setDiagnosticId()
-	go runSecurityAndDiagnosticsJob()
+	utils.RegenerateClientConfig()
+	go runSecurityJob()
+	go runDiagnosticsJob()
 
 	if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 		complianceI.StartComplianceDailyJob()
@@ -132,9 +129,14 @@ func runServer(configFileLocation string) {
 	app.StopServer()
 }
 
-func runSecurityAndDiagnosticsJob() {
-	doSecurityAndDiagnostics()
-	model.CreateRecurringTask("Security and Diagnostics", doSecurityAndDiagnostics, time.Hour*4)
+func runSecurityJob() {
+	doSecurity()
+	model.CreateRecurringTask("Security", doSecurity, time.Hour*4)
+}
+
+func runDiagnosticsJob() {
+	doDiagnostics()
+	model.CreateRecurringTask("Diagnostics", doDiagnostics, time.Hour*24)
 }
 
 func resetStatuses() {
@@ -158,135 +160,12 @@ func setDiagnosticId() {
 	}
 }
 
-func doSecurityAndDiagnostics() {
-	if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-		if result := <-app.Srv.Store.System().Get(); result.Err == nil {
-			props := result.Data.(model.StringMap)
-			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
-			currentTime := model.GetMillis()
-
-			if (currentTime - lastSecurityTime) > 1000*60*60*24*1 {
-				l4g.Debug(utils.T("mattermost.security_checks.debug"))
-
-				v := url.Values{}
-
-				v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
-				v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-				v.Set(utils.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
-				v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
-				v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
-
-				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
-					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
-				} else {
-					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
-				}
-
-				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
-				if lastSecurityTime == 0 {
-					<-app.Srv.Store.System().Save(systemSecurityLastTime)
-				} else {
-					<-app.Srv.Store.System().Update(systemSecurityLastTime)
-				}
-
-				if ucr := <-app.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-				}
-
-				if ucr := <-app.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-				}
-
-				if tcr := <-app.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
-				}
-
-				res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
-				if err != nil {
-					l4g.Error(utils.T("mattermost.security_info.error"))
-					return
-				}
-
-				bulletins := model.SecurityBulletinsFromJson(res.Body)
-				ioutil.ReadAll(res.Body)
-				res.Body.Close()
-
-				for _, bulletin := range bulletins {
-					if bulletin.AppliesToVersion == model.CurrentVersion {
-						if props["SecurityBulletin_"+bulletin.Id] == "" {
-							if results := <-app.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
-								l4g.Error(utils.T("mattermost.system_admins.error"))
-								return
-							} else {
-								users := results.Data.(map[string]*model.User)
-
-								resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
-								if err != nil {
-									l4g.Error(utils.T("mattermost.security_bulletin.error"))
-									return
-								}
-
-								body, err := ioutil.ReadAll(resBody.Body)
-								res.Body.Close()
-								if err != nil || resBody.StatusCode != 200 {
-									l4g.Error(utils.T("mattermost.security_bulletin_read.error"))
-									return
-								}
-
-								for _, user := range users {
-									l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
-									utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
-								}
-							}
-
-							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-							<-app.Srv.Store.System().Save(bulletinSeen)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		utils.SendGeneralDiagnostics()
-		sendServerDiagnostics()
-	}
+func doSecurity() {
+	app.DoSecurityUpdateCheck()
 }
 
-func sendServerDiagnostics() {
-	var userCount int64
-	var activeUserCount int64
-	var teamCount int64
-
-	if ucr := <-app.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
+func doDiagnostics() {
+	if *utils.Cfg.LogSettings.EnableDiagnostics {
+		app.SendDailyDiagnostics()
 	}
-
-	if ucr := <-app.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-		activeUserCount = ucr.Data.(int64)
-	}
-
-	if tcr := <-app.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
-	}
-
-	utils.SendDiagnostic(utils.TRACK_ACTIVITY, map[string]interface{}{
-		"registered_users": userCount,
-		"active_users":     activeUserCount,
-		"teams":            teamCount,
-	})
-
-	edition := model.BuildEnterpriseReady
-	version := model.CurrentVersion
-	database := utils.Cfg.SqlSettings.DriverName
-	operatingSystem := runtime.GOOS
-
-	utils.SendDiagnostic(utils.TRACK_VERSION, map[string]interface{}{
-		"edition":          edition,
-		"version":          version,
-		"database":         database,
-		"operating_system": operatingSystem,
-	})
 }

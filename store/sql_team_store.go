@@ -5,6 +5,7 @@ package store
 
 import (
 	"database/sql"
+	"net/http"
 	"strconv"
 
 	"github.com/mattermost/platform/model"
@@ -62,8 +63,8 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		result := StoreResult{}
 
 		if len(team.Id) > 0 {
-			result.Err = model.NewLocAppError("SqlTeamStore.Save",
-				"store.sql_team.save.existing.app_error", nil, "id="+team.Id)
+			result.Err = model.NewAppError("SqlTeamStore.Save",
+				"store.sql_team.save.existing.app_error", nil, "id="+team.Id, http.StatusBadRequest)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -79,7 +80,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 
 		if err := s.GetMaster().Insert(team); err != nil {
 			if IsUniqueConstraintError(err.Error(), []string{"Name", "teams_name_key"}) {
-				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusBadRequest)
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error())
 			}
@@ -164,7 +165,7 @@ func (s SqlTeamStore) Get(id string) StoreChannel {
 		if obj, err := s.GetReplica().Get(model.Team{}, id); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.Get", "store.sql_team.get.finding.app_error", nil, "id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id)
+			result.Err = model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id, http.StatusNotFound)
 		} else {
 			team := obj.(*model.Team)
 			if len(team.InviteId) == 0 {
@@ -235,6 +236,27 @@ func (s SqlTeamStore) GetByName(name string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) SearchByName(name string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var teams []*model.Team
+
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Name", map[string]interface{}{"Name": name + "%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.SearchByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error())
+		}
+
+		result.Data = teams
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetAll() StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -243,6 +265,32 @@ func (s SqlTeamStore) GetAll() StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams"); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetAllPage(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error())
 		}
 
@@ -301,6 +349,38 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
+
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
+		}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
 		}
 
@@ -433,7 +513,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) StoreChannel {
 		err := s.GetReplica().SelectOne(&member, "SELECT * FROM TeamMembers WHERE TeamId = :TeamId AND UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 		if err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
+				result.Err = model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusNotFound)
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error())
 			}

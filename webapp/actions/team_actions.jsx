@@ -145,3 +145,8 @@ export function inviteMembers(data, success, error) {
         }
     );
 }
+
+export function switchTeams(url) {
+    AsyncClient.viewChannel();
+    browserHistory.push(url);
+}

@@ -4,10 +4,11 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestUserStoreSave(t *testing.T) {
@@ -17,7 +18,7 @@ func TestUserStoreSave(t *testing.T) {
 
 	u1 := model.User{}
 	u1.Email = model.NewId()
-	u1.Username = model.NewId()
+	u1.Username = "n" + model.NewId()
 
 	if err := (<-store.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save user", err)
@@ -48,7 +49,7 @@ func TestUserStoreSave(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		u1.Id = ""
 		u1.Email = model.NewId()
-		u1.Username = model.NewId()
+		u1.Username = "n" + model.NewId()
 		if err := (<-store.User().Save(&u1)).Err; err != nil {
 			t.Fatal("couldn't save item", err)
 		}
@@ -58,7 +59,7 @@ func TestUserStoreSave(t *testing.T) {
 
 	u1.Id = ""
 	u1.Email = model.NewId()
-	u1.Username = model.NewId()
+	u1.Username = "n" + model.NewId()
 	if err := (<-store.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
@@ -102,6 +103,32 @@ func TestUserStoreUpdate(t *testing.T) {
 	u2.Email = model.NewId()
 	if err := (<-store.User().Update(u2, false)).Err; err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	oldEmail := u3.Email
+	u3.AuthService = "gitlab"
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}))
+
+	u3.Email = model.NewId()
+	if result := <-store.User().Update(u3, false); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	} else {
+		newUser := result.Data.([2]*model.User)[0]
+		if newUser.Email != oldEmail {
+			t.Fatal("Email should not have been updated as the update is not trusted")
+		}
+	}
+
+	if result := <-store.User().Update(u3, true); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	} else {
+		newUser := result.Data.([2]*model.User)[0]
+		if newUser.Email != u3.Email {
+			t.Fatal("Email should have been updated as the update is trusted")
+		}
 	}
 }
 
@@ -208,7 +235,7 @@ func TestUserStoreGetAllProfiles(t *testing.T) {
 	if r1 := <-store.User().GetAllProfiles(0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) < 2 {
 			t.Fatal("invalid returned users")
 		}
@@ -217,7 +244,7 @@ func TestUserStoreGetAllProfiles(t *testing.T) {
 	if r2 := <-store.User().GetAllProfiles(0, 1); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		users := r2.Data.(map[string]*model.User)
+		users := r2.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users, limit did not work")
 		}
@@ -242,20 +269,27 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	if r1 := <-store.User().GetProfiles(teamId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r2 := <-store.User().GetProfiles("123", 0, 100); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		if len(r2.Data.(map[string]*model.User)) != 0 {
+		if len(r2.Data.([]*model.User)) != 0 {
 			t.Fatal("should have returned empty map")
 		}
 	}
@@ -310,7 +344,85 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	Must(store.Channel().SaveMember(&m2))
 	Must(store.Channel().SaveMember(&m3))
 
-	if r1 := <-store.User().GetProfilesInChannel(c1.Id, -1, -1, false); r1.Err != nil {
+	if r1 := <-store.User().GetProfilesInChannel(c1.Id, 0, 100); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesInChannel(c2.Id, 0, 1); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if len(r2.Data.([]*model.User)) != 1 {
+			t.Fatal("should have returned only 1 user")
+		}
+	}
+}
+
+func TestUserStoreGetAllProfilesInChannel(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
+
+	c1 := model.Channel{}
+	c1.TeamId = teamId
+	c1.DisplayName = "Profiles in channel"
+	c1.Name = "profiles-" + model.NewId()
+	c1.Type = model.CHANNEL_OPEN
+
+	c2 := model.Channel{}
+	c2.TeamId = teamId
+	c2.DisplayName = "Profiles in private"
+	c2.Name = "profiles-" + model.NewId()
+	c2.Type = model.CHANNEL_PRIVATE
+
+	Must(store.Channel().Save(&c1))
+	Must(store.Channel().Save(&c2))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c2.Id
+	m3.UserId = u1.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	Must(store.Channel().SaveMember(&m1))
+	Must(store.Channel().SaveMember(&m2))
+	Must(store.Channel().SaveMember(&m3))
+
+	if r1 := <-store.User().GetAllProfilesInChannel(c1.Id, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.(map[string]*model.User)
@@ -323,7 +435,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1, false); r2.Err != nil {
+	if r2 := <-store.User().GetAllProfilesInChannel(c2.Id, false); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 1 {
@@ -331,7 +443,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1, true); r2.Err != nil {
+	if r2 := <-store.User().GetAllProfilesInChannel(c2.Id, true); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 1 {
@@ -339,7 +451,7 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 		}
 	}
 
-	if r2 := <-store.User().GetProfilesInChannel(c2.Id, -1, -1, true); r2.Err != nil {
+	if r2 := <-store.User().GetAllProfilesInChannel(c2.Id, true); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.(map[string]*model.User)) != 1 {
@@ -383,20 +495,27 @@ func TestUserStoreGetProfilesNotInChannel(t *testing.T) {
 	if r1 := <-store.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r2 := <-store.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		if len(r2.Data.(map[string]*model.User)) != 2 {
+		if len(r2.Data.([]*model.User)) != 2 {
 			t.Fatal("invalid returned users")
 		}
 	}
@@ -423,7 +542,7 @@ func TestUserStoreGetProfilesNotInChannel(t *testing.T) {
 	if r1 := <-store.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 0 {
 			t.Fatal("invalid returned users")
 		}
@@ -432,7 +551,7 @@ func TestUserStoreGetProfilesNotInChannel(t *testing.T) {
 	if r2 := <-store.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		if len(r2.Data.(map[string]*model.User)) != 1 {
+		if len(r2.Data.([]*model.User)) != 1 {
 			t.Fatal("should have had 1 user not in channel")
 		}
 	}
@@ -456,86 +575,128 @@ func TestUserStoreGetProfilesByIds(t *testing.T) {
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id}, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id}, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id, u2.Id}, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id, u2.Id}, true); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id, u2.Id}, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r1 := <-store.User().GetProfileByIds([]string{u1.Id}, false); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		found := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user")
 		}
 	}
 
 	if r2 := <-store.User().GetProfiles("123", 0, 100); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
-		if len(r2.Data.(map[string]*model.User)) != 0 {
-			t.Fatal("should have returned empty map")
+		if len(r2.Data.([]*model.User)) != 0 {
+			t.Fatal("should have returned empty array")
 		}
 	}
 }
@@ -660,7 +821,7 @@ func TestUserStoreGetByUsername(t *testing.T) {
 
 	u1 := &model.User{}
 	u1.Email = model.NewId()
-	u1.Username = model.NewId()
+	u1.Username = "n" + model.NewId()
 	Must(store.User().Save(u1))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
@@ -680,7 +841,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 
 	u1 := &model.User{
 		Email:       model.NewId(),
-		Username:    model.NewId(),
+		Username:    "n" + model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_GITLAB,
 		AuthData:    &auth,
 	}
@@ -690,7 +851,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 
 	u2 := &model.User{
 		Email:       model.NewId(),
-		Username:    model.NewId(),
+		Username:    "n" + model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &auth2,
 	}
@@ -737,7 +898,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 	// test a special case where two users will have conflicting login information so we throw a special error
 	u3 := &model.User{
 		Email:       model.NewId(),
-		Username:    model.NewId(),
+		Username:    "n" + model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &auth3,
 	}
@@ -745,7 +906,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 
 	u4 := &model.User{
 		Email:       model.NewId(),
-		Username:    model.NewId(),
+		Username:    "n" + model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &u3.Username,
 	}
@@ -969,7 +1130,7 @@ func TestUserStoreGetRecentlyActiveUsersForTeam(t *testing.T) {
 	u1 := &model.User{}
 	u1.Email = model.NewId()
 	Must(store.User().Save(u1))
-	Must(store.Status().SaveOrUpdate(&model.Status{u1.Id, model.STATUS_ONLINE, false, model.GetMillis(), ""}))
+	Must(store.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}))
 	tid := model.NewId()
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
 
@@ -1340,6 +1501,73 @@ func TestUserStoreSearch(t *testing.T) {
 
 		if !found {
 			t.Fatal("should have found user")
+		}
+	}
+}
+
+func TestUserStoreAnalyticsGetInactiveUsersCount(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+
+	var count int64
+
+	if result := <-store.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		count = result.Data.(int64)
+	}
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.DeleteAt = model.GetMillis()
+	Must(store.User().Save(u2))
+
+	if result := <-store.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		newCount := result.Data.(int64)
+		if count != newCount-1 {
+			t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
+		}
+	}
+}
+
+func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
+	Setup()
+
+	var countBefore int64
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		countBefore = result.Data.(int64)
+	}
+
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = "n" + model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = model.NewId()
+	u2.Username = "n" + model.NewId()
+
+	if err := (<-store.User().Save(&u1)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if err := (<-store.User().Save(&u2)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		// We expect to find 1 more system admin than there was at the start of this test function.
+		if count := result.Data.(int64); count != countBefore+1 {
+			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
 		}
 	}
 }

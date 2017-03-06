@@ -608,6 +608,18 @@ export default class NotificationsTab extends React.Component {
                 </div>
             );
 
+            const extraInfo = (
+                <span>
+                    <FormattedMessage
+                        id='user.settings.notifications.mentionsInfo'
+                        defaultMessage='Mentions trigger when someone sends a message that includes your username (@{username}) or any of the options selected above.'
+                        values={{
+                            username: user.username
+                        }}
+                    />
+                </span>
+            );
+
             keysSection = (
                 <SettingItemMax
                     title={Utils.localizeMessage('user.settings.notifications.wordsTrigger', 'Words that trigger mentions')}
@@ -615,10 +627,11 @@ export default class NotificationsTab extends React.Component {
                     submit={this.handleSubmit}
                     server_error={serverError}
                     updateSection={this.handleCancel}
+                    extraInfo={extraInfo}
                 />
             );
         } else {
-            let keys = [];
+            let keys = ['@' + user.username];
             if (this.state.firstNameKey) {
                 keys.push(user.first_name);
             }

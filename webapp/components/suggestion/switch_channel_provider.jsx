@@ -12,6 +12,7 @@ import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {sortChannelsByDisplayName, buildGroupChannelName} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 
@@ -24,12 +25,15 @@ class SwitchChannelSuggestion extends Suggestion {
             className += ' suggestion--selected';
         }
 
-        const displayName = item.display_name;
+        let displayName = item.display_name;
         let icon = null;
         if (item.type === Constants.OPEN_CHANNEL) {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
+        } else if (item.type === Constants.GM_CHANNEL) {
+            displayName = buildGroupChannelName(item.id);
+            icon = <div className='status status--group'>{UserStore.getProfileListInChannel(item.id, true).length}</div>;
         } else {
             icon = (
                 <div className='pull-left'>
@@ -73,7 +77,11 @@ export default class SwitchChannelProvider extends Provider {
                     for (const id of Object.keys(allChannels)) {
                         const channel = allChannels[id];
                         if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
-                            channels.push(channel);
+                            const newChannel = Object.assign({}, channel);
+                            if (newChannel.type === Constants.GM_CHANNEL) {
+                                newChannel.name = buildGroupChannelName(newChannel.id);
+                            }
+                            channels.push(newChannel);
                         }
                     }
 
@@ -105,19 +113,9 @@ export default class SwitchChannelProvider extends Provider {
                         userMap[user.id] = user;
                     }
 
-                    channels.sort((a, b) => {
-                        if (a.display_name === b.display_name) {
-                            if (a.type !== Constants.DM_CHANNEL && b.type === Constants.DM_CHANNEL) {
-                                return -1;
-                            } else if (a.type === Constants.DM_CHANNEL && b.type !== Constants.DM_CHANNEL) {
-                                return 1;
-                            }
-                            return a.name.localeCompare(b.name);
-                        }
-                        return a.display_name.localeCompare(b.display_name);
-                    });
-
-                    const channelNames = channels.map((channel) => channel.name);
+                    const channelNames = channels.
+                        sort(sortChannelsByDisplayName).
+                        map((channel) => channel.name);
 
                     AppDispatcher.handleServerAction({
                         type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,

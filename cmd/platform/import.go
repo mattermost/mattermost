@@ -34,6 +34,7 @@ var bulkImportCmd = &cobra.Command{
 
 func init() {
 	bulkImportCmd.Flags().Bool("apply", false, "Save the import data to the database. Use with caution - this cannot be reverted.")
+	bulkImportCmd.Flags().Bool("validate", false, "Validate the import data without making any changes to the system.")
 
 	importCmd.AddCommand(
 		bulkImportCmd,
@@ -81,6 +82,11 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Apply flag error")
 	}
 
+	validate, err := cmd.Flags().GetBool("validate")
+	if err != nil {
+		return errors.New("Validate flag error")
+	}
+
 	if len(args) != 1 {
 		return errors.New("Incorrect number of arguments.")
 	}
@@ -91,7 +97,10 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 	}
 	defer fileReader.Close()
 
-	if apply {
+	if apply && validate {
+		CommandPrettyPrintln("Use only one of --apply or --validate.")
+		return nil
+	} else if apply && !validate {
 		CommandPrettyPrintln("Running Bulk Import. This may take a long time.")
 	} else {
 		CommandPrettyPrintln("Running Bulk Import Data Validation.")
@@ -106,12 +115,12 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 		if lineNumber != 0 {
 			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
 		}
-	}
-
-	if apply {
-		CommandPrettyPrintln("Finished Bulk Import.")
 	} else {
-		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
+		if apply {
+			CommandPrettyPrintln("Finished Bulk Import.")
+		} else {
+			CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
+		}
 	}
 
 	return nil

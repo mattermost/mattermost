@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "L'autre utilisateur a une ID invalide "
+    "translation": "Invalid user ID for direct channel creation"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -796,6 +796,10 @@
     "translation": "Désolé, impossible de trouver cette page."
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Invalid or missing {{.Name}} in request body"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "Paramètre {{.Name}} invalide"
   },
@@ -810,6 +814,10 @@
   {
     "id": "api.context.invalid_token.error",
     "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Invalid or missing {{.Name}} parameter in request URL"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1144,6 +1152,10 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Une erreur est survenue lors de la lecture depuis le stockage local du serveur"
+  },
+  {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Unable to upload file. Header cannot be parsed."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -2073,7 +2085,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "L'équipe {{.SenderStatus}} <strong>{{.SenderName}}</strong>, vous a invité à rejoindre <strong>{{.TeamDisplayName}}</strong>."
+    "translation": "<strong>{{.SenderName}}</strong>, {{.SenderStatus}} de l'équipe, vous invite à rejoindre <strong>{{.TeamDisplayName}}</strong>."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2344,6 +2356,10 @@
     "translation": "Votre adresse e-mail ne correspond pas à un domaine valide. Veuillez contacter votre administrateur ou enregistrez-vous avec une autre adresse e-mail."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Problème en tentant de rejoindre les canaux par défaut user_id=%s, team_id=%s, err=%v"
   },
@@ -2552,6 +2568,10 @@
     "translation": "MFA non configuré ou disponible sur ce serveur"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Impossible de créer un utilisateur à partir du user object {{.Service}}"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Mise à jour du mot de passe refusée car le user_id du contexte ne correspond pas à l'identifiant d'utilisateur fourni"
   },
@@ -2672,7 +2692,7 @@
     "translation": "Hub d'équipe arrêté pour teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
   },
   {
@@ -2696,11 +2716,11 @@
     "translation": "Les trigger_words ou channel_id doivent être définis"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
-    "translation": "Les webhooks entrants ont été désactivées par l'administrateur système."
+    "id": "api.webhook.delete_incoming.disabled.app_error",
+    "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Droits insuffisants pour supprimer le webhook entrant"
   },
   {
@@ -2740,6 +2760,38 @@
     "translation": "Droits insuffisants pour regénérer le jeton du webhook sortant"
   },
   {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Impossible de mettre à jour les commandes entre équipes"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Droits insuffisants pour supprimer le webhook entrant"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Les webhooks sortants d'un même canal ne peuvent pas avoir les mêmes mots de déclenchement/URLs de rappel."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Les webhooks sortants ne peuvent être créés que pour les canaux publics."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Droits insuffisants pour créer le webhook sortant."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Les trigger_words ou channel_id doivent être définis"
+  },
+  {
     "id": "api.webrtc.disabled.app_error",
     "translation": "WebRTC n'est pas activé sur ce serveur."
   },
@@ -2760,6 +2812,10 @@
     "translation": "Paramètre {{.Name}} invalide"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Must specify the team ID to create a channel"
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
     "translation": "Failed to post channel purpose message"
   },
@@ -2778,6 +2834,190 @@
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
     "translation": "%s a mis à jour l'en-tête du canal en : %s"
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Error reading import data file."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSON decode of line failed."
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "Import data line has type \"channel\" but the channel object is null."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "Import data line has type \"team\" but the team object is null."
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "Import data line has type \"user\" but the user object is null."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "Import data line has unknown type \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "Channel create_at must not be 0 if provided."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "Channel display_name is not within permitted length constraints."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "Missing required channel property: display_name."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Channel header is too long."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Channel name contains invalid characters."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Channel name is too long."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Missing required channel property: name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Channel purpose is too long."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Missing required channel property: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Channel type is invalid."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "Team allowed_domains is too long."
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "Team create_at must not be 0 if provided."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Team description is too long."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "Team display_name is not within permitted length constraints."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Missing required team property: display_name"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Team name contains invalid characters."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Team name is too long."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Missing required team property: name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Team name contains reserved word."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Team type is not valid."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Missing required team property: type"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Channel name missing from User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Channel Membership."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "User AuthData is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "User AuthService should not be empty if it is provided."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "User email has an invalid length."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Missing required user property: email."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "User First Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "User Last Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "User nickname is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "User Position is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "User roles are not valid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "Username is not valid."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Missing require user property: username."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Invalid roles for User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Team name missing from User's Team Membership."
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3308,8 +3548,16 @@
     "translation": "Id canal invalide"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Niveau de notification invalide"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3342,6 +3590,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Les jetons d’authentification ne correspondent pas"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "Nous avons rencontré une erreur lors de la recherche des profils utilisateurs"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3642,6 +3894,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Nombre maximum de connexions ouvertes invalide dans les paramètres SQL. Doit être un entier positif."
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
@@ -4260,6 +4516,10 @@
     "translation": "Nous avons rencontré une erreur lors de l'enregistrement des audits"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "Nous n'avons pas pu obtenir le nombre de type de canaux"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "Nous n'avons pas pu obtenir le nombre de type de canaux"
   },
@@ -4316,6 +4576,14 @@
     "translation": "Aucun canal n'a pu être trouvé"
   },
   {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "Nous n'avons pas pu trouver le canal existant"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "No deleted channel exists with that name"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "Nous n'avons pas pu charger les informations supplémentaires sur les membres du canal"
   },
@@ -4356,6 +4624,10 @@
     "translation": "Nous n'avons pas pu incrémenter le nombre de mentions"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "Nous n'avons pas pu supprimer le canal"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "Nous n'avons pas pu supprimer les canaux"
   },
@@ -4389,7 +4661,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "Un canal avec cette URL existe déjà"
+    "translation": "A channel with that name already exists on the same team"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4718,6 +4990,10 @@
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
     "translation": "Nous n'avons pas supprimer les commentaires de l'utilisateur"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "Nous n'avons pas pu supprimer le canal"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5064,6 +5340,14 @@
     "translation": "Nous n'avons pas pu mettre à jour le nom de l'équipe"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "Nous n'avons pas pu compter les utilisateurs"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Nous n'avons pas pu obtenir le nombre d'utilisateurs uniques"
   },
@@ -5125,7 +5409,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Nous n'avons pas pu trouver un compte existant correspondant à l'adresse e-mail pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
+    "translation": "Utilisateur introuvable"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -5302,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Vous ne pouvez pas écraser un OutgoingWebhook existant"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "Nous n'avons pas pu enregistrer le IncomongWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

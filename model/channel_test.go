@@ -104,3 +104,24 @@ func TestChannelPreUpdate(t *testing.T) {
 	o := Channel{Name: "test"}
 	o.PreUpdate()
 }
+
+func TestGetGroupDisplayNameFromUsers(t *testing.T) {
+	users := make([]*User, 4)
+	users[0] = &User{Username: NewId()}
+	users[1] = &User{Username: NewId()}
+	users[2] = &User{Username: NewId()}
+	users[3] = &User{Username: NewId()}
+
+	name := GetGroupDisplayNameFromUsers(users, true)
+	if len(name) > CHANNEL_NAME_MAX_LENGTH {
+		t.Fatal("name too long")
+	}
+}
+
+func TestGetGroupNameFromUserIds(t *testing.T) {
+	name := GetGroupNameFromUserIds([]string{NewId(), NewId(), NewId(), NewId(), NewId()})
+
+	if len(name) > CHANNEL_NAME_MAX_LENGTH {
+		t.Fatal("name too long")
+	}
+}

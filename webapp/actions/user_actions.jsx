@@ -4,12 +4,10 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
 import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
@@ -18,7 +16,7 @@ import {getDirectChannelName} from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
-import {ActionTypes, Preferences} from 'utils/constants.jsx';
+import {Constants, ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
 
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
@@ -227,19 +225,154 @@ function populateDMChannelsWithProfiles(userIds) {
     }
 }
 
-export function loadProfilesAndTeamMembersForDMSidebar() {
-    const dmPrefs = PreferenceStore.getCategory(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
-    const teamId = TeamStore.getCurrentId();
-    const profilesToLoad = [];
-    const membersToLoad = [];
+function populateChannelWithProfiles(channelId, userIds) {
+    for (let i = 0; i < userIds.length; i++) {
+        UserStore.saveUserIdInChannel(channelId, userIds[i]);
+    }
+    UserStore.emitInChannelChange();
+}
 
-    for (const [key, value] of dmPrefs) {
-        if (value === 'true') {
-            if (!UserStore.hasProfile(key)) {
-                profilesToLoad.push(key);
-            }
-            membersToLoad.push(key);
+export function loadNewDMIfNeeded(userId) {
+    if (userId === UserStore.getCurrentId()) {
+        return;
+    }
+
+    const pref = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
+    if (pref === false) {
+        PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+        AsyncClient.savePreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+        loadProfilesForDM();
+    }
+}
+
+export function loadNewGMIfNeeded(channelId, userId) {
+    if (userId === UserStore.getCurrentId()) {
+        return;
+    }
+
+    function checkPreference() {
+        const pref = PreferenceStore.getBool(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
+        if (pref === false) {
+            PreferenceStore.setPreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
+            AsyncClient.savePreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
+            loadProfilesForGM();
         }
+    }
+
+    const channel = ChannelStore.get(channelId);
+    if (channel) {
+        checkPreference();
+    } else {
+        Client.getChannel(
+            channelId,
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNEL,
+                    channel: data.channel,
+                    member: data.member
+                });
+
+                checkPreference();
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getChannel');
+            }
+       );
+    }
+}
+
+export function loadProfilesForSidebar() {
+    loadProfilesForDM();
+    loadProfilesForGM();
+}
+
+export function loadProfilesForGM() {
+    const channels = ChannelStore.getChannels();
+    const newPreferences = [];
+
+    for (let i = 0; i < channels.length; i++) {
+        const channel = channels[i];
+        if (channel.type !== Constants.GM_CHANNEL) {
+            continue;
+        }
+
+        if (UserStore.getProfileListInChannel(channel.id).length >= Constants.MIN_USERS_IN_GM) {
+            continue;
+        }
+
+        const isVisible = PreferenceStore.getBool(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channel.id);
+
+        if (!isVisible) {
+            const member = ChannelStore.getMyMember(channel.id);
+            if (!member || (member.mention_count === 0 && member.msg_count < member.total_msg_count)) {
+                continue;
+            }
+
+            newPreferences.push({
+                user_id: UserStore.getCurrentId(),
+                category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
+                name: channel.id,
+                value: 'true'
+            });
+        }
+
+        Client.getProfilesInChannel(
+            channel.id,
+            0,
+            Constants.MAX_USERS_IN_GM,
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILES,
+                    profiles: data
+                });
+
+                populateChannelWithProfiles(channel.id, Object.keys(data));
+            }
+        );
+    }
+
+    if (newPreferences.length > 0) {
+        AsyncClient.savePreferences(newPreferences);
+    }
+}
+
+export function loadProfilesForDM() {
+    const channels = ChannelStore.getChannels();
+    const newPreferences = [];
+    const profilesToLoad = [];
+    const profileIds = [];
+
+    for (let i = 0; i < channels.length; i++) {
+        const channel = channels[i];
+        if (channel.type !== Constants.DM_CHANNEL) {
+            continue;
+        }
+
+        const teammateId = channel.name.replace(UserStore.getCurrentId(), '').replace('__', '');
+        const isVisible = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammateId);
+
+        if (!isVisible) {
+            const member = ChannelStore.getMyMember(channel.id);
+            if (!member || member.mention_count === 0) {
+                continue;
+            }
+
+            newPreferences.push({
+                user_id: UserStore.getCurrentId(),
+                category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+                name: teammateId,
+                value: 'true'
+            });
+        }
+
+        if (!UserStore.hasProfile(teammateId)) {
+            profilesToLoad.push(teammateId);
+        }
+        profileIds.push(teammateId);
+    }
+
+    if (newPreferences.length > 0) {
+        AsyncClient.savePreferences(newPreferences);
     }
 
     if (profilesToLoad.length > 0) {
@@ -252,44 +385,14 @@ export function loadProfilesAndTeamMembersForDMSidebar() {
                 });
 
                 // Use membersToLoad so we get all the DM profiles even if they were already loaded
-                populateDMChannelsWithProfiles(membersToLoad);
+                populateDMChannelsWithProfiles(profileIds);
             },
             (err) => {
                 AsyncClient.dispatchError(err, 'getProfilesByIds');
             }
         );
     } else {
-        populateDMChannelsWithProfiles(membersToLoad);
-    }
-
-    if (membersToLoad.length > 0) {
-        Client.getTeamMembersByIds(
-            teamId,
-            membersToLoad,
-            (data) => {
-                const memberMap = {};
-                for (let i = 0; i < data.length; i++) {
-                    memberMap[data[i].user_id] = data[i];
-                }
-
-                const nonMembersMap = {};
-                for (let i = 0; i < membersToLoad.length; i++) {
-                    if (!memberMap[membersToLoad[i]]) {
-                        nonMembersMap[membersToLoad[i]] = true;
-                    }
-                }
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_MEMBERS_IN_TEAM,
-                    team_id: teamId,
-                    team_members: memberMap,
-                    non_team_members: nonMembersMap
-                });
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getTeamMembersByIds');
-            }
-        );
+        populateDMChannelsWithProfiles(profileIds);
     }
 }
 
@@ -542,7 +645,7 @@ export function checkMfa(loginId, success, error) {
         loginId,
         (data) => {
             if (success) {
-                success(data.mfa_required === 'true');
+                success(data);
             }
         },
         (err) => {
@@ -637,28 +740,12 @@ export function resendVerification(email, success, error) {
     );
 }
 
-export function loginById(userId, password, mfaToken, hash, success, error) {
+export function loginById(userId, password, mfaToken, success, error) {
     Client.loginById(
         userId,
         password,
         mfaToken,
-        hash,
         () => {
-            if (hash > 0) {
-                BrowserStore.setGlobalItem(hash, JSON.stringify({usedBefore: true}));
-            }
-
-            GlobalActions.emitInitialLoad(
-                () => {
-                    const query = this.props.location.query;
-                    if (query.redirect_to) {
-                        browserHistory.push(query.redirect_to);
-                    } else {
-                        GlobalActions.redirectUserToDefaultTeam();
-                    }
-                }
-            );
-
             if (success) {
                 success();
             }
@@ -765,6 +852,30 @@ export function uploadProfileImage(userPicture, success, error) {
             }
         },
         (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function loadProfiles(offset = UserStore.getPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE, success, error) {
+    Client.getProfiles(
+        offset,
+        limit,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES,
+                profiles: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getProfiles');
+
             if (error) {
                 error(err);
             }

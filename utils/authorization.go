@@ -34,6 +34,10 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 		break
 	case model.PERMISSIONS_CHANNEL_ADMIN:
+		model.ROLE_TEAM_ADMIN.Permissions = append(
+			model.ROLE_TEAM_ADMIN.Permissions,
+			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		)
 		model.ROLE_CHANNEL_ADMIN.Permissions = append(
 			model.ROLE_CHANNEL_ADMIN.Permissions,
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
@@ -55,6 +59,10 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 		break
 	case model.PERMISSIONS_CHANNEL_ADMIN:
+		model.ROLE_TEAM_ADMIN.Permissions = append(
+			model.ROLE_TEAM_ADMIN.Permissions,
+			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		)
 		model.ROLE_CHANNEL_ADMIN.Permissions = append(
 			model.ROLE_CHANNEL_ADMIN.Permissions,
 			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
@@ -91,6 +99,10 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 		break
 	case model.PERMISSIONS_CHANNEL_ADMIN:
+		model.ROLE_TEAM_ADMIN.Permissions = append(
+			model.ROLE_TEAM_ADMIN.Permissions,
+			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		)
 		model.ROLE_CHANNEL_ADMIN.Permissions = append(
 			model.ROLE_CHANNEL_ADMIN.Permissions,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
@@ -112,6 +124,10 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 		break
 	case model.PERMISSIONS_CHANNEL_ADMIN:
+		model.ROLE_TEAM_ADMIN.Permissions = append(
+			model.ROLE_TEAM_ADMIN.Permissions,
+			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		)
 		model.ROLE_CHANNEL_ADMIN.Permissions = append(
 			model.ROLE_CHANNEL_ADMIN.Permissions,
 			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,

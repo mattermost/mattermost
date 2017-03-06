@@ -10,18 +10,33 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	USER_NOTIFY_ALL            = "all"
-	USER_NOTIFY_MENTION        = "mention"
-	USER_NOTIFY_NONE           = "none"
+	USER_NOTIFY_ALL         = "all"
+	USER_NOTIFY_MENTION     = "mention"
+	USER_NOTIFY_NONE        = "none"
+	DESKTOP_NOTIFY_PROP     = "desktop"
+	MARK_UNREAD_NOTIFY_PROP = "mark_unread"
+	PUSH_NOTIFY_PROP        = "push"
+	EMAIL_NOTIFY_PROP       = "email"
+
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
+
+	USER_EMAIL_MAX_LENGTH     = 128
+	USER_NICKNAME_MAX_RUNES   = 64
+	USER_POSITION_MAX_RUNES   = 35
+	USER_FIRST_NAME_MAX_RUNES = 64
+	USER_LAST_NAME_MAX_RUNES  = 64
+	USER_AUTH_DATA_MAX_LENGTH = 128
+	USER_NAME_MAX_LENGTH      = 64
+	USER_NAME_MIN_LENGTH      = 3
 )
 
 type User struct {
@@ -52,6 +67,18 @@ type User struct {
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
+type UserPatch struct {
+	Username    *string    `json:"username"`
+	Nickname    *string    `json:"nickname"`
+	FirstName   *string    `json:"first_name"`
+	LastName    *string    `json:"last_name"`
+	Position    *string    `json:"position"`
+	Email       *string    `json:"email"`
+	Props       *StringMap `json:"props,omitempty"`
+	NotifyProps *StringMap `json:"notify_props,omitempty"`
+	Locale      *string    `json:"locale"`
+}
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
@@ -72,27 +99,27 @@ func (u *User) IsValid() *AppError {
 		return NewAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if len(u.Email) > 128 || len(u.Email) == 0 {
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 {
 		return NewAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.Nickname) > 64 {
+	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.Position) > 35 {
+	if utf8.RuneCountInString(u.Position) > USER_POSITION_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.FirstName) > 64 {
+	if utf8.RuneCountInString(u.FirstName) > USER_FIRST_NAME_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.LastName) > 64 {
+	if utf8.RuneCountInString(u.LastName) > USER_LAST_NAME_MAX_RUNES {
 		return NewAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 128 {
+	if u.AuthData != nil && len(*u.AuthData) > USER_AUTH_DATA_MAX_LENGTH {
 		return NewAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
@@ -116,7 +143,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = "n" + NewId()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -206,8 +233,55 @@ func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	}
 }
 
+func (u *User) Patch(patch *UserPatch) {
+	if patch.Username != nil {
+		u.Username = *patch.Username
+	}
+
+	if patch.Nickname != nil {
+		u.Nickname = *patch.Nickname
+	}
+
+	if patch.FirstName != nil {
+		u.FirstName = *patch.FirstName
+	}
+
+	if patch.LastName != nil {
+		u.LastName = *patch.LastName
+	}
+
+	if patch.Position != nil {
+		u.Position = *patch.Position
+	}
+
+	if patch.Email != nil {
+		u.Email = *patch.Email
+	}
+
+	if patch.Props != nil {
+		u.Props = *patch.Props
+	}
+
+	if patch.NotifyProps != nil {
+		u.NotifyProps = *patch.NotifyProps
+	}
+
+	if patch.Locale != nil {
+		u.Locale = *patch.Locale
+	}
+}
+
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (u *UserPatch) ToJson() string {
 	b, err := json.Marshal(u)
 	if err != nil {
 		return ""
@@ -410,6 +484,17 @@ func UserFromJson(data io.Reader) *User {
 	}
 }
 
+func UserPatchFromJson(data io.Reader) *UserPatch {
+	decoder := json.NewDecoder(data)
+	var user UserPatch
+	err := decoder.Decode(&user)
+	if err == nil {
+		return &user
+	} else {
+		return nil
+	}
+}
+
 func UserMapToJson(u map[string]*User) string {
 	b, err := json.Marshal(u)
 	if err != nil {
@@ -480,11 +565,15 @@ var restrictedUsernames = []string{
 }
 
 func IsValidUsername(s string) bool {
-	if len(s) == 0 || len(s) > 64 {
+	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
 		return false
 	}
 
 	if !validUsernameChars.MatchString(s) {
+		return false
+	}
+
+	if !unicode.IsLetter(rune(s[0])) {
 		return false
 	}
 

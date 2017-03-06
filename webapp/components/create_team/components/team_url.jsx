@@ -1,11 +1,10 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from 'utils/utils.jsx';
-
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
+import * as URL from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
@@ -28,6 +27,10 @@ export default class TeamUrl extends React.Component {
         };
     }
 
+    componentDidMount() {
+        trackEvent('signup', 'signup_team_02_url');
+    }
+
     submitBack(e) {
         e.preventDefault();
         this.props.state.wizard = 'display_name';
@@ -38,7 +41,7 @@ export default class TeamUrl extends React.Component {
         e.preventDefault();
 
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
-        const cleanedName = Utils.cleanUpUrlable(name);
+        const cleanedName = URL.cleanUpUrlable(name);
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
 
         if (!name) {
@@ -107,7 +110,7 @@ export default class TeamUrl extends React.Component {
 
                 createTeam(teamSignup.team,
                     () => {
-                        track('signup', 'signup_team_08_complete');
+                        trackEvent('signup', 'signup_team_03_complete');
                     },
                     (err) => {
                         this.setState({nameError: err.message});
@@ -127,8 +130,6 @@ export default class TeamUrl extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_team_03_url');
-
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
@@ -136,7 +137,7 @@ export default class TeamUrl extends React.Component {
             nameDivClass += ' has-error';
         }
 
-        const title = `${Utils.getSiteURL()}/`;
+        const title = `${URL.getSiteURL()}/`;
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{title}</Tooltip>
         );

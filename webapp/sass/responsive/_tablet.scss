@@ -22,15 +22,11 @@
 
     .post-create__container {
         form {
-            padding: .5em 0;
+            padding: .5em 0 0;
         }
 
         .post-create-footer {
-            padding: 0 45px 0 45px;
-
-            .msg-typing {
-                display: none;
-            }
+            padding: 0 45px;
 
             .post-error {
                 position: relative;
@@ -129,6 +125,19 @@
                 position: relative;
                 right: auto;
                 top: auto;
+            }
+        }
+    }
+    .post {
+        .attachment {
+            .attachment__image {
+                &.attachment__image--openraph {
+                    max-height: 70px;
+                    max-width: 300px;
+                    &.loading {
+                        height: 70px;
+                    }
+                }
             }
         }
     }
@@ -328,12 +337,6 @@
                 &.post--comment {
                     padding-top: 1px;
 
-                    .post__img {
-                        img {
-                            display: inline-block;
-                        }
-                    }
-
                     &.same--user {
                         .post__img {
                             img {
@@ -372,7 +375,9 @@
                         text-rendering: auto;
                         top: -2px;
                         width: 51px;
-
+                        &:hover {
+                            text-decoration: underline;
+                        }
                     }
                 }
             }

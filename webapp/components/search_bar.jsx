@@ -29,6 +29,7 @@ export default class SearchBar extends React.Component {
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleUserFocus = this.handleUserFocus.bind(this);
+        this.handleClear = this.handleClear.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
         this.performSearch = this.performSearch.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -37,6 +38,7 @@ export default class SearchBar extends React.Component {
 
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
+        state.isPristine = true;
         this.state = state;
 
         this.suggestionProviders = [new SearchChannelProvider(), new SearchUserProvider()];
@@ -52,6 +54,12 @@ export default class SearchBar extends React.Component {
     componentDidMount() {
         SearchStore.addSearchTermChangeListener(this.onListenerChange);
         this.mounted = true;
+
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .sidebar--menu').classList.remove('visible');
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -71,12 +79,14 @@ export default class SearchBar extends React.Component {
         }
     }
 
-    clearFocus() {
-        $('.search-bar__container').removeClass('focused');
-    }
-
     handleClose(e) {
         e.preventDefault();
+
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .sidebar--menu').classList.add('visible');
+            });
+        }
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH,
@@ -107,14 +117,20 @@ export default class SearchBar extends React.Component {
         this.setState({focused: false});
     }
 
+    handleClear() {
+        this.setState({searchTerm: ''});
+    }
+
     handleUserFocus() {
         this.setState({focused: true});
-        $('.search-bar__container').addClass('focused');
     }
 
     performSearch(terms, isMentionSearch) {
         if (terms.length) {
-            this.setState({isSearching: true});
+            this.setState({
+                isSearching: true,
+                isPristine: false
+            });
 
             performSearch(
                 terms,
@@ -137,7 +153,6 @@ export default class SearchBar extends React.Component {
         e.preventDefault();
         this.performSearch(this.state.searchTerm.trim());
         $(this.search).find('input').blur();
-        this.clearFocus();
     }
 
     searchMentions(e) {
@@ -158,6 +173,25 @@ export default class SearchBar extends React.Component {
         } else {
             getFlaggedPosts();
         }
+    }
+
+    renderHintPopover(helpClass) {
+        if (!this.props.isCommentsPage && Utils.isMobile() && this.state.isPristine) {
+            return false;
+        }
+
+        return (
+            <Popover
+                id='searchbar-help-popup'
+                placement='bottom'
+                className={helpClass}
+            >
+                <FormattedHTMLMessage
+                    id='search_bar.usage'
+                    defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
+                />
+            </Popover>
+        );
     }
 
     render() {
@@ -239,6 +273,11 @@ export default class SearchBar extends React.Component {
             );
         }
 
+        let clearClass = 'sidebar__search-clear';
+        if (!this.state.isSearching && this.state.searchTerm && this.state.searchTerm.trim() !== '') {
+            clearClass += ' visible';
+        }
+
         return (
             <div>
                 <div
@@ -247,15 +286,6 @@ export default class SearchBar extends React.Component {
                 >
                     <span className='fa fa-angle-left'/>
                 </div>
-                <span
-                    className='search__clear'
-                    onClick={this.clearFocus}
-                >
-                    <FormattedMessage
-                        id='search_bar.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </span>
                 <form
                     role='form'
                     className='search__form'
@@ -277,18 +307,21 @@ export default class SearchBar extends React.Component {
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                         type='search'
+                        autoFocus={this.props.isFocus}
                     />
-                    {isSearching}
-                    <Popover
-                        id='searchbar-help-popup'
-                        placement='bottom'
-                        className={helpClass}
+                    <div
+                        className={clearClass}
+                        onClick={this.handleClear}
                     >
-                        <FormattedHTMLMessage
-                            id='search_bar.usage'
-                            defaultMessage='<h4>Search Options</h4><ul><li><span>Use </span><b>"quotation marks"</b><span> to search for phrases</span></li><li><span>Use </span><b>from:</b><span> to find posts from specific users and </span><b>in:</b><span> to find posts in specific channels</span></li></ul>'
-                        />
-                    </Popover>
+                        <span
+                            className='sidebar__search-clear-x'
+                            aria-hidden='true'
+                        >
+                            {'×'}
+                        </span>
+                    </div>
+                    {isSearching}
+                    {this.renderHintPopover(helpClass)}
                 </form>
 
                 {mentionBtn}
@@ -299,9 +332,12 @@ export default class SearchBar extends React.Component {
 }
 
 SearchBar.defaultProps = {
-    showMentionFlagBtns: true
+    showMentionFlagBtns: true,
+    isFocus: false
 };
 
 SearchBar.propTypes = {
-    showMentionFlagBtns: React.PropTypes.bool
+    showMentionFlagBtns: React.PropTypes.bool,
+    isCommentsPage: React.PropTypes.bool,
+    isFocus: React.PropTypes.bool
 };

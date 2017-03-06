@@ -3,10 +3,13 @@
 
 import React from 'react';
 
+import DeleteIntegration from './delete_integration.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router';
 
 export default class InstalledIncomingWebhook extends React.Component {
     static get propTypes() {
@@ -15,7 +18,8 @@ export default class InstalledIncomingWebhook extends React.Component {
             onDelete: React.PropTypes.func.isRequired,
             filter: React.PropTypes.string,
             creator: React.PropTypes.object.isRequired,
-            canChange: React.PropTypes.bool.isRequired
+            canChange: React.PropTypes.bool.isRequired,
+            team: React.PropTypes.object.isRequired
         };
     }
 
@@ -25,9 +29,7 @@ export default class InstalledIncomingWebhook extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.incomingWebhook);
     }
 
@@ -88,15 +90,17 @@ export default class InstalledIncomingWebhook extends React.Component {
         if (this.props.canChange) {
             actions = (
                 <div className='item-actions'>
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
+                    <Link to={`/${this.props.team.name}/integrations/incoming_webhooks/edit?id=${incomingWebhook.id}`}>
                         <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
+                            id='installed_integrations.edit'
+                            defaultMessage='Edit'
                         />
-                    </a>
+                    </Link>
+                    {' - '}
+                    <DeleteIntegration
+                        messageId='installed_incoming_webhooks.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
                 </div>
             );
         }
@@ -116,7 +120,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                                 id='installed_integrations.url'
                                 defaultMessage='URL: {url}'
                                 values={{
-                                    url: Utils.getSiteURL() + '/hooks/' + incomingWebhook.id
+                                    url: getSiteURL() + '/hooks/' + incomingWebhook.id
                                 }}
                             />
                         </span>

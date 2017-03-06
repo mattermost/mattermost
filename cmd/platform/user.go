@@ -422,6 +422,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 	for i, user := range users {
 		if user == nil {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
+			continue
 		}
 		if cresult := <-app.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())

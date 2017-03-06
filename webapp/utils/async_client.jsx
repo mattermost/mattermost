@@ -138,6 +138,35 @@ export function getMyChannelMembers() {
     });
 }
 
+export function getMyChannelMembersForTeam(teamId) {
+    return new Promise((resolve, reject) => {
+        if (isCallInProgress(`getMyChannelMembers${teamId}`)) {
+            resolve();
+            return;
+        }
+
+        callTracker[`getMyChannelMembers${teamId}`] = utils.getTimestamp();
+
+        Client.getMyChannelMembersForTeam(
+            teamId,
+            (data) => {
+                callTracker[`getMyChannelMembers${teamId}`] = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+                    members: data
+                });
+                resolve();
+            },
+            (err) => {
+                callTracker[`getMyChannelMembers${teamId}`] = 0;
+                dispatchError(err, 'getMyChannelMembersForTeam');
+                reject();
+            }
+        );
+    });
+}
+
 export function viewChannel(channelId = ChannelStore.getCurrentId(), prevChannelId = '', time = 0) {
     if (channelId == null || !Client.teamId) {
         return;
@@ -1295,6 +1324,29 @@ export function addIncomingHook(hook, success, error) {
     );
 }
 
+export function updateIncomingHook(hook, success, error) {
+    Client.updateIncomingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_INCOMING_WEBHOOK,
+                incomingWebhook: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'updateIncomingHook');
+            }
+        }
+    );
+}
+
 export function addOutgoingHook(hook, success, error) {
     Client.addOutgoingHook(
         hook,
@@ -1313,6 +1365,29 @@ export function addOutgoingHook(hook, success, error) {
                 error(err);
             } else {
                 dispatchError(err, 'addOutgoingHook');
+            }
+        }
+    );
+}
+
+export function updateOutgoingHook(hook, success, error) {
+    Client.updateOutgoingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'updateOutgoingHook');
             }
         }
     );

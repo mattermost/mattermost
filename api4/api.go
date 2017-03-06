@@ -32,13 +32,14 @@ type Routes struct {
 	TeamMembers  *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
 	TeamMember   *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
 
-	Channels              *mux.Router // 'api/v4/channels'
-	Channel               *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}'
-	ChannelByName         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels/name/{channel_name:[A-Za-z0-9_-]+}'
-	ChannelsForTeam       *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels'
-	ChannelMembers        *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members'
-	ChannelMember         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}'
-	ChannelMembersForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/channels/members'
+	Channels                 *mux.Router // 'api/v4/channels'
+	Channel                  *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}'
+	ChannelByName            *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels/name/{channel_name:[A-Za-z0-9_-]+}'
+	ChannelByNameForTeamName *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}/channels/name/{channel_name:[A-Za-z0-9_-]+}'
+	ChannelsForTeam          *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels'
+	ChannelMembers           *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members'
+	ChannelMember            *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}'
+	ChannelMembersForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/members'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
@@ -51,11 +52,11 @@ type Routes struct {
 	Command         *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
 	CommandsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/commands'
 
-	Hooks         *mux.Router // 'api/v4/teams/hooks'
-	IncomingHooks *mux.Router // 'api/v4/teams/hooks/incoming'
-	IncomingHook  *mux.Router // 'api/v4/teams/hooks/incoming/{hook_id:[A-Za-z0-9]+}'
-	OutgoingHooks *mux.Router // 'api/v4/teams/hooks/outgoing'
-	OutgoingHook  *mux.Router // 'api/v4/teams/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
+	Hooks         *mux.Router // 'api/v4/hooks'
+	IncomingHooks *mux.Router // 'api/v4/hooks/incoming'
+	IncomingHook  *mux.Router // 'api/v4/hooks/incoming/{hook_id:[A-Za-z0-9]+}'
+	OutgoingHooks *mux.Router // 'api/v4/hooks/outgoing'
+	OutgoingHook  *mux.Router // 'api/v4/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
 
 	OAuth *mux.Router // 'api/v4/oauth'
 
@@ -90,11 +91,11 @@ func InitApi(full bool) {
 
 	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	BaseRoutes.User = BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.UserByUsername = BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9_-.]+}").Subrouter()
+	BaseRoutes.UserByUsername = BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	BaseRoutes.UserByEmail = BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
 
 	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
-	BaseRoutes.TeamsForUser = BaseRoutes.Users.PathPrefix("/teams").Subrouter()
+	BaseRoutes.TeamsForUser = BaseRoutes.User.PathPrefix("/teams").Subrouter()
 	BaseRoutes.Team = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
@@ -102,11 +103,12 @@ func InitApi(full bool) {
 
 	BaseRoutes.Channels = BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
 	BaseRoutes.Channel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.ChannelByName = BaseRoutes.Team.PathPrefix("/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
+	BaseRoutes.ChannelByName = BaseRoutes.Team.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
+	BaseRoutes.ChannelByNameForTeamName = BaseRoutes.TeamByName.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.ChannelsForTeam = BaseRoutes.Team.PathPrefix("/channels").Subrouter()
 	BaseRoutes.ChannelMembers = BaseRoutes.Channel.PathPrefix("/members").Subrouter()
 	BaseRoutes.ChannelMember = BaseRoutes.ChannelMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.ChannelMembersForUser = BaseRoutes.User.PathPrefix("/channels/members").Subrouter()
+	BaseRoutes.ChannelMembersForUser = BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/members").Subrouter()
 
 	BaseRoutes.Posts = BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
 	BaseRoutes.Post = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
@@ -128,7 +130,7 @@ func InitApi(full bool) {
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
 	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
-	BaseRoutes.Preferences = BaseRoutes.ApiRoot.PathPrefix("/preferences").Subrouter()
+	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
 
@@ -138,12 +140,18 @@ func InitApi(full bool) {
 	BaseRoutes.Webrtc = BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 
 	InitUser()
+	InitTeam()
+	InitChannel()
+	InitPost()
+	InitFile()
+	InitSystem()
+	InitWebhook()
+	InitPreference()
+
+	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {
-		// 404 on any api route before web.go has a chance to serve it
-		app.Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
-
 		utils.InitHTML()
 
 		app.InitEmailBatching()

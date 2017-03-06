@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
 )
@@ -32,11 +33,11 @@ func GetSession(token string) (*model.Session, *model.AppError) {
 	if ts, ok := sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 		if metrics != nil {
-			metrics.IncrementMemCacheHitCounter("Session")
+			metrics.IncrementMemCacheHitCounterSession()
 		}
 	} else {
 		if metrics != nil {
-			metrics.IncrementMemCacheMissCounter("Session")
+			metrics.IncrementMemCacheMissCounterSession()
 		}
 	}
 
@@ -148,6 +149,7 @@ func RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId 
 
 func RevokeSessionById(sessionId string) *model.AppError {
 	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
 		return result.Err
 	} else {
 		return RevokeSession(result.Data.(*model.Session))

@@ -5,10 +5,11 @@ package api
 
 import (
 	"fmt"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"net/http"
 	"testing"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestCreateIncomingHook(t *testing.T) {
@@ -115,6 +116,212 @@ func TestCreateIncomingHook(t *testing.T) {
 	if _, err := Client.CreateIncomingWebhook(hook); err == nil {
 		t.Fatal("should have errored - webhooks turned off")
 	}
+}
+
+func TestUpdateIncomingHook(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	team := th.SystemAdminTeam
+
+	channel1 := th.CreateChannel(Client, team)
+	channel2 := th.CreatePrivateChannel(Client, team)
+	channel3 := th.CreateChannel(Client, team)
+
+	user2 := th.CreateUser(Client)
+	LinkUserToTeam(user2, team)
+
+	team2 := th.CreateTeam(Client)
+	user3 := th.CreateUser(Client)
+	LinkUserToTeam(user3, team2)
+	UpdateUserToTeamAdmin(user3, team2)
+
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook := createIncomingWebhook(channel1.Id, Client, t)
+
+	t.Run("UpdateIncomingHook", func(t *testing.T) {
+		hook.DisplayName = "hook2"
+		hook.Description = "description"
+		hook.ChannelId = channel3.Id
+
+		if result, err := Client.UpdateIncomingWebhook(hook); err != nil {
+			t.Fatal("Update hook should not fail")
+		} else {
+			updatedHook := result.Data.(*model.IncomingWebhook)
+
+			if updatedHook.DisplayName != "hook2" {
+				t.Fatal("Hook name is not updated")
+			}
+
+			if updatedHook.Description != "description" {
+				t.Fatal("Hook description is not updated")
+			}
+
+			if updatedHook.ChannelId != channel3.Id {
+				t.Fatal("Hook channel is not updated")
+			}
+		}
+	})
+
+	t.Run("RetainCreateAt", func(t *testing.T) {
+		hook2 := &model.IncomingWebhook{ChannelId: channel1.Id, CreateAt: 100}
+
+		if result, err := Client.CreateIncomingWebhook(hook2); err != nil {
+			t.Fatal("hook creation failed")
+		} else {
+			createdHook := result.Data.(*model.IncomingWebhook)
+			createdHook.DisplayName = "Name2"
+
+			if result, err := Client.UpdateIncomingWebhook(createdHook); err != nil {
+				t.Fatal("Update hook should not fail")
+			} else {
+				updatedHook := result.Data.(*model.IncomingWebhook)
+
+				if updatedHook.CreateAt != createdHook.CreateAt {
+					t.Fatal("failed - hook create at should not be changed")
+				}
+			}
+		}
+	})
+
+	t.Run("ModifyUpdateAt", func(t *testing.T) {
+		hook.DisplayName = "Name3"
+
+		if result, err := Client.UpdateIncomingWebhook(hook); err != nil {
+			t.Fatal("Update hook should not fail")
+		} else {
+			updatedHook := result.Data.(*model.IncomingWebhook)
+
+			if updatedHook.UpdateAt == hook.UpdateAt {
+				t.Fatal("failed - hook updateAt is not updated")
+			}
+		}
+	})
+
+	t.Run("UpdateNonExistentHook", func(t *testing.T) {
+		nonExistentHook := &model.IncomingWebhook{ChannelId: channel1.Id}
+
+		if _, err := Client.UpdateIncomingWebhook(nonExistentHook); err == nil {
+			t.Fatal("should have failed - update a non-existent hook")
+		}
+	})
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user2.Id, user2.Password))
+	Client.SetTeamId(team.Id)
+	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
+		if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
+			t.Fatal("should have failed - user is not admin of team")
+		}
+	})
+
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+
+	t.Run("OnlyAdminIntegrationsDisabled", func(t *testing.T) {
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+		utils.SetDefaultRolesBasedOnConfig()
+
+		t.Run("UpdateHookOfSameUser", func(t *testing.T) {
+			sameUserHook := &model.IncomingWebhook{ChannelId: channel1.Id, UserId: user2.Id}
+			if result, err := Client.CreateIncomingWebhook(sameUserHook); err != nil {
+				t.Fatal("Hook creation failed")
+			} else {
+				sameUserHook = result.Data.(*model.IncomingWebhook)
+			}
+
+			if _, err := Client.UpdateIncomingWebhook(sameUserHook); err != nil {
+				t.Fatal("should not fail - only admin integrations are disabled & hook of same user")
+			}
+		})
+
+		t.Run("UpdateHookOfDifferentUser", func(t *testing.T) {
+			if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
+				t.Fatal("should have failed - user does not have permissions to update other user's hooks")
+			}
+		})
+	})
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Logout()
+	UpdateUserToTeamAdmin(user2, team)
+	Client.Must(Client.LoginById(user2.Id, user2.Password))
+	Client.SetTeamId(team.Id)
+	t.Run("UpdateByDifferentUser", func(t *testing.T) {
+		if result, err := Client.UpdateIncomingWebhook(hook); err != nil {
+			t.Fatal("Update hook should not fail")
+		} else {
+			updatedHook := result.Data.(*model.IncomingWebhook)
+
+			if updatedHook.UserId == user2.Id {
+				t.Fatal("Hook's creator userId is not retained")
+			}
+		}
+	})
+
+	t.Run("IncomingHooksDisabled", func(t *testing.T) {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
+		if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
+			t.Fatal("should have failed - incoming hooks are disabled")
+		}
+	})
+
+	t.Run("PrivateChannel", func(t *testing.T) {
+		hook.ChannelId = channel2.Id
+
+		if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
+			t.Fatal("should have failed - updating to a private channel where the user is not a member")
+		}
+	})
+
+	t.Run("UpdateToNonExistentChannel", func(t *testing.T) {
+		hook.ChannelId = "junk"
+		if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
+			t.Fatal("should have failed - bad channel id")
+		}
+	})
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user3.Id, user3.Password))
+	Client.SetTeamId(team2.Id)
+	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
+		if _, err := Client.UpdateIncomingWebhook(hook); err == nil {
+			t.Fatal("should have failed - update to a different team is not allowed")
+		}
+	})
+}
+
+func createIncomingWebhook(channelID string, Client *model.Client, t *testing.T) *model.IncomingWebhook {
+	hook := &model.IncomingWebhook{ChannelId: channelID}
+	if result, err := Client.CreateIncomingWebhook(hook); err != nil {
+		t.Fatal("Hook creation failed")
+	} else {
+		hook = result.Data.(*model.IncomingWebhook)
+	}
+
+	return hook
+}
+
+func createOutgoingWebhook(channelID string, callbackURLs []string, triggerWords []string, Client *model.Client, t *testing.T) *model.OutgoingWebhook {
+	hook := &model.OutgoingWebhook{ChannelId: channelID, CallbackURLs: callbackURLs, TriggerWords: triggerWords}
+	if result, err := Client.CreateOutgoingWebhook(hook); err != nil {
+		t.Fatal("Hook creation failed")
+	} else {
+		hook = result.Data.(*model.OutgoingWebhook)
+	}
+
+	return hook
 }
 
 func TestListIncomingHooks(t *testing.T) {
@@ -416,6 +623,188 @@ func TestListOutgoingHooks(t *testing.T) {
 	}
 }
 
+func TestUpdateOutgoingHook(t *testing.T) {
+	th := Setup().InitSystemAdmin()
+	Client := th.SystemAdminClient
+	user := th.SystemAdminUser
+	team := th.SystemAdminTeam
+	team2 := th.CreateTeam(Client)
+	channel1 := th.CreateChannel(Client, team)
+	channel2 := th.CreatePrivateChannel(Client, team)
+	channel3 := th.CreateChannel(Client, team)
+	user2 := th.CreateUser(Client)
+	LinkUserToTeam(user2, team)
+	user3 := th.CreateUser(Client)
+	LinkUserToTeam(user3, team2)
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook := createOutgoingWebhook(channel1.Id, []string{"http://nowhere.com"}, []string{"cats"}, Client, t)
+	createOutgoingWebhook(channel1.Id, []string{"http://nowhere.com"}, []string{"dogs"}, Client, t)
+
+	hook.DisplayName = "Cats"
+	hook.Description = "Get me some cats"
+	t.Run("OutgoingHooksDisabled", func(t *testing.T) {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
+		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+			t.Fatal("should have failed - outgoing webhooks disabled")
+		}
+	})
+
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	t.Run("UpdateOutgoingWebhook", func(t *testing.T) {
+		if result, err := Client.UpdateOutgoingWebhook(hook); err != nil {
+			t.Fatal("failed to update outgoing web hook")
+		} else {
+			updatedHook := result.Data.(*model.OutgoingWebhook)
+
+			if updatedHook.DisplayName != hook.DisplayName {
+				t.Fatal("Hook display name did not get updated")
+			}
+
+			if updatedHook.Description != hook.Description {
+				t.Fatal("Hook description did not get updated")
+			}
+		}
+	})
+
+	t.Run("RetainCreateAt", func(t *testing.T) {
+		hook2 := &model.OutgoingWebhook{ChannelId: channel1.Id, CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats"}}
+
+		if result, err := Client.CreateOutgoingWebhook(hook2); err != nil {
+			t.Fatal("hook creation failed")
+		} else {
+			createdHook := result.Data.(*model.OutgoingWebhook)
+			createdHook.DisplayName = "Name2"
+
+			if result, err := Client.UpdateOutgoingWebhook(createdHook); err != nil {
+				t.Fatal("Update hook should not fail")
+			} else {
+				updatedHook := result.Data.(*model.OutgoingWebhook)
+
+				if updatedHook.CreateAt != createdHook.CreateAt {
+					t.Fatal("failed - hook create at should not be changed")
+				}
+			}
+		}
+	})
+
+	t.Run("ModifyUpdateAt", func(t *testing.T) {
+		hook.DisplayName = "Name3"
+
+		if result, err := Client.UpdateOutgoingWebhook(hook); err != nil {
+			t.Fatal("Update hook should not fail")
+		} else {
+			updatedHook := result.Data.(*model.OutgoingWebhook)
+
+			if updatedHook.UpdateAt == hook.UpdateAt {
+				t.Fatal("failed - hook updateAt is not updated")
+			}
+		}
+	})
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user2.Id, user2.Password))
+	Client.SetTeamId(team.Id)
+	if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+		t.Fatal("should have failed - user does not have permissions to manage webhooks")
+	}
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+	hook2 := createOutgoingWebhook(channel1.Id, []string{"http://nowhereelse.com"}, []string{"dogs"}, Client, t)
+
+	if _, err := Client.UpdateOutgoingWebhook(hook2); err != nil {
+		t.Fatal("update webhook failed when admin only integrations is turned off")
+	}
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Logout()
+	LinkUserToTeam(user3, team)
+	UpdateUserToTeamAdmin(user3, team)
+	Client.Must(Client.LoginById(user3.Id, user3.Password))
+	Client.SetTeamId(team.Id)
+	t.Run("RetainHookCreator", func(t *testing.T) {
+		if result, err := Client.UpdateOutgoingWebhook(hook); err != nil {
+			t.Fatal("failed to update outgoing web hook")
+		} else {
+			updatedHook := result.Data.(*model.OutgoingWebhook)
+
+			if updatedHook.CreatorId != user.Id {
+				t.Fatal("hook creator should not be changed")
+			}
+		}
+	})
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user.Id, user.Password))
+	Client.SetTeamId(team.Id)
+	t.Run("UpdateToExistingTriggerWordAndCallback", func(t *testing.T) {
+		t.Run("OnSameChannel", func(t *testing.T) {
+			hook.TriggerWords = []string{"dogs"}
+
+			if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+				t.Fatal("should have failed - duplicate trigger words & channel urls")
+			}
+		})
+
+		t.Run("OnDifferentChannel", func(t *testing.T) {
+			hook.TriggerWords = []string{"dogs"}
+			hook.ChannelId = channel3.Id
+
+			if _, err := Client.UpdateOutgoingWebhook(hook); err != nil {
+				t.Fatal("update of hook failed with duplicate trigger word but different channel")
+			}
+		})
+	})
+
+	t.Run("UpdateToNonExistentChannel", func(t *testing.T) {
+		hook.ChannelId = "junk"
+
+		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+			t.Fatal("should have failed - non existent channel")
+		}
+	})
+
+	t.Run("UpdateToPrivateChannel", func(t *testing.T) {
+		hook.ChannelId = channel2.Id
+
+		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+			t.Fatal("should have failed - update to a private channel")
+		}
+	})
+
+	t.Run("UpdateToBlankTriggerWordAndChannel", func(t *testing.T) {
+		hook.ChannelId = ""
+		hook.TriggerWords = nil
+
+		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+			t.Fatal("should have failed - update to blank trigger words & channel")
+		}
+	})
+
+	Client.Logout()
+	Client.Must(Client.LoginById(user3.Id, user3.Password))
+	Client.SetTeamId(team2.Id)
+	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
+		if _, err := Client.UpdateOutgoingWebhook(hook); err == nil {
+			t.Fatal("should have failed - update to a different team is not allowed")
+		}
+	})
+}
+
 func TestDeleteOutgoingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
@@ -526,6 +915,11 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 		if result.Data.(*model.OutgoingWebhook).Token == hook.Token {
 			t.Fatal("regen didn't work properly")
 		}
+	}
+
+	Client.SetTeamId(model.NewId())
+	if _, err := Client.RegenOutgoingWebhookToken(hook.Id); err == nil {
+		t.Fatal("should have failed - wrong team id")
 	}
 
 	Client.Logout()

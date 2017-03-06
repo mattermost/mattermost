@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Ungültige other user id "
+    "translation": "Ungültige Benutzer-ID für eine Direktnachrichtenkanal Erstellung"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -301,11 +301,11 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Fehler beim Senden der Anzeigenamen-Aktualisierungsnachricht %v"
+    "translation": "Fehler beim Senden der Anzeigenamen-Aktualisierungsnachricht"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanalüberschrift %v"
+    "translation": "Fehler beim Abrufen des Nutzers während des Aktualisierens des DisplayName-Feldes"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Failed to post update channel header message"
+    "translation": "Fehler beim Senden der Aktualisierung der Kanalüberschrift-Mitteilung"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanalüberschrift %v"
+    "translation": "Fehler beim Abrufen des Nutzers während des aktualisierens der Kanalüberschrift"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Die Begrüßungs-/Abschiedsnachricht %v konnte nicht gesendet werden"
+    "translation": "Die Begrüßungs-/Abschiedsnachricht konnte nicht gesendet werden"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -796,12 +796,16 @@
     "translation": "Entschuldigung, wir können die Seite nicht finden."
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "Ungültiger oder fehlender {{.Name}} in Anfrage"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "Ungültiger {{.Name}} Parameter"
   },
   {
     "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "Ungültige Sitzung err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
@@ -809,7 +813,11 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+    "translation": "Ungültige Sitzung  token={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "Ungültiger oder fehlender {{.Name}} Parameter in Anfrage-URL"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1144,6 +1152,10 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Ein Fehler während des Lesens vom lokalen Server ist aufgetreten"
+  },
+  {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "Dateiupload nicht möglich. Header können nicht geparst werden."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1489,7 +1501,7 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "Fehler beim Abruf der 2 Mitglieder für den Direkt-Kanal channel_id=%v"
+    "translation": "Fehler beim Abruf der 2 Mitglieder für den Direkt-Kanal channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1509,7 +1521,7 @@
   },
   {
     "id": "api.post.send_notifications.user_id.debug",
-    "translation": "Post creator not in channel for the post, no notification sent post_id=%v channel_id=%v user_id=%v"
+    "translation": "Nachrichtenersteller nicht im Kanal für die Nachricht, keine Benachrichtigung versendet post_id=%v channel_id=%v user_id=%v"
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
@@ -1561,7 +1573,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
+    "translation": "Fehler beim Senden der Pushnachricht device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
@@ -1581,7 +1593,7 @@
   },
   {
     "id": "api.post.update_post.permissions_denied.app_error",
-    "translation": "Teamerstellung wurde deaktiviert. Bitte fragen Sie Ihren Administrator, um Details zu erfahren."
+    "translation": "Nachrichtenbearbeitung wurde deaktiviert. Bitte fragen Sie Ihren Administrator, um Details zu erfahren."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1589,7 +1601,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+    "translation": "Nachrichtenbearbeitung ist nur für {{.timeLimit}} Sekunden erlaubt. Bitte fragen Sie Ihren Administrator, um Details zu erfahren."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2249,7 +2261,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "Fehler beim Hinzufügen von Kanaleinstellungen für Benutzer user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2342,6 +2354,10 @@
   {
     "id": "api.user.create_user.accepted_domain.app_error",
     "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie Ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Die Erstellung von Benutzern ist deaktiviert."
   },
   {
     "id": "api.user.create_user.joining.error",
@@ -2501,19 +2517,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Die E-Mail konnte nicht gesendet werden err=%v"
+    "translation": "Die E-Mail-Änderungsbenachrichtigung konnte nicht erfolgreich versendet werden"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Die Benachrichtigungs-E-Mail über die Änderung des Benutzernamens konnte nicht versandt werden err=%v"
+    "translation": "Die Benutzernamen-Änderungsbenachrichtigung konnte erfolgreich nicht versendet werden"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Die Bestätigungs-E-Mail über die Änderung der E-Mail-Adresse konnte nicht versandt werden err=%v"
+    "translation": "Die Bestätigungs-E-Mail über die Änderung der E-Mail-Adresse konnte nicht versandt werden"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden err=%v"
+    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2529,15 +2545,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden err=%v"
+    "translation": "Die Bestätigungs-E-Mail über die Änderung des Passworts konnte nicht versandt werden"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Die Bestätigungs-E-Mail konnte nicht versandt werden err=%v"
+    "translation": "Die Bestätigungs-E-Mail konnte nicht versandt werden"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Die Willkommens-E-Mail konnte nicht versandt werden err=%v"
+    "translation": "Die Willkommens-E-Mail konnte nicht versandt werden"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2550,6 +2566,10 @@
   {
     "id": "api.user.update_mfa.not_available.app_error",
     "translation": "MFA ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Konnte keinen Benutzer aus {{.Service}} Benutzerobjekt erstellen"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -2672,7 +2692,7 @@
     "translation": "Team-Hub wird gestoppt für teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
@@ -2696,11 +2716,11 @@
     "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Ungültige Berechtigungen um eingehenden Webhook zu löschen"
   },
   {
@@ -2740,6 +2760,38 @@
     "translation": "Ungültige Berechtigungen um ausgehenden Webhook-Token zu regenerieren"
   },
   {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Ungültige Berechtigungen um eingehenden Webhook zu löschen"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Ausgehende Webhooks wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Ausgehende Webhooks des selben Kanals können nicht dieselben Triggerwörter/Callback-URLs haben."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Ausgehende Webhooks können nur für öffentliche Kanäle erstellt werden."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Ungültige Berechtigungen um ausgehenden Webhook zu erstellen."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein"
+  },
+  {
     "id": "api.webrtc.disabled.app_error",
     "translation": "WebRTC ist auf diesem Server nicht aktiviert."
   },
@@ -2753,47 +2805,235 @@
   },
   {
     "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "Ungültige Sitzung err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Ungültiger {{.Name}} Parameter"
   },
   {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "Es muss eine Team-ID angegeben werden um einen Kanal zu erstellen"
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "Fehler beim Senden des Kanalzwecks"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
-    "translation": "Der Kanaltitel %s wurde entfernt (vorher: %s)"
+    "translation": "%s hat den Kanalzweck entfernt (war: %s)"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-    "translation": "Fehler beim Abrufen des Nutzers während des Sicherns der Kanalüberschrift %v"
+    "translation": "Fehler beim Abrufen des Nutzers während des Aktualisierens des Kanalzwecks %v"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_from",
-    "translation": "%s Der Kanaltitel wurde aktualisiert von %s nach %s"
+    "translation": "%s hat den Kanalzweck von: %s nach: %s aktualisiert"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
-    "translation": "%s der Kanaltitel wurde aktualisiert in %s"
+    "translation": "%s hat den Kanalzweck aktualisiert zu: %s"
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "Fehler beim Lesen der Importdatei."
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSON Decode der Zeile fehlgeschlagen."
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "Fehler beim Importieren des Kanals. Team mit dem Namen \"{{.TeamName}}\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "Importdatenzeile hat den Typ \"channel\", aber das Kanalobjekt ist null."
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "Importdatenzeile hat den Typ \"team\", aber das Teamobjekt ist null."
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "Importdatenzeile hat den Typ \"user\", aber das Benutzerobjekt ist null."
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "Importdatenzeile hat den unbekannten Typ \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "Kanal create_at darf nicht 0 sein wenn angegeben."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "Kanal display_name befindet sich nicht innerhalb der Längenbegrenzung."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "Fehlende erforderliche Kanaleigenschaft: display_name."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "Kanalüberschrift ist zu lang."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "Kanalname enthält ungültige Zeichen."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "Kanalname ist zu lang."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "Fehlende erforderliche Kanaleigenschaft: name"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "Kanalzweck ist zu lang."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "Fehlende erforderliche Kanaleigenschaft: team"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "Kanaltyp ist ungültig."
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "Fehlende erforderliche Kanaleigenschaft: type."
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "Team allowed_domains ist zu lang."
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "Team create_at darf nicht 0 sein wenn angegeben."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Team description ist zu lang."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "Team display_name befindet sich nicht innerhalb der Längenbegrenzung."
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "Fehlende erforderliche Teameigenschaft: display_name"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Team name enthält ungültige Zeichen."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Team name ist zu lang."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Fehlende erforderliche Teameigenschaft: name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Team name enthält ein reserviertes Wort."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Team type is ungütig."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Fehlende erforderliche Teameigenschaft: type"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "Kanalname fehlt in der Kanalmitgliedschaft des Benutzers."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "Ungültige Desktop NotifyProps für Kanalmitgliedschaft des Benutzers."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "Ungültige MarkUnread NotifyProps für Kanalmitgliedschaft des Benutzers."
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "Ungültige Rollen für die Kanalmitgliedschaft des Benutzers."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "Benutzer AuthData ist zu lang."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "Benutzer AuthService sollte nicht leer sein wenn angegeben."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "Benutzer email hat eine ungültige länge."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Fehlende erforderliche Benutzereigenschaft: email."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "Benutzer Vorname ist zu lang."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "Benutzer Nachname ist zu lang."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "Benutzer nickname ist zu lang."
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "Benutzer Position ist zu lang."
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "Benutzer roles sind nicht gültig."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "Benutzername ist ungültig."
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "Fehlende erforderliche Benutzereigenschaft: username."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "Ungültige Rollen für Teammitgliedschaft des Benutzers."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "Team name fehlt in Teammitgliedschaft des Benutzers."
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Ability to create new teams"
+    "translation": "Die Möglichkeit, neue Teams zu erstellen"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Create Teams"
+    "translation": "Teams erstellen"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
+    "translation": "Die Möglichkeit, die Rollen eines Teammitgliedes zu ändern"
   },
   {
     "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
+    "translation": "Teamrollen verwalten"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3308,8 +3548,16 @@
     "translation": "Ungültige Kanal ID"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Ungültiger E-Mail-Benachrichtigungswert"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Ungültige Benachrichtigungsstufe"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Ungültige Pushbenachrichtigungsstufe"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3342,6 +3590,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "Authentifizierungstoken stimmten nicht überein"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "Es trat ein Fehler beim Lesen der Datei auf"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3417,7 +3669,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "E-Mail-Stapelverarbeitung lässt sich bei aktiviertem Clustering nicht aktivieren"
+    "translation": "E-Mail-Stapelverarbeitung lässt sich bei aktiviertem Clustering nicht aktivieren."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3642,6 +3894,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Ungültige maximale Anzahl an offenen Verbindungen in SQL Einstellungen.  Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "Zeit zwischen Benutzereingabenaktualisierung sollte nicht weniger als 1000 Millisekunden betragen."
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
@@ -4260,6 +4516,10 @@
     "translation": "Es trat ein Fehler beim Speichern der Audits auf"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "Die Anzahl der gelöschten Kanaltypen konnte nicht geladen werden"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "Der Kanaltyp konnte nicht gefunden werden"
   },
@@ -4316,6 +4576,14 @@
     "translation": "Es wurden keine Kanäle gefunden"
   },
   {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "Der bestehende gelöschte Kanal konnte nicht gefunden werden"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "Es existieren keine gelöschten Kanäle mit dem Namen"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "Konnte Extrainformationen für Kanalmitglieder nicht abrufen"
   },
@@ -4356,6 +4624,10 @@
     "translation": "Konnte Erwähnungenanzahl nicht erhöhen"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "Der Kanal konnte nicht gelöscht werden"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "Die Kanäle konnten nicht gelöscht werden"
   },
@@ -4389,7 +4661,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "Es existiert bereits ein Kanal mit dieser URL"
+    "translation": "Ein Kanal mit dem Namen existiert bereits im gleichen Team"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4720,6 +4992,10 @@
     "translation": "Die Kommentare des Benutzers konnten nicht gelöscht werden"
   },
   {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "Die Nachrichten nach Kanal konnten nicht gelöscht werden"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
     "translation": "Es konnte die Nachricht nicht ausgewählt werden welche für den Benutzer gelöscht werden soll"
   },
@@ -5029,7 +5305,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "Ein Team mit dieser Domain existiert bereits"
+    "translation": "Ein Team mit diesem Namen existiert bereits"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -5062,6 +5338,14 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "Der Name des Teams konnte nicht aktualisiert werden"
+  },
+  {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "Die Anzahl der inaktiven Benutzer konnte nicht gezählt werden"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "Die Anzahl der Systemadministratoren konnte nicht geladen werden"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -5125,7 +5409,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Es konnte kein existierender Account entsprechend Ihrer E-Mail-Adresse für dieses Team gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
+    "translation": "Der Benutzer konnte nicht gefunden werden"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -5302,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "Der IncomingWebhook konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

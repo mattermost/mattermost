@@ -126,6 +126,8 @@ class FileUpload extends React.Component {
 
             Utils.clearFileInput(e.target);
         }
+
+        this.props.onFileUploadChange();
     }
 
     handleDrop(e) {
@@ -190,6 +192,8 @@ class FileUpload extends React.Component {
                 self.handleDrop(e);
             }
         });
+
+        this.props.onFileUploadChange();
     }
 
     componentWillUnmount() {
@@ -288,6 +292,10 @@ class FileUpload extends React.Component {
 
                 this.props.onUploadStart([clientId], channelId);
             }
+
+            if (numToUpload > 0) {
+                this.props.onFileUploadChange();
+            }
         }
     }
 
@@ -369,6 +377,7 @@ FileUpload.propTypes = {
     onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
+    onFileUploadChange: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
     postType: React.PropTypes.string

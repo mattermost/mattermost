@@ -32,7 +32,9 @@ func keyAsJWK(key interface{}) *jose.JsonWebKey {
 	}
 }
 
-// Posts a JWS signed message to the specified URL
+// Posts a JWS signed message to the specified URL.
+// It does NOT close the response body, so the caller must
+// do that if no error was returned.
 func (j *jws) post(url string, content []byte) (*http.Response, error) {
 	signedContent, err := j.signContent(content)
 	if err != nil {
@@ -44,6 +46,8 @@ func (j *jws) post(url string, content []byte) (*http.Response, error) {
 		return nil, err
 	}
 
+	j.Lock()
+	defer j.Unlock()
 	j.getNonceFromResponse(resp)
 
 	return resp, err
@@ -77,8 +81,6 @@ func (j *jws) signContent(content []byte) (*jose.JsonWebSignature, error) {
 }
 
 func (j *jws) getNonceFromResponse(resp *http.Response) error {
-	j.Lock()
-	defer j.Unlock()
 	nonce := resp.Header.Get("Replay-Nonce")
 	if nonce == "" {
 		return fmt.Errorf("Server did not respond with a proper nonce header.")
@@ -98,6 +100,8 @@ func (j *jws) getNonce() error {
 }
 
 func (j *jws) Nonce() (string, error) {
+	j.Lock()
+	defer j.Unlock()
 	nonce := ""
 	if len(j.nonces) == 0 {
 		err := j.getNonce()
@@ -108,8 +112,6 @@ func (j *jws) Nonce() (string, error) {
 	if len(j.nonces) == 0 {
 		return "", fmt.Errorf("Can't get nonce")
 	}
-	j.Lock()
-	defer j.Unlock()
 	nonce, j.nonces = j.nonces[len(j.nonces)-1], j.nonces[:len(j.nonces)-1]
 	return nonce, nil
 }

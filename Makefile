@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client vet
 
 # For golang 1.5.x compatibility (remove when we don't want to support it anymore)
 export GO15VENDOREXPERIMENT=1
@@ -183,7 +183,7 @@ check-client-style:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
 
-check-server-style:
+check-server-style: govet
 	@echo Running GOFMT
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
@@ -202,7 +202,7 @@ test-server: start-docker prepare-enterprise
 	rm -f cover.out
 	echo "mode: count" > cover.out
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s -covermode=count -coverprofile=capi.out ./api || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=1050s -covermode=count -coverprofile=capi.out ./api || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s -covermode=count -coverprofile=capi4.out ./api4 || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=capp.out ./app || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
@@ -466,6 +466,36 @@ nuke: clean clean-docker
 
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
+
+govet:
+	@echo Running GOVET
+
+	$(GO) vet $(GOFLAGS) ./api || exit 1
+	$(GO) vet $(GOFLAGS) ./api4 || exit 1
+	$(GO) vet $(GOFLAGS) ./app || exit 1
+	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
+	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
+	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
+	$(GO) vet $(GOFLAGS) ./model || exit 1
+	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
+	$(GO) vet $(GOFLAGS) ./store || exit 1
+	$(GO) vet $(GOFLAGS) ./utils || exit 1
+	$(GO) vet $(GOFLAGS) ./web || exit 1
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GO) vet $(GOFLAGS) ./enterprise || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/oauth/google || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/oauth/office365 || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/saml || exit 1
+endif
 
 todo:
 	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO

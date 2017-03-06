@@ -4,7 +4,9 @@
 import LoadingScreen from 'components/loading_screen.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
+
+import BrowserStore from 'stores/browser_store.jsx';
 import {getInviteInfo} from 'actions/team_actions.jsx';
 import {loginById, createUserWithInvite} from 'actions/user_actions.jsx';
 
@@ -34,6 +36,10 @@ export default class SignupEmail extends React.Component {
         this.isUserValid = this.isUserValid.bind(this);
 
         this.state = this.getInviteInfo();
+    }
+
+    componentDidMount() {
+        trackEvent('signup', 'signup_user_01_welcome');
     }
 
     getInviteInfo() {
@@ -116,13 +122,27 @@ export default class SignupEmail extends React.Component {
     }
 
     handleSignupSuccess(user, data) {
-        track('signup', 'signup_user_02_complete');
+        trackEvent('signup', 'signup_user_02_complete');
         loginById(
             data.id,
             user.password,
             '',
-            this.state.hash,
-            null,
+            () => {
+                if (this.state.hash > 0) {
+                    BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
+                }
+
+                GlobalActions.emitInitialLoad(
+                    () => {
+                        const query = this.props.location.query;
+                        if (query.redirect_to) {
+                            browserHistory.push(query.redirect_to);
+                        } else {
+                            GlobalActions.redirectUserToDefaultTeam();
+                        }
+                    }
+                );
+            },
             (err) => {
                 if (err.id === 'api.user.login.not_verified.app_error') {
                     browserHistory.push('/should_verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.state.teamName));
@@ -386,8 +406,6 @@ export default class SignupEmail extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_user_01_welcome');
-
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -444,7 +462,7 @@ export default class SignupEmail extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <Link to='/signup_user_complete'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'

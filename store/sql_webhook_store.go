@@ -4,6 +4,8 @@
 package store
 
 import (
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -105,6 +107,27 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) StoreChann
 	return storeChannel
 }
 
+func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		hook.UpdateAt = model.GetMillis()
+
+		if _, err := s.GetMaster().Update(hook); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.UpdateIncoming", "store.sql_webhooks.update_incoming.app_error", nil, "id="+hook.Id+", "+err.Error())
+		} else {
+			result.Data = hook
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -183,7 +206,7 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChann
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
+func (s SqlWebhookStore) GetIncomingList(offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -191,8 +214,29 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string) StoreChannel {
 
 		var webhooks []*model.IncomingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error())
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
+			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingList", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = webhooks
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var webhooks []*model.IncomingWebhook
+
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
+			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = webhooks

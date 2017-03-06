@@ -6,7 +6,6 @@ package api
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -26,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/view", ApiUserRequired(viewChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/create_group", ApiUserRequired(createGroupChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
@@ -48,9 +48,7 @@ func InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	channel := model.ChannelFromJson(r.Body)
-
 	if channel == nil {
 		c.SetInvalidParam("createChannel", "channel")
 		return
@@ -58,16 +56,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(channel.TeamId) == 0 {
 		channel.TeamId = c.TeamId
-	}
-
-	if channel.Type == model.CHANNEL_DIRECT {
-		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.direct_channel.app_error", nil, "")
-		return
-	}
-
-	if strings.Index(channel.Name, "__") > 0 {
-		c.Err = model.NewLocAppError("createDirectChannel", "api.channel.create_channel.invalid_character.app_error", nil, "")
-		return
 	}
 
 	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
@@ -80,23 +68,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.TeamId == c.TeamId {
-
-		// Get total number of channels on current team
-		if count, err := app.GetNumberOfChannelsOnTeam(channel.TeamId); err != nil {
-			c.Err = model.NewLocAppError("createChannel", "api.channel.get_channels.error", nil, err.Error())
-			return
-		} else {
-			if int64(count+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
-				c.Err = model.NewLocAppError("createChannel", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *utils.Cfg.TeamSettings.MaxChannelsPerTeam}, "")
-				return
-			}
-		}
-	}
-
-	channel.CreatorId = c.Session.UserId
-
-	if sc, err := app.CreateChannel(channel, true); err != nil {
+	if sc, err := app.CreateChannelWithUser(channel, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -120,6 +92,38 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sc, err := app.CreateDirectChannel(c.Session.UserId, userId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(sc.ToJson()))
+	}
+}
+
+func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_CREATE_GROUP_CHANNEL)
+		return
+	}
+
+	userIds := model.ArrayFromJson(r.Body)
+	if len(userIds) == 0 {
+		c.SetInvalidParam("createGroupChannel", "user_ids")
+		return
+	}
+
+	found := false
+	for _, id := range userIds {
+		if id == c.Session.UserId {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		userIds = append(userIds, c.Session.UserId)
+	}
+
+	if sc, err := app.CreateGroupChannel(userIds); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -486,7 +490,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT {
+	if channel.TeamId != c.TeamId && !channel.IsGroupOrDirect() {
 		c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelId": id, "TeamId": c.TeamId}, "")
 		return
 	}
@@ -522,7 +526,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT {
+		if channel.TeamId != c.TeamId && !channel.IsGroupOrDirect() {
 			c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelName": channelName, "TeamId": c.TeamId}, "")
 			return
 		}
@@ -678,25 +682,12 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = app.GetChannelMember(channel.Id, c.Session.UserId); err != nil {
-		c.Err = err
-		return
-	}
-
 	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
-		c.Err = model.NewLocAppError("removeMember", "api.channel.remove_member.unable.app_error", nil, err.Message)
+		c.Err = err
 		return
 	}
 
 	c.LogAudit("name=" + channel.Name + " user_id=" + userIdToRemove)
-
-	var user *model.User
-	if user, err = app.GetUser(userIdToRemove); err != nil {
-		c.Err = err
-		return
-	}
-
-	go app.PostRemoveFromChannelMessage(c.Session.UserId, user, channel)
 
 	result := make(map[string]string)
 	result["channel_id"] = channel.Id
@@ -781,18 +772,12 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	view := model.ChannelViewFromJson(r.Body)
-
-	if err := app.SetActiveChannel(c.Session.UserId, view.ChannelId); err != nil {
-		c.Err = err
+	if view == nil {
+		c.SetInvalidParam("viewChannel", "channel_view")
 		return
 	}
 
-	if len(view.ChannelId) == 0 {
-		ReturnStatusOK(w)
-		return
-	}
-
-	if err := app.ViewChannel(view, c.TeamId, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
+	if err := app.ViewChannel(view, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
 		c.Err = err
 		return
 	}

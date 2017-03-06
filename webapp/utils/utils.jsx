@@ -27,14 +27,6 @@ export function isEmail(email) {
     return (/^.+@.+$/).test(email);
 }
 
-export function cleanUpUrlable(input) {
-    var cleaned = input.trim().replace(/-/g, ' ').replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/g, '-');
-    cleaned = cleaned.replace(/-{2,}/, '-');
-    cleaned = cleaned.replace(/^-+/, '');
-    cleaned = cleaned.replace(/-+$/, '');
-    return cleaned;
-}
-
 export function isMac() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
@@ -112,7 +104,7 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
                     var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
-                        if (channel && channel.type === Constants.DM_CHANNEL) {
+                        if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
                         } else if (channel) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
@@ -480,11 +472,12 @@ export function applyTheme(theme) {
     if (theme.sidebarText) {
         changeCss('.app__body .ps-container > .ps-scrollbar-y-rail > .ps-scrollbar-y', 'background:' + theme.sidebarText);
         changeCss('.app__body .ps-container:hover .ps-scrollbar-y-rail:hover', 'background:' + changeOpacity(theme.sidebarText, 0.15));
-        changeCss('.sidebar--left .nav-pills__container li>a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6));
-        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText);
+        changeCss('.sidebar--left .nav-pills__container li>a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a', 'color:' + changeOpacity(theme.sidebarText, 0.6));
+        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.8));
         changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6));
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
         changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText);
+        changeCss('.sidebar--left .status.status--group', 'background:' + changeOpacity(theme.sidebarText, 0.3));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
         changeCss('@media(max-width: 768px){.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + changeOpacity(theme.sidebarText, 0.6));
     }
@@ -508,6 +501,7 @@ export function applyTheme(theme) {
     if (theme.sidebarTextActiveColor) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .app__body .modal .settings-modal .nav-pills>li.active a, .app__body .modal .settings-modal .nav-pills>li.active a:hover, .app__body .modal .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor);
         changeCss('.sidebar--left .nav li.active a, .sidebar--left .nav li.active a:hover, .sidebar--left .nav li.active a:focus', 'background:' + changeOpacity(theme.sidebarTextActiveColor, 0.1));
+        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .nav-pills > li.active a', 'color:' + changeOpacity(theme.sidebarText, 0.8));
     }
 
     if (theme.sidebarHeaderBg) {
@@ -556,6 +550,7 @@ export function applyTheme(theme) {
 
     if (theme.centerChannelBg) {
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg);
+        changeCss('@media(max-width: 320px){.tutorial-steps__container', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
         changeCss('#post-list .post-list-holder-by-time, .app__body .post .dropdown-menu a', 'background:' + theme.centerChannelBg);
         changeCss('#post-create', 'background:' + theme.centerChannelBg);
@@ -575,6 +570,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelColor) {
+        changeCss('.app__body .mentions__name .status.status--group, .app__body .multi-select__note', 'background:' + changeOpacity(theme.centerChannelColor, 0.12));
         changeCss('.app__body .post-list__arrows, .app__body .post .flag-icon__container', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .modal .status .offline--icon, .app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon', 'fill:' + theme.centerChannelColor);
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
@@ -602,7 +598,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .popover.left>.arrow', 'border-left-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .popover.top>.arrow', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover-title', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover-dm__content', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .suggestion-list__content .command, .app__body .popover .popover__row', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .suggestion-list__divider:before, .app__body .dropdown-menu .divider, .app__body .search-help-popover .search-autocomplete__divider:before', 'background:' + theme.centerChannelColor);
         changeCss('.app__body .custom-textarea', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .post-image__column', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
@@ -624,7 +620,7 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('@media(min-width: 768px){.app__body .post:hover, .app__body .more-modal__list .more-modal__row:hover, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
-        changeCss('.app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
+        changeCss('.app__body .more-modal__row.more-modal__row--selected, .app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('@media(min-width: 768px){.app__body .suggestion-list__content .command:hover, .app__body .mentions__name:hover, .app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
         changeCss('.app__body .suggestion--selected, .app__body .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('code, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
@@ -719,6 +715,17 @@ export function changeCss(className, classValue) {
 
     // Grab style sheet
     const styleSheet = styleEl.sheet;
+    const rules = styleSheet.cssRules || styleSheet.rules;
+    const style = classValue.substr(0, classValue.indexOf(':'));
+    const value = classValue.substr(classValue.indexOf(':') + 1);
+
+    for (let i = 0; i < rules.length; i++) {
+        if (rules[i].selectorText === className) {
+            rules[i].style[style] = value;
+            return;
+        }
+    }
+
     let mediaQuery = '';
     if (className.indexOf('@media') >= 0) {
         mediaQuery = '}';
@@ -996,17 +1003,6 @@ export function fileSizeToString(bytes) {
     return bytes + 'B';
 }
 
-// Converts a filename (like those attached to Post objects) to a url that can be used to retrieve attachments from the server.
-export function getFileUrl(filename) {
-    return Client.getFilesRoute() + '/get' + filename;
-}
-
-// Gets the name of a file (including extension) from a given url or file path.
-export function getFileName(path) {
-    var split = path.split('/');
-    return split[split.length - 1];
-}
-
 // Gets the websocket port to use. Configurable on the server.
 export function getWebsocketPort(protocol) {
     if ((/^wss:/).test(protocol)) { // wss://
@@ -1078,13 +1074,6 @@ export function importSlack(file, success, error) {
     Client.importSlack(formData, success, error);
 }
 
-export function getShortenedTeamURL(teamURL = '') {
-    if (teamURL.length > 35) {
-        return teamURL.substring(0, 10) + '...' + teamURL.substring(teamURL.length - 12, teamURL.length) + '/';
-    }
-    return teamURL + '/';
-}
-
 export function windowWidth() {
     return $(window).width();
 }
@@ -1093,25 +1082,15 @@ export function windowHeight() {
     return $(window).height();
 }
 
-// Use when sorting multiple channels or teams by their `display_name` field
-export function sortByDisplayName(a, b) {
-    let aDisplayName = '';
-    let bDisplayName = '';
+// Use when sorting multiple teams by their `display_name` field
+export function sortTeamsByDisplayName(a, b) {
+    const locale = LocalizationStore.getLocale();
 
-    if (a && a.display_name) {
-        aDisplayName = a.display_name.toLowerCase();
-    }
-    if (b && b.display_name) {
-        bDisplayName = b.display_name.toLowerCase();
+    if (a.display_name !== b.display_name) {
+        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
     }
 
-    if (aDisplayName < bDisplayName) {
-        return -1;
-    }
-    if (aDisplayName > bDisplayName) {
-        return 1;
-    }
-    return 0;
+    return a.name.localeCompare(b.name, locale, {numeric: true});
 }
 
 export function getChannelTerm(channelType) {
@@ -1284,18 +1263,6 @@ export function isValidPassword(password) {
     return errorMsg;
 }
 
-export function getSiteURL() {
-    if (global.mm_config.SiteURL) {
-        return global.mm_config.SiteURL;
-    }
-
-    if (window.location.origin) {
-        return window.location.origin;
-    }
-
-    return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-}
-
 export function handleFormattedTextClick(e) {
     const mentionAttribute = e.target.getAttributeNode('data-mention');
     const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
@@ -1334,4 +1301,8 @@ export function isEmptyObject(object) {
     }
 
     return false;
+}
+
+export function updateWindowDimensions(component) {
+    component.setState({width: window.innerWidth, height: window.innerHeight});
 }

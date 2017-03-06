@@ -35,6 +35,7 @@ const (
 	STATUS                    = "status"
 	STATUS_OK                 = "OK"
 	STATUS_FAIL               = "FAIL"
+	STATUS_REMOVE             = "REMOVE"
 
 	CLIENT_DIR = "webapp/dist"
 
@@ -783,7 +784,7 @@ func (c *Client) GetSessions(id string) (*Result, *AppError) {
 }
 
 func (c *Client) EmailToOAuth(m map[string]string) (*Result, *AppError) {
-	if r, err := c.DoApiPost("/users/claim/email_to_sso", MapToJson(m)); err != nil {
+	if r, err := c.DoApiPost("/users/claim/email_to_oauth", MapToJson(m)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1112,6 +1113,16 @@ func (c *Client) CreateDirectChannel(userId string) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["user_id"] = userId
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create_direct", MapToJson(data)); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), ChannelFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) CreateGroupChannel(userIds []string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/channels/create_group", ArrayToJson(userIds)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -2007,6 +2018,16 @@ func (c *Client) CreateIncomingWebhook(hook *IncomingWebhook) (*Result, *AppErro
 	}
 }
 
+func (c *Client) UpdateIncomingWebhook(hook *IncomingWebhook) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/incoming/update", hook.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), IncomingWebhookFromJson(r.Body)}, nil
+	}
+}
+
 func (c *Client) PostToWebhook(id, payload string) (*Result, *AppError) {
 	if r, err := c.DoPost("/hooks/"+id, payload, "application/x-www-form-urlencoded"); err != nil {
 		return nil, err
@@ -2090,6 +2111,16 @@ func (c *Client) DeletePreferences(preferences *Preferences) (bool, *AppError) {
 
 func (c *Client) CreateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppError) {
 	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/create", hook.ToJson()); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), OutgoingWebhookFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetTeamRoute()+"/hooks/outgoing/update", hook.ToJson()); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)

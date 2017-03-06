@@ -100,7 +100,7 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	var err *model.AppError
 
 	if status, err = GetStatus(userId); err != nil {
-		status = &model.Status{userId, model.STATUS_ONLINE, false, model.GetMillis(), ""}
+		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 		broadcast = true
 	} else {
 		if status.Manual && !manual {
@@ -157,7 +157,7 @@ func SetStatusOffline(userId string, manual bool) {
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{userId, model.STATUS_OFFLINE, manual, model.GetMillis(), ""}
+	status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	AddStatusCache(status)
 
@@ -175,7 +175,7 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 	status, err := GetStatus(userId)
 
 	if err != nil {
-		status = &model.Status{userId, model.STATUS_OFFLINE, manual, 0, ""}
+		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
 	if !manual && status.Manual {
@@ -234,22 +234,4 @@ func GetStatus(userId string) (*model.Status, *model.AppError) {
 
 func IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *utils.Cfg.TeamSettings.UserStatusAwayTimeout*1000
-}
-
-func DoesStatusAllowPushNotification(user *model.User, status *model.Status, channelId string) bool {
-	props := user.NotifyProps
-
-	if props["push"] == "none" {
-		return false
-	}
-
-	if pushStatus, ok := props["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
-		return true
-	} else if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
-		return true
-	} else if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
-		return true
-	}
-
-	return false
 }

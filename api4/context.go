@@ -128,6 +128,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if utils.GetSiteURL() == "" {
 		protocol := app.GetProtocol(r)
 		c.SetSiteURL(protocol + "://" + r.Host)
+	} else {
+		c.SetSiteURL(utils.GetSiteURL())
 	}
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
@@ -356,5 +358,100 @@ func (c *Context) RequireChannelId() *Context {
 	if len(c.Params.ChannelId) != 26 {
 		c.SetInvalidUrlParam("channel_id")
 	}
+	return c
+}
+
+func (c *Context) RequireUsername() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidUsername(c.Params.Username) {
+		c.SetInvalidParam("username")
+	}
+
+	return c
+}
+
+func (c *Context) RequirePostId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.PostId) != 26 {
+		c.SetInvalidUrlParam("post_id")
+	}
+	return c
+}
+
+func (c *Context) RequireFileId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.FileId) != 26 {
+		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireTeamName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidTeamName(c.Params.TeamName) {
+		c.SetInvalidUrlParam("team_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireChannelName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidChannelIdentifier(c.Params.ChannelName) {
+		c.SetInvalidUrlParam("channel_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireEmail() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidEmail(c.Params.Email) {
+		c.SetInvalidUrlParam("email")
+	}
+
+	return c
+}
+
+func (c *Context) RequireCategory() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidAlphaNum(c.Params.Category, true) {
+		c.SetInvalidUrlParam("category")
+	}
+
+	return c
+}
+
+func (c *Context) RequirePreferenceName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidAlphaNum(c.Params.PreferenceName, true) {
+		c.SetInvalidUrlParam("preference_name")
+	}
+
 	return c
 }

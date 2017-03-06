@@ -42,12 +42,16 @@ import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
 import iNoBounce from 'inobounce';
 import * as UserAgent from 'utils/user_agent.jsx';
 
+const UNREAD_CHECK_TIME_MILLISECONDS = 10000;
+
 export default class NeedsTeam extends React.Component {
     constructor(params) {
         super(params);
 
         this.onTeamChanged = this.onTeamChanged.bind(this);
         this.onPreferencesChanged = this.onPreferencesChanged.bind(this);
+
+        this.blurTime = new Date().getTime();
 
         const team = TeamStore.getCurrent();
 
@@ -97,11 +101,16 @@ export default class NeedsTeam extends React.Component {
             AsyncClient.viewChannel();
             ChannelStore.resetCounts(ChannelStore.getCurrentId());
             ChannelStore.emitChange();
+
             window.isActive = true;
+            if (new Date().getTime() - this.blurTime > UNREAD_CHECK_TIME_MILLISECONDS) {
+                AsyncClient.getMyChannelMembers();
+            }
         });
 
         $(window).on('blur', () => {
             window.isActive = false;
+            this.blurTime = new Date().getTime();
             if (UserStore.getCurrentUser()) {
                 AsyncClient.viewChannel('');
             }

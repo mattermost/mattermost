@@ -62,6 +62,11 @@
 
         .btn {
             margin-bottom: 10px;
+            
+            &.disabled {
+                background: grey !important;
+                border-color: transparent !important;
+            }
         }
 
         .custom-textarea {

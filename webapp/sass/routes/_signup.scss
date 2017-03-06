@@ -455,12 +455,24 @@
             border: none;
         }
 
+        .icon {
+            cursor: pointer;
+            float: left;
+            margin: 18px 7px 0 15px;
+            opacity: .45;
+
+            svg {
+                height: 20px;
+                width: 20px;
+            }
+        }
+
         a {
             color: inherit;
             display: block;
             font-size: 1.1em;
             height: 3.5em;
-            line-height: 3.5em;
+            line-height: 3.6em;
             padding: 0 15px;
         }
     }

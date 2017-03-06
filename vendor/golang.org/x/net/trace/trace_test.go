@@ -70,6 +70,20 @@ func TestAuthRequest(t *testing.T) {
 	}
 }
 
+// TestParseTemplate checks that all templates used by this package are valid
+// as they are parsed on first usage
+func TestParseTemplate(t *testing.T) {
+	if tmpl := distTmpl(); tmpl == nil {
+		t.Error("invalid template returned from distTmpl()")
+	}
+	if tmpl := pageTmpl(); tmpl == nil {
+		t.Error("invalid template returned from pageTmpl()")
+	}
+	if tmpl := eventsTmpl(); tmpl == nil {
+		t.Error("invalid template returned from eventsTmpl()")
+	}
+}
+
 func benchmarkTrace(b *testing.B, maxEvents, numEvents int) {
 	numSpans := (b.N + numEvents + 1) / numEvents
 

@@ -70,10 +70,10 @@ func TestMakeBucketError(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -116,10 +116,10 @@ func TestMakeBucketRegions(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -167,10 +167,10 @@ func TestPutObjectReadAt(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -204,7 +204,10 @@ func TestPutObjectReadAt(t *testing.T) {
 
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
-	n, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), "binary/octet-stream")
+	// Object content type
+	objectContentType := "binary/octet-stream"
+
+	n, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), objectContentType)
 	if err != nil {
 		t.Fatal("Error:", err, bucketName, objectName)
 	}
@@ -226,6 +229,105 @@ func TestPutObjectReadAt(t *testing.T) {
 	if st.Size != int64(len(buf)) {
 		t.Fatalf("Error: number of bytes in stat does not match, want %v, got %v\n",
 			len(buf), st.Size)
+	}
+	if st.ContentType != objectContentType {
+		t.Fatalf("Error: Content types don't match, expected: %+v, found: %+v\n", objectContentType, st.ContentType)
+	}
+	if err := r.Close(); err != nil {
+		t.Fatal("Error:", err)
+	}
+	if err := r.Close(); err == nil {
+		t.Fatal("Error: object is already closed, should return error")
+	}
+
+	err = c.RemoveObject(bucketName, objectName)
+	if err != nil {
+		t.Fatal("Error: ", err)
+	}
+	err = c.RemoveBucket(bucketName)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+}
+
+// Test PutObject using a large data to trigger multipart readat
+func TestPutObjectWithMetadata(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for short runs")
+	}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := New(
+		os.Getenv("S3_ADDRESS"),
+		os.Getenv("ACCESS_KEY"),
+		os.Getenv("SECRET_KEY"),
+		mustParseBool(os.Getenv("S3_SECURE")),
+	)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	// Generate data using 2 parts
+	buf := make([]byte, minPartSize*2)
+	// Use crand.Reader for multipart tests to ensure part order at the end.
+	size, err := io.ReadFull(crand.Reader, buf)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+	if size != minPartSize*2 {
+		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", minPartSize*2, size)
+	}
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+
+	// Object custom metadata
+	customContentType := "custom/contenttype"
+
+	n, err := c.PutObjectWithMetadata(bucketName, objectName, bytes.NewReader(buf), map[string][]string{"Content-Type": []string{customContentType}}, nil)
+	if err != nil {
+		t.Fatal("Error:", err, bucketName, objectName)
+	}
+
+	if n != int64(len(buf)) {
+		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", len(buf), n)
+	}
+
+	// Read the data back
+	r, err := c.GetObject(bucketName, objectName)
+	if err != nil {
+		t.Fatal("Error:", err, bucketName, objectName)
+	}
+
+	st, err := r.Stat()
+	if err != nil {
+		t.Fatal("Error:", err, bucketName, objectName)
+	}
+	if st.Size != int64(len(buf)) {
+		t.Fatalf("Error: number of bytes in stat does not match, want %v, got %v\n",
+			len(buf), st.Size)
+	}
+	if st.ContentType != customContentType {
+		t.Fatalf("Error: Expected and found content types do not match, want %v, got %v\n",
+			customContentType, st.ContentType)
 	}
 	if err := r.Close(); err != nil {
 		t.Fatal("Error:", err)
@@ -255,10 +357,10 @@ func TestListPartiallyUploaded(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -334,10 +436,10 @@ func TestGetOjectSeekEnd(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -429,10 +531,10 @@ func TestGetObjectClosedTwice(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -509,10 +611,10 @@ func TestRemoveMultipleObjects(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 
 	if err != nil {
@@ -583,10 +685,10 @@ func TestRemovePartiallyUploaded(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -656,10 +758,10 @@ func TestResumablePutObject(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -702,9 +804,10 @@ func TestResumablePutObject(t *testing.T) {
 
 	// New object name.
 	objectName := bucketName + "-resumable"
+	objectContentType := "application/custom-octet-stream"
 
 	// Upload the file.
-	n, err = c.FPutObject(bucketName, objectName, file.Name(), "application/octet-stream")
+	n, err = c.FPutObject(bucketName, objectName, file.Name(), objectContentType)
 	if err != nil {
 		t.Fatal("Error:", err)
 	}
@@ -718,17 +821,22 @@ func TestResumablePutObject(t *testing.T) {
 		t.Fatal("Error:", err)
 	}
 
-	// Upload now cloud to cloud.
-	n, err = c.PutObject(bucketName, objectName+"-put", reader, "application/octest-stream")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
 	// Get object info.
 	objInfo, err := reader.Stat()
 	if err != nil {
 		t.Fatal("Error:", err)
 	}
+
+	if objInfo.ContentType != objectContentType {
+		t.Fatalf("Error: Content types don't match, want %v, got %v\n", objectContentType, objInfo.ContentType)
+	}
+
+	// Upload now cloud to cloud.
+	n, err = c.PutObject(bucketName, objectName+"-put", reader, objectContentType)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
 	if n != objInfo.Size {
 		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", objInfo.Size, n)
 	}
@@ -766,10 +874,10 @@ func TestResumableFPutObject(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -856,10 +964,10 @@ func TestFPutObjectMultipart(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -912,14 +1020,30 @@ func TestFPutObjectMultipart(t *testing.T) {
 
 	// Set base object name
 	objectName := bucketName + "FPutObject"
+	objectContentType := "testapplication/octet-stream"
 
 	// Perform standard FPutObject with contentType provided (Expecting application/octet-stream)
-	n, err := c.FPutObject(bucketName, objectName+"-standard", file.Name(), "application/octet-stream")
+	n, err := c.FPutObject(bucketName, objectName+"-standard", file.Name(), objectContentType)
 	if err != nil {
 		t.Fatal("Error:", err)
 	}
 	if n != int64(minPartSize*4) {
 		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", minPartSize*4, n)
+	}
+
+	r, err := c.GetObject(bucketName, objectName+"-standard")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v\n", err)
+	}
+	objInfo, err := r.Stat()
+	if err != nil {
+		t.Fatalf("Unexpected error: %v\n", err)
+	}
+	if objInfo.Size != minPartSize*4 {
+		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", minPartSize*4, n)
+	}
+	if objInfo.ContentType != objectContentType {
+		t.Fatalf("Error: Content types don't match, want %v, got %v\n", objectContentType, objInfo.ContentType)
 	}
 
 	// Remove all objects and bucket and temp file
@@ -945,10 +1069,10 @@ func TestFPutObject(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1105,10 +1229,10 @@ func TestGetObjectReadSeekFunctional(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1238,10 +1362,10 @@ func TestGetObjectReadAtFunctional(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1387,10 +1511,10 @@ func TestPresignedPostPolicy(t *testing.T) {
 
 	// Instantiate new minio client object
 	c, err := NewV4(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1482,10 +1606,10 @@ func TestCopyObject(t *testing.T) {
 
 	// Instantiate new minio client object
 	c, err := NewV4(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1648,10 +1772,10 @@ func TestBucketNotification(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1724,10 +1848,10 @@ func TestFunctional(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 
 	c, err := New(
-		"s3.amazonaws.com",
+		os.Getenv("S3_ADDRESS"),
 		os.Getenv("ACCESS_KEY"),
 		os.Getenv("SECRET_KEY"),
-		true,
+		mustParseBool(os.Getenv("S3_SECURE")),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)

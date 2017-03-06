@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -21,6 +22,7 @@ const (
 	TEAM_DISPLAY_NAME_MAX_RUNES     = 64
 	TEAM_EMAIL_MAX_LENGTH           = 128
 	TEAM_NAME_MAX_LENGTH            = 64
+	TEAM_NAME_MIN_LENGTH            = 2
 )
 
 type Team struct {
@@ -111,6 +113,26 @@ func TeamMapFromJson(data io.Reader) map[string]*Team {
 	}
 }
 
+func TeamListToJson(t []*Team) string {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func TeamListFromJson(data io.Reader) []*Team {
+	decoder := json.NewDecoder(data)
+	var teams []*Team
+	err := decoder.Decode(&teams)
+	if err == nil {
+		return teams
+	} else {
+		return nil
+	}
+}
+
 func (o *Team) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
@@ -118,55 +140,55 @@ func (o *Team) Etag() string {
 func (o *Team) IsValid() *AppError {
 
 	if len(o.Id) != 26 {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "")
+		return NewAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.create_at.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.create_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.Email) > TEAM_EMAIL_MAX_LENGTH {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.DisplayName) == 0 || utf8.RuneCountInString(o.DisplayName) > TEAM_DISPLAY_NAME_MAX_RUNES {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.Name) > TEAM_NAME_MAX_LENGTH {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.url.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if IsReservedTeamName(o.Name) {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.reserved.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.reserved.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidTeamName(o.Name) {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.CompanyName) > TEAM_COMPANY_NAME_MAX_LENGTH {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if len(o.AllowedDomains) > TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
-		return NewLocAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id)
+		return NewAppError("Team.IsValid", "model.team.is_valid.domains.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -207,7 +229,7 @@ func IsValidTeamName(s string) bool {
 		return false
 	}
 
-	if len(s) <= 1 {
+	if len(s) < TEAM_NAME_MIN_LENGTH {
 		return false
 	}
 

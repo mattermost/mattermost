@@ -396,22 +396,22 @@
 }
 
 .emoji-list__name {
-    padding: 20px 0px 20px 15px;
+    padding: 20px 0 20px 15px;
     width: 30%;
 }
 
 .emoji-list__image {
-    padding: 15px 0px;
+    padding: 15px 0;
     width: 15%;
 }
 
-&.emoji-list__creator {
-    padding: 15px 0px;
+.emoji-list__creator {
+    padding: 15px 0;
     width: 40%;
 }
 
-&.emoji-list__actions {
-    padding: 20px 15px 20px 0px;
+.emoji-list__actions {
+    padding: 20px 15px 20px 0;
     width: 15%;
 }
 
@@ -434,8 +434,4 @@
 .add-emoji__filename,
 .add-emoji__preview {
     padding-top: 7px;
-
-    .emoticon {
-        margin-bottom: 0;
-    }
 }

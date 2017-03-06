@@ -30,6 +30,7 @@ var PERMISSION_MANAGE_ROLES *Permission
 var PERMISSION_MANAGE_TEAM_ROLES *Permission
 var PERMISSION_MANAGE_CHANNEL_ROLES *Permission
 var PERMISSION_CREATE_DIRECT_CHANNEL *Permission
+var PERMISSION_CREATE_GROUP_CHANNEL *Permission
 var PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES *Permission
 var PERMISSION_LIST_TEAM_CHANNELS *Permission
@@ -54,6 +55,7 @@ var PERMISSION_REMOVE_USER_FROM_TEAM *Permission
 var PERMISSION_CREATE_TEAM *Permission
 var PERMISSION_MANAGE_TEAM *Permission
 var PERMISSION_IMPORT_TEAM *Permission
+var PERMISSION_VIEW_TEAM *Permission
 
 // General permission that encompases all system admin functions
 // in the future this could be broken up to allow access to some
@@ -147,6 +149,11 @@ func InitalizePermissions() {
 		"create_direct_channel",
 		"authentication.permissions.create_direct_channel.name",
 		"authentication.permissions.create_direct_channel.description",
+	}
+	PERMISSION_CREATE_GROUP_CHANNEL = &Permission{
+		"create_group_channel",
+		"authentication.permissions.create_group_channel.name",
+		"authentication.permissions.create_group_channel.description",
 	}
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES = &Permission{
 		"manage__publicchannel_properties",
@@ -268,6 +275,11 @@ func InitalizePermissions() {
 		"authentication.permissions.import_team.name",
 		"authentication.permissions.import_team.description",
 	}
+	PERMISSION_VIEW_TEAM = &Permission{
+		"view_team",
+		"authentication.permissions.view_team.name",
+		"authentication.permissions.view_team.description",
+	}
 }
 
 func InitalizeRoles() {
@@ -314,6 +326,7 @@ func InitalizeRoles() {
 		[]string{
 			PERMISSION_LIST_TEAM_CHANNELS.Id,
 			PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
+			PERMISSION_VIEW_TEAM.Id,
 		},
 	}
 	BuiltInRoles[ROLE_TEAM_USER.Id] = ROLE_TEAM_USER
@@ -343,6 +356,7 @@ func InitalizeRoles() {
 		"authentication.roles.global_user.description",
 		[]string{
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
+			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 			PERMISSION_MANAGE_OAUTH.Id,
 		},

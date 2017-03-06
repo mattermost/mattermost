@@ -77,7 +77,6 @@ func tryAuth(t *testing.T, config *ClientConfig) error {
 			return nil, errors.New("keyboard-interactive failed")
 		},
 		AuthLogCallback: func(conn ConnMetadata, method string, err error) {
-			t.Logf("user %q, method %q: %v", conn.User(), method, err)
 		},
 	}
 	serverConfig.AddHostKey(testSigners["rsa"])
@@ -278,18 +277,18 @@ func TestClientLoginCert(t *testing.T) {
 	}
 	clientConfig.Auth = append(clientConfig.Auth, PublicKeys(certSigner))
 
-	t.Log("should succeed")
+	// should succeed
 	if err := tryAuth(t, clientConfig); err != nil {
 		t.Errorf("cert login failed: %v", err)
 	}
 
-	t.Log("corrupted signature")
+	// corrupted signature
 	cert.Signature.Blob[0]++
 	if err := tryAuth(t, clientConfig); err == nil {
 		t.Errorf("cert login passed with corrupted sig")
 	}
 
-	t.Log("revoked")
+	// revoked
 	cert.Serial = 666
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err == nil {
@@ -297,13 +296,13 @@ func TestClientLoginCert(t *testing.T) {
 	}
 	cert.Serial = 1
 
-	t.Log("sign with wrong key")
+	// sign with wrong key
 	cert.SignCert(rand.Reader, testSigners["dsa"])
 	if err := tryAuth(t, clientConfig); err == nil {
 		t.Errorf("cert login passed with non-authoritative key")
 	}
 
-	t.Log("host cert")
+	// host cert
 	cert.CertType = HostCert
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err == nil {
@@ -311,14 +310,14 @@ func TestClientLoginCert(t *testing.T) {
 	}
 	cert.CertType = UserCert
 
-	t.Log("principal specified")
+	// principal specified
 	cert.ValidPrincipals = []string{"user"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err != nil {
 		t.Errorf("cert login failed: %v", err)
 	}
 
-	t.Log("wrong principal specified")
+	// wrong principal specified
 	cert.ValidPrincipals = []string{"fred"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err == nil {
@@ -326,21 +325,21 @@ func TestClientLoginCert(t *testing.T) {
 	}
 	cert.ValidPrincipals = nil
 
-	t.Log("added critical option")
+	// added critical option
 	cert.CriticalOptions = map[string]string{"root-access": "yes"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err == nil {
 		t.Errorf("cert login passed with unrecognized critical option")
 	}
 
-	t.Log("allowed source address")
+	// allowed source address
 	cert.CriticalOptions = map[string]string{"source-address": "127.0.0.42/24"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err != nil {
 		t.Errorf("cert login with source-address failed: %v", err)
 	}
 
-	t.Log("disallowed source address")
+	// disallowed source address
 	cert.CriticalOptions = map[string]string{"source-address": "127.0.0.42"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err == nil {

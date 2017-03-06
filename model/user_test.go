@@ -46,25 +46,25 @@ func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 	user.SetDefaultNotifications()
 
 	if user.NotifyProps["mention_keys"] != "user,@user" {
-		t.Fatal("default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
+		t.Fatalf("default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
 	}
 
 	user.Username = "person"
 	user.UpdateMentionKeysFromUsername("user")
 	if user.NotifyProps["mention_keys"] != "person,@person" {
-		t.Fatal("mention keys are invalid after changing username: %v", user.NotifyProps["mention_keys"])
+		t.Fatalf("mention keys are invalid after changing username: %v", user.NotifyProps["mention_keys"])
 	}
 
 	user.NotifyProps["mention_keys"] += ",mention"
 	user.UpdateMentionKeysFromUsername("person")
 	if user.NotifyProps["mention_keys"] != "person,@person,mention" {
-		t.Fatal("mention keys are invalid after adding extra mention keyword: %v", user.NotifyProps["mention_keys"])
+		t.Fatalf("mention keys are invalid after adding extra mention keyword: %v", user.NotifyProps["mention_keys"])
 	}
 
 	user.Username = "user"
 	user.UpdateMentionKeysFromUsername("person")
 	if user.NotifyProps["mention_keys"] != "user,@user,mention" {
-		t.Fatal("mention keys are invalid after changing username with extra mention keyword: %v", user.NotifyProps["mention_keys"])
+		t.Fatalf("mention keys are invalid after changing username with extra mention keyword: %v", user.NotifyProps["mention_keys"])
 	}
 }
 
@@ -95,7 +95,7 @@ func TestUserIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
-	user.Username = NewId()
+	user.Username = "n" + NewId()
 	user.Email = strings.Repeat("01234567890", 20)
 	if err := user.IsValid(); err == nil {
 		t.Fatal()
@@ -189,6 +189,10 @@ var usernames = []struct {
 	expected bool
 }{
 	{"spin-punch", true},
+	{"sp", false},
+	{"1spin-punch", false},
+	{"-spin-punch", false},
+	{".spin-punch", false},
 	{"Spin-punch", false},
 	{"spin punch-", false},
 	{"spin_punch", true},

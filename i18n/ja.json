@@ -61,7 +61,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "ログファイルの読み込み中にエラーになりました"
+    "translation": "ログファイルの読み込み中にエラーが発生しました"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "他のユーザーIDが不正です "
+    "translation": "ダイレクトチャンネル作成のユーザーIDが不正です"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "チャンネルのヘッダーメッセージ%vを更新する際にユーザーを取得できませんでした"
+    "translation": "チャンネルヘッダーを更新する際にユーザーを取得できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -796,6 +796,10 @@
     "translation": "申し訳ありません。ページが見付かりません。"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "リクエストボディの{{.Name}}が存在しないか不正です"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
   },
@@ -810,6 +814,10 @@
   {
     "id": "api.context.invalid_token.error",
     "translation": "無効なセッショントークン={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "リクエストURLの{{.Name}}が存在しないか不正です"
   },
   {
     "id": "api.context.invalidate_all_caches",
@@ -1144,6 +1152,10 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "ローカルサーバーストレージからの読み込みに失敗しました"
+  },
+  {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "ファイルをアップロードできません。ヘッダーを解析できません。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -2344,6 +2356,10 @@
     "translation": "あなたの指定した電子メールアドレスのドメインは許可されていません。システム管理者に連絡するか他の電子メールアドレスで利用登録してください。"
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "ユーザーの作成は無効です。"
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
   },
@@ -2552,6 +2568,10 @@
     "translation": "多要素認証はこのサーバーで設定されていないか利用できません"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "{{.Service}}ユーザーオブジェクトからユーザーを取得できませんでした"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "user_idが一致しないためパスワードを更新できませんでした"
   },
@@ -2672,7 +2692,7 @@
     "translation": "teamId=%v用のチームハブを停止しています"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
+    "id": "api.webhook.create_incoming.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
@@ -2696,11 +2716,11 @@
     "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "内向きのウェブフックを削除するのに十分な権限が付与されていません"
   },
   {
@@ -2740,6 +2760,38 @@
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
   },
   {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "他チームのウェブフックは更新できません"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "内向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "外向きのウェブフックは、公開チャンネルに対してのみ更新できます。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "外向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "trigger_wordsまたはchannel_idを設定してください"
+  },
+  {
     "id": "api.webrtc.disabled.app_error",
     "translation": "WebRTCはこのサーバーでは有効化されていません。"
   },
@@ -2758,6 +2810,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "チャンネルを作成するにはチームIDを指定しなければなりません"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2780,20 +2836,204 @@
     "translation": "%s がチャンネルの目的を %s に更新しました"
   },
   {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "インポートデータファイルの読み込み中にエラーが発生しました。"
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSONをデコードできませんでした。"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "チャンネルのインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "インポートデータに \"channel\" という型がありましたが、そのチャンネルのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "インポートデータに \"team\" という型がありましたが、そのチームのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "インポートデータに \"user\" という型がありましたが、そのユーザーのオブジェクトはnullです。"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "インポートデータに不明な型 \"{{.Type}}\"がありました。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "チャンネル作成日時は0ではないはずです。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "チャンネルの表示名の長さが制限を超えています。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "必須のチャンネル設定値 display_name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "チャンネルヘッダーが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "チャンネル名が不正な文字を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "チャンネル名が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "必須のチャンネル設定値 name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "チャンネルの目的が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "必須のチャンネル設定値 team が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "チャンネルの種類が不正です。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "必須のチャンネル設定値 type が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "チームの許可されたドメインが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "チームの作成日時は0ではないはずです。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "チームの説明が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "チームの表示名の長さが制限を超えています。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "必須のチーム設定値 display_name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "チーム名が不正な文字を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "チーム名が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "必須のチーム設定値 name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "チーム名が予約語を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "チームの種類が正しくありません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "必須のチーム設定値 type が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "ユーザーのチャンネルメンバーシップにチャンネル名が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "ユーザーのチャンネルメンバーシップのデスクトップ通知設定が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "ユーザーのチャンネルメンバーシップの未読マーク設定が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "ユーザーのチャネルメンバーシップの役割が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "ユーザーの認証データが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "ユーザーの認証サービス設定を指定する場合、空ではいけません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "ユーザーの電子メールの長さが不正です。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "必須のユーザー設定値 email が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "ユーザーの名前（ファーストネーム）が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "ユーザーの姓（ラストネーム）が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "ユーザーのニックネームが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "ユーザーの役職が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "ユーザーの役割が正しくありません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "ユーザー名が正しくありません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "必須のユーザー設定値 uername が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "ユーザーのチームメンバーシップの役割が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "ユーザーのチームメンバーシップにチーム名が存在しません。"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Ability to create new teams"
+    "translation": "新しいチームを作成できるようにする"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Create Teams"
+    "translation": "チームを作成する"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
-    "translation": "Ability to change the roles of a team member"
+    "translation": "チームメンバーの役割を変更できるようにする"
   },
   {
     "id": "authentication.permissions.manage_team_roles.name",
-    "translation": "Manage Team Roles"
+    "translation": "チームの役割を管理する"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3308,8 +3548,16 @@
     "translation": "不正なチャンネルIDです"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "電子メール通知の設定値が不正です"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "不正な通知レベルです"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "プッシュ通知のレベルが不正です"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3342,6 +3590,10 @@
   {
     "id": "model.client.login.app_error",
     "translation": "認証トークンが一致しません"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "ファイルを読み込む際にエラーが発生しました"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3417,7 +3669,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "クラスタリングが有効化されている場合、電子メールのバッチ処理は有効化できません"
+    "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3642,6 +3894,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL設定の最大稼働接続数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "ユーザー入力の更新間隔は1000ミリ秒未満に設定しないでください。"
   },
   {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
@@ -4260,6 +4516,10 @@
     "translation": "監査データを保存する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "削除済みのチャンネル形式数を取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "チャンネル形式数を取得できませんでした"
   },
@@ -4316,6 +4576,14 @@
     "translation": "チャンネルが見付かりませんでした"
   },
   {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "削除されたチャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "その名前を持つ削除されたチャンネルは存在しません"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "チャンネルメンバーに関する追加の情報を取得できませんでした"
   },
@@ -4356,6 +4624,10 @@
     "translation": "あなたについての投稿数を集計できませんでした"
   },
   {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "チャンネルを削除できませんでした"
+  },
+  {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
     "translation": "チャンネルが削除できませんでした"
   },
@@ -4389,7 +4661,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "このURLは他のチャンネルで使用済みです"
+    "translation": "その名前を持つチャンネルは既に同じチームに存在します"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4720,6 +4992,10 @@
     "translation": "ユーザーのコメントを削除できませんでした"
   },
   {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "チャンネルの投稿を削除できませんでした"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
     "translation": "ユーザーの削除しようとする投稿を選択できませんでした"
   },
@@ -5029,7 +5305,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "そのドメインを持つチームは既に存在しています"
+    "translation": "その名前を持つチームは既に存在しています"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -5062,6 +5338,14 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "チーム名を更新できませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "無効なユーザー数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "システム管理者数を取得できませんでした"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -5125,7 +5409,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "このチームの電子メールアドレスに合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
+    "translation": "ユーザーが見付かりませんでした。"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -5302,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "既存のOutgoingWebhookを上書きできませんでした"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "内向きのウェブフックを更新できませんでした"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

@@ -14,6 +14,10 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
+
+var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
+
 func InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
@@ -54,7 +58,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := app.CreatePostAsUser(post, c.TeamId)
+	rp, err := app.CreatePostAsUser(post)
 	if err != nil {
 		c.Err = err
 		return
@@ -260,9 +264,24 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
+	var channel *model.Channel
+	if result := <-app.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
+		channel = result.Data.(*model.Channel)
+	} else {
+		c.SetInvalidParam("getPermalinkTmp", "postId")
 		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN {
+		if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+			c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
+			return
+		}
+	} else {
+		if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
 	}
 
 	if list, err := app.GetPermalinkPost(postId, c.Session.UserId); err != nil {
@@ -417,13 +436,16 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if infos, err := app.GetFileInfosForPost(postId); err != nil {
+	if infos, err := app.GetFileInfosForPost(postId, false); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
 		return
 	} else {
-		w.Header().Set("Cache-Control", "max-age=2592000, public")
+		if len(infos) > 0 {
+			w.Header().Set("Cache-Control", "max-age=2592000, public")
+		}
+
 		w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
 		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
@@ -432,8 +454,14 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 
+	ogJSONGeneric, ok := openGraphDataCache.Get(props["url"])
+	if ok {
+		w.Write(ogJSONGeneric.([]byte))
+		return
+	}
+
 	url := ""
-	ok := false
+	ok = false
 	if url, ok = props["url"].(string); len(url) == 0 || !ok {
 		c.SetInvalidParam("getOpenGraphMetadata", "url")
 		return
@@ -441,9 +469,12 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	og := app.GetOpenGraphMetadata(url)
 
-	ogJson, err := og.ToJSON()
+	ogJSON, err := og.ToJSON()
 	if err != nil {
 		w.Write([]byte(`{"url": ""}`))
+		return
 	}
-	w.Write(ogJson)
+
+	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 houre
+	w.Write(ogJSON)
 }

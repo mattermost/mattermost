@@ -5,6 +5,8 @@ import React from 'react';
 import {Link} from 'react-router';
 import {FormattedMessage} from 'react-intl';
 
+import DeleteIntegration from './delete_integration.jsx';
+
 export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
@@ -33,9 +35,7 @@ export default class InstalledCommand extends React.Component {
         this.props.onRegenToken(this.props.command);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.command);
     }
 
@@ -106,15 +106,10 @@ export default class InstalledCommand extends React.Component {
                         />
                     </Link>
                     {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
+                    <DeleteIntegration
+                        messageId='installed_commands.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
                 </div>
             );
         }

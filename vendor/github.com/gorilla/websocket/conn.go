@@ -218,6 +218,7 @@ func isValidReceivedCloseCode(code int) bool {
 	return validReceivedCloseCodes[code] || (code >= 3000 && code <= 4999)
 }
 
+// The Conn type represents a WebSocket connection.
 type Conn struct {
 	conn        net.Conn
 	isServer    bool
@@ -406,12 +407,7 @@ func (c *Conn) WriteControl(messageType int, data []byte, deadline time.Time) er
 	return err
 }
 
-// NextWriter returns a writer for the next message to send. The writer's Close
-// method flushes the complete message to the network.
-//
-// There can be at most one open writer on a connection. NextWriter closes the
-// previous writer if the application has not already done so.
-func (c *Conn) NextWriter(messageType int) (io.WriteCloser, error) {
+func (c *Conn) prepWrite(messageType int) error {
 	// Close previous writer if not already closed by the application. It's
 	// probably better to return an error in this situation, but we cannot
 	// change this without breaking existing applications.
@@ -421,13 +417,22 @@ func (c *Conn) NextWriter(messageType int) (io.WriteCloser, error) {
 	}
 
 	if !isControl(messageType) && !isData(messageType) {
-		return nil, errBadWriteOpCode
+		return errBadWriteOpCode
 	}
 
 	c.writeErrMu.Lock()
 	err := c.writeErr
 	c.writeErrMu.Unlock()
-	if err != nil {
+	return err
+}
+
+// NextWriter returns a writer for the next message to send. The writer's Close
+// method flushes the complete message to the network.
+//
+// There can be at most one open writer on a connection. NextWriter closes the
+// previous writer if the application has not already done so.
+func (c *Conn) NextWriter(messageType int) (io.WriteCloser, error) {
+	if err := c.prepWrite(messageType); err != nil {
 		return nil, err
 	}
 
@@ -652,16 +657,23 @@ func (w *messageWriter) Close() error {
 // WriteMessage is a helper method for getting a writer using NextWriter,
 // writing the message and closing the writer.
 func (c *Conn) WriteMessage(messageType int, data []byte) error {
-	w, err := c.NextWriter(messageType)
-	if err != nil {
-		return err
-	}
-	if mw, ok := w.(*messageWriter); ok && c.isServer {
-		// Optimize write as a single frame.
+
+	if c.isServer && (c.newCompressionWriter == nil || !c.enableWriteCompression) {
+
+		// Fast path with no allocations and single frame.
+
+		if err := c.prepWrite(messageType); err != nil {
+			return err
+		}
+		mw := messageWriter{c: c, frameType: messageType, pos: maxFrameHeaderSize}
 		n := copy(c.writeBuf[mw.pos:], data)
 		mw.pos += n
 		data = data[n:]
-		err = mw.flushFrame(true, data)
+		return mw.flushFrame(true, data)
+	}
+
+	w, err := c.NextWriter(messageType)
+	if err != nil {
 		return err
 	}
 	if _, err = w.Write(data); err != nil {

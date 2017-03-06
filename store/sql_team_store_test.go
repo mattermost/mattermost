@@ -132,6 +132,30 @@ func TestTeamStoreGetByName(t *testing.T) {
 	}
 }
 
+func TestTeamStoreSearchByName(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "zzz" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+
+	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 := <-store.Team().SearchByName(o1.Name); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+			t.Log(r1.Data.([]*model.Team)[0].ToJson())
+			t.Log(o1.ToJson())
+			t.Fatal("invalid returned team")
+		}
+	}
+}
+
 func TestTeamStoreGetByIniviteId(t *testing.T) {
 	Setup()
 

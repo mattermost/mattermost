@@ -5,19 +5,34 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
+const (
+	PAGE_DEFAULT     = 0
+	PER_PAGE_DEFAULT = 60
+	PER_PAGE_MAXIMUM = 200
+)
+
 type ApiParams struct {
-	UserId    string
-	TeamId    string
-	ChannelId string
-	PostId    string
-	FileId    string
-	CommandId string
-	HookId    string
-	EmojiId   string
+	UserId         string
+	TeamId         string
+	ChannelId      string
+	PostId         string
+	FileId         string
+	CommandId      string
+	HookId         string
+	EmojiId        string
+	Email          string
+	Username       string
+	TeamName       string
+	ChannelName    string
+	PreferenceName string
+	Category       string
+	Page           int
+	PerPage        int
 }
 
 func ApiParamsFromRequest(r *http.Request) *ApiParams {
@@ -55,6 +70,44 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["emoji_id"]; ok {
 		params.EmojiId = val
+	}
+
+	if val, ok := props["email"]; ok {
+		params.Email = val
+	}
+
+	if val, ok := props["username"]; ok {
+		params.Username = val
+	}
+
+	if val, ok := props["team_name"]; ok {
+		params.TeamName = val
+	}
+
+	if val, ok := props["channel_name"]; ok {
+		params.ChannelName = val
+	}
+
+	if val, ok := props["category"]; ok {
+		params.Category = val
+	}
+
+	if val, ok := props["preference_name"]; ok {
+		params.PreferenceName = val
+	}
+
+	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil {
+		params.Page = PAGE_DEFAULT
+	} else {
+		params.Page = val
+	}
+
+	if val, err := strconv.Atoi(r.URL.Query().Get("per_page")); err != nil {
+		params.PerPage = PER_PAGE_DEFAULT
+	} else if val > PER_PAGE_MAXIMUM {
+		params.PerPage = PER_PAGE_MAXIMUM
+	} else {
+		params.PerPage = val
 	}
 
 	return params

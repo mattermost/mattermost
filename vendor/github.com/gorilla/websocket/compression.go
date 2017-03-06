@@ -1,4 +1,4 @@
-// Copyright 2016 The Gorilla WebSocket Authors. All rights reserved.
+// Copyright 2017 The Gorilla WebSocket Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,6 +9,11 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"sync"
+)
+
+var (
+	flateWriterPool = sync.Pool{}
 )
 
 func decompressNoContextTakeover(r io.Reader) io.Reader {
@@ -17,13 +22,20 @@ func decompressNoContextTakeover(r io.Reader) io.Reader {
 	"\x00\x00\xff\xff" +
 		// Add final block to squelch unexpected EOF error from flate reader.
 		"\x01\x00\x00\xff\xff"
-
 	return flate.NewReader(io.MultiReader(r, strings.NewReader(tail)))
 }
 
 func compressNoContextTakeover(w io.WriteCloser) (io.WriteCloser, error) {
 	tw := &truncWriter{w: w}
-	fw, err := flate.NewWriter(tw, 3)
+	i := flateWriterPool.Get()
+	var fw *flate.Writer
+	var err error
+	if i == nil {
+		fw, err = flate.NewWriter(tw, 3)
+	} else {
+		fw = i.(*flate.Writer)
+		fw.Reset(tw)
+	}
 	return &flateWrapper{fw: fw, tw: tw}, err
 }
 
@@ -69,11 +81,19 @@ type flateWrapper struct {
 }
 
 func (w *flateWrapper) Write(p []byte) (int, error) {
+	if w.fw == nil {
+		return 0, errWriteClosed
+	}
 	return w.fw.Write(p)
 }
 
 func (w *flateWrapper) Close() error {
+	if w.fw == nil {
+		return errWriteClosed
+	}
 	err1 := w.fw.Flush()
+	flateWriterPool.Put(w.fw)
+	w.fw = nil
 	if w.tw.p != [4]byte{0, 0, 0xff, 0xff} {
 		return errors.New("websocket: internal error, unexpected bytes at end of flate stream")
 	}

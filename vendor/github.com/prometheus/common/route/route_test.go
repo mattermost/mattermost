@@ -29,7 +29,7 @@ func TestRedirect(t *testing.T) {
 	}
 }
 
-func TestContextFn(t *testing.T) {
+func TestContextFunc(t *testing.T) {
 	router := New(func(r *http.Request) (context.Context, error) {
 		return context.WithValue(context.Background(), "testkey", "testvalue"), nil
 	})

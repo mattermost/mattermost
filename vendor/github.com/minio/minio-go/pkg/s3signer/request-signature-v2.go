@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package minio
+package s3signer
 
 import (
 	"bytes"
@@ -29,6 +29,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/minio/minio-go/pkg/s3utils"
 )
 
 // Signature and API related constants.
@@ -45,22 +47,22 @@ func encodeURL2Path(u *url.URL) (path string) {
 		bucketName := hostSplits[0]
 		path = "/" + bucketName
 		path += u.Path
-		path = urlEncodePath(path)
+		path = s3utils.EncodePath(path)
 		return
 	}
 	if strings.HasSuffix(u.Host, ".storage.googleapis.com") {
 		path = "/" + strings.TrimSuffix(u.Host, ".storage.googleapis.com")
 		path += u.Path
-		path = urlEncodePath(path)
+		path = s3utils.EncodePath(path)
 		return
 	}
-	path = urlEncodePath(u.Path)
+	path = s3utils.EncodePath(u.Path)
 	return
 }
 
-// preSignV2 - presign the request in following style.
+// PreSignV2 - presign the request in following style.
 // https://${S3_BUCKET}.s3.amazonaws.com/${S3_OBJECT}?AWSAccessKeyId=${S3_ACCESS_KEY}&Expires=${TIMESTAMP}&Signature=${SIGNATURE}.
-func preSignV2(req http.Request, accessKeyID, secretAccessKey string, expires int64) *http.Request {
+func PreSignV2(req http.Request, accessKeyID, secretAccessKey string, expires int64) *http.Request {
 	// Presign is not needed for anonymous credentials.
 	if accessKeyID == "" || secretAccessKey == "" {
 		return &req
@@ -95,18 +97,18 @@ func preSignV2(req http.Request, accessKeyID, secretAccessKey string, expires in
 	query.Set("Expires", strconv.FormatInt(epochExpires, 10))
 
 	// Encode query and save.
-	req.URL.RawQuery = queryEncode(query)
+	req.URL.RawQuery = s3utils.QueryEncode(query)
 
 	// Save signature finally.
-	req.URL.RawQuery += "&Signature=" + urlEncodePath(signature)
+	req.URL.RawQuery += "&Signature=" + s3utils.EncodePath(signature)
 
 	// Return.
 	return &req
 }
 
-// postPresignSignatureV2 - presigned signature for PostPolicy
+// PostPresignSignatureV2 - presigned signature for PostPolicy
 // request.
-func postPresignSignatureV2(policyBase64, secretAccessKey string) string {
+func PostPresignSignatureV2(policyBase64, secretAccessKey string) string {
 	hm := hmac.New(sha1.New, []byte(secretAccessKey))
 	hm.Write([]byte(policyBase64))
 	signature := base64.StdEncoding.EncodeToString(hm.Sum(nil))
@@ -129,8 +131,8 @@ func postPresignSignatureV2(policyBase64, secretAccessKey string) string {
 //
 // CanonicalizedProtocolHeaders = <described below>
 
-// signV2 sign the request before Do() (AWS Signature Version 2).
-func signV2(req http.Request, accessKeyID, secretAccessKey string) *http.Request {
+// SignV2 sign the request before Do() (AWS Signature Version 2).
+func SignV2(req http.Request, accessKeyID, secretAccessKey string) *http.Request {
 	// Signature calculation is not needed for anonymous credentials.
 	if accessKeyID == "" || secretAccessKey == "" {
 		return &req
@@ -287,7 +289,7 @@ func writeCanonicalizedResource(buf *bytes.Buffer, req http.Request, isPreSign b
 		// Get encoded URL path.
 		if len(requestURL.Query()) > 0 {
 			// Keep the usual queries unescaped for string to sign.
-			query, _ := url.QueryUnescape(queryEncode(requestURL.Query()))
+			query, _ := url.QueryUnescape(s3utils.QueryEncode(requestURL.Query()))
 			path = path + "?" + query
 		}
 		buf.WriteString(path)

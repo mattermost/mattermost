@@ -79,8 +79,8 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members := (<-store.Channel().GetMembers(o1.Id)).Data.([]model.ChannelMember)
-	if len(members) != 2 {
+	members := (<-store.Channel().GetMembers(o1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
@@ -135,8 +135,8 @@ func TestChannelStoreCreateDirectChannel(t *testing.T) {
 
 	c1 := res.Data.(*model.Channel)
 
-	members := (<-store.Channel().GetMembers(c1.Id)).Data.([]model.ChannelMember)
-	if len(members) != 2 {
+	members := (<-store.Channel().GetMembers(c1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 }
@@ -339,6 +339,14 @@ func TestChannelStoreDelete(t *testing.T) {
 
 	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
+	}
+
+	<-store.Channel().PermanentDelete(o2.Id)
+
+	cresult = <-store.Channel().GetChannels(o1.TeamId, m1.UserId)
+	t.Log(cresult.Err)
+	if cresult.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+		t.Fatal("no channels should be found")
 	}
 }
 
@@ -559,6 +567,15 @@ func TestChannelDeleteMemberStore(t *testing.T) {
 	count = (<-store.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
 	if count != 1 {
 		t.Fatal("should have removed 1 member")
+	}
+
+	if r1 := <-store.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	count = (<-store.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	if count != 0 {
+		t.Fatal("should have removed all members")
 	}
 }
 
@@ -1045,9 +1062,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m1))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 1 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 
 	u2 := model.User{
@@ -1065,9 +1082,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m2))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 
 	// make sure members of other channels aren't counted
@@ -1086,9 +1103,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m3))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 
 	// make sure inactive users aren't counted
@@ -1107,9 +1124,9 @@ func TestGetMemberCount(t *testing.T) {
 	Must(store.Channel().SaveMember(&m4))
 
 	if result := <-store.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatal("failed to get member count: %v", result.Err)
+		t.Fatalf("failed to get member count: %v", result.Err)
 	} else if result.Data.(int64) != 2 {
-		t.Fatal("got incorrect member count %v", result.Data)
+		t.Fatalf("got incorrect member count %v", result.Data)
 	}
 }
 
@@ -1152,14 +1169,14 @@ func TestUpdateExtrasByUser(t *testing.T) {
 	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
-		t.Fatal("failed to update extras by user: %v", result.Err)
+		t.Fatalf("failed to update extras by user: %v", result.Err)
 	}
 
 	u1.DeleteAt = 0
 	Must(store.User().Update(u1, true))
 
 	if result := <-store.Channel().ExtraUpdateByUser(u1.Id, u1.DeleteAt); result.Err != nil {
-		t.Fatal("failed to update extras by user: %v", result.Err)
+		t.Fatalf("failed to update extras by user: %v", result.Err)
 	}
 }
 
@@ -1382,5 +1399,97 @@ func TestChannelStoreGetMembersByIds(t *testing.T) {
 
 	if r := <-store.Channel().GetMembersByIds(m1.ChannelId, []string{}); r.Err == nil {
 		t.Fatal("empty user ids - should have failed")
+	}
+}
+
+func TestChannelStoreAnalyticsDeletedTypeCount(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "ChannelA"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	p3 := model.Channel{}
+	p3.TeamId = model.NewId()
+	p3.DisplayName = "Channel3"
+	p3.Name = "a" + model.NewId() + "b"
+	p3.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&p3))
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	Must(store.User().Save(u2))
+
+	var d4 *model.Channel
+	if result := <-store.Channel().CreateDirectChannel(u1.Id, u2.Id); result.Err != nil {
+		t.Fatalf(result.Err.Error())
+	} else {
+		d4 = result.Data.(*model.Channel)
+	}
+
+	var openStartCount int64
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		openStartCount = result.Data.(int64)
+	}
+
+	var privateStartCount int64
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "P"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		privateStartCount = result.Data.(int64)
+	}
+
+	var directStartCount int64
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "D"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		directStartCount = result.Data.(int64)
+	}
+
+	Must(store.Channel().Delete(o1.Id, model.GetMillis()))
+	Must(store.Channel().Delete(o2.Id, model.GetMillis()))
+	Must(store.Channel().Delete(p3.Id, model.GetMillis()))
+	Must(store.Channel().Delete(d4.Id, model.GetMillis()))
+
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		if result.Data.(int64) != openStartCount+2 {
+			t.Fatalf("Wrong open channel deleted count.")
+		}
+	}
+
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "P"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		if result.Data.(int64) != privateStartCount+1 {
+			t.Fatalf("Wrong private channel deleted count.")
+		}
+	}
+
+	if result := <-store.Channel().AnalyticsDeletedTypeCount("", "D"); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		if result.Data.(int64) != directStartCount+1 {
+			t.Fatalf("Wrong direct channel deleted count.")
+		}
 	}
 }

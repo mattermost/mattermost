@@ -167,10 +167,16 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 		return nil
 	}
 
+	if err = app.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, c.siteURL); err != nil {
+		c.Err = err
+		return nil
+	}
+
 	doLogin(c, w, r, user, "")
 	if c.Err != nil {
 		return nil
 	}
+
 	return user
 }
 
@@ -202,11 +208,6 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	deviceId := props["device_id"]
 	if len(deviceId) == 0 {
-		c.SetInvalidParam("attachDevice", "deviceId")
-		return
-	}
-
-	if !(strings.HasPrefix(deviceId, model.PUSH_NOTIFY_APPLE+":") || strings.HasPrefix(deviceId, model.PUSH_NOTIFY_ANDROID+":")) {
 		c.SetInvalidParam("attachDevice", "deviceId")
 		return
 	}
@@ -437,19 +438,15 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := app.GetUsersEtag()
+	etag := app.GetUsersEtag() + params["offset"] + "." + params["limit"]
 	if HandleEtag(etag, "Get Profiles", w, r) {
 		return
 	}
 
-	if profiles, err := app.GetUsers(offset, limit); err != nil {
+	if profiles, err := app.GetUsersMap(offset, limit, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
@@ -482,14 +479,10 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if profiles, err := app.GetUsersInTeam(teamId, offset, limit); err != nil {
+	if profiles, err := app.GetUsersInTeamMap(teamId, offset, limit, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
@@ -523,17 +516,10 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var profiles map[string]*model.User
-	var profileErr *model.AppError
-
-	if profiles, err = app.GetUsersInChannel(channelId, offset, limit); profileErr != nil {
-		c.Err = profileErr
+	if profiles, err := app.GetUsersInChannelMap(channelId, offset, limit, c.IsSystemAdmin()); err != nil {
+		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
@@ -566,14 +552,10 @@ func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if profiles, err := app.GetUsersNotInChannel(c.TeamId, channelId, offset, limit); err != nil {
+	if profiles, err := app.GetUsersNotInChannelMap(c.TeamId, channelId, offset, limit, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
-		for k, p := range profiles {
-			profiles[k] = sanitizeProfile(c, p)
-		}
-
 		w.Write([]byte(model.UserMapToJson(profiles)))
 	}
 }
@@ -609,26 +591,33 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
+	readFailed := false
 
 	var etag string
 
-	if user, err := app.GetUser(id); err != nil {
+	if users, err := app.GetUsersByIds([]string{id}, false); err != nil {
 		c.Err = err
 		return
 	} else {
+		if len(users) == 0 {
+			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, "")
+			return
+		}
+
+		user := users[0]
 		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
 		if HandleEtag(etag, "Profile Image", w, r) {
 			return
 		}
 
 		var img []byte
-		img, err = app.GetProfileImage(user)
+		img, readFailed, err = app.GetProfileImage(user)
 		if err != nil {
 			c.Err = err
 			return
 		}
 
-		if c.Session.UserId == id {
+		if readFailed {
 			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
 		} else {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
@@ -1462,7 +1451,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, c.GetSiteURL()+val, http.StatusFound)
 			return
 		}
-		http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
+
+		if action == "mobile" {
+			w.Write([]byte(""))
+		} else {
+			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
+		}
 	}
 }
 
@@ -1571,15 +1565,15 @@ func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if profiles, err := app.GetUsersByIds(userIds); err != nil {
+	if profiles, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
+		profileMap := map[string]*model.User{}
 		for _, p := range profiles {
-			sanitizeProfile(c, p)
+			profileMap[p.Id] = p
 		}
-
-		w.Write([]byte(model.UserMapToJson(profiles)))
+		w.Write([]byte(model.UserMapToJson(profileMap)))
 	}
 }
 

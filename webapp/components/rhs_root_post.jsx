@@ -11,6 +11,7 @@ import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
@@ -25,6 +26,7 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
+import {Link} from 'react-router/es6';
 
 export default class RhsRootPost extends React.Component {
     constructor(props) {
@@ -38,7 +40,23 @@ export default class RhsRootPost extends React.Component {
         this.canDelete = false;
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
-        this.state = {};
+        this.state = {
+            currentTeamDisplayName: TeamStore.getCurrent().name,
+            width: '',
+            height: ''
+        };
+    }
+
+    componentDidMount() {
+        window.addEventListener('resize', () => {
+            Utils.updateWindowDimensions(this);
+        });
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', () => {
+            Utils.updateWindowDimensions(this);
+        });
     }
 
     handlePermalink(e) {
@@ -98,6 +116,31 @@ export default class RhsRootPost extends React.Component {
     unflagPost(e) {
         e.preventDefault();
         unflagPost(this.props.post.id);
+    }
+
+    timeTag(post, timeOptions) {
+        return (
+            <time
+                className='post__time'
+                dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
+            >
+                {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
+            </time>
+        );
+    }
+
+    renderTimeTag(post, timeOptions) {
+        return Utils.isMobile() ?
+            this.timeTag(post, timeOptions) :
+            (
+                <Link
+                    to={`/${this.state.currentTeamDisplayName}/pl/${post.id}`}
+                    target='_blank'
+                    className='post__permalink'
+                >
+                    {this.timeTag(post, timeOptions)}
+                </Link>
+            );
     }
 
     render() {
@@ -293,7 +336,12 @@ export default class RhsRootPost extends React.Component {
             userProfile = (
                 <UserProfile
                     user={{}}
-                    overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
+                    overwriteName={
+                        <FormattedMessage
+                            id='post_info.system'
+                            defaultMessage='System'
+                        />
+                    }
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
                 />
@@ -336,6 +384,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         let compactClass = '';
+        let postClass = '';
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
 
@@ -355,6 +404,10 @@ export default class RhsRootPost extends React.Component {
                     />
                 );
             }
+        }
+
+        if (PostUtils.isEdited(this.props.post)) {
+            postClass += ' post--edited';
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
@@ -416,12 +469,7 @@ export default class RhsRootPost extends React.Component {
                             <li className='col__name'>{userProfile}</li>
                             {botIndicator}
                             <li className='col'>
-                                <time
-                                    className='post__time'
-                                    dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
-                                >
-                                    {Utils.getDateForUnixTicks(post.create_at).toLocaleString('en', timeOptions)}
-                                </time>
+                                {this.renderTimeTag(post, timeOptions)}
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}
@@ -442,11 +490,13 @@ export default class RhsRootPost extends React.Component {
                             </li>
                         </ul>
                         <div className='post__body'>
-                            <PostBodyAdditionalContent
-                                post={post}
-                                message={<PostMessageContainer post={post}/>}
-                                previewCollapsed={this.props.previewCollapsed}
-                            />
+                            <div className={postClass}>
+                                <PostBodyAdditionalContent
+                                    post={post}
+                                    message={<PostMessageContainer post={post}/>}
+                                    previewCollapsed={this.props.previewCollapsed}
+                                />
+                            </div>
                             {fileAttachment}
                             <ReactionListContainer
                                 post={post}

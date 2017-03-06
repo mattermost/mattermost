@@ -13,10 +13,11 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import * as WebsocketActions from 'actions/websocket_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -28,7 +29,6 @@ import * as Utils from 'utils/utils.jsx';
 
 import en from 'i18n/en.json';
 import * as I18n from 'i18n/i18n.jsx';
-import {trackPage} from 'actions/analytics_actions.jsx';
 import {browserHistory} from 'react-router/es6';
 
 export function emitChannelClickEvent(channel) {
@@ -47,16 +47,20 @@ export function emitChannelClickEvent(channel) {
     function switchToChannel(chan) {
         const channelMember = ChannelStore.getMyMember(chan.id);
         const getMyChannelMembersPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
+        const oldChannelId = ChannelStore.getCurrentId();
 
         getMyChannelMembersPromise.then(() => {
             AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.viewChannel(chan.id, ChannelStore.getCurrentId());
+            AsyncClient.viewChannel(chan.id, oldChannelId);
             loadPosts(chan.id);
-            trackPage();
         });
 
+        // Subtract mentions for the team
+        const {msgs, mentions} = ChannelStore.getUnreadCounts()[chan.id] || {msgs: 0, mentions: 0};
+        TeamStore.subtractUnread(chan.team_id, msgs, mentions);
+
         // Mark previous and next channel as read
-        ChannelStore.resetCounts(ChannelStore.getCurrentId());
+        ChannelStore.resetCounts(oldChannelId);
         ChannelStore.resetCounts(chan.id);
 
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
@@ -68,7 +72,7 @@ export function emitChannelClickEvent(channel) {
             team_id: chan.team_id,
             total_msg_count: chan.total_msg_count,
             channelMember,
-            prev: ChannelStore.getCurrentId()
+            prev: oldChannelId
         });
     }
 
@@ -92,6 +96,22 @@ export function emitInitialLoad(callback) {
             (data) => {
                 global.window.mm_config = data.client_cfg;
                 global.window.mm_license = data.license_cfg;
+
+                if (global.window && global.window.analytics) {
+                    global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
+                        context: {
+                            ip: '0.0.0.0'
+                        },
+                        page: {
+                            path: '',
+                            referrer: '',
+                            search: '',
+                            title: '',
+                            url: ''
+                        },
+                        anonymousId: '00000000000000000000000000'
+                    });
+                }
 
                 UserStore.setNoAccounts(data.no_accounts);
 
@@ -379,7 +399,7 @@ export function emitPreferenceChangedEvent(preference) {
     });
 
     if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
-        loadProfilesAndTeamMembersForDMSidebar();
+        loadProfilesForSidebar();
     }
 }
 
@@ -514,6 +534,8 @@ export function emitSearchMentionsEvent(user) {
         terms = termKeys.join(' ');
     }
 
+    trackEvent('api', 'api_posts_search_mention');
+
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH_TERM,
         term: terms,
@@ -570,7 +592,7 @@ export function redirectUserToDefaultTeam() {
         }
 
         if (myTeams.length > 0) {
-            myTeams = myTeams.sort((a, b) => a.display_name.localeCompare(b.display_name));
+            myTeams = myTeams.sort(Utils.sortTeamsByDisplayName);
             teamId = myTeams[0].id;
         }
     }

@@ -405,6 +405,10 @@
             &:active {
                 @include opacity(.75);
             }
+
+            &.disabled {
+                color: grey;
+            }
         }
 
         .custom-textarea {
@@ -514,6 +518,17 @@
     position: relative;
     word-wrap: break-word;
 
+    &.post--system {
+        .post__header {
+            .col__reply {
+                min-width: 0;
+            }
+            .dropdown {
+                margin-right: 0;
+            }
+        }
+    }
+
     &:hover {
         .dropdown,
         .comment-icon__container,
@@ -566,7 +581,22 @@
         }
 
         .status-wrapper {
+            cursor: auto;
             height: 14px;
+
+            .status {
+                bottom: auto;
+                height: 13px;
+                left: -2px;
+                position: relative;
+                right: auto;
+                top: auto;
+                width: 13px;
+            }
+
+            svg {
+                top: 1px;
+            }
 
             &:after {
                 bottom: 0;
@@ -618,17 +648,8 @@
             }
 
             p + p {
-                margin: 1em 0;
-
-                &:last-of-type {
-                    margin-bottom: 0;
-                }
-            }
-
-            span {
-                > p:first-child {
-                    margin-bottom: 1em;
-                }
+                margin-bottom: 1em;
+                margin-top: 1em;
             }
 
             ol,
@@ -697,11 +718,8 @@
             padding-top: 3px;
             width: 16px;
 
-            img,
-            svg {
-                height: 20px;
-                visibility: hidden;
-                width: 9px;
+            img {
+                display: none;
             }
         }
     }
@@ -715,32 +733,26 @@
     }
 
     .post--edited {
-        p {
-            &:last-child {
-                display: inline;
-            }
+        // If the last paragraph of an edited post is a paragraph, make it inline-block so that the (edited) indicator can be on the same line as it
+        .post-message__text > p:last-child {
+            display: inline-block;
+        }
+
+        .post-edited-indicator {
+            @include opacity(.6);
+            font-size: .87em;
         }
     }
 
     p {
-        font-size: .97em;
+        font-size: 13.5px;
         line-height: 1.6em;
         margin: 0;
         white-space: pre-wrap;
-
-        &:last-child {
-            margin-bottom: .5em;
-        }
     }
 
     .post__header--info {
         padding: 0;
-    }
-
-    span {
-        p:last-child {
-            margin-bottom: .5em;
-        }
     }
 
     &.post--root {
@@ -1019,15 +1031,11 @@
         word-wrap: break-word;
 
         div {
-            margin: 0 0 .4em;
+            margin-bottom: .4em;
         }
 
         p + p {
-            margin: 1.2em 0;
-
-            &:last-of-type {
-                margin-bottom: 0;
-            }
+            margin: 1.2em 0 0;
         }
 
         img {
@@ -1036,7 +1044,7 @@
 
         ul,
         ol {
-            font-size: .97em;
+            font-size: 13.5px;
             margin-bottom: .4em;
             padding-left: 20px;
 
@@ -1089,7 +1097,12 @@
 
         ul + p,
         ol + p {
-            margin-top: 1.2em;
+            margin-top: 1em;
+        }
+
+        p + ul,
+        p + ol {
+            margin-top: 1em;
         }
 
         .pending-post-actions {
@@ -1104,13 +1117,6 @@
 
             a {
                 color: $white;
-            }
-        }
-
-        span {
-            &.edited {
-                @include opacity(.6);
-                font-size: .87em;
             }
         }
 
@@ -1131,10 +1137,10 @@
             padding: 0 4px 0 3px;
 
             .post-reaction__emoji {
-                height: 16px;
                 margin: 2px 3px 0 0;
-                vertical-align: top;
-                width: 16px;
+                max-height: 16px;
+                max-width: 16px;
+                vertical-align: middle;
             }
 
             .post-reaction__count {
@@ -1169,7 +1175,7 @@
         cursor: pointer;
         display: inline-block;
         font: normal normal normal 14px/1 FontAwesome;
-        margin: 0 0 10px;
+        margin: 0;
         text-rendering: auto;
 
         &.pull-left {
@@ -1193,6 +1199,23 @@
     .post__time {
         @include opacity(.6);
         font-size: .9em;
+    }
+
+    .post__permalink {
+        color: inherit;
+
+        &:hover,
+        &:focus {
+            color: inherit;
+        }
+
+        &:focus {
+            text-decoration: none;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
 
     .post-loading-gif {

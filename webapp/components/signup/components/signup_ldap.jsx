@@ -4,9 +4,9 @@
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
 import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
 import {webLoginByLdap} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -37,6 +37,10 @@ export default class SignupLdap extends React.Component {
             ldapId: '',
             ldapPassword: ''
         });
+    }
+
+    componentDidMount() {
+        trackEvent('signup', 'signup_user_01_welcome');
     }
 
     handleLdapIdChange(e) {
@@ -107,8 +111,6 @@ export default class SignupLdap extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_user_01_welcome');
-
         let ldapIdPlaceholder;
         if (global.window.mm_config.LdapLoginFieldName) {
             ldapIdPlaceholder = global.window.mm_config.LdapLoginFieldName;
@@ -215,7 +217,7 @@ export default class SignupLdap extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <Link to='/signup_user_complete'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'

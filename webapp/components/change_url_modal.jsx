@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import * as URL from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -50,7 +50,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error1'>
                     <FormattedMessage
                         id='change_url.longer'
-                        defaultMessage='Must be longer than two characters'
+                        defaultMessage='URL must be two or more characters.'
                     />
                     <br/>
                 </span>
@@ -61,7 +61,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error2'>
                     <FormattedMessage
                         id='change_url.startWithLetter'
-                        defaultMessage='Must start with a letter or number'
+                        defaultMessage='URL must start with a letter or number.'
                     />
                     <br/>
                 </span>
@@ -72,7 +72,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error3'>
                     <FormattedMessage
                         id='change_url.endWithLetter'
-                        defaultMessage='Must end with a letter or number'
+                        defaultMessage='URL must end with a letter or number.'
                     />
                     <br/>
                 </span>);
@@ -82,7 +82,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error4'>
                     <FormattedMessage
                         id='change_url.noUnderscore'
-                        defaultMessage='Can not contain two underscores in a row.'
+                        defaultMessage='URL can not contain two underscores in a row.'
                     />
                     <br/>
                 </span>);
@@ -105,7 +105,7 @@ export default class ChangeUrlModal extends React.Component {
         e.preventDefault();
 
         const url = ReactDOM.findDOMNode(this.refs.urlinput).value;
-        const cleanedURL = Utils.cleanUpUrlable(url);
+        const cleanedURL = URL.cleanUpUrlable(url);
         if (cleanedURL !== url || url.length < 2 || url.indexOf('__') > -1) {
             this.setState({urlError: this.getURLError(url)});
             return;
@@ -135,10 +135,10 @@ export default class ChangeUrlModal extends React.Component {
             );
         }
 
-        const fullTeamUrl = TeamStore.getCurrentTeamUrl();
-        const teamURL = Utils.getShortenedTeamURL(TeamStore.getCurrentTeamUrl());
+        const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
+        const shortURL = URL.getShortenedURL(fullUrl);
         const urlTooltip = (
-            <Tooltip id='urlTooltip'>{fullTeamUrl}</Tooltip>
+            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
         );
 
         return (
@@ -165,7 +165,7 @@ export default class ChangeUrlModal extends React.Component {
                                         placement='top'
                                         overlay={urlTooltip}
                                     >
-                                        <span className='input-group-addon'>{teamURL}</span>
+                                        <span className='input-group-addon'>{shortURL}</span>
                                     </OverlayTrigger>
                                     <input
                                         type='text'

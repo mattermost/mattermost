@@ -68,7 +68,7 @@ func FindDir(dir string) string {
 func DisableDebugLogForTest() {
 	if l4g.Global["stdout"] != nil {
 		originalDisableDebugLvl = l4g.Global["stdout"].Level
-		l4g.Global["stdout"].Level = l4g.WARNING
+		l4g.Global["stdout"].Level = l4g.ERROR
 	}
 }
 
@@ -196,6 +196,10 @@ func LoadConfig(fileName string) {
 		}
 	}
 
+	if err := ValidateLocales(&config); err != nil {
+		panic(T(err.Id))
+	}
+
 	if err := ValidateLdapFilter(&config); err != nil {
 		panic(T(err.Id))
 	}
@@ -256,7 +260,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPrivateChannelDeletion"] = *c.TeamSettings.RestrictPrivateChannelDeletion
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
-	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)
@@ -314,6 +317,9 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
 	props["TimeBetweenUserTypingUpdatesMilliseconds"] = strconv.FormatInt(*c.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds, 10)
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
+
+	props["DiagnosticId"] = CfgDiagnosticId
+	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	if IsLicensed {
 		if *License.Features.CustomBrand {
@@ -382,6 +388,29 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 			return err
 		}
 	}
+	return nil
+}
+
+func ValidateLocales(cfg *model.Config) *model.AppError {
+	locales := GetSupportedLocales()
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+	}
+
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+	}
+
+	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
+		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+			if word == *cfg.LocalizationSettings.DefaultClientLocale {
+				return nil
+			}
+		}
+
+		return model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+	}
+
 	return nil
 }
 

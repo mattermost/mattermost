@@ -34,7 +34,7 @@ func TestAppError(t *testing.T) {
 		t.Fatal()
 	}
 
-	err.Error()
+	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {

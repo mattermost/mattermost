@@ -219,6 +219,10 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, commandArgs *model.CommandArgs, cmd *model.Command, builtIn bool) {
+	if c.Err != nil {
+		return
+	}
+
 	post := &model.Post{}
 	post.ChannelId = commandArgs.ChannelId
 	post.RootId = commandArgs.RootId

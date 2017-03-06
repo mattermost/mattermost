@@ -15,18 +15,6 @@
     @include animation(spin .7s infinite linear);
 }
 
-.search__clear {
-    @include single-transition(all, .2s, linear);
-    @include translateX(60px);
-    cursor: pointer;
-    display: none;
-    line-height: 45px;
-    margin-right: 13px;
-    position: absolute;
-    right: 0;
-    z-index: 5;
-}
-
 .search-item-snippet {
     @include clearfix;
     text-overflow: ellipsis;
@@ -61,6 +49,18 @@
     margin-left: 10px;
     position: absolute;
     top: 15px;
+}
+
+.sidebar__search-clear {
+    @include opacity(.5);
+    color: $dark-gray;
+    width: 40px;
+    margin-right: 20px;
+    position: absolute;
+    top: 12px;
+    right: 0;
+    cursor: pointer;
+    visibility: hidden;
 }
 
 .search__form {

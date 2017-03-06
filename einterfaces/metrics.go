@@ -8,6 +8,7 @@ type MetricsInterface interface {
 	StopServer()
 
 	IncrementPostCreate()
+	IncrementWebhookPost()
 	IncrementPostSentEmail()
 	IncrementPostSentPush()
 	IncrementPostBroadcast()
@@ -17,6 +18,9 @@ type MetricsInterface interface {
 	IncrementHttpError()
 	ObserveHttpRequestDuration(elapsed float64)
 
+	IncrementClusterRequest()
+	ObserveClusterRequestDuration(elapsed float64)
+
 	IncrementLogin()
 	IncrementLoginFail()
 
@@ -25,6 +29,10 @@ type MetricsInterface interface {
 
 	IncrementMemCacheHitCounter(cacheName string)
 	IncrementMemCacheMissCounter(cacheName string)
+	IncrementMemCacheMissCounterSession()
+	IncrementMemCacheHitCounterSession()
+
+	IncrementWebsocketEvent(eventType string)
 
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)

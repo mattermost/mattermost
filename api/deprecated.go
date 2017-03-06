@@ -101,11 +101,6 @@ func updateLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	app.Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", id)
-
-	go app.Publish(message)
-
 	result := make(map[string]string)
 	result["id"] = id
 	w.Write([]byte(model.MapToJson(result)))
@@ -135,11 +130,6 @@ func setLastViewedAt(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.Srv.Store.Preference().Save(&model.Preferences{teamPref, chanPref})
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, c.TeamId, "", c.Session.UserId, nil)
-	message.Add("channel_id", id)
-
-	go app.Publish(message)
 
 	result := make(map[string]string)
 	result["id"] = id

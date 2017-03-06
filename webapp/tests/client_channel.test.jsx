@@ -48,6 +48,37 @@ describe('Client.Channels', function() {
         });
     });
 
+    it('createGroupChannel', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().createUser(
+                TestHelper.fakeUser(),
+                (user1) => {
+                    TestHelper.basicClient().createUser(
+                        TestHelper.fakeUser(),
+                        function(user2) {
+                            TestHelper.basicClient().createGroupChannel(
+                                [user2.id, user1.id],
+                                function(data) {
+                                    assert.equal(data.id.length > 0, true);
+                                    done();
+                                },
+                                function(err) {
+                                    done(new Error(err.message));
+                                }
+                            );
+                        },
+                        function(err) {
+                            done(new Error(err.message));
+                        }
+                    );
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
     it('updateChannel', function(done) {
         TestHelper.initBasic(() => {
             var channel = TestHelper.basicChannel();
@@ -341,6 +372,21 @@ describe('Client.Channels', function() {
     it('getMyChannelMembers', function(done) {
         TestHelper.initBasic(() => {
             TestHelper.basicClient().getMyChannelMembers(
+                function(data) {
+                    assert.equal(data.length > 0, true);
+                    done();
+                },
+                function(err) {
+                    done(new Error(err.message));
+                }
+            );
+        });
+    });
+
+    it('getMyChannelMembersForTeam', function(done) {
+        TestHelper.initBasic(() => {
+            TestHelper.basicClient().getMyChannelMembersForTeam(
+                TestHelper.basicTeam().id,
                 function(data) {
                     assert.equal(data.length > 0, true);
                     done();

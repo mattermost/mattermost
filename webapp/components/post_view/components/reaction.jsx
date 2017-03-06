@@ -15,7 +15,8 @@ export default class Reaction extends React.Component {
         post: React.PropTypes.object.isRequired,
         currentUserId: React.PropTypes.string.isRequired,
         emojiName: React.PropTypes.string.isRequired,
-        reactions: React.PropTypes.arrayOf(React.PropTypes.object)
+        reactions: React.PropTypes.arrayOf(React.PropTypes.object),
+        emojis: React.PropTypes.object.isRequired
     }
 
     constructor(props) {
@@ -36,7 +37,7 @@ export default class Reaction extends React.Component {
     }
 
     render() {
-        if (!EmojiStore.has(this.props.emojiName)) {
+        if (!this.props.emojis.has(this.props.emojiName)) {
             return null;
         }
 
@@ -188,9 +189,9 @@ export default class Reaction extends React.Component {
                     className={className}
                     onClick={handleClick}
                 >
-                    <img
-                        className='post-reaction__emoji'
-                        src={EmojiStore.getEmojiImageUrl(EmojiStore.get(this.props.emojiName))}
+                    <span
+                        className='post-reaction__emoji emoticon'
+                        style={{backgroundImage: 'url(' + EmojiStore.getEmojiImageUrl(this.props.emojis.get(this.props.emojiName)) + ')'}}
                     />
                     <span className='post-reaction__count'>
                         {this.props.reactions.length}
