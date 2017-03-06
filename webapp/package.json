@@ -29,7 +29,7 @@
     "react-dom": "15.4.2",
     "react-intl": "2.2.3",
     "react-router": "2.8.1",
-    "react-select": "1.0.0-rc.3",
+    "react-select": "1.0.0-rc.2",
     "superagent": "3.4.1",
     "twemoji": "2.2.3",
     "velocity-animate": "1.4.2",

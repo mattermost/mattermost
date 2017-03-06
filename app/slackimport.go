@@ -155,6 +155,11 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 		}
 
 		email := sUser.Profile["email"]
+		if email == "" {
+			email = sUser.Username + "@example.com"
+			log.WriteString(utils.T("api.slackimport.slack_add_users.missing_email_address", map[string]interface{}{"Email": email, "Username": sUser.Username}))
+			l4g.Warn(utils.T("api.slackimport.slack_add_users.missing_email_address.warn", map[string]interface{}{"Email": email, "Username": sUser.Username}))
+		}
 
 		password := model.NewId()
 

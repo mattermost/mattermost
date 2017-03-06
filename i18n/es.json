@@ -2356,6 +2356,10 @@
     "translation": "El correo electrónico provisto no pertenece a un dominio permitido. Por favor contacta a un administrador o registrate con un correo electrónico diferente."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "Creación de usuario está deshabilitada."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "MFA no está configurado o disponible en este servidor"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "No se pudo obtener el usuario desde el objeto de {{.Service}}"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "La actualización de la contraseña falló debido a que el user_id del contexto no coincide con el user_id de los props"
   },
@@ -2685,7 +2693,7 @@
   },
   {
     "id": "api.webhook.create_incoming.disabled.app_error",
-    "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.create_outgoing.disabled.app_error",
@@ -2709,11 +2717,11 @@
   },
   {
     "id": "api.webhook.delete_incoming.disabled.app_error",
-    "translation": "Webhooks entrantes han sido inhabilitados por el administrador del sistema."
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
   },
   {
     "id": "api.webhook.delete_incoming.permissions.app_error",
-    "translation": "Permisos inapropiados para eliminar un webhook de entrada"
+    "translation": "Permisos no válidos para eliminar un webhook de entrada"
   },
   {
     "id": "api.webhook.delete_outgoing.disabled.app_error",
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "Permisos no válidos para regenerar un token para el webhook de salida"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "No se puede actualizar el webhook a través de equipos"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Permisos no válidos para eliminar un webhook de entrada"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Webhooks de Salida han sido deshabilitados por el administrador del sistema."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Webhooks de salida para el mismo canal no pueden tener las mismas palabras que desencadenen acción o los mismos URLs de retorno."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Los webhooks de Salida solo pueden actualizarse con canales públicos."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Permisos no válidos para actualizar un webhook de salida."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Debe establecerse palabras que desencadenen una acción o un channel_id"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Channel id inválido"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Valor de notificación de correo electrónico no es válido"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Nivel de notificación inválido"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Nivel para la notificación push no es válido"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "Encontramos un error guardando la auditoria"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "No se pudo obtener la cantidad de canales de este tipo"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "No pudimos obtener la cantidad de canales de este tipo"
   },
@@ -5288,6 +5340,14 @@
     "translation": "No pudimos actualizar el nombre del equipo"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "No se pudo contar los usuarios inactivos"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "No se pudo obtener la cantidad de administradores del sistema"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "No se pudo obtener el conteo de usuarios unicos"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "No puedes sobreescribir un Webhook de Salida existente"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "No se pudo actualizar el Webhook de Entrada"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

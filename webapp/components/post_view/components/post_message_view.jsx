@@ -78,7 +78,7 @@ export default class PostMessageView extends React.Component {
         }
 
         return (
-            <span className='edited'>
+            <span className='post-edited-indicator'>
                 <FormattedMessage
                     id='post_message_view.edited'
                     defaultMessage='(edited)'
@@ -93,13 +93,7 @@ export default class PostMessageView extends React.Component {
         }
 
         if (!this.props.enableFormatting) {
-            return (
-                <span>
-                    {this.props.post.message}
-                    &nbsp;
-                    {this.renderEditedIndicator()}
-                </span>
-            );
+            return <span>{this.props.post.message}</span>;
         }
 
         const options = Object.assign({}, this.props.options, {
@@ -119,6 +113,7 @@ export default class PostMessageView extends React.Component {
         return (
             <div>
                 <span
+                    className='post-message__text'
                     onClick={Utils.handleFormattedTextClick}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
                 />

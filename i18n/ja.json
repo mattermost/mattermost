@@ -2356,6 +2356,10 @@
     "translation": "あなたの指定した電子メールアドレスのドメインは許可されていません。システム管理者に連絡するか他の電子メールアドレスで利用登録してください。"
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "ユーザーの作成は無効です。"
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "多要素認証はこのサーバーで設定されていないか利用できません"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "{{.Service}}ユーザーオブジェクトからユーザーを取得できませんでした"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "user_idが一致しないためパスワードを更新できませんでした"
   },
@@ -2750,6 +2758,38 @@
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "他チームのウェブフックは更新できません"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "内向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "外向きのウェブフックは、公開チャンネルに対してのみ更新できます。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "外向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "不正なチャンネルIDです"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "電子メール通知の設定値が不正です"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "不正な通知レベルです"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "プッシュ通知のレベルが不正です"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "監査データを保存する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "削除済みのチャンネル形式数を取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "チャンネル形式数を取得できませんでした"
   },
@@ -5288,6 +5340,14 @@
     "translation": "チーム名を更新できませんでした"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "無効なユーザー数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "システム管理者数を取得できませんでした"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "重複なしのユーザー数を取得できませんでした"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "既存のOutgoingWebhookを上書きできませんでした"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "内向きのウェブフックを更新できませんでした"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

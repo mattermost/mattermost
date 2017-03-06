@@ -741,7 +741,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+아래 방향키 (빈 입력란에서): 입력한 다음 차례의 메시지 혹은 슬래시 명령어 재입력\n"
+    "translation": "{{.CmdOrCtrl}}+아래 방향키 (빈 입력란에서): 이전에 입력한 메시지 혹은 슬래시 명령어 재입력\n"
   },
   {
     "id": "api.command_shortcuts.name",
@@ -749,35 +749,35 @@
   },
   {
     "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Navigation\n\n"
+    "translation": "#### 조작법\n\n"
   },
   {
     "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
+    "translation": "ALT+아래 방향키: 왼쪽 사이드바에서 다음 채널 또는 개인 대화 선택\n"
   },
   {
     "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
+    "translation": "ALT+아래 방향키: 왼쪽 사이드바에서 이전 채널 또는 개인 대화 선택\n"
   },
   {
     "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: 최근 멘션 열기\n\n"
   },
   {
     "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: 계정 설정 열기\n"
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+    "translation": "{{.CmdOrCtrl}}+K: 빠른 채널 스위처 창 열기\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
+    "translation": "ALT+SHIFT+아래 방향키: 왼쪽 사이드바에서 읽지 않은 메시지가 있는 다음 채널 또는 개인 대화 선택\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
+    "translation": "ALT+SHIFT+위 방향키: 왼쪽 사이드바에서 읽지 않은 메시지가 있는 이전 채널 또는 개인 대화 선택\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -797,7 +797,7 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Invalid or missing {{.Name}} in request body"
+    "translation": "요청 본문에서 {{.Name}}이(가) 없거나 잘못됨"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -805,23 +805,23 @@
   },
   {
     "id": "api.context.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "잘못된 세션 err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
-    "translation": "올바르지 않은 상황에서 팀 URL에 접근했습니다. 팀 URL은 API 함수나 팀과 관련이 없는 곳에서 사용되어서는 안 됩니다."
+    "translation": "올바르지 않은 상황에서 팀 URL에 접근했습니다. 팀 URL은 API 함수 또는 팀과 무관한 곳에서 사용되어서는 안 됩니다."
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+    "translation": "잘못된 세션 token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
-    "translation": "Invalid or missing {{.Name}} parameter in request URL"
+    "translation": "요청 URL에서 {{.Name}} 변수가 없거나 잘못됨"
   },
   {
     "id": "api.context.invalidate_all_caches",
-    "translation": "Purging all caches"
+    "translation": "캐시 전체 삭제 중"
   },
   {
     "id": "api.context.last_activity_at.error",
@@ -833,11 +833,11 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Multi-factor authentication is required on this server."
+    "translation": "이 서버에는 다단계 인증이 요구됩니다."
   },
   {
     "id": "api.context.missing_teamid.app_error",
-    "translation": "Missing Team Id"
+    "translation": "팀 ID 없음"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -939,11 +939,11 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "이모티콘을 생성할 수 없습니다. 이미지 용량은 반드시 64 KB 이하여야 합니다."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 용량은 1MB 미만이어야 합니다."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "Unable to delete reactions when deleting emoji with emoji name %v"
+    "translation": "%v 이모티콘을 지우는 중에는 리액션을 삭제할 수 없음"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -975,19 +975,19 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 디코딩 시도 중 오류가 발생했습니다."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 인코딩 시도 중 오류가 발생했습니다."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 디코딩 시도 중 오류가 발생했습니다."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
+    "translation": "이모티콘을 생성할 수 없습니다. 이미지 인코딩 시도 중 오류가 발생했습니다."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -2356,6 +2356,10 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "기본 채널에 참여하는데 실패했습니다. user_id=%s, team_id=%s, err=%v"
   },
@@ -2564,6 +2568,10 @@
     "translation": "MFA 토큰이 설정되지 않았거나 유효하지 않습니다."
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Could not create user out of {{.Service}} user object"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Update password failed because context user_id did not match props user_id"
   },
@@ -2752,6 +2760,38 @@
     "translation": "Outgoing webhook 토큰을 재생성할 권한이 없습니다"
   },
   {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "팀들간의 명령어를 업데이트 할 수 없음"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Incoming webhook은 관리자가 사용할 수 없게 설정했습니다."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Incoming webhook을 삭제할 권한이 없습니다"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
+    "translation": "Outgoing webhook은 관리자가 사용할 수 없게 설정했습니다."
+  },
+  {
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "같은 채널에서 나가는 outgoing webhook들은 동일한 발동 단어/콜백 URL을 가질 수 없습니다."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Outgoing webhook은 공개 채널에만 생성할 수 있습니다."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Outgoing webhook을 생성할 권한이 없습니다."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Either trigger_words or channel_id must be set"
+  },
+  {
     "id": "api.webrtc.disabled.app_error",
     "translation": "이 서버에서 WebRTC를 사용할 수 없습니다."
   },
@@ -2765,7 +2805,7 @@
   },
   {
     "id": "api.websocket.invalid_session.error",
-    "translation": "Invalid session err=%v"
+    "translation": "잘못된 세션 err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -3508,8 +3548,16 @@
     "translation": "Invalid channel id"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4468,6 +4516,10 @@
     "translation": "We encountered an error saving the audit"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -5288,6 +5340,14 @@
     "translation": "채널을 찾을 수 없습니다"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -5526,6 +5586,10 @@
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
     "translation": "기존에 있는 OutgoingWebhook을 덮어쓸 수 없습니다"
+  },
+  {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "IncomingWebhook을 저장하는 데 실패했습니다"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",

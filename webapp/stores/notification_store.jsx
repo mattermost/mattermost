@@ -8,6 +8,7 @@ import UserStore from './user_store.jsx';
 import ChannelStore from './channel_store.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {buildGroupChannelName} from 'utils/channel_utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -70,10 +71,13 @@ class NotificationStoreClass extends EventEmitter {
             if (!channel) {
                 title = msgProps.channel_display_name;
                 channel = {
-                    name: msgProps.channel_name
+                    name: msgProps.channel_name,
+                    type: msgProps.channel_type
                 };
             } else if (channel.type === Constants.DM_CHANNEL) {
                 title = Utils.localizeMessage('notification.dm', 'Direct Message');
+            } else if (channel.type === Constants.GM_CHANNEL) {
+                title = buildGroupChannelName(channel.id);
             } else {
                 title = channel.display_name;
             }

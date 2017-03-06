@@ -311,3 +311,293 @@ func TestGetMentionKeywords(t *testing.T) {
 		t.Fatal("should've mentioned user3 and user4 with @all")
 	}
 }
+
+func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
+	userNotifyProps := make(map[string]string)
+	channelNotifyProps := make(map[string]string)
+
+	user := &model.User{Id: model.NewId(), Email: "unit@test.com"}
+
+	post := &model.Post{UserId: user.Id, ChannelId: model.NewId()}
+
+	// When the post is a System Message
+	systemPost := &model.Post{UserId: user.Id, Type: model.POST_JOIN_CHANNEL}
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
+	user.NotifyProps = userNotifyProps
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, systemPost, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, systemPost, true) {
+		t.Fatal("Should have returned false")
+	}
+
+	// When default is ALL and no channel props is set
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned true")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// When default is MENTION and no channel props is set
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
+	user.NotifyProps = userNotifyProps
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// When default is NONE and no channel props is set
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
+	user.NotifyProps = userNotifyProps
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned false")
+	}
+
+	// WHEN default is ALL and channel is DEFAULT
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_DEFAULT
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned true")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is MENTION and channel is DEFAULT
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_DEFAULT
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is NONE and channel is DEFAULT
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_DEFAULT
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned false")
+	}
+
+	// WHEN default is ALL and channel is ALL
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned true")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is MENTION and channel is ALL
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned true")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is NONE and channel is ALL
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_ALL
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned true")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is ALL and channel is MENTION
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is MENTION and channel is MENTION
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is NONE and channel is MENTION
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if !DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned true")
+	}
+
+	// WHEN default is ALL and channel is NONE
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_ALL
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_NONE
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned false")
+	}
+
+	// WHEN default is MENTION and channel is NONE
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_MENTION
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_NONE
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned false")
+	}
+
+	// WHEN default is NONE and channel is NONE
+	userNotifyProps[model.PUSH_NOTIFY_PROP] = model.USER_NOTIFY_NONE
+	user.NotifyProps = userNotifyProps
+	channelNotifyProps[model.PUSH_NOTIFY_PROP] = model.CHANNEL_NOTIFY_NONE
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, false) {
+		t.Fatal("Should have returned false")
+	}
+
+	if DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, true) {
+		t.Fatal("Should have returned false")
+	}
+}
+
+func TestDoesStatusAllowPushNotification(t *testing.T) {
+	userNotifyProps := make(map[string]string)
+	userId := model.NewId()
+	channelId := model.NewId()
+
+	offline := &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	away := &model.Status{UserId: userId, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	online := &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+	userNotifyProps["push_status"] = model.STATUS_ONLINE
+	// WHEN props is ONLINE and user is offline
+	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
+		t.Fatal("Should have been true")
+	}
+
+	if !DoesStatusAllowPushNotification(userNotifyProps, offline, "") {
+		t.Fatal("Should have been true")
+	}
+
+	// WHEN props is ONLINE and user is away
+	if !DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
+		t.Fatal("Should have been true")
+	}
+
+	if !DoesStatusAllowPushNotification(userNotifyProps, away, "") {
+		t.Fatal("Should have been true")
+	}
+
+	// WHEN props is ONLINE and user is online
+	if !DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
+		t.Fatal("Should have been true")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
+		t.Fatal("Should have been false")
+	}
+
+	userNotifyProps["push_status"] = model.STATUS_AWAY
+	// WHEN props is AWAY and user is offline
+	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
+		t.Fatal("Should have been true")
+	}
+
+	if !DoesStatusAllowPushNotification(userNotifyProps, offline, "") {
+		t.Fatal("Should have been true")
+	}
+
+	// WHEN props is AWAY and user is away
+	if !DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
+		t.Fatal("Should have been true")
+	}
+
+	if !DoesStatusAllowPushNotification(userNotifyProps, away, "") {
+		t.Fatal("Should have been true")
+	}
+
+	// WHEN props is AWAY and user is online
+	if DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
+		t.Fatal("Should have been false")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
+		t.Fatal("Should have been false")
+	}
+
+	userNotifyProps["push_status"] = model.STATUS_OFFLINE
+	// WHEN props is AWAY and user is offline
+	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
+		t.Fatal("Should have been true")
+	}
+
+	if !DoesStatusAllowPushNotification(userNotifyProps, offline, "") {
+		t.Fatal("Should have been true")
+	}
+
+	// WHEN props is AWAY and user is away
+	if DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
+		t.Fatal("Should have been false")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, away, "") {
+		t.Fatal("Should have been false")
+	}
+
+	// WHEN props is AWAY and user is online
+	if DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
+		t.Fatal("Should have been false")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
+		t.Fatal("Should have been false")
+	}
+}

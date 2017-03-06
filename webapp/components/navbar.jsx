@@ -61,6 +61,8 @@ export default class Navbar extends React.Component {
         this.showChannelSwitchModal = this.showChannelSwitchModal.bind(this);
         this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
 
+        this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
+
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
         state.showEditChannelHeaderModal = false;
@@ -206,6 +208,14 @@ export default class Navbar extends React.Component {
         });
     }
 
+    openDirectMessageModal() {
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.TOGGLE_DM_MODAL,
+            value: true,
+            startingUsers: UserStore.getProfileListInChannel(this.state.channel.id, true)
+        });
+    }
+
     toggleFavorite = (e) => {
         e.preventDefault();
 
@@ -216,7 +226,7 @@ export default class Navbar extends React.Component {
         }
     };
 
-    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, popoverContent) {
+    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
         if (channel) {
             let channelTerm = (
                 <FormattedMessage
@@ -254,6 +264,57 @@ export default class Navbar extends React.Component {
                             <FormattedMessage
                                 id='channel_header.channelHeader'
                                 defaultMessage='Set Channel Header...'
+                            />
+                        </a>
+                    </li>
+                );
+            } else if (isGroup) {
+                setChannelHeaderOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={this.showEditChannelHeaderModal}
+                        >
+                            <FormattedMessage
+                                id='channel_header.channelHeader'
+                                defaultMessage='Set Channel Header...'
+                            />
+                        </a>
+                    </li>
+                );
+
+                notificationPreferenceOption = (
+                    <li role='presentation'>
+                        <ToggleModalButton
+                            role='menuitem'
+                            dialogType={ChannelNotificationsModal}
+                            dialogProps={{
+                                channel,
+                                channelMember: this.state.member,
+                                currentUser: this.state.currentUser
+                            }}
+                        >
+                            <FormattedMessage
+                                id='navbar.preferences'
+                                defaultMessage='Notification Preferences'
+                            />
+                        </ToggleModalButton>
+                    </li>
+                );
+
+                addMembersOption = (
+                    <li
+                        role='presentation'
+                    >
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={this.openDirectMessageModal}
+                        >
+                            <FormattedMessage
+                                id='navbar.addMembers'
+                                defaultMessage='Add Members'
                             />
                         </a>
                     </li>
@@ -621,6 +682,7 @@ export default class Navbar extends React.Component {
         var isSystemAdmin = false;
         var isChannelAdmin = false;
         var isDirect = false;
+        let isGroup = false;
 
         var editChannelHeaderModal = null;
         var editChannelPurposeModal = null;
@@ -660,6 +722,9 @@ export default class Navbar extends React.Component {
                 isDirect = true;
                 const teammateId = Utils.getUserIdFromChannelName(channel);
                 channelTitle = Utils.displayUsername(teammateId);
+            } else if (channel.type === Constants.GM_CHANNEL) {
+                isGroup = true;
+                channelTitle = ChannelUtils.buildGroupChannelName(channel.id);
             }
 
             if (channel.header.length === 0) {
@@ -757,7 +822,7 @@ export default class Navbar extends React.Component {
             </button>
         );
 
-        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, popoverContent);
+        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, isGroup, popoverContent);
 
         return (
             <div>

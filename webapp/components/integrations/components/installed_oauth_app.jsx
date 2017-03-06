@@ -10,6 +10,8 @@ import * as Utils from 'utils/utils.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {regenerateOAuthAppSecret} from 'actions/admin_actions.jsx';
 
+import DeleteIntegration from './delete_integration.jsx';
+
 const FAKE_SECRET = '***************';
 
 export default class InstalledOAuthApp extends React.Component {
@@ -61,9 +63,7 @@ export default class InstalledOAuthApp extends React.Component {
         );
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.oauthApp);
     }
 
@@ -246,15 +246,10 @@ export default class InstalledOAuthApp extends React.Component {
                     {' - '}
                     {regen}
                     {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
+                    <DeleteIntegration
+                        messageId='installed_oauth_apps.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
                 </div>
             </div>
         );
