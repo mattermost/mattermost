@@ -4,12 +4,13 @@ Tests for text style, code blocks, in-line code and images, lines, block quotes,
 ### Text Style
 
 **The following text should render as:**  
-_Italics_  
-*Italics*  
-**Bold**  
-***Bold-italics***  
-**_Bold-italics_**  
-~~Strikethrough~~  
+_Italics_
+_Ita_lics_
+*Italics*
+**Bold**
+***Bold-italics***
+**_Bold-italics_**
+~~Strikethrough~~
 
 This sentence contains **bold**, _italic_, ***bold-italic***, and ~~stikethrough~~ text.  
 
