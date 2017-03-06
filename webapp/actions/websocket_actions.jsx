@@ -212,11 +212,6 @@ function handlePostEditEvent(msg) {
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.data.post);
     GlobalActions.emitPostDeletedEvent(post);
-
-    const selectedPostId = PostStore.getSelectedPostId();
-    if (selectedPostId === post.id) {
-        GlobalActions.emitCloseRightHandSide();
-    }
 }
 
 function handleLeaveTeamEvent(msg) {
