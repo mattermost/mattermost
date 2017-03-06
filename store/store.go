@@ -348,6 +348,8 @@ type FileInfoStore interface {
 type ReactionStore interface {
 	Save(reaction *model.Reaction) StoreChannel
 	Delete(reaction *model.Reaction) StoreChannel
-	GetForPost(postId string) StoreChannel
+	InvalidateCacheForPost(postId string)
+	InvalidateCache()
+	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }
