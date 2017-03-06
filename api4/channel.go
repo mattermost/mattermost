@@ -21,6 +21,7 @@ func InitChannel() {
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
 	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
 	BaseRoutes.ChannelByNameForTeamName.Handle("", ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
+	BaseRoutes.Channel.Handle("/stats", ApiSessionRequired(getChannelStats)).Methods("GET")
 
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
@@ -112,6 +113,39 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(channel.ToJson()))
 		return
+	}
+}
+
+func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	var channel *model.Channel
+	var err *model.AppError
+
+	if channel, err = app.GetChannel(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if channel.DeleteAt > 0 {
+		c.Err = model.NewAppError("getChannelStats", "api.channel.get_channel_extra_info.deleted.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if memberCount, err := app.GetChannelMemberCount(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	} else {
+		stats := model.ChannelStats{ChannelId: c.Params.ChannelId, MemberCount: memberCount}
+		w.Write([]byte(stats.ToJson()))
 	}
 }
 
@@ -307,3 +341,5 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ReturnStatusOK(w)
 }
+
+

@@ -666,6 +666,16 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	}
 }
 
+// GetChannelStats returns stats for a channel
+func (c *Client4) GetChannelStats(id string, etag string) (*ChannelStats, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(id)+"/stats", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
