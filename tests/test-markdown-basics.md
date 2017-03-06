@@ -20,14 +20,12 @@ _Normal Text*
 
 ### Carriage Return  
 
-**The following text should render as:**  
-Line #1 followed by Line #2  
+Line #1 followed by one blank line 
+
 Line #2 followed by one blank line
 
-Line #3 followed by one blank line
-
-
-Line #4 following one blank line  
+Line #3 followed by Line #4
+Line #4 
 
 
 ### Code Blocks
@@ -154,9 +152,3 @@ Text between block quotes
 #### Heading 4 font size  
 ##### Heading 5 font size  
 ###### Heading 6 font size  
-
-## Heading followed by two paragraphs: This line displays as H2, followed by Line 1, blank line, Line 2
-
-Line 1
-
-Line 2
