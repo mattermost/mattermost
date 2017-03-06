@@ -146,6 +146,10 @@ func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
 
+func (c *Client4) GetSamlRoute() string {
+	return fmt.Sprintf("/saml")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -951,7 +955,7 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 
 // Preferences Section
 
-// GetPreferences returns the user's preferences
+// GetPreferences returns the user's preferences.
 func (c *Client4) GetPreferences(userId string) (Preferences, *Response) {
 	if r, err := c.DoApiGet(c.GetPreferencesRoute(userId), ""); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
@@ -962,7 +966,7 @@ func (c *Client4) GetPreferences(userId string) (Preferences, *Response) {
 	}
 }
 
-// UpdatePreferences saves the user's preferences
+// UpdatePreferences saves the user's preferences.
 func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bool, *Response) {
 	if r, err := c.DoApiPut(c.GetPreferencesRoute(userId), preferences.ToJson()); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
@@ -972,7 +976,7 @@ func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bo
 	}
 }
 
-// DeletePreferences deletes the user's preferences
+// DeletePreferences deletes the user's preferences.
 func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetPreferencesRoute(userId)+"/delete", preferences.ToJson()); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
@@ -982,7 +986,7 @@ func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bo
 	}
 }
 
-// GetPreferencesByCategory returns the user's preferences from the provided category string
+// GetPreferencesByCategory returns the user's preferences from the provided category string.
 func (c *Client4) GetPreferencesByCategory(userId string, category string) (Preferences, *Response) {
 	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s", category)
 	if r, err := c.DoApiGet(url, ""); err != nil {
@@ -994,7 +998,7 @@ func (c *Client4) GetPreferencesByCategory(userId string, category string) (Pref
 	}
 }
 
-// GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string
+// GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.
 func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string, preferenceName string) (*Preference, *Response) {
 	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s/name/%v", category, preferenceName)
 	if r, err := c.DoApiGet(url, ""); err != nil {
@@ -1002,5 +1006,109 @@ func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string,
 	} else {
 		defer closeBody(r)
 		return PreferenceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// SAML Section
+
+// GetSamlMetadata returns metadata for the SAML configuration.
+func (c *Client4) GetSamlMetadata() (string, *Response) {
+	if r, err := c.DoApiGet(c.GetSamlRoute()+"/metadata", ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		return buf.String(), BuildResponse(r)
+	}
+}
+
+func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("certificate", filename); err != nil {
+		return nil, nil, err
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, nil, err
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, nil, err
+	}
+
+	return body.Bytes(), writer, nil
+}
+
+// UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
+func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := samlFileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetSamlRoute()+"/certificate/idp", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
+func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := samlFileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetSamlRoute()+"/certificate/public", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
+func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := samlFileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetSamlRoute()+"/certificate/private", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// DeleteSamlIdpCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
+func (c *Client4) DeleteSamlIdpCertificate() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSamlRoute() + "/certificate/idp"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DeleteSamlPublicCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
+func (c *Client4) DeleteSamlPublicCertificate() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSamlRoute() + "/certificate/public"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DeleteSamlPrivateCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
+func (c *Client4) DeleteSamlPrivateCertificate() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSamlRoute() + "/certificate/private"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetSamlCertificateStatus returns metadata for the SAML configuration.
+func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response) {
+	if r, err := c.DoApiGet(c.GetSamlRoute()+"/certificate/status", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return SamlCertificateStatusFromJson(r.Body), BuildResponse(r)
 	}
 }

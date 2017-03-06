@@ -8,6 +8,10 @@
     "translation": "Link previews have been disabled by the system administrator."
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "August",
     "translation": "August"
   },
