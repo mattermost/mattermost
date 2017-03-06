@@ -98,7 +98,19 @@ export function emitInitialLoad(callback) {
                 global.window.mm_license = data.license_cfg;
 
                 if (global.window && global.window.analytics) {
-                    global.window.analytics.identify(global.window.mm_config.DiagnosticId);
+                    global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
+                        context: {
+                            ip: '0.0.0.0'
+                        },
+                        page: {
+                            path: '',
+                            referrer: '',
+                            search: '',
+                            title: '',
+                            url: ''
+                        },
+                        anonymousId: '00000000000000000000000000'
+                    });
                 }
 
                 UserStore.setNoAccounts(data.no_accounts);

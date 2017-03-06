@@ -43,7 +43,8 @@ class WebClientClass extends Client {
                     search: '',
                     title: '',
                     url: ''
-                }
+                },
+                anonymousId: '00000000000000000000000000'
             };
             global.window.analytics.track('event', properties, options);
         }
