@@ -5,6 +5,8 @@ package api4
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -395,4 +397,76 @@ func TestGetFileInfo(t *testing.T) {
 	Client.Logout()
 	_, resp = th.SystemAdminClient.GetFileInfo(fileId)
 	CheckNoError(t, resp)
+}
+
+func TestGetPublicFile(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = GenerateTestId()
+
+	fileId := ""
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+
+	result := <-app.Srv.Store.FileInfo().Get(fileId)
+	info := result.Data.(*model.FileInfo)
+	link := app.GeneratePublicLink(Client.Url, info)
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
+		t.Log(link)
+		t.Fatal("failed to get image with public link", err)
+	}
+
+	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link without hash", resp.Status)
+	}
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should've failed to get image with disabled public link")
+	}
+
+	// test after the salt has changed
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = GenerateTestId()
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+		t.Fatal(err)
+	}
+
+	cleanupTestFile(info)
 }
