@@ -380,6 +380,8 @@
             }
             .custom-textarea-emoji {
                 padding-right: 55px;
+                resize: none;
+
             }
         }
     }
@@ -425,6 +427,8 @@
             max-height: 162px !important;
             padding-right: 55px;
             padding-top: 8px;
+            resize: none;
+
         }
         .textarea-div {
             line-height: 1.5;
