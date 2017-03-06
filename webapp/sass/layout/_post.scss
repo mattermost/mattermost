@@ -576,6 +576,12 @@
             }
         }
 
+        &.post--system {
+            .status {
+                visibility: hidden;
+            }
+        }
+
         .post__img {
             padding-top: 0;
         }
