@@ -5,6 +5,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
