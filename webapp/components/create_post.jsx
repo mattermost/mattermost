@@ -133,7 +133,7 @@ export default class CreatePost extends React.Component {
                     }
 
                     if (data.goto_location && data.goto_location.length > 0) {
-                        if (data.goto_location.startsWith('/')) {
+                        if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
                             browserHistory.push(data.goto_location);
                         } else {
                             window.open(data.goto_location);
