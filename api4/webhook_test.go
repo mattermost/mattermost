@@ -256,3 +256,165 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestCreateOutgoingWebhook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
+
+	rhook, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	CheckNoError(t, resp)
+
+	if rhook.ChannelId != hook.ChannelId {
+		t.Fatal("channel ids didn't match")
+	} else if rhook.CreatorId != th.SystemAdminUser.Id {
+		t.Fatal("user ids didn't match")
+	} else if rhook.TeamId != th.BasicChannel.TeamId {
+		t.Fatal("team ids didn't match")
+	}
+
+	hook.ChannelId = "junk"
+	_, resp = th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	CheckNotFoundStatus(t, resp)
+
+	hook.ChannelId = th.BasicChannel.Id
+	th.LoginTeamAdmin()
+	_, resp = Client.CreateOutgoingWebhook(hook)
+	CheckNoError(t, resp)
+
+	th.LoginBasic()
+	_, resp = Client.CreateOutgoingWebhook(hook)
+	CheckForbiddenStatus(t, resp)
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
+	_, resp = Client.CreateOutgoingWebhook(hook)
+	CheckNoError(t, resp)
+
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	_, resp = Client.CreateOutgoingWebhook(hook)
+	CheckNotImplementedStatus(t, resp)
+}
+
+func TestGetOutgoingWebhooks(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
+	rhook, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	CheckNoError(t, resp)
+
+	hooks, resp := th.SystemAdminClient.GetOutgoingWebhooks(0, 1000, "")
+	CheckNoError(t, resp)
+
+	found := false
+	for _, h := range hooks {
+		if rhook.Id == h.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("missing hook")
+	}
+
+	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooks(0, 1, "")
+	CheckNoError(t, resp)
+
+	if len(hooks) != 1 {
+		t.Fatal("should only be 1")
+	}
+
+	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+
+	found = false
+	for _, h := range hooks {
+		if rhook.Id == h.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("missing hook")
+	}
+
+	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
+	CheckNoError(t, resp)
+
+	if len(hooks) != 0 {
+		t.Fatal("no hooks should be returned")
+	}
+
+	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+
+	found = false
+	for _, h := range hooks {
+		if rhook.Id == h.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("missing hook")
+	}
+
+	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
+	CheckNoError(t, resp)
+
+	if len(hooks) != 0 {
+		t.Fatal("no hooks should be returned")
+	}
+
+	_, resp = Client.GetOutgoingWebhooks(0, 1000, "")
+	CheckForbiddenStatus(t, resp)
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
+	_, resp = Client.GetOutgoingWebhooksForTeam(th.BasicTeam.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+
+	_, resp = Client.GetOutgoingWebhooksForTeam(model.NewId(), 0, 1000, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetOutgoingWebhooksForChannel(th.BasicChannel.Id, 0, 1000, "")
+	CheckNoError(t, resp)
+
+	_, resp = Client.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetOutgoingWebhooks(0, 1000, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetOutgoingWebhooks(0, 1000, "")
+	CheckUnauthorizedStatus(t, resp)
+}

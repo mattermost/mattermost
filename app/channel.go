@@ -313,7 +313,7 @@ func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, us
 func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
-	ohc := Srv.Store.Webhook().GetOutgoingByChannel(channel.Id)
+	ohc := Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
 
 	if uresult := <-uc; uresult.Err != nil {
 		return uresult.Err

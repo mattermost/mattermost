@@ -17,15 +17,17 @@ func InitWebhook() {
 
 	BaseRoutes.IncomingHooks.Handle("", ApiSessionRequired(createIncomingHook)).Methods("POST")
 	BaseRoutes.IncomingHooks.Handle("", ApiSessionRequired(getIncomingHooks)).Methods("GET")
-
 	BaseRoutes.IncomingHook.Handle("", ApiSessionRequired(getIncomingHook)).Methods("GET")
 	BaseRoutes.IncomingHook.Handle("", ApiSessionRequired(deleteIncomingHook)).Methods("DELETE")
+
+	BaseRoutes.OutgoingHooks.Handle("", ApiSessionRequired(createOutgoingHook)).Methods("POST")
+	BaseRoutes.OutgoingHooks.Handle("", ApiSessionRequired(getOutgoingHooks)).Methods("GET")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	hook := model.IncomingWebhookFromJson(r.Body)
 	if hook == nil {
-		c.SetInvalidParam("webhook")
+		c.SetInvalidParam("incoming_webhook")
 		return
 	}
 
@@ -53,6 +55,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		c.LogAudit("success")
+		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(incomingHook.ToJson()))
 	}
 }
@@ -157,4 +160,69 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			ReturnStatusOK(w)
 		}
 	}
+}
+
+func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	hook := model.OutgoingWebhookFromJson(r.Body)
+	if hook == nil {
+		c.SetInvalidParam("outgoing_webhook")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	hook.CreatorId = c.Session.UserId
+
+	if !app.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+		return
+	}
+
+	if rhook, err := app.CreateOutgoingWebhook(hook); err != nil {
+		c.LogAudit("fail")
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("success")
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(rhook.ToJson()))
+	}
+}
+
+func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelId := r.URL.Query().Get("channel_id")
+	teamId := r.URL.Query().Get("team_id")
+
+	var hooks []*model.OutgoingWebhook
+	var err *model.AppError
+
+	if len(channelId) > 0 {
+		if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_MANAGE_WEBHOOKS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+			return
+		}
+
+		hooks, err = app.GetOutgoingWebhooksForChannelPage(channelId, c.Params.Page, c.Params.PerPage)
+	} else if len(teamId) > 0 {
+		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+			return
+		}
+
+		hooks, err = app.GetOutgoingWebhooksForTeamPage(teamId, c.Params.Page, c.Params.PerPage)
+	} else {
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_WEBHOOKS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+			return
+		}
+
+		hooks, err = app.GetOutgoingWebhooksPage(c.Params.Page, c.Params.PerPage)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.OutgoingWebhookListToJson(hooks)))
 }
