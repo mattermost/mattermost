@@ -933,7 +933,7 @@
             .icon--refresh {
                 @include opacity(.6);
                 color: $black;
-                right: 33px;
+                right: 30px;
                 top: 15px;
             }
 
@@ -955,12 +955,19 @@
         @include single-transition(transform, .35s, ease);
         @include translate3d(290px, 0, 0);
         border: none;
-        display: block;
         width: 290px;
+        visibility: hidden;
+
+        &.visible {
+            display: block;
+            visibility: visible;
+        }
 
         &.move--left,
         &.webrtc--show {
             @include translate3d(0, 0, 0);
+            display: block;
+            visibility: visible;
         }
     }
 
@@ -1099,15 +1106,22 @@
             display: block;
         }
 
-        .sidebar__clear-icon {
+        .sidebar__search-clear {
             display: block;
+            top: 6px;
+            height: 30px;
+            width: 35px;
+            margin-right: 18px;
             &.visible {
                 visibility: visible;
             }
         }
 
-        .fa-times {
-            margin-left: 15px;
+        .sidebar__search-clear-x {
+            margin-left: 14px;
+            font-size: 22px;
+            font-weight: 700;
+            opacity: .7;
         }
 
         .sidebar--right__close {

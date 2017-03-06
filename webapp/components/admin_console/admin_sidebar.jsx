@@ -250,7 +250,7 @@ export default class AdminSidebar extends React.Component {
                         title={
                             <FormattedMessage
                                 id='admin.sidebar.metrics'
-                                defaultMessage='Performance Monitoring (Beta)'
+                                defaultMessage='Performance Monitoring'
                             />
                         }
                     />

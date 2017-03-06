@@ -837,7 +837,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in dry-run mode.
 	data := UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("n" + model.NewId()),
 	}
 	if err := ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
@@ -854,7 +854,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in dry-run mode.
 	data = UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("n" + model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
 	if err := ImportUser(&data, true); err != nil {
@@ -888,7 +888,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Do a valid user in apply mode.
-	username := model.NewId()
+	username := "n" + model.NewId()
 	data = UserImportData{
 		Username:  &username,
 		Email:     ptrStr(model.NewId() + "@example.com"),
@@ -1023,7 +1023,7 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Failed to get channel from database.")
 	}
 
-	username = model.NewId()
+	username = "n" + model.NewId()
 	data = UserImportData{
 		Username:  &username,
 		Email:     ptrStr(model.NewId() + "@example.com"),
@@ -1312,7 +1312,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Add a user with some preferences.
-	username = model.NewId()
+	username = "n" + model.NewId()
 	data = UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
@@ -1476,7 +1476,7 @@ func TestImportImportPost(t *testing.T) {
 	}
 
 	// Create a user.
-	username := model.NewId()
+	username := "n" + model.NewId()
 	ImportUser(&UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
@@ -1724,7 +1724,7 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewId()
 	channelName := model.NewId()
-	username := model.NewId()
+	username := "n" + model.NewId()
 
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "version", "version": 1}

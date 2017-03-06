@@ -54,6 +54,12 @@ export default class SearchBar extends React.Component {
     componentDidMount() {
         SearchStore.addSearchTermChangeListener(this.onListenerChange);
         this.mounted = true;
+
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .sidebar--menu').classList.remove('visible');
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -75,6 +81,12 @@ export default class SearchBar extends React.Component {
 
     handleClose(e) {
         e.preventDefault();
+
+        if (Utils.isMobile()) {
+            setTimeout(() => {
+                document.querySelector('.app__body .sidebar--menu').classList.add('visible');
+            });
+        }
 
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH,
@@ -261,7 +273,7 @@ export default class SearchBar extends React.Component {
             );
         }
 
-        let clearClass = 'sidebar__clear-icon';
+        let clearClass = 'sidebar__search-clear';
         if (!this.state.isSearching && this.state.searchTerm && this.state.searchTerm.trim() !== '') {
             clearClass += ' visible';
         }
@@ -295,13 +307,19 @@ export default class SearchBar extends React.Component {
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                         type='search'
+                        autoFocus={this.props.isFocus}
                     />
-                    <span
+                    <div
                         className={clearClass}
                         onClick={this.handleClear}
                     >
-                        <i className='fa fa-times'/>
-                    </span>
+                        <span
+                            className='sidebar__search-clear-x'
+                            aria-hidden='true'
+                        >
+                            {'×'}
+                        </span>
+                    </div>
                     {isSearching}
                     {this.renderHintPopover(helpClass)}
                 </form>
@@ -314,10 +332,12 @@ export default class SearchBar extends React.Component {
 }
 
 SearchBar.defaultProps = {
-    showMentionFlagBtns: true
+    showMentionFlagBtns: true,
+    isFocus: false
 };
 
 SearchBar.propTypes = {
     showMentionFlagBtns: React.PropTypes.bool,
-    isCommentsPage: React.PropTypes.bool
+    isCommentsPage: React.PropTypes.bool,
+    isFocus: React.PropTypes.bool
 };

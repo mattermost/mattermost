@@ -648,17 +648,8 @@
             }
 
             p + p {
-                margin: 1em 0;
-
-                &:last-of-type {
-                    margin-bottom: 0;
-                }
-            }
-
-            span {
-                > p:first-child {
-                    margin-bottom: 1em;
-                }
+                margin-bottom: 1em;
+                margin-top: 1em;
             }
 
             ol,
@@ -742,10 +733,14 @@
     }
 
     .post--edited {
-        p {
-            &:last-child {
-                display: inline-block;
-            }
+        // If the last paragraph of an edited post is a paragraph, make it inline-block so that the (edited) indicator can be on the same line as it
+        .post-message__text > p:last-child {
+            display: inline-block;
+        }
+
+        .post-edited-indicator {
+            @include opacity(.6);
+            font-size: .87em;
         }
     }
 
@@ -1041,10 +1036,6 @@
 
         p + p {
             margin: 1.2em 0 0;
-
-            &:last-of-type {
-                margin-bottom: 0;
-            }
         }
 
         img {
@@ -1126,13 +1117,6 @@
 
             a {
                 color: $white;
-            }
-        }
-
-        span {
-            &.edited {
-                @include opacity(.6);
-                font-size: .87em;
             }
         }
 
