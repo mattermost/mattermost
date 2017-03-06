@@ -117,38 +117,29 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
-	senderName := make(map[string]string)
-	channelName := make(map[string]string)
-	for _, id := range mentionedUsersList {
-		senderName[id] = ""
-		if post.IsSystemMessage() {
-			senderName[id] = utils.T("system.message.name")
+	senderName := ""
+	channelName := ""
+	if post.IsSystemMessage() {
+		senderName = utils.T("system.message.name")
+	} else {
+		if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
+			senderName = value.(string)
 		} else {
-			if value, ok := post.Props["override_username"]; ok && post.Props["from_webhook"] == "true" {
-				senderName[id] = value.(string)
-			} else {
-				// Get the Display name preference from the receiver
-				if result := <-Srv.Store.Preference().Get(id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "name_format"); result.Err != nil {
-					// Show default sender's name if user doesn't set display settings.
-					senderName[id] = sender.Username
-				} else {
-					senderName[id] = sender.GetDisplayNameForPreference(result.Data.(model.Preference).Value)
-				}
-			}
+			senderName = sender.Username
 		}
+	}
 
-		if channel.Type == model.CHANNEL_GROUP {
-			userList := []*model.User{}
-			for _, u := range profileMap {
-				if u.Id != sender.Id && u.Id != id {
-					userList = append(userList, u)
-				}
+	if channel.Type == model.CHANNEL_GROUP {
+		userList := []*model.User{}
+		for _, u := range profileMap {
+			if u.Id != sender.Id && u.Id != id {
+				userList = append(userList, u)
 			}
-			userList = append(userList, sender)
-			channelName[id] = model.GetGroupDisplayNameFromUsers(userList, false)
-		} else {
-			channelName[id] = channel.DisplayName
 		}
+		userList = append(userList, sender)
+		channelName = model.GetGroupDisplayNameFromUsers(userList, false)
+	} else {
+		channelName = channel.DisplayName
 	}
 
 	var senderUsername string
@@ -180,7 +171,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
-				sendNotificationEmail(post, profileMap[id], channel, team, senderName[id], sender)
+				sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
 			}
 		}
 	}
@@ -273,7 +264,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				sendPushNotification(post, profileMap[id], channel, senderName[id], channelName[id], true)
+				sendPushNotification(post, profileMap[id], channel, senderName, channelName, true)
 			}
 		}
 
@@ -286,7 +277,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 
 				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
-					sendPushNotification(post, profileMap[id], channel, senderName[id], channelName[id], false)
+					sendPushNotification(post, profileMap[id], channel, senderName, channelName, false)
 				}
 			}
 		}
