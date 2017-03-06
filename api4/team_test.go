@@ -473,7 +473,7 @@ func TestUpdateTeam(t *testing.T) {
 	team, _ = Client.CreateTeam(team)
 
 	team.Description = "updated description"
-	uteam, resp := Client.UpdateTeam(team.Id, team)
+	uteam, resp := Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.Description != "updated description" {
@@ -481,7 +481,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.DisplayName = "Updated Name"
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.DisplayName != "Updated Name" {
@@ -489,7 +489,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.AllowOpenInvite = true
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.AllowOpenInvite != true {
@@ -497,7 +497,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.InviteId = "inviteid1"
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.InviteId != "inviteid1" {
@@ -505,7 +505,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Name = "Updated name"
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.Name == "Updated name" {
@@ -513,7 +513,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Email = "test@domain.com"
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.Email == "test@domain.com" {
@@ -521,7 +521,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Type = model.TEAM_INVITE
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.Type == model.TEAM_INVITE {
@@ -529,7 +529,7 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.AllowedDomains = "domain"
-	uteam, resp = Client.UpdateTeam(team.Id, team)
+	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
 	if uteam.AllowedDomains == "domain" {
@@ -538,7 +538,13 @@ func TestUpdateTeam(t *testing.T) {
 
 	initial_team_id := team.Id
 	team.Id = model.NewId()
-	uteam, resp = Client.UpdateTeam(initial_team_id, team)
+
+	if r, err := Client.DoApiPut(Client.GetTeamRoute(initial_team_id), team.ToJson()); err != nil {
+		t.Fatal("should have errored")
+	} else {
+		uteam = model.TeamFromJson(r.Body)
+	}
+
 	CheckNoError(t, resp)
 
 	if uteam.Id != initial_team_id {
@@ -546,11 +552,11 @@ func TestUpdateTeam(t *testing.T) {
 	}
 
 	team.Id = "fake"
-	_, resp = Client.UpdateTeam(team.Id, team)
+	_, resp = Client.UpdateTeam(team)
 	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.UpdateTeam(team.Id, team)
+	_, resp = Client.UpdateTeam(team)
 	CheckUnauthorizedStatus(t, resp)
 }
 
