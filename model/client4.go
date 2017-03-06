@@ -410,7 +410,7 @@ func (c *Client4) AutoCompleteUsersInChannel(teamId string, channelId string, us
 	}
 }
 
-// AutoCompleteUsersInChannel returns the users in a channel based on search term.
+// AutoCompleteUsers returns the users in the system based on search term.
 func (c *Client4) AutoCompleteUsers(username string, etag string) (*UserAutocomplete, *Response) {
 	query := fmt.Sprintf("?name=%v", username)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete/"+query, etag); err != nil {
