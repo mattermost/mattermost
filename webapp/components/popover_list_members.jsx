@@ -16,6 +16,7 @@ import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -100,7 +101,7 @@ export default class PopoverListMembers extends React.Component {
 
             members.forEach((m, i) => {
                 let button = '';
-                if (currentUserId !== m.id && this.props.channel.type !== 'D') {
+                if (currentUserId !== m.id && this.props.channel.type !== Constants.DM_CHANNEl) {
                     button = (
                         <a
                             href='#'
@@ -148,41 +149,43 @@ export default class PopoverListMembers extends React.Component {
                 }
             });
 
-            let membersName = (
-                <FormattedMessage
-                    id='members_popover.manageMembers'
-                    defaultMessage='Manage Members'
-                />
-            );
-            if (!isAdmin && ChannelStore.isDefault(this.props.channel)) {
-                membersName = (
+            if (this.props.channel.type !== Constants.GM_CHANNEL) {
+                let membersName = (
                     <FormattedMessage
-                        id='members_popover.viewMembers'
-                        defaultMessage='View Members'
+                        id='members_popover.manageMembers'
+                        defaultMessage='Manage Members'
                     />
                 );
-            }
+                if (!isAdmin && ChannelStore.isDefault(this.props.channel)) {
+                    membersName = (
+                        <FormattedMessage
+                            id='members_popover.viewMembers'
+                            defaultMessage='View Members'
+                        />
+                    );
+                }
 
-            popoverHtml.push(
-                <div
-                    className='more-modal__row'
-                    key={'popover-member-more'}
-                >
-                    <div className='col-sm-3'/>
-                    <div className='more-modal__details'>
-                        <div
-                            className='more-modal__name'
-                        >
-                            <a
-                                href='#'
-                                onClick={this.showMembersModal}
+                popoverHtml.push(
+                    <div
+                        className='more-modal__row'
+                        key={'popover-member-more'}
+                    >
+                        <div className='col-sm-3'/>
+                        <div className='more-modal__details'>
+                            <div
+                                className='more-modal__name'
                             >
-                                {membersName}
-                            </a>
+                                <a
+                                    href='#'
+                                    onClick={this.showMembersModal}
+                                >
+                                    {membersName}
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            );
+                );
+            }
         }
 
         const count = this.props.memberCount;

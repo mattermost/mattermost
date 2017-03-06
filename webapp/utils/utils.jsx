@@ -104,7 +104,7 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
                     var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
-                        if (channel && channel.type === Constants.DM_CHANNEL) {
+                        if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
                         } else if (channel) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);

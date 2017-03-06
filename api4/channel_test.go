@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
@@ -503,6 +504,16 @@ func TestViewChannel(t *testing.T) {
 
 	_, resp = Client.ViewChannel(th.BasicUser2.Id, view)
 	CheckForbiddenStatus(t, resp)
+
+	if r, err := Client.DoApiPost(fmt.Sprintf("/channels/members/%v/view", th.BasicUser.Id), "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
 
 	Client.Logout()
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)

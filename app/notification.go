@@ -393,7 +393,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 		senderDisplayName := senderName
 
 		mailTemplate = "api.templates.post_subject_in_direct_message"
-		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
+		mailParameters = map[string]interface{}{"SubjectText": subjectText,
 			"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
 	} else if channel.Type == model.CHANNEL_GROUP {
 		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
@@ -505,7 +505,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Category = model.CATEGORY_DM
-			msg.Message = "@" + senderName + ": " + model.ClearMentionTags(post.Message)
+			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
 		}
