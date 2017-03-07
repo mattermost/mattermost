@@ -202,6 +202,18 @@ func InvalidateWebConnSessionCacheForUser(userId string) {
 	}
 }
 
+func InvalidateCacheForReactions(postId string) {
+	InvalidateCacheForReactionsSkipClusterSend(postId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForReactions(postId)
+	}
+}
+
+func InvalidateCacheForReactionsSkipClusterSend(postId string) {
+	Srv.Store.Reaction().InvalidateCacheForPost(postId)
+}
+
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
