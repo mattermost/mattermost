@@ -48,6 +48,7 @@ export default class SettingItemMax extends React.Component {
         if (this.props.submit) {
             submit = (
                 <input
+                    id='saveSetting'
                     type='submit'
                     className='btn btn-sm btn-primary'
                     href='#'

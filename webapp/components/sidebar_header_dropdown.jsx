@@ -467,6 +467,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                 <Dropdown.Menu>
                     <li>
                         <a
+                            id='accountSettings'
                             href='#'
                             onClick={this.toggleAccountSettingsModal}
                         >
@@ -480,6 +481,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     {teamLink}
                     <li>
                         <a
+                            id='logout'
                             href='#'
                             onClick={() => GlobalActions.emitUserLoggedOutEvent()}
                         >
