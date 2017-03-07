@@ -118,6 +118,7 @@ func getClientLicense(l *model.License) map[string]string {
 	props["IsLicensed"] = strconv.FormatBool(IsLicensed)
 
 	if IsLicensed {
+		props["Id"] = l.Id
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
@@ -166,6 +167,7 @@ func GetSanitizedClientLicense() map[string]string {
 	}
 
 	if IsLicensed {
+		delete(sanitizedLicense, "Id")
 		delete(sanitizedLicense, "Name")
 		delete(sanitizedLicense, "Email")
 		delete(sanitizedLicense, "PhoneNumber")
