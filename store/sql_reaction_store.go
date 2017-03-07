@@ -4,12 +4,20 @@
 package store
 
 import (
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/go-gorp/gorp"
 )
+
+const (
+	REACTION_CACHE_SIZE = 20000
+	REACTION_CACHE_SEC  = 1800 // 30 minutes
+)
+
+var reactionCache *utils.Cache = utils.NewLru(REACTION_CACHE_SIZE)
 
 type SqlReactionStore struct {
 	*SqlStore
@@ -30,6 +38,8 @@ func NewSqlReactionStore(sqlStore *SqlStore) ReactionStore {
 
 func (s SqlReactionStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_reactions_post_id", "Reactions", "PostId")
+	s.CreateIndexIfNotExists("idx_reactions_user_id", "Reactions", "UserId")
+	s.CreateIndexIfNotExists("idx_reactions_emoji_name", "Reactions", "EmojiName")
 }
 
 func (s SqlReactionStore) Save(reaction *model.Reaction) StoreChannel {
@@ -149,11 +159,40 @@ func updatePostForReactions(transaction *gorp.Transaction, postId string) error 
 	return err
 }
 
-func (s SqlReactionStore) GetForPost(postId string) StoreChannel {
+func (s SqlReactionStore) InvalidateCacheForPost(postId string) {
+	reactionCache.Remove(postId)
+}
+
+func (s SqlReactionStore) InvalidateCache() {
+	reactionCache.Purge()
+}
+
+func (s SqlReactionStore) GetForPost(postId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
+
+		if allowFromCache {
+			if cacheItem, ok := reactionCache.Get(postId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Reactions")
+				}
+				result.Data = cacheItem.([]*model.Reaction)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Reactions")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Reactions")
+			}
+		}
 
 		var reactions []*model.Reaction
 
@@ -169,6 +208,8 @@ func (s SqlReactionStore) GetForPost(postId string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlReactionStore.GetForPost", "store.sql_reaction.get_for_post.app_error", nil, "")
 		} else {
 			result.Data = reactions
+
+			reactionCache.AddWithExpiresInSecs(postId, reactions, REACTION_CACHE_SEC)
 		}
 
 		storeChannel <- result
