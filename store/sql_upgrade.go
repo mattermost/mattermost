@@ -237,5 +237,6 @@ func UpgradeDatabaseToVersion37(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_3_6_0, VERSION_3_7_0) {
 	// Add EditAt column to Posts
 	sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
+	sqlStore.CreateColumnIfNotExists("Channels", "Props", "varchar(4000)", "varchar(4000)", "{}")
 	// }
 }
