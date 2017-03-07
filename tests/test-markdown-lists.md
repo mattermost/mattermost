@@ -71,6 +71,24 @@ Verify that all list types render as expected.
 - Two
 + Three
 
+### Multi-Item Unordered List with Line Break
+
+**Expected:**
+```
+• Item A
+• Item B
+
+• Item C
+• Item D
+```
+
+**Actual:**
+• Item A
+• Item B
+
+• Item C
+• Item D
+
 ### Nested Unordered List
 
 **Expected:**
