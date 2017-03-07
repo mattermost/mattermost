@@ -75,13 +75,14 @@ func Setup() *TestHelper {
 
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicClient = me.CreateClient()
-	me.BasicTeam = me.CreateTeam(me.BasicClient)
 	me.BasicUser = me.CreateUser(me.BasicClient)
+	me.LoginBasic()
+	me.BasicTeam = me.CreateTeam(me.BasicClient)
 	LinkUserToTeam(me.BasicUser, me.BasicTeam)
+	UpdateUserToNonTeamAdmin(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser(me.BasicClient)
 	LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicClient.SetTeamId(me.BasicTeam.Id)
-	me.LoginBasic()
 	me.BasicChannel = me.CreateChannel(me.BasicClient, me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicClient, me.BasicChannel)
 
@@ -90,14 +91,15 @@ func (me *TestHelper) InitBasic() *TestHelper {
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminClient = me.CreateClient()
-	me.SystemAdminTeam = me.CreateTeam(me.SystemAdminClient)
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
+	me.SystemAdminUser.Password = "Password1"
+	me.LoginSystemAdmin()
+	me.SystemAdminTeam = me.CreateTeam(me.SystemAdminClient)
 	LinkUserToTeam(me.SystemAdminUser, me.SystemAdminTeam)
 	me.SystemAdminClient.SetTeamId(me.SystemAdminTeam.Id)
 	UpdateUserRoles(me.SystemAdminUser, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
-	me.SystemAdminUser.Password = "Password1"
-	me.LoginSystemAdmin()
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
+	me.SystemAdminUser.Password = "Password1"
 
 	return me
 }
@@ -161,6 +163,20 @@ func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
+	if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		utils.EnableDebugLogForTest()
+		l4g.Error(tmr.Err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(tmr.Err)
+	}
+	utils.EnableDebugLogForTest()
+}
+
+func UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id}
 	if tmr := <-Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())

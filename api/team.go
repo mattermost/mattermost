@@ -24,7 +24,7 @@ import (
 func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
-	BaseRoutes.Teams.Handle("/create", ApiAppHandler(createTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("/create", ApiUserRequired(createTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
