@@ -623,6 +623,10 @@ export function redirectUserToDefaultTeam() {
 
 requestOpenGraphMetadata.openGraphMetadataOnGoingRequests = {};  // Format: {<url>: true}
 export function requestOpenGraphMetadata(url) {
+    if (global.mm_config.EnableLinkPreviews !== 'true') {
+        return;
+    }
+
     const onself = requestOpenGraphMetadata;
 
     if (!onself.openGraphMetadataOnGoingRequests[url]) {

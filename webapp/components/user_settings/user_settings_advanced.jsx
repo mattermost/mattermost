@@ -53,14 +53,19 @@ export default class AdvancedSettingsDisplay extends React.Component {
             )
         };
 
+        const webrtcEnabled = global.mm_config.EnableWebrtc === 'true';
+        const linkPreviewsEnabled = global.mm_config.EnableLinkPreviews === 'true';
+
+        if (!webrtcEnabled) {
+            preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'WEBRTC_PREVIEW');
+        }
+
+        if (!linkPreviewsEnabled) {
+            preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'EMBED_PREVIEW');
+        }
+
         let enabledFeatures = 0;
         for (const [name, value] of advancedSettings) {
-            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true';
-
-            if (!webrtcEnabled) {
-                preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'WEBRTC_PREVIEW');
-            }
-
             for (const key of preReleaseFeaturesKeys) {
                 const feature = PreReleaseFeatures[key];
 

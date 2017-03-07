@@ -1307,6 +1307,12 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
+	}()
+	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
+
 	ogDataCacheMissCount := 0
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1354,5 +1360,10 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 				data["cacheMissCount"].(int), ogDataCacheMissCount,
 			))
 		}
+	}
+
+	*utils.Cfg.ServiceSettings.EnableLinkPreviews = false
+	if _, err := Client.DoApiPost("/get_opengraph_metadata", "{\"url\":\"/og-data/\"}"); err == nil || err.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should have failed with 501 - disabled link previews")
 	}
 }

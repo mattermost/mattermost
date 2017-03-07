@@ -129,6 +129,7 @@ type ServiceSettings struct {
 	EnableOnlyAdminIntegrations              *bool
 	EnablePostUsernameOverride               bool
 	EnablePostIconOverride                   bool
+	EnableLinkPreviews                       *bool
 	EnableTesting                            bool
 	EnableDeveloper                          *bool
 	EnableSecurityFixAlert                   *bool
@@ -493,6 +494,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.SiteURL == nil {
 		o.ServiceSettings.SiteURL = new(string)
 		*o.ServiceSettings.SiteURL = SERVICE_SETTINGS_DEFAULT_SITE_URL
+	}
+
+	if o.ServiceSettings.EnableLinkPreviews == nil {
+		o.ServiceSettings.EnableLinkPreviews = new(bool)
+		*o.ServiceSettings.EnableLinkPreviews = false
 	}
 
 	if o.ServiceSettings.EnableDeveloper == nil {
