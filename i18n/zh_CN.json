@@ -220,6 +220,14 @@
     "translation": "用于创建私信频道的用户 ID 无效"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "团体消息频道必须至少包含 3 个但不超过 8 位用户"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "有不存在的用户"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%v 已归档该频道。"
   },
@@ -313,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "更新频道头部消息失败"
+    "translation": "更新频道标题消息失败"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -892,6 +900,10 @@
     "translation": "转至发文"
   },
   {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "团体消息"
+  },
+  {
     "id": "api.email_batching.render_batched_post.sender.app_error",
     "translation": "无法找到批量电子邮件通知发送人"
   },
@@ -1155,7 +1167,7 @@
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
+    "translation": "无法上传文件。标题无法被解析。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1212,6 +1224,10 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "设置电子邮件验证失败 err=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "传入的 webhooks 已被系统管理员禁用。"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1800,6 +1816,14 @@
     "translation": "尝试将用户合并到已存在的帐号：{{.Email}}，{{.Username}}，但是无法添加该用户到本团队。\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "用户 {{.Username}} 在 Slack 导入里没有电子邮箱地址。暂使用 {{.Email}} 代替。用户需要在登入系统后更新他们的邮箱地址。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "用户 {{.Username}} 在 Slack 导入里没有电子邮箱地址。暂使用 {{.Email}} 代替。用户需要在登入系统后更新他们的邮箱地址。"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "不能导入用户: {{.Username}}\r\n"
   },
@@ -2012,6 +2036,10 @@
     "translation": "您没有对应的权限"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "团体消息"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "您的邮箱地址从 {{.TeamDisplayName}} 修改为 {{.NewEmail}}。<br>如果您没有做过这个修改，请联系系统管理员。"
   },
@@ -2021,7 +2049,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "您的邮箱地址修改为 {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] 您的邮箱地址已更改"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2065,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "验证在 {{.TeamDisplayName}} 上的新电子邮件地址"
+    "translation": "[{{ .SiteName }}] 验证新邮件地址"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2121,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队在 {{.SiteName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2133,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "您在 {{ .SiteName}} 的多重验证已更新"
+    "translation": "[{{ .SiteName }}] 您的多重验证已更新"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2153,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "您的密码已经被更新 {{.TeamDisplayName}} 在 {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] 您的密码已更新"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2141,7 +2169,11 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} 在 {{.TeamDisplayName}} 来自 {{.SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} {{.SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "新团体消息来自 {{ .SenderDisplayName}} 于 {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2157,7 +2189,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "重设您的密码"
+    "translation": "[{{ .SiteName }}] 重置您的密码"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "您在 {{.SiteName}} 更新了登录方式为 {{.Method}}。<br>如果这个变更不是由您发起的，请联系您的系统管理员。"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2166,6 +2202,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "您更新了您的登录方式"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] 您在 {{ .SiteName }} 更新了您的登入方式"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2182,14 +2222,6 @@
   {
     "id": "api.templates.signup_team_subject",
     "translation": "{{ .SiteName }} 团队设置"
-  },
-  {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "您在 {{.SiteName}} 更新了登录方式为 {{.Method}}。<br>如果这个变更不是由您发起的，请联系您的系统管理员。"
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "你已经更新您的登录方法{{ .SiteName }}"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2241,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "您在 {{.TeamDisplayName}} 的用户名已更改"
+    "translation": "[{{ .SiteName }}] 您的用户名已更改"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2285,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "您已加入 {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] 您加入了 {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2261,7 +2293,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "添加用户直接频道偏好设定失败 user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2357,7 +2389,7 @@
   },
   {
     "id": "api.user.create_user.disabled.app_error",
-    "translation": "User creation is disabled."
+    "translation": "用户创建已停用。"
   },
   {
     "id": "api.user.create_user.joining.error",
@@ -2569,7 +2601,7 @@
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "无法创建用户 {{.Service}} 用户对象"
+    "translation": "无法从 {{.Service}} 用户对象获取用户"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -2692,12 +2724,8 @@
     "translation": "团队枢纽停止 teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_error",
-    "translation": "传入的webhooks已被系统管理员禁用。"
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
-    "translation": "传出的webhooks已被系统管理员禁用。"
+    "translation": "传出的 webhooks 已被系统管理员禁用。"
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2732,14 +2760,6 @@
     "translation": "无效的删除传出的 webhook 权限"
   },
   {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "传入的webhooks已被系统管理员禁用。"
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "传出的webhooks已被系统管理员禁用。"
-  },
-  {
     "id": "api.webhook.incoming.debug",
     "translation": "收到传入的webhook。内容="
   },
@@ -2752,16 +2772,12 @@
     "translation": "正在初始化 webhook API 路由"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "传出的webhooks已被系统管理员禁用。"
-  },
-  {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
     "translation": "无效的重新生成传出的 webhook 令牌权限"
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "无法跨团队更新命令"
+    "translation": "无法跨团队更新 webhook"
   },
   {
     "id": "api.webhook.update_incoming.disabled.app_error",
@@ -2769,7 +2785,7 @@
   },
   {
     "id": "api.webhook.update_incoming.permissions.app_error",
-    "translation": "无效的删除传入的 webhook 权限"
+    "translation": "无效的更新传入的 webhook 权限"
   },
   {
     "id": "api.webhook.update_outgoing.disabled.app_error",
@@ -2781,15 +2797,15 @@
   },
   {
     "id": "api.webhook.update_outgoing.not_open.app_error",
-    "translation": "只有公共频道可以创建传出 webhooks。"
+    "translation": "只有公共频道可以更新传出 webhooks。"
   },
   {
     "id": "api.webhook.update_outgoing.permissions.app_error",
-    "translation": "无效的创建传出的 webhook 权限。"
+    "translation": "无效的更新传出的 webhook 权限。"
   },
   {
     "id": "api.webhook.update_outgoing.triggers.app_error",
-    "translation": "无论是trigger_words或channel_id必须设置"
+    "translation": "必须设置 rigger_words 或 channel_id"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2852,6 +2868,10 @@
     "translation": "导入数据行有类型 \"channel\" 但频道对象是无。"
   },
   {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "导入数据行有类型 \"post\" 但消息对象是无。"
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "导入数据行有类型 \"team\" 但团队对象是无。"
   },
@@ -2862,6 +2882,18 @@
   {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "导入数据行有无效的类型 \"{{.Type}}\"。"
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "导入消息失败。无法找到频道 \"{{.ChannelName}}\"。"
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "导入消息失败。无法找到团队 \"{{.TeamName}}\"。"
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "导入消息失败。无法找到用户 \"{{.Username}}\"。"
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -2906,6 +2938,34 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "缺少频道必须属性：type。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "缺少消息必须属性：Channel。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "缺少消息必须属性：create_at。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "如果提供消息 CreateAt 则不能为零。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "消息属性超过允许的最大长度。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "缺少消息必须属性：Message。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "缺少消息必须属性：Team。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "缺少消息必须属性：User。"
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -2957,11 +3017,11 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
+    "translation": "用户的频道身份的桌面 NotifyProps 无效。"
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
+    "translation": "用户的频道身份的 MarkUnread NotifyProps 无效。"
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
@@ -3018,6 +3078,14 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "用户的团队成员资格中缺少团队名称。"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "允许新建团体消息频道"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "创建团体消息"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3549,7 +3617,7 @@
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Invalid email notification value"
+    "translation": "无效的电子邮件通知值"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -3557,7 +3625,7 @@
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Invalid push notification level"
+    "translation": "无效的推送通知等级"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3593,7 +3661,15 @@
   },
   {
     "id": "model.client.read_file.app_error",
-    "translation": "我们查找用户配置文件遇到了一个错误"
+    "translation": "我们在读取文件时遇到了一个错误"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "缺少请求中的 '图片' 文件"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "无法写入请求"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4517,7 +4593,7 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "我们无法获取频道类型数"
+    "translation": "我们无法获取已删除的频道类型数"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
@@ -4976,12 +5052,20 @@
     "translation": "我们无法获取这个频道的父信息"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "我们无法获取这个频道的消息"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "我们无法获取这个频道的信息"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
     "translation": "我们无法获取这个频道的信息"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "我们无法覆盖消息"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
@@ -5012,8 +5096,8 @@
     "translation": "您不能更新一个村庄的邮件"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "我们在搜索邮件时出现一个错误"
+    "id": "store.sql_post.search.warn",
+    "translation": "搜索消息查询错误：%v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5341,11 +5425,11 @@
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "我们无法计算启用的用户数"
+    "translation": "我们无法计算未活动的用户数"
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "We couldn't get the system admin count"
+    "translation": "我们无法获取系统管理数"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -5589,7 +5673,7 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "我们不能保存传入的 webhook"
+    "translation": "我们无法更新 IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
@@ -5618,6 +5702,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "保存文件时出错 {{.Filename}}"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "无法加载 Mattermost 配置文件：DefaultClientLocale 必须为支持的区域"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "无法加载 Mattermost 配置文件：DefaultServerLocale 必须为支持的区域"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "无法加载 Mattermost 配置文件：AvailableLocales 必须包含 DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",

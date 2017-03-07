@@ -220,6 +220,14 @@
     "translation": "개인 메시지 채널에 적합하지 않은 사용자 ID"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "One of the provided users does not exist"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%v 가 채널을 보존 처리 하였습니다."
   },
@@ -892,6 +900,10 @@
     "translation": "글로 이동하기"
   },
   {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "Group Message"
+  },
+  {
     "id": "api.email_batching.render_batched_post.sender.app_error",
     "translation": "배치된 이메일 알림 대상 글의 작성자를 찾을 수 없습니다."
   },
@@ -1212,6 +1224,10 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "확인된 이메일로 설정하는데 실패했습니다. err=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "Incoming webhook은 관리자가 사용할 수 없게 설정했습니다."
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1800,6 +1816,14 @@
     "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "불러올 수 없는 사용자: {{.Username}}\r\n"
   },
@@ -2012,6 +2036,10 @@
     "translation": "작업을 할 수 있는 권한이 없습니다"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "Group Message"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "{{.TeamDisplayName}} 이메일이 {{.NewEmail}}(으)로 변경되었습니다.<br> 잘못 변경된 경우, 시스템 관리자에게 문의하세요."
   },
@@ -2021,7 +2049,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "{{.TeamDisplayName}} 이메일이 변경되었습니다."
+    "translation": "[{{ .SiteName }}] Your email address has changed"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2065,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "{{.TeamDisplayName}} 새 이메일을 검증하세요."
+    "translation": "[{{ .SiteName }}] Verify new email address"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2121,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2133,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your MFA has been updated"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2153,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "{{.TeamDisplayName}}의 비밀번호가 변경되었습니다. {{.TeamURL}} {{.Method}}"
+    "translation": "[{{ .SiteName }}] Your password has been updated"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2144,6 +2172,10 @@
     "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
     "id": "api.templates.reset_body.button",
     "translation": "비밀번호 재설정"
   },
@@ -2157,7 +2189,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "비밀번호 재설정"
+    "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "You updated your sign-in method for on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2166,6 +2202,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "You updated your sign-in method"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2182,14 +2222,6 @@
   {
     "id": "api.templates.signup_team_subject",
     "translation": "{{ .SiteName }} 팀 설정"
-  },
-  {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "You updated your sign-in method for on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2241,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "{{.TeamDisplayName}}에서 사용자명이 변경되었습니다."
+    "translation": "[{{ .SiteName }}] Your username has changed"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2285,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "You joined {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2692,10 +2724,6 @@
     "translation": "team hub stopping for teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_error",
-    "translation": "Incoming webhook은 관리자가 사용할 수 없게 설정했습니다."
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Outgoing webhook은 관리자가 사용할 수 없게 설정했습니다."
   },
@@ -2732,14 +2760,6 @@
     "translation": "Outcoming webhook을 삭제할 권한이 없습니다"
   },
   {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Incoming webhook은 관리자가 사용할 수 없게 설정했습니다."
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Outgoing webhook은 관리자가 사용할 수 없게 설정했습니다."
-  },
-  {
     "id": "api.webhook.incoming.debug",
     "translation": "Incoming webhook 수신. 내용="
   },
@@ -2750,10 +2770,6 @@
   {
     "id": "api.webhook.init.debug",
     "translation": "webhook API 경로 초기화 중"
-  },
-  {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "Outgoing webhook은 관리자가 사용할 수 없게 설정했습니다."
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
@@ -2852,6 +2868,10 @@
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
   {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Import data line has type \"post\" but the post object is null."
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "Import data line has type \"team\" but the team object is null."
   },
@@ -2862,6 +2882,18 @@
   {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "Import data line has unknown type \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Error importing post. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "Error importing post. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -2906,6 +2938,34 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Missing required Post property: Channel."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Missing required Post property: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Post CreateAt must not be zero if it is provided."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Missing required Post property: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Missing required Post property: User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3018,6 +3078,14 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "Ability to create new group message channels"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "Create Group Message"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3594,6 +3662,14 @@
   {
     "id": "model.client.read_file.app_error",
     "translation": "We encountered an error while finding user profiles"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "요청의 'image' 속성 아래에 파일이 없습니다"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "Unable to write request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4976,12 +5052,20 @@
     "translation": "We couldn't get the parent posts for the channel"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "We couldn't get the posts for the channel"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
     "translation": "We couldn't get the posts for the channel"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "채널을 찾을 수 없습니다"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
@@ -5012,8 +5096,8 @@
     "translation": "You cannot update an existing Post"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "We encountered an error while searching for posts"
+    "id": "store.sql_post.search.warn",
+    "translation": "Query error searching posts: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5618,6 +5702,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
