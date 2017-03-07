@@ -220,6 +220,14 @@
     "translation": "Неверный ID пользователя при создании приватного канала"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "One of the provided users does not exist"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%v переместил канал в архив."
   },
@@ -892,6 +900,10 @@
     "translation": "Перейти к записи"
   },
   {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "Group Message"
+  },
+  {
     "id": "api.email_batching.render_batched_post.sender.app_error",
     "translation": "Невозможно найти отправителя поста для почтового объединения уведомлений"
   },
@@ -1155,7 +1167,7 @@
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
+    "translation": "Невозможно загрузить файл. Заголовок не может быть распознан."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1212,6 +1224,10 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "Не удалось проверить адрес электронной почты err=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "Входящие вебхуки были отключены системным администратором."
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1800,6 +1816,14 @@
     "translation": "При слиянии с существующим аккаунтом: {{.Email}}, {{.Username}}, возникла ошибка добавления пользователя в команду.\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Невозможно импортировать пользователя: {{.Username}}\r\n"
   },
@@ -2012,6 +2036,10 @@
     "translation": "У Вас нет соответствующих разрешений"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "Group Message"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Ваш адрес электронной почты для {{.TeamDisplayName}} изменен на {{.NewEmail}}. <br> Если Вы не делали это изменение, пожалуйста, обратитесь к системному администратору."
   },
@@ -2021,7 +2049,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "Ваш адрес электронной почты был изменен для {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Ваш email был изменён"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2065,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Проверьте новый адрес электронной почты для {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Подтвердить новый email"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2121,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} приглашает Вас присоединиться к команде {{ .TeamDisplayName }} на {{.SiteName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2133,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Ваша MFA обновлена на {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your MFA has been updated"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2153,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "Ваш пароль был обновлен для команды {{.TeamDisplayName}} на {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your password has been updated"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2144,6 +2172,10 @@
     "translation": "{{.SubjectText}} в {{.TeamDisplayName}} от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "{{.SubjectText}} в {{.TeamDisplayName}} от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
     "id": "api.templates.reset_body.button",
     "translation": "Сброс пароля"
   },
@@ -2157,7 +2189,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "Сбросить Ваш пароль"
+    "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Вы обновили свой метод входа для {{ .SiteName }} на {{.Method}}.<br>Если это изменение не было сделано Вами, пожалуйста, обратитесь к системному администратору."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2166,6 +2202,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "Вы обновили свой способ входа"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2182,14 +2222,6 @@
   {
     "id": "api.templates.signup_team_subject",
     "translation": "{{ .SiteName }} настройки команды"
-  },
-  {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "Вы обновили свой метод входа для {{ .SiteName }} на {{.Method}}.<br>Если это изменение не было сделано Вами, пожалуйста, обратитесь к системному администратору."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "Вы обновили свой метод входа для {{ .SiteName }}"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2241,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "Ваше имя пользователя изменено для {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Ваш email был изменён"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2285,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "Вы присоединились к {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2692,10 +2724,6 @@
     "translation": "остановка командного хаба для teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_error",
-    "translation": "Входящие вебхуки были отключены системным администратором."
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Исходящие вебхуки были отключены системным администратором."
   },
@@ -2732,14 +2760,6 @@
     "translation": "Отсутствуют права на удаление исходящего вебхука"
   },
   {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Входящие вебхуки отключены системным администратором."
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Исходящие вебхуки отключены системным администратором."
-  },
-  {
     "id": "api.webhook.incoming.debug",
     "translation": "Входящий вебхук получен. Содержание="
   },
@@ -2750,10 +2770,6 @@
   {
     "id": "api.webhook.init.debug",
     "translation": "Инициализация API вебхуков"
-  },
-  {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
-    "translation": "Исходящие вебхуки отключены системным администратором."
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
@@ -2852,6 +2868,10 @@
     "translation": "Строка импорта данных содержит тип \"channel\", но объект channel равен null."
   },
   {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Строка импорта данных содержит тип \"team\", но объект team равен null."
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "Строка импорта данных содержит тип \"team\", но объект team равен null."
   },
@@ -2862,6 +2882,18 @@
   {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "Строка импорта данных содержит неизвестный тип \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Ошибка импорта канала. Команда с именем \"{{.TeamName}}\" не найдена."
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "Ошибка импорта канала. Команда с именем \"{{.TeamName}}\" не найдена."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Ошибка импорта канала. Команда с именем \"{{.TeamName}}\" не найдена."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -2906,6 +2938,34 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Пропущено обязательное свойство channel: type."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Пропущено необходимое свойство team: name."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Пропущено необходимое свойство team: name."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Post CreateAt must not be zero if it is provided."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Пропущено необходимое свойство team: name."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Пропущено необходимое свойство team: name."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Пропущено необходимое свойство team: name."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3018,6 +3078,14 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Пропущено имя команды в «Участие пользователей в команде»"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "Ability to create new group message channels"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "Create Group Message"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3594,6 +3662,14 @@
   {
     "id": "model.client.read_file.app_error",
     "translation": "Возникла ошибка при поиске пользовательских профилей"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "Нет файла 'image' в запросе"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "Не удалось записать запрос"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4976,12 +5052,20 @@
     "translation": "Не удалось получить родительские посты для канала"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "Не удалось получить посты для канала"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "Не удалось получить посты для канала"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
     "translation": "Не удалось получить посты для канала"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "Неудачная попытка удалить пост"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
@@ -5012,8 +5096,8 @@
     "translation": "Вы не можете обновить существующий Пост"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "Возникла ошибка во время поиска постов"
+    "id": "store.sql_post.search.warn",
+    "translation": "Query error searching posts: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5618,6 +5702,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "Возникла ошибка при сохранении файла в {{.Filename}}"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
