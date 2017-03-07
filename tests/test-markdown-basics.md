@@ -21,14 +21,12 @@ _Normal Text*
 
 ### Carriage Return  
 
-**The following text should render as:**  
-Line #1 followed by Line #2  
+Line #1 followed by one blank line 
+
 Line #2 followed by one blank line
 
-Line #3 followed by one blank line
-
-
-Line #4 following one blank line  
+Line #3 followed by Line #4
+Line #4 
 
 
 ### Code Blocks
