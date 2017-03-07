@@ -30,6 +30,10 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //      links to the relevant channel.
 // - team - The current team.
 export function formatText(text, inputOptions) {
+    if (!text || typeof text !== 'string') {
+        return '';
+    }
+
     let output = text;
 
     const options = Object.assign({}, inputOptions);
