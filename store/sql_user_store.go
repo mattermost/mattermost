@@ -1180,8 +1180,12 @@ func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
 		result := StoreResult{}
 
 		if count, err := us.GetReplica().SelectInt(`
-			SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN
-			ChannelMembers cm ON cm.ChannelId = c.Id AND cm.UserId = :UserId AND c.DeleteAt = 0`, map[string]interface{}{"UserId": userId}); err != nil {
+		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		FROM Channels c
+		INNER JOIN ChannelMembers cm
+		      ON cm.ChannelId = c.Id
+		      AND cm.UserId = :UserId
+		      AND c.DeleteAt = 0`, map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetMentionCount", "store.sql_user.get_unread_count.app_error", nil, err.Error())
 		} else {
 			result.Data = count
