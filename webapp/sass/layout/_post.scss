@@ -589,6 +589,7 @@
         .status-wrapper {
             cursor: auto;
             height: 14px;
+            pointer-events: none;
 
             .status {
                 bottom: auto;
