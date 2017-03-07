@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	VERIONS_3_7_0 = "3.7.0"
+	VERSION_3_7_0 = "3.7.0"
 	VERSION_3_6_0 = "3.6.0"
 	VERSION_3_5_0 = "3.5.0"
 	VERSION_3_4_0 = "3.4.0"
@@ -233,9 +233,8 @@ func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion37(sqlStore *SqlStore) {
-	// TODO: Uncomment following condition when version 3.7.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_3_6_0, VERSION_3_7_0) {
-	// Add EditAt column to Posts
-	sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_3_6_0, VERSION_3_7_0) {
+		// Add EditAt column to Posts
+		sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
+	}
 }
