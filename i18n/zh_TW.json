@@ -2173,7 +2173,7 @@
   },
   {
     "id": "api.templates.post_subject_in_group_message",
-    "translation": "來自{{.SenderDisplayName}的群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
+    "translation": "來自 {{.SenderDisplayName}} 的群組訊息，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
     "id": "api.templates.reset_body.button",
