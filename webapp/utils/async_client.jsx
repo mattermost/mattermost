@@ -64,26 +64,31 @@ export function checkVersion() {
 }
 
 export function getChannels() {
-    if (isCallInProgress('getChannels')) {
-        return null;
-    }
-
-    callTracker.getChannels = utils.getTimestamp();
-
-    return Client.getChannels(
-        (data) => {
-            callTracker.getChannels = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CHANNELS,
-                channels: data
-            });
-        },
-        (err) => {
-            callTracker.getChannels = 0;
-            dispatchError(err, 'getChannels');
+    return new Promise((resolve, reject) => {
+        if (isCallInProgress('getChannels')) {
+            resolve();
+            return;
         }
-    );
+
+        callTracker.getChannels = utils.getTimestamp();
+
+        Client.getChannels(
+            (data) => {
+                callTracker.getChannels = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNELS,
+                    channels: data
+                });
+                resolve();
+            },
+            (err) => {
+                callTracker.getChannels = 0;
+                dispatchError(err, 'getChannels');
+                reject();
+            }
+        );
+    });
 }
 
 export function getChannel(id) {
@@ -130,7 +135,7 @@ export function getMyChannelMembers() {
                 resolve();
             },
             (err) => {
-                callTracker.getChannelsUnread = 0;
+                callTracker.getMyChannelMembers = 0;
                 dispatchError(err, 'getMyChannelMembers');
                 reject();
             }
