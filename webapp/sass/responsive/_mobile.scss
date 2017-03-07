@@ -1623,6 +1623,7 @@
                 }
             }
         }
+
         .attachment {
             .attachment__image {
                 &.attachment__image--openraph {
@@ -1636,6 +1637,7 @@
         left: 0;
         position: fixed;
         top: 0;
+        z-index: 9999;
 
         .tutorial__content {
             .tutorial__steps {
