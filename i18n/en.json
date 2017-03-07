@@ -4,6 +4,10 @@
     "translation": "April"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Link previews have been disabled by the system administrator."
+  },
+  {
     "id": "August",
     "translation": "August"
   },
