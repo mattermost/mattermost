@@ -18,6 +18,8 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("", ApiSessionRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 
+	BaseRoutes.Team.Handle("/channels", ApiSessionRequired(getPublicChannels)).Methods("GET")
+
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
 	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
 	BaseRoutes.ChannelByNameForTeamName.Handle("", ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
@@ -111,6 +113,26 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(channel.ToJson()))
+		return
+	}
+}
+
+func getPublicChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
+		return
+	}
+
+	if channels, err := app.GetPublicChannels(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(channels.ToJson()))
 		return
 	}
 }

@@ -524,6 +524,40 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetPublicChannels(teamId string, offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data,
+			`SELECT
+			    *
+			FROM
+			    Channels
+			WHERE
+			    TeamId = :TeamId
+					AND Type IN ('O')
+					AND DeleteAt = 0
+			ORDER BY DisplayName
+			LIMIT :Limit
+			OFFSET :Offset`,
+			map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetPublicChannels", "store.sql_channel.get_public_channels.get.app_error", nil, "teamId="+teamId+", err="+err.Error())
+		} else {
+			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 type channelIdWithCountAndUpdateAt struct {
 	Id            string
 	TotalMsgCount int64
