@@ -359,6 +359,10 @@
 }
 
 .post-create__container {
+    .custom-textarea {
+        overflow: hidden;
+    }
+
     form {
         margin: 0 auto;
         padding: .5em 15px 0;
@@ -376,6 +380,7 @@
             }
 
             .custom-textarea {
+                overflow: auto;
                 padding-right: 43px;
             }
         }
