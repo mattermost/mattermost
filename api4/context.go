@@ -396,6 +396,17 @@ func (c *Context) RequireFileId() *Context {
 	return c
 }
 
+func (c *Context) RequireReportId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.ReportId) != 26 {
+		c.SetInvalidUrlParam("report_id")
+	}
+	return c
+}
+
 func (c *Context) RequireTeamName() *Context {
 	if c.Err != nil {
 		return c
