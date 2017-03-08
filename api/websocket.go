@@ -21,7 +21,7 @@ func InitWebSocket() {
 }
 
 type OriginCheckerProc func(*http.Request) bool
-	
+
 func OriginChecker(r *http.Request) bool {
 	origin := r.Header.Get("Origin")
 	return *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin)
@@ -38,7 +38,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,
-		CheckOrigin: originChecker,
+		CheckOrigin:     originChecker,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
