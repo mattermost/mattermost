@@ -58,6 +58,7 @@ type JwtKey struct {
 	Audience      *string
 	Key           *string
 	SigningMethod *string
+	KeyEncoding   *string
 }
 
 type ServiceSettings struct {

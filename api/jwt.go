@@ -2,6 +2,7 @@
 package api
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 
 	l4g "github.com/alecthomas/log4go"
@@ -31,6 +32,11 @@ func lookupSecret(token *jwt.Token) (interface{}, error) {
 			return nil, fmt.Errorf(
 				"Unexpected signing method: %v (%v)", alg, ok)
 		}
+		if key.KeyEncoding != nil && *key.KeyEncoding == "base64" {
+			return b64.URLEncoding.DecodeString(*key.Key)
+		} else {
+			return []byte(*key.Key), nil
+		}
 	} else if *key.SigningMethod == "RSA" {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf(
@@ -46,8 +52,6 @@ func lookupSecret(token *jwt.Token) (interface{}, error) {
 		return nil, fmt.Errorf("Unsupported signing method: %s",
 			*key.SigningMethod)
 	}
-
-	return []byte(*key.Key), nil
 }
 
 func findKey(keys *[]model.JwtKey, aud *string) *model.JwtKey {
