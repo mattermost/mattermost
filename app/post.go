@@ -180,40 +180,20 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
-func parseSlackAttachment(post *model.Post, attachments interface{}) {
+func parseSlackAttachment(post *model.Post, attachments []*model.SlackAttachment) {
 	post.Type = model.POST_SLACK_ATTACHMENT
 
-	if list, success := attachments.([]interface{}); success {
-		for i, aInt := range list {
-			attachment := aInt.(map[string]interface{})
-			if aText, ok := attachment["text"].(string); ok {
-				aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-				attachment["text"] = aText
-				list[i] = attachment
-			}
-			if aText, ok := attachment["pretext"].(string); ok {
-				aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-				attachment["pretext"] = aText
-				list[i] = attachment
-			}
-			if fVal, ok := attachment["fields"]; ok {
-				if fields, ok := fVal.([]interface{}); ok {
-					// parse attachment field links into Markdown format
-					for j, fInt := range fields {
-						field := fInt.(map[string]interface{})
-						if fValue, ok := field["value"].(string); ok {
-							fValue = linkWithTextRegex.ReplaceAllString(fValue, "[${2}](${1})")
-							field["value"] = fValue
-							fields[j] = field
-						}
-					}
-					attachment["fields"] = fields
-					list[i] = attachment
-				}
+	for _, attachment := range attachments {
+		attachment.Text = parseSlackLinksToMarkdown(attachment.Text)
+		attachment.Pretext = parseSlackLinksToMarkdown(attachment.Pretext)
+
+		for _, field := range attachment.Fields {
+			if value, ok := field.Value.(string); ok {
+				field.Value = parseSlackLinksToMarkdown(value)
 			}
 		}
-		post.AddProp("attachments", list)
 	}
+	post.AddProp("attachments", attachments)
 }
 
 func parseSlackLinksToMarkdown(text string) string {
