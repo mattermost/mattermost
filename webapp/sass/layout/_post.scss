@@ -359,6 +359,10 @@
 }
 
 .post-create__container {
+    .custom-textarea {
+        overflow: hidden;
+    }
+
     form {
         margin: 0 auto;
         padding: .5em 15px 0;
@@ -376,6 +380,8 @@
             }
 
             .custom-textarea {
+                -ms-overflow-style: auto;
+                overflow: auto;
                 padding-right: 43px;
             }
         }
@@ -523,6 +529,7 @@
             .col__reply {
                 min-width: 0;
             }
+
             .dropdown {
                 margin-right: 0;
             }
