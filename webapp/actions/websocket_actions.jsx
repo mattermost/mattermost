@@ -89,6 +89,26 @@ export function reconnect(includeWebSocket = true) {
     ErrorStore.emitChange();
 }
 
+let intervalId = '';
+const SYNC_INTERVAL_MILLISECONDS = 1000 * 60 * 15; // 15 minutes
+
+export function startPeriodicSync() {
+    clearInterval(intervalId);
+
+    intervalId = setInterval(
+        () => {
+            if (UserStore.getCurrentUser() != null) {
+                reconnect(false);
+            }
+        },
+        SYNC_INTERVAL_MILLISECONDS
+    );
+}
+
+export function stopPeriodicSync() {
+    clearInterval(intervalId);
+}
+
 function handleFirstConnect() {
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
