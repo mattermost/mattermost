@@ -32,7 +32,7 @@ export function isMac() {
 }
 
 export function cmdOrCtrlPressed(e) {
-    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
+    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
 }
 
 export function isInRole(roles, inRole) {
