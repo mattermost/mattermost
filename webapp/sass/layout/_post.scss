@@ -3,7 +3,7 @@
 .custom-textarea {
     background: transparent;
     border: 1px solid #cccccc;
-    height: auto;
+    height: 100%;
     line-height: 20px;
     min-height: 36px;
     overflow-x: hidden;
@@ -576,6 +576,12 @@
             }
         }
 
+        &.post--system {
+            .status {
+                visibility: hidden;
+            }
+        }
+
         .post__img {
             padding-top: 0;
         }
@@ -583,6 +589,7 @@
         .status-wrapper {
             cursor: auto;
             height: 14px;
+            pointer-events: none;
 
             .status {
                 bottom: auto;
