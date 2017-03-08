@@ -380,6 +380,7 @@
             }
 
             .custom-textarea {
+                -ms-overflow-style: auto;
                 overflow: auto;
                 padding-right: 43px;
             }
@@ -528,6 +529,7 @@
             .col__reply {
                 min-width: 0;
             }
+
             .dropdown {
                 margin-right: 0;
             }
