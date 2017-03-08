@@ -123,7 +123,7 @@ func RemoveSamlPublicCertificate() *model.AppError {
 	*cfg = *utils.Cfg
 
 	*cfg.SamlSettings.PublicCertificateFile = ""
-	*cfg.SamlSettings.Enable = false
+	*cfg.SamlSettings.Encrypt = false
 
 	if err := cfg.IsValid(); err != nil {
 		return err
@@ -144,7 +144,7 @@ func RemoveSamlPrivateCertificate() *model.AppError {
 	*cfg = *utils.Cfg
 
 	*cfg.SamlSettings.PrivateKeyFile = ""
-	*cfg.SamlSettings.Enable = false
+	*cfg.SamlSettings.Encrypt = false
 
 	if err := cfg.IsValid(); err != nil {
 		return err
