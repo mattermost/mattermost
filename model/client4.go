@@ -654,6 +654,17 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	}
 }
 
+// GetTeamMembersByIds will return team member objects as an array based on the
+// team id and a list of user ids provided. Must be authenticated.
+func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamMember, *Response) {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJson(userIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.
