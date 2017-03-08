@@ -19,7 +19,7 @@ const (
 	WRITE_WAIT   = 10 * time.Second
 	PONG_WAIT    = 60 * time.Second
 	PING_PERIOD  = (PONG_WAIT * 9) / 10
-	MAX_SIZE     = 512
+	MAX_SIZE     = 8192
 	REDIS_WAIT   = 60 * time.Second
 	AUTH_TIMEOUT = 5 * time.Second
 )
