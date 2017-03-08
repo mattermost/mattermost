@@ -203,7 +203,7 @@ test-server: start-docker prepare-enterprise
 	echo "mode: count" > cover.out
 
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=1050s -covermode=count -coverprofile=capi.out ./api || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s -covermode=count -coverprofile=capi4.out ./api4 || exit 1
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=800s -covermode=count -coverprofile=capi4.out ./api4 || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=capp.out ./app || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
 	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s -covermode=count -coverprofile=cstore.out ./store || exit 1
