@@ -46,10 +46,10 @@ export function emitChannelClickEvent(channel) {
     }
     function switchToChannel(chan) {
         const channelMember = ChannelStore.getMyMember(chan.id);
-        const getMyChannelMembersPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
+        const getMyChannelMemberPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
         const oldChannelId = ChannelStore.getCurrentId();
 
-        getMyChannelMembersPromise.then(() => {
+        getMyChannelMemberPromise.then(() => {
             AsyncClient.getChannelStats(chan.id, true);
             AsyncClient.viewChannel(chan.id, oldChannelId);
             loadPosts(chan.id);
