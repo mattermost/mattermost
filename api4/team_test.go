@@ -464,6 +464,102 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUpdateTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	team.Description = "updated description"
+	uteam, resp := Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.Description != "updated description" {
+		t.Fatal("Update failed")
+	}
+
+	team.DisplayName = "Updated Name"
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.DisplayName != "Updated Name" {
+		t.Fatal("Update failed")
+	}
+
+	team.AllowOpenInvite = true
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.AllowOpenInvite != true {
+		t.Fatal("Update failed")
+	}
+
+	team.InviteId = "inviteid1"
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.InviteId != "inviteid1" {
+		t.Fatal("Update failed")
+	}
+
+	team.Name = "Updated name"
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.Name == "Updated name" {
+		t.Fatal("Should not update name")
+	}
+
+	team.Email = "test@domain.com"
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.Email == "test@domain.com" {
+		t.Fatal("Should not update email")
+	}
+
+	team.Type = model.TEAM_INVITE
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.Type == model.TEAM_INVITE {
+		t.Fatal("Should not update type")
+	}
+
+	team.AllowedDomains = "domain"
+	uteam, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+
+	if uteam.AllowedDomains == "domain" {
+		t.Fatal("Should not update allowed_domains")
+	}
+
+	initial_team_id := team.Id
+	team.Id = model.NewId()
+
+	if r, err := Client.DoApiPut(Client.GetTeamRoute(initial_team_id), team.ToJson()); err != nil {
+		t.Fatal("should have errored")
+	} else {
+		uteam = model.TeamFromJson(r.Body)
+	}
+
+	CheckNoError(t, resp)
+
+	if uteam.Id != initial_team_id {
+		t.Fatal("wrong team id")
+	}
+
+	team.Id = "fake"
+	_, resp = Client.UpdateTeam(team)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdateTeam(team)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetMyTeamsUnread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
