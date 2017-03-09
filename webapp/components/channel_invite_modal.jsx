@@ -107,15 +107,16 @@ export default class ChannelInviteModal extends React.Component {
     }
 
     search(term) {
+        clearTimeout(this.searchTimeoutId);
+
         this.term = term;
 
         if (term === '') {
             this.onChange(true);
             this.setState({search: false});
+            this.searchTimeoutId = '';
             return;
         }
-
-        clearTimeout(this.searchTimeoutId);
 
         const searchTimeoutId = setTimeout(
             () => {
