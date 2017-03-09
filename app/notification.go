@@ -286,7 +286,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
-	message.Add("channel_display_name", channel.DisplayName)
+	message.Add("channel_display_name", channelName)
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", senderUsername)
 	message.Add("team_id", team.Id)
