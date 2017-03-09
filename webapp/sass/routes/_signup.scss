@@ -450,6 +450,7 @@
     .signup-team-dir {
         background: #fafafa;
         border-top: 1px solid #d5d5d5;
+        overflow: hidden;
 
         &:first-child {
             border: none;
@@ -458,7 +459,7 @@
         .icon {
             cursor: pointer;
             float: left;
-            margin: 18px 7px 0 15px;
+            margin: 16px 7px 0 15px;
             opacity: .45;
 
             svg {

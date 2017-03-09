@@ -275,6 +275,7 @@ export default class ActivityLogModal extends React.Component {
 
         return (
             <Modal
+                dialogClassName='modal--scroll'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onHide}
