@@ -349,7 +349,7 @@ export default class CreateComment extends React.Component {
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         // Focus on preview if needed
-        this.refs.preview.refs.container.scrollIntoViewIfNeeded();
+        this.refs.preview.refs.container.scrollIntoView();
 
         const enableAddButton = this.handleEnableAddButton(draft.message, draft.fileInfos);
 
