@@ -550,6 +550,13 @@
         }
 
         .modal {
+            .modal--scroll {
+                .modal-body {
+                    max-height: calc(100vh - 62px);
+                    overflow: auto;
+                }
+            }
+
             .nav-pills {
                 > li {
                     &.active {

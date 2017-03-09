@@ -15,13 +15,6 @@
         padding: 20px 15px;
     }
 
-    .modal--scroll {
-        .modal-body {
-            max-height: calc(100vh - 62px);
-            overflow: auto;
-        }
-    }
-
     .edit-modal-body {
         overflow: visible;
 
