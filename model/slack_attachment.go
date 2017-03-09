@@ -4,6 +4,7 @@
 package model
 
 type SlackAttachment struct {
+	Id         string                  `json:"id"`
 	Fallback   string                  `json:"fallback"`
 	Color      string                  `json:"color"`
 	Pretext    string                  `json:"pretext"`
