@@ -16,7 +16,7 @@ func InitSystem() {
 	l4g.Debug(utils.T("api.system.init.debug"))
 
 	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
-	BaseRoutes.System.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
+	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
