@@ -925,6 +925,16 @@ func (c *Client4) GetPing() (bool, *Response) {
 	}
 }
 
+// GetConfig will retrieve the server config with some sanitized items.
+func (c *Client4) GetConfig() (*Config, *Response) {
+	if r, err := c.DoApiGet(c.GetSystemRoute()+"/config", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ConfigFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Webhooks Section
 
 // CreateIncomingWebhook creates an incoming webhook for a channel.
