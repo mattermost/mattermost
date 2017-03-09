@@ -4,7 +4,7 @@
 package model
 
 type SlackAttachment struct {
-	Id         string                  `json:"id"`
+	Id         int64                   `json:"id"`
 	Fallback   string                  `json:"fallback"`
 	Color      string                  `json:"color"`
 	Pretext    string                  `json:"pretext"`
@@ -19,7 +19,7 @@ type SlackAttachment struct {
 	ThumbURL   string                  `json:"thumb_url"`
 	Footer     string                  `json:"footer"`
 	FooterIcon string                  `json:"footer_icon"`
-	Timestamp  int64                   `json:"ts"`
+	Timestamp  interface{}             `json:"ts"` // This is either a string or an int64
 }
 
 type SlackAttachmentField struct {
