@@ -645,7 +645,7 @@ export function checkMfa(loginId, success, error) {
         loginId,
         (data) => {
             if (success) {
-                success(data);
+                success(data && data.mfa_required === 'true');
             }
         },
         (err) => {
