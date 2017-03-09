@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestCreateTeam(t *testing.T) {
