@@ -212,12 +212,11 @@ func TestEmail(userId string, cfg *model.Config) *model.AppError {
 			return model.NewLocAppError("testEmail", "api.admin.test_email.reenter_password", nil, "")
 		}
 	}
-
 	if user, err := GetUser(userId); err != nil {
 		return err
 	} else {
 		T := utils.GetUserTranslations(user.Locale)
-		if err := utils.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg); err != nil {
+		if err := utils.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), T("api.admin.test_email.body"), cfg); err != nil {
 			return err
 		}
 	}

@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/jaytaylor/html2text"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -105,9 +106,11 @@ func DoSecurityUpdateCheck() {
 									return
 								}
 
+								textBody, _ := html2text.FromString(string(body))
+
 								for _, user := range users {
 									l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
-									utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
+									utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body), textBody)
 								}
 							}
 

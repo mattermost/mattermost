@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/jaytaylor/html2text"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -26,7 +27,10 @@ func SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL st
 	bodyPage.Html["Info"] = template.HTML(T("api.templates.username_change_body.info",
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewUsername": newUsername}))
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(email, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error())
 	}
 
@@ -50,7 +54,10 @@ func SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) *mo
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["VerifyButton"] = T("api.templates.email_change_verify_body.button")
 
-	if err := utils.SendMail(newUserEmail, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(newUserEmail, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendEmailChangeVerifyEmail", "api.user.send_email_change_verify_email_and_forget.error", nil, err.Error())
 	}
 
@@ -70,7 +77,10 @@ func SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.App
 	bodyPage.Html["Info"] = template.HTML(T("api.templates.email_change_body.info",
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewEmail": newEmail}))
 
-	if err := utils.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(oldEmail, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendEmailChangeEmail", "api.user.send_email_change_email_and_forget.error", nil, err.Error())
 	}
 
@@ -94,7 +104,10 @@ func SendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError {
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 
-	if err := utils.SendMail(userEmail, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(userEmail, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error())
 	}
 
@@ -113,7 +126,10 @@ func SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppErro
 	bodyPage.Html["Info"] = template.HTML(T("api.templates.signin_change_email.body.info",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(email, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error())
 	}
 
@@ -152,7 +168,10 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(email, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error())
 	}
 
@@ -172,7 +191,10 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 	bodyPage.Html["Info"] = template.HTML(T("api.templates.password_change_body.info",
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "TeamURL": siteURL, "Method": method}))
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(email, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendPasswordChangeEmail", "api.user.send_password_change_email_and_forget.error", nil, err.Error())
 	}
 
@@ -213,7 +235,10 @@ func SendPasswordResetEmail(email string, token *model.Token, locale, siteURL st
 	bodyPage.Props["ResetUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(email, subject, renderedHtmlBody, textBody); err != nil {
 		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
 	}
 
@@ -241,7 +266,10 @@ func SendMfaChangeEmail(email string, activated bool, locale, siteURL string) *m
 	bodyPage.Html["Info"] = template.HTML(T(bodyText,
 		map[string]interface{}{"SiteURL": siteURL}))
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	renderedHtmlBody := bodyPage.Render()
+	textBody, _ := html2text.FromString(renderedHtmlBody)
+
+	if err := utils.SendMail(email, subject, renderedHtmlBody, textBody); err != nil {
 		return model.NewLocAppError("SendMfaChangeEmail", "api.user.send_mfa_change_email.error", nil, err.Error())
 	}
 
@@ -281,7 +309,10 @@ func SendInviteEmails(team *model.Team, senderName string, invites []string, sit
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
 			}
 
-			if err := utils.SendMail(invite, subject, bodyPage.Render()); err != nil {
+			renderedHtmlBody := bodyPage.Render()
+			textBody, _ := html2text.FromString(renderedHtmlBody)
+
+			if err := utils.SendMail(invite, subject, renderedHtmlBody, textBody); err != nil {
 				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
 			}
 		}

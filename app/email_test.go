@@ -70,7 +70,7 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 
 	var newUserEmail string = "newtest@example.com"
 	var locale string = "en"
-	var siteURL string = ""
+	var siteURL string = "http://localhost:8065"
 	var expectedPartialMessage string = "You updated your email"
 	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Verify new email address"
 	var token string = "TEST_TOKEN"
@@ -174,7 +174,7 @@ func TestSendVerifyEmail(t *testing.T) {
 
 	var userEmail string = "test@example.com"
 	var locale string = "en"
-	var siteURL string = ""
+	var siteURL string = "http://localhost:8605"
 	var expectedPartialMessage string = "Please verify your email address by clicking below"
 	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Email Verification"
 	var token string = "TEST_TOKEN"
