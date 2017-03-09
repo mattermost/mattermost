@@ -77,7 +77,7 @@ export default class NewChannelModal extends React.Component {
         e.preventDefault();
 
         const displayName = ReactDOM.findDOMNode(this.refs.display_name).value.trim();
-        if (displayName.length < 1) {
+        if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
             this.setState({displayNameError: true});
             return;
         }
