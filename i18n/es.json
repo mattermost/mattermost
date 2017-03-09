@@ -1516,6 +1516,10 @@
     "translation": "Inicializando rutas del API para los mensajes"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Vistas previas de los enlaces han sido deshabilitadas por el administrador del sistema."
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "Falla al obtener 2 miembros para un canal directo channel_id={{.ChannelId}}"
   },

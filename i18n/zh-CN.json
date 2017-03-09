@@ -1516,6 +1516,10 @@
     "translation": "正在初始化发文 API 路由"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "链接预览已被系统管理员禁用。"
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "获取私聊频道的2个用户失败 channel_id={{.ChannelId}}"
   },
