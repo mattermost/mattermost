@@ -91,6 +91,8 @@ export default class MemberListChannel extends React.Component {
     }
 
     search(term) {
+        clearTimeout(this.searchTimeoutId);
+
         if (term === '') {
             this.setState({
                 search: false,
@@ -99,10 +101,9 @@ export default class MemberListChannel extends React.Component {
                 teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
                 channelMembers: Object.assign([], ChannelStore.getMembersInChannel())
             });
+            this.searchTimeoutId = '';
             return;
         }
-
-        clearTimeout(this.searchTimeoutId);
 
         const searchTimeoutId = setTimeout(
             () => {
