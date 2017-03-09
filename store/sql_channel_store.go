@@ -524,7 +524,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	return storeChannel
 }
 
-func (s SqlChannelStore) GetPublicChannels(teamId string, offset int, limit int) StoreChannel {
+func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -538,7 +538,7 @@ func (s SqlChannelStore) GetPublicChannels(teamId string, offset int, limit int)
 			    Channels
 			WHERE
 			    TeamId = :TeamId
-					AND Type IN ('O')
+					AND Type = 'O'
 					AND DeleteAt = 0
 			ORDER BY DisplayName
 			LIMIT :Limit
@@ -546,7 +546,7 @@ func (s SqlChannelStore) GetPublicChannels(teamId string, offset int, limit int)
 			map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset})
 
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlChannelStore.GetPublicChannels", "store.sql_channel.get_public_channels.get.app_error", nil, "teamId="+teamId+", err="+err.Error())
+			result.Err = model.NewLocAppError("SqlChannelStore.GetPublicChannelsForTeam", "store.sql_channel.get_public_channels.get.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		} else {
 			result.Data = data
 		}

@@ -18,7 +18,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("", ApiSessionRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 
-	BaseRoutes.Team.Handle("/channels", ApiSessionRequired(getPublicChannels)).Methods("GET")
+	BaseRoutes.Team.Handle("/channels", ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
 
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
 	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
@@ -117,7 +117,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getPublicChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -128,7 +128,7 @@ func getPublicChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channels, err := app.GetPublicChannels(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
+	if channels, err := app.GetPublicChannelsForTeam(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {

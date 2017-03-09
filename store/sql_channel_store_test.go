@@ -775,7 +775,7 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	}
 }
 
-func TestChannelStoreGetPublicChannels(t *testing.T) {
+func TestChannelStoreGetPublicChannelsForTeam(t *testing.T) {
 	Setup()
 
 	o1 := model.Channel{}
@@ -792,12 +792,6 @@ func TestChannelStoreGetPublicChannels(t *testing.T) {
 	o2.Type = model.CHANNEL_OPEN
 	Must(store.Channel().Save(&o2))
 
-	m3 := model.ChannelMember{}
-	m3.ChannelId = o2.Id
-	m3.UserId = model.NewId()
-	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m3))
-
 	o3 := model.Channel{}
 	o3.TeamId = o1.TeamId
 	o3.DisplayName = "PrivateChannel1Team1"
@@ -805,7 +799,7 @@ func TestChannelStoreGetPublicChannels(t *testing.T) {
 	o3.Type = model.CHANNEL_PRIVATE
 	Must(store.Channel().Save(&o3))
 
-	cresult := <-store.Channel().GetPublicChannels(o1.TeamId, 0, 100)
+	cresult := <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 0, 100)
 	if cresult.Err != nil {
 		t.Fatal(cresult.Err)
 	}
@@ -826,21 +820,21 @@ func TestChannelStoreGetPublicChannels(t *testing.T) {
 	o4.Type = model.CHANNEL_OPEN
 	Must(store.Channel().Save(&o4))
 
-	cresult = <-store.Channel().GetPublicChannels(o1.TeamId, 0, 100)
+	cresult = <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 0, 100)
 	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 2 {
 		t.Fatal("wrong list length")
 	}
 
-	cresult = <-store.Channel().GetPublicChannels(o1.TeamId, 0, 1)
+	cresult = <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 0, 1)
 	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list length")
 	}
 
-	cresult = <-store.Channel().GetPublicChannels(o1.TeamId, 1, 1)
+	cresult = <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 1, 1)
 	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
