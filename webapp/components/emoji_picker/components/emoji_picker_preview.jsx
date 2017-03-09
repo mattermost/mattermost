@@ -33,7 +33,6 @@ export default class EmojiPickerPreview extends React.Component {
                     <div className='emoji-picker__preview-image-box'>
                         <img
                             className='emoji-picker__preview-image'
-                            align='absmiddle'
                             src={EmojiStore.getEmojiImageUrl(emoji)}
                         />
                     </div>

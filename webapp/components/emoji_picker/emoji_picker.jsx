@@ -72,12 +72,14 @@ class EmojiPicker extends React.Component {
     }
 
     handleCategoryClick(category) {
+        const items = ReactDOM.findDOMNode(this.refs.items);
+
         if (category === CATEGORIES[0]) {
             // First category includes the search box so just scroll to the top
-            const items = ReactDOM.findDOMNode(this.refs.items);
             items.scrollTop = 0;
         } else {
-            ReactDOM.findDOMNode(this.refs[category]).scrollIntoView();
+            const cat = ReactDOM.findDOMNode(this.refs[category]);
+            items.scrollTop = cat.offsetTop;
         }
     }
 
@@ -220,6 +222,7 @@ class EmojiPicker extends React.Component {
         return (
             <div
                 key={'category_' + category}
+                id={'emojipickercat-' + category}
                 ref={category}
             >
                 {header}
@@ -390,6 +393,7 @@ class EmojiPicker extends React.Component {
                 </div>
                 <div
                     ref='items'
+                    id='emojipickeritems'
                     className='emoji-picker__items'
                     onScroll={this.handleScroll}
                 >
