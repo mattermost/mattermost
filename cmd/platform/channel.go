@@ -168,7 +168,7 @@ func removeUserFromChannel(channel *model.Channel, user *model.User, userArg str
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.RemoveUserFromChannel(user.Id, "", channel); err != nil {
+	if err := app.RemoveUserFromChannel(user.Id, "", channel, utils.GetSiteURL()); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }

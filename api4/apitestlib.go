@@ -296,7 +296,7 @@ func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := app.JoinUserToTeam(team, user)
+	err := app.JoinUserToTeam(team, user, utils.GetSiteURL())
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()

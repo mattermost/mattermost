@@ -18,7 +18,7 @@ func TestSendNotifications(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
-	}, th.BasicTeam.Id, true)
+	}, th.BasicTeam.Id, true, utils.GetSiteURL())
 
 	if postErr != nil {
 		t.Fatal(postErr)

@@ -274,7 +274,7 @@ func cmdCreateUser() {
 		}
 
 		if team != nil {
-			err = app.JoinUserToTeam(team, ruser)
+			err = app.JoinUserToTeam(team, ruser, utils.GetSiteURL())
 			if err != nil {
 				l4g.Error("%v", err)
 				flushLogAndExit(1)
@@ -546,7 +546,7 @@ func cmdLeaveChannel() {
 			channel = result.Data.(*model.Channel)
 		}
 
-		err := app.RemoveUserFromChannel(user.Id, user.Id, channel)
+		err := app.RemoveUserFromChannel(user.Id, user.Id, channel, utils.GetSiteURL())
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)
@@ -673,7 +673,7 @@ func cmdJoinTeam() {
 			user = result.Data.(*model.User)
 		}
 
-		err := app.JoinUserToTeam(team, user)
+		err := app.JoinUserToTeam(team, user, utils.GetSiteURL())
 		if err != nil {
 			l4g.Error("%v", err)
 			flushLogAndExit(1)

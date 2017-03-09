@@ -86,7 +86,7 @@ func (me *msgProvider) DoCommand(c *Context, args *model.CommandArgs, message st
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = c.Session.UserId
-		if _, err := app.CreatePost(post, c.TeamId, true); err != nil {
+		if _, err := app.CreatePost(post, c.TeamId, true, c.GetSiteURL()); err != nil {
 			return &model.CommandResponse{Text: c.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
