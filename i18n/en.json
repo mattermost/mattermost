@@ -4,10 +4,6 @@
     "translation": "April"
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
-  },
-  {
     "id": "August",
     "translation": "August"
   },
@@ -1518,6 +1514,10 @@
   {
     "id": "api.post.init.debug",
     "translation": "Initializing post API routes"
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Link previews have been disabled by the system administrator."
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",

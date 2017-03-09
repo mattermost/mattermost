@@ -1516,6 +1516,10 @@
     "translation": "正在初始化貼文 API 路徑"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "連結預覽已被系統管理員停用"
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "取得直接訊息頻道的兩位成員失敗 channel_id={{.ChannelId}}"
   },
