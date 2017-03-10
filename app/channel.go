@@ -32,7 +32,7 @@ func CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
 	return channels, nil
 }
 
-func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *model.AppError {
+func JoinDefaultChannels(teamId string, user *model.User, channelRole string, siteURL string) *model.AppError {
 	var err *model.AppError = nil
 
 	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square", true); result.Err != nil {
@@ -47,7 +47,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			err = cmResult.Err
 		}
 
-		if err := postJoinChannelMessage(user, townSquare); err != nil {
+		if err := postJoinChannelMessage(user, townSquare, siteURL); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
 
@@ -66,7 +66,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			err = cmResult.Err
 		}
 
-		if err := postJoinChannelMessage(user, offTopic); err != nil {
+		if err := postJoinChannelMessage(user, offTopic, siteURL); err != nil {
 			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 		}
 
@@ -310,7 +310,7 @@ func UpdateChannelMemberNotifyProps(data map[string]string, channelId string, us
 	}
 }
 
-func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
+func DeleteChannel(channel *model.Channel, userId string, siteURL string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 	ihc := Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
 	ohc := Srv.Store.Webhook().GetOutgoingByChannel(channel.Id)
@@ -350,7 +350,7 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 			},
 		}
 
-		if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+		if _, err := CreatePost(post, channel.TeamId, false, siteURL); err != nil {
 			l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
 		}
 
@@ -482,7 +482,7 @@ func AddDirectChannels(teamId string, user *model.User) *model.AppError {
 	return nil
 }
 
-func PostUpdateChannelHeaderMessage(userId string, channelId string, teamId string, oldChannelHeader, newChannelHeader string) *model.AppError {
+func PostUpdateChannelHeaderMessage(userId string, channelId string, teamId string, oldChannelHeader, newChannelHeader string, siteURL string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 
 	if uresult := <-uc; uresult.Err != nil {
@@ -511,7 +511,7 @@ func PostUpdateChannelHeaderMessage(userId string, channelId string, teamId stri
 			},
 		}
 
-		if _, err := CreatePost(post, teamId, false); err != nil {
+		if _, err := CreatePost(post, teamId, false, siteURL); err != nil {
 			return model.NewLocAppError("", "api.channel.post_update_channel_header_message_and_forget.post.error", nil, err.Error())
 		}
 	}
@@ -519,7 +519,7 @@ func PostUpdateChannelHeaderMessage(userId string, channelId string, teamId stri
 	return nil
 }
 
-func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId string, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId string, oldChannelPurpose string, newChannelPurpose string, siteURL string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 
 	if uresult := <-uc; uresult.Err != nil {
@@ -547,7 +547,7 @@ func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId str
 				"new_purpose": newChannelPurpose,
 			},
 		}
-		if _, err := CreatePost(post, teamId, false); err != nil {
+		if _, err := CreatePost(post, teamId, false, siteURL); err != nil {
 			return model.NewLocAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, err.Error())
 		}
 	}
@@ -555,7 +555,7 @@ func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId str
 	return nil
 }
 
-func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId string, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
+func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId string, oldChannelDisplayName, newChannelDisplayName string, siteURL string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 
 	if uresult := <-uc; uresult.Err != nil {
@@ -577,7 +577,7 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 			},
 		}
 
-		if _, err := CreatePost(post, teamId, false); err != nil {
+		if _, err := CreatePost(post, teamId, false, siteURL); err != nil {
 			return model.NewLocAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, err.Error())
 		}
 	}
@@ -694,7 +694,7 @@ func GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *mode
 	}
 }
 
-func JoinChannel(channel *model.Channel, userId string) *model.AppError {
+func JoinChannel(channel *model.Channel, userId string, siteURL string) *model.AppError {
 	userChan := Srv.Store.User().Get(userId)
 	memberChan := Srv.Store.Channel().GetMember(channel.Id, userId)
 
@@ -711,7 +711,7 @@ func JoinChannel(channel *model.Channel, userId string) *model.AppError {
 				return err
 			}
 
-			if err := postJoinChannelMessage(user, channel); err != nil {
+			if err := postJoinChannelMessage(user, channel, siteURL); err != nil {
 				return err
 			}
 		} else {
@@ -722,7 +722,7 @@ func JoinChannel(channel *model.Channel, userId string) *model.AppError {
 	return nil
 }
 
-func postJoinChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
+func postJoinChannelMessage(user *model.User, channel *model.Channel, siteURL string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(utils.T("api.channel.join_channel.post_and_forget"), user.Username),
@@ -733,14 +733,14 @@ func postJoinChannelMessage(user *model.User, channel *model.Channel) *model.App
 		},
 	}
 
-	if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+	if _, err := CreatePost(post, channel.TeamId, false, siteURL); err != nil {
 		return model.NewLocAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
 	}
 
 	return nil
 }
 
-func LeaveChannel(channelId string, userId string) *model.AppError {
+func LeaveChannel(channelId string, userId string, siteURL string) *model.AppError {
 	sc := Srv.Store.Channel().Get(channelId, true)
 	uc := Srv.Store.User().Get(userId)
 	ccm := Srv.Store.Channel().GetMemberCount(channelId, false)
@@ -772,13 +772,13 @@ func LeaveChannel(channelId string, userId string) *model.AppError {
 			return err
 		}
 
-		go postLeaveChannelMessage(user, channel)
+		go postLeaveChannelMessage(user, channel, siteURL)
 	}
 
 	return nil
 }
 
-func postLeaveChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
+func postLeaveChannelMessage(user *model.User, channel *model.Channel, siteURL string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(utils.T("api.channel.leave.left"), user.Username),
@@ -789,14 +789,14 @@ func postLeaveChannelMessage(user *model.User, channel *model.Channel) *model.Ap
 		},
 	}
 
-	if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+	if _, err := CreatePost(post, channel.TeamId, false, siteURL); err != nil {
 		return model.NewLocAppError("postLeaveChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
 	}
 
 	return nil
 }
 
-func PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel) *model.AppError {
+func PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, siteURL string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
@@ -808,14 +808,14 @@ func PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *m
 		},
 	}
 
-	if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+	if _, err := CreatePost(post, channel.TeamId, false, siteURL); err != nil {
 		return model.NewLocAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
 	}
 
 	return nil
 }
 
-func PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+func PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel, siteURL string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
@@ -826,7 +826,7 @@ func PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User,
 		},
 	}
 
-	if _, err := CreatePost(post, channel.TeamId, false); err != nil {
+	if _, err := CreatePost(post, channel.TeamId, false, siteURL); err != nil {
 		return model.NewLocAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error())
 	}
 
@@ -865,7 +865,7 @@ func removeUserFromChannel(userIdToRemove string, removerUserId string, channel 
 	return nil
 }
 
-func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel, siteURL string) *model.AppError {
 	var err *model.AppError
 	if err = removeUserFromChannel(userIdToRemove, removerUserId, channel); err != nil {
 		return err
@@ -876,7 +876,7 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 		return err
 	}
 
-	go PostRemoveFromChannelMessage(removerUserId, user, channel)
+	go PostRemoveFromChannelMessage(removerUserId, user, channel, siteURL)
 
 	return nil
 }

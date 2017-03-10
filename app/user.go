@@ -29,7 +29,7 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
+func CreateUserWithHash(user *model.User, hash string, data string, siteURL string) (*model.User, *model.AppError) {
 	if err := IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func CreateUserWithHash(user *model.User, hash string, data string) (*model.User
 		return nil, err
 	}
 
-	if err := JoinUserToTeam(team, ruser); err != nil {
+	if err := JoinUserToTeam(team, ruser, siteURL); err != nil {
 		return nil, err
 	}
 
@@ -91,7 +91,7 @@ func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (
 		return nil, err
 	}
 
-	if err := JoinUserToTeam(team, ruser); err != nil {
+	if err := JoinUserToTeam(team, ruser, siteURL); err != nil {
 		return nil, err
 	}
 
@@ -216,7 +216,7 @@ func createUser(user *model.User) (*model.User, *model.AppError) {
 	}
 }
 
-func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func CreateOAuthUser(service string, userData io.Reader, teamId string, siteURL string) (*model.User, *model.AppError) {
 	if !utils.Cfg.TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -268,7 +268,7 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	}
 
 	if len(teamId) > 0 {
-		err = AddUserToTeamByTeamId(teamId, user)
+		err = AddUserToTeamByTeamId(teamId, user, siteURL)
 		if err != nil {
 			return nil, err
 		}

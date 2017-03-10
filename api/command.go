@@ -251,7 +251,7 @@ func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandRe
 		}
 	}
 
-	if _, err := app.CreateCommandPost(post, c.TeamId, response); err != nil {
+	if _, err := app.CreateCommandPost(post, c.TeamId, response, c.GetSiteURL()); err != nil {
 		l4g.Error(err.Error())
 	}
 

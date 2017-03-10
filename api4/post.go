@@ -45,7 +45,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := app.CreatePostAsUser(post)
+	rp, err := app.CreatePostAsUser(post, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -224,4 +224,3 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
 }
-
