@@ -186,6 +186,10 @@ func (c *Client4) GetSamlRoute() string {
 	return fmt.Sprintf("/saml")
 }
 
+func (c *Client4) GetLdapRoute() string {
+	return fmt.Sprintf("/ldap")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -1459,5 +1463,28 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response) {
 	} else {
 		defer closeBody(r)
 		return ClusterInfosFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// LDAP Section
+
+// SyncLdap will force a sync with the configured LDAP server.
+func (c *Client4) SyncLdap() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetLdapRoute()+"/sync", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// TestLdap will attempt to connect to the configured LDAP server and return OK if configured
+// correctly.
+func (c *Client4) TestLdap() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetLdapRoute()+"/test", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
