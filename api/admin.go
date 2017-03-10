@@ -142,7 +142,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	crs, err := app.GetComplianceReports()
+	crs, err := app.GetComplianceReports(0, 10000)
 	if err != nil {
 		c.Err = err
 		return

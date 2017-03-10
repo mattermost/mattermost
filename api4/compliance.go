@@ -54,7 +54,7 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	crs, err := app.GetComplianceReports()
+	crs, err := app.GetComplianceReports(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return

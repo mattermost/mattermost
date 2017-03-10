@@ -1298,8 +1298,9 @@ func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Resp
 }
 
 // GetComplianceReports returns list of compliance reports.
-func (c *Client4) GetComplianceReports() (Compliances, *Response) {
-	if r, err := c.DoApiGet(c.GetComplianceReportsRoute(), ""); err != nil {
+func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetComplianceReportsRoute()+query, ""); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)

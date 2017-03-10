@@ -228,7 +228,7 @@ type ComplianceStore interface {
 	Save(compliance *model.Compliance) StoreChannel
 	Update(compliance *model.Compliance) StoreChannel
 	Get(id string) StoreChannel
-	GetAll() StoreChannel
+	GetAll(offset, limit int) StoreChannel
 	ComplianceExport(compliance *model.Compliance) StoreChannel
 }
 

@@ -87,17 +87,17 @@ func (us SqlComplianceStore) Update(compliance *model.Compliance) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlComplianceStore) GetAll() StoreChannel {
+func (s SqlComplianceStore) GetAll(offset, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT * FROM Compliances ORDER BY CreateAt DESC"
+		query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 
 		var compliances model.Compliances
-		if _, err := s.GetReplica().Select(&compliances, query); err != nil {
+		if _, err := s.GetReplica().Select(&compliances, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error())
 		} else {
 			result.Data = compliances
