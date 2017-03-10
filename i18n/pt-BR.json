@@ -221,11 +221,11 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+    "translation": "Os canais de grupo de mensagem deve conter pelo menos 3 e não mais que 8 usuários"
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
-    "translation": "One of the provided users does not exist"
+    "translation": "Um dos usuários fornecidos não existe"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -901,7 +901,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message"
+    "translation": "Grupo de Mensagem"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1516,6 +1516,10 @@
     "translation": "Inicializando as rotas de API post"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Pré-visualizações de links foram desabilitados pelo administrador do sistema."
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "Falha ao obter 2 membros para o canal direto channel_id={{.ChannelId}}"
   },
@@ -1817,11 +1821,11 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+    "translation": "O usuário {{.Username}} não possui um endereço de email na exportação do Slack. Utilizando o {{.Email}} no lugar. O usuário deveria atualizar o seu endereço de email assim que se logar no sistema.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+    "translation": "O usuário {{.Username}} não possui um endereço de email na exportação do Slack. Utilizando o {{.Email}} no lugar. O usuário deveria atualizar o seu endereço de email assim que se logar no sistema."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2037,7 +2041,7 @@
   },
   {
     "id": "api.templates.channel_name.group",
-    "translation": "Group Message"
+    "translation": "Grupo de mensagem"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -2173,7 +2177,7 @@
   },
   {
     "id": "api.templates.post_subject_in_group_message",
-    "translation": "{{.SubjectText}} de {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "Novo grupo de mensagem de {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3081,11 +3085,11 @@
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Ability to create new group message channels"
+    "translation": "Capacidade de criar novo canal de grupo de mensagem"
   },
   {
     "id": "authentication.permissions.create_group_channel.name",
-    "translation": "Create Group Message"
+    "translation": "Criar grupo de mensagem"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -5097,7 +5101,7 @@
   },
   {
     "id": "store.sql_post.search.warn",
-    "translation": "Query error searching posts: %v"
+    "translation": "Error na query de procurar os posts: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5705,15 +5709,15 @@
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:  O DefaultClientLocale deve ser um dos idiomas suportados"
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:  O DefaultServerLocale deve ser um idioma suportado"
   },
   {
     "id": "utils.config.validate_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
+    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:  AvailableLocales deve ser incluir o DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
