@@ -204,9 +204,7 @@ export default class Post extends React.Component {
                     src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
                 />
             );
-        }
-
-        if (PostUtils.isSystemMessage(post)) {
+        } else if (PostUtils.isSystemMessage(post)) {
             profilePic = (
                 <span
                     className='icon'
