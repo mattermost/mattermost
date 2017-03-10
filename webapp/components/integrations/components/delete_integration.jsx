@@ -1,48 +1,29 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import ConfirmModal from '../../confirm_modal.jsx';
+import DeleteModalTrigger from '../../delete_modal_trigger.jsx';
 
-export default class DeleteIntegration extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
-        this.handleOpenModal = this.handleOpenModal.bind(this);
-
-        this.state = {
-            showDeleteModal: false
-        };
+export default class DeleteIntegration extends DeleteModalTrigger {
+    get triggerTitle() {
+        return (
+            <FormattedMessage
+                id='installed_integrations.delete'
+                defaultMessage='Delete'
+            />
+        );
     }
 
-    handleOpenModal(e) {
-        e.preventDefault();
-
-        this.setState({
-            showDeleteModal: true
-        });
-    }
-
-    handleConfirm() {
-        this.props.onDelete();
-    }
-
-    handleCancel() {
-        this.setState({
-            showDeleteModal: false
-        });
-    }
-
-    render() {
-        const title = (
+    get modalTitle() {
+        return (
             <FormattedMessage
                 id='integrations.delete.confirm.title'
                 defaultMessage='Delete Integration'
             />
         );
+    }
 
-        const message = (
+    get modalMessage() {
+        return (
             <div className='alert alert-warning'>
                 <i className='fa fa-warning'/>
                 <FormattedMessage
@@ -51,34 +32,14 @@ export default class DeleteIntegration extends React.Component {
                 />
             </div>
         );
+    }
 
-        const confirmButton = (
+    get modalConfirmButton() {
+        return (
             <FormattedMessage
                 id='integrations.delete.confirm.button'
                 defaultMessage='Delete'
             />
-        );
-
-        return (
-            <span>
-                <a
-                    href='#'
-                    onClick={this.handleOpenModal}
-                >
-                    <FormattedMessage
-                        id='installed_integrations.delete'
-                        defaultMessage='Delete'
-                    />
-                </a>
-                <ConfirmModal
-                    show={this.state.showDeleteModal}
-                    title={title}
-                    message={message}
-                    confirmButton={confirmButton}
-                    onConfirm={this.handleConfirm}
-                    onCancel={this.handleCancel}
-                />
-            </span>
         );
     }
 }
