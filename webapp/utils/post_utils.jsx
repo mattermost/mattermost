@@ -8,6 +8,10 @@ export function isSystemMessage(post) {
     return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
 }
 
+export function isFromWebhook(post) {
+    return post.props && post.props.from_webhook === 'true';
+}
+
 export function isComment(post) {
     if ('root_id' in post) {
         return post.root_id !== '' && post.root_id != null;
