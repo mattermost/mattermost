@@ -4,14 +4,6 @@
     "translation": "April"
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
-  },
-  {
     "id": "August",
     "translation": "August"
   },
@@ -1546,6 +1538,10 @@
   {
     "id": "api.post.init.debug",
     "translation": "Initializing post API routes"
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Link previews have been disabled by the system administrator."
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -3702,6 +3698,10 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Unable to write request"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
