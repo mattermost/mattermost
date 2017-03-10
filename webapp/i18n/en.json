@@ -2244,6 +2244,8 @@
   "user.settings.security.switchSaml": "Switch to using SAML SSO",
   "user.settings.security.title": "Security Settings",
   "user.settings.security.viewHistory": "View Access History",
+  "user.settings.security.active": "Active",
+  "user.settings.security.inactive": "Inactive",
   "user_list.notFound": "No users found",
   "user_profile.send.dm": "Send Message",
   "user_profile.webrtc.call": "Start Video Call",
