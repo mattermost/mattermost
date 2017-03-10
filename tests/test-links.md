@@ -83,7 +83,6 @@ https://example.com links to `https://example.com` and not `http://example.com`
 https://en.wikipedia.org/wiki/🐬 links to the Wikipedia article on dolphins
 https://en.wikipedia.org/wiki/URLs#Syntax links to the Syntax section of the Wikipedia article on URLs
 test@example.com links to `mailto:test@example.com`
-mailto:test@example.com links to `mailto:test@example.com`
 [email link](mailto:test@example.com) links to `mailto:test@example.com` and not `http://mailto:test@example.com`
 [other link](ts3server://example.com) links to `ts3server://example.com` and not `http://ts3server://example.com`
 test_underscore@example.com links to `mailto:test_underscore@example.com`
