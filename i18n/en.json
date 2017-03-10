@@ -304,6 +304,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.post_and_forget",
     "translation": "%v has joined the channel."
   },

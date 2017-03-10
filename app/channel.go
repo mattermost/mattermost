@@ -703,6 +703,9 @@ func GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *mode
 }
 
 func JoinChannel(channel *model.Channel, userId string) *model.AppError {
+	if channel.DeleteAt > 0 {
+		return model.NewLocAppError("JoinChannel", "api.channel.join_channel.already_deleted.app_error", nil, "")
+	}
 	userChan := Srv.Store.User().Get(userId)
 	memberChan := Srv.Store.Channel().GetMember(channel.Id, userId)
 
