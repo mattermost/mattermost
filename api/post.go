@@ -58,7 +58,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := app.CreatePostAsUser(post)
+	rp, err := app.CreatePostAsUser(post, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -284,7 +284,7 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if list, err := app.GetPermalinkPost(postId, c.Session.UserId); err != nil {
+	if list, err := app.GetPermalinkPost(postId, c.Session.UserId, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(list.Etag(), "Get Permalink TMP", w, r) {

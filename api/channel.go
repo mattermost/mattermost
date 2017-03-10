@@ -206,7 +206,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
-			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
+			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName, c.GetSiteURL()); err != nil {
 				l4g.Error(err.Error())
 			}
 		}
@@ -254,7 +254,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader); err != nil {
+		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -300,7 +300,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose); err != nil {
+		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -411,7 +411,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err = app.JoinChannel(channel, c.Session.UserId); err != nil {
+	if err = app.JoinChannel(channel, c.Session.UserId, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}
@@ -424,7 +424,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	err := app.LeaveChannel(id, c.Session.UserId)
+	err := app.LeaveChannel(id, c.Session.UserId, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -466,7 +466,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = app.DeleteChannel(channel, c.Session.UserId)
+	err = app.DeleteChannel(channel, c.Session.UserId, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -647,7 +647,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go app.PostAddToChannelMessage(oUser, nUser, channel)
+	go app.PostAddToChannelMessage(oUser, nUser, channel, c.GetSiteURL())
 
 	app.UpdateChannelLastViewedAt([]string{id}, oUser.Id)
 	w.Write([]byte(cm.ToJson()))
@@ -682,7 +682,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
+	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}

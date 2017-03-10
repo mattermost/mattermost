@@ -88,7 +88,7 @@ func (me *EchoProvider) DoCommand(c *Context, args *model.CommandArgs, message s
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := app.CreatePost(post, c.TeamId, true); err != nil {
+		if _, err := app.CreatePost(post, c.TeamId, true, c.GetSiteURL()); err != nil {
 			l4g.Error(c.T("api.command_echo.create.app_error"), err)
 		}
 	}()

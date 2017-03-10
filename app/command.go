@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-func CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
+func CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, siteURL string) (*model.Post, *model.AppError) {
 	post.Message = parseSlackLinksToMarkdown(response.Text)
 	post.CreateAt = model.GetMillis()
 
@@ -17,7 +17,7 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 
 	switch response.ResponseType {
 	case model.COMMAND_RESPONSE_TYPE_IN_CHANNEL:
-		return CreatePost(post, teamId, true)
+		return CreatePost(post, teamId, true, siteURL)
 	case model.COMMAND_RESPONSE_TYPE_EPHEMERAL:
 		if response.Text == "" {
 			return post, nil
