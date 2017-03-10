@@ -8,13 +8,13 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesAndTeamMembersForDMSidebar, loadNewDMIfNeeded} from 'actions/user_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {Preferences, ActionTypes} from 'utils/constants.jsx';
+import {Constants, Preferences, ActionTypes} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -187,8 +187,27 @@ export function unmarkFavorite(channelId) {
 }
 
 export function loadChannelsForCurrentUser() {
-    AsyncClient.getChannels();
-    AsyncClient.getMyChannelMembers();
+    AsyncClient.getChannels().then(() => {
+        AsyncClient.getMyChannelMembers().then(() => {
+            loadDMsForUnreads();
+        });
+    });
+}
+
+export function loadDMsForUnreads() {
+    const unreads = ChannelStore.getUnreadCounts();
+    for (const id in unreads) {
+        if (!unreads.hasOwnProperty(id)) {
+            continue;
+        }
+
+        if (unreads[id].msgs > 0 || unreads[id].mentions > 0) {
+            const channel = ChannelStore.get(id);
+            if (channel && channel.type === Constants.DM_CHANNEL) {
+                loadNewDMIfNeeded(Utils.getUserIdFromChannelName(channel));
+            }
+        }
+    }
 }
 
 export function joinChannel(channel, success, error) {
