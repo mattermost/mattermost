@@ -148,3 +148,111 @@ func TestGetIncomingWebhooks(t *testing.T) {
 	_, resp = Client.GetIncomingWebhooks(0, 1000, "")
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestGetIncomingWebhook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.SystemAdminClient
+
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	var resp *model.Response
+	var rhook *model.IncomingWebhook
+	var hook *model.IncomingWebhook
+
+	t.Run("WhenHookExists", func(t *testing.T) {
+		hook = &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+		rhook, resp = Client.CreateIncomingWebhook(hook)
+		CheckNoError(t, resp)
+
+		hook, resp = Client.GetIncomingWebhook(rhook.Id, "")
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("WhenHookDoesNotExist", func(t *testing.T) {
+		hook, resp = Client.GetIncomingWebhook(model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("WhenInvalidHookID", func(t *testing.T) {
+		hook, resp = Client.GetIncomingWebhook("abc", "")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+		th.LoginBasic()
+		Client = th.Client
+
+		_, resp = Client.GetIncomingWebhook(rhook.Id, "")
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestDeleteIncomingWebhook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.SystemAdminClient
+
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	var resp *model.Response
+	var rhook *model.IncomingWebhook
+	var hook *model.IncomingWebhook
+	var status bool
+
+	t.Run("WhenInvalidHookID", func(t *testing.T) {
+		status, resp = Client.DeleteIncomingWebhook("abc")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("WhenHookDoesNotExist", func(t *testing.T) {
+		status, resp = Client.DeleteIncomingWebhook(model.NewId())
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("WhenHookExists", func(t *testing.T) {
+		hook = &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+		rhook, resp = Client.CreateIncomingWebhook(hook)
+		CheckNoError(t, resp)
+
+		if status, resp = Client.DeleteIncomingWebhook(rhook.Id); !status {
+			t.Fatal("Delete should have succeeded")
+		} else {
+			CheckOKStatus(t, resp)
+		}
+
+		// Get now should not return this deleted hook
+		_, resp = Client.GetIncomingWebhook(rhook.Id, "")
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+		hook = &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+		rhook, resp = Client.CreateIncomingWebhook(hook)
+		CheckNoError(t, resp)
+
+		th.LoginBasic()
+		Client = th.Client
+
+		_, resp = Client.DeleteIncomingWebhook(rhook.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+}

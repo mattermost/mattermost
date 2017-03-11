@@ -441,6 +441,14 @@ func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
 	}
 }
 
+func CheckOKStatus(t *testing.T, resp *model.Response) {
+	CheckNoError(t, resp)
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("wrong status code. expected %d got %d", http.StatusOK, resp.StatusCode)
+	}
+}
+
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	if resp.Error == nil {
 		debug.PrintStack()

@@ -6,6 +6,8 @@ package store
 import (
 	"net/http"
 
+	"database/sql"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -155,6 +157,9 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) StoreChanne
 
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
 		}
 
 		if result.Err == nil {
