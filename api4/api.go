@@ -59,13 +59,11 @@ type Routes struct {
 	OutgoingHooks *mux.Router // 'api/v4/hooks/outgoing'
 	OutgoingHook  *mux.Router // 'api/v4/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
 
-	OAuth *mux.Router // 'api/v4/oauth'
-
-	SAML *mux.Router // 'api/v4/saml'
-
-	Admin *mux.Router // 'api/v4/admin'
-
+	Admin      *mux.Router // 'api/v4/admin'
+	OAuth      *mux.Router // 'api/v4/oauth'
+	SAML       *mux.Router // 'api/v4/saml'
 	Compliance *mux.Router // 'api/v4/compliance'
+	Cluster    *mux.Router // 'api/v4/cluster'
 
 	System *mux.Router // 'api/v4/system'
 
@@ -137,6 +135,7 @@ func InitApi(full bool) {
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
 	BaseRoutes.Compliance = BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
+	BaseRoutes.Cluster = BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
 	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
@@ -157,6 +156,7 @@ func InitApi(full bool) {
 	InitPreference()
 	InitSaml()
 	InitCompliance()
+	InitCluster()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

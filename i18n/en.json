@@ -72,6 +72,10 @@
     "translation": "Error reading log file"
   },
   {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
+  },
+  {
     "id": "api.admin.get_brand_image.not_available.app_error",
     "translation": "Custom branding is not configured or supported on this server"
   },
