@@ -903,6 +903,15 @@ func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response) {
 	}
 }
 
+// GetFileLink gets the public link of a file by id.
+func (c *Client4) GetFileLink(fileId string) (string, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/link", ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		return MapFromJson(r.Body)["link"], BuildResponse(r)
+	}
+}
+
 // GetFileInfosForPost gets all the file info objects attached to a post.
 func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/files/info", etag); err != nil {

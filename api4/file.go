@@ -24,6 +24,7 @@ func InitFile() {
 	BaseRoutes.Files.Handle("", ApiSessionRequired(uploadFile)).Methods("POST")
 	BaseRoutes.File.Handle("", ApiSessionRequired(getFile)).Methods("GET")
 	BaseRoutes.File.Handle("/thumbnail", ApiSessionRequired(getFileThumbnail)).Methods("GET")
+	BaseRoutes.File.Handle("/link", ApiSessionRequired(getFileLink)).Methods("GET")
 
 }
 
@@ -123,6 +124,41 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+}
+
+func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	if !utils.Cfg.FileSettings.EnablePublicLink {
+		c.Err = model.NewLocAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	info, err := app.GetFileInfo(c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if len(info.PostId) == 0 {
+		c.Err = model.NewLocAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	resp := make(map[string]string)
+	resp["link"] = app.GeneratePublicLink(c.GetSiteURL(), info)
+
+	w.Write([]byte(model.MapToJson(resp)))
 }
 
 func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
