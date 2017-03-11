@@ -232,7 +232,7 @@ export default class NewChannelModal extends React.Component {
                                         ref='display_name'
                                         className='form-control'
                                         placeholder={Utils.localizeMessage('channel_modal.nameEx', 'E.g.: "Bugs", "Marketing", "客户支持"')}
-                                        maxLength='22'
+                                        maxLength={Constants.MAX_CHANNELNAME_LENGTH}
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
                                         tabIndex='1'
