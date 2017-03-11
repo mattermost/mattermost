@@ -106,14 +106,11 @@ class GeneralTab extends React.Component {
         let valid = true;
 
         const name = this.state.name.trim();
-        if (!name) {
+        if (name) {
+            state.clientError = '';
+        } else {
             state.clientError = Utils.localizeMessage('general_tab.required', 'This field is required');
             valid = false;
-        } else if (name === this.props.team.display_name) {
-            state.clientError = Utils.localizeMessage('general_tab.chooseName', 'Please choose a new name for your team');
-            valid = false;
-        } else {
-            state.clientError = '';
         }
 
         this.setState(state);
