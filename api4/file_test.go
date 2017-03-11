@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -200,4 +201,79 @@ func TestGetFileThumbnail(t *testing.T) {
 	Client.Logout()
 	_, resp = th.SystemAdminClient.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
+}
+
+func TestGetFileLink(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+
+	fileId := ""
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	link, resp := Client.GetFileLink(fileId)
+	CheckBadRequestStatus(t, resp)
+
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
+	_, resp = Client.GetFileLink(fileId)
+	CheckNotImplementedStatus(t, resp)
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	link, resp = Client.GetFileLink(fileId)
+	CheckNoError(t, resp)
+	if link == "" {
+		t.Fatal("should've received public link")
+	}
+
+	_, resp = Client.GetFileLink("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFileLink(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFileLink(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+	_, resp = Client.GetFileLink(fileId)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetFileLink(fileId)
+	CheckNoError(t, resp)
+
+	if result := <-app.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		cleanupTestFile(result.Data.(*model.FileInfo))
+	}
 }
