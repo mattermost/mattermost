@@ -6,6 +6,8 @@ package store
 import (
 	"testing"
 
+	"net/http"
+
 	"github.com/mattermost/platform/model"
 )
 
@@ -71,6 +73,10 @@ func TestWebhookStoreGetIncoming(t *testing.T) {
 
 	if err := (<-store.Webhook().GetIncoming("123", true)).Err; err == nil {
 		t.Fatal("Missing id should have failed")
+	}
+
+	if err := (<-store.Webhook().GetIncoming("123", true)).Err; err.StatusCode != http.StatusNotFound {
+		t.Fatal("Should have set the status as not found for missing id")
 	}
 }
 
