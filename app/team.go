@@ -391,6 +391,30 @@ func GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, 
 	}
 }
 
+func GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError) {
+	result := <-Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	channelUnreads := result.Data.([]*model.ChannelUnread)
+	var teamUnread = &model.TeamUnread{
+		MsgCount:     0,
+		MentionCount: 0,
+		TeamId:       teamId,
+	}
+
+	for _, cu := range channelUnreads {
+		teamUnread.MentionCount += cu.MentionCount
+
+		if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+			teamUnread.MsgCount += cu.MsgCount
+		}
+	}
+
+	return teamUnread, nil
+}
+
 func RemoveUserFromTeam(teamId string, userId string) *model.AppError {
 	tchan := Srv.Store.Team().Get(teamId)
 	uchan := Srv.Store.User().Get(userId)
@@ -511,8 +535,8 @@ func FindTeamByName(name string) bool {
 	}
 }
 
-func GetTeamsUnreadForUser(teamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
-	if result := <-Srv.Store.Team().GetTeamsUnreadForUser(teamId, userId); result.Err != nil {
+func GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
+	if result := <-Srv.Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		data := result.Data.([]*model.ChannelUnread)
@@ -523,7 +547,7 @@ func GetTeamsUnreadForUser(teamId string, userId string) ([]*model.TeamUnread, *
 			tu.MentionCount += cu.MentionCount
 
 			if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
-				tu.MsgCount += (cu.TotalMsgCount - cu.MsgCount)
+				tu.MsgCount += cu.MsgCount
 			}
 
 			return tu

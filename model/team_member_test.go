@@ -41,3 +41,17 @@ func TestTeamMemberIsValid(t *testing.T) {
 		t.Fatal(err)
 	}*/
 }
+
+func TestUnreadMemberJson(t *testing.T) {
+	o := TeamUnread{TeamId: NewId(), MsgCount: 5, MentionCount: 3}
+	json := o.ToJson()
+
+	r := TeamUnreadFromJson(strings.NewReader(json))
+	if o.TeamId != r.TeamId {
+		t.Fatal("Ids do not match")
+	}
+
+	if o.MsgCount != r.MsgCount {
+		t.Fatal("MsgCount do not match")
+	}
+}

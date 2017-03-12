@@ -488,8 +488,8 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
-// getTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount of
-// unread messages and mentions the current user has for the teams it belongs to.
+// GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
+// of unread messages and mentions the current user has for the teams it belongs to.
 // An optional team ID can be set to exclude that team from the results. Must be authenticated.
 func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*TeamUnread, *Response) {
 	optional := ""
@@ -675,6 +675,18 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	} else {
 		defer closeBody(r)
 		return TeamStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamUnread will return a TeamUnread object that contains the amount of
+// unread messages and mentions the user has for the specified team.
+// Must be authenticated.
+func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamUnreadFromJson(r.Body), BuildResponse(r)
 	}
 }
 

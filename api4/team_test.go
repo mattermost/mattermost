@@ -114,6 +114,40 @@ func TestGetTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetTeamUnread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	teamUnread, resp := Client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+	if teamUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned for regular user call")
+	}
+
+	_, resp = Client.GetTeamUnread("junk", th.BasicUser.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamUnread(th.BasicTeam.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamUnread(model.NewId(), th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetTeamUnread(th.BasicTeam.Id, model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	teamUnread, resp = th.SystemAdminClient.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+	if teamUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned")
+	}
+}
+
 func TestUpdateTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

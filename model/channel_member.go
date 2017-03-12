@@ -19,11 +19,11 @@ const (
 )
 
 type ChannelUnread struct {
-	TeamId        string
-	TotalMsgCount int64
-	MsgCount      int64
-	MentionCount  int64
-	NotifyProps   StringMap
+	TeamId       string    `json:"team_id"`
+	ChannelId    string    `json:"channel_id"`
+	MsgCount     int64     `json:"msg_count"`
+	MentionCount int64     `json:"mention_count"`
+	NotifyProps  StringMap `json:"-"`
 }
 
 type ChannelMember struct {
