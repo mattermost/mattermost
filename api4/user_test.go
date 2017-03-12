@@ -976,6 +976,97 @@ func TestGetAudits(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestAutocompleteUsers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+	channelId := th.BasicChannel.Id
+	username := th.BasicUser.Username
+
+	rusers, resp := Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
+	CheckNoError(t, resp)
+
+	if len(rusers.Users) != 1 {
+		t.Fatal("should have returned 1 user")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, "amazonses", "")
+	CheckNoError(t, resp)
+	if len(rusers.Users) != 0 {
+		t.Fatal("should have returned 0 users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, "", "")
+	CheckNoError(t, resp)
+	if len(rusers.Users) < 2 {
+		t.Fatal("should have many users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckNoError(t, resp)
+
+	if len(rusers.Users) != 1 {
+		t.Fatal("should have returned 1 user")
+	}
+
+	rusers, resp = Client.AutoCompleteUsers(username, "")
+	CheckNoError(t, resp)
+
+	if len(rusers.Users) != 1 {
+		t.Fatal("should have returned 1 users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsers("", "")
+	CheckNoError(t, resp)
+
+	if len(rusers.Users) < 2 {
+		t.Fatal("should have returned many users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "amazonses", "")
+	CheckNoError(t, resp)
+	if len(rusers.Users) != 0 {
+		t.Fatal("should have returned 0 users")
+	}
+
+	rusers, resp = Client.AutoCompleteUsersInTeam(teamId, "", "")
+	CheckNoError(t, resp)
+	if len(rusers.Users) < 2 {
+		t.Fatal("should have many users")
+	}
+
+	Client.Logout()
+	_, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = Client.AutoCompleteUsers(username, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.AutoCompleteUsersInChannel(teamId, channelId, username, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.AutoCompleteUsers(username, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AutoCompleteUsersInChannel(teamId, channelId, username, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AutoCompleteUsersInTeam(teamId, username, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AutoCompleteUsers(username, "")
+	CheckNoError(t, resp)
+}
+
 func TestVerify(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()

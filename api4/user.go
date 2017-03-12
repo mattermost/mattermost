@@ -11,6 +11,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -42,6 +43,8 @@ func InitUser() {
 	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
+
+	BaseRoutes.Users.Handle("/autocomplete/", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -627,6 +630,57 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ReturnStatusOK(w)
 }
+
+func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelId := r.URL.Query().Get("in_channel")
+	teamId := r.URL.Query().Get("in_team")
+	term := r.URL.Query().Get("name")
+
+	autocomplete := new(model.UserAutocomplete)
+	var err *model.AppError
+
+	searchOptions := map[string]bool{}
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	if len(teamId) > 0 {
+		if len(channelId) > 0 {
+			if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+				return
+			}
+
+			result, _ := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+			autocomplete.Users = result.InChannel
+			autocomplete.OutOfChannel = result.OutOfChannel
+		} else {
+			if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+				c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+				return
+			}
+
+			result, _ := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+			autocomplete.Users = result.InTeam
+		}
+	} else {
+		// No permission check required
+		result, _ := app.SearchUsersInTeam("", term, searchOptions)
+		autocomplete.Users = result
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte((autocomplete.ToJson())))
+	}
+}
+
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
