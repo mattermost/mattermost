@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"net/http"
 	"testing"
 )
 
@@ -51,9 +52,17 @@ func TestUploadBrandImage(t *testing.T) {
 		t.Fatal("Should return false, set brand image not allowed")
 	}
 
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetProfileImage when request is terminated early by server
 	Client.Logout()
 	_, resp = Client.UploadBrandImage(data)
-	CheckUnauthorizedStatus(t, resp)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
 
 	_, resp = th.SystemAdminClient.UploadBrandImage(data)
 	CheckNotImplementedStatus(t, resp)

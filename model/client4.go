@@ -1530,7 +1530,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return false, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(c.GetBrandRoute()+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBrandRoute()+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	} else if rp.StatusCode >= 300 {
 		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
 	} else {
