@@ -635,7 +635,7 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 	}
 }
 
-// UpdateTeamMemberRoles will update the roles on a team for a user
+// UpdateTeamMemberRoles will update the roles on a team for a user.
 func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": newRoles}
 	if r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/roles", MapToJson(requestBody)); err != nil {
@@ -643,6 +643,16 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateTeam will update a team.
+func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
 	}
 }
 
