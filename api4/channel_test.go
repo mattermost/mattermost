@@ -647,3 +647,39 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 }
+
+func TestGetChannelStats(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	channel := th.CreatePrivateChannel()
+	app.AddUserToChannel(user, channel)
+
+	Client.Login(user.Email, user.Password)
+
+	_, resp := Client.GetChannelStats(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
+	result, resp := Client.GetChannelStats(channel.Id, "")
+	CheckNoError(t, resp)
+
+	fmt.Println(result.MemberCount)
+
+	if result.ChannelId != channel.Id {
+		t.Fatal("couldnt't get extra info")
+	} else if result.MemberCount != 1 {
+		t.Fatal("got incorrect member count")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetChannelStats(channel.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user1 := th.CreateUser()
+	Client.Login(user1.Email, user1.Password)
+
+	result, resp = Client.GetChannelStats(channel.Id, "")
+	CheckForbiddenStatus(t, resp)
+}
