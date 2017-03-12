@@ -949,6 +949,34 @@ func UpdateUserNotifyProps(userId string, props map[string]string, siteURL strin
 	return ruser, nil
 }
 
+func UpdateMfa(activate bool, userId, token, siteUrl string) *model.AppError {
+	if activate {
+		if err := ActivateMfa(userId, token); err != nil {
+			return err
+		}
+	} else {
+		if err := DeactivateMfa(userId); err != nil {
+			return err
+		}
+	}
+
+	go func() {
+		var user *model.User
+		var err *model.AppError
+
+		if user, err = GetUser(userId); err != nil {
+			l4g.Error(err.Error())
+			return
+		}
+
+		if err := SendMfaChangeEmail(user.Email, activate, user.Locale, siteUrl); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
+
+	return nil
+}
+
 func UpdatePasswordByUserIdSendEmail(userId, newPassword, method, siteURL string) *model.AppError {
 	var user *model.User
 	var err *model.AppError
