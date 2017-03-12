@@ -19,6 +19,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
+	BaseRoutes.Channel.Handle("/unread", ApiSessionRequired(getChannelUnread)).Methods("GET")
 	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
 	BaseRoutes.ChannelByNameForTeamName.Handle("", ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
 
@@ -114,6 +115,27 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	channelUnread, err := app.GetChannelUnread(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(channelUnread.ToJson()))
+}
+
 
 func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId().RequireChannelName()

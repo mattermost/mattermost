@@ -309,6 +309,35 @@ func (s SqlChannelStore) extraUpdated(channel *model.Channel) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetChannelUnread(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var unreadChannel model.ChannelUnread
+		err := s.GetReplica().SelectOne(&unreadChannel,
+			`SELECT
+				Channels.TeamId, Channels.TotalMsgCount, ChannelMembers.MsgCount, ChannelMembers.MentionCount, ChannelMembers.NotifyProps
+			FROM
+				Channels, ChannelMembers
+			WHERE
+				Id = ChannelId AND DeleteAt = 0 AND Id = :ChannelId`,
+			map[string]interface{}{"ChannelId": channelId})
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error())
+		} else {
+			result.Data = &unreadChannel
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlChannelStore) InvalidateChannel(id string) {
 	channelCache.Remove(id)
 }

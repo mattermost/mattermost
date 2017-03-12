@@ -523,6 +523,39 @@ func TestViewChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetChannelUnread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	channel := th.CreatePublicChannel()
+	app.AddUserToChannel(user, channel)
+	Client.Login(user.Email, user.Password)
+
+	channelUnread, resp := Client.GetChannelUnread(channel.Id)
+	CheckNoError(t, resp)
+	if channelUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned for a regular user call")
+	}
+
+	_, resp = Client.GetChannelUnread(model.NewRandomString(16))
+	CheckBadRequestStatus(t, resp)
+	Client.Logout()
+
+	newUser := th.CreateUser()
+	Client.Login(newUser.Email, newUser.Password)
+	_, resp = Client.GetChannelUnread(th.BasicChannel.Id)
+	CheckForbiddenStatus(t, resp)
+	Client.Logout()
+
+	channelUnread, resp = th.SystemAdminClient.GetChannelUnread(channel.Id)
+	CheckNoError(t, resp)
+	if channelUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned")
+	}
+}
+
 func TestUpdateChannelRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

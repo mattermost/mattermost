@@ -764,6 +764,17 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response
 	}
 }
 
+// GetChannelUnread will return a ChannelUnread object that contains the amount of
+// unread messages
+func (c *Client4) GetChannelUnread(channelId string) (*ChannelUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateChannelRoles will update the roles on a channel for a user.
 func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}

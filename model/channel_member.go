@@ -67,9 +67,29 @@ func (o *ChannelMember) ToJson() string {
 	}
 }
 
+func (o *ChannelUnread) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 func ChannelMemberFromJson(data io.Reader) *ChannelMember {
 	decoder := json.NewDecoder(data)
 	var o ChannelMember
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
+func ChannelUnreadFromJson(data io.Reader) *ChannelUnread {
+	decoder := json.NewDecoder(data)
+	var o ChannelUnread
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o
