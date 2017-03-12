@@ -386,6 +386,37 @@ func TestGetTeamStats(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetTeamUnread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	Client.Login(user.Email, user.Password)
+
+	teamUnread, resp := Client.GetTeamUnread(th.BasicTeam.Id)
+	CheckNoError(t, resp)
+	if teamUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned for regular user call")
+	}
+
+	_, resp = Client.GetTeamUnread(model.NewRandomString(16))
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamUnread(model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamUnread(th.BasicTeam.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	teamUnread, resp = th.SystemAdminClient.GetTeamUnread(th.BasicTeam.Id)
+	CheckNoError(t, resp)
+	if teamUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned")
+	}
+}
+
 func TestUpdateTeamMemberRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

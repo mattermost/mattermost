@@ -31,6 +31,15 @@ func (o *TeamMember) ToJson() string {
 	}
 }
 
+func (o *TeamUnread) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 func TeamMemberFromJson(data io.Reader) *TeamMember {
 	decoder := json.NewDecoder(data)
 	var o TeamMember
@@ -66,6 +75,17 @@ func TeamsUnreadToJson(o []*TeamUnread) string {
 		return "[]"
 	} else {
 		return string(b)
+	}
+}
+
+func TeamUnreadFromJson(data io.Reader) *TeamUnread {
+	decoder := json.NewDecoder(data)
+	var o TeamUnread
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
 	}
 }
 

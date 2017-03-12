@@ -550,6 +550,30 @@ func GetTeamsUnreadForUser(teamId string, userId string) ([]*model.TeamUnread, *
 	}
 }
 
+func GetTeamUnread(teamId string) (*model.TeamUnread, *model.AppError) {
+	result := <-Srv.Store.Team().GetChannelUnreadsForTeam(teamId);
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	channelUnreads := result.Data.([]*model.ChannelUnread)
+	var teamUnread = &model.TeamUnread{
+		MsgCount:     0,
+		MentionCount: 0,
+		TeamId:       teamId,
+	}
+
+	for i := range channelUnreads {
+		teamUnread.MentionCount += channelUnreads[i].MentionCount
+
+		if channelUnreads[i].NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+			teamUnread.MsgCount += (channelUnreads[i].TotalMsgCount - channelUnreads[i].MsgCount)
+		}
+	}
+
+	return teamUnread, nil
+}
+
 func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
