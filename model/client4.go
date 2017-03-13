@@ -126,6 +126,10 @@ func (c *Client4) GetPostsRoute() string {
 	return fmt.Sprintf("/posts")
 }
 
+func (c *Client4) GetConfigRoute() string {
+	return fmt.Sprintf("/config")
+}
+
 func (c *Client4) GetPostRoute(postId string) string {
 	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
 }
@@ -954,6 +958,16 @@ func (c *Client4) GetPing() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetConfig will retrieve the server config with some sanitized items.
+func (c *Client4) GetConfig() (*Config, *Response) {
+	if r, err := c.DoApiGet(c.GetConfigRoute(), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ConfigFromJson(r.Body), BuildResponse(r)
 	}
 }
 
