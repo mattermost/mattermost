@@ -277,3 +277,55 @@ func TestGetFileLink(t *testing.T) {
 		cleanupTestFile(result.Data.(*model.FileInfo))
 	}
 }
+
+func TestGetFilePreview(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	fileId := ""
+	var sent []byte
+	var err error
+	if sent, err = readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	data, resp := Client.GetFilePreview(fileId)
+	CheckNoError(t, resp)
+
+	if data == nil || len(data) == 0 {
+		t.Fatal("should not be empty")
+	}
+
+	_, resp = Client.GetFilePreview("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFilePreview(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFilePreview(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+	_, resp = Client.GetFilePreview(fileId)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetFilePreview(fileId)
+	CheckNoError(t, resp)
+}
