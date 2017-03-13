@@ -495,6 +495,21 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	}
 }
 
+func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
+	if resp.Error == nil {
+		debug.PrintStack()
+		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotImplemented))
+		return
+	}
+
+	if resp.StatusCode != http.StatusInternalServerError {
+		debug.PrintStack()
+		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
+		t.Log("expected: " + strconv.Itoa(http.StatusNotImplemented))
+		t.Fatal("wrong status code")
+	}
+}
+
 func readTestFile(name string) ([]byte, error) {
 	path := utils.FindDir("tests")
 	file, err := os.Open(path + "/" + name)
