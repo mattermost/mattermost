@@ -549,8 +549,8 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
-// getTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount of
-// unread messages and mentions the current user has for the teams it belongs to.
+// GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
+// of unread messages and mentions the current user has for the teams it belongs to.
 // An optional team ID can be set to exclude that team from the results. Must be authenticated.
 func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*TeamUnread, *Response) {
 	optional := ""
@@ -696,7 +696,7 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 	}
 }
 
-// UpdateTeamMemberRoles will update the roles on a team for a user
+// UpdateTeamMemberRoles will update the roles on a team for a user.
 func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": newRoles}
 	if r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/roles", MapToJson(requestBody)); err != nil {
@@ -707,10 +707,31 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 	}
 }
 
+// UpdateTeam will update a team.
+func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamMembersByIds will return an array of team members based on the
+// team id and a list of user ids provided. Must be authenticated.
+func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamMember, *Response) {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJson(userIds)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -726,6 +747,18 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	} else {
 		defer closeBody(r)
 		return TeamStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamUnread will return a TeamUnread object that contains the amount of
+// unread messages and mentions the user has for the specified team.
+// Must be authenticated.
+func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamUnreadFromJson(r.Body), BuildResponse(r)
 	}
 }
 
