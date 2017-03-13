@@ -64,6 +64,9 @@ function getNotificationsStateFromStores() {
             } else {
                 usernameKey = true;
                 keys.splice(keys.indexOf(user.username), 1);
+                if (keys.indexOf(`@${user.username}`) !== -1) {
+                    keys.splice(keys.indexOf(`@${user.username}`), 1);
+                }
             }
 
             customKeys = keys.join(',');
