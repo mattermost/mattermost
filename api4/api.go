@@ -65,6 +65,8 @@ type Routes struct {
 
 	Admin *mux.Router // 'api/v4/admin'
 
+	Compliance *mux.Router // 'api/v4/compliance'
+
 	System *mux.Router // 'api/v4/system'
 
 	Preferences *mux.Router // 'api/v4/preferences'
@@ -134,6 +136,7 @@ func InitApi(full bool) {
 	BaseRoutes.SAML = BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.Compliance = BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
 	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
@@ -153,6 +156,7 @@ func InitApi(full bool) {
 	InitWebhook()
 	InitPreference()
 	InitSaml()
+	InitCompliance()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

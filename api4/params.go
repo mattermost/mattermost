@@ -24,6 +24,7 @@ type ApiParams struct {
 	FileId         string
 	CommandId      string
 	HookId         string
+	ReportId       string
 	EmojiId        string
 	Email          string
 	Username       string
@@ -66,6 +67,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["hook_id"]; ok {
 		params.HookId = val
+	}
+
+	if val, ok := props["report_id"]; ok {
+		params.ReportId = val
 	}
 
 	if val, ok := props["emoji_id"]; ok {

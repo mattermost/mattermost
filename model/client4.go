@@ -154,6 +154,14 @@ func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
 	return fmt.Sprintf(c.GetIncomingWebhooksRoute()+"/%v", hookID)
 }
 
+func (c *Client4) GetComplianceReportsRoute() string {
+	return fmt.Sprintf("/compliance/reports")
+}
+
+func (c *Client4) GetComplianceReportRoute(reportId string) string {
+	return fmt.Sprintf("/compliance/reports/%v", reportId)
+}
+
 func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
@@ -1274,5 +1282,62 @@ func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response)
 	} else {
 		defer closeBody(r)
 		return SamlCertificateStatusFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Compliance Section
+
+// CreateComplianceReport creates an incoming webhook for a channel.
+func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Response) {
+	if r, err := c.DoApiPost(c.GetComplianceReportsRoute(), report.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ComplianceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetComplianceReports returns list of compliance reports.
+func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetComplianceReportsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CompliancesFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetComplianceReport returns a compliance report.
+func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) {
+	if r, err := c.DoApiGet(c.GetComplianceReportRoute(reportId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ComplianceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DownloadComplianceReport returns a full compliance report as a file.
+func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
+	var rq *http.Request
+	rq, _ = http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if rp.StatusCode >= 300 {
+		defer rp.Body.Close()
+		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else if data, err := ioutil.ReadAll(rp.Body); err != nil {
+		defer closeBody(rp)
+		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError("DownloadComplianceReport", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode)}
+	} else {
+		defer closeBody(rp)
+		return data, BuildResponse(rp)
 	}
 }
