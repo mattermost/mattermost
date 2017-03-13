@@ -741,6 +741,16 @@ func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	}
 }
 
+// UpdateChannel update a channel based on the provided channel struct.
+func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
