@@ -1517,7 +1517,7 @@
   },
   {
     "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link Vorschauen wurden vom Systemadministrator deaktiviert"
+    "translation": "Link-Vorschauen wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
