@@ -383,7 +383,7 @@ func addCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileData := fileArray[0]
 
-	if err := app.AddSamlCertificate(fileData); err != nil {
+	if err := app.WriteSamlFile(fileData); err != nil {
 		c.Err = err
 		return
 	}
@@ -393,7 +393,7 @@ func addCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	if err := app.RemoveSamlCertificate(props["filename"]); err != nil {
+	if err := app.RemoveSamlFile(props["filename"]); err != nil {
 		c.Err = err
 		return
 	}
@@ -403,7 +403,13 @@ func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	status := app.GetSamlCertificateStatus()
-	w.Write([]byte(model.StringInterfaceToJson(status)))
+
+	statusMap := map[string]interface{}{}
+	statusMap["IdpCertificateFile"] = status.IdpCertificateFile
+	statusMap["PrivateKeyFile"] = status.PrivateKeyFile
+	statusMap["PublicCertificateFile"] = status.PublicCertificateFile
+
+	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
 }
 
 func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {

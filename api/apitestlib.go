@@ -6,6 +6,7 @@ package api
 import (
 	"time"
 
+	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -43,6 +44,7 @@ func SetupEnterprise() *TestHelper {
 		InitRouter()
 		app.StartServer()
 		utils.InitHTML()
+		api4.InitApi(false)
 		InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
