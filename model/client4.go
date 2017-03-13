@@ -1066,6 +1066,16 @@ func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response) {
 	}
 }
 
+// GetFileInfo gets all the file info objects.
+func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/info", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return FileInfoFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetFileInfosForPost gets all the file info objects attached to a post.
 func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/files/info", etag); err != nil {
