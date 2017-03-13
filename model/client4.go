@@ -150,6 +150,10 @@ func (c *Client4) GetTestEmailRoute() string {
 	return fmt.Sprintf("/email/test")
 }
 
+func (c *Client4) GetDatabaseRoute() string {
+	return fmt.Sprintf("/database")
+}
+
 func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
 }
@@ -1085,6 +1089,15 @@ func (c *Client4) GetConfig() (*Config, *Response) {
 	} else {
 		defer closeBody(r)
 		return ConfigFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+func (c *Client4) DatabaseRecycle() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetDatabaseRoute()+"/recycle", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 

@@ -94,3 +94,16 @@ func TestEmailTest(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
 	CheckInternalErrorStatus(t, resp)
 }
+
+func TestDatabaseRecycle(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	_, resp := Client.DatabaseRecycle()
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.DatabaseRecycle()
+	CheckNoError(t, resp)
+
+}
