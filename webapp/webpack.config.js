@@ -65,7 +65,16 @@ var config = {
             },
             {
                 test: /\.scss$/,
-                loaders: ['style-loader', 'css-loader', 'sass-loader']
+                use: [{
+                    loader: 'style-loader'
+                }, {
+                    loader: 'css-loader'
+                }, {
+                    loader: 'sass-loader',
+                    options: {
+                        includePaths: ['node_modules/compass-mixins/lib']
+                    }
+                }]
             },
             {
                 test: /\.css$/,
@@ -91,13 +100,6 @@ var config = {
         new webpack.LoaderOptionsPlugin({
             minimize: !DEV,
             debug: false
-        }),
-        new webpack.LoaderOptionsPlugin({
-            options: {
-                sassLoader: {
-                    includePaths: ['node_modules/compass-mixins/lib']
-                }
-            }
         }),
         new webpack.optimize.CommonsChunkPlugin({
             minChunks: 2,
