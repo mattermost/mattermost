@@ -154,6 +154,10 @@ func (c *Client4) GetDatabaseRoute() string {
 	return fmt.Sprintf("/database")
 }
 
+func (c *Client4) GetClusterRoute() string {
+	return fmt.Sprintf("/cluster")
+}
+
 func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
 }
@@ -1412,5 +1416,17 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) 
 	} else {
 		defer closeBody(rp)
 		return data, BuildResponse(rp)
+	}
+}
+
+// Cluster Section
+
+// GetClusterStatus returns the status of all the configured cluster nodes.
+func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response) {
+	if r, err := c.DoApiGet(c.GetClusterRoute()+"/status", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ClusterInfosFromJson(r.Body), BuildResponse(r)
 	}
 }
