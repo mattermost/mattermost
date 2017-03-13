@@ -144,7 +144,7 @@ const (
 	OpcodeUpdate = 5
 )
 
-// Headers is the wire format for the DNS packet header.
+// Header is the wire format for the DNS packet header.
 type Header struct {
 	Id                                 uint16
 	Bits                               uint16

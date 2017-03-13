@@ -1,0 +1,265 @@
+SplineFontDB: 3.0
+FontName: cmapTest
+FullName: cmapTest
+FamilyName: cmapTest
+Weight: Regular
+Copyright: Copyright 2016 The Go Authors. All rights reserved.\nUse of this font is governed by a BSD-style license that can be found at https://golang.org/LICENSE.
+Version: 001.000
+ItalicAngle: -11.25
+UnderlinePosition: -204
+UnderlineWidth: 102
+Ascent: 1638
+Descent: 410
+LayerCount: 2
+Layer: 0 1 "Back"  1
+Layer: 1 1 "Fore"  0
+XUID: [1021 367 888937226 7862908]
+FSType: 8
+OS2Version: 0
+OS2_WeightWidthSlopeOnly: 0
+OS2_UseTypoMetrics: 1
+CreationTime: 1484386143
+ModificationTime: 1486021330
+PfmFamily: 17
+TTFWeight: 400
+TTFWidth: 5
+LineGap: 184
+VLineGap: 0
+OS2TypoAscent: 0
+OS2TypoAOffset: 1
+OS2TypoDescent: 0
+OS2TypoDOffset: 1
+OS2TypoLinegap: 184
+OS2WinAscent: 0
+OS2WinAOffset: 1
+OS2WinDescent: 0
+OS2WinDOffset: 1
+HheadAscent: 0
+HheadAOffset: 1
+HheadDescent: 0
+HheadDOffset: 1
+OS2Vendor: 'PfEd'
+MarkAttachClasses: 1
+DEI: 91125
+LangName: 1033 
+Encoding: UnicodeFull
+UnicodeInterp: none
+NameList: Adobe Glyph List
+DisplaySize: -24
+AntiAlias: 1
+FitToEm: 1
+WinInfo: 126976 32 23
+BeginPrivate: 0
+EndPrivate
+TeXData: 1 0 0 346030 173015 115343 0 -1048576 115343 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
+BeginChars: 1114112 13
+
+StartChar: zero
+Encoding: 48 48 0
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: one
+Encoding: 49 49 1
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: two
+Encoding: 50 50 2
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: A
+Encoding: 65 65 3
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: uni4E2D
+Encoding: 20013 20013 4
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: u1F0A1
+Encoding: 127137 127137 5
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: ydieresis
+Encoding: 255 255 6
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: Amacron
+Encoding: 256 256 7
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: amacron
+Encoding: 257 257 8
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: B
+Encoding: 66 66 9
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: a
+Encoding: 97 97 10
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: u1F0B1
+Encoding: 127153 127153 11
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: u1F0B2
+Encoding: 127154 127154 12
+Width: 800
+VWidth: 0
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 29,0,-1
+ 400 800 l 25,1,-1
+ 800 0 l 25,2,-1
+ 0 0 l 29,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+EndChars
+EndSplineFont

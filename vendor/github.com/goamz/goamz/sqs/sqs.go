@@ -48,6 +48,8 @@ func NewFrom(accessKey, secretKey, region string) (*SQS, error) {
 	switch region {
 	case "us.east", "us.east.1":
 		aws_region = aws.USEast
+	case "us.east.2":
+		aws_region = aws.USEast2
 	case "us.west", "us.west.1":
 		aws_region = aws.USWest
 	case "us.west.2":
