@@ -33,7 +33,7 @@ func canUseOSVM() bool {
 }
 
 // All BPF tests against both the Go VM and OS VM are assumed to
-// be used with a UDP socket.  As a result, the entire contents
+// be used with a UDP socket. As a result, the entire contents
 // of a UDP datagram is sent through the BPF program, but only
 // the body after the UDP header will ever be returned in output.
 
@@ -85,7 +85,7 @@ func (mvm *multiVirtualMachine) Run(in []byte) (int, error) {
 	}
 
 	// All tests have a UDP header as part of input, because the OS VM
-	// packets always will.  For the Go VM, this output is trimmed before
+	// packets always will. For the Go VM, this output is trimmed before
 	// being sent back to tests.
 	goOut, goErr := mvm.goVM.Run(in)
 	if goOut >= udpHeaderLen {
@@ -149,6 +149,9 @@ func testOSVM(t *testing.T, filter []bpf.Instruction) (virtualMachine, func()) {
 
 	p := ipv4.NewPacketConn(l)
 	if err = p.SetBPF(prog); err != nil {
+		if err.Error() == "operation not supported" { // TODO: gross. remove once 19051 fixed.
+			t.Skip("Skipping until Issue 19051 is fixed.")
+		}
 		t.Fatalf("failed to attach BPF program to listener: %v", err)
 	}
 

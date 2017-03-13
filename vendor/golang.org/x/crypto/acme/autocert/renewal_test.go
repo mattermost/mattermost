@@ -111,7 +111,7 @@ func TestRenewFromCache(t *testing.T) {
 	}
 	man := &Manager{
 		Prompt:      AcceptTOS,
-		Cache:       make(memCache),
+		Cache:       newMemCache(),
 		RenewBefore: 24 * time.Hour,
 		Client: &acme.Client{
 			Key:          key,

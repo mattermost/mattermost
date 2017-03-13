@@ -113,6 +113,11 @@ func appendGlyfSegments(dst []Segment, data []byte) ([]Segment, error) {
 		return nil, errInvalidGlyphData
 	}
 
+	// TODO: support compound glyphs.
+	if numContours < 0 {
+		return nil, errUnsupportedCompoundGlyph
+	}
+
 	// Skip the hinting instructions.
 	index += 2
 	if index > len(data) {
@@ -124,19 +129,14 @@ func appendGlyfSegments(dst []Segment, data []byte) ([]Segment, error) {
 		return nil, errInvalidGlyphData
 	}
 
-	// TODO: support compound glyphs.
-	if numContours < 0 {
-		return nil, errUnsupportedCompoundGlyph
-	}
-
 	// For simple (non-compound) glyphs, the remainder of the glyf data
 	// consists of (flags, x, y) points: the Bézier curve segments. These are
-	// stored in columns (all the flags first, then all the x co-ordinates,
-	// then all the y co-ordinates), not rows, as it compresses better.
+	// stored in columns (all the flags first, then all the x coordinates, then
+	// all the y coordinates), not rows, as it compresses better.
 	//
 	// Decoding those points in row order involves two passes. The first pass
 	// determines the indexes (relative to the data slice) of where the flags,
-	// the x co-ordinates and the y co-ordinates each start.
+	// the x coordinates and the y coordinates each start.
 	flagIndex := int32(index)
 	xIndex, yIndex, ok := findXYIndexes(data, index, numPoints)
 	if !ok {
@@ -357,9 +357,18 @@ func (g *glyfIter) nextSegment() (ok bool) {
 			return true
 		}
 
+		// Convert the tuple (g.x, g.y) to a fixed.Point26_6, since the latter
+		// is what's held in a Segment. The input (g.x, g.y) is a pair of int16
+		// values, measured in font units, since that is what the underlying
+		// format provides. The output is a pair of fixed.Int26_6 values. A
+		// fixed.Int26_6 usually represents a 26.6 fixed number of pixels, but
+		// this here is just a straight numerical conversion, with no scaling
+		// factor. A later step scales the Segment.Args values by such a factor
+		// to convert e.g. 1792 font units to 10.5 pixels at 2048 font units
+		// per em and 12 ppem (pixels per em).
 		p := fixed.Point26_6{
-			X: fixed.Int26_6(g.x) << 6,
-			Y: fixed.Int26_6(g.y) << 6,
+			X: fixed.Int26_6(g.x),
+			Y: fixed.Int26_6(g.y),
 		}
 
 		if !g.firstOnCurveValid {

@@ -59,6 +59,8 @@ package unix
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <linux/can.h>
+#include <linux/if_alg.h>
+#include <linux/vm_sockets.h>
 
 #ifdef TCSETS2
 // On systems that have "struct termios2" use this as type Termios.
@@ -221,6 +223,10 @@ type RawSockaddrHCI C.struct_sockaddr_hci
 
 type RawSockaddrCAN C.struct_sockaddr_can
 
+type RawSockaddrALG C.struct_sockaddr_alg
+
+type RawSockaddrVM C.struct_sockaddr_vm
+
 type RawSockaddr C.struct_sockaddr
 
 type RawSockaddrAny C.struct_sockaddr_any
@@ -262,6 +268,8 @@ const (
 	SizeofSockaddrNetlink   = C.sizeof_struct_sockaddr_nl
 	SizeofSockaddrHCI       = C.sizeof_struct_sockaddr_hci
 	SizeofSockaddrCAN       = C.sizeof_struct_sockaddr_can
+	SizeofSockaddrALG       = C.sizeof_struct_sockaddr_alg
+	SizeofSockaddrVM        = C.sizeof_struct_sockaddr_vm
 	SizeofLinger            = C.sizeof_struct_linger
 	SizeofIPMreq            = C.sizeof_struct_ip_mreq
 	SizeofIPMreqn           = C.sizeof_struct_ip_mreqn

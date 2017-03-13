@@ -535,6 +535,7 @@ func (c *Client) getChallenges(domains []string) ([]authorizationResource, map[s
 			links := parseLinks(hdr["Link"])
 			if links["next"] == "" {
 				logf("[ERROR][%s] acme: Server did not provide next link to proceed", domain)
+				errc <- domainError{Domain: domain, Error: errors.New("Server did not provide next link to proceed")}
 				return
 			}
 
@@ -560,10 +561,18 @@ func (c *Client) getChallenges(domains []string) ([]authorizationResource, map[s
 		}
 	}
 
+	logAuthz(challenges)
+
 	close(resc)
 	close(errc)
 
 	return challenges, failures
+}
+
+func logAuthz(authz []authorizationResource) {
+	for _, auth := range authz {
+		logf("[INFO][%s] AuthURL: %s", auth.Domain, auth.AuthURL)
+	}
 }
 
 func (c *Client) requestCertificate(authz []authorizationResource, bundle bool, privKey crypto.PrivateKey, mustStaple bool) (CertificateResource, error) {

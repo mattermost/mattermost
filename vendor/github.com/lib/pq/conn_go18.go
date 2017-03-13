@@ -14,10 +14,7 @@ func (cn *conn) QueryContext(ctx context.Context, query string, args []driver.Na
 	for i, nv := range args {
 		list[i] = nv.Value
 	}
-	var closed chan<- struct{}
-	if ctx.Done() != nil {
-		closed = watchCancel(ctx, cn.cancel)
-	}
+	closed := cn.watchCancel(ctx)
 	r, err := cn.query(query, list)
 	if err != nil {
 		return nil, err
@@ -33,8 +30,7 @@ func (cn *conn) ExecContext(ctx context.Context, query string, args []driver.Nam
 		list[i] = nv.Value
 	}
 
-	if ctx.Done() != nil {
-		closed := watchCancel(ctx, cn.cancel)
+	if closed := cn.watchCancel(ctx); closed != nil {
 		defer close(closed)
 	}
 
@@ -53,22 +49,23 @@ func (cn *conn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, 
 	if err != nil {
 		return nil, err
 	}
-	if ctx.Done() != nil {
-		cn.txnClosed = watchCancel(ctx, cn.cancel)
-	}
+	cn.txnClosed = cn.watchCancel(ctx)
 	return tx, nil
 }
 
-func watchCancel(ctx context.Context, cancel func()) chan<- struct{} {
-	closed := make(chan struct{})
-	go func() {
-		select {
-		case <-ctx.Done():
-			cancel()
-		case <-closed:
-		}
-	}()
-	return closed
+func (cn *conn) watchCancel(ctx context.Context) chan<- struct{} {
+	if done := ctx.Done(); done != nil {
+		closed := make(chan struct{})
+		go func() {
+			select {
+			case <-done:
+				cn.cancel()
+			case <-closed:
+			}
+		}()
+		return closed
+	}
+	return nil
 }
 
 func (cn *conn) cancel() {

@@ -79,10 +79,7 @@ func TestContextCancelExec(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Delay execution for just a bit until db.ExecContext has begun.
-	go func() {
-		time.Sleep(time.Millisecond * 10)
-		cancel()
-	}()
+	defer time.AfterFunc(time.Millisecond*10, cancel).Stop()
 
 	// Not canceled until after the exec has started.
 	if _, err := db.ExecContext(ctx, "select pg_sleep(1)"); err == nil {
@@ -106,10 +103,7 @@ func TestContextCancelQuery(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Delay execution for just a bit until db.QueryContext has begun.
-	go func() {
-		time.Sleep(time.Millisecond * 10)
-		cancel()
-	}()
+	defer time.AfterFunc(time.Millisecond*10, cancel).Stop()
 
 	// Not canceled until after the exec has started.
 	if _, err := db.QueryContext(ctx, "select pg_sleep(1)"); err == nil {
@@ -137,10 +131,7 @@ func TestContextCancelBegin(t *testing.T) {
 	}
 
 	// Delay execution for just a bit until tx.Exec has begun.
-	go func() {
-		time.Sleep(time.Millisecond * 10)
-		cancel()
-	}()
+	defer time.AfterFunc(time.Millisecond*10, cancel).Stop()
 
 	// Not canceled until after the exec has started.
 	if _, err := tx.Exec("select pg_sleep(1)"); err == nil {

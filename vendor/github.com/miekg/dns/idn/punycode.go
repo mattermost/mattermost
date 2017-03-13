@@ -242,11 +242,8 @@ func encode(input []byte) []byte {
 		t, k, cp     rune // weight and codepoint calculation
 	)
 
-	s := &bytes.Buffer{}
 	for h := basiclen; h < fulllen; n, delta = n+1, delta+1 {
 		nextltr = next(b, n)
-		s.Truncate(0)
-		s.WriteRune(nextltr)
 		delta, n = delta+(nextltr-n)*rune(h+1), nextltr
 
 		for _, ltr = range b {
