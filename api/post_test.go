@@ -1378,3 +1378,49 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		t.Fatal("should have failed with 501 - disabled link previews")
 	}
 }
+
+func TestPinPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	post := th.BasicPost
+	if rupost1, err := Client.PinPost(post.ChannelId, post.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost1.Data.(*model.Post).IsPinned != true {
+			t.Fatal("failed to pin post")
+		}
+	}
+
+	pinnedPost := th.PinnedPost
+	if rupost2, err := Client.PinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost2.Data.(*model.Post).IsPinned != true {
+			t.Fatal("pinning a post should be idempotent")
+		}
+	}
+}
+
+func TestUnpinPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	pinnedPost := th.PinnedPost
+	if rupost1, err := Client.UnpinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost1.Data.(*model.Post).IsPinned != false {
+			t.Fatal("failed to unpin post")
+		}
+	}
+
+	post := th.BasicPost
+	if rupost2, err := Client.UnpinPost(post.ChannelId, post.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost2.Data.(*model.Post).IsPinned != false {
+			t.Fatal("unpinning a post should be idempotent")
+		}
+	}
+}

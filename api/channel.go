@@ -39,6 +39,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/ids", ApiUserRequired(getChannelMembersByIds)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/pinned", ApiUserRequired(getPinnedPosts)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -596,6 +597,21 @@ func getMyChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(members.ToJson()))
 	}
+}
+
+func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+	posts := &model.PostList{}
+
+	if result := <-app.Srv.Store.Channel().GetPinnedPosts(channelId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		posts = result.Data.(*model.PostList)
+	}
+
+	w.Write([]byte(posts.ToJson()))
 }
 
 func addMember(c *Context, w http.ResponseWriter, r *http.Request) {

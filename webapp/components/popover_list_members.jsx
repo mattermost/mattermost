@@ -233,7 +233,7 @@ export default class PopoverListMembers extends React.Component {
         }
 
         return (
-            <div>
+            <div className='member-popover__container'>
                 <div
                     id='member_popover'
                     className='member-popover__trigger'
@@ -243,13 +243,11 @@ export default class PopoverListMembers extends React.Component {
                         AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
                     }}
                 >
-                    <div>
-                        {countText}
-                        <span
-                            className='fa fa-user'
-                            aria-hidden='true'
-                        />
-                    </div>
+                    {countText}
+                    <span
+                        className='fa fa-user'
+                        aria-hidden='true'
+                    />
                 </div>
                 <Overlay
                     rootClose={true}

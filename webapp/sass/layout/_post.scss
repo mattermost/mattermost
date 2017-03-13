@@ -1343,13 +1343,21 @@
     }
 }
 
-.bot-indicator {
+.bot-indicator,
+.post__pinned-badge {
     border-radius: 2px;
     font-family: inherit;
     font-size: 10px;
     font-weight: 600;
-    margin: 2px 10px 0 -4px;
     padding: 1px 4px;
+}
+
+.bot-indicator {
+    margin: 2px 10px 0 -4px;
+}
+
+.post__pinned-badge {
+    margin-left: 7px;
 }
 
 .permalink-text {

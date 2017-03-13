@@ -1802,6 +1802,15 @@ export default class Client {
         this.trackEvent('api', 'api_posts_get_flagged', {team_id: this.getTeamId()});
     }
 
+    getPinnedPosts(channelId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/pinned`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPinnedPosts', success, error));
+    }
+
     getFileInfosForPost(channelId, postId, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/get_file_infos`).
@@ -2185,6 +2194,24 @@ export default class Client {
 
             return success(res.body);
         });
+    }
+
+    pinPost(channelId, postId, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/pin`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send().
+            end(this.handleResponse.bind(this, 'pinPost', success, error));
+    }
+
+    unpinPost(channelId, postId, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/unpin`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send().
+            end(this.handleResponse.bind(this, 'unpinPost', success, error));
     }
 
     saveReaction(channelId, reaction, success, error) {
