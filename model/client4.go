@@ -98,6 +98,10 @@ func (c *Client4) GetChannelsRoute() string {
 	return fmt.Sprintf("/channels")
 }
 
+func (c *Client4) GetPublicChannelsForTeamRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/channels")
+}
+
 func (c *Client4) GetChannelRoute(channelId string) string {
 	return fmt.Sprintf(c.GetChannelsRoute()+"/%v", channelId)
 }
@@ -703,6 +707,17 @@ func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response) {
 	} else {
 		defer closeBody(r)
 		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPublicChannelsForTeam returns a channel based on the provided team id string.
+func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetPublicChannelsForTeamRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

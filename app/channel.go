@@ -646,6 +646,14 @@ func GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (
 	}
 }
 
+func GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
 func GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
 	if result := <-Srv.Store.Channel().GetMember(channelId, userId); result.Err != nil {
 		return nil, result.Err

@@ -4708,6 +4708,10 @@
     "translation": "We couldn't get the channels"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "We couldn't increment the mention count"
   },
