@@ -30,7 +30,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import {getSiteURL} from 'utils/url.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import {getFlaggedPosts} from 'actions/post_actions.jsx';
+import {getFlaggedPosts, getPinnedPosts} from 'actions/post_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
@@ -53,6 +53,7 @@ export default class ChannelHeader extends React.Component {
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.handleShortcut = this.handleShortcut.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
+        this.getPinnedPosts = this.getPinnedPosts.bind(this);
         this.initWebrtc = this.initWebrtc.bind(this);
         this.onBusy = this.onBusy.bind(this);
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
@@ -158,6 +159,15 @@ export default class ChannelHeader extends React.Component {
         }
     }
 
+    getPinnedPosts(e) {
+        e.preventDefault();
+        if (SearchStore.isPinnedPosts) {
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            getPinnedPosts(this.props.channelId);
+        }
+    }
+
     getFlagged(e) {
         e.preventDefault();
         if (SearchStore.isFlaggedPosts) {
@@ -211,6 +221,7 @@ export default class ChannelHeader extends React.Component {
 
     render() {
         const flagIcon = Constants.FLAG_ICON_SVG;
+        const pinIcon = Constants.PIN_ICON;
 
         if (!this.validState()) {
             // Use an empty div to make sure the header's height stays constant
@@ -762,8 +773,20 @@ export default class ChannelHeader extends React.Component {
                                     </OverlayTrigger>
                                 </div>
                             </th>
-                            <th className='header-list__members'>
+                            <th className='header-list__right'>
                                 {popoverListMembers}
+                                <a
+                                    href='#'
+                                    type='button'
+                                    id='pinned-posts-button'
+                                    className='pinned-posts-button'
+                                    onClick={this.getPinnedPosts}
+                                >
+                                    <span
+                                        dangerouslySetInnerHTML={{__html: pinIcon}}
+                                        aria-hidden='true'
+                                    />
+                                </a>
                             </th>
                             <th className='search-bar__container'>
                                 <NavbarSearchBox

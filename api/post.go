@@ -38,6 +38,8 @@ func InitPost() {
 	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
 	BaseRoutes.NeedPost.Handle("/get_file_infos", ApiUserRequired(getFileInfosForPost)).Methods("GET")
+	BaseRoutes.NeedPost.Handle("/pin", ApiUserRequired(pinPost)).Methods("POST")
+	BaseRoutes.NeedPost.Handle("/unpin", ApiUserRequired(unpinPost)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -89,6 +91,59 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(rpost.ToJson()))
+}
+
+func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {
+	params := mux.Vars(r)
+
+	channelId := params["channel_id"]
+	if len(channelId) != 26 {
+		c.SetInvalidParam("savedIsPinnedPost", "channelId")
+		return
+	}
+
+	postId := params["post_id"]
+	if len(postId) != 26 {
+		c.SetInvalidParam("savedIsPinnedPost", "postId")
+		return
+	}
+
+	pchan := app.Srv.Store.Post().Get(postId)
+
+	var oldPost *model.Post
+	if result := <-pchan; result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		oldPost = result.Data.(*model.PostList).Posts[postId]
+		newPost := &model.Post{}
+		*newPost = *oldPost
+		newPost.IsPinned = isPinned
+
+		if result := <-app.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
+			c.Err = result.Err
+			return
+		} else {
+			rpost := result.Data.(*model.Post)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+			message.Add("post", rpost.ToJson())
+
+			go app.Publish(message)
+
+			app.InvalidateCacheForChannelPosts(rpost.ChannelId)
+
+			w.Write([]byte(rpost.ToJson()))
+		}
+	}
+}
+
+func pinPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	saveIsPinnedPost(c, w, r, true)
+}
+
+func unpinPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	saveIsPinnedPost(c, w, r, false)
 }
 
 func getFlaggedPosts(c *Context, w http.ResponseWriter, r *http.Request) {

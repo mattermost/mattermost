@@ -26,6 +26,8 @@ export default class PostInfo extends React.Component {
         this.removePost = this.removePost.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
+        this.pinPost = this.pinPost.bind(this);
+        this.unpinPost = this.unpinPost.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -148,6 +150,42 @@ export default class PostInfo extends React.Component {
             );
         }
 
+        if (this.props.post.is_pinned) {
+            dropdownContents.push(
+                <li
+                    key='unpinLink'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.unpinPost}
+                    >
+                        <FormattedMessage
+                            id='post_info.unpin'
+                            defaultMessage='Un-pin from channel'
+                        />
+                    </a>
+                </li>
+            );
+        } else {
+            dropdownContents.push(
+                <li
+                    key='pinLink'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.pinPost}
+                    >
+                        <FormattedMessage
+                            id='post_info.pin'
+                            defaultMessage='Pin to channel'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         if (this.canDelete) {
             dropdownContents.push(
                 <li
@@ -248,6 +286,16 @@ export default class PostInfo extends React.Component {
                 {'×'}
             </a>
         );
+    }
+
+    pinPost(e) {
+        e.preventDefault();
+        PostActions.pinPost(this.props.post.channel_id, this.props.post.id);
+    }
+
+    unpinPost(e) {
+        e.preventDefault();
+        PostActions.unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
     flagPost(e) {
@@ -374,6 +422,18 @@ export default class PostInfo extends React.Component {
             );
         }
 
+        let pinnedBadge;
+        if (post.is_pinned) {
+            pinnedBadge = (
+                <span className='post__pinned-badge'>
+                    <FormattedMessage
+                        id='post_info.pinned'
+                        defaultMessage='Pinned'
+                    />
+                </span>
+            );
+        }
+
         return (
             <ul className='post__header--info'>
                 <li className='col'>
@@ -384,6 +444,7 @@ export default class PostInfo extends React.Component {
                         useMilitaryTime={this.props.useMilitaryTime}
                         postId={post.id}
                     />
+                    {pinnedBadge}
                     {flagTrigger}
                 </li>
                 {options}

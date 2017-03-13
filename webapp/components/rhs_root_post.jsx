@@ -14,7 +14,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {flagPost, unflagPost} from 'actions/post_actions.jsx';
+import {flagPost, unflagPost, pinPost, unpinPost} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
@@ -35,6 +35,8 @@ export default class RhsRootPost extends React.Component {
         this.handlePermalink = this.handlePermalink.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
+        this.pinPost = this.pinPost.bind(this);
+        this.unpinPost = this.unpinPost.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -143,6 +145,16 @@ export default class RhsRootPost extends React.Component {
             );
     }
 
+    pinPost(e) {
+        e.preventDefault();
+        pinPost(this.props.post.channel_id, this.props.post.id);
+    }
+
+    unpinPost(e) {
+        e.preventDefault();
+        unpinPost(this.props.post.channel_id, this.props.post.id);
+    }
+
     render() {
         const post = this.props.post;
         const user = this.props.user;
@@ -239,6 +251,42 @@ export default class RhsRootPost extends React.Component {
                 </a>
             </li>
         );
+
+        if (post.is_pinned) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-unpin'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.unpinPost}
+                    >
+                        <FormattedMessage
+                            id='rhs_root.unpin'
+                            defaultMessage='Un-pin from channel'
+                        />
+                    </a>
+                </li>
+            );
+        } else {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-pin'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.pinPost}
+                    >
+                        <FormattedMessage
+                            id='rhs_root.pin'
+                            defaultMessage='Pin to channel'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (this.canDelete) {
             dropdownContents.push(
@@ -450,6 +498,18 @@ export default class RhsRootPost extends React.Component {
             flagFunc = this.flagPost;
         }
 
+        let pinnedBadge;
+        if (post.is_pinned) {
+            pinnedBadge = (
+                <span className='post__pinned-badge'>
+                    <FormattedMessage
+                        id='post_info.pinned'
+                        defaultMessage='Pinned'
+                    />
+                </span>
+            );
+        }
+
         const timeOptions = {
             day: 'numeric',
             month: 'short',
@@ -470,6 +530,7 @@ export default class RhsRootPost extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 {this.renderTimeTag(post, timeOptions)}
+                                {pinnedBadge}
                                 <OverlayTrigger
                                     key={'rootpostflagtooltipkey' + flagVisible}
                                     delayShow={Constants.OVERLAY_TIME_DELAY}

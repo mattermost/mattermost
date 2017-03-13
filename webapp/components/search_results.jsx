@@ -213,6 +213,31 @@ export default class SearchResults extends React.Component {
                     </ul>
                 </div>
             );
+        } else if (this.props.isPinnedPosts && noResults) {
+            ctls = (
+                <div className='sidebar--right__subheader'>
+                    <ul>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin1'
+                                defaultMessage='There are no pinned messages yet.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin2'
+                                defaultMessage={'You can pin a message by clicking the "Pin to channel" option from the message\'s menu.'}
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin3'
+                                defaultMessage='Pinned messages are accessible by all channel members and are a way to mark messages for future reference.'
+                            />
+                        </li>
+                    </ul>
+                </div>
+            );
         } else if (!searchTerm && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
@@ -289,6 +314,8 @@ export default class SearchResults extends React.Component {
                         toggleSize={this.props.toggleSize}
                         shrink={this.props.shrink}
                         isFlaggedPosts={this.props.isFlaggedPosts}
+                        isPinnedPosts={this.props.isPinnedPosts}
+                        channelDisplayName={this.props.channelDisplayName}
                     />
                     <div
                         id='search-items-container'
@@ -307,5 +334,7 @@ SearchResults.propTypes = {
     useMilitaryTime: React.PropTypes.bool.isRequired,
     toggleSize: React.PropTypes.func,
     shrink: React.PropTypes.func,
-    isFlaggedPosts: React.PropTypes.bool
+    isFlaggedPosts: React.PropTypes.bool,
+    isPinnedPosts: React.PropTypes.bool,
+    channelDisplayName: React.PropTypes.string.isRequired
 };

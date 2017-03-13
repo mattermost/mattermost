@@ -68,6 +68,14 @@ export function handleNewPost(post, msg) {
     });
 }
 
+export function pinPost(channelId, postId) {
+    AsyncClient.pinPost(channelId, postId);
+}
+
+export function unpinPost(channelId, postId) {
+    AsyncClient.unpinPost(channelId, postId);
+}
+
 export function flagPost(postId) {
     trackEvent('api', 'api_posts_flagged');
     AsyncClient.savePreference(Preferences.CATEGORY_FLAGGED_POST, postId, 'true');
@@ -96,13 +104,39 @@ export function getFlaggedPosts() {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH,
                 results: data,
-                is_flagged_posts: true
+                is_flagged_posts: true,
+                is_pinned_posts: false
             });
 
             loadProfilesForPosts(data.posts);
         },
         (err) => {
             AsyncClient.dispatchError(err, 'getFlaggedPosts');
+        }
+    );
+}
+
+export function getPinnedPosts(channelId) {
+    Client.getPinnedPosts(channelId,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH_TERM,
+                term: null,
+                do_search: false,
+                is_mention_search: false
+            });
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_SEARCH,
+                results: data,
+                is_flagged_posts: false,
+                is_pinned_posts: true
+            });
+
+            loadProfilesForPosts(data.posts);
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getPinnedPosts');
         }
     );
 }

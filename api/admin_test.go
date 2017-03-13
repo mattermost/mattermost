@@ -225,7 +225,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[0].Value != 3 {
+		if rows[0].Value != 4 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -245,7 +245,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[2].Value != 5 {
+		if rows[2].Value != 6 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}

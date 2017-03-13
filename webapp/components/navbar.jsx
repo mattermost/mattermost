@@ -19,12 +19,15 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import SearchStore from 'stores/search_store.jsx';
 
 import ChannelSwitchModal from './channel_switch_modal.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
+import {getPinnedPosts} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -62,6 +65,7 @@ export default class Navbar extends React.Component {
         this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
 
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
+        this.getPinnedPosts = this.getPinnedPosts.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
@@ -216,6 +220,15 @@ export default class Navbar extends React.Component {
         });
     }
 
+    getPinnedPosts(e) {
+        e.preventDefault();
+        if (SearchStore.isPinnedPosts) {
+            GlobalActions.toggleSideBarAction(false);
+        } else {
+            getPinnedPosts(this.state.channel.id);
+        }
+    }
+
     toggleFavorite = (e) => {
         e.preventDefault();
 
@@ -244,6 +257,7 @@ export default class Navbar extends React.Component {
             }
 
             let viewInfoOption;
+            let viewPinnedPostsOption;
             let addMembersOption;
             let manageMembersOption;
             let setChannelHeaderOption;
@@ -332,6 +346,21 @@ export default class Navbar extends React.Component {
                                 defaultMessage='View Info'
                             />
                         </ToggleModalButton>
+                    </li>
+                );
+
+                viewPinnedPostsOption = (
+                    <li role='presentation'>
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={this.getPinnedPosts}
+                        >
+                            <FormattedMessage
+                                id='navbar.viewPinnedPosts'
+                                defaultMessage='View Pinned Posts'
+                            />
+                        </a>
                     </li>
                 );
 
@@ -561,6 +590,7 @@ export default class Navbar extends React.Component {
                             role='menu'
                         >
                             {viewInfoOption}
+                            {viewPinnedPostsOption}
                             {notificationPreferenceOption}
                             {addMembersOption}
                             {manageMembersOption}
