@@ -1,4 +1,5 @@
-// Package webroot implements a HTTP provider for solving the HTTP-01 challenge using web server's root path.
+// Package memcached implements a HTTP provider for solving the HTTP-01 challenge using memcached
+// in combination with a webserver.
 package memcached
 
 import (

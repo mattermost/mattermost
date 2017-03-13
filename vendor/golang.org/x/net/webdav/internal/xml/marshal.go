@@ -26,9 +26,9 @@ const (
 //
 // Marshal handles an array or slice by marshalling each of the elements.
 // Marshal handles a pointer by marshalling the value it points at or, if the
-// pointer is nil, by writing nothing.  Marshal handles an interface value by
+// pointer is nil, by writing nothing. Marshal handles an interface value by
 // marshalling the value it contains or, if the interface value is nil, by
-// writing nothing.  Marshal handles all other data by writing one or more XML
+// writing nothing. Marshal handles all other data by writing one or more XML
 // elements containing the data.
 //
 // The name for the XML elements is taken from, in order of preference:
@@ -61,7 +61,7 @@ const (
 //       value were part of the outer struct.
 //
 // If a field uses a tag "a>b>c", then the element c will be nested inside
-// parent elements a and b.  Fields that appear next to each other that name
+// parent elements a and b. Fields that appear next to each other that name
 // the same parent will be enclosed in one XML element.
 //
 // See MarshalIndent for an example.
@@ -222,7 +222,7 @@ func (enc *Encoder) EncodeToken(t Token) error {
 		return p.cachedWriteError()
 	case ProcInst:
 		// First token to be encoded which is also a ProcInst with target of xml
-		// is the xml declaration.  The only ProcInst where target of xml is allowed.
+		// is the xml declaration. The only ProcInst where target of xml is allowed.
 		if t.Target == "xml" && p.Buffered() != 0 {
 			return fmt.Errorf("xml: EncodeToken of ProcInst xml target only valid for xml declaration, first token encoded")
 		}

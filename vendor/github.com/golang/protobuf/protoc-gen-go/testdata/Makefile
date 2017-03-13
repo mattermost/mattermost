@@ -45,9 +45,9 @@ my_test/test.pb.go: my_test/test.proto
 
 golden:
 	make -B my_test/test.pb.go
-	sed -i '/return.*fileDescriptor/d' my_test/test.pb.go
-	sed -i '/^var fileDescriptor/,/^}/d' my_test/test.pb.go
-	sed -i '/proto.RegisterFile.*fileDescriptor/d' my_test/test.pb.go
+	sed -i -e '/return.*fileDescriptor/d' my_test/test.pb.go
+	sed -i -e '/^var fileDescriptor/,/^}/d' my_test/test.pb.go
+	sed -i -e '/proto.RegisterFile.*fileDescriptor/d' my_test/test.pb.go
 	gofmt -w my_test/test.pb.go
 	diff -w my_test/test.pb.go my_test/test.pb.go.golden
 

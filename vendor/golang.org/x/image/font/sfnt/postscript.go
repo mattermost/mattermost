@@ -566,8 +566,8 @@ var psOperators = [...][2][]psOperator{
 		23: {-1, "vstemhm", t2CStem},
 		24: {}, // rcurveline.
 		25: {}, // rlinecurve.
-		26: {}, // vvcurveto.
-		27: {}, // hhcurveto.
+		26: {-1, "vvcurveto", t2CVvcurveto},
+		27: {-1, "hhcurveto", t2CHhcurveto},
 		28: {}, // shortint.
 		29: {}, // callgsubr.
 		30: {-1, "vhcurveto", t2CVhcurveto},
@@ -653,8 +653,8 @@ func t2CAppendMoveto(p *psInterpreter) {
 	p.type2Charstrings.segments = append(p.type2Charstrings.segments, Segment{
 		Op: SegmentOpMoveTo,
 		Args: [6]fixed.Int26_6{
-			0: fixed.Int26_6(p.type2Charstrings.x) << 6,
-			1: fixed.Int26_6(p.type2Charstrings.y) << 6,
+			0: fixed.Int26_6(p.type2Charstrings.x),
+			1: fixed.Int26_6(p.type2Charstrings.y),
 		},
 	})
 }
@@ -663,8 +663,8 @@ func t2CAppendLineto(p *psInterpreter) {
 	p.type2Charstrings.segments = append(p.type2Charstrings.segments, Segment{
 		Op: SegmentOpLineTo,
 		Args: [6]fixed.Int26_6{
-			0: fixed.Int26_6(p.type2Charstrings.x) << 6,
-			1: fixed.Int26_6(p.type2Charstrings.y) << 6,
+			0: fixed.Int26_6(p.type2Charstrings.x),
+			1: fixed.Int26_6(p.type2Charstrings.y),
 		},
 	})
 }
@@ -685,12 +685,12 @@ func t2CAppendCubeto(p *psInterpreter, dxa, dya, dxb, dyb, dxc, dyc int32) {
 	p.type2Charstrings.segments = append(p.type2Charstrings.segments, Segment{
 		Op: SegmentOpCubeTo,
 		Args: [6]fixed.Int26_6{
-			0: fixed.Int26_6(xa) << 6,
-			1: fixed.Int26_6(ya) << 6,
-			2: fixed.Int26_6(xb) << 6,
-			3: fixed.Int26_6(yb) << 6,
-			4: fixed.Int26_6(xc) << 6,
-			5: fixed.Int26_6(yc) << 6,
+			0: fixed.Int26_6(xa),
+			1: fixed.Int26_6(ya),
+			2: fixed.Int26_6(xb),
+			3: fixed.Int26_6(yb),
+			4: fixed.Int26_6(xc),
+			5: fixed.Int26_6(yc),
 		},
 	})
 }
@@ -770,6 +770,12 @@ func t2CRlineto(p *psInterpreter) error {
 
 // As per 5177.Type2.pdf section 4.1 "Path Construction Operators",
 //
+// hhcurveto is:
+//	- dy1 {dxa dxb dyb dxc}+
+//
+// vvcurveto is:
+//	- dx1 {dya dxb dyb dyc}+
+//
 // hvcurveto is one of:
 //	- dx1 dx2 dy2 dy3 {dya dxb dyb dxc dxd dxe dye dyf}* dxf?
 //	- {dxa dxb dyb dyc dyd dxe dye dxf}+ dyf?
@@ -778,59 +784,84 @@ func t2CRlineto(p *psInterpreter) error {
 //	- dy1 dx2 dy2 dx3 {dxa dxb dyb dyc dyd dxe dye dxf}* dyf?
 //	- {dya dxb dyb dxc dxd dxe dye dyf}+ dxf?
 
-func t2CHvcurveto(p *psInterpreter) error { return t2CCurveto(p, false) }
-func t2CVhcurveto(p *psInterpreter) error { return t2CCurveto(p, true) }
+func t2CHhcurveto(p *psInterpreter) error { return t2CCurveto(p, false, false) }
+func t2CVvcurveto(p *psInterpreter) error { return t2CCurveto(p, false, true) }
+func t2CHvcurveto(p *psInterpreter) error { return t2CCurveto(p, true, false) }
+func t2CVhcurveto(p *psInterpreter) error { return t2CCurveto(p, true, true) }
 
-func t2CCurveto(p *psInterpreter, vertical bool) error {
+// t2CCurveto implements the hh / vv / hv / vh xxcurveto operators. N relative
+// cubic curve requires 6*N control points, but only 4*N+0 or 4*N+1 are used
+// here: all (or all but one) of the piecewise cubic curve's tangents are
+// implicitly horizontal or vertical.
+//
+// swap is whether that implicit horizontal / vertical constraint swaps as you
+// move along the piecewise cubic curve. If swap is false, the constraints are
+// either all horizontal or all vertical. If swap is true, it alternates.
+//
+// vertical is whether the first implicit constraint is vertical.
+func t2CCurveto(p *psInterpreter, swap, vertical bool) error {
 	if !p.type2Charstrings.seenWidth || p.stack.top < 4 {
 		return errInvalidCFFTable
 	}
-	for i := int32(0); i != p.stack.top; vertical = !vertical {
-		if vertical {
-			i = t2CVcurveto(p, i)
-		} else {
-			i = t2CHcurveto(p, i)
+
+	i := int32(0)
+	switch p.stack.top & 3 {
+	case 0:
+		// No-op.
+	case 1:
+		if swap {
+			break
 		}
+		i = 1
+		if vertical {
+			p.type2Charstrings.x += p.stack.a[0]
+		} else {
+			p.type2Charstrings.y += p.stack.a[0]
+		}
+	default:
+		return errInvalidCFFTable
+	}
+
+	for i != p.stack.top {
+		i = t2CCurveto4(p, swap, vertical, i)
 		if i < 0 {
 			return errInvalidCFFTable
+		}
+		if swap {
+			vertical = !vertical
 		}
 	}
 	return nil
 }
 
-func t2CHcurveto(p *psInterpreter, i int32) (j int32) {
+func t2CCurveto4(p *psInterpreter, swap bool, vertical bool, i int32) (j int32) {
 	if i+4 > p.stack.top {
 		return -1
 	}
 	dxa := p.stack.a[i+0]
-	dxb := p.stack.a[i+1]
-	dyb := p.stack.a[i+2]
-	dyc := p.stack.a[i+3]
-	dxc := int32(0)
-	i += 4
-	if i+1 == p.stack.top {
-		dxc = p.stack.a[i]
-		i++
-	}
-	t2CAppendCubeto(p, dxa, 0, dxb, dyb, dxc, dyc)
-	return i
-}
-
-func t2CVcurveto(p *psInterpreter, i int32) (j int32) {
-	if i+4 > p.stack.top {
-		return -1
-	}
-	dya := p.stack.a[i+0]
+	dya := int32(0)
 	dxb := p.stack.a[i+1]
 	dyb := p.stack.a[i+2]
 	dxc := p.stack.a[i+3]
 	dyc := int32(0)
 	i += 4
-	if i+1 == p.stack.top {
-		dyc = p.stack.a[i]
-		i++
+
+	if vertical {
+		dxa, dya = dya, dxa
 	}
-	t2CAppendCubeto(p, 0, dya, dxb, dyb, dxc, dyc)
+
+	if swap {
+		if i+1 == p.stack.top {
+			dyc = p.stack.a[i]
+			i++
+		}
+	}
+
+	if swap != vertical {
+		dxc, dyc = dyc, dxc
+	}
+
+	t2CAppendCubeto(p, dxa, dya, dxb, dyb, dxc, dyc)
 	return i
 }
 

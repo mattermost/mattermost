@@ -46,6 +46,29 @@ var USEast = Region{
 	"https://streams.dynamodb.us-east-1.amazonaws.com",
 }
 
+var USEast2 = Region{
+	"us-east-2",
+	"https://ec2.us-east-2.amazonaws.com",
+	"https://s3.amazonaws.com",
+	"",
+	true,
+	true,
+	"",
+	"",
+	"https://sns.us-east-2.amazonaws.com",
+	"https://sqs.us-east-2.amazonaws.com",
+	"https://iam.amazonaws.com",
+	"https://elasticloadbalancing.us-east-2.amazonaws.com",
+	"https://dynamodb.us-east-2.amazonaws.com",
+	ServiceInfo{"https://monitoring.us-east-2.amazonaws.com", V2Signature},
+	"https://autoscaling.us-east-1.amazonaws.com",
+	ServiceInfo{"https://rds.us-east-2.amazonaws.com", V2Signature},
+	"https://sts.amazonaws.com",
+	"https://cloudformation.us-east-2.amazonaws.com",
+	"https://ecs.us-east-2.amazonaws.com",
+	"https://streams.dynamodb.us-east-2.amazonaws.com",
+}
+
 var USWest = Region{
 	"us-west-1",
 	"https://ec2.us-west-1.amazonaws.com",

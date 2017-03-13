@@ -1,4 +1,4 @@
-// +build linux
+// +build linux,!appengine
 
 package dns
 
@@ -14,6 +14,29 @@ import (
 	"net"
 	"syscall"
 )
+
+// setUDPSocketOptions sets the UDP socket options.
+// This function is implemented on a per platform basis. See udp_*.go for more details
+func setUDPSocketOptions(conn *net.UDPConn) error {
+	sa, err := getUDPSocketName(conn)
+	if err != nil {
+		return err
+	}
+	switch sa.(type) {
+	case *syscall.SockaddrInet6:
+		v6only, err := getUDPSocketOptions6Only(conn)
+		if err != nil {
+			return err
+		}
+		setUDPSocketOptions6(conn)
+		if !v6only {
+			setUDPSocketOptions4(conn)
+		}
+	case *syscall.SockaddrInet4:
+		setUDPSocketOptions4(conn)
+	}
+	return nil
+}
 
 // setUDPSocketOptions4 prepares the v4 socket for sessions.
 func setUDPSocketOptions4(conn *net.UDPConn) error {
