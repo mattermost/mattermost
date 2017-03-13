@@ -775,6 +775,91 @@ func TestChannelStoreGetMoreChannels(t *testing.T) {
 	}
 }
 
+func TestChannelStoreGetPublicChannelsForTeam(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "OpenChannel1Team1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "OpenChannel1Team2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	o3 := model.Channel{}
+	o3.TeamId = o1.TeamId
+	o3.DisplayName = "PrivateChannel1Team1"
+	o3.Name = "a" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&o3))
+
+	cresult := <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 0, 100)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
+	list := cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list")
+	}
+
+	if (*list)[0].Name != o1.Name {
+		t.Fatal("missing channel")
+	}
+
+	o4 := model.Channel{}
+	o4.TeamId = o1.TeamId
+	o4.DisplayName = "OpenChannel2Team1"
+	o4.Name = "a" + model.NewId() + "b"
+	o4.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o4))
+
+	cresult = <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 0, 100)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 2 {
+		t.Fatal("wrong list length")
+	}
+
+	cresult = <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 0, 1)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list length")
+	}
+
+	cresult = <-store.Channel().GetPublicChannelsForTeam(o1.TeamId, 1, 1)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list length")
+	}
+
+	if r1 := <-store.Channel().AnalyticsTypeCount(o1.TeamId, model.CHANNEL_OPEN); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) != 2 {
+			t.Log(r1.Data)
+			t.Fatal("wrong value")
+		}
+	}
+
+	if r1 := <-store.Channel().AnalyticsTypeCount(o1.TeamId, model.CHANNEL_PRIVATE); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(int64) != 1 {
+			t.Log(r1.Data)
+			t.Fatal("wrong value")
+		}
+	}
+}
+
 func TestChannelStoreGetChannelCounts(t *testing.T) {
 	Setup()
 

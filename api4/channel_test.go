@@ -254,6 +254,86 @@ func TestGetChannel(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestGetPublicChannelsForTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	publicChannel1 := th.BasicChannel
+	publicChannel2 := th.BasicChannel2
+
+	channels, resp := Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 4 {
+		t.Fatal("wrong length")
+	}
+
+	for i, c := range *channels {
+		if c.Type != model.CHANNEL_OPEN {
+			t.Fatal("should include open channel only")
+		}
+
+		// only check the created 2 public channels
+		if i < 2 && !(c.DisplayName == publicChannel1.DisplayName || c.DisplayName == publicChannel2.DisplayName) {
+			t.Logf("channel %v: %v", i, c.DisplayName)
+			t.Fatal("should match public channel display name only")
+		}
+	}
+
+	privateChannel := th.CreatePrivateChannel()
+	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 4 {
+		t.Fatal("wrong length")
+	}
+
+	for _, c := range *channels {
+		if c.Type != model.CHANNEL_OPEN {
+			t.Fatal("should not include private channel")
+		}
+
+		if c.DisplayName == privateChannel.DisplayName {
+			t.Fatal("should not match private channel display name")
+		}
+	}
+
+	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 1 {
+		t.Fatal("should be one channel per page")
+	}
+
+	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 1 {
+		t.Fatal("should be one channel per page")
+	}
+
+	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 10000, 100, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 0 {
+		t.Fatal("should be no channel")
+	}
+
+	_, resp = Client.GetPublicChannelsForTeam("junk", 0, 100, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsForTeam(model.NewId(), 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+}
+
 func TestGetChannelByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
