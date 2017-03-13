@@ -162,6 +162,10 @@ func (c *Client4) GetComplianceReportRoute(reportId string) string {
 	return fmt.Sprintf("/compliance/reports/%v", reportId)
 }
 
+func (c *Client4) GetOutgoingWebhooksRoute() string {
+	return fmt.Sprintf("/hooks/outgoing")
+}
+
 func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
@@ -1122,6 +1126,49 @@ func (c *Client4) DeleteIncomingWebhook(hookID string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// CreateOutgoingWebhook creates an outgoing webhook for a team or channel.
+func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiPost(c.GetOutgoingWebhooksRoute(), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
+func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetOutgoingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
+func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&channel_id=%v", page, perPage, channelId)
+	if r, err := c.DoApiGet(c.GetOutgoingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhooksForTeam returns a page of outgoing webhooks for a team. Page counting starts at 0.
+func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
+	if r, err := c.DoApiGet(c.GetOutgoingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

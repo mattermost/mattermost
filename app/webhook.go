@@ -33,7 +33,7 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 		return nil
 	}
 
-	hchan := Srv.Store.Webhook().GetOutgoingByTeam(team.Id)
+	hchan := Srv.Store.Webhook().GetOutgoingByTeam(team.Id, -1, -1)
 	result := <-hchan
 	if result.Err != nil {
 		return result.Err
@@ -304,7 +304,7 @@ func CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook,
 		return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(hook.TeamId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(hook.TeamId, -1, -1); result.Err != nil {
 		return nil, result.Err
 	} else {
 		allHooks := result.Data.([]*model.OutgoingWebhook)
@@ -349,7 +349,7 @@ func UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook) (*model.
 	}
 
 	var result store.StoreResult
-	if result = <-Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId); result.Err != nil {
+	if result = <-Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId, -1, -1); result.Err != nil {
 		return nil, result.Err
 	}
 
@@ -389,12 +389,36 @@ func GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError)
 	}
 }
 
+func GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
+		return nil, model.NewAppError("GetOutgoingWebhooksPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-Srv.Store.Webhook().GetOutgoingList(page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.OutgoingWebhook), nil
+	}
+}
+
+func GetOutgoingWebhooksForChannelPage(channelId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
+		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.OutgoingWebhook), nil
+	}
+}
+
 func GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForTeamPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(teamId); result.Err != nil {
+	if result := <-Srv.Store.Webhook().GetOutgoingByTeam(teamId, page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.OutgoingWebhook), nil
