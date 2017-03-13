@@ -28,6 +28,8 @@ func InitFile() {
 	BaseRoutes.File.Handle("/preview", ApiSessionRequired(getFilePreview)).Methods("GET")
 	BaseRoutes.File.Handle("/info", ApiSessionRequired(getFileInfo)).Methods("GET")
 
+	BaseRoutes.PublicFile.Handle("", ApiHandler(getPublicFile)).Methods("GET")
+
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -214,6 +216,47 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Write([]byte(info.ToJson()))
+}
+
+func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	if !utils.Cfg.FileSettings.EnablePublicLink {
+		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "")
+		c.Err.StatusCode = http.StatusNotImplemented
+		return
+	}
+
+	info, err := app.GetFileInfo(c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	hash := r.URL.Query().Get("h")
+
+	if len(hash) == 0 {
+		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if hash != app.GeneratePublicLinkHash(info.Id, *utils.Cfg.FileSettings.PublicLinkSalt) {
+		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if data, err := app.ReadFile(info.Path); err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
+		c.Err = err
+		return
+	}
 }
 
 func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {

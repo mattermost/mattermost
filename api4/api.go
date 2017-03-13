@@ -49,6 +49,8 @@ type Routes struct {
 	Files *mux.Router // 'api/v4/files'
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
 
+	PublicFile *mux.Router // 'files/{file_id:[A-Za-z0-9]+}/public'
+
 	Commands        *mux.Router // 'api/v4/commands'
 	Command         *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
 	CommandsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/commands'
@@ -120,6 +122,7 @@ func InitApi(full bool) {
 
 	BaseRoutes.Files = BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
 	BaseRoutes.File = BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.PublicFile = BaseRoutes.Root.PathPrefix("/files/{file_id:[A-Za-z0-9]+}/public").Subrouter()
 
 	BaseRoutes.Commands = BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	BaseRoutes.Command = BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
