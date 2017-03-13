@@ -38,6 +38,37 @@ type TestHelper struct {
 	SystemAdminUser   *model.User
 }
 
+func SetupEnterprise() *TestHelper {
+	if app.Srv == nil {
+		utils.TranslationsPreInit()
+		utils.LoadConfig("config.json")
+		utils.InitTranslations(utils.Cfg.LocalizationSettings)
+		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.RateLimitSettings.Enable = false
+		utils.Cfg.EmailSettings.SendEmailNotifications = true
+		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
+		utils.Cfg.EmailSettings.SMTPPort = "2500"
+		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
+		utils.DisableDebugLogForTest()
+		utils.License.Features.SetDefaults()
+		app.NewServer()
+		app.InitStores()
+		InitRouter()
+		app.StartServer()
+		utils.InitHTML()
+		InitApi(true)
+		utils.EnableDebugLogForTest()
+		app.Srv.Store.MarkSystemRanUnitTests()
+
+		*utils.Cfg.TeamSettings.EnableOpenServer = true
+	}
+
+	th := &TestHelper{}
+	th.Client = th.CreateClient()
+	th.SystemAdminClient = th.CreateClient()
+	return th
+}
+
 func Setup() *TestHelper {
 	if app.Srv == nil {
 		utils.TranslationsPreInit()
