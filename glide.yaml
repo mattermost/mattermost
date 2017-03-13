@@ -11,10 +11,6 @@ import:
   version: v2.5.0
 - package: github.com/go-sql-driver/mysql
   version: v1.3
-- package: github.com/goamz/goamz
-  subpackages:
-  - aws
-  - s3
 - package: github.com/golang/freetype
 - package: github.com/gorilla/handlers
   version: v1.2
