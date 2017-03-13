@@ -132,7 +132,7 @@ export function getMyChannelMembers() {
             (err) => {
                 callTracker.getChannelsUnread = 0;
                 dispatchError(err, 'getMyChannelMembers');
-                reject();
+                reject(new Error('Unable to getMyChannelMembers'));
             }
         );
     });
@@ -161,7 +161,7 @@ export function getMyChannelMembersForTeam(teamId) {
             (err) => {
                 callTracker[`getMyChannelMembers${teamId}`] = 0;
                 dispatchError(err, 'getMyChannelMembersForTeam');
-                reject();
+                reject(new Error('Unable to getMyChannelMembersForTeam'));
             }
         );
     });
@@ -303,7 +303,7 @@ export function getChannelMember(channelId, userId) {
             (err) => {
                 callTracker[`getChannelMember${channelId}${userId}`] = 0;
                 dispatchError(err, 'getChannelMember');
-                reject();
+                reject(new Error('Unable to getChannelMeber'));
             }
         );
     });

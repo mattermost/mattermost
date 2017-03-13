@@ -179,7 +179,7 @@ export function displayTime(ticks, utc) {
             ampm = ' PM';
         }
 
-        hours = hours % 12;
+        hours %= 12;
         if (!hours) {
             hours = '12';
         }
@@ -1217,7 +1217,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Lowercase';
+            errorId += 'Lowercase';
         }
 
         if (global.window.mm_config.PasswordRequireUppercase === 'true') {
@@ -1225,7 +1225,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Uppercase';
+            errorId += 'Uppercase';
         }
 
         if (global.window.mm_config.PasswordRequireNumber === 'true') {
@@ -1233,7 +1233,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Number';
+            errorId += 'Number';
         }
 
         if (global.window.mm_config.PasswordRequireSymbol === 'true') {
@@ -1241,7 +1241,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Symbol';
+            errorId += 'Symbol';
         }
 
         minimumLength = global.window.mm_config.PasswordMinimumLength;
