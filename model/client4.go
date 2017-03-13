@@ -339,6 +339,39 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 	}
 }
 
+// AutocompleteUsersInTeam returns the users on a team based on search term.
+func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?in_team=%v&name=%v", teamId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteUsersInChannel returns the users in a channel based on search term.
+func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteUsers returns the users in the system based on search term.
+func (c *Client4) AutocompleteUsers(username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?name=%v", username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetProfileImage gets user's profile image. Must be logged in or be a system administrator.
 func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
