@@ -554,7 +554,7 @@ func TestTeamStoreMemberCount(t *testing.T) {
 	}
 }
 
-func TestMyTeamMembersUnread(t *testing.T) {
+func TestGetChannelUnreadsForAllTeams(t *testing.T) {
 	Setup()
 
 	teamId1 := model.NewId()
@@ -566,17 +566,17 @@ func TestMyTeamMembersUnread(t *testing.T) {
 	Must(store.Team().SaveMember(m1))
 	Must(store.Team().SaveMember(m2))
 
-	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN}
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	Must(store.Channel().Save(c1))
-	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN}
+	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	Must(store.Channel().Save(c2))
 
-	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	Must(store.Channel().SaveMember(cm1))
-	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	Must(store.Channel().SaveMember(cm2))
 
-	if r1 := <-store.Team().GetTeamsUnreadForUser("", uid); r1.Err != nil {
+	if r1 := <-store.Team().GetChannelUnreadsForAllTeams("", uid); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		ms := r1.Data.([]*model.ChannelUnread)
@@ -590,9 +590,13 @@ func TestMyTeamMembersUnread(t *testing.T) {
 		if len(membersMap) != 2 {
 			t.Fatal("Should be the unreads for all the teams")
 		}
+
+		if ms[0].MsgCount != 10 {
+			t.Fatal("subtraction failed")
+		}
 	}
 
-	if r2 := <-store.Team().GetTeamsUnreadForUser(teamId1, uid); r2.Err != nil {
+	if r2 := <-store.Team().GetChannelUnreadsForAllTeams(teamId1, uid); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		ms := r2.Data.([]*model.ChannelUnread)
@@ -607,9 +611,46 @@ func TestMyTeamMembersUnread(t *testing.T) {
 		if len(membersMap) != 1 {
 			t.Fatal("Should be the unreads for just one team")
 		}
+
+		if ms[0].MsgCount != 10 {
+			t.Fatal("subtraction failed")
+		}
 	}
 
 	if r1 := <-store.Team().RemoveAllMembersByUser(uid); r1.Err != nil {
 		t.Fatal(r1.Err)
+	}
+}
+
+func TestGetChannelUnreadsForTeam(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+
+	uid := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
+	Must(store.Team().SaveMember(m1))
+
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	Must(store.Channel().Save(c1))
+	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	Must(store.Channel().Save(c2))
+
+	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
+	Must(store.Channel().SaveMember(cm1))
+	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
+	Must(store.Channel().SaveMember(cm2))
+
+	if r1 := <-store.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		ms := r1.Data.([]*model.ChannelUnread)
+		if len(ms) != 2 {
+			t.Fatal("wrong length")
+		}
+
+		if ms[0].MsgCount != 10 {
+			t.Fatal("subtraction failed")
+		}
 	}
 }
