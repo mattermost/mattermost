@@ -457,6 +457,22 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) 
 	}
 }
 
+// UpdateUserMfa activates multi-factor authentication for a user if activate
+// is true and a valid code is provided. If activate is false, then code is not
+// required and multi-factor authentication is disabled for the user.
+func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Response) {
+	requestBody := make(map[string]interface{})
+	requestBody["activate"] = activate
+	requestBody["code"] = code
+
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/mfa", StringInterfaceToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *Response) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}

@@ -28,6 +28,7 @@ func InitUser() {
 	BaseRoutes.User.Handle("/image", ApiSessionRequired(setProfileImage)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
+	BaseRoutes.User.Handle("/mfa", ApiSessionRequired(updateUserMfa)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
@@ -490,6 +491,45 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
 	}
 
+	ReturnStatusOK(w)
+}
+
+func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	props := model.StringInterfaceFromJson(r.Body)
+
+	activate, ok := props["activate"].(bool)
+	if !ok {
+		c.SetInvalidParam("activate")
+		return
+	}
+
+	code := ""
+	if activate {
+		code, ok = props["code"].(string)
+		if !ok || len(code) == 0 {
+			c.SetInvalidParam("code")
+			return
+		}
+	}
+
+	c.LogAudit("attempt")
+
+	if err := app.UpdateMfa(activate, c.Params.UserId, code, c.GetSiteURL()); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - mfa updated")
 	ReturnStatusOK(w)
 }
 
