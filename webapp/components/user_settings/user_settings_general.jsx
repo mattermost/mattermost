@@ -101,6 +101,7 @@ class UserSettingsGeneralTab extends React.Component {
         this.updatePicture = this.updatePicture.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updatePosition = this.updatePosition.bind(this);
+        this.updatedCroppedPicture = this.updatedCroppedPicture.bind(this);
 
         this.state = this.setupInitialState(props);
     }
@@ -309,6 +310,17 @@ class UserSettingsGeneralTab extends React.Component {
 
     updateConfirmEmail(e) {
         this.setState({confirmEmail: e.target.value});
+    }
+
+    updatedCroppedPicture(file) {
+        if (file) {
+            this.setState({picture: file});
+
+            this.submitActive = true;
+            this.setState({clientError: null});
+        } else {
+            this.setState({picture: null});
+        }
     }
 
     updatePicture(e) {
@@ -1088,6 +1100,7 @@ class UserSettingsGeneralTab extends React.Component {
                     pictureChange={this.updatePicture}
                     submitActive={this.submitActive}
                     loadingPicture={this.state.loadingPicture}
+                    imageCropChange={this.updatedCroppedPicture}
                 />
             );
         } else {
