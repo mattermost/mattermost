@@ -329,3 +329,70 @@ func TestGetFilePreview(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetFilePreview(fileId)
 	CheckNoError(t, resp)
 }
+
+func TestGetFileInfo(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	fileId := ""
+	var sent []byte
+	var err error
+	if sent, err = readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	info, resp := Client.GetFileInfo(fileId)
+	CheckNoError(t, resp)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if info.Id != fileId {
+		t.Fatal("got incorrect file")
+	} else if info.CreatorId != user.Id {
+		t.Fatal("file should be assigned to user")
+	} else if info.PostId != "" {
+		t.Fatal("file shouldn't have a post")
+	} else if info.Path != "" {
+		t.Fatal("file path shouldn't have been returned to client")
+	} else if info.ThumbnailPath != "" {
+		t.Fatal("file thumbnail path shouldn't have been returned to client")
+	} else if info.PreviewPath != "" {
+		t.Fatal("file preview path shouldn't have been returned to client")
+	} else if info.MimeType != "image/png" {
+		t.Fatal("mime type should've been image/png")
+	}
+
+	_, resp = Client.GetFileInfo("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFileInfo(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFileInfo(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+	_, resp = Client.GetFileInfo(fileId)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetFileInfo(fileId)
+	CheckNoError(t, resp)
+}
