@@ -171,6 +171,78 @@ func TestCreateChannel(t *testing.T) {
 	}
 }
 
+func TestUpdateChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	private := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+
+	channel, resp := Client.CreateChannel(channel)
+	private, resp = Client.CreateChannel(private)
+
+	//Update a open channel
+	channel.DisplayName = "My new display name"
+	channel.Header = "My fancy header"
+	channel.Purpose = "Mattermost ftw!"
+
+	newChannel, resp := Client.UpdateChannel(channel)
+	CheckNoError(t, resp)
+
+	if newChannel.DisplayName != channel.DisplayName {
+		t.Fatal("Update failed for DisplayName")
+	}
+
+	if newChannel.Header != channel.Header {
+		t.Fatal("Update failed for Header")
+	}
+
+	if newChannel.Purpose != channel.Purpose {
+		t.Fatal("Update failed for Purpose")
+	}
+
+	//Update a private channel
+	private.DisplayName = "My new display name for private channel"
+	private.Header = "My fancy private header"
+	private.Purpose = "Mattermost ftw! in private mode"
+
+	newPrivateChannel, resp := Client.UpdateChannel(private)
+	CheckNoError(t, resp)
+
+	if newPrivateChannel.DisplayName != private.DisplayName {
+		t.Fatal("Update failed for DisplayName in private channel")
+	}
+
+	if newPrivateChannel.Header != private.Header {
+		t.Fatal("Update failed for Header in private channel")
+	}
+
+	if newPrivateChannel.Purpose != private.Purpose {
+		t.Fatal("Update failed for Purpose in private channel")
+	}
+
+	//Non existing channel
+	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	_, resp = Client.UpdateChannel(channel1)
+	CheckNotFoundStatus(t, resp)
+
+	//Try to update with not logged user
+	Client.Logout()
+	_, resp = Client.UpdateChannel(channel)
+	CheckUnauthorizedStatus(t, resp)
+
+	//Try to update using another user
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+
+	channel.DisplayName = "Should not update"
+	_, resp = Client.UpdateChannel(channel)
+	CheckNotFoundStatus(t, resp)
+
+}
+
 func TestCreateDirectChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
