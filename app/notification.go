@@ -318,8 +318,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 }
 
 func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User, siteURL string) *model.AppError {
-	if channel.IsGroupOrDirect() && channel.TeamId != team.Id {
-		// this message is a cross-team DM/GM so we need to find a team that the recipient is on to use in the link
+	if channel.IsGroupOrDirect() {
 		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
 		} else {
