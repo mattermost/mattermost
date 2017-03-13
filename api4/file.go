@@ -25,6 +25,7 @@ func InitFile() {
 	BaseRoutes.File.Handle("", ApiSessionRequired(getFile)).Methods("GET")
 	BaseRoutes.File.Handle("/thumbnail", ApiSessionRequired(getFileThumbnail)).Methods("GET")
 	BaseRoutes.File.Handle("/link", ApiSessionRequired(getFileLink)).Methods("GET")
+	BaseRoutes.File.Handle("/preview", ApiSessionRequired(getFilePreview)).Methods("GET")
 
 }
 
@@ -159,6 +160,38 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp["link"] = app.GeneratePublicLink(c.GetSiteURL(), info)
 
 	w.Write([]byte(model.MapToJson(resp)))
+}
+
+func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireFileId()
+	if c.Err != nil {
+		return
+	}
+
+	info, err := app.GetFileInfo(c.Params.FileId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if info.PreviewPath == "" {
+		c.Err = model.NewLocAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id)
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if data, err := app.ReadFile(info.PreviewPath); err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
+		c.Err = err
+		return
+	}
 }
 
 func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {

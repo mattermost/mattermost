@@ -1026,7 +1026,7 @@
     "translation": "The public link does not appear to be valid"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "File doesn't have a preview image"
   },
   {
