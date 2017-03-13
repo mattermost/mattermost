@@ -146,6 +146,10 @@ func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
 
+func (c *Client4) GetTestEmailRoute() string {
+	return fmt.Sprintf("/email/test")
+}
+
 func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
 }
@@ -1058,6 +1062,15 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 // GetPing will ping the server and to see if it is up and running.
 func (c *Client4) GetPing() (bool, *Response) {
 	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+func (c *Client4) TestEmail() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)

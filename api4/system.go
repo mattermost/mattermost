@@ -17,9 +17,26 @@ func InitSystem() {
 
 	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
+	BaseRoutes.ApiRoot.Handle("/email/test", ApiSessionRequired(testEmail)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
+	ReturnStatusOK(w)
+}
+
+func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	err := app.TestEmail(c.Session.UserId, utils.Cfg)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }
 
