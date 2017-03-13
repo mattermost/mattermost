@@ -247,6 +247,9 @@ func UpgradeDatabaseToVersion38(sqlStore *SqlStore) {
 	// TODO: Uncomment following condition when version 3.8.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_3_7_0, VERSION_3_8_0) {
 
+	// Add the IsPinned column to posts.
+	sqlStore.CreateColumnIfNotExists("Posts", "IsPinned", "boolean", "boolean", "0")
+
 	// saveSchemaVersion(sqlStore, VERSION_3_8_0)
 	// }
 }
