@@ -1,11 +1,11 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type OfflineProvider struct {
@@ -23,21 +23,21 @@ func (me *OfflineProvider) GetTrigger() string {
 	return CMD_OFFLINE
 }
 
-func (me *OfflineProvider) GetCommand(c *Context) *model.Command {
+func (me *OfflineProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_OFFLINE,
 		AutoComplete:     true,
-		AutoCompleteDesc: c.T("api.command_offline.desc"),
-		DisplayName:      c.T("api.command_offline.name"),
+		AutoCompleteDesc: T("api.command_offline.desc"),
+		DisplayName:      T("api.command_offline.name"),
 	}
 }
 
-func (me *OfflineProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
-	rmsg := c.T("api.command_offline.success")
+func (me *OfflineProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+	rmsg := args.T("api.command_offline.success")
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
 	}
-	app.SetStatusOffline(c.Session.UserId, true)
+	SetStatusOffline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
 }

@@ -1,10 +1,11 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package app
 
 import (
 	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type ShrugProvider struct {
@@ -22,17 +23,17 @@ func (me *ShrugProvider) GetTrigger() string {
 	return CMD_SHRUG
 }
 
-func (me *ShrugProvider) GetCommand(c *Context) *model.Command {
+func (me *ShrugProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SHRUG,
 		AutoComplete:     true,
-		AutoCompleteDesc: c.T("api.command_shrug.desc"),
-		AutoCompleteHint: c.T("api.command_shrug.hint"),
-		DisplayName:      c.T("api.command_shrug.name"),
+		AutoCompleteDesc: T("api.command_shrug.desc"),
+		AutoCompleteHint: T("api.command_shrug.hint"),
+		DisplayName:      T("api.command_shrug.name"),
 	}
 }
 
-func (me *ShrugProvider) DoCommand(c *Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *ShrugProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg
