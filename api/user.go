@@ -1538,20 +1538,16 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var profiles []*model.User
 	var err *model.AppError
 	if props.InChannelId != "" {
-		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, c.IsSystemAdmin())
 	} else if props.NotInChannelId != "" {
-		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, c.IsSystemAdmin())
 	} else {
-		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions)
+		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions, c.IsSystemAdmin())
 	}
 
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range profiles {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(model.UserListToJson(profiles)))
@@ -1604,18 +1600,10 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range autocomplete.InChannel {
-		sanitizeProfile(c, p)
-	}
-
-	for _, p := range autocomplete.OutOfChannel {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -1642,14 +1630,10 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range autocomplete.InTeam {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -1670,13 +1654,9 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var profiles []*model.User
 	var err *model.AppError
 
-	if profiles, err = app.SearchUsersInTeam("", term, searchOptions); err != nil {
+	if profiles, err = app.SearchUsersInTeam("", term, searchOptions, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range profiles {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(model.UserListToJson(profiles)))

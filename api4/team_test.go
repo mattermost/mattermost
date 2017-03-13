@@ -123,10 +123,11 @@ func TestGetAllTeams(t *testing.T) {
 	_, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 
-	rrteams, resp := Client.GetAllTeams("", 1, 1)
+	rrteams, resp := Client.GetAllTeams("", 0, 1)
 	CheckNoError(t, resp)
 
 	if len(rrteams) != 1 {
+		t.Log(len(rrteams))
 		t.Fatal("wrong number of teams - should be 1")
 	}
 

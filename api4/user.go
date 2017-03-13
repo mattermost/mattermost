@@ -11,6 +11,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -20,6 +21,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
 	BaseRoutes.Users.Handle("", ApiSessionRequired(getUsers)).Methods("GET")
 	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
+	BaseRoutes.Users.Handle("/autocomplete", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
 	BaseRoutes.User.Handle("/image", ApiSessionRequired(getProfileImage)).Methods("GET")
@@ -328,6 +330,56 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(model.UserListToJson(users)))
+	}
+}
+
+func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelId := r.URL.Query().Get("in_channel")
+	teamId := r.URL.Query().Get("in_team")
+	name := r.URL.Query().Get("name")
+
+	autocomplete := new(model.UserAutocomplete)
+	var err *model.AppError
+
+	searchOptions := map[string]bool{}
+
+	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+	} else {
+		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+	}
+
+	if len(teamId) > 0 {
+		if len(channelId) > 0 {
+			if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+				return
+			}
+
+			result, _ := app.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+			autocomplete.Users = result.InChannel
+			autocomplete.OutOfChannel = result.OutOfChannel
+		} else {
+			if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+				c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+				return
+			}
+
+			result, _ := app.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+			autocomplete.Users = result.InTeam
+		}
+	} else {
+		// No permission check required
+		result, _ := app.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
+		autocomplete.Users = result
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte((autocomplete.ToJson())))
 	}
 }
 
