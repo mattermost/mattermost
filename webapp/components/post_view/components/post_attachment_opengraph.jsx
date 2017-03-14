@@ -32,7 +32,6 @@ export default class PostAttachmentOpenGraph extends React.Component {
         this.onImageLoad = this.onImageLoad.bind(this);
         this.onImageError = this.onImageError.bind(this);
         this.truncateText = this.truncateText.bind(this);
-        this.setImageWidth = this.setImageWidth.bind(this);
     }
 
     IMAGE_LOADED = {
@@ -75,20 +74,16 @@ export default class PostAttachmentOpenGraph extends React.Component {
 
     componentDidMount() {
         OpenGraphStore.addUrlDataChangeListener(this.onOpenGraphMetadataChange);
-        this.setImageWidth();
-        window.addEventListener('resize', this.setImageWidth);
     }
 
     componentDidUpdate() {
         if (this.props.childComponentDidUpdateFunction) {
             this.props.childComponentDidUpdateFunction();
         }
-        this.setImageWidth();
     }
 
     componentWillUnmount() {
         OpenGraphStore.removeUrlDataChangeListener(this.onOpenGraphMetadataChange);
-        window.removeEventListener('resize', this.setImageWidth);
     }
 
     onOpenGraphMetadataChange(url) {
@@ -163,9 +158,6 @@ export default class PostAttachmentOpenGraph extends React.Component {
         return (
             <div
                 className='attachment__image__container--openraph'
-                style={{
-                    width: (this.imageDimentions.height * this.imageRatio) + this.smallImageContainerLeftPadding
-                }} // Initially set the width accordinly to max image heigh, ie 80px. Later on it would be modified according to actul height of image.
                 ref={(div) => {
                     this.smallImageContainer = div;
                 }}
@@ -213,20 +205,6 @@ export default class PostAttachmentOpenGraph extends React.Component {
             }
         }
         return element;
-    }
-
-    setImageWidth() {
-        if (
-            this.state.imageLoaded === this.IMAGE_LOADED.YES &&
-            this.smallImageContainer &&
-            this.smallImageElement
-        ) {
-            this.smallImageContainer.style.width = (
-                (this.smallImageElement.offsetHeight * this.imageRatio) +
-                this.smallImageContainerLeftPadding +
-                'px'
-            );
-        }
     }
 
     truncateText(text, maxLength = this.textMaxLenght, ellipsis = this.textEllipsis) {

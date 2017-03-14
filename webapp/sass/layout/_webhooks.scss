@@ -41,6 +41,7 @@
         &.attachment--opengraph {
             max-width: 800px;
         }
+
         .attachment__content {
             border-radius: 4px;
             border-style: solid;
@@ -71,16 +72,18 @@
             &.attachment__container--danger {
                 border-left-color: #e40303;
             }
+
             &.attachment__container--opengraph {
                 display: table;
-                table-layout: fixed;
-                width: 100%;
                 margin: 0;
                 padding-bottom: 13px;
+                width: 100%;
+
                 div {
                     margin: 0;
                 }
             }
+
             .sitename {
                 color: #A3A3A3;
             }
@@ -89,8 +92,8 @@
         .attachment__body__wrap {
             &.attachment__body__wrap--opengraph {
                 display: table-cell;
-                width: 100%;
                 vertical-align: top;
+                width: 100%;
             }
         }
 
@@ -104,6 +107,7 @@
             &.attachment__body--no_thumb {
                 width: 100%;
             }
+
             &.attachment__body--opengraph {
                 float: none;
                 padding-right: 0;
@@ -142,6 +146,7 @@
                     margin-top: 10px;
                     max-height: 200px;
                     max-width: 400px;
+                    width: 100%;
 
                     &.loading {
                         height: 150px;
@@ -164,16 +169,17 @@
 
             &.has-link {
                 color: #2f81b7;
-                text-overflow: ellipsis;
                 overflow: hidden;
+                text-overflow: ellipsis;
                 white-space: nowrap;
             }
 
             &.attachment__title--opengraph {
                 height: auto;
                 word-wrap: break-word;
+
                 &.is-url {
-                    word-break: break-all
+                    word-break: break-all;
                 }
             }
         }
