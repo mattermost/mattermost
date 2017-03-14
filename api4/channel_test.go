@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -403,6 +404,244 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+}
+
+func TestDeleteChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	user := th.BasicUser
+	user2 := th.BasicUser2
+
+	// successful delete of public channel
+	publicChannel1 := th.CreatePublicChannel()
+	pass, resp := Client.DeleteChannel(publicChannel1.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if ch, err := app.GetChannel(publicChannel1.Id); err == nil && ch.DeleteAt == 0 {
+		t.Fatal("should have failed to get deleted channel")
+	} else if err := app.JoinChannel(ch, user2.Id); err == nil {
+		t.Fatal("should have failed to join deleted channel")
+	}
+
+	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
+	if _, err := Client.CreatePost(post1); err == nil {
+		t.Fatal("should have failed to post to deleted channel")
+	}
+
+	// successful delete of private channel
+	privateChannel2 := th.CreatePrivateChannel()
+	_, resp = Client.DeleteChannel(privateChannel2.Id)
+	CheckNoError(t, resp)
+
+	// successful delete of channel with multiple members
+	publicChannel3 := th.CreatePublicChannel()
+	app.AddUserToChannel(user2, publicChannel3)
+	_, resp = Client.DeleteChannel(publicChannel3.Id)
+	CheckNoError(t, resp)
+
+	// successful delete by TeamAdmin of channel created by user
+	publicChannel4 := th.CreatePublicChannel()
+	th.LoginTeamAdmin()
+	_, resp = Client.DeleteChannel(publicChannel4.Id)
+	CheckNoError(t, resp)
+
+	// default channel cannot be deleted.
+	defaultChannel, _ := app.GetChannelByName(model.DEFAULT_CHANNEL, team.Id)
+	pass, resp = Client.DeleteChannel(defaultChannel.Id)
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	th.LoginBasic()
+	publicChannel5 := th.CreatePublicChannel()
+	Client.Logout()
+
+	Client.Login(user2.Id, user2.Password)
+	_, resp = Client.DeleteChannel(publicChannel5.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = Client.DeleteChannel("junk")
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.DeleteChannel(GenerateTestId())
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
+	CheckNoError(t, resp)
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
+	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel
+		*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	th = Setup().InitBasic().InitSystemAdmin()
+	Client = th.Client
+	team = th.BasicTeam
+	user = th.BasicUser
+
+	// channels created by SystemAdmin
+	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
+	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	app.AddUserToChannel(user, publicChannel6)
+	app.AddUserToChannel(user, privateChannel7)
+
+	// successful delete by user
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckNoError(t, resp)
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_CHANNEL_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// channels created by SystemAdmin
+	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
+	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	app.AddUserToChannel(user, publicChannel6)
+	app.AddUserToChannel(user, privateChannel7)
+
+	// cannot delete by user
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// successful delete by channel admin
+	MakeUserChannelAdmin(user, publicChannel6)
+	MakeUserChannelAdmin(user, privateChannel7)
+	store.ClearChannelCaches()
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckNoError(t, resp)
+
+	// // channels created by SystemAdmin
+	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
+	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	app.AddUserToChannel(user, publicChannel6)
+	app.AddUserToChannel(user, privateChannel7)
+
+	// successful delete by team admin
+	UpdateUserToTeamAdmin(user, team)
+	app.InvalidateAllCaches()
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckNoError(t, resp)
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_TEAM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+	UpdateUserToNonTeamAdmin(user, team)
+	app.InvalidateAllCaches()
+
+	// channels created by SystemAdmin
+	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
+	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	app.AddUserToChannel(user, publicChannel6)
+	app.AddUserToChannel(user, privateChannel7)
+
+	// cannot delete by user
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// // cannot delete by channel admin
+	MakeUserChannelAdmin(user, publicChannel6)
+	MakeUserChannelAdmin(user, privateChannel7)
+	store.ClearChannelCaches()
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// successful delete by team admin
+	UpdateUserToTeamAdmin(th.BasicUser, team)
+	app.InvalidateAllCaches()
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckNoError(t, resp)
+
+	*utils.Cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_SYSTEM_ADMIN
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// channels created by SystemAdmin
+	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
+	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	app.AddUserToChannel(user, publicChannel6)
+	app.AddUserToChannel(user, privateChannel7)
+
+	// cannot delete by user
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// cannot delete by channel admin
+	MakeUserChannelAdmin(user, publicChannel6)
+	MakeUserChannelAdmin(user, privateChannel7)
+	store.ClearChannelCaches()
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// cannot delete by team admin
+	UpdateUserToTeamAdmin(th.BasicUser, team)
+	app.InvalidateAllCaches()
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// successful delete by SystemAdmin
+	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel6.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.DeleteChannel(privateChannel7.Id)
 	CheckNoError(t, resp)
 }
 

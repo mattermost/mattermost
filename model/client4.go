@@ -841,6 +841,16 @@ func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int,
 	}
 }
 
+// DeleteChannel deletes channel based on the provided channel id string.
+func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetChannelRoute(channelId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
 func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag); err != nil {
