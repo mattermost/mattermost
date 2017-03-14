@@ -44,13 +44,15 @@ export default class EmojiPickerItem extends React.Component {
 
         if (this.props.category === 'recent' || this.props.category === 'custom') {
             item =
-                (<img
-                    className='emoji-picker__item emoticon'
-                    onMouseOver={this.handleMouseOver}
-                    onMouseOut={this.handleMouseOut}
-                    onClick={this.handleClick}
-                    src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
-                 />);
+                (<span>
+                    <img
+                        className='emoji-picker__item emoticon'
+                        onMouseOver={this.handleMouseOver}
+                        onMouseOut={this.handleMouseOut}
+                        onClick={this.handleClick}
+                        src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
+                    />
+                </span>);
         } else {
             item =
                 (<div >

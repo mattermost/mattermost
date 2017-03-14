@@ -155,6 +155,16 @@
             margin: 3px;
             vertical-align: top;
             width: 21px;
+            padding: 3px;
+        }
+        > span {
+            display: inline-block;
+            height: 21px;
+            margin: 3px;
+            vertical-align: top;
+            width: 21px;
+            padding: 0px;
+            border: 0px;
         }
     }
 
