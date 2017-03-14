@@ -1329,7 +1329,6 @@
   "flag_post.flag": "Flag for follow up",
   "flag_post.unflag": "Unflag",
   "general_tab.chooseDescription": "Please choose a new description for your team",
-  "general_tab.chooseName": "Please choose a new name for your team",
   "general_tab.codeDesc": "Click 'Edit' to regenerate Invite Code.",
   "general_tab.codeLongDesc": "The Invite Code is used as part of the URL in the team invitation link created by {getTeamInviteLink} in the main menu. Regenerating creates a new team invitation link and invalidates the previous link.",
   "general_tab.codeTitle": "Invite Code",
