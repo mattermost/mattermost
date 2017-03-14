@@ -30,7 +30,7 @@ export default class ErrorBar extends React.Component {
         this.onAnalyticsChange = this.onAnalyticsChange.bind(this);
         this.handleClose = this.handleClose.bind(this);
 
-        ErrorStore.clearNotificationError();
+        ErrorStore.clearLastError();
 
         let isSystemAdmin = false;
         const user = UserStore.getCurrentUser();
