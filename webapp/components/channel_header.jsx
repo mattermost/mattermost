@@ -241,7 +241,10 @@ export default class ChannelHeader extends React.Component {
         );
 
         const flaggedTooltip = (
-            <Tooltip id='flaggedTooltip'>
+            <Tooltip
+                id='flaggedTooltip'
+                className='text-nowrap'
+            >
                 <FormattedMessage
                     id='channel_header.flagged'
                     defaultMessage='Flagged Posts'
@@ -683,10 +686,10 @@ export default class ChannelHeader extends React.Component {
                         id='channelHeader.removeFromFavorites'
                         defaultMessage='Remove from Favorites'
                     /> :
-                    <FormattedMessage
-                        id='channelHeader.addToFavorites'
-                        defaultMessage='Add to Favorites'
-                    />}
+                        <FormattedMessage
+                            id='channelHeader.addToFavorites'
+                            defaultMessage='Add to Favorites'
+                        />}
             </Tooltip>
         );
         const toggleFavorite = (

@@ -7,6 +7,12 @@
         padding: 3px 10px 4px;
         word-break: break-word;
     }
+
+    &.text-nowrap {
+        .tooltip-inner {
+            white-space: nowrap;
+        }
+    }
 }
 
 #webrtcTooltip {
