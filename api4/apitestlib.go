@@ -572,3 +572,49 @@ func cleanupTestFile(info *model.FileInfo) error {
 
 	return nil
 }
+
+func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
+	utils.DisableDebugLogForTest()
+
+	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+		cm := cmr.Data.(*model.ChannelMember)
+		cm.Roles = "channel_admin channel_user"
+		if sr := <-app.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
+		utils.EnableDebugLogForTest()
+		panic(cmr.Err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
+	if tmr := <-app.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		utils.EnableDebugLogForTest()
+		l4g.Error(tmr.Err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(tmr.Err)
+	}
+	utils.EnableDebugLogForTest()
+}
+
+func UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id}
+	if tmr := <-app.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		utils.EnableDebugLogForTest()
+		l4g.Error(tmr.Err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(tmr.Err)
+	}
+	utils.EnableDebugLogForTest()
+}
