@@ -126,5 +126,22 @@ func TestDatabaseRecycle(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.DatabaseRecycle()
 	CheckNoError(t, resp)
+}
 
+func TestInvalidateCaches(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	flag, resp := Client.InvalidateCaches()
+	CheckForbiddenStatus(t, resp)
+	if flag == true {
+		t.Fatal("should not clean the cache due no permission.")
+	}
+
+	flag, resp = th.SystemAdminClient.InvalidateCaches()
+	CheckNoError(t, resp)
+	if flag == false {
+		t.Fatal("should clean the cache")
+	}
 }
