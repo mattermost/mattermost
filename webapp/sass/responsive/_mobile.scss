@@ -1,6 +1,9 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .table-responsive {
+        border: none;
+    }
     .multi-select__container {
         .btn {
             display: block;
