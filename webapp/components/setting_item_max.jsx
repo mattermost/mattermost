@@ -89,6 +89,7 @@ export default class SettingItemMax extends React.Component {
                             {clientError}
                             {submit}
                             <a
+                                id={this.props.title + 'Cancel'}
                                 className='btn btn-sm'
                                 href='#'
                                 onClick={this.props.updateSection}
