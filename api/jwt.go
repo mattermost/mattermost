@@ -110,6 +110,7 @@ func newSessionForJwtToken(token string, claims *jwt.MapClaims) (*model.Session,
 		session.AddProp(model.SESSION_PROP_PLATFORM, aud)
 		session.AddProp(model.SESSION_PROP_OS, "JWT")
 		session.AddProp(model.SESSION_PROP_BROWSER, "JWT")
+		session.AddProp(model.SESSION_PROP_AUTHSERVICE, "JWT")
 		return session, nil
 	}
 }

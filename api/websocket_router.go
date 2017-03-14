@@ -38,6 +38,10 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if r.Action == model.WEBSOCKET_AUTHENTICATION_CHALLENGE {
+		l4g.Debug(
+			"authentication-challenge: current token %v",
+			conn.SessionToken,
+		)
 		token, ok := r.Data["token"].(string)
 		if !ok {
 			conn.WebSocket.Close()

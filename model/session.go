@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	SESSION_COOKIE_TOKEN  = "MMAUTHTOKEN"
-	SESSION_CACHE_SIZE    = 10000
-	SESSION_PROP_PLATFORM = "platform"
-	SESSION_PROP_OS       = "os"
-	SESSION_PROP_BROWSER  = "browser"
+	SESSION_COOKIE_TOKEN     = "MMAUTHTOKEN"
+	SESSION_CACHE_SIZE       = 10000
+	SESSION_PROP_PLATFORM    = "platform"
+	SESSION_PROP_OS          = "os"
+	SESSION_PROP_BROWSER     = "browser"
+	SESSION_PROP_AUTHSERVICE = "authservice"
 )
 
 type Session struct {

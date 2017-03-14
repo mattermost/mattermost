@@ -178,7 +178,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
 				c.Err.StatusCode = http.StatusUnauthorized
 			}
-		} else if !session.IsOAuth && isTokenFromQueryString {
+		} else if !session.IsOAuth && session.Props[model.SESSION_PROP_AUTHSERVICE] != "JWT" && isTokenFromQueryString {
 			c.Err = model.NewLocAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token)
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
