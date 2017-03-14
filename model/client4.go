@@ -1145,6 +1145,7 @@ func (c *Client4) ReloadConfig() (bool, *Response) {
 	}
 }
 
+// DatabaseRecycle will recycle the connections. Discard current connection and get new one.
 func (c *Client4) DatabaseRecycle() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetDatabaseRoute()+"/recycle", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
@@ -1159,6 +1160,16 @@ func (c *Client4) DatabaseRecycle() (bool, *Response) {
 // CreateIncomingWebhook creates an incoming webhook for a channel.
 func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
 	if r, err := c.DoApiPost(c.GetIncomingWebhooksRoute(), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateIncomingWebhook updates an incoming webhook for a channel.
+func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
+	if r, err := c.DoApiPut(c.GetIncomingWebhookRoute(hook.Id), hook.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
