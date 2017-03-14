@@ -1131,6 +1131,16 @@ func (c *Client4) GetConfig() (*Config, *Response) {
 	}
 }
 
+// ReloadConfig will reload the server configuration.
+func (c *Client4) ReloadConfig() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetConfigRoute()+"/reload", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 func (c *Client4) DatabaseRecycle() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetDatabaseRoute()+"/recycle", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}

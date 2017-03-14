@@ -66,6 +66,27 @@ func TestGetConfig(t *testing.T) {
 	}
 }
 
+func TestReloadConfig(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	flag, resp := Client.ReloadConfig()
+	CheckForbiddenStatus(t, resp)
+	if flag == true {
+		t.Fatal("should not Reload the config due no permission.")
+	}
+
+	flag, resp = th.SystemAdminClient.ReloadConfig()
+	CheckNoError(t, resp)
+	if flag == false {
+		t.Fatal("should Reload the config")
+	}
+
+	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
+}
+
 func TestEmailTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
