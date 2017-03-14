@@ -152,6 +152,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
+  },
+  {
     "id": "api.api.init.parsing_templates.debug",
     "translation": "Parsing server templates at %v"
   },
