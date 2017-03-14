@@ -359,6 +359,10 @@
 }
 
 .post-create__container {
+    label {
+        font-weight: normal;
+    }
+
     form {
         margin: 0 auto;
         padding: .5em 15px 0;
