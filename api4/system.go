@@ -19,7 +19,7 @@ func InitSystem() {
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/email/test", ApiSessionRequired(testEmail)).Methods("POST")
 	BaseRoutes.ApiRoot.Handle("/database/recycle", ApiSessionRequired(databaseRecycle)).Methods("POST")
-	BaseRoutes.ApiRoot.Handle("/caches/invalidate", ApiSessionRequired(cachesInvalidate)).Methods("POST")
+	BaseRoutes.ApiRoot.Handle("/caches/invalidate", ApiSessionRequired(invalidateCaches)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func cachesInvalidate(c *Context, w http.ResponseWriter, r *http.Request) {
+func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return

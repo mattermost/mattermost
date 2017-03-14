@@ -1130,7 +1130,7 @@ func (c *Client4) DatabaseRecycle() (bool, *Response) {
 	}
 }
 
-func (c *Client4) CachesInvalidate() (bool, *Response) {
+func (c *Client4) InvalidateCaches() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetCacheRoute()+"/invalidate", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
