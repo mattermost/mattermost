@@ -1116,7 +1116,7 @@
   "channel_modal.channel": "Kanaal",
   "channel_modal.createNew": "Maak nieuw ",
   "channel_modal.descriptionHelp": "Beschrijf hoe deze {term} gebruikt moet worden.",
-  "channel_modal.displayNameError": "Kanaalnaam moet 2 of meer kleine alfanumerieke karakters bevatten",
+  "channel_modal.displayNameError": "Dit is een verplicht veld",
   "channel_modal.edit": "Bewerken",
   "channel_modal.group": "Groep",
   "channel_modal.header": "Kop",
