@@ -377,8 +377,16 @@
 
             .custom-textarea {
                 padding-right: 43px;
+                resize: none;
             }
+
             .custom-textarea-emoji {
+                padding-right: 43px;
+                resize: none;
+
+            }
+
+            #post-textbox.custom-textarea-emoji {
                 padding-right: 60px;
                 resize: none;
 
@@ -421,8 +429,20 @@
             max-height: 162px !important;
             padding-right: 35px;
             padding-top: 8px;
+            resize: none;
+
         }
+
         .custom-textarea-emoji {
+            bottom: 0;
+            max-height: 162px !important;
+            padding-right: 35px;
+            padding-top: 8px;
+            resize: none;
+
+        }
+
+        #post-textbox.custom-textarea-emoji {
             bottom: 0;
             max-height: 162px !important;
             padding-right: 60px;
