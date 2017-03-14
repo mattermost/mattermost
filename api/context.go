@@ -552,6 +552,12 @@ func GetSession(token string) *model.Session {
 			// JWT Token handling
 			if claims, error := jwtTokenDecode(token); error == nil {
 				if session, error := newSessionForJwtToken(token, claims); error == nil {
+					if result := <-Srv.Store.Session().Save(session); result.Err != nil {
+						return nil
+					} else {
+						session = result.Data.(*model.Session)
+						AddSessionToCache(session)
+					}
 					return session
 				}
 			} else {
