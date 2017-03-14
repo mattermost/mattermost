@@ -1124,7 +1124,7 @@
   "channel_modal.channel": "Channel",
   "channel_modal.createNew": "Create New ",
   "channel_modal.descriptionHelp": "Describe how this {term} should be used.",
-  "channel_modal.displayNameError": "This field is required",
+  "channel_modal.displayNameError": "Channel name must be 2 or more characters",
   "channel_modal.edit": "Edit",
   "channel_modal.group": "Group",
   "channel_modal.header": "Header",
