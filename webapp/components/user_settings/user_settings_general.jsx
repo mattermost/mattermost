@@ -422,6 +422,7 @@ class UserSettingsGeneralTab extends React.Component {
                             </label>
                             <div className='col-sm-7'>
                                 <input
+                                    id='primaryEmail'
                                     className='form-control'
                                     type='email'
                                     onChange={this.updateEmail}
@@ -443,6 +444,7 @@ class UserSettingsGeneralTab extends React.Component {
                             </label>
                             <div className='col-sm-7'>
                                 <input
+                                    id='confirmEmail'
                                     className='form-control'
                                     type='email'
                                     onChange={this.updateConfirmEmail}
@@ -846,6 +848,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <label className='col-sm-5 control-label'>{nicknameLabel}</label>
                         <div className='col-sm-7'>
                             <input
+                                id='nickname'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateNickname}
@@ -930,6 +933,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <label className='col-sm-5 control-label'>{usernameLabel}</label>
                         <div className='col-sm-7'>
                             <input
+                                id='username'
                                 maxLength={Constants.MAX_USERNAME_LENGTH}
                                 className='form-control'
                                 type='text'
@@ -1020,6 +1024,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <label className='col-sm-5 control-label'>{positionLabel}</label>
                         <div className='col-sm-7'>
                             <input
+                                id='position'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updatePosition}
