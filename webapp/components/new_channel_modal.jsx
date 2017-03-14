@@ -77,7 +77,7 @@ export default class NewChannelModal extends React.Component {
         e.preventDefault();
 
         const displayName = ReactDOM.findDOMNode(this.refs.display_name).value.trim();
-        if (displayName.length < 1) {
+        if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
             this.setState({displayNameError: true});
             return;
         }
@@ -104,7 +104,7 @@ export default class NewChannelModal extends React.Component {
                 <p className='input__help error'>
                     <FormattedMessage
                         id='channel_modal.displayNameError'
-                        defaultMessage='This field is required'
+                        defaultMessage='Channel name must be 2 or more characters'
                     />
                     {this.state.displayNameError}
                 </p>
@@ -232,7 +232,7 @@ export default class NewChannelModal extends React.Component {
                                         ref='display_name'
                                         className='form-control'
                                         placeholder={Utils.localizeMessage('channel_modal.nameEx', 'E.g.: "Bugs", "Marketing", "客户支持"')}
-                                        maxLength='22'
+                                        maxLength={Constants.MAX_CHANNELNAME_LENGTH}
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
                                         tabIndex='1'
