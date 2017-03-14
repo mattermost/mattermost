@@ -67,6 +67,8 @@ type Routes struct {
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
 
+	LDAP *mux.Router // 'api/v4/ldap'
+
 	System *mux.Router // 'api/v4/system'
 
 	Preferences *mux.Router // 'api/v4/preferences'
@@ -139,6 +141,7 @@ func InitApi(full bool) {
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
 	BaseRoutes.Compliance = BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
 	BaseRoutes.Cluster = BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
+	BaseRoutes.LDAP = BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
 	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
@@ -160,6 +163,7 @@ func InitApi(full bool) {
 	InitSaml()
 	InitCompliance()
 	InitCluster()
+	InitLdap()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
