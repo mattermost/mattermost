@@ -370,6 +370,14 @@ func GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *mo
 	}
 }
 
+func GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
 func GetPermalinkPost(postId string, userId string, siteURL string) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
 		return nil, result.Err

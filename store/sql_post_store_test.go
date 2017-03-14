@@ -1041,6 +1041,130 @@ func TestPostCountsByDay(t *testing.T) {
 	}
 }
 
+func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
+	Setup()
+
+	c1 := &model.Channel{}
+	c1.TeamId = model.NewId()
+	c1.DisplayName = "Channel1"
+	c1.Name = "a" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
+
+	o1 := &model.Post{}
+	o1.ChannelId = c1.Id
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "b"
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "a" + model.NewId() + "b"
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "b"
+	o3.DeleteAt = 1
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	o4 := &model.Post{}
+	o4.ChannelId = model.NewId()
+	o4.UserId = model.NewId()
+	o4.Message = "a" + model.NewId() + "b"
+	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
+	r1 := (<-store.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)).Data.(*model.PostList)
+
+	if len(r1.Order) != 0 {
+		t.Fatal("should be empty")
+	}
+
+	preferences := model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     o1.Id,
+			Value:    "true",
+		},
+	}
+
+	Must(store.Preference().Save(&preferences))
+
+	r2 := (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+
+	if len(r2.Order) != 1 {
+		t.Fatal("should have 1 post")
+	}
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     o2.Id,
+			Value:    "true",
+		},
+	}
+
+	Must(store.Preference().Save(&preferences))
+
+	r3 := (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)).Data.(*model.PostList)
+
+	if len(r3.Order) != 1 {
+		t.Fatal("should have 1 post")
+	}
+
+	r4 := (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+
+	if len(r4.Order) != 2 {
+		t.Fatal("should have 2 posts")
+	}
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     o3.Id,
+			Value:    "true",
+		},
+	}
+
+	Must(store.Preference().Save(&preferences))
+
+	r4 = (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+
+	if len(r4.Order) != 2 {
+		t.Fatal("should have 2 posts")
+	}
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     o4.Id,
+			Value:    "true",
+		},
+	}
+
+	r4 = (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+
+	if len(r4.Order) != 2 {
+		t.Fatal("should have 2 posts")
+	}
+
+	r4 = (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)).Data.(*model.PostList)
+
+	if len(r4.Order) != 0 {
+		t.Fatal("should have 0 posts")
+	}
+}
+
 func TestPostStoreGetFlaggedPosts(t *testing.T) {
 	Setup()
 
@@ -1122,6 +1246,8 @@ func TestPostStoreGetFlaggedPosts(t *testing.T) {
 	}
 
 	Must(store.Preference().Save(&preferences))
+
+	r4 = (<-store.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
