@@ -154,6 +154,10 @@ func (c *Client4) GetDatabaseRoute() string {
 	return fmt.Sprintf("/database")
 }
 
+func (c *Client4) GetCacheRoute() string {
+	return fmt.Sprintf("/caches")
+}
+
 func (c *Client4) GetClusterRoute() string {
 	return fmt.Sprintf("/cluster")
 }
@@ -1147,6 +1151,15 @@ func (c *Client4) ReloadConfig() (bool, *Response) {
 
 func (c *Client4) DatabaseRecycle() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetDatabaseRoute()+"/recycle", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+func (c *Client4) InvalidateCaches() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetCacheRoute()+"/invalidate", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
