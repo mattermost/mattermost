@@ -36,6 +36,10 @@
     "translation": "June"
   },
   {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "March",
     "translation": "March"
   },

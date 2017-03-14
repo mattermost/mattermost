@@ -759,6 +759,53 @@ func TestGetChannelMembers(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetChannelMembersByIds(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	cm, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
+	CheckNoError(t, resp)
+
+	if (*cm)[0].UserId != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+
+	_, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{})
+	CheckBadRequestStatus(t, resp)
+
+	cm1, resp := Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk"})
+	CheckNoError(t, resp)
+	if len(*cm1) > 0 {
+		t.Fatal("no users should be returned")
+	}
+
+	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{"junk", th.BasicUser.Id})
+	CheckNoError(t, resp)
+	if len(*cm1) != 1 {
+		t.Fatal("1 member should be returned")
+	}
+
+	cm1, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser2.Id, th.BasicUser.Id})
+	CheckNoError(t, resp)
+	if len(*cm1) != 2 {
+		t.Fatal("2 members should be returned")
+	}
+
+	_, resp = Client.GetChannelMembersByIds("junk", []string{th.BasicUser.Id})
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelMembersByIds(model.NewId(), []string{th.BasicUser.Id})
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser.Id})
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelMembersByIds(th.BasicChannel.Id, []string{th.BasicUser2.Id, th.BasicUser.Id})
+	CheckNoError(t, resp)
+}
+
 func TestGetChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -911,6 +958,84 @@ func TestViewChannel(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+}
+
+func TestGetChannelUnread(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	channel := th.BasicChannel
+
+	channelUnread, resp := Client.GetChannelUnread(channel.Id, user.Id)
+	CheckNoError(t, resp)
+	if channelUnread.TeamId != th.BasicTeam.Id {
+		t.Fatal("wrong team id returned for a regular user call")
+	} else if channelUnread.ChannelId != channel.Id {
+		t.Fatal("wrong team id returned for a regular user call")
+	}
+
+	_, resp = Client.GetChannelUnread("junk", user.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelUnread(channel.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelUnread(channel.Id, model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetChannelUnread(model.NewId(), user.Id)
+	CheckForbiddenStatus(t, resp)
+
+	newUser := th.CreateUser()
+	Client.Login(newUser.Email, newUser.Password)
+	_, resp = Client.GetChannelUnread(th.BasicChannel.Id, user.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = th.SystemAdminClient.GetChannelUnread(channel.Id, user.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelUnread(model.NewId(), user.Id)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelUnread(channel.Id, model.NewId())
+	CheckNotFoundStatus(t, resp)
+}
+
+func TestGetChannelStats(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.CreatePrivateChannel()
+
+	stats, resp := Client.GetChannelStats(channel.Id, "")
+	CheckNoError(t, resp)
+
+	if stats.ChannelId != channel.Id {
+		t.Fatal("couldnt't get extra info")
+	} else if stats.MemberCount != 1 {
+		t.Fatal("got incorrect member count")
+	}
+
+	_, resp = Client.GetChannelStats("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelStats(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetChannelStats(channel.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+
+	_, resp = Client.GetChannelStats(channel.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelStats(channel.Id, "")
 	CheckNoError(t, resp)
 }
 

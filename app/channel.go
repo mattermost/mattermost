@@ -702,6 +702,20 @@ func GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *mode
 	}
 }
 
+func GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
+	result := <-Srv.Store.Channel().GetChannelUnread(channelId, userId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	channelUnread := result.Data.(*model.ChannelUnread)
+
+	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
+		channelUnread.MsgCount = 0
+	}
+
+	return channelUnread, nil
+}
+
 func JoinChannel(channel *model.Channel, userId string) *model.AppError {
 	if channel.DeleteAt > 0 {
 		return model.NewLocAppError("JoinChannel", "api.channel.join_channel.already_deleted.app_error", nil, "")
