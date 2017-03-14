@@ -17,6 +17,7 @@ func InitSystem() {
 
 	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
+	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
 	BaseRoutes.ApiRoot.Handle("/email/test", ApiSessionRequired(testEmail)).Methods("POST")
 	BaseRoutes.ApiRoot.Handle("/database/recycle", ApiSessionRequired(databaseRecycle)).Methods("POST")
 }
@@ -51,6 +52,18 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
+}
+
+func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	app.ReloadConfig()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	ReturnStatusOK(w)
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
