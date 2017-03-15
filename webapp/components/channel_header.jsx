@@ -679,19 +679,27 @@ export default class ChannelHeader extends React.Component {
             headerText = channel.header;
         }
 
-        const toggleFavoriteTooltip = (
-            <Tooltip id='favoriteTooltip'>
-                {this.state.isFavorite ?
+        let toggleFavoriteTooltip;
+        if (this.state.isFavorite) {
+            toggleFavoriteTooltip = (
+                <Tooltip id='favoriteTooltip'>
                     <FormattedMessage
                         id='channelHeader.removeFromFavorites'
                         defaultMessage='Remove from Favorites'
-                    /> :
+                    />
+                </Tooltip>
+            );
+        } else {
+            toggleFavoriteTooltip = (
+                <Tooltip id='favoriteTooltip'>
                     <FormattedMessage
                         id='channelHeader.addToFavorites'
                         defaultMessage='Add to Favorites'
-                    />}
-            </Tooltip>
-        );
+                    />
+                </Tooltip>
+            );
+        }
+
         const toggleFavorite = (
             <OverlayTrigger
                 delayShow={Constants.OVERLAY_TIME_DELAY}
