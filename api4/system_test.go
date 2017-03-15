@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -144,4 +145,44 @@ func TestInvalidateCaches(t *testing.T) {
 	if flag == false {
 		t.Fatal("should clean the cache")
 	}
+}
+
+func TestGetLogs(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	for i := 0; i < 20; i++ {
+		l4g.Info(i)
+	}
+
+	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
+	CheckNoError(t, resp)
+
+	if len(logs) != 10 {
+		t.Log(len(logs))
+		t.Fatal("wrong length")
+	}
+
+	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
+	CheckNoError(t, resp)
+
+	if len(logs) != 10 {
+		t.Log(len(logs))
+		t.Fatal("wrong length")
+	}
+
+	logs, resp = th.SystemAdminClient.GetLogs(-1, -1)
+	CheckNoError(t, resp)
+
+	if len(logs) != 0 {
+		t.Fatal("should not be empty")
+	}
+
+	_, resp = Client.GetLogs(0, 10)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetLogs(0, 10)
+	CheckUnauthorizedStatus(t, resp)
 }

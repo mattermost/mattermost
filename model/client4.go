@@ -1561,3 +1561,16 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 		return CheckStatusOK(rp), BuildResponse(rp)
 	}
 }
+
+// Logs Section
+
+// GetLogs page of logs as a string array.
+func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet("/logs"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ArrayFromJson(r.Body), BuildResponse(r)
+	}
+}

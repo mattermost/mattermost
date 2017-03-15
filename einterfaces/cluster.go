@@ -23,7 +23,7 @@ type ClusterInterface interface {
 	InvalidateCacheForReactions(postId string)
 	Publish(event *model.WebSocketEvent)
 	UpdateStatus(status *model.Status)
-	GetLogs() ([]string, *model.AppError)
+	GetLogs(page, perPage int) ([]string, *model.AppError)
 	GetClusterId() string
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
 	InvalidateAllCaches() *model.AppError

@@ -46,7 +46,7 @@ func InitAdmin() {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	lines, err := app.GetLogs()
+	lines, err := app.GetLogs(0, 100000)
 	if err != nil {
 		c.Err = err
 		return
