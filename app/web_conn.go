@@ -35,6 +35,7 @@ type WebConn struct {
 	Locale                    string
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
+	Sequence                  uint64
 }
 
 func NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
@@ -104,8 +105,13 @@ func (c *WebConn) WritePump() {
 				return
 			}
 
+			//msgCopy := *msg
+			//msgCopy.Sequence = c.Sequence
+			msg.SetSequence(c.Sequence)
+			c.Sequence++
+
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msg.GetPreComputeJson()); err != nil {
+			if err := c.WebSocket.WriteMessage(websocket.TextMessage, []byte(msg.ToJson())); err != nil {
 				// browsers will appear as CloseNoStatusReceived
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
@@ -179,7 +185,6 @@ func (webCon *WebConn) IsAuthenticated() bool {
 func (webCon *WebConn) SendHello() {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webCon.UserId, nil)
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash, utils.IsLicensed))
-	msg.DoPreComputeJson()
 	webCon.Send <- msg
 }
 

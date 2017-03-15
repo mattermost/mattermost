@@ -36,9 +36,8 @@ const (
 type WebSocketMessage interface {
 	ToJson() string
 	IsValid() bool
-	DoPreComputeJson()
-	GetPreComputeJson() []byte
 	EventType() string
+	SetSequence(seq uint64)
 }
 
 type WebsocketBroadcast struct {
@@ -52,6 +51,7 @@ type WebSocketEvent struct {
 	Event          string                 `json:"event"`
 	Data           map[string]interface{} `json:"data"`
 	Broadcast      *WebsocketBroadcast    `json:"broadcast"`
+	Sequence       uint64                 `json:"seq"`
 	PreComputeJson []byte                 `json:"-"`
 }
 
@@ -72,17 +72,8 @@ func (o *WebSocketEvent) EventType() string {
 	return o.Event
 }
 
-func (o *WebSocketEvent) DoPreComputeJson() {
-	b, err := json.Marshal(o)
-	if err != nil {
-		o.PreComputeJson = []byte("")
-	} else {
-		o.PreComputeJson = b
-	}
-}
-
-func (o *WebSocketEvent) GetPreComputeJson() []byte {
-	return o.PreComputeJson
+func (o *WebSocketEvent) SetSequence(seq uint64) {
+	o.Sequence = seq
 }
 
 func (o *WebSocketEvent) ToJson() string {
@@ -133,6 +124,9 @@ func (o *WebSocketResponse) EventType() string {
 	return ""
 }
 
+func (o *WebSocketResponse) SetSequence(seq uint64) {
+}
+
 func (o *WebSocketResponse) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -140,19 +134,6 @@ func (o *WebSocketResponse) ToJson() string {
 	} else {
 		return string(b)
 	}
-}
-
-func (o *WebSocketResponse) DoPreComputeJson() {
-	b, err := json.Marshal(o)
-	if err != nil {
-		o.PreComputeJson = []byte("")
-	} else {
-		o.PreComputeJson = b
-	}
-}
-
-func (o *WebSocketResponse) GetPreComputeJson() []byte {
-	return o.PreComputeJson
 }
 
 func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {
