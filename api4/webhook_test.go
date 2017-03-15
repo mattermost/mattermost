@@ -418,3 +418,169 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	_, resp = Client.GetOutgoingWebhooks(0, 1000, "")
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestUpdateIncomingHook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook1 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+
+	createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook1)
+	CheckNoError(t, resp)
+
+	t.Run("UpdateIncomingHook", func(t *testing.T) {
+		createdHook.DisplayName = "hook2"
+		createdHook.Description = "description"
+		createdHook.ChannelId = th.BasicChannel2.Id
+
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook != nil {
+			if updatedHook.DisplayName != "hook2" {
+				t.Fatal("Hook name is not updated")
+			}
+
+			if updatedHook.Description != "description" {
+				t.Fatal("Hook description is not updated")
+			}
+
+			if updatedHook.ChannelId != th.BasicChannel2.Id {
+				t.Fatal("Hook channel is not updated")
+			}
+		} else {
+			t.Fatal("should not be nil")
+		}
+	})
+
+	t.Run("RetainCreateAt", func(t *testing.T) {
+		hook2 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, CreateAt: 100}
+
+		createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
+		CheckNoError(t, resp)
+
+		createdHook.DisplayName = "Name2"
+
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook != nil {
+			if updatedHook.CreateAt != createdHook.CreateAt {
+				t.Fatal("failed - hook create at should not be changed")
+			}
+		} else {
+			t.Fatal("should not be nil")
+		}
+	})
+
+	t.Run("ModifyUpdateAt", func(t *testing.T) {
+		createdHook.DisplayName = "Name3"
+
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook != nil {
+			if updatedHook.UpdateAt == createdHook.UpdateAt {
+				t.Fatal("failed - hook updateAt is not updated")
+			}
+		} else {
+			t.Fatal("should not be nil")
+		}
+	})
+
+	t.Run("UpdateNonExistentHook", func(t *testing.T) {
+		nonExistentHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
+
+		_, resp := th.SystemAdminClient.UpdateIncomingWebhook(nonExistentHook)
+		CheckNotFoundStatus(t, resp)
+
+		nonExistentHook.Id = model.NewId()
+		_, resp = th.SystemAdminClient.UpdateIncomingWebhook(nonExistentHook)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
+		_, resp := Client.UpdateIncomingWebhook(createdHook)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+
+	t.Run("OnlyAdminIntegrationsDisabled", func(t *testing.T) {
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+		utils.SetDefaultRolesBasedOnConfig()
+
+		t.Run("UpdateHookOfSameUser", func(t *testing.T) {
+			sameUserHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+
+			sameUserHook, resp := Client.CreateIncomingWebhook(sameUserHook)
+			CheckNoError(t, resp)
+
+			_, resp = Client.UpdateIncomingWebhook(sameUserHook)
+			CheckNoError(t, resp)
+		})
+
+		t.Run("UpdateHookOfDifferentUser", func(t *testing.T) {
+			_, resp := Client.UpdateIncomingWebhook(createdHook)
+			CheckForbiddenStatus(t, resp)
+		})
+	})
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Logout()
+	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+	th.LoginBasic2()
+	t.Run("UpdateByDifferentUser", func(t *testing.T) {
+		updatedHook, resp := Client.UpdateIncomingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook.UserId == th.BasicUser2.Id {
+			t.Fatal("Hook's creator userId is not retained")
+		}
+	})
+
+	t.Run("IncomingHooksDisabled", func(t *testing.T) {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
+		_, resp := Client.UpdateIncomingWebhook(createdHook)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.incoming_webhook.disabled.app_error")
+	})
+
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+
+	t.Run("PrivateChannel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		Client.Logout()
+		th.LoginBasic()
+		createdHook.ChannelId = privateChannel.Id
+
+		_, resp := Client.UpdateIncomingWebhook(createdHook)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("UpdateToNonExistentChannel", func(t *testing.T) {
+		createdHook.ChannelId = "junk"
+		_, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	team := th.CreateTeamWithClient(Client)
+	user := th.CreateUserWithClient(Client)
+	LinkUserToTeam(user, team)
+	Client.Logout()
+	Client.Login(user.Id, user.Password)
+	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
+		_, resp := Client.UpdateIncomingWebhook(createdHook)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
