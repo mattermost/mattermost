@@ -91,10 +91,10 @@ func TestCreateChannel(t *testing.T) {
 	}()
 	*utils.Cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_ALL
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_ALL
-	utils.SetDefaultRolesBasedOnConfig()
 	utils.IsLicensed = true
 	utils.License = &model.License{Features: &model.Features{}}
 	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
 
 	channel.Name = GenerateTestChannelName()
 	_, resp = Client.CreateChannel(channel)
@@ -158,6 +158,19 @@ func TestCreateChannel(t *testing.T) {
 
 	private.Name = GenerateTestChannelName()
 	_, resp = th.SystemAdminClient.CreateChannel(private)
+	CheckNoError(t, resp)
+
+	// Check that if unlicensed the policy restriction is not enforced.
+	utils.IsLicensed = false
+	utils.License = nil
+	utils.SetDefaultRolesBasedOnConfig()
+
+	channel.Name = GenerateTestChannelName()
+	_, resp = Client.CreateChannel(channel)
+	CheckNoError(t, resp)
+
+	private.Name = GenerateTestChannelName()
+	_, resp = Client.CreateChannel(private)
 	CheckNoError(t, resp)
 
 	if r, err := Client.DoApiPost("/channels", "garbage"); err == nil {
