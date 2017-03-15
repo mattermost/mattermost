@@ -968,6 +968,18 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Re
 	}
 }
 
+// AddChannelMember adds user to channel and return a channel member.
+func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
+	data := make(map[string]string)
+	data["user_id"] = userId
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(data)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
 func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetChannelMemberRoute(channelId, userId)); err != nil {

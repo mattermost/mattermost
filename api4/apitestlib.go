@@ -498,14 +498,14 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
 		debug.PrintStack()
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotImplemented))
+		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusInternalServerError))
 		return
 	}
 
 	if resp.StatusCode != http.StatusInternalServerError {
 		debug.PrintStack()
 		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotImplemented))
+		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
 		t.Fatal("wrong status code")
 	}
 }

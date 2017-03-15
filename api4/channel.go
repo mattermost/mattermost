@@ -33,6 +33,7 @@ func InitChannel() {
 
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembers.Handle("/ids", ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
+	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(addChannelMember)).Methods("POST")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
@@ -496,6 +497,67 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	ReturnStatusOK(w)
+}
+
+func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	data := model.MapFromJson(r.Body)
+	if data == nil {
+		c.SetInvalidParam("channel_member")
+		return
+	}
+
+	userId := data["user_id"]
+	if len(userId) != 26 {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	var channel *model.Channel
+	var err *model.AppError
+	if channel, err = app.GetChannel(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+		return
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+		return
+	}
+
+	var nUser *model.User
+	if nUser, err = app.GetUser(userId); err != nil {
+		c.Err = model.NewLocAppError("addChannelMember", "api.channel.add_member.find_user.app_error", nil, err.Error())
+		return
+	}
+
+	cm, err := app.AddUserToChannel(nUser, channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("name=" + channel.Name + " user_id=" + userId)
+
+	var oUser *model.User
+	if oUser, err = app.GetUser(c.Session.UserId); err != nil {
+		c.Err = model.NewLocAppError("addChannelMember", "api.channel.add_member.user_adding.app_error", nil, err.Error())
+		return
+	}
+
+	go app.PostAddToChannelMessage(oUser, nUser, channel)
+
+	app.UpdateChannelLastViewedAt([]string{c.Params.ChannelId}, oUser.Id)
+	w.Write([]byte(cm.ToJson()))
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {

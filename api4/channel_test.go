@@ -1118,6 +1118,94 @@ func TestUpdateChannelRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestAddChannelMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	publicChannel := th.CreatePublicChannel()
+	privateChannel := th.CreatePrivateChannel()
+
+	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	if cm.ChannelId != publicChannel.Id {
+		t.Fatal("should have returned exact channel")
+	}
+
+	if cm.UserId != user2.Id {
+		t.Fatal("should have returned exact user added to public channel")
+	}
+
+	cm, resp = Client.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	if cm.ChannelId != privateChannel.Id {
+		t.Fatal("should have returned exact channel")
+	}
+
+	if cm.UserId != user2.Id {
+		t.Fatal("should have returned exact user added to private channel")
+	}
+
+	cm, resp = Client.AddChannelMember(publicChannel.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	if cm != nil {
+		t.Fatal("should return nothing")
+	}
+
+	_, resp = Client.AddChannelMember(publicChannel.Id, GenerateTestId())
+	CheckInternalErrorStatus(t, resp)
+
+	_, resp = Client.AddChannelMember("junk", user2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.AddChannelMember(GenerateTestId(), user2.Id)
+	CheckNotFoundStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	otherChannel := th.CreatePublicChannel()
+	Client.Logout()
+	Client.Login(user2.Id, user2.Password)
+
+	_, resp = Client.AddChannelMember(publicChannel.Id, otherUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = Client.AddChannelMember(privateChannel.Id, otherUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = Client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.Logout()
+	Client.Login(user.Id, user.Password)
+
+	// should fail adding user who is not a member of the team
+	_, resp = Client.AddChannelMember(otherChannel.Id, otherUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.DeleteChannel(otherChannel.Id)
+
+	// should fail adding user to a deleted channel
+	_, resp = Client.AddChannelMember(otherChannel.Id, user2.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.AddChannelMember(publicChannel.Id, user2.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = Client.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+}
+
 func TestRemoveChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
