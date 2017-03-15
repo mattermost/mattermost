@@ -1,14 +1,11 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.OAuth', function() {
-    this.timeout(100000);
-
-    it('registerOAuthApp', function(done) {
-        TestHelper.initBasic(() => {
+    test('registerOAuthApp', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             var app = {};
@@ -20,18 +17,18 @@ describe('Client.OAuth', function() {
             TestHelper.basicClient().registerOAuthApp(
                 app,
                 function() {
-                    done(new Error('not enabled'));
+                    done.fail(new Error('not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.oauth.register_oauth_app.turn_off.app_error');
+                    expect(err.id).toBe('api.oauth.register_oauth_app.turn_off.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('allowOAuth2', function(done) {
-        TestHelper.initBasic(() => {
+    test('allowOAuth2', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             TestHelper.basicClient().allowOAuth2(
@@ -41,10 +38,10 @@ describe('Client.OAuth', function() {
                 'state',
                 'scope',
                 function() {
-                    done(new Error('not enabled'));
+                    done.fail(new Error('not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.oauth.allow_oauth.turn_off.app_error');
+                    expect(err.id).toBe('api.oauth.allow_oauth.turn_off.app_error');
                     done();
                 }
             );

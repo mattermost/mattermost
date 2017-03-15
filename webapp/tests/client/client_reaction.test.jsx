@@ -1,13 +1,11 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.Reaction', function() {
-    this.timeout(100000);
-
-    it('saveListReaction', function(done) {
-        TestHelper.initBasic(() => {
+    test('saveListReaction', function(done) {
+        TestHelper.initBasic(done, () => {
             const channelId = TestHelper.basicChannel().id;
             const postId = TestHelper.basicPost().id;
 
@@ -31,23 +29,23 @@ describe('Client.Reaction', function() {
                                 reactions[0].emoji_name === reaction.emoji_name) {
                                 done();
                             } else {
-                                done(new Error('test reaction wasn\'t returned'));
+                                done.fail(new Error('test reaction wasn\'t returned'));
                             }
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('deleteReaction', function(done) {
-        TestHelper.initBasic(() => {
+    test('deleteReaction', function(done) {
+        TestHelper.initBasic(done, () => {
             const channelId = TestHelper.basicChannel().id;
             const postId = TestHelper.basicPost().id;
 
@@ -68,12 +66,12 @@ describe('Client.Reaction', function() {
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });

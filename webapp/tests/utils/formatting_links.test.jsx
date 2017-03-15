@@ -7,8 +7,6 @@ import * as Markdown from 'utils/markdown.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
 describe('Markdown.Links', function() {
-    this.timeout(10000);
-
     it('Not links', function(done) {
         assert.equal(
             Markdown.format('example.com').trim(),

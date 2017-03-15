@@ -1,42 +1,39 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var assert = require('assert');
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.General', function() {
-    this.timeout(10000);
-
-    it('General.getClientConfig', function(done) {
-        TestHelper.initBasic(() => {
+    test('General.getClientConfig', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getClientConfig(
                 function(data) {
-                    assert.equal(data.SiteName, 'Mattermost');
+                    expect(data.SiteName).toEqual('Mattermost');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('General.getPing', function(done) {
-        TestHelper.initBasic(() => {
+    test('General.getPing', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getPing(
                 function(data) {
-                    assert.equal(data.version.length > 0, true);
+                    expect(data.version.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('General.logClientError', function(done) {
-        TestHelper.initBasic(() => {
+    test('General.logClientError', function(done) {
+        TestHelper.initBasic(done, () => {
             var config = {};
             config.site_name = 'test';
             TestHelper.basicClient().logClientError('this is a test');

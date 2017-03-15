@@ -1,55 +1,52 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.Channels', function() {
-    this.timeout(100000);
-
-    it('createChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('createChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.fakeChannel();
             channel.team_id = TestHelper.basicTeam().id;
             TestHelper.basicClient().createChannel(
                 channel,
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
-                    assert.equal(data.name, channel.name);
+                    expect(data.id.length).toBeGreaterThan(0);
+                    expect(data.name).toBe(channel.name);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('createDirectChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('createDirectChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().createUser(
                 TestHelper.fakeUser(),
                 function(user2) {
                     TestHelper.basicClient().createDirectChannel(
                         user2.id,
                         function(data) {
-                            assert.equal(data.id.length > 0, true);
+                            expect(data.id.length).toBeGreaterThan(0);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('createGroupChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('createGroupChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().createUser(
                 TestHelper.fakeUser(),
                 (user1) => {
@@ -59,84 +56,84 @@ describe('Client.Channels', function() {
                             TestHelper.basicClient().createGroupChannel(
                                 [user2.id, user1.id],
                                 function(data) {
-                                    assert.equal(data.id.length > 0, true);
+                                    expect(data.id.length).toBeGreaterThan(0);
                                     done();
                                 },
                                 function(err) {
-                                    done(new Error(err.message));
+                                    done.fail(new Error(err.message));
                                 }
                             );
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             channel.display_name = 'changed';
             TestHelper.basicClient().updateChannel(
                 channel,
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
-                    assert.equal(data.display_name, 'changed');
+                    expect(data.id.length).toBeGreaterThan(0);
+                    expect(data.display_name).toEqual('changed');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateChannelHeader', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateChannelHeader', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             channel.display_name = 'changed';
             TestHelper.basicClient().updateChannelHeader(
                 channel.id,
                 'new header',
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
-                    assert.equal(data.header, 'new header');
+                    expect(data.id.length).toBeGreaterThan(0);
+                    expect(data.header).toBe('new header');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateChannelPurpose', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateChannelPurpose', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             channel.display_name = 'changed';
             TestHelper.basicClient().updateChannelPurpose(
                 channel.id,
                 'new purpose',
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
-                    assert.equal(data.purpose, 'new purpose');
+                    expect(data.id.length).toBeGreaterThan(0);
+                    expect(data.purpose).toEqual('new purpose');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateChannelNotifyProps', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateChannelNotifyProps', function(done) {
+        TestHelper.initBasic(done, () => {
             var props = {};
             props.channel_id = TestHelper.basicChannel().id;
             props.user_id = TestHelper.basicUser().id;
@@ -144,34 +141,34 @@ describe('Client.Channels', function() {
             TestHelper.basicClient().updateChannelNotifyProps(
                 props,
                 function(data) {
-                    assert.equal(data.desktop, 'all');
+                    expect(data.desktop).toEqual('all');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('leaveChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('leaveChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().leaveChannel(
                 channel.id,
                 function(data) {
-                    assert.equal(data.id, channel.id);
+                    expect(data.id).toEqual(channel.id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('joinChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('joinChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().leaveChannel(
                 channel.id,
@@ -182,19 +179,19 @@ describe('Client.Channels', function() {
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('joinChannelByName', function(done) {
-        TestHelper.initBasic(() => {
+    test('joinChannelByName', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().leaveChannel(
                 channel.id,
@@ -205,35 +202,35 @@ describe('Client.Channels', function() {
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('deleteChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('deleteChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().deleteChannel(
                 channel.id,
                 function(data) {
-                    assert.equal(data.id, channel.id);
+                    expect(data.id).toEqual(channel.id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('viewChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('viewChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().viewChannel(
                 channel.id,
@@ -243,195 +240,195 @@ describe('Client.Channels', function() {
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateLastViewedAt', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateLastViewedAt', function(done) {
+        TestHelper.initBasic(done, () => {
             var channel = TestHelper.basicChannel();
             TestHelper.basicClient().updateLastViewedAt(
                 channel.id,
                 true,
                 function(data) {
-                    assert.equal(data.id, channel.id);
+                    expect(data.id).toEqual(channel.id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getChannels', function(done) {
-        TestHelper.initBasic(() => {
+    test('getChannels', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getChannels(
                 function(data) {
-                    assert.equal(data.length, 3);
+                    expect(data.length).toBe(3);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('getChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getChannel(
                 TestHelper.basicChannel().id,
                 function(data) {
-                    assert.equal(TestHelper.basicChannel().id, data.channel.id);
+                    expect(TestHelper.basicChannel().id).toEqual(data.channel.id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getMoreChannels', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMoreChannels', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMoreChannels(
                 function(data) {
-                    assert.equal(data.length, 0);
+                    expect(data.length).toBe(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getMoreChannelsPage', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMoreChannelsPage', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMoreChannelsPage(
                 0,
                 100,
                 function(data) {
-                    assert.equal(data.length, 0);
+                    expect(data.length).toBe(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('searchMoreChannels', function(done) {
-        TestHelper.initBasic(() => {
+    test('searchMoreChannels', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().searchMoreChannels(
                 'blargh',
                 function(data) {
-                    assert.equal(data.length, 0);
+                    expect(data.length).toBe(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('autocompleteChannels', function(done) {
-        TestHelper.initBasic(() => {
+    test('autocompleteChannels', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().autocompleteChannels(
                 TestHelper.basicChannel().name,
                 function(data) {
-                    assert.equal(data != null, true);
+                    expect(data).not.toBeNull();
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getChannelCounts', function(done) {
-        TestHelper.initBasic(() => {
+    test('getChannelCounts', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getChannelCounts(
                 function(data) {
-                    assert.equal(data.counts[TestHelper.basicChannel().id], 1);
+                    expect(data.counts[TestHelper.basicChannel().id]).toBe(1);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getMyChannelMembers', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMyChannelMembers', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMyChannelMembers(
                 function(data) {
-                    assert.equal(data.length > 0, true);
+                    expect(data.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getMyChannelMembersForTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMyChannelMembersForTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMyChannelMembersForTeam(
                 TestHelper.basicTeam().id,
                 function(data) {
-                    assert.equal(data.length > 0, true);
+                    expect(data.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getChannelStats', function(done) {
-        TestHelper.initBasic(() => {
+    test('getChannelStats', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getChannelStats(
                 TestHelper.basicChannel().id,
                 function(data) {
-                    assert.equal(data.member_count, 1);
+                    expect(data.member_count).toBe(1);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getChannelMember', function(done) {
-        TestHelper.initBasic(() => {
+    test('getChannelMember', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getChannelMember(
                 TestHelper.basicChannel().id,
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data.channel_id, TestHelper.basicChannel().id);
-                    assert.equal(data.user_id, TestHelper.basicUser().id);
+                    expect(data.channel_id).toEqual(TestHelper.basicChannel().id);
+                    expect(data.user_id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('addChannelMember', function(done) {
-        TestHelper.initBasic(() => {
+    test('addChannelMember', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().createUserWithInvite(
                 TestHelper.fakeUser(),
                 null,
@@ -442,47 +439,47 @@ describe('Client.Channels', function() {
                         TestHelper.basicChannel().id,
                         user2.id,
                         function(data) {
-                            assert.equal(data.channel_id.length > 0, true);
+                            expect(data.channel_id.length).toBeGreaterThan(0);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('removeChannelMember', function(done) {
-        TestHelper.initBasic(() => {
+    test('removeChannelMember', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().removeChannelMember(
                 TestHelper.basicChannel().id,
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data.channel_id.length > 0, true);
+                    expect(data.channel_id.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getChannelByName', function(done) {
-        TestHelper.initBasic(() => {
+    test('getChannelByName', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getChannelByName(
                 TestHelper.basicChannel().name,
                 function(data) {
-                    assert.equal(data.name, TestHelper.basicChannel().name);
+                    expect(data.name).toEqual(TestHelper.basicChannel().name);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });

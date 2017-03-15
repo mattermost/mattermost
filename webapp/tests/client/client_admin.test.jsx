@@ -1,59 +1,56 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-var assert = require('assert');
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.Admin', function() {
-    this.timeout(10000);
-
-    it('Admin.reloadConfig', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.reloadConfig', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().reloadConfig(
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.recycleDatabaseConnection', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.recycleDatabaseConnection', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().recycleDatabaseConnection(
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.getComplianceReports', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.getComplianceReports', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getComplianceReports(
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.saveComplianceReports', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.saveComplianceReports', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             var job = {};
@@ -66,97 +63,97 @@ describe('Client.Admin', function() {
             TestHelper.basicClient().saveComplianceReports(
                 job,
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.getLogs', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.getLogs', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getLogs(
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.getServerAudits', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.getServerAudits', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getServerAudits(
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.getConfig', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.getConfig', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getConfig(
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.getAnalytics', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.getAnalytics', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getAnalytics(
                 'standard',
                 null,
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.getTeamAnalytics', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.getTeamAnalytics', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().getTeamAnalytics(
                 TestHelper.basicTeam().id,
                 'standard',
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.saveConfig', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.saveConfig', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var config = {};
             config.site_name = 'test';
@@ -164,18 +161,18 @@ describe('Client.Admin', function() {
             TestHelper.basicClient().saveConfig(
                 config,
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.testEmail', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.testEmail', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var config = {};
             config.site_name = 'test';
@@ -183,35 +180,35 @@ describe('Client.Admin', function() {
             TestHelper.basicClient().testEmail(
                 config,
                 function() {
-                    done(new Error('should need system admin permissions'));
+                    done.fail(new Error('should need system admin permissions'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.adminResetMfa', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.adminResetMfa', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             TestHelper.basicClient().adminResetMfa(
                 TestHelper.basicUser().id,
                 function() {
-                    done(new Error('should need a license'));
+                    done.fail(new Error('should need a license'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.adminResetPassword', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.adminResetPassword', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var user = TestHelper.basicUser();
 
@@ -223,44 +220,44 @@ describe('Client.Admin', function() {
                 },
                 function(err) {
                     // this should fail since you're not a system admin
-                    assert.equal(err.id, 'api.context.invalid_param.app_error');
+                    expect(err.id).toBe('api.context.invalid_param.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('License.getClientLicenceConfig', function(done) {
-        TestHelper.initBasic(() => {
+    test('License.getClientLicenceConfig', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getClientLicenceConfig(
                 function(data) {
-                    assert.equal(data.IsLicensed, 'false');
+                    expect(data.IsLicensed).toBe('false');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('License.removeLicenseFile', function(done) {
-        TestHelper.initBasic(() => {
+    test('License.removeLicenseFile', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().removeLicenseFile(
                 function() {
-                    done(new Error('not enabled'));
+                    done.fail(new Error('not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('Admin.ldapSyncNow', function(done) {
-        TestHelper.initBasic(() => {
+    test('Admin.ldapSyncNow', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             TestHelper.basicClient().ldapSyncNow(
@@ -275,20 +272,20 @@ describe('Client.Admin', function() {
         });
     });
 
-    /*it('License.uploadLicenseFile', function(done) {
-        TestHelper.initBasic(() => {
+    test.skip('License.uploadLicenseFile', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().uploadLicenseFile(
                 'form data',
                 function() {
-                    done(new Error('not enabled'));
+                    done.fail(new Error('not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.permissions.app_error');
+                    expect(err.id).toBe('api.context.permissions.app_error');
                     done();
                 }
             );
         });
-    });*/
+    });
 });
 

@@ -1,102 +1,99 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.User', function() {
-    this.timeout(100000);
-
-    it('getMe', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMe', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMe(
                 function(data) {
-                    assert.equal(data.id, TestHelper.basicUser().id);
+                    expect(data.id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getUser', function(done) {
-        TestHelper.initBasic(() => {
+    test('getUser', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getUser(
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data.id, TestHelper.basicUser().id);
+                    expect(data.id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getByUsername', function(done) {
-        TestHelper.initBasic(() => {
+    test('getByUsername', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getByUsername(
                 TestHelper.basicUser().username,
                 function(data) {
-                    assert.equal(data.username, TestHelper.basicUser().username);
+                    expect(data.username).toEqual(TestHelper.basicUser().username);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getByEmail', function(done) {
-        TestHelper.initBasic(() => {
+    test('getByEmail', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getByEmail(
                 TestHelper.basicUser().email,
                 function(data) {
-                    assert.equal(data.email, TestHelper.basicUser().email);
+                    expect(data.email).toEqual(TestHelper.basicUser().email);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getInitialLoad', function(done) {
-        TestHelper.initBasic(() => {
+    test('getInitialLoad', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getInitialLoad(
                 function(data) {
-                    assert.equal(data.user.id.length > 0, true);
+                    expect(data.user.id.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('createUser', function(done) {
+    test('createUser', function(done) {
         var client = TestHelper.createClient();
         var user = TestHelper.fakeUser();
         client.createUser(
             user,
             function(data) {
-                assert.equal(data.id.length > 0, true);
-                assert.equal(data.email, user.email);
+                expect(data.id.length).toBeGreaterThan(0);
+                expect(data.email).toEqual(user.email);
                 done();
             },
             function(err) {
-                done(new Error(err.message));
+                done.fail(new Error(err.message));
             }
         );
     });
 
-    it('loginByEmail', function(done) {
+    test('loginByEmail', function(done) {
         var client = TestHelper.createClient();
         var user = TestHelper.fakeUser();
         client.createUser(
@@ -107,49 +104,49 @@ describe('Client.User', function() {
                     user.password,
                     null,
                     function(data) {
-                        assert.equal(data.id.length > 0, true);
-                        assert.equal(data.email, user.email);
+                        expect(data.id.length).toBeGreaterThan(0);
+                        expect(data.email).toEqual(user.email);
                         done();
                     },
                     function(err) {
-                        done(new Error(err.message));
+                        done.fail(new Error(err.message));
                     }
                 );
             },
             function(err) {
-                done(new Error(err.message));
+                done.fail(new Error(err.message));
             }
         );
     });
 
-    it('loginById', function(done) {
+    test('loginById', function(done) {
         var client = TestHelper.createClient();
         var user = TestHelper.fakeUser();
         client.createUser(
             user,
             function(newUser) {
-                assert.equal(user.email, newUser.email);
+                expect(user.email).toEqual(newUser.email);
                 client.loginById(
                     newUser.id,
                     user.password,
                     null,
                     function(data) {
-                        assert.equal(data.id.length > 0, true);
-                        assert.equal(data.email, user.email);
+                        expect(data.id.length).toBeGreaterThan(0);
+                        expect(data.email).toEqual(user.email);
                         done();
                     },
                     function(err) {
-                        done(new Error(err.message));
+                        done.fail(new Error(err.message));
                     }
                 );
             },
             function(err) {
-                done(new Error(err.message));
+                done.fail(new Error(err.message));
             }
         );
     });
 
-    it('loginByUsername', function(done) {
+    test('loginByUsername', function(done) {
         var client = TestHelper.createClient();
         var user = TestHelper.fakeUser();
         client.createUser(
@@ -160,41 +157,41 @@ describe('Client.User', function() {
                     user.password,
                     null,
                     function(data) {
-                        assert.equal(data.id.length > 0, true);
-                        assert.equal(data.email, user.email);
+                        expect(data.id.length).toBeGreaterThan(0);
+                        expect(data.email).toEqual(user.email);
                         done();
                     },
                     function(err) {
-                        done(new Error(err.message));
+                        done.fail(new Error(err.message));
                     }
                 );
             },
             function(err) {
-                done(new Error(err.message));
+                done.fail(new Error(err.message));
             }
         );
     });
 
-    it('updateUser', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateUser', function(done) {
+        TestHelper.initBasic(done, () => {
             var user = TestHelper.basicUser();
             user.nickname = 'updated';
 
             TestHelper.basicClient().updateUser(
                 user, null,
                 function(data) {
-                    assert.equal(data.nickname, 'updated');
+                    expect(data.nickname).toBe('updated');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updatePassword', function(done) {
-        TestHelper.initBasic(() => {
+    test('updatePassword', function(done) {
+        TestHelper.initBasic(done, () => {
             var user = TestHelper.basicUser();
 
             TestHelper.basicClient().updatePassword(
@@ -202,18 +199,18 @@ describe('Client.User', function() {
                 user.password,
                 'update_password',
                 function(data) {
-                    assert.equal(data.user_id, user.id);
+                    expect(data.user_id).toEqual(user.id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateUserNotifyProps', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateUserNotifyProps', function(done) {
+        TestHelper.initBasic(done, () => {
             var user = TestHelper.basicUser();
 
             var notifyProps = {
@@ -231,25 +228,26 @@ describe('Client.User', function() {
             TestHelper.basicClient().updateUserNotifyProps(
                 notifyProps,
                 function(data) {
-                    assert.equal(data.notify_props.email, 'false');
+                    expect(data.notify_props.email).toBe('false');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateUserRoles', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateUserRoles', function(done) {
+        TestHelper.initBasic(done, () => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var user = TestHelper.basicUser();
 
             TestHelper.basicClient().updateUserRoles(
                 user.id,
                 '',
                 function() {
-                    done(new Error('Not supposed to work'));
+                    done.fail(new Error('Not supposed to work'));
                 },
                 function() {
                     done();
@@ -258,43 +256,43 @@ describe('Client.User', function() {
         });
     });
 
-    it('updateActive', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateActive', function(done) {
+        TestHelper.initBasic(done, () => {
             const user = TestHelper.basicUser();
 
             TestHelper.basicClient().updateActive(
                 user.id,
                 false,
                 function(data) {
-                    assert.ok(data.delete_at > 0);
+                    expect(data.delete_at).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('sendPasswordReset', function(done) {
-        TestHelper.initBasic(() => {
+    test('sendPasswordReset', function(done) {
+        TestHelper.initBasic(done, () => {
             var user = TestHelper.basicUser();
 
             TestHelper.basicClient().sendPasswordReset(
                 user.email,
                 function(data) {
-                    assert.equal(data.email, user.email);
+                    expect(data.email).toEqual(user.email);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('resetPassword', function(done) {
-        TestHelper.initBasic(() => {
+    test('resetPassword', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             TestHelper.basicClient().resetPassword(
@@ -305,15 +303,15 @@ describe('Client.User', function() {
                 },
                 function(err) {
                     // this should fail since you're not a system admin
-                    assert.equal(err.id, 'api.context.invalid_param.app_error');
+                    expect(err.id).toBe('api.context.invalid_param.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('emailToOAuth', function(done) {
-        TestHelper.initBasic(() => {
+    test('emailToOAuth', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var user = TestHelper.basicUser();
 
@@ -327,33 +325,33 @@ describe('Client.User', function() {
                 },
                 function(err) {
                     // this should fail since you're not a system admin
-                    assert.equal(err.id, 'api.user.check_user_password.invalid.app_error');
+                    expect(err.id).toBe('api.user.check_user_password.invalid.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('oauthToEmail', function(done) {
-        TestHelper.initBasic(() => {
+    test('oauthToEmail', function(done) {
+        TestHelper.initBasic(done, () => {
             var user = TestHelper.basicUser();
 
             TestHelper.basicClient().oauthToEmail(
                 user.email,
                 'new_password',
                 function(data) {
-                    assert.equal(data.follow_link.length > 0, true);
+                    expect(data.follow_link.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('emailToLdap', function(done) {
-        TestHelper.initBasic(() => {
+    test('emailToLdap', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var user = TestHelper.basicUser();
 
@@ -373,8 +371,8 @@ describe('Client.User', function() {
         });
     });
 
-    it('ldapToEmail', function(done) {
-        TestHelper.initBasic(() => {
+    test('ldapToEmail', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             var user = TestHelper.basicUser();
 
@@ -387,47 +385,48 @@ describe('Client.User', function() {
                     throw Error('shouldnt work');
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.user.ldap_to_email.not_ldap_account.app_error');
+                    expect(err.id).toBe('api.user.ldap_to_email.not_ldap_account.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('logout', function(done) {
-        TestHelper.initBasic(() => {
+    test('logout', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().logout(
                 function(data) {
-                    assert.equal(data.user_id, TestHelper.basicUser().id);
+                    expect(data.user_id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('checkMfa', function(done) {
-        TestHelper.initBasic(() => {
+    test('checkMfa', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().checkMfa(
                 TestHelper.generateId(),
                 function(data) {
-                    assert.equal(data.mfa_required, 'false');
+                    expect(data.mfa_required).toBe('false');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('generateMfaSecret', function(done) {
-        TestHelper.initBasic(() => {
+    test('generateMfaSecret', function(done) {
+        TestHelper.initBasic(done, () => {
+            TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().generateMfaSecret(
                 function() {
-                    done(new Error('not enabled'));
+                    done.fail(new Error('not enabled'));
                 },
                 function() {
                     done();
@@ -436,224 +435,224 @@ describe('Client.User', function() {
         });
     });
 
-    it('getSessions', function(done) {
-        TestHelper.initBasic(() => {
+    test('getSessions', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getSessions(
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
+                    expect(data[0].user_id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('revokeSession', function(done) {
-        TestHelper.initBasic(() => {
+    test('revokeSession', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getSessions(
                 TestHelper.basicUser().id,
                 function(sessions) {
                     TestHelper.basicClient().revokeSession(
                         sessions[0].id,
                         function(data) {
-                            assert.equal(data.id, sessions[0].id);
+                            expect(data.id).toEqual(sessions[0].id);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getAudits', function(done) {
-        TestHelper.initBasic(() => {
+    test('getAudits', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getAudits(
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
+                    expect(data[0].user_id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getProfiles', function(done) {
-        TestHelper.initBasic(() => {
+    test('getProfiles', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getProfiles(
                 0,
                 100,
                 function(data) {
-                    assert.equal(Object.keys(data).length > 0, true);
+                    expect(Object.keys(data).length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getProfilesInTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('getProfilesInTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getProfilesInTeam(
                 TestHelper.basicTeam().id,
                 0,
                 100,
                 function(data) {
-                    assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+                    expect(data[TestHelper.basicUser().id].id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getProfilesByIds', function(done) {
-        TestHelper.initBasic(() => {
+    test('getProfilesByIds', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getProfilesByIds(
                 [TestHelper.basicUser().id],
                 function(data) {
-                    assert.equal(data[TestHelper.basicUser().id].id, TestHelper.basicUser().id);
+                    expect(data[TestHelper.basicUser().id].id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getProfilesInChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('getProfilesInChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getProfilesInChannel(
                 TestHelper.basicChannel().id,
                 0,
                 100,
                 function(data) {
-                    assert.equal(Object.keys(data).length > 0, true);
+                    expect(Object.keys(data).length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getProfilesNotInChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('getProfilesNotInChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getProfilesNotInChannel(
                 TestHelper.basicChannel().id,
                 0,
                 100,
                 function(data) {
-                    assert.equal(Object.keys(data).length > 0, false);
+                    expect(Object.keys(data).length).not.toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('searchUsers', function(done) {
-        TestHelper.initBasic(() => {
+    test('searchUsers', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().searchUsers(
                 'uid',
                 TestHelper.basicTeam().id,
                 {},
                 function(data) {
-                    assert.equal(data.length > 0, true);
+                    expect(data.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('autocompleteUsersInChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('autocompleteUsersInChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().autocompleteUsersInChannel(
                 'uid',
                 TestHelper.basicChannel().id,
                 function(data) {
-                    assert.equal(data != null, true);
+                    expect(data).not.toBeNull();
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('autocompleteUsersInTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('autocompleteUsersInTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().autocompleteUsersInTeam(
                 'uid',
                 function(data) {
-                    assert.equal(data != null, true);
+                    expect(data).not.toBeNull();
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('autocompleteUsers', function(done) {
-        TestHelper.initBasic(() => {
+    test('autocompleteUsers', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().autocompleteUsers(
                 'uid',
                 function(data) {
-                    assert.equal(data != null, true);
+                    expect(data).not.toBeNull();
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getStatusesByIds', function(done) {
-        TestHelper.initBasic(() => {
+    test('getStatusesByIds', function(done) {
+        TestHelper.initBasic(done, () => {
             var ids = [];
             ids.push(TestHelper.basicUser().id);
 
             TestHelper.basicClient().getStatusesByIds(
                 ids,
                 function(data) {
-                    assert.equal(data[TestHelper.basicUser().id] != null, true);
+                    expect(data[TestHelper.basicUser().id]).not.toBeNull();
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('setActiveChannel', function(done) {
-        TestHelper.initBasic(() => {
+    test('setActiveChannel', function(done) {
+        TestHelper.initBasic(done, () => {
             var ids = [];
             ids.push(TestHelper.basicUser().id);
 
@@ -663,31 +662,31 @@ describe('Client.User', function() {
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('verifyEmail', function(done) {
-        TestHelper.initBasic(() => {
+    test('verifyEmail', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().verifyEmail(
                 'junk',
                 'junk',
                 function() {
-                    done(new Error('should be invalid'));
+                    done.fail(new Error('should be invalid'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.context.invalid_param.app_error');
+                    expect(err.id).toBe('api.context.invalid_param.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('resendVerification', function(done) {
-        TestHelper.initBasic(() => {
+    test('resendVerification', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().resendVerification(
                 TestHelper.basicUser().email,
@@ -695,20 +694,20 @@ describe('Client.User', function() {
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateMfa', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateMfa', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().updateMfa(
                 'junk',
                 true,
                 function() {
-                    done(new Error('not enabled'));
+                    done.fail(new Error('not enabled'));
                 },
                 function() {
                     done();
