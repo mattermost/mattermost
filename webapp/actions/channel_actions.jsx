@@ -292,6 +292,7 @@ export function joinChannel(channel, success, error) {
         channel.id,
         () => {
             ChannelStore.removeMoreChannel(channel.id);
+            ChannelStore.storeChannel(channel);
 
             if (success) {
                 success();
