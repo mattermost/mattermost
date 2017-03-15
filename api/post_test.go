@@ -993,6 +993,19 @@ func TestDeletePosts(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Check that if unlicensed the policy restriction is not enforced.
+	utils.IsLicensed = false
+	utils.License = nil
+	utils.SetDefaultRolesBasedOnConfig()
+
+	time.Sleep(10 * time.Millisecond)
+	post7 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post7 = Client.Must(Client.CreatePost(post7)).Data.(*model.Post)
+
+	if _, err := Client.DeletePost(channel1.Id, post7.Id); err != nil {
+		t.Fatal(err)
+	}
+
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post6a.Id))
 
 }
