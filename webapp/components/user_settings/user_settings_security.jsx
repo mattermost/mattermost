@@ -331,6 +331,7 @@ export default class SecurityTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='currentPassword'
                                 className='form-control'
                                 type='password'
                                 onChange={this.updateCurrentPassword}
@@ -352,6 +353,7 @@ export default class SecurityTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='newPassword'
                                 className='form-control'
                                 type='password'
                                 onChange={this.updateNewPassword}
@@ -373,6 +375,7 @@ export default class SecurityTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='confirmPassword'
                                 className='form-control'
                                 type='password'
                                 onChange={this.updateConfirmPassword}
