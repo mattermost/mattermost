@@ -31,12 +31,30 @@ export default class SettingItemMax extends React.Component {
     render() {
         var clientError = null;
         if (this.props.client_error) {
-            clientError = (<div className='form-group'><label className='col-sm-12 has-error'>{this.props.client_error}</label></div>);
+            clientError = (
+                <div className='form-group'>
+                    <label
+                        id='clientError'
+                        className='col-sm-12 has-error'
+                    >
+                        {this.props.client_error}
+                    </label>
+                </div>
+            );
         }
 
         var serverError = null;
         if (this.props.server_error) {
-            serverError = (<div className='form-group'><label className='col-sm-12 has-error'>{this.props.server_error}</label></div>);
+            serverError = (
+                <div className='form-group'>
+                    <label
+                        id='serverError'
+                        className='col-sm-12 has-error'
+                    >
+                        {this.props.server_error}
+                    </label>
+                </div>
+            );
         }
 
         var extraInfo = null;
