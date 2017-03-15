@@ -69,6 +69,7 @@ export default class ProfilePicture extends React.Component {
                             width={this.props.width}
                             height={this.props.width}
                             src={this.props.src}
+                            crossOrigin='anonymous'
                         />
                         <StatusIcon status={this.props.status}/>
                     </span>
@@ -82,6 +83,7 @@ export default class ProfilePicture extends React.Component {
                     width={this.props.width}
                     height={this.props.width}
                     src={this.props.src}
+                    crossOrigin='anonymous'
                 />
                 <StatusIcon status={this.props.status}/>
             </span>
