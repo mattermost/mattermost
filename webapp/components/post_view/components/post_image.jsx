@@ -67,6 +67,7 @@ export default class PostImageEmbed extends React.Component {
             return (
                 <img
                     className='img-div placeholder'
+                    crossOrigin='anonymous'
                     height='500px'
                 />
             );
@@ -75,6 +76,7 @@ export default class PostImageEmbed extends React.Component {
         return (
             <img
                 className='img-div'
+                crossOrigin='anonymous'
                 src={this.props.link}
             />
         );
