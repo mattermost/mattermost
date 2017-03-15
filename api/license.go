@@ -141,6 +141,11 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 		return nil, model.NewLocAppError("addLicense", INVALID_LICENSE_ERROR, nil, "")
 	}
 
+	utils.LoadConfig(utils.CfgFileName)
+
+	// start/restart email batching job if necessary
+	InitEmailBatching()
+
 	return license, nil
 }
 
@@ -168,6 +173,11 @@ func RemoveLicense() *model.AppError {
 		utils.RemoveLicense()
 		return result.Err
 	}
+
+	utils.LoadConfig(utils.CfgFileName)
+
+	// start/restart email batching job if necessary
+	InitEmailBatching()
 
 	return nil
 }
