@@ -242,7 +242,7 @@ func (s SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, 
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
-            WHERE B.TeamId = :TeamId
+            WHERE B.TeamId = :TeamId OR B.TeamId = ''
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
 

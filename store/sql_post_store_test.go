@@ -1080,6 +1080,30 @@ func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
+	c2 := &model.Channel{}
+	c2.DisplayName = "DMChannel1"
+	c2.Name = "a" + model.NewId() + "b"
+	c2.Type = model.CHANNEL_DIRECT
+
+	m1 := &model.ChannelMember{}
+	m1.ChannelId = c2.Id
+	m1.UserId = o1.UserId
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := &model.ChannelMember{}
+	m2.ChannelId = c2.Id
+	m2.UserId = model.NewId()
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	c2 = Must(store.Channel().SaveDirectChannel(c2, m1, m2)).(*model.Channel)
+
+	o5 := &model.Post{}
+	o5.ChannelId = c2.Id
+	o5.UserId = m2.UserId
+	o5.Message = "a" + model.NewId() + "b"
+	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
+	time.Sleep(2 * time.Millisecond)
+
 	r1 := (<-store.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)).Data.(*model.PostList)
 
 	if len(r1.Order) != 0 {
@@ -1151,6 +1175,7 @@ func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
 			Value:    "true",
 		},
 	}
+	Must(store.Preference().Save(&preferences))
 
 	r4 = (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
 
@@ -1162,6 +1187,23 @@ func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
 
 	if len(r4.Order) != 0 {
 		t.Fatal("should have 0 posts")
+	}
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+			Name:     o5.Id,
+			Value:    "true",
+		},
+	}
+	Must(store.Preference().Save(&preferences))
+
+	r4 = (<-store.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)).Data.(*model.PostList)
+
+	if len(r4.Order) != 3 {
+		t.Log(len(r4.Order))
+		t.Fatal("should have 3 posts")
 	}
 }
 
