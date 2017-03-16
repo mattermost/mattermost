@@ -1516,6 +1516,10 @@
     "translation": "post API 경로 초기화 중"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "시스템 관리자가 개인 링크들 저장을 할 수 없도록 했습니다."
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "다이렉트 채널의 두명의 구성원을 가져올 수 없습니다. channel_id=%v"
   },

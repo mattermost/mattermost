@@ -3,7 +3,7 @@
 .custom-textarea {
     background: transparent;
     border: 1px solid #cccccc;
-    height: auto;
+    height: 100%;
     line-height: 20px;
     min-height: 36px;
     overflow-x: hidden;
@@ -359,6 +359,10 @@
 }
 
 .post-create__container {
+    .custom-textarea {
+        overflow: hidden;
+    }
+
     form {
         margin: 0 auto;
         padding: .5em 15px 0;
@@ -376,6 +380,8 @@
             }
 
             .custom-textarea {
+                -ms-overflow-style: auto;
+                overflow: auto;
                 padding-right: 43px;
             }
         }
@@ -523,6 +529,7 @@
             .col__reply {
                 min-width: 0;
             }
+
             .dropdown {
                 margin-right: 0;
             }
@@ -576,6 +583,12 @@
             }
         }
 
+        &.post--system {
+            .status {
+                visibility: hidden;
+            }
+        }
+
         .post__img {
             padding-top: 0;
         }
@@ -583,6 +596,7 @@
         .status-wrapper {
             cursor: auto;
             height: 14px;
+            pointer-events: none;
 
             .status {
                 bottom: auto;

@@ -102,7 +102,7 @@ export default class ActivityLogModal extends React.Component {
 
             if (currentSession.props.platform === 'Windows') {
                 devicePicture = 'fa fa-windows';
-            } else if (currentSession.device_id && currentSession.device_id.indexOf('apple:') === 0) {
+            } else if (currentSession.device_id && currentSession.device_id.indexOf('apple') === 0) {
                 devicePicture = 'fa fa-apple';
                 devicePlatform = (
                     <FormattedMessage
@@ -110,7 +110,7 @@ export default class ActivityLogModal extends React.Component {
                         defaultMessage='iPhone Native App'
                     />
                 );
-            } else if (currentSession.device_id && currentSession.device_id.indexOf('android:') === 0) {
+            } else if (currentSession.device_id && currentSession.device_id.indexOf('android') === 0) {
                 devicePlatform = (
                     <FormattedMessage
                         id='activity_log_modal.androidNativeApp'
@@ -275,6 +275,7 @@ export default class ActivityLogModal extends React.Component {
 
         return (
             <Modal
+                dialogClassName='modal--scroll'
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onHide}

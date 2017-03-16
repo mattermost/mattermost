@@ -40,29 +40,22 @@ type SlackFile struct {
 }
 
 type SlackPost struct {
-	User        string            `json:"user"`
-	BotId       string            `json:"bot_id"`
-	BotUsername string            `json:"username"`
-	Text        string            `json:"text"`
-	TimeStamp   string            `json:"ts"`
-	Type        string            `json:"type"`
-	SubType     string            `json:"subtype"`
-	Comment     *SlackComment     `json:"comment"`
-	Upload      bool              `json:"upload"`
-	File        *SlackFile        `json:"file"`
-	Attachments []SlackAttachment `json:"attachments"`
+	User        string                   `json:"user"`
+	BotId       string                   `json:"bot_id"`
+	BotUsername string                   `json:"username"`
+	Text        string                   `json:"text"`
+	TimeStamp   string                   `json:"ts"`
+	Type        string                   `json:"type"`
+	SubType     string                   `json:"subtype"`
+	Comment     *SlackComment            `json:"comment"`
+	Upload      bool                     `json:"upload"`
+	File        *SlackFile               `json:"file"`
+	Attachments []*model.SlackAttachment `json:"attachments"`
 }
 
 type SlackComment struct {
 	User    string `json:"user"`
 	Comment string `json:"comment"`
-}
-
-type SlackAttachment struct {
-	Id      int                      `json:"id"`
-	Text    string                   `json:"text"`
-	Pretext string                   `json:"pretext"`
-	Fields  []map[string]interface{} `json:"fields"`
 }
 
 func truncateRunes(s string, i int) string {
@@ -167,7 +160,7 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 		if result := <-Srv.Store.User().GetByEmail(email); result.Err == nil {
 			existingUser := result.Data.(*model.User)
 			addedUsers[sUser.Id] = existingUser
-			if err := JoinUserToTeam(team, addedUsers[sUser.Id]); err != nil {
+			if err := JoinUserToTeam(team, addedUsers[sUser.Id], utils.GetSiteURL()); err != nil {
 				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
 			} else {
 				log.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -284,15 +277,7 @@ func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, use
 			props := make(model.StringInterface)
 			props["override_username"] = sPost.BotUsername
 			if len(sPost.Attachments) > 0 {
-				var mAttachments []interface{}
-				for _, attachment := range sPost.Attachments {
-					mAttachments = append(mAttachments, map[string]interface{}{
-						"text":    attachment.Text,
-						"pretext": attachment.Pretext,
-						"fields":  attachment.Fields,
-					})
-				}
-				props["attachments"] = mAttachments
+				props["attachments"] = sPost.Attachments
 			}
 
 			post := &model.Post{

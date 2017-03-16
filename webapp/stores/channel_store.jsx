@@ -10,7 +10,7 @@ import UserStore from 'stores/user_store.jsx';
 var ChannelUtils;
 var Utils;
 import {ActionTypes, Constants} from 'utils/constants.jsx';
-import {isSystemMessage} from 'utils/post_utils.jsx';
+import {isSystemMessage, isFromWebhook} from 'utils/post_utils.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
 
 const CHANGE_EVENT = 'change';
@@ -521,7 +521,7 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
             return;
         }
 
-        if (action.post.user_id === UserStore.getCurrentId() && !isSystemMessage(action.post)) {
+        if (action.post.user_id === UserStore.getCurrentId() && !isSystemMessage(action.post) && !isFromWebhook(action.post)) {
             return;
         }
 
