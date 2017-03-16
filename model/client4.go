@@ -842,6 +842,16 @@ func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response) {
 	}
 }
 
+// GetChannelStats returns statistics for a channel.
+func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/stats", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPublicChannelsForTeam returns a channel based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -894,6 +904,17 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 	}
 }
 
+// GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
+func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+
+	}
+}
+
 // GetChannelMember gets a channel member.
 func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag); err != nil {
@@ -922,6 +943,17 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetChannelUnread will return a ChannelUnread object that contains the number of
+// unread messages and mentions for a user.
+func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelUnreadFromJson(r.Body), BuildResponse(r)
 	}
 }
 
