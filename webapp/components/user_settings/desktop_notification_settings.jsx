@@ -74,6 +74,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='soundOn'
                                     type='radio'
                                     name='notificationSounds'
                                     checked={soundRadio[0]}
@@ -89,6 +90,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='soundOff'
                                     type='radio'
                                     name='notificationSounds'
                                     checked={soundRadio[1]}
@@ -136,6 +138,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDuration3'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[0]}
@@ -154,6 +157,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDuration5'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[1]}
@@ -172,6 +176,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDuration10'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[2]}
@@ -189,6 +194,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDurationUnlimited'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[3]}
@@ -225,6 +231,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <div className='radio'>
                     <label>
                         <input
+                            id='desktopNotificationAllActivity'
                             type='radio'
                             name='desktopNotificationLevel'
                             checked={activityRadio[0]}
@@ -240,6 +247,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <div className='radio'>
                     <label>
                         <input
+                            id='desktopNotificationMentions'
                             type='radio'
                             name='desktopNotificationLevel'
                             checked={activityRadio[1]}
@@ -255,6 +263,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <div className='radio'>
                     <label>
                         <input
+                            id='desktopNotificationNever'
                             type='radio'
                             name='desktopNotificationLevel'
                             checked={activityRadio[2]}
