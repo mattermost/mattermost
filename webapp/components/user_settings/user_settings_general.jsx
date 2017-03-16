@@ -791,11 +791,35 @@ class UserSettingsGeneralTab extends React.Component {
             let describe = '';
 
             if (user.first_name && user.last_name) {
-                describe = user.first_name + ' ' + user.last_name;
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.fullName'
+                        defaultMessage='{fullName}'
+                        values={{
+                            fullName: user.first_name + ' ' + user.last_name
+                        }}
+                    />
+                );
             } else if (user.first_name) {
-                describe = user.first_name;
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.firstName'
+                        defaultMessage='{firstName}'
+                        values={{
+                            firstName: user.first_name
+                        }}
+                    />
+                );
             } else if (user.last_name) {
-                describe = user.last_name;
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.lastName'
+                        defaultMessage='{lastName}'
+                        values={{
+                            lastName: user.last_name
+                        }}
+                    />
+                );
             } else {
                 describe = (
                     <FormattedMessage
