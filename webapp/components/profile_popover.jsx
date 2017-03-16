@@ -182,6 +182,7 @@ export default class ProfilePopover extends React.Component {
                 height='128'
                 width='128'
                 key='user-popover-image'
+                crossOrigin='anonymous'
             />
         );
 
