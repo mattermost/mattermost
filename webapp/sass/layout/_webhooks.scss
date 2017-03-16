@@ -72,6 +72,9 @@
                 border-left-color: #e40303;
             }
             &.attachment__container--opengraph {
+                padding-left: 5px;
+                border-left-style: none;
+                border-left-color: transparent;
                 display: table;
                 table-layout: fixed;
                 width: 100%;
