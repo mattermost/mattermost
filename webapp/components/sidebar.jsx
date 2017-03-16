@@ -636,13 +636,15 @@ export default class Sidebar extends React.Component {
         this.lastUnreadChannel = null;
 
         // create elements for all 4 types of channels
-        const favoriteItems = this.state.favoriteChannels.map((channel, index, arr) => {
-            if (channel.type === Constants.DM_CHANNEL) {
-                return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
-            }
+        const favoriteItems = this.state.favoriteChannels.
+            sort(Utils.sortTeamsByDisplayName).
+            map((channel, index, arr) => {
+                if (channel.type === Constants.DM_CHANNEL) {
+                    return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
+                }
 
-            return this.createChannelElement(channel);
-        });
+                return this.createChannelElement(channel);
+            });
 
         const publicChannelItems = this.state.publicChannels.map(this.createChannelElement);
 
