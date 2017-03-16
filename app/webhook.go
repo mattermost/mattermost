@@ -215,6 +215,7 @@ func UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	updatedHook.Id = oldHook.Id
 	updatedHook.UserId = oldHook.UserId
 	updatedHook.CreateAt = oldHook.CreateAt
 	updatedHook.UpdateAt = model.GetMillis()
