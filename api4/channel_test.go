@@ -1157,7 +1157,7 @@ func TestAddChannelMember(t *testing.T) {
 	}
 
 	_, resp = Client.AddChannelMember(publicChannel.Id, GenerateTestId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.AddChannelMember("junk", user2.Id)
 	CheckBadRequestStatus(t, resp)

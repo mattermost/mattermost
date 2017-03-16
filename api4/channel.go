@@ -505,21 +505,22 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := model.MapFromJson(r.Body)
-	if data == nil {
+	member := model.ChannelMemberFromJson(r.Body)
+	if member == nil {
 		c.SetInvalidParam("channel_member")
 		return
 	}
 
-	userId := data["user_id"]
-	if len(userId) != 26 {
+	if len(member.UserId) != 26 {
 		c.SetInvalidParam("user_id")
 		return
 	}
 
+	member.ChannelId = c.Params.ChannelId
+
 	var channel *model.Channel
 	var err *model.AppError
-	if channel, err = app.GetChannel(c.Params.ChannelId); err != nil {
+	if channel, err = app.GetChannel(member.ChannelId); err != nil {
 		c.Err = err
 		return
 	}
@@ -534,30 +535,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var nUser *model.User
-	if nUser, err = app.GetUser(userId); err != nil {
-		c.Err = model.NewLocAppError("addChannelMember", "api.channel.add_member.find_user.app_error", nil, err.Error())
-		return
-	}
-
-	cm, err := app.AddUserToChannel(nUser, channel)
-	if err != nil {
+	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId); err != nil {
 		c.Err = err
 		return
+	} else {
+		c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
+		w.Write([]byte(cm.ToJson()))
 	}
-
-	c.LogAudit("name=" + channel.Name + " user_id=" + userId)
-
-	var oUser *model.User
-	if oUser, err = app.GetUser(c.Session.UserId); err != nil {
-		c.Err = model.NewLocAppError("addChannelMember", "api.channel.add_member.user_adding.app_error", nil, err.Error())
-		return
-	}
-
-	go app.PostAddToChannelMessage(oUser, nUser, channel)
-
-	app.UpdateChannelLastViewedAt([]string{c.Params.ChannelId}, oUser.Id)
-	w.Write([]byte(cm.ToJson()))
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {

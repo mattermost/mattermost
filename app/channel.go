@@ -446,6 +446,31 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	return newMember, nil
 }
 
+func AddChannelMember(userId string, channel *model.Channel, userRequestorId string) (*model.ChannelMember, *model.AppError) {
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = GetUser(userId); err != nil {
+		return nil, err
+	}
+
+	var userRequestor *model.User
+	if userRequestor, err = GetUser(userRequestorId); err != nil {
+		return nil, err
+	}
+
+	cm, err := AddUserToChannel(user, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	go PostAddToChannelMessage(userRequestor, user, channel)
+
+	UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
+
+	return cm, nil
+}
+
 func AddDirectChannels(teamId string, user *model.User) *model.AppError {
 	var profiles []*model.User
 	if result := <-Srv.Store.User().GetProfiles(teamId, 0, 100); result.Err != nil {
