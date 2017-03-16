@@ -52,6 +52,19 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 # Tests
 TESTS=.
 
+# Packages lists
+TE_PACKAGES=$(shell go list ./... | grep -v vendor)
+TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
+
+EE_PACKAGES=$(shell go list ./enterprise/... | grep -v vendor | tail -n +2)
+EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
+else
+ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
+endif
+
 all: dist
 
 dist: | check-style test package
@@ -196,64 +209,47 @@ check-server-style: govet
 
 check-style: check-client-style check-server-style
 
-test-server: start-docker prepare-enterprise
-	@echo Running server tests
+test-te: start-docker prepare-enterprise
+	@echo Testing TE
 
-	rm -f cover.out
-	echo "mode: count" > cover.out
+	@echo "mode: count" > cover.out
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=1050s -covermode=count -coverprofile=capi.out ./api || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=800s -covermode=count -coverprofile=capi4.out ./api4 || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=capp.out ./app || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s -covermode=count -coverprofile=cstore.out ./store || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cutils.out ./utils || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cweb.out ./web || exit 1
+	@echo "Packages to test: "$(TE_PACKAGES)
 
-	tail -n +2 capi.out >> cover.out
-	tail -n +2 capi4.out >> cover.out
-	tail -n +2 capp.out >> cover.out
-	tail -n +2 cmodel.out >> cover.out
-	tail -n +2 cstore.out >> cover.out
-	tail -n +2 cutils.out >> cover.out
-	tail -n +2 cweb.out >> cover.out
-	rm -f capi.out capi4.out capp.out cmodel.out cstore.out cutils.out cweb.out
+	@for package in $(TE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
+		if [ -f cprofile.out ]; then \
+			tail -n +2 cprofile.out >> cover.out; \
+			rm cprofile.out; \
+		fi; \
+	done
+
+test-ee: start-docker prepare-enterprise
+	@echo Testing EE
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Running Enterprise tests
+	@echo "Packages to test: "$(EE_PACKAGES)
 
-	rm -f ecover.out
-	echo "mode: count" > ecover.out
+	for package in $(EE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package; \
+		if [ -f $$(basename $$package).test ]; then \
+			echo "Testing "$$package; \
+			./$$(basename $$package).test -test.v -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
+			if [ -f cprofile.out ]; then \
+				tail -n +2 cprofile.out >> cover.out; \
+				rm cprofile.out; \
+			fi; \
+			rm -r $$(basename $$package).test; \
+		fi; \
+	done
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s -test.coverprofile=cldap.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/mfa && ./mfa.test -test.v -test.timeout=120s -test.coverprofile=cmfa.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s -test.coverprofile=cemoji.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/saml && ./saml.test -test.v -test.timeout=60s -test.coverprofile=csaml.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/cluster && ./cluster.test -test.v -test.timeout=60s -test.coverprofile=ccluster.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/metrics && ./metrics.test -test.v -test.timeout=60s -test.coverprofile=cmetrics.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/account_migration && ./account_migration.test -test.v -test.timeout=60s -test.coverprofile=caccount_migration.out || exit 1
-
-	tail -n +2 cldap.out >> ecover.out
-	tail -n +2 ccompliance.out >> ecover.out
-	tail -n +2 cmfa.out >> ecover.out
-	tail -n +2 cemoji.out >> ecover.out
-	tail -n +2 csaml.out >> ecover.out
-	tail -n +2 ccluster.out >> ecover.out
-	tail -n +2 cmetrics.out >> ecover.out
-	tail -n +2 caccount_migration.out >> ecover.out
-	rm -f cldap.out ccompliance.out cmfa.out cemoji.out csaml.out ccluster.out cmetrics.out caccount_migration.out
-	rm -r ldap.test
-	rm -r compliance.test
-	rm -r mfa.test
-	rm -r emoji.test
-	rm -r saml.test
-	rm -r cluster.test
-	rm -r metrics.test
-	rm -r account_migration.test
 	rm -f config/*.crt
 	rm -f config/*.key
 endif
+
+test-server: test-te test-ee
 
 internal-test-web-client: start-docker prepare-enterprise
 	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
@@ -458,6 +454,7 @@ clean: stop-docker
 	rm -f ecover.out
 	rm -f *.out
 	rm -f *.test
+	rm -f imports.go
 
 nuke: clean clean-docker
 	@echo BOOM

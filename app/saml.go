@@ -22,7 +22,7 @@ func GetSamlMetadata() (string, *model.AppError) {
 	}
 
 	if result, err := samlInterface.GetMetadata(); err != nil {
-		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
 	} else {
 		return result, nil
 	}
