@@ -31,6 +31,8 @@ func InitChannel() {
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
 	BaseRoutes.ChannelMember.Handle("/roles", ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
+	BaseRoutes.ChannelMembers.Handle("/ids", ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
+
 	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 }
 
@@ -452,4 +454,29 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
 
 	ReturnStatusOK(w)
+}
+
+func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if members, err := app.GetChannelMembersByIds(c.Params.ChannelId, userIds); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(members.ToJson()))
+	}
 }
