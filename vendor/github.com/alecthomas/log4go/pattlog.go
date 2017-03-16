@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
 
 const (
@@ -22,6 +23,7 @@ type formatCacheType struct {
 }
 
 var formatCache = &formatCacheType{}
+var mutex sync.Mutex
 
 // Known format codes:
 // %T - Time (15:04:05 MST)
@@ -44,6 +46,7 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 	out := bytes.NewBuffer(make([]byte, 0, 64))
 	secs := rec.Created.UnixNano() / 1e9
 
+	mutex.Lock()
 	cache := *formatCache
 	if cache.LastUpdateSeconds != secs {
 		month, day, year := rec.Created.Month(), rec.Created.Day(), rec.Created.Year()
@@ -59,6 +62,7 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 		cache = *updated
 		formatCache = updated
 	}
+	mutex.Unlock()
 
 	// Split the string into pieces by % signs
 	pieces := bytes.Split([]byte(format), []byte{'%'})
