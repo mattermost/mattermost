@@ -34,7 +34,12 @@ export default class SettingItemMin extends React.Component {
             >
                 <li className='col-xs-12 col-sm-9 section-title'>{this.props.title}</li>
                 {editButton}
-                <li className='col-xs-12 section-describe'>{this.props.describe}</li>
+                <li
+                    id={this.props.title + 'Desc'}
+                    className='col-xs-12 section-describe'
+                >
+                    {this.props.describe}
+                </li>
             </ul>
         );
     }
