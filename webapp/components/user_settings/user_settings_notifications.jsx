@@ -281,6 +281,7 @@ export default class NotificationsTab extends React.Component {
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='pushNotificationOnline'
                                         type='radio'
                                         name='pushNotificationStatus'
                                         checked={pushStatusRadio[0]}
@@ -296,6 +297,7 @@ export default class NotificationsTab extends React.Component {
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='pushNotificationAway'
                                         type='radio'
                                         name='pushNotificationStatus'
                                         checked={pushStatusRadio[1]}
@@ -311,6 +313,7 @@ export default class NotificationsTab extends React.Component {
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='pushNotificationOffline'
                                         type='radio'
                                         name='pushNotificationStatus'
                                         checked={pushStatusRadio[2]}
@@ -347,6 +350,7 @@ export default class NotificationsTab extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='pushNotificationAllActivity'
                                     type='radio'
                                     name='pushNotificationLevel'
                                     checked={pushActivityRadio[0]}
@@ -362,6 +366,7 @@ export default class NotificationsTab extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='pushNotificationMentions'
                                     type='radio'
                                     name='pushNotificationLevel'
                                     checked={pushActivityRadio[1]}
@@ -377,6 +382,7 @@ export default class NotificationsTab extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='pushNotificationNever'
                                     type='radio'
                                     name='pushNotificationLevel'
                                     checked={pushActivityRadio[2]}
@@ -520,6 +526,7 @@ export default class NotificationsTab extends React.Component {
                         <div className='checkbox'>
                             <label>
                                 <input
+                                    id='NotificationTriggerFirst'
                                     type='checkbox'
                                     checked={this.state.firstNameKey}
                                     onChange={handleUpdateFirstNameKey}
@@ -545,6 +552,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='checkbox'>
                         <label>
                             <input
+                                id='NotificationTriggerUsername'
                                 type='checkbox'
                                 checked={this.state.usernameKey}
                                 onChange={handleUpdateUsernameKey}
@@ -569,6 +577,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='checkbox'>
                         <label>
                             <input
+                                id='NotificationTriggerShouts'
                                 type='checkbox'
                                 checked={this.state.channelKey}
                                 onChange={handleUpdateChannelKey}
@@ -587,6 +596,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='checkbox'>
                         <label>
                             <input
+                                id='NotificationTriggerCustom'
                                 ref='customcheck'
                                 type='checkbox'
                                 checked={this.state.customKeysChecked}
@@ -599,6 +609,7 @@ export default class NotificationsTab extends React.Component {
                         </label>
                     </div>
                     <input
+                        id='NotificationTriggerCustomText'
                         ref='custommentions'
                         className='form-control mentions-input'
                         type='text'
@@ -697,6 +708,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='NotificationCommentsAny'
                                 type='radio'
                                 name='commentsNotificationLevel'
                                 checked={commentsActive[0]}
@@ -712,6 +724,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='NotificationCommentsRoot'
                                 type='radio'
                                 name='commentsNotificationLevel'
                                 checked={commentsActive[1]}
@@ -727,6 +740,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='NotificationCommentsNever'
                                 type='radio'
                                 name='commentsNotificationLevel'
                                 checked={commentsActive[2]}
