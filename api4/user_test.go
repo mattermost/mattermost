@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -804,7 +803,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestUpdateUserMfa(t *testing.T) {
+/*func TestUpdateUserMfa(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
@@ -844,7 +843,7 @@ func TestUpdateUserMfa(t *testing.T) {
 
 	_, resp = Client.UpdateUserMfa(ruser.Id, "123456", false)
 	CheckNotImplementedStatus(t, resp)
-}
+}*/
 
 func TestUpdateUserPassword(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
