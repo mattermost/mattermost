@@ -364,7 +364,15 @@
         padding: .5em 15px 0;
         width: 100%;
     }
+    #reply_textbox.custom-textarea-emoji{
+        bottom: 0;
+        max-height: 162px !important;
+        padding-right: 60px;
+        padding-top: 6px;
+        resize: none;
 
+
+    }
     .center {
         max-width: 1028px;
     }
@@ -380,13 +388,19 @@
                 resize: none;
             }
 
-            .custom-textarea-emoji {
+            #post_textbox-reference.custom-textarea-emoji {
                 padding-right: 43px;
+                resize: none;
+            }
+
+
+            #reply_textbox.custom-textarea-emoji {
+                padding-right: 60px;
                 resize: none;
 
             }
 
-            #post-textbox.custom-textarea-emoji {
+            #post_textbox.custom-textarea-emoji {
                 padding-right: 60px;
                 resize: none;
 
@@ -433,7 +447,7 @@
 
         }
 
-        .custom-textarea-emoji {
+        #post_textbox-reference.custom-textarea-emoji {
             bottom: 0;
             max-height: 162px !important;
             padding-right: 35px;
@@ -442,7 +456,8 @@
 
         }
 
-        #post-textbox.custom-textarea-emoji {
+
+        #post_textbox.custom-textarea-emoji {
             bottom: 0;
             max-height: 162px !important;
             padding-right: 60px;

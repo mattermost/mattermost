@@ -250,7 +250,7 @@ export default class Textbox extends React.Component {
                 <SuggestionBox
                     id={this.props.id}
                     ref='message'
-                    className={`form-control custom-textarea ${this.props.emojiEnabled ? 'custom-textarea-emoji' : ''} ${this.state.connection}`}
+                    className={`form-control custom-textarea${this.props.emojiEnabled ? '-emoji' : ''} ${this.state.connection}`}
                     type='textarea'
                     spellCheck='true'
                     placeholder={this.props.createMessage}
