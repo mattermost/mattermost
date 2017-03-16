@@ -113,6 +113,7 @@ export default class EmailNotificationSetting extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='emailNotificationMinutes'
                                 type='radio'
                                 name='emailNotifications'
                                 checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
@@ -128,6 +129,7 @@ export default class EmailNotificationSetting extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='emailNotificationHour'
                                 type='radio'
                                 name='emailNotifications'
                                 checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_HOUR}
@@ -164,6 +166,7 @@ export default class EmailNotificationSetting extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='emailNotificationImmediately'
                                     type='radio'
                                     name='emailNotifications'
                                     checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_IMMEDIATE}
@@ -179,6 +182,7 @@ export default class EmailNotificationSetting extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='emailNotificationNever'
                                     type='radio'
                                     name='emailNotifications'
                                     checked={!this.props.enableEmail}
