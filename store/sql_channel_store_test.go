@@ -171,6 +171,80 @@ func TestChannelStoreUpdate(t *testing.T) {
 	}
 }
 
+func TestGetChannelUnread(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	uid := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
+	m2 := &model.TeamMember{TeamId: teamId2, UserId: uid}
+	Must(store.Team().SaveMember(m1))
+	Must(store.Team().SaveMember(m2))
+	notifyPropsModel := model.GetDefaultChannelNotifyProps()
+
+	// Setup Channel 1
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Downtown", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	Must(store.Channel().Save(c1))
+	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: notifyPropsModel, MsgCount: 90}
+	Must(store.Channel().SaveMember(cm1))
+
+	// Setup Channel 2
+	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Cultural", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	Must(store.Channel().Save(c2))
+	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: notifyPropsModel, MsgCount: 90, MentionCount: 5}
+	Must(store.Channel().SaveMember(cm2))
+
+	// Check for Channel 1
+	if resp := <-store.Channel().GetChannelUnread(c1.Id, uid); resp.Err != nil {
+		t.Fatal(resp.Err)
+	} else {
+		ch := resp.Data.(*model.ChannelUnread)
+		if c1.Id != ch.ChannelId {
+			t.Fatal("wrong channel id")
+		}
+
+		if teamId1 != ch.TeamId {
+			t.Fatal("wrong team id for channel 1")
+		}
+
+		if ch.NotifyProps == nil {
+			t.Fatal("wrong props for channel 1")
+		}
+
+		if ch.MentionCount != 0 {
+			t.Fatal("wrong MentionCount for channel 1")
+		}
+
+		if ch.MsgCount != 10 {
+			t.Fatal("wrong MsgCount for channel 1")
+		}
+	}
+
+	// Check for Channel 2
+	if resp2 := <-store.Channel().GetChannelUnread(c2.Id, uid); resp2.Err != nil {
+		t.Fatal(resp2.Err)
+	} else {
+		ch2 := resp2.Data.(*model.ChannelUnread)
+		if c2.Id != ch2.ChannelId {
+			t.Fatal("wrong channel id")
+		}
+
+		if teamId2 != ch2.TeamId {
+			t.Fatal("wrong team id")
+		}
+
+		if ch2.MentionCount != 5 {
+			t.Fatal("wrong MentionCount for channel 2")
+		}
+
+		if ch2.MsgCount != 10 {
+			t.Fatal("wrong MsgCount for channel 2")
+		}
+	}
+}
+
 func TestChannelStoreGet(t *testing.T) {
 	Setup()
 
