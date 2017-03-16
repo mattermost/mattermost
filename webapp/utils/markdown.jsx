@@ -152,6 +152,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             out += ' height="' + dimensions[1] + '"';
         }
         out += ' onload="window.markdownImageLoaded(this)" onerror="window.markdownImageLoaded(this)" class="markdown-inline-img"';
+        out += ' crossorigin="anonymous"';
         out += this.options.xhtml ? '/>' : '>';
         return out;
     }
