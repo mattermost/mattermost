@@ -526,7 +526,7 @@ export default class NotificationsTab extends React.Component {
                         <div className='checkbox'>
                             <label>
                                 <input
-                                    id='NotificationTriggerFirst'
+                                    id='notificationTriggerFirst'
                                     type='checkbox'
                                     checked={this.state.firstNameKey}
                                     onChange={handleUpdateFirstNameKey}
@@ -552,7 +552,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='checkbox'>
                         <label>
                             <input
-                                id='NotificationTriggerUsername'
+                                id='notificationTriggerUsername'
                                 type='checkbox'
                                 checked={this.state.usernameKey}
                                 onChange={handleUpdateUsernameKey}
@@ -577,7 +577,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='checkbox'>
                         <label>
                             <input
-                                id='NotificationTriggerShouts'
+                                id='notificationTriggerShouts'
                                 type='checkbox'
                                 checked={this.state.channelKey}
                                 onChange={handleUpdateChannelKey}
@@ -596,7 +596,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='checkbox'>
                         <label>
                             <input
-                                id='NotificationTriggerCustom'
+                                id='notificationTriggerCustom'
                                 ref='customcheck'
                                 type='checkbox'
                                 checked={this.state.customKeysChecked}
@@ -609,7 +609,7 @@ export default class NotificationsTab extends React.Component {
                         </label>
                     </div>
                     <input
-                        id='NotificationTriggerCustomText'
+                        id='notificationTriggerCustomText'
                         ref='custommentions'
                         className='form-control mentions-input'
                         type='text'
@@ -708,7 +708,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
-                                id='NotificationCommentsAny'
+                                id='notificationCommentsAny'
                                 type='radio'
                                 name='commentsNotificationLevel'
                                 checked={commentsActive[0]}
@@ -724,7 +724,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
-                                id='NotificationCommentsRoot'
+                                id='notificationCommentsRoot'
                                 type='radio'
                                 name='commentsNotificationLevel'
                                 checked={commentsActive[1]}
@@ -740,7 +740,7 @@ export default class NotificationsTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
-                                id='NotificationCommentsNever'
+                                id='notificationCommentsNever'
                                 type='radio'
                                 name='commentsNotificationLevel'
                                 checked={commentsActive[2]}
@@ -818,6 +818,7 @@ export default class NotificationsTab extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeButton'
                         type='button'
                         className='close'
                         data-dismiss='modal'
