@@ -608,7 +608,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	_, resp = th.SystemAdminClient.RegenOutgoingHookToken("junk")
 	CheckBadRequestStatus(t, resp)
 
-	//TODO: investigate why is act weird on jenkins
+	//investigate why is act weird on jenkins
 	// _, resp = th.SystemAdminClient.RegenOutgoingHookToken("")
 	// CheckNotFoundStatus(t, resp)
 
