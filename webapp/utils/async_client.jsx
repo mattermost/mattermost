@@ -85,7 +85,7 @@ export function getChannels() {
             (err) => {
                 callTracker.getChannels = 0;
                 dispatchError(err, 'getChannels');
-                reject();
+                reject(new Error('Unable to getChannels'));
             }
         );
     });
