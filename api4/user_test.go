@@ -160,9 +160,6 @@ func TestGetUserByUsername(t *testing.T) {
 	_, resp = Client.GetUserByUsername(GenerateTestUsername(), "")
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetUserByUsername(model.NewRandomString(1), "")
-	CheckBadRequestStatus(t, resp)
-
 	// Check against privacy config settings
 	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
 	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
