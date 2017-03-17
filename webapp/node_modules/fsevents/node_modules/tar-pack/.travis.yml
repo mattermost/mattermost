@@ -1,0 +1,7 @@
+sudo: false
+language: node_js
+node_js:
+  - stable
+  - "0.10"
+  - "0.8"
+before_install: if [[ `npm --version` != 3* ]]; then npm install -g npm; fi;

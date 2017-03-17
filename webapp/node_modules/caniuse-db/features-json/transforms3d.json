@@ -1,0 +1,309 @@
+{
+  "title":"CSS3 3D Transforms",
+  "description":"Method of transforming an element in the third dimension using the `transform` property. Includes support for the `perspective` property to set the perspective in z-space and the `backface-visibility` property to toggle display of the reverse side of a 3D-transformed element.",
+  "spec":"http://www.w3.org/TR/css3-3d-transforms/",
+  "status":"wd",
+  "links":[
+    {
+      "url":"http://css3.bradshawenterprises.com/flip/",
+      "title":"Multi-browser demo"
+    },
+    {
+      "url":"http://hacks.mozilla.org/2011/10/css-3d-transformations-in-firefox-nightly/",
+      "title":"Mozilla hacks article"
+    },
+    {
+      "url":"http://thewebrocks.com/demos/3D-css-tester/",
+      "title":"3D CSS Tester"
+    },
+    {
+      "url":"https://raw.github.com/phiggins42/has.js/master/detect/css.js#css-transform",
+      "title":"has.js test"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/css/transforms/transform",
+      "title":"WebPlatform Docs"
+    },
+    {
+      "url":"http://desandro.github.io/3dtransforms/",
+      "title":"Intro to CSS 3D transforms"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Some configurations of Linux and older Windows machines (those without WebGL support) have trouble with 3D transforms and will treat them as if `perspective` was set as `none`."
+    },
+    {
+      "description":"Firefox on Windows [incorrectly renders plugin content within no-op 3D transforms](https://bugzilla.mozilla.org/show_bug.cgi?id=1048279)."
+    },
+    {
+      "description":"The `perspective` property doesn't work on the `body` element in Firefox, it must be used on an inner element."
+    },
+    {
+      "description":"Chrome has a (recently fixed) bug where combining `clip-path` and `backface-visibility` produces [visible noise](https://code.google.com/p/chromium/issues/detail?id=350724)."
+    },
+    {
+      "description":"Transforms may break position:fixed styles of contained elements"
+    }
+  ],
+  "categories":[
+    "CSS3"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"a #1",
+      "11":"a #1"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"y x",
+      "11":"y x",
+      "12":"y x",
+      "13":"y x",
+      "14":"y x",
+      "15":"y x",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"n",
+      "12":"y x",
+      "13":"y x",
+      "14":"y x",
+      "15":"y x",
+      "16":"y x",
+      "17":"y x",
+      "18":"y x",
+      "19":"y x",
+      "20":"y x",
+      "21":"y x",
+      "22":"y x",
+      "23":"y x",
+      "24":"y x",
+      "25":"y x",
+      "26":"y x",
+      "27":"y x",
+      "28":"y x",
+      "29":"y x",
+      "30":"y x",
+      "31":"y x",
+      "32":"y x",
+      "33":"y x",
+      "34":"y x",
+      "35":"y x",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"n",
+      "3.2":"n",
+      "4":"y x",
+      "5":"y x",
+      "5.1":"y x",
+      "6":"y x",
+      "6.1":"y x",
+      "7":"y x",
+      "7.1":"y x",
+      "8":"y x",
+      "9":"y #2",
+      "9.1":"y #2",
+      "10":"y #2",
+      "TP":"y #2"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"n",
+      "10.6":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"n",
+      "12.1":"n",
+      "15":"y x",
+      "16":"y x",
+      "17":"y x",
+      "18":"y x",
+      "19":"y x",
+      "20":"y x",
+      "21":"y x",
+      "22":"y x",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"y x",
+      "4.0-4.1":"y x",
+      "4.2-4.3":"y x",
+      "5.0-5.1":"y x",
+      "6.0-6.1":"y x",
+      "7.0-7.1":"y x",
+      "8":"y x",
+      "8.1-8.4":"y x",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"n",
+      "2.2":"n",
+      "2.3":"n",
+      "3":"y x",
+      "4":"y x",
+      "4.1":"y x",
+      "4.2-4.3":"y x",
+      "4.4":"y x",
+      "4.4.3-4.4.4":"y x",
+      "53":"y"
+    },
+    "bb":{
+      "7":"y x",
+      "10":"y x"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "12":"n",
+      "12.1":"n",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"a #1",
+      "11":"a #1"
+    },
+    "and_uc":{
+      "11":"y x"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Partial support in IE refers to not supporting [the transform-style: preserve-3d property](http://msdn.microsoft.com/en-us/library/ie/hh673529%28v=vs.85%29.aspx#the_ms_transform_style_property). This prevents nesting 3D transformed elements.",
+    "2":"Safari 9 is reported to still require a prefix for the related `backface-visibility` property."
+  },
+  "usage_perc_y":87.89,
+  "usage_perc_a":4.65,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"css 3d,3dtransforms,translate3d,backface visibility,perspective,transform-origin,transform-style",
+  "ie_id":"transforms,csstransformspreserve3d",
+  "chrome_id":"6437640580628480",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

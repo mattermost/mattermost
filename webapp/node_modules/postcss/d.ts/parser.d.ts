@@ -1,0 +1,37 @@
+import Input from './input';
+import Node from './node';
+import Root from './root';
+export default class Parser {
+    input: Input;
+    pos: number;
+    root: Root;
+    spaces: string;
+    semicolon: boolean;
+    private current;
+    private tokens;
+    constructor(input: Input);
+    tokenize(): void;
+    loop(): void;
+    comment(token: any): void;
+    emptyRule(token: any): void;
+    word(): void;
+    rule(tokens: any): void;
+    decl(tokens: any): void;
+    atrule(token: any): void;
+    end(token: any): void;
+    endFile(): void;
+    init(node: Node, line?: number, column?: number): void;
+    raw(node: any, prop: any, tokens: any): void;
+    spacesFromEnd(tokens: any): string;
+    spacesFromStart(tokens: any): string;
+    stringFrom(tokens: any, from: any): string;
+    colon(tokens: any): number | boolean;
+    unclosedBracket(bracket: any): void;
+    unknownWord(start: any): void;
+    unexpectedClose(token: any): void;
+    unclosedBlock(): void;
+    doubleColon(token: any): void;
+    unnamedAtrule(node: any, token: any): void;
+    precheckMissedSemicolon(tokens: any): void;
+    checkMissedSemicolon(tokens: any): void;
+}

@@ -1,0 +1,9 @@
+{
+    "rules": {
+        "max-lines": 0,
+        "max-nested-callbacks": [2, 3],
+        "max-statements": 0,
+        "no-extend-native": 0,
+        "sort-keys": 1
+    }
+}

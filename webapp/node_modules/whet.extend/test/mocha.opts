@@ -1,0 +1,7 @@
+--compilers coffee:coffee-script
+--require coffee-script
+--require ./test/test_helper.coffee
+--reporter spec
+--colors
+--growl
+--ui bdd

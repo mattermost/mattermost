@@ -1,0 +1,8 @@
+# Don't allow rules from further up the tree.
+root = true
+
+[*]                             # Every file
+end_of_line = lf                # Unix sytle line endings
+insert_final_newline = true     # Ensure a new line at the end of each file
+indent_style = space            # Use spaces instead of tabs
+indent_size = 4                 # Indent 4 spaces

@@ -1,0 +1,10 @@
+// Smooth sizing container
+// -------------------------
+
+.container-smooth {
+  max-width: $container-lg;
+    
+  @media (min-width: 1px) {
+    width: auto;
+  }
+}

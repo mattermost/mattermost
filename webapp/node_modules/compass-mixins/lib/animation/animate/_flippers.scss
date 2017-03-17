@@ -1,0 +1,87 @@
+// ---------------------------------------------------------------------------
+@include keyframes(flip) {
+  0% {
+    @include transform(perspective(400px) rotateY(0));
+    @include animation-timing-function(ease-out);
+  }
+  40% {
+    @include transform(perspective(400px) translateZ(150px) rotateY(170deg));
+    @include animation-timing-function(ease-out);
+  }
+  50% {
+    @include transform(perspective(400px) translateZ(150px) rotateY(190deg) scale(1));
+    @include animation-timing-function(ease-in);
+  }
+  80% {
+    @include transform(perspective(400px) rotateY(360deg) scale(0.95));
+    @include animation-timing-function(ease-in);
+  }
+  100% {
+    @include transform(perspective(400px) scale(1));
+    @include animation-timing-function(ease-in);
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(flipInX) {
+  0% {
+    @include transform(perspective(400px) rotateX(90deg));
+    @include opacity(0);
+  }
+  40% {
+    @include transform(perspective(400px) rotateX(-10deg));
+  }
+  70% {
+    @include transform(perspective(400px) rotateX(10deg));
+  }
+  100% {
+    @include transform(perspective(400px) rotateX(0deg));
+    @include opacity(1);
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(flipOutX) {
+  0% {
+    @include transform(perspective(400px) rotateX(0deg));
+    @include opacity(1);
+  }
+  100% {
+    @include transform(perspective(400px) rotateX(90deg));
+    @include opacity(0);
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(flipInY) {
+  0% {
+    @include transform(perspective(400px) rotateY(90deg));
+    @include opacity(0);
+  }
+  40% {
+    @include transform(perspective(400px) rotateY(-10deg));
+  }
+  70% {
+    @include transform(perspective(400px) rotateY(10deg));
+  }
+  100% {
+    @include transform(perspective(400px) rotateY(0deg));
+    @include opacity(1);
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(flipOutY) {
+  0% {
+    @include transform(perspective(400px) rotateY(0deg));
+    @include opacity(1);
+  }
+  100% {
+    @include transform(perspective(400px) rotateY(90deg));
+    @include opacity(0);
+  }
+}

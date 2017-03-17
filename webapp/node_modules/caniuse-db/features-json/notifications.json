@@ -1,0 +1,306 @@
+{
+  "title":"Web Notifications",
+  "description":"Method of alerting the user outside of a web page by displaying notifications (that do not require interaction by the user).",
+  "spec":"https://notifications.spec.whatwg.org/",
+  "status":"ls",
+  "links":[
+    {
+      "url":"http://www.html5rocks.com/tutorials/notifications/quick/",
+      "title":"HTML5 Rocks tutorial"
+    },
+    {
+      "url":"http://www.chromium.org/developers/design-documents/desktop-notifications/api-specification",
+      "title":"Chromium API"
+    },
+    {
+      "url":"https://addons.mozilla.org/en-us/firefox/addon/221523/",
+      "title":"Add-on"
+    },
+    {
+      "url":"https://developer.mozilla.org/en-US/docs/Web/API/notification",
+      "title":"MDN Notifications"
+    },
+    {
+      "url":"http://www.sitepoint.com/introduction-web-notifications-api/",
+      "title":"SitePoint article"
+    },
+    {
+      "url":"http://aurelio.audero.it/demo/web-notifications-api-demo.html",
+      "title":"Demo"
+    },
+    {
+      "url":"http://ukot.github.io/ie_web_notifications/",
+      "title":"Plug-in for support in IE"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Partial support in older Chrome versions refers to using an [older version of the spec](http://www.chromium.org/developers/design-documents/desktop-notifications/api-specification). Support in Safari 6 is limited to Mac OSX 10.8+."
+    },
+    {
+      "description":"Firefox notifications disappear [after a few seconds](https://bugzilla.mozilla.org/show_bug.cgi?id=875114)"
+    },
+    {
+      "description":"Firefox does not support notifications [sent immediately after one another](https://bugzilla.mozilla.org/show_bug.cgi?id=1007344)."
+    }
+  ],
+  "categories":[
+    "JS API"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"n"
+    },
+    "edge":{
+      "12":"n",
+      "13":"n",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"n",
+      "11":"n",
+      "12":"n",
+      "13":"n",
+      "14":"n",
+      "15":"n",
+      "16":"n",
+      "17":"n",
+      "18":"n",
+      "19":"n",
+      "20":"n",
+      "21":"n",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"n",
+      "5":"a x",
+      "6":"a x",
+      "7":"a x",
+      "8":"a x",
+      "9":"a x",
+      "10":"a x",
+      "11":"a x",
+      "12":"a x",
+      "13":"a x",
+      "14":"a x",
+      "15":"a x",
+      "16":"a x",
+      "17":"a x",
+      "18":"a x",
+      "19":"a x",
+      "20":"a x",
+      "21":"a x",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"n",
+      "3.2":"n",
+      "4":"n",
+      "5":"n",
+      "5.1":"n",
+      "6":"y",
+      "6.1":"y",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"n",
+      "10.6":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"n",
+      "12.1":"n",
+      "15":"n",
+      "16":"n",
+      "17":"n",
+      "18":"n",
+      "19":"n",
+      "20":"n",
+      "21":"n",
+      "22":"n",
+      "23":"n",
+      "24":"n",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"n",
+      "4.0-4.1":"n",
+      "4.2-4.3":"n",
+      "5.0-5.1":"n",
+      "6.0-6.1":"n",
+      "7.0-7.1":"n",
+      "8":"n",
+      "8.1-8.4":"n",
+      "9.0-9.2":"n",
+      "9.3":"n",
+      "10":"n"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"n",
+      "2.2":"n",
+      "2.3":"n",
+      "3":"n",
+      "4":"n",
+      "4.1":"n",
+      "4.2-4.3":"n",
+      "4.4":"a x",
+      "4.4.3-4.4.4":"a x",
+      "53":"a x"
+    },
+    "bb":{
+      "7":"n",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "12":"n",
+      "12.1":"n",
+      "37":"a x"
+    },
+    "and_chr":{
+      "53":"n"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"n",
+      "11":"n"
+    },
+    "and_uc":{
+      "11":"n"
+    },
+    "samsung":{
+      "4":"a x"
+    }
+  },
+  "notes":"",
+  "notes_by_num":{
+    "1":"Can be enabled in `about:flags`"
+  },
+  "usage_perc_y":38.9,
+  "usage_perc_a":6.07,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"",
+  "ie_id":"webnotifications",
+  "chrome_id":"5064350557536256",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

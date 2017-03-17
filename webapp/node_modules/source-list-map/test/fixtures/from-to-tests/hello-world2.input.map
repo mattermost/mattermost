@@ -1,0 +1,11 @@
+{
+	"version": 3,
+	"file": "hello-world2.generated.txt",
+	"sources": [
+		"hello-world.txt"
+	],
+	"sourcesContent": [
+		"Hello\nWorld"
+	],
+	"mappings": "CAAA;CACA"
+}

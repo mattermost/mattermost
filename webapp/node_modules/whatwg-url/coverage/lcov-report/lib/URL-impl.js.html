@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for lib\URL-impl.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">lib/</a> URL-impl.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">84.09% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>74/88</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">86.89% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>53/61</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">87.5% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>21/24</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">84.09% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>74/88</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">443×</span>
+<span class="cline-any cline-yes">443×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">443×</span>
+<span class="cline-any cline-yes">443×</span>
+<span class="cline-any cline-yes">327×</span>
+<span class="cline-any cline-yes">327×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">442×</span>
+<span class="cline-any cline-yes">442×</span>
+<span class="cline-any cline-yes">52×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">390×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">395×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">243×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">281×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">276×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">276×</span>
+<span class="cline-any cline-yes">252×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">323×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">323×</span>
+<span class="cline-any cline-yes">68×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">255×</span>
+<span class="cline-any cline-yes">202×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">53×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">313×</span>
+<span class="cline-any cline-yes">64×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">249×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">313×</span>
+<span class="cline-any cline-yes">260×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">53×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">275×</span>
+<span class="cline-any cline-yes">23×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">252×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">277×</span>
+<span class="cline-any cline-yes">256×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">275×</span>
+<span class="cline-any cline-yes">249×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
+const usm = require("./url-state-machine");
+&nbsp;
+exports.implementation = class URLImpl {
+  constructor(constructorArgs) {
+    const url = constructorArgs[0];
+    const base = constructorArgs[1];
+&nbsp;
+    let parsedBase = null;
+    if (base !== undefined) {
+      parsedBase = usm.basicURLParse(base);
+      if (parsedBase === "failure") {
+        throw new TypeError("Invalid base URL");
+      }
+    }
+&nbsp;
+    const parsedURL = usm.basicURLParse(url, { baseURL: parsedBase });
+    if (parsedURL === "failure") {
+      throw new TypeError("Invalid URL");
+    }
+&nbsp;
+    this._url = parsedURL;
+&nbsp;
+    // TODO: query stuff
+  }
+&nbsp;
+  static domainToASCII<span class="fstat-no" title="function not covered" >(domain) {</span>
+<span class="cstat-no" title="statement not covered" >    const asciiDomain = usm.parseHost(domain);</span>
+<span class="cstat-no" title="statement not covered" >    if (typeof asciiDomain !== "string") {</span>
+<span class="cstat-no" title="statement not covered" >      return "";</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return asciiDomain;</span>
+  }
+&nbsp;
+  static domainToUnicode<span class="fstat-no" title="function not covered" >(domain) {</span>
+<span class="cstat-no" title="statement not covered" >    const unicodeDomain = usm.parseHost(domain, true);</span>
+<span class="cstat-no" title="statement not covered" >    if (typeof unicodeDomain !== "string") {</span>
+<span class="cstat-no" title="statement not covered" >      return "";</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return unicodeDomain;</span>
+  }
+&nbsp;
+  get href() {
+    return usm.serializeURL(this._url);
+  }
+&nbsp;
+  set href<span class="fstat-no" title="function not covered" >(v) {</span>
+<span class="cstat-no" title="statement not covered" >    const parsedURL = usm.basicURLParse(v);</span>
+<span class="cstat-no" title="statement not covered" >    if (parsedURL === "failure") {</span>
+<span class="cstat-no" title="statement not covered" >      throw new TypeError("Invalid URL");</span>
+    }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    this._url = parsedURL;</span>
+  }
+&nbsp;
+  get origin() {
+    return usm.serializeURLToUnicodeOrigin(this._url);
+  }
+&nbsp;
+  get protocol() {
+    return this._url.scheme + ":";
+  }
+&nbsp;
+  set protocol(v) {
+    usm.basicURLParse(v + ":", { url: this._url, stateOverride: "scheme start" });
+  }
+&nbsp;
+  get username() {
+    return this._url.username;
+  }
+&nbsp;
+  set username(v) {
+    if (this._url.host === null || this._url.cannotBeABaseURL) {
+      return;
+    }
+&nbsp;
+    usm.setTheUsername(this._url, v);
+  }
+&nbsp;
+  get password() {
+    if (this._url.password === null) {
+      return "";
+    }
+&nbsp;
+    return this._url.password;
+  }
+&nbsp;
+  set password(v) {
+    if (this._url.host === null || this._url.cannotBeABaseURL) {
+      return;
+    }
+&nbsp;
+    usm.setThePassword(this._url, v);
+  }
+&nbsp;
+  get host() {
+    const url = this._url;
+&nbsp;
+    if (url.host === null) {
+      return "";
+    }
+&nbsp;
+    if (url.port === null) {
+      return usm.serializeHost(url.host);
+    }
+&nbsp;
+    return usm.serializeHost(url.host) + ":" + usm.serializeInteger(url.port);
+  }
+&nbsp;
+  set host(v) {
+    if (this._url.cannotBeABaseURL) {
+      return;
+    }
+&nbsp;
+    usm.basicURLParse(v, { url: this._url, stateOverride: "host" });
+  }
+&nbsp;
+  get hostname() {
+    if (this._url.host === null) {
+      return "";
+    }
+&nbsp;
+    return usm.serializeHost(this._url.host);
+  }
+&nbsp;
+  set hostname(v) {
+    if (this._url.cannotBeABaseURL) {
+      return;
+    }
+&nbsp;
+    usm.basicURLParse(v, { url: this._url, stateOverride: "hostname" });
+  }
+&nbsp;
+  get port() {
+    if (this._url.port === null) {
+      return "";
+    }
+&nbsp;
+    return usm.serializeInteger(this._url.port);
+  }
+&nbsp;
+  set port(v) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (this._url.host === null || this._url.cannotBeABaseURL || this._url.scheme === "file") {
+<span class="cstat-no" title="statement not covered" >      return;</span>
+    }
+&nbsp;
+    usm.basicURLParse(v, { url: this._url, stateOverride: "port" });
+  }
+&nbsp;
+  get pathname() {
+    if (this._url.cannotBeABaseURL) {
+      return this._url.path[0];
+    }
+&nbsp;
+    return "/" + this._url.path.join("/");
+  }
+&nbsp;
+  set pathname(v) {
+    if (this._url.cannotBeABaseURL) {
+      return;
+    }
+&nbsp;
+    this._url.path = [];
+    usm.basicURLParse(v, { url: this._url, stateOverride: "path start" });
+  }
+&nbsp;
+  get search() {
+    if (this._url.query === null || this._url.query === "") {
+      return "";
+    }
+&nbsp;
+    return "?" + this._url.query;
+  }
+&nbsp;
+  set search(v) {
+    // TODO: query stuff
+&nbsp;
+    const url = this._url;
+&nbsp;
+    if (v === "") {
+      url.query = null;
+      return;
+    }
+&nbsp;
+    const input = v[0] === "?" ? v.substring(1) : v;
+    url.query = "";
+    usm.basicURLParse(input, { url, stateOverride: "query" });
+  }
+&nbsp;
+  get hash() {
+    if (this._url.fragment === null || this._url.fragment === "") {
+      return "";
+    }
+&nbsp;
+    return "#" + this._url.fragment;
+  }
+&nbsp;
+  set hash(v) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (this._url.scheme === "javascript") {
+<span class="cstat-no" title="statement not covered" >      return;</span>
+    }
+&nbsp;
+    if (v === "") {
+      this._url.fragment = null;
+      return;
+    }
+&nbsp;
+    const input = v[0] === "#" ? v.substring(1) : v;
+    this._url.fragment = "";
+    usm.basicURLParse(input, { url: this._url, stateOverride: "fragment" });
+  }
+};
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed May 11 2016 00:02:43 GMT-0400 (Eastern Daylight Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

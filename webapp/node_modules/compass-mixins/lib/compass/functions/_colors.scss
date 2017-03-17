@@ -1,0 +1,37 @@
+// 
+// A partial implementation of the Ruby colors functions from Compass:
+// https://github.com/Compass/compass/blob/stable/core/lib/compass/core/sass_extensions/functions/colors.rb
+//
+
+// a genericized version of lighten/darken so that negative values can be used.
+@function adjust-lightness($color, $amount) {
+    @return adjust-color($color, $lightness: $amount);
+}
+
+// Scales a color's lightness by some percentage.
+// If the amount is negative, the color is scaled darker, if positive, it is scaled lighter.
+// This will never return a pure light or dark color unless the amount is 100%.
+@function scale-lightness($color, $amount) {
+    @return scale-color($color, $lightness: $amount);
+}
+
+// a genericized version of saturate/desaturate so that negative values can be used.
+@function adjust-saturation($color, $amount) {
+    @return adjust-color($color, $saturation: $amount);
+}
+
+// Scales a color's saturation by some percentage.
+// If the amount is negative, the color is desaturated, if positive, it is saturated.
+// This will never return a pure saturated or desaturated color unless the amount is 100%.
+@function scale-saturation($color, $amount) {
+    @return scale-color($color, $saturation: $amount);
+}
+
+@function shade($color, $percentage) {
+    @return mix(#000000, $color, $percentage);
+}
+
+@function tint($color, $percentage) {
+    @return mix(#ffffff, $color, $percentage);
+}
+

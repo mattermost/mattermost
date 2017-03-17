@@ -1,0 +1,45 @@
+.wizard {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+.wizard > .wizard-step {
+  display: none;
+  position: relative;
+  -webkit-transition: 0.3s ease-in-out left;
+  -o-transition: 0.3s ease-in-out left;
+  transition: 0.3s ease-in-out left;
+}
+.wizard > .active,
+.wizard > .next,
+.wizard > .prev {
+  display: block;
+}
+.wizard > .active {
+  left: 0;
+}
+.wizard > .next,
+.wizard > .prev {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.wizard > .next {
+  left: 100%;
+}
+.wizard > .prev {
+  left: -100%;
+}
+.wizard > .next.left,
+.wizard > .prev.right {
+  left: 0;
+}
+.wizard > .active.left {
+  left: -100%;
+}
+.wizard > .active.right {
+  left: 100%;
+}
+.wizard-hide:not(.in) {
+  display: none;
+}

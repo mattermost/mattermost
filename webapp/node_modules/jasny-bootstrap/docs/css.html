@@ -1,0 +1,52 @@
+---
+layout: default
+title: CSS
+slug: css
+lead: "Global CSS settings, fundamental HTML elements styled and enhanced with extensible classes, and an advanced grid system."
+base_url: "../"
+---
+
+
+  <!-- Global Bootstrap settings
+  ================================================== -->
+  <div class="bs-docs-section">
+    <div class="page-header">
+      <h1 id="overview">Overview</h1>
+    </div>
+    
+    <h3 id="overview-container">Containers</h3>
+    <p>Added <code>.container-smooth</code> a container to use the same <code>max-width</code> for all viewport sizes. This means that the container size won't jump at media query breakpoints.</p>
+  </div>
+
+
+  <!-- Buttons
+  ================================================== -->
+  <div class="bs-docs-section">
+    <div class="page-header">
+      <h1 id="buttons">Buttons</h1>
+    </div>
+
+    <div>
+      <h2 id="buttons-labels">Labels</h2>
+      <p>Give a button some extra style by adding a label. Add <code>.btn-labeled</code> to any button with a label.</p>
+      <div class="bs-example">
+        <button type="button" class="btn btn-labeled btn-default"><span class="btn-label"><i class="glyphicon glyphicon-arrow-left"></i></span>Left</button>
+        <button type="button" class="btn btn-labeled btn-default">Right<span class="btn-label btn-label-right"><i class="glyphicon glyphicon-arrow-right"></i></span></button>
+        <button type="button" class="btn btn-labeled btn-success"><span class="btn-label"><i class="glyphicon glyphicon-ok"></i></span>Success</button>
+        <button type="button" class="btn btn-labeled btn-danger"><span class="btn-label"><i class="glyphicon glyphicon-remove"></i></span>Danger</button>
+      </div>
+{% highlight html %}
+<!-- Standard button with label -->
+<button type="button" class="btn btn-labeled btn-default"><span class="btn-label"><i class="glyphicon glyphicon-arrow-left"></i></span>Left</button>
+
+<!-- Standard button with label on the right side -->
+<button type="button" class="btn btn-labeled btn-default">Right<span class="btn-label btn-label-right"><i class="glyphicon glyphicon-arrow-right"></i></span></button>
+
+<!-- Success button with label -->
+<button type="button" class="btn btn-labeled btn-success"><span class="btn-label"><i class="glyphicon glyphicon-ok"></i></span>Success</button>
+
+<!-- Danger button with label -->
+<button type="button" class="btn btn-labeled btn-danger"><span class="btn-label"><i class="glyphicon glyphicon-remove"></i></span>Danger</button>
+{% endhighlight %}
+    </div>
+  </div>

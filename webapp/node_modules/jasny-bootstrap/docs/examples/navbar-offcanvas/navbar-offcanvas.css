@@ -1,0 +1,10 @@
+body {
+  padding-top: 80px;
+  padding-bottom: 20px;
+}
+
+@media (min-width: 992px) {
+  .navbar {
+    padding-right: 15px;
+  }
+}

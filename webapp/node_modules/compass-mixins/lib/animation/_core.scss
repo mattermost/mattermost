@@ -1,0 +1,127 @@
+@import "shared";
+
+// CSS Animations.
+
+// Apply an animation property and value with the correct browser support
+@mixin animation-support($property, $value) {
+  @include experimental($property, $value, -moz, -webkit, -o, -ms, not -khtml, official); }
+
+// Name of any animation as a string.
+$default-animation-name             : false !default;
+
+// Duration of the entire animation in seconds.
+$default-animation-duration         : false !default;
+
+// Delay for start of animation in seconds.
+$default-animation-delay            : false !default;
+
+// The timing function(s) to be used between keyframes. [ease | linear | ease-in | ease-out | ease-in-out | cubic-bezier($number, $number, $number, $number)]
+$default-animation-timing-function  : false !default;
+
+// The number of times an animation cycle is played. [infinite | $number]
+$default-animation-iteration-count  : false !default;
+
+// Whether or not the animation should play in reverse on alternate cycles. [normal | alternate]
+$default-animation-direction        : false !default;
+
+// What values are applied by the animation outside the time it is executing. [none | forwards | backwards | both]
+$default-animation-fill-mode        : false !default;
+
+// Whether the animation is running or paused. [running | paused]
+$default-animation-play-state       : false !default;
+
+// Create a named animation sequence that can be applied to elements later.
+//
+//     $name    - The name of your animation.
+//     @content - The keyframes of the animation.
+@mixin keyframes(
+  $name,
+  $moz: $experimental-support-for-mozilla,
+  $webkit: $experimental-support-for-webkit,
+  $o: $experimental-support-for-opera,
+  $ms: $experimental-support-for-microsoft,
+  $khtml: $experimental-support-for-khtml,
+  $official: true
+) {
+  @if $moz {
+    @include with-only-support-for($moz: true) {
+      @-moz-keyframes #{$name} { @content; }
+    }
+  }
+  @if $webkit {
+    @include with-only-support-for($webkit: true) {
+      @-webkit-keyframes #{$name} { @content; }
+    }
+  }
+  @if $o {
+    @include with-only-support-for($o: true) {
+      @-o-keyframes #{$name} { @content; }
+    }
+  }
+  @if $ms {
+    @include with-only-support-for($ms: true) {
+      @-ms-keyframes #{$name} { @content; }
+    }
+  }
+  @if $khtml {
+    @include with-only-support-for($khtml: true) {
+      @-khtml-keyframes #{$name} { @content; }
+    }
+  }
+  @if $official {
+    @include with-only-support-for {
+      @keyframes #{$name} { @content; }
+    }
+  }
+}
+
+// Apply 1-10 animation names.
+@mixin animation-name($name-1: $default-animation-name, $name-2: false, $name-3: false, $name-4: false, $name-5: false, $name-6: false, $name-7: false, $name-8: false, $name-9: false, $name-10: false) {
+  $name: compact($name-1, $name-2, $name-3, $name-4, $name-5, $name-6, $name-7, $name-8, $name-9, $name-10);
+  @include animation-support(animation-name, $name); }
+
+// Apply 1-10 animation durations.
+@mixin animation-duration($duration-1: $default-animation-duration, $duration-2: false, $duration-3: false, $duration-4: false, $duration-5: false, $duration-6: false, $duration-7: false, $duration-8: false, $duration-9: false, $duration-10: false) {
+  $duration: compact($duration-1, $duration-2, $duration-3, $duration-4, $duration-5, $duration-6, $duration-7, $duration-8, $duration-9, $duration-10);
+  @include animation-support(animation-duration, $duration); }
+
+// Apply 1-10 animation delays.
+@mixin animation-delay($delay-1: $default-animation-delay, $delay-2: false, $delay-3: false, $delay-4: false, $delay-5: false, $delay-6: false, $delay-7: false, $delay-8: false, $delay-9: false, $delay-10: false) {
+  $delay: compact($delay-1, $delay-2, $delay-3, $delay-4, $delay-5, $delay-6, $delay-7, $delay-8, $delay-9, $delay-10);
+  @include animation-support(animation-delay, $delay); }
+
+// Apply 1-10 animation timing functions.
+@mixin animation-timing-function($function-1: $default-animation-timing-function, $function-2: false, $function-3: false, $function-4: false, $function-5: false, $function-6: false, $function-7: false, $function-8: false, $function-9: false, $function-10: false) {
+  $function: compact($function-1, $function-2, $function-3, $function-4, $function-5, $function-6, $function-7, $function-8, $function-9, $function-10);
+  @include animation-support(animation-timing-function, $function); }
+
+// Apply 1-10 animation iteration counts.
+@mixin animation-iteration-count($count-1: $default-animation-iteration-count, $count-2: false, $count-3: false, $count-4: false, $count-5: false, $count-6: false, $count-7: false, $count-8: false, $count-9: false, $count-10: false) {
+  $count: compact($count-1, $count-2, $count-3, $count-4, $count-5, $count-6, $count-7, $count-8, $count-9, $count-10);
+  @include animation-support(animation-iteration-count, $count); }
+
+// Apply 1-10 animation directions.
+@mixin animation-direction($direction-1: $default-animation-direction, $direction-2: false, $direction-3: false, $direction-4: false, $direction-5: false, $direction-6: false, $direction-7: false, $direction-8: false, $direction-9: false, $direction-10: false) {
+  $direction: compact($direction-1, $direction-2, $direction-3, $direction-4, $direction-5, $direction-6, $direction-7, $direction-8, $direction-9, $direction-10);
+  @include animation-support(animation-direction, $direction); }
+
+// Apply 1-10 animation fill modes.
+@mixin animation-fill-mode($mode-1: $default-animation-fill-mode, $mode-2: false, $mode-3: false, $mode-4: false, $mode-5: false, $mode-6: false, $mode-7: false, $mode-8: false, $mode-9: false, $mode-10: false) {
+  $mode: compact($mode-1, $mode-2, $mode-3, $mode-4, $mode-5, $mode-6, $mode-7, $mode-8, $mode-9, $mode-10);
+  @include animation-support(animation-fill-mode, $mode); }
+
+// Apply 1-10 animation play states.
+@mixin animation-play-state($state-1: $default-animation-play-state, $state-2: false, $state-3: false, $state-4: false, $state-5: false, $state-6: false, $state-7: false, $state-8: false, $state-9: false, $state-10: false) {
+  $state: compact($state-1, $state-2, $state-3, $state-4, $state-5, $state-6, $state-7, $state-8, $state-9, $state-10);
+  @include animation-support(animation-play-state, $state); }
+
+// Shortcut to apply a named animation to an element, with all the settings.
+//
+//     $animation-1   : Name and settings for the first animation. [<values> | default]
+//     ...
+//     $animation-10  : Name and settings for the tenth animation. <values>
+@mixin animation($animation-1: default, $animation-2: false, $animation-3: false, $animation-4: false, $animation-5: false, $animation-6: false, $animation-7: false, $animation-8: false, $animation-9: false, $animation-10: false) {
+  @if $animation-1 == default {
+    $animation-1: -compass-space-list(compact($default-animation-name, $default-animation-duration, $default-animation-timing-function, $default-animation-delay, $default-animation-iteration-count, $default-animation-direction, $default-animation-fill-mode, $default-animation-play-state)); }
+  $animation: compact($animation-1, $animation-2, $animation-3, $animation-4, $animation-5, $animation-6, $animation-7, $animation-8, $animation-9, $animation-10);
+  @include animation-support(animation, $animation); }

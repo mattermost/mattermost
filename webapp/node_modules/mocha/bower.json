@@ -1,0 +1,38 @@
+{
+  "name": "mocha",
+  "homepage": "https://mochajs.org",
+  "description": "simple, flexible, fun test framework",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mochajs/mocha.git"
+  },
+  "main": [
+    "mocha.js",
+    "mocha.css"
+  ],
+  "ignore": [
+    "bin",
+    "editors",
+    "images",
+    "lib",
+    "scripts",
+    "test",
+    "assets",
+    "media",
+    ".*",
+    "index.js",
+    "karma.conf.js",
+    "browser-entry.js",
+    "Makefile",
+    "package.json",
+    "appveyor.yml"
+  ],
+  "keywords": [
+    "mocha",
+    "test",
+    "bdd",
+    "tdd",
+    "tap"
+  ],
+  "license": "MIT"
+}

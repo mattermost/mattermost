@@ -1,0 +1,1 @@
+../jpegtran-bin/cli.js

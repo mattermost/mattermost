@@ -1,0 +1,15 @@
+// 
+// A partial implementation of the Ruby gradient support functions from Compass:
+// https://github.com/Compass/compass/blob/v0.12.2/lib/compass/sass_extensions/functions/gradient_support.rb
+// 
+
+@function color-stops($item1, $item2:null, $item3:null, $item4:null, $item5:null, $item6:null, $item7:null, $item8:null, $item9:null) {
+  $items: $item2, $item3, $item4, $item5, $item6, $item7, $item8, $item9;
+  $full: $item1;
+  @each $item in $items {
+    @if $item != null {
+      $full: $full, $item;
+    }    
+  }
+  @return $full;
+}

@@ -1,0 +1,11 @@
+{
+  "version": 3,
+  "file": "mismatched-mappings.generated.txt",
+  "sources": [
+    "hello-world.txt"
+  ],
+  "sourcesContent": [
+    "function foobar() {\n  return; // foo\n}"
+  ],
+  "mappings": "AAAA;AACA;AADA"
+}

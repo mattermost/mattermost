@@ -1,0 +1,12 @@
+sudo: false
+language: node_js
+node_js:
+  - "4.0"
+  - "5.0"
+  - node
+script: npm run travis
+
+after_success:
+  - cat ./coverage/lcov.info | node_modules/.bin/coveralls --verbose
+  - cat ./coverage/coverage.json | node_modules/codecov.io/bin/codecov.io.js
+  - rm -rf ./coverage

@@ -1,0 +1,292 @@
+{
+  "title":"WebGL - 3D Canvas graphics",
+  "description":"Method of generating dynamic 3D graphics using JavaScript, accelerated through hardware",
+  "spec":"https://www.khronos.org/registry/webgl/specs/1.0/",
+  "status":"other",
+  "links":[
+    {
+      "url":"http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation",
+      "title":"Instructions on enabling WebGL"
+    },
+    {
+      "url":"http://www.khronos.org/webgl/wiki/Tutorial",
+      "title":"Tutorial"
+    },
+    {
+      "url":"http://hacks.mozilla.org/2009/12/webgl-draft-released-today/",
+      "title":"Firefox blog post"
+    },
+    {
+      "url":"http://webkit.org/blog/603/webgl-now-available-in-webkit-nightlies/",
+      "title":"Webkit blog post"
+    },
+    {
+      "url":"https://github.com/iewebgl/iewebgl",
+      "title":"Polyfill for IE"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Older versions of IE11 have only [partial support of the spec](http://connect.microsoft.com/IE/feedback/details/795172/ie11-fails-more-than-half-tests-in-official-webgl-conformance-test-suite), though it's much better with the latest update."
+    }
+  ],
+  "categories":[
+    "Canvas"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"p",
+      "7":"p",
+      "8":"p",
+      "9":"p",
+      "10":"p",
+      "11":"y #1"
+    },
+    "edge":{
+      "12":"y #1",
+      "13":"y #1",
+      "14":"y #1"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"a #1",
+      "5":"a #1",
+      "6":"a #1",
+      "7":"a #1",
+      "8":"a #1",
+      "9":"a #1",
+      "10":"a #1",
+      "11":"a #1",
+      "12":"a #1",
+      "13":"a #1",
+      "14":"a #1",
+      "15":"a #1",
+      "16":"a #1",
+      "17":"a #1",
+      "18":"a #1",
+      "19":"a #1",
+      "20":"a #1",
+      "21":"a #1",
+      "22":"a #1",
+      "23":"a #1",
+      "24":"a",
+      "25":"a",
+      "26":"a",
+      "27":"a",
+      "28":"a",
+      "29":"a",
+      "30":"a",
+      "31":"a",
+      "32":"a",
+      "33":"a",
+      "34":"a",
+      "35":"a",
+      "36":"a",
+      "37":"a",
+      "38":"a",
+      "39":"a",
+      "40":"a",
+      "41":"a",
+      "42":"a",
+      "43":"a",
+      "44":"a",
+      "45":"a",
+      "46":"a",
+      "47":"a",
+      "48":"a",
+      "49":"a",
+      "50":"a",
+      "51":"a",
+      "52":"a"
+    },
+    "chrome":{
+      "4":"n",
+      "5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"a #1",
+      "9":"a #1",
+      "10":"a #1",
+      "11":"a #1",
+      "12":"a #1",
+      "13":"a #1",
+      "14":"a #1",
+      "15":"a #1",
+      "16":"a #1",
+      "17":"a #1",
+      "18":"y #1",
+      "19":"y #1",
+      "20":"y #1",
+      "21":"y #1",
+      "22":"y #1",
+      "23":"y #1",
+      "24":"y #1",
+      "25":"y #1",
+      "26":"y #1",
+      "27":"y #1",
+      "28":"y #1",
+      "29":"y #1",
+      "30":"y #1",
+      "31":"y #1",
+      "32":"y #1",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"n",
+      "3.2":"n",
+      "4":"n",
+      "5":"n",
+      "5.1":"a #1",
+      "6":"a #1",
+      "6.1":"a #1",
+      "7":"a #1",
+      "7.1":"a #1",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"n",
+      "10.6":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "11.6":"n",
+      "12":"a #1",
+      "12.1":"a #1",
+      "15":"a #1",
+      "16":"a #1",
+      "17":"a #1",
+      "18":"a #1",
+      "19":"a",
+      "20":"a",
+      "21":"a",
+      "22":"a",
+      "23":"a",
+      "24":"a",
+      "25":"a",
+      "26":"a",
+      "27":"a",
+      "28":"a",
+      "29":"a",
+      "30":"a",
+      "31":"a",
+      "32":"a",
+      "33":"a",
+      "34":"a",
+      "35":"a",
+      "36":"a",
+      "37":"a",
+      "38":"a",
+      "39":"a",
+      "40":"a",
+      "41":"a",
+      "42":"a",
+      "43":"a"
+    },
+    "ios_saf":{
+      "3.2":"n",
+      "4.0-4.1":"n",
+      "4.2-4.3":"n",
+      "5.0-5.1":"n",
+      "6.0-6.1":"n",
+      "7.0-7.1":"n",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"n",
+      "2.2":"n",
+      "2.3":"n",
+      "3":"n",
+      "4":"n",
+      "4.1":"n",
+      "4.2-4.3":"n",
+      "4.4":"n",
+      "4.4.3-4.4.4":"n",
+      "53":"a"
+    },
+    "bb":{
+      "7":"n",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"n",
+      "11":"n",
+      "11.1":"n",
+      "11.5":"n",
+      "12":"a",
+      "12.1":"a",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"a"
+    },
+    "and_ff":{
+      "49":"a"
+    },
+    "ie_mob":{
+      "10":"p",
+      "11":"y #1"
+    },
+    "and_uc":{
+      "11":"y #1"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"Support listed as \"partial\" refers to the fact that not all users with these browsers have WebGL access. This is due to the additional requirement for users to have [up to date video drivers](http://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists). This problem was [solved in Chrome on Windows](http://blog.chromium.org/2012/02/gpu-accelerating-2d-canvas-and-enabling.html) as of version 18.\r\n\r\nNote that WebGL is part of the [Khronos Group](http://www.khronos.org/webgl/), not the W3C.",
+  "notes_by_num":{
+    "1":"WebGL context is accessed from \"experimental-webgl\" rather than \"webgl\""
+  },
+  "usage_perc_y":57.76,
+  "usage_perc_a":31.42,
+  "ucprefix":false,
+  "parent":"canvas",
+  "keywords":"web gl",
+  "ie_id":"webglcanvas3d,webglinstancingextension",
+  "chrome_id":"6049512976023552",
+  "firefox_id":"webgl-1",
+  "webkit_id":"specification-webgl-1",
+  "shown":true
+}

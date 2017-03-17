@@ -1,0 +1,5 @@
+## This file is here to ensure it is included in the gh-pages branch,
+## when `gulp deploy` is used to push updates to the demo site.
+
+# Dependency directory
+node_modules

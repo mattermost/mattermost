@@ -1,0 +1,39 @@
+{
+  "parser": "babel-eslint",
+  "extends": "eslint-config-airbnb",
+  "env": {
+    "browser": true,
+    "mocha": true,
+    "node": true
+  },
+  "ecmaFeatures": {
+    "experimentalObjectRestSpread": true
+  },
+  "rules": {
+    "react/jsx-uses-react": 2,
+    "react/jsx-uses-vars": 2,
+    "react/jsx-indent-props": 0,
+    "react/jsx-no-bind": 0,
+    "react/jsx-closing-bracket-location": 0,
+    "react/jsx-space-before-closing": 0,
+    "react/jsx-indent": 0,
+    "react/react-in-jsx-scope": 2,
+    "react/no-multi-comp": 0,
+    "react/prefer-es6-class": 0,
+    "react/prefer-stateless-function": 0,
+    "import/no-unresolved": 0,
+    "max-len": 0,
+    "indent": [0, 4],
+    "new-cap": 0,
+    "comma-dangle": 0,
+    "camelcase": 0,
+    "id-length": 0,
+    "no-nested-ternary": 0,
+    "no-param-reassign": 2,
+    "no-underscore-dangle": 0,
+    "prefer-arrow-callback": 0
+  },
+  "plugins": [
+    "react"
+  ]
+}

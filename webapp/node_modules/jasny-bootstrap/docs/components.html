@@ -1,0 +1,185 @@
+---
+layout: default
+title: Components
+slug: components
+lead: "Reusable components to built the user interface."
+base_url: "../"
+---
+
+
+  <!-- Navmenu
+  ================================================== -->
+  <div class="bs-docs-section">
+    <div class="page-header">
+      <h1 id="navmenu">Navmenu</h1>
+    </div>
+    <p>Navmenu is a vertical navigation component. By default it shares it look and feel with the navmenu component.</p>
+
+    <div class="bs-callout bs-callout-info">
+      <h4>Custom width</h4>
+      <p>The navmenu is 300px wide by default. You can change this by customizing the <code>@navmenu-width</code> variable or by setting the width of <code>.navmenu</code> in your CSS.</p>
+    </div>
+
+    <h2 id="navmenu-default">Default navmenu</h2>
+
+    <div class="bs-example">
+      <nav class="navmenu navmenu-default" role="navigation">
+        <a class="navmenu-brand" href="#">Brand</a>
+
+        <ul class="nav navmenu-nav">
+          <li class="active"><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+            <ul class="dropdown-menu navmenu-nav" role="menu">
+              <li><a href="#">Action</a></li>
+              <li><a href="#">Another action</a></li>
+              <li><a href="#">Something else here</a></li>
+              <li><a href="#">Separated link</a></li>
+              <li><a href="#">One more separated link</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+{% highlight html %}
+<nav class="navmenu navmenu-default" role="navigation">
+  <a class="navmenu-brand" href="#">Brand</a>
+
+  <ul class="nav navmenu-nav">
+    <li class="active"><a href="#">Link</a></li>
+    <li><a href="#">Link</a></li>
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+      <ul class="dropdown-menu navmenu-nav" role="menu">
+        <li><a href="#">Action</a></li>
+        <li><a href="#">Another action</a></li>
+        <li><a href="#">Something else here</a></li>
+        <li><a href="#">Separated link</a></li>
+        <li><a href="#">One more separated link</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+{% endhighlight %}
+
+    <div class="bs-callout bs-callout-warning">
+      <h4>Make navmenus accessible</h4>
+      <p>Be sure to add a <code>role="navigation"</code> to every navmenu to help with accessibility.</p>
+    </div>
+
+
+    <h2 id="navmenu-fixed">Fixed to left or right</h2>
+    <p>Add either <code>.navmenu-fixed-left</code> or <code>.navmenu-fixed-right</code>.</p>
+    <div class="bs-example bs-navmenu-fixed-example">
+      <nav class="navmenu navmenu-default navmenu-fixed-left" role="navigation">
+        <a class="navmenu-brand" href="#">Brand</a>
+        <ul class="nav navmenu-nav">
+          <li class="active"><a href="#">Home</a></li>
+          <li><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+        </ul>
+      </nav>
+    </div><!-- /example -->
+{% highlight html %}
+<nav class="navmenu navmenu-default navmenu-fixed-left offcanvas-sm" role="navigation">
+  ...
+</nav>
+{% endhighlight %}
+
+    <div class="bs-callout bs-callout-danger">
+      <h4>Body padding required</h4>
+      <p>The fixed navmenu will overlay your other content, unless you add <code>padding</code> to the left or right of the <code>&lt;body&gt;</code>. Try out your own values or use our snippet below. Tip: By default, the navmenu is 300px wide.</p>
+{% highlight css %}
+@media (min-width: 992px) {
+  body {
+    padding-left: 300px;
+  }
+}
+{% endhighlight %}
+      <p>Make sure to include this <strong>after</strong> the Jasny Bootstrap CSS.</p>
+    </div>
+
+
+    <h2 id="navmenu-offcanvas">Off canvas</h2>
+    <p>With the <a href="../javascript/#offcanvas">offcanvas plugin</a>, you can hide the navmenu off canvas. This is especially useful for screens with a small viewport.</p>
+    <div class="bs-example bs-navmenu-offcanvas-example">
+      <div id="myNavmenuCanvas">
+        <nav id="myNavmenu" class="navmenu navmenu-default navmenu-fixed-left offcanvas" role="navigation">
+          <a class="navmenu-brand" href="#">Brand</a>
+          <ul class="nav navmenu-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#">Link</a></li>
+            <li><a href="#">Link</a></li>
+          </ul>
+        </nav>
+        <div class="navbar navbar-default navbar-fixed-top">
+          <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target="#myNavmenu" data-canvas="#myNavmenuCanvas" data-placement="left">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis in aliquet nisl. Praesent sed leo congue, fringilla eros eu, tempus metus. Nam mollis odio ipsum, non vehicula ipsum accumsan sodales. Morbi varius vitae elit euismod cursus. Donec a dapibus justo, in facilisis nisi. Suspendisse ut turpis dui. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque dui risus, tincidunt at odio ut, ultrices dignissim ipsum. Cras ultrices erat nec leo luctus varius. Nulla sollicitudin tincidunt nulla, ut porta mauris volutpat vitae. Suspendisse ornare dolor sit amet massa venenatis pulvinar.</p>
+      </div>
+    </div><!-- /example -->
+{% highlight html %}
+<nav id="myNavmenu" class="navmenu navmenu-default navmenu-fixed-left offcanvas" role="navigation">
+...
+</nav>
+<div class="navbar navbar-default navbar-fixed-top">
+  <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target="#myNavmenu" data-canvas="body">
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+  </button>
+</div>
+{% endhighlight %}
+
+    <div class="bs-callout bs-callout-info">
+      <h4>Examples</h4>
+      <p>There is a full example for an <a href="../examples/navmenu-push/">off canvas push menu</a> as well as examples for an off canvas navmenu with an <a href="../examples/navmenu/">slide in</a> and <a href="../examples/navmenu-reveal/">reveal</a> effect.</p>
+    </div>
+    
+    <h2 id="navmenu-inverted">Inverted navmenu</h2>
+    <p>Modify the look of the navmenu by adding <code>.navmenu-inverse</code>.</p>
+    <div class="bs-example">
+      <nav class="navmenu navmenu-inverse" role="navigation">
+        <a class="navmenu-brand" href="#">Brand</a>
+        <ul class="nav navmenu-nav">
+          <li class="active"><a href="#">Home</a></li>
+          <li><a href="#">Link</a></li>
+          <li><a href="#">Link</a></li>
+        </ul>
+      </nav>
+    </div><!-- /example -->
+{% highlight html %}
+<nav class="navmenu navmenu-inverse" role="navigation">
+  ...
+</nav>
+{% endhighlight %}
+
+  </div>
+
+
+  <!-- Alerts
+  ================================================== -->
+  <div class="bs-docs-section">
+    <div class="page-header">
+      <h1 id="alerts">Alerts</h1>
+    </div>
+
+    <h2 id="alerts-fixed">Fixed to top / bottom</h2>
+    <p>Add <code>.alert-fixed-top</code> top stick the alert on top of your page. Use <code>.alert-fixed-bottom</code> for the bottom.</p>
+    <div class="bs-example">
+      <div class="alert alert-success alert-fixed-top">
+        <strong>Success!</strong> Your action has been completed succefully.
+      </div>
+    </div>
+{% highlight html %}
+<div class="alert alert-success alert-fixed-top">
+  <strong>Success!</strong> Your action has been completed succefully.
+</div>
+{% endhighlight %}
+
+  </div>

@@ -1,0 +1,13 @@
+{
+	"version": 3,
+	"file": "file-offset.generated.txt",
+	"sources": [
+		"hello.txt",
+		"world.txt"
+	],
+	"sourcesContent": [
+		"\nHello\nWorld\nTest",
+		"Hello\nWorld\nWith\nOffset"
+	],
+	"mappings": "AACA;ACAA;AAEA"
+}

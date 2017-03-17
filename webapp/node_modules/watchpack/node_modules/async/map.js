@@ -1,0 +1,49 @@
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _mapLimit = require('./mapLimit');
+
+var _mapLimit2 = _interopRequireDefault(_mapLimit);
+
+var _doLimit = require('./internal/doLimit');
+
+var _doLimit2 = _interopRequireDefault(_doLimit);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Produces a new collection of values by mapping each value in `coll` through
+ * the `iteratee` function. The `iteratee` is called with an item from `coll`
+ * and a callback for when it has finished processing. Each of these callback
+ * takes 2 arguments: an `error`, and the transformed item from `coll`. If
+ * `iteratee` passes an error to its callback, the main `callback` (for the
+ * `map` function) is immediately called with the error.
+ *
+ * Note, that since this function applies the `iteratee` to each item in
+ * parallel, there is no guarantee that the `iteratee` functions will complete
+ * in order. However, the results array will be in the same order as the
+ * original `coll`.
+ *
+ * @name map
+ * @static
+ * @memberOf async
+ * @category Collection
+ * @param {Array|Object} coll - A collection to iterate over.
+ * @param {Function} iteratee - A function to apply to each item in `coll`.
+ * The iteratee is passed a `callback(err, transformed)` which must be called
+ * once it has completed with an error (which can be `null`) and a
+ * transformed item. Invoked with (item, callback).
+ * @param {Function} [callback] - A callback which is called when all `iteratee`
+ * functions have finished, or an error occurs. Results is an array of the
+ * transformed items from the `coll`. Invoked with (err, results).
+ * @example
+ *
+ * async.map(['file1','file2','file3'], fs.stat, function(err, results) {
+ *     // results is now an array of stats for each file
+ * });
+ */
+exports.default = (0, _doLimit2.default)(_mapLimit2.default, Infinity);
+module.exports = exports['default'];

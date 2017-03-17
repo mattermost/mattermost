@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - "0.10"
+  - "0.12"
+  - "5"
+before_script:
+  - npm install -g grunt-cli bower
+
+script:
+  - npm install
+  - bower install
+  - grunt --verbose
+    # Check that files didn't change after running grunt. It should be run before pushing any code change.
+  - if ! git diff --name-only --quiet HEAD~1 -- dist docs src index.html --; then echo "Files where modified after grunt execution..."; fi

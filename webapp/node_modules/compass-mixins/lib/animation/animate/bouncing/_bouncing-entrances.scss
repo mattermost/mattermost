@@ -1,0 +1,68 @@
+// ---------------------------------------------------------------------------
+@include keyframes(bounceIn) {
+  0% {
+    opacity: 0;
+    @include scale(0.3); }
+  50% {
+    opacity: 1;
+    @include scale(1.05); }
+  70% {
+    @include scale(0.9); }
+  100% {
+    @include scale(1); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(bounceInDown) {
+  0% {
+    opacity: 0;
+    @include translateY(-2000px); }
+  60% {
+    opacity: 1;
+    @include translateY(30px); }
+  80% {
+    @include translateY(-10px); }
+  100% {
+    @include translateY(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(bounceInUp) {
+  0% {
+    opacity: 0;
+    @include translateY(2000px); }
+  60% {
+    opacity: 1;
+    @include translateY(-30px); }
+  80% {
+    @include translateY(10px); }
+  100% {
+    @include translateY(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(bounceInRight) {
+  0% {
+    opacity: 0;
+    @include translateX(2000px); }
+  60% {
+    opacity: 1;
+    @include translateX(-30px); }
+  80% {
+    @include translateX(10px); }
+  100% {
+    @include translateX(0); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(bounceInLeft) {
+  0% {
+    opacity: 0;
+    @include translateX(-2000px); }
+  60% {
+    opacity: 1;
+    @include translateX(30px); }
+  80% {
+    @include translateX(-10px); }
+  100% {
+    @include translateX(0); } }

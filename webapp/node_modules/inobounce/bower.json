@@ -1,0 +1,21 @@
+{
+  "name": "inobounce",
+  "main": "inobounce.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/lazd/iNoBounce",
+  "authors": [
+    "Larry Davis <lazdnet@gmail.com>"
+  ],
+  "description": "Stop your iOS webapp from bouncing around when scrolling",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "keywords": [
+    "inobounce",
+    "ios",
+    "scrolling",
+    "bounce"
+  ],
+  "license": "BSD-2-Clause"
+}

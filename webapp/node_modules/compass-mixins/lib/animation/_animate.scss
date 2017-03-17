@@ -1,0 +1,31 @@
+// ---------------------------------------------------------------------------
+// Animations from Animate.css
+// Author : Dan Eden
+// URL    : http://daneden.me/animate/
+//
+// Attention seekers
+//  - flash bounce shake tada swing wobble pulse
+// Fading entrances
+//  - fadeIn fadeInUp fadeInDown fadeInLeft fadeInRight fadeInUpBig fadeInDownBig fadeInLeftBig fadeInRightBig
+// Fading exits
+//  - fadeOut fadeOutUp fadeOutDown fadeOutLeft fadeOutRight fadeOutUpBig fadeOutDownBig fadeOutLeftBig fadeOutRightBig
+// Bouncing entrances
+//  - bounceIn bounceInDown bounceInUp bounceInLeft bounceInRight
+// Bouncing exits
+//  - bounceOut bounceOutDown bounceOutUp bounceOutLeft bounceOutRight
+// Rotating entrances
+//  - rotateIn rotateInDownLeft rotateInDownRight rotateInUpLeft rotateInUpRight
+// Rotating exits
+//  - rotateOut rotateOutDownLeft rotateOutDownRight rotateOutUpLeft rotateOutUpRight
+// Lightspeed
+//  - lightSpeedIn lightSpeedOut
+// Specials
+//  - hinge rollIn rollOut
+// ---------------------------------------------------------------------------
+@import "animate/attention-seekers";
+@import "animate/bouncing";
+@import "animate/fading";
+@import "animate/flippers";
+@import "animate/lightspeed";
+@import "animate/rotating";
+@import "animate/specials";

@@ -1,0 +1,86 @@
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOut) {
+  0% {
+    opacity: 1; }
+  100% {
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutUp) {
+  0% {
+    @include translateY(0);
+    opacity: 1; }
+  100% {
+    @include translateY(-20px);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutDown) {
+  0% {
+    @include translateY(0);
+    opacity: 1; }
+  100% {
+    @include translateY(20px);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutRight) {
+  0% {
+    @include translateX(0);
+    opacity: 1; }
+  100% {
+    @include translateX(20px);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutLeft) {
+  0% {
+    @include translateX(0);
+    opacity: 1; }
+  100% {
+    @include translateX(-20px);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutUpBig) {
+  0% {
+    @include translateY(0);
+    opacity: 1; }
+  100% {
+    @include translateY(-2000px);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutDownBig) {
+  0% {
+    opacity: 1;
+    @include translateY(0); }
+  100% {
+    opacity: 0;
+    @include translateY(2000px); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutRightBig) {
+  0% {
+    opacity: 1;
+    @include translateX(0); }
+  100% {
+    opacity: 0;
+    @include translateX(2000px); } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(fadeOutLeftBig) {
+  0% {
+    opacity: 1;
+    @include translateX(0); }
+  100% {
+    opacity: 0;
+    @include translateX(-2000px); } }

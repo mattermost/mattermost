@@ -1,0 +1,307 @@
+{
+  "title":"CSS3 Transitions",
+  "description":"Simple method of animating certain properties of an element, with ability to define property, duration, delay and timing function. ",
+  "spec":"http://www.w3.org/TR/css3-transitions/",
+  "status":"wd",
+  "links":[
+    {
+      "url":"http://www.webdesignerdepot.com/2010/01/css-transitions-101/",
+      "title":"Article on usage"
+    },
+    {
+      "url":"http://www.css3files.com/transition/",
+      "title":"Information page"
+    },
+    {
+      "url":"http://www.the-art-of-web.com/css/timing-function/",
+      "title":"Examples on timing functions"
+    },
+    {
+      "url":"http://www.opera.com/docs/specs/presto2.12/css/transitions/",
+      "title":"Animation of property types support in Opera"
+    },
+    {
+      "url":"http://docs.webplatform.org/wiki/css/properties/transition",
+      "title":"WebPlatform Docs"
+    }
+  ],
+  "bugs":[
+    {
+      "description":"Not supported on any pseudo-elements besides ::before and ::after for Firefox, Chrome 26+, Opera 16+ and IE10+."
+    },
+    {
+      "description":"Transitionable properties with calc() derived values are not supported below and including IE11 (http://connect.microsoft.com/IE/feedback/details/762719/css3-calc-bug-inside-transition-or-transform)"
+    },
+    {
+      "description":"'background-size' is not supported below and including IE10"
+    },
+    {
+      "description":"IE11 [does not support](https://connect.microsoft.com/IE/feedbackdetail/view/920928/ie-11-css-transition-property-not-working-for-svg-elements) CSS transitions on the SVG `fill` property."
+    },
+    {
+      "description":"In Chrome (up to 43.0), for transition-delay property, either explicitly specified or written within transition property, the unit cannot be ommitted even if the value is 0."
+    },
+    {
+      "description":"IE10 & IE11 are reported to not support transitioning the `column-count` property."
+    }
+  ],
+  "categories":[
+    "CSS3"
+  ],
+  "stats":{
+    "ie":{
+      "5.5":"n",
+      "6":"n",
+      "7":"n",
+      "8":"n",
+      "9":"n",
+      "10":"y",
+      "11":"y"
+    },
+    "edge":{
+      "12":"y",
+      "13":"y",
+      "14":"y"
+    },
+    "firefox":{
+      "2":"n",
+      "3":"n",
+      "3.5":"n",
+      "3.6":"n",
+      "4":"y x",
+      "5":"y x",
+      "6":"y x",
+      "7":"y x",
+      "8":"y x",
+      "9":"y x",
+      "10":"y x",
+      "11":"y x",
+      "12":"y x",
+      "13":"y x",
+      "14":"y x",
+      "15":"y x",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y"
+    },
+    "chrome":{
+      "4":"y x",
+      "5":"y x",
+      "6":"y x",
+      "7":"y x",
+      "8":"y x",
+      "9":"y x",
+      "10":"y x",
+      "11":"y x",
+      "12":"y x",
+      "13":"y x",
+      "14":"y x",
+      "15":"y x",
+      "16":"y x",
+      "17":"y x",
+      "18":"y x",
+      "19":"y x",
+      "20":"y x",
+      "21":"y x",
+      "22":"y x",
+      "23":"y x",
+      "24":"y x",
+      "25":"y x",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y",
+      "44":"y",
+      "45":"y",
+      "46":"y",
+      "47":"y",
+      "48":"y",
+      "49":"y",
+      "50":"y",
+      "51":"y",
+      "52":"y",
+      "53":"y",
+      "54":"y",
+      "55":"y",
+      "56":"y",
+      "57":"y"
+    },
+    "safari":{
+      "3.1":"y x",
+      "3.2":"y x",
+      "4":"y x",
+      "5":"y x",
+      "5.1":"y x",
+      "6":"y x",
+      "6.1":"y",
+      "7":"y",
+      "7.1":"y",
+      "8":"y",
+      "9":"y",
+      "9.1":"y",
+      "10":"y",
+      "TP":"y"
+    },
+    "opera":{
+      "9":"n",
+      "9.5-9.6":"n",
+      "10.0-10.1":"n",
+      "10.5":"y x",
+      "10.6":"y x",
+      "11":"y x",
+      "11.1":"y x",
+      "11.5":"y x",
+      "11.6":"y x",
+      "12":"y x",
+      "12.1":"y",
+      "15":"y",
+      "16":"y",
+      "17":"y",
+      "18":"y",
+      "19":"y",
+      "20":"y",
+      "21":"y",
+      "22":"y",
+      "23":"y",
+      "24":"y",
+      "25":"y",
+      "26":"y",
+      "27":"y",
+      "28":"y",
+      "29":"y",
+      "30":"y",
+      "31":"y",
+      "32":"y",
+      "33":"y",
+      "34":"y",
+      "35":"y",
+      "36":"y",
+      "37":"y",
+      "38":"y",
+      "39":"y",
+      "40":"y",
+      "41":"y",
+      "42":"y",
+      "43":"y"
+    },
+    "ios_saf":{
+      "3.2":"y x",
+      "4.0-4.1":"y x",
+      "4.2-4.3":"y x",
+      "5.0-5.1":"y x",
+      "6.0-6.1":"y x",
+      "7.0-7.1":"y",
+      "8":"y",
+      "8.1-8.4":"y",
+      "9.0-9.2":"y",
+      "9.3":"y",
+      "10":"y"
+    },
+    "op_mini":{
+      "all":"n"
+    },
+    "android":{
+      "2.1":"y x",
+      "2.2":"y x",
+      "2.3":"y x",
+      "3":"y x",
+      "4":"y x",
+      "4.1":"y x",
+      "4.2-4.3":"y x",
+      "4.4":"y",
+      "4.4.3-4.4.4":"y",
+      "53":"y"
+    },
+    "bb":{
+      "7":"y x",
+      "10":"y"
+    },
+    "op_mob":{
+      "10":"y x",
+      "11":"y x",
+      "11.1":"y x",
+      "11.5":"y x",
+      "12":"y x",
+      "12.1":"y",
+      "37":"y"
+    },
+    "and_chr":{
+      "53":"y"
+    },
+    "and_ff":{
+      "49":"y"
+    },
+    "ie_mob":{
+      "10":"y",
+      "11":"y"
+    },
+    "and_uc":{
+      "11":"y x"
+    },
+    "samsung":{
+      "4":"y"
+    }
+  },
+  "notes":"Support listed is for `transition` properties as well as the `transitionend` event. The prefixed name in WebKit browsers is `webkitTransitionEnd`",
+  "notes_by_num":{
+    
+  },
+  "usage_perc_y":92.95,
+  "usage_perc_a":0,
+  "ucprefix":false,
+  "parent":"",
+  "keywords":"css transition,transitionend,transition-property,transition-duration,transition-timing-function,transition-delay",
+  "ie_id":"",
+  "chrome_id":"",
+  "firefox_id":"",
+  "webkit_id":"",
+  "shown":true
+}

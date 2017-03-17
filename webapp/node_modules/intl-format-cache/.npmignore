@@ -1,0 +1,4 @@
+test/
+tmp/
+.travis.yml
+Gruntfile.js

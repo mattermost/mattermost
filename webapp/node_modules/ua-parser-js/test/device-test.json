@@ -1,0 +1,363 @@
+[
+    {
+        "desc"    : "HTC Evo Shift 4G",
+        "ua"      : "Mozilla/5.0 (Linux; U; Android 2.3.4; en-us; Sprint APA7373KT Build/GRJ22) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0",
+        "expect"  :
+        {
+            "vendor"  : "HTC",
+            "model"   : "Evo Shift 4G",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "HTC Nexus 9",
+        "ua"      : "Mozilla/5.0 (Linux; Android 5.0; Nexus 9 Build/LRX21R) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Mobile Crosswalk/7.36.154.13 Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "HTC",
+            "model"   : "Nexus 9",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"    : "LG Nexus 4",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.2.1; Nexus 4 Build/JOP40D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19",
+        "expect"  :
+        {
+            "vendor"  : "LG",
+            "model"   : "Nexus 4",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "LG Nexus 5",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 Build/JOP40D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19",
+        "expect"  :
+        {
+            "vendor"  : "LG",
+            "model"   : "Nexus 5",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Motorola Nexus 6",
+        "ua"      : "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.20 Mobile Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Motorola",
+            "model"   : "Nexus 6",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Motorola Droid RAZR 4G",
+        "ua"      : "Mozilla/5.0 (Linux; U; Android 2.3; xx-xx; DROID RAZR 4G Build/6.5.1-73_DHD-11_M1-29) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
+        "expect"  :
+        {
+            "vendor"  : "Motorola",
+            "model"   : "DROID RAZR 4G",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "iPhone",
+        "ua"      : "Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53",
+        "expect"  :
+        {
+            "vendor"  : "Apple",
+            "model"   : "iPhone",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Motorola Droid RAZR 4G",
+        "ua"      : "Mozilla/5.0 (iPod touch; CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
+        "expect"  :
+        {
+            "vendor"  : "Apple",
+            "model"   : "iPod touch",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Moto X",
+        "ua"      : "Mozilla/5.0 (Linux; U; Android 4.2; xx-xx; XT1058 Build/13.9.0Q2.X-70-GHOST-ATT_LE-2) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+        "expect"  :
+        {
+            "vendor"  : "Motorola",
+            "model"   : "XT1058",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Nokia3xx",
+        "ua"      : "Nokia303/14.87 CLDC-1.1",
+        "expect"  :
+        {
+            "vendor"  : "Nokia",
+            "model"   : "303",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Philips SmartTV",
+        "ua"      : "Opera/9.80 HbbTV/1.1.1 (; Philips; ; ; ; ) NETTV/4.0.2; en) Version/11.60",
+        "expect"  :
+        {
+            "vendor"  : "Philips",
+            "model"   : "",
+            "type"    : "smarttv"
+        }
+    },
+    {
+        "desc"    : "Kindle Fire HD",
+        "ua"      : "Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; KFTT Build/IML74K) AppleWebKit/535.19 (KHTML, like Gecko) Silk/3.4 Mobile Safari/535.19 Silk-Accelerated=true",
+        "expect"  :
+        {
+            "vendor"  : "Amazon",
+            "model"   : "KFTT",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"    : "Samsung SM-T231",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.4.2; SM-T231 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.135 Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-T231",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"    : "Samsung SM-T700",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.4.2; SM-T700 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.135 Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-T700",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"    : "Samsung SM-T520",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.4.2; SM-T520 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.135 Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-T520",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"    : "Samsung SmartTV2011",
+        "ua"      : "HbbTV/1.1.1 (;;;;;) Maple;2011",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SmartTV2011",
+            "type"    : "smarttv"
+        }
+    },
+    {
+        "desc"    : "Samsung SmartTV2012",
+        "ua"      : "HbbTV/1.1.1 (;Samsung;SmartTV2012;;;) WebKit",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SmartTV2012",
+            "type"    : "smarttv"
+        }
+    },
+    {
+        "desc"    : "Samsung SmartTV2014",
+        "ua"      : "HbbTV/1.1.1 (;Samsung;SmartTV2014;T-NT14UDEUC-1060.4;;) WebKit",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SmartTV2014",
+            "type"    : "smarttv"
+        }
+    },
+    {
+        "desc"    : "Sony C5303 (Xperia SP)",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.3; C5303 Build/12.1.A.1.205) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.93 Mobile Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Phone",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Sony SO-02F (Xperia Z1 F)",
+        "ua"        : "Mozilla/5.0 (Linux; Android 4.2.2; SO-02F Build/14.1.H.2.119) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Phone",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Sony D6653 (Xperia Z3)",
+        "ua"        : "Mozilla/5.0 (Linux; Android 4.4; D6653 Build/23.0.A.0.376) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.141 Mobile Safari/537.36",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Phone",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Sony Xperia SOL25 (ZL2)",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 4.4; SOL25 Build/17.1.1.C.1.64) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Phone",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Sony SGP521 (Xperia Z2 Tablet)",
+        "ua"        : "Mozilla/5.0 (Linux; Android 4.4; SGP521 Build/17.1.A.0.432) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Safari/537.36",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Tablet",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"      : "Sony Tablet S",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 3.1; Sony Tablet S Build/THMAS10000) AppleWebKit/534.13 (KHTML, like Gecko) Version/4.0 Safari/534.13",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Tablet",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"      : "Sony Tablet Z LTE",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 4.1; SonySGP321 Build/10.2.C.0.143) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "Xperia Tablet",
+            "type"    : "tablet"
+        }
+    },
+    {
+        "desc"      : "Xiaomi 2013023",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 4.2.2; en-US; 2013023 Build/HM2013023) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 UCBrowser/10.0.1.512 U3/0.8.0 Mobile Safari/533.1",
+        "expect"    :
+        {
+            "vendor"  : "Xiaomi",
+            "model"   : "2013023",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Xiaomi Hongmi Note 1W",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 4.2.2; zh-CN; HM NOTE 1W Build/JDQ39) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 UCBrowser/9.7.9.439 U3/0.8.0 Mobile Safari/533.1",
+        "expect"    :
+        {
+            "vendor"  : "Xiaomi",
+            "model"   : "HM NOTE 1W",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Xiaomi Mi 3C",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 4.3; zh-CN; MI 3C Build/JLS36C) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 UCBrowser/9.7.9.439 U3/0.8.0 Mobile Safari/533.1",
+        "expect"    :
+        {
+            "vendor"  : "Xiaomi",
+            "model"   : "MI 3C",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Xiaomi Mi One Plus",
+        "ua"        : "Mozilla/5.0 (Linux; U; Android 4.0.4; en-us; MI-ONE Plus Build/IMM76D) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+        "expect"    :
+        {
+            "vendor"  : "Xiaomi",
+            "model"   : "MI-ONE Plus",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "PlayStation 4",
+        "ua"        : "Mozilla/5.0 (PlayStation 4 3.00) AppleWebKit/537.73 (KHTML, like Gecko)",
+        "expect"    :
+        {
+            "vendor"  : "Sony",
+            "model"   : "PlayStation 4",
+            "type"    : "console"
+        }
+    },
+    {
+        "desc"      : "Galaxy Nexus",
+        "ua"        : "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19",
+        "expect"    :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "Galaxy Nexus",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"      : "Samsung Galaxy S5",
+        "ua"        : "Mozilla/5.0 (Linux; Android 5.0; SM-G900F Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.78 Mobile Safari/537.36",
+        "expect"    :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-G900F",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Samsung Galaxy S6",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.4.2; SM-G920I Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.135 Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-G920I",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Samsung Galaxy S6 Edge",
+        "ua"      : "Mozilla/5.0 (Linux; Android 4.4.2; SM-G925I Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.135 Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-G925I",
+            "type"    : "mobile"
+        }
+    },
+    {
+        "desc"    : "Samsung Galaxy Note 5 Chrome",
+        "ua"      : "Mozilla/5.0 (Linux; Android 5.1.1; SM-N920C Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.91 Mobile Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-N920C",
+            "type"    : "mobile"
+        }
+    }
+,
+    {
+        "desc"    : "Samsung Galaxy Note 5 Samsung Browser",
+        "ua"      : "Mozilla/5.0 (Linux; Android 5.1.1; SAMSUNG SM-N920C Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/4.0 Chrome/44.0.2403.133 Mobile Safari/537.36",
+        "expect"  :
+        {
+            "vendor"  : "Samsung",
+            "model"   : "SM-N920C",
+            "type"    : "mobile"
+        }
+    }
+]

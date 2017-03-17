@@ -1,0 +1,10 @@
+{
+    "plugins": [
+        "transform-es2015-modules-commonjs"
+    ],
+    "ignore": [
+        "dist/*.js",
+        "lib/*.js",
+        "locale-data/*.js"
+    ]
+}

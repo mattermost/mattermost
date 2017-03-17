@@ -1,0 +1,58 @@
+// ---------------------------------------------------------------------------
+@include keyframes(rotateOut) {
+  0% {
+    @include transform-origin(center center);
+    @include rotate(0);
+    opacity: 1; }
+  100% {
+    @include transform-origin(center center);
+    @include rotate(200deg);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(rotateOutDownLeft) {
+  0% {
+    @include transform-origin(left bottom);
+    @include rotate(0);
+    opacity: 1; }
+  100% {
+    @include transform-origin(left bottom);
+    @include rotate(90deg);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(rotateOutUpLeft) {
+  0% {
+    @include transform-origin(left bottom);
+    @include rotate(0);
+    opacity: 1; }
+  100% {
+    @include transform-origin(left bottom);
+    @include rotate(-90deg);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(rotateOutDownRight) {
+  0% {
+    @include transform-origin(right bottom);
+    @include rotate(0);
+    opacity: 1; }
+  100% {
+    @include transform-origin(right bottom);
+    @include rotate(-90deg);
+    opacity: 0; } }
+
+
+// ---------------------------------------------------------------------------
+@include keyframes(rotateOutUpRight) {
+  0% {
+    @include transform-origin(right bottom);
+    @include rotate(0);
+    opacity: 1; }
+  100% {
+    @include transform-origin(right bottom);
+    @include rotate(90deg);
+    opacity: 0; } }

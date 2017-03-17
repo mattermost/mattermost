@@ -1,0 +1,37 @@
+{
+  "name": "classnames",
+  "version": "2.2.5",
+  "description": "A simple utility for conditionally joining classNames together",
+  "main": [
+    "index.js",
+    "bind.js",
+    "dedupe.js"
+  ],
+  "homepage": "https://github.com/JedWatson/classnames",
+  "authors": [
+    "Jed Watson"
+  ],
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "react",
+    "css",
+    "classes",
+    "classname",
+    "classnames",
+    "util",
+    "utility"
+  ],
+  "license": "MIT",
+  "ignore": [
+    ".editorconfig",
+    ".gitignore",
+    "gulpfile.js",
+    "package.json",
+    "node_modules",
+    "tests.js"
+  ]
+}

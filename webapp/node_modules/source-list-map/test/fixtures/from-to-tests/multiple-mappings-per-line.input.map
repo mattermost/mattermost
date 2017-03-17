@@ -1,0 +1,11 @@
+{
+	"version": 3,
+	"file": "multiple-mappings-per-line.generated.txt",
+	"sources": [
+		"hello-world.txt"
+	],
+	"sourcesContent": [
+		"Hello\nWorld\nTest\n"
+	],
+	"mappings": "CAAA,MAC,,MAC;,CAD,MAC;CA,"
+}

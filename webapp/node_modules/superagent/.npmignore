@@ -1,0 +1,7 @@
+support
+test
+examples
+*.sock
+lib-cov
+coverage.html
+bower.json

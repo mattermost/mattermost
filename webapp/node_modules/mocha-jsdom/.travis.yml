@@ -1,0 +1,8 @@
+language: node_js
+sudo: false
+script: npm run coverage
+node_js:
+- '4'
+cache:
+  directories:
+  - node_modules

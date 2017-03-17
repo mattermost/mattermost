@@ -1,0 +1,21 @@
+// .animated and .animated.hinge classes for external use
+.animated {
+  @include animation(1s ease both); }
+
+.animated.hinge {
+  @include animation(2s ease both); }
+
+// Animations list
+$animations: flash, shake, bounce, tada, swing, wobble, wiggle, pulse, flip, flipInX, flipOutX, flipInY, flipOutY, fadeIn, fadeInUp, fadeInDown, fadeInLeft, fadeInRight, fadeInUpBig, fadeInDownBig, fadeInLeftBig, fadeInRightBig, fadeOut, fadeOutUp, fadeOutDown, fadeOutLeft, fadeOutRight, fadeOutUpBig, fadeOutDownBig, fadeOutLeftBig, fadeOutRightBig, bounceIn, bounceInDown, bounceInUp, bounceInLeft, bounceInRight, bounceOut, bounceOutDown, bounceOutUp, bounceOutLeft, bounceOutRight, rotateIn, rotateInDownLeft, rotateInDownRight, rotateInUpLeft, rotateInUpRight, rotateOut, rotateOutDownLeft, rotateOutDownRight, rotateOutUpLeft, rotateOutUpRight, lightSpeedIn, lightSpeedOut, hinge, rollIn, rollOut;
+
+// Animations that require backface-visibility
+$backface: flip, flipInX, flipOutX, flipInY, flipOutY;
+
+// Creation of the different classes
+@each $anim in $animations {
+  .#{$anim} {
+    @if index($backface, $anim) {
+      @include backface-visibility(visible); }
+    @if $anim == "swing" {
+      @include transform-origin(top, center); }
+    @include animation-name($anim); } }

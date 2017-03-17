@@ -1,0 +1,72 @@
+// 
+// A partial implementation of the Ruby cross browser support functions from Compass:
+// https://github.com/Compass/compass/blob/stable/lib/compass/sass_extensions/functions/cross_browser_support.rb
+// 
+
+@function prefixed($prefix, $property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  $properties: $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9;
+  $prefixed: false;
+  @each $item in $properties {
+    @if type-of($item) == 'string' {
+      $prefixed: $prefixed or str-index($item, 'url') != 1 and str-index($item, 'rgb') != 1 and str-index($item, '#') != 1;
+    } @elseif type-of($item) == 'color' {
+    } @elseif $item != null {
+      $prefixed: true;
+    }
+  }
+  @return $prefixed;
+}
+
+@function prefix($prefix, $property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  $properties: "";
+
+  // Support for polymorphism.
+  @if type-of($property1) == 'list' {
+    // Passing a single array of properties.
+    $properties: $property1;
+  } @else {
+    // Passing multiple properties.
+    $properties: $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9;
+  }
+
+  $props: false;
+  @each $item in $properties {
+    @if $item == null {}
+    @else {
+      @if prefixed($prefix, $item) {
+        $item: #{$prefix}-#{$item};
+      }
+      @if $props {
+        $props: $props, $item;
+      }
+      @else {
+        $props: $item;
+      }
+    }
+  }
+  @return $props;
+}
+
+@function -svg($property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  @return prefix('-svg', $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -owg($property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  @return prefix('-owg', $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -webkit($property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  @return prefix('-webkit', $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -moz($property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  @return prefix('-moz', $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -o($property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  @return prefix('-o', $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -pie($property1, $property2:null, $property3:null, $property4:null, $property5:null, $property6:null, $property7:null, $property8:null, $property9:null) {
+  @return prefix('-pie', $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}

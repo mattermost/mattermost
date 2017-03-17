@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Bootstrap Plugin Test Suite</title>
+
+  <!-- jquery -->
+  <script src="vendor/jquery.js"></script>
+
+  <!-- qunit -->
+  <link rel="stylesheet" href="vendor/qunit.css" media="screen">
+  <script src="vendor/qunit.js"></script>
+  <script>
+    // See https://github.com/axemclion/grunt-saucelabs#test-result-details-with-qunit
+    QUnit.done(function(results) {
+      window.global_test_results = results
+    })
+  </script>
+
+  <!--  plugin sources -->
+  <script>$.support.transition = false</script>
+  <script src="../../js/fileinput.js"></script>
+  <script src="../../js/inputmask.js"></script>
+  <script src="../../js/offcanvas.js"></script>
+  <script src="../../js/rowlink.js"></script>
+
+  <!-- unit tests -->
+  <script src="unit/fileinput.js"></script>
+  <script src="unit/inputmask.js"></script>
+  <script src="unit/offcanvas.js"></script>
+  <script src="unit/rowlink.js"></script>
+
+</head>
+<body>
+  <div>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+  </div>
+</body>
+</html>

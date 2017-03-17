@@ -1,0 +1,28 @@
+# Pre-processed locale data output from Ldml2JsonConverter
+cldr/
+data/
+
+# test262 compiled python files
+*.pyc
+
+# Ignore test262 output
+*.log
+
+# d8 artifact
+.d8_history
+
+# The NPM package only needs runtime files.
+# (It doesn't need anything used during development of this library.)
+tools/
+tests/
+
+coverage/
+tasks/
+tmp/
+.travis.yml
+Gruntfile.js
+
+# source files
+src/
+scripts/
+locale-data/json/

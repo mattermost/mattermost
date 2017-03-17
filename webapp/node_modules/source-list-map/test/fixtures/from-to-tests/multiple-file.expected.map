@@ -1,0 +1,13 @@
+{
+	"version": 3,
+	"file": "multiple-file.generated.txt",
+	"sources": [
+		"hello.txt",
+		"world.txt"
+	],
+	"sourcesContent": [
+		"Hello\n",
+		"World\n"
+	],
+	"mappings": "AAAA;ACAA;"
+}

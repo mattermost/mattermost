@@ -1,0 +1,4 @@
+coverage/
+test/
+tmp/
+Gruntfile.js

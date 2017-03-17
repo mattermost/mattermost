@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+/*
+ * entry file to support mocha-intellij
+ */
+require('../lib/cli');

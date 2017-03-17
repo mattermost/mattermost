@@ -1,0 +1,9 @@
+{
+  "name": "color-convert",
+  "description": "Plain color conversion functions",
+  "version": "0.5.3",
+  "author": "Heather Arthur <fayearthur@gmail.com>",
+  "repository": "harthur/color-convert",
+  "keywords": ["color", "colour", "rgb"],
+  "scripts": ["index.js", "conversions.js"]
+}

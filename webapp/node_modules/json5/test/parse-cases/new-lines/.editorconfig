@@ -1,0 +1,13 @@
+# Since we're testing different representations of new lines,
+# make sure the editor doesn't mangle line endings.
+# Don't commit files in this directory unless you've checked
+# their escaped new lines.
+
+[*-lf.*]
+end_of_line = lf
+
+[*-cr.*]
+end_of_line = cr
+
+[*-crlf.*]
+end_of_line = crlf

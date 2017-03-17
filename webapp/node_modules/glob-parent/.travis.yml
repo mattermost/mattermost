@@ -1,0 +1,8 @@
+language: node_js
+node_js:
+  - "6"
+  - "5"
+  - "4"
+  - "0.10"
+script:
+  - npm run ci-test

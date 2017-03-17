@@ -1,0 +1,11 @@
+{
+	"version": 3,
+	"file": "empty-lines.generated.txt",
+	"sources": [
+		"hello-world.txt"
+	],
+	"sourcesContent": [
+		"Hello\n\nWorld\n\n"
+	],
+	"mappings": "AAAA;AACA;AACA;AACA;"
+}

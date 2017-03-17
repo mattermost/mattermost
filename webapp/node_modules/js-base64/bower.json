@@ -1,0 +1,17 @@
+{
+  "name": "js-base64",
+  "version": "2.1.9",
+  "main": [
+    "./base64.js"
+  ],
+  "ignore": [
+    "old",
+    "test",
+    ".gitignore",
+    ".travis.yml",
+    "base64.html",
+    "package.json"
+  ],
+  "dependencies": {
+  }
+}

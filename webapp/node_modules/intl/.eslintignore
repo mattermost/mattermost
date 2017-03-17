@@ -1,0 +1,7 @@
+dist/
+lib/
+locale-data/
+tasks/
+tests/
+tmp/
+t.js
