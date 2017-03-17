@@ -345,7 +345,7 @@
                 }
 
                 img {
-                    max-height: 100%;
+                    max-height: calc(100vh - 200px);
                     max-width: 100%;
                 }
 
