@@ -51,6 +51,7 @@
 
     .hljs {
         position: relative;
+        visibility: visible;
     }
 }
 
@@ -163,11 +164,11 @@ code {
     }
 
     .hljs {
+        background: #f8f8f8;
+        color: #333;
         display: block;
         overflow-x: auto;
         padding: 0.5em;
-        color: #333;
-        background: #f8f8f8;
     }
 
     .container {
@@ -175,7 +176,7 @@ code {
     }
 
     .links {
-        margin-top: 30px;
         font-size: 1.2em;
+        margin-top: 30px;
     }
 }

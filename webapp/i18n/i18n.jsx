@@ -9,8 +9,8 @@ const ko = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ko.json');
 const nl = require('!!file-loader?name=i18n/[name].[hash].[ext]!./nl.json');
 const pt_BR = require('!!file-loader?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
 const ru = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ru.json');
-const zh_TW = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh_TW.json'); //eslint-disable-line camelcase
-const zh_CN = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh_CN.json'); //eslint-disable-line camelcase
+const zh_TW = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh-TW.json'); //eslint-disable-line camelcase
+const zh_CN = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh-CN.json'); //eslint-disable-line camelcase
 
 import {addLocaleData} from 'react-intl';
 import deLocaleData from 'react-intl/locale-data/de';

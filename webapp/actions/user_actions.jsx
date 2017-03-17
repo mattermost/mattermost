@@ -304,7 +304,7 @@ export function loadProfilesForGM() {
 
         if (!isVisible) {
             const member = ChannelStore.getMyMember(channel.id);
-            if (!member || (member.mention_count === 0 && member.msg_count < member.total_msg_count)) {
+            if (!member || (member.mention_count === 0 && member.msg_count >= channel.total_msg_count)) {
                 continue;
             }
 
@@ -645,7 +645,7 @@ export function checkMfa(loginId, success, error) {
         loginId,
         (data) => {
             if (success) {
-                success(data);
+                success(data && data.mfa_required === 'true');
             }
         },
         (err) => {

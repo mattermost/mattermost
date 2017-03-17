@@ -131,8 +131,8 @@ export default class LoginController extends React.Component {
 
         checkMfa(
             loginId,
-            (data) => {
-                if (data && data.mfa_required === 'true') {
+            (requiresMfa) => {
+                if (requiresMfa) {
                     this.setState({showMfa: true});
                 } else {
                     this.submit(loginId, password, '');

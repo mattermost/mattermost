@@ -148,15 +148,16 @@ export default class UserList extends React.Component {
     }
 
     search(term) {
+        clearTimeout(this.searchTimeoutId);
+
         if (term === '') {
             this.setState({search: false, users: UserStore.getProfileListInTeam(this.props.params.team)});
+            this.searchTimeoutId = '';
             return;
         }
 
         const options = {};
         options[UserSearchOptions.ALLOW_INACTIVE] = true;
-
-        clearTimeout(this.searchTimeoutId);
 
         const searchTimeoutId = setTimeout(
             () => {

@@ -24,7 +24,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
+func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, siteURL string) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
@@ -171,7 +171,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
-				sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
+				sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender, siteURL)
 			}
 		}
 	}
@@ -286,7 +286,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 	message.Add("post", post.ToJson())
 	message.Add("channel_type", channel.Type)
-	message.Add("channel_display_name", channel.DisplayName)
+	message.Add("channel_display_name", channelName)
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", senderUsername)
 	message.Add("team_id", team.Id)
@@ -317,9 +317,8 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	return mentionedUsersList, nil
 }
 
-func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
-	if channel.IsGroupOrDirect() && channel.TeamId != team.Id {
-		// this message is a cross-team DM/GM so we need to find a team that the recipient is on to use in the link
+func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User, siteURL string) *model.AppError {
+	if channel.IsGroupOrDirect() {
 		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
 		} else {
@@ -368,7 +367,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	var mailTemplate string
 	var mailParameters map[string]interface{}
 
-	teamURL := utils.GetSiteURL() + "/" + team.Name
+	teamURL := siteURL + "/" + team.Name
 	tm := time.Unix(post.CreateAt/1000, 0)
 
 	userLocale := utils.GetUserTranslations(user.Locale)
@@ -406,7 +405,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, userLocale(mailTemplate, mailParameters))
 
 	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
-	bodyPage.Props["SiteURL"] = utils.GetSiteURL()
+	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["PostMessage"] = GetMessageForNotification(post, userLocale)
 	if team.Name != "select_team" {
 		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id

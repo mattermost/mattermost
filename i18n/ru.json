@@ -1516,6 +1516,10 @@
     "translation": "Инициализация API отправки"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Предпросмотр ссылок был запрещён системным администратором."
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "Не удалось получить 2 участников для канала личных сообщений channel_id={{.ChannelId}}"
   },

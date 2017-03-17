@@ -1516,6 +1516,10 @@
     "translation": "投稿APIルートを初期化しています"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "ダイレクトチャンネルの2人のメンバーを取得できませんでした channel_id={{.ChannelId}}"
   },

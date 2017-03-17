@@ -13,6 +13,7 @@
 
         .Select-value-label {
             max-width: 190px;
+            text-overflow: ellipsis;
         }
     }
 
@@ -555,6 +556,13 @@
         }
 
         .modal {
+            .modal--scroll {
+                .modal-body {
+                    max-height: calc(100vh - 62px);
+                    overflow: auto;
+                }
+            }
+
             .nav-pills {
                 > li {
                     &.active {
@@ -1628,6 +1636,7 @@
                 }
             }
         }
+
         .attachment {
             .attachment__image {
                 &.attachment__image--openraph {
@@ -1641,6 +1650,7 @@
         left: 0;
         position: fixed;
         top: 0;
+        z-index: 9999;
 
         .tutorial__content {
             .tutorial__steps {

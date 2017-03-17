@@ -3,7 +3,7 @@
 .custom-textarea {
     background: transparent;
     border: 1px solid #cccccc;
-    height: auto;
+    height: 100%;
     line-height: 20px;
     min-height: 36px;
     overflow-x: hidden;
@@ -360,7 +360,10 @@
 
 .post-create__container {
     label {
-        font-weight: normal;
+       font-weight: normal;
+    }
+    .custom-textarea {
+        overflow: hidden;
     }
 
     form {
@@ -380,6 +383,8 @@
             }
 
             .custom-textarea {
+                -ms-overflow-style: auto;
+                overflow: auto;
                 padding-right: 43px;
             }
         }
@@ -581,6 +586,12 @@
             }
         }
 
+        &.post--system {
+            .status {
+                visibility: hidden;
+            }
+        }
+
         .post__img {
             padding-top: 0;
         }
@@ -588,6 +599,7 @@
         .status-wrapper {
             cursor: auto;
             height: 14px;
+            pointer-events: none;
 
             .status {
                 bottom: auto;

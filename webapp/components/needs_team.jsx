@@ -15,6 +15,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
+import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx';
+
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -95,6 +97,7 @@ export default class NeedsTeam extends React.Component {
         GlobalActions.viewLoggedIn();
 
         startPeriodicStatusUpdates();
+        startPeriodicSync();
 
         // Set up tracking for whether the window is active
         window.isActive = true;
@@ -141,6 +144,7 @@ export default class NeedsTeam extends React.Component {
             iNoBounce.disable();
         }
         stopPeriodicStatusUpdates();
+        stopPeriodicSync();
     }
 
     render() {

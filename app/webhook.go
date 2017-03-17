@@ -24,7 +24,7 @@ const (
 	TRIGGERWORDS_STARTSWITH = 1
 )
 
-func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User, siteURL string) *model.AppError {
 	if !utils.Cfg.ServiceSettings.EnableOutgoingWebhooks {
 		return nil
 	}
@@ -107,7 +107,7 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 						respProps := model.MapFromJson(resp.Body)
 
 						if text, ok := respProps["text"]; ok {
-							if _, err := CreateWebhookPost(hook.CreatorId, hook.TeamId, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
+							if _, err := CreateWebhookPost(hook.CreatorId, hook.TeamId, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type, siteURL); err != nil {
 								l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 							}
 						}
@@ -121,7 +121,7 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 	return nil
 }
 
-func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
+func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string, siteURL string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
@@ -150,37 +150,8 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 	if len(props) > 0 {
 		for key, val := range props {
 			if key == "attachments" {
-				if list, success := val.([]interface{}); success {
-					// parse attachment links into Markdown format
-					for i, aInt := range list {
-						attachment := aInt.(map[string]interface{})
-						if aText, ok := attachment["text"].(string); ok {
-							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-							attachment["text"] = aText
-							list[i] = attachment
-						}
-						if aText, ok := attachment["pretext"].(string); ok {
-							aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-							attachment["pretext"] = aText
-							list[i] = attachment
-						}
-						if fVal, ok := attachment["fields"]; ok {
-							if fields, ok := fVal.([]interface{}); ok {
-								// parse attachment field links into Markdown format
-								for j, fInt := range fields {
-									field := fInt.(map[string]interface{})
-									if fValue, ok := field["value"].(string); ok {
-										fValue = linkWithTextRegex.ReplaceAllString(fValue, "[${2}](${1})")
-										field["value"] = fValue
-										fields[j] = field
-									}
-								}
-								attachment["fields"] = fields
-								list[i] = attachment
-							}
-						}
-					}
-					post.AddProp(key, list)
+				if attachments, success := val.([]*model.SlackAttachment); success {
+					parseSlackAttachment(post, attachments)
 				}
 			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)
@@ -188,7 +159,7 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 		}
 	}
 
-	if _, err := CreatePost(post, teamId, false); err != nil {
+	if _, err := CreatePost(post, teamId, false, siteURL); err != nil {
 		return nil, model.NewLocAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message)
 	}
 
@@ -452,7 +423,7 @@ func RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebh
 	}
 }
 
-func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *model.AppError {
+func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest, siteURL string) *model.AppError {
 	if !utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -477,7 +448,7 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 	webhookType := req.Type
 
 	// attachments is in here for slack compatibility
-	if req.Attachments != nil {
+	if len(req.Attachments) > 0 {
 		if len(req.Props) == 0 {
 			req.Props = make(model.StringInterface)
 		}
@@ -543,7 +514,7 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if _, err := CreateWebhookPost(hook.UserId, hook.TeamId, channel.Id, text, overrideUsername, overrideIconUrl, req.Props, webhookType); err != nil {
+	if _, err := CreateWebhookPost(hook.UserId, hook.TeamId, channel.Id, text, overrideUsername, overrideIconUrl, req.Props, webhookType, siteURL); err != nil {
 		return err
 	}
 
