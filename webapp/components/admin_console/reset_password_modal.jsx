@@ -61,7 +61,7 @@ class ResetPasswordModal extends React.Component {
 
         if (this.state.serverError) {
             urlClass += ' has-error';
-            serverError = <div className='form-group has-error'><p className='input__help error'>{this.state.serverError}</p></div>;
+            serverError = <div className='has-error'><p className='input__help error'>{this.state.serverError}</p></div>;
         }
 
         let title;

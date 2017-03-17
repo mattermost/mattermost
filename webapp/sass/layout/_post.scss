@@ -359,6 +359,10 @@
 }
 
 .post-create__container {
+    label {
+        font-weight: normal;
+    }
+
     form {
         margin: 0 auto;
         padding: .5em 15px 0;
@@ -523,6 +527,7 @@
             .col__reply {
                 min-width: 0;
             }
+
             .dropdown {
                 margin-right: 0;
             }
@@ -749,6 +754,7 @@
         line-height: 1.6em;
         margin: 0;
         white-space: pre-wrap;
+        word-break: break-word;
     }
 
     .post__header--info {
@@ -786,7 +792,7 @@
 
             .flag-icon__container {
                 left: 36px;
-                margin-left: 5px;
+                margin-left: 7px;
                 position: absolute;
                 top: 8px;
             }
@@ -1358,6 +1364,8 @@
 
 .post__pinned-badge {
     margin-left: 7px;
+    position: relative;
+    top: -1px;
 }
 
 .permalink-text {

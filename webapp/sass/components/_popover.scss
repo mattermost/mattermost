@@ -209,6 +209,15 @@
         .more-modal__row {
             min-height: inherit;
         }
+
+        .more-modal__details {
+            line-height: 32px;
+        }
+
+        .more-modal__actions {
+            line-height: 31px;
+            margin: 0;
+        }
     }
 
     .popover-content {

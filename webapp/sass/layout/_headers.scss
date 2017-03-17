@@ -9,10 +9,10 @@
 
     .member-popover__trigger,
     .pinned-posts-button {
-        display: inline-block;
-        min-width: 30px;
         cursor: pointer;
-        margin-left: 10px;
+        display: inline-block;
+        margin-left: 7px;
+        min-width: 30px;
         text-align: center;
         white-space: nowrap;
 
@@ -65,7 +65,7 @@
         }
 
         &:last-child {
-            padding-right: 8px;
+            padding-right: 6px;
             width: 8.9%;
         }
     }
