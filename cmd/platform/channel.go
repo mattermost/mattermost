@@ -120,8 +120,6 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to find team: " + teamArg)
 	}
 
-	c := getMockContext()
-
 	channel := &model.Channel{
 		TeamId:      team.Id,
 		Name:        name,
@@ -129,7 +127,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		Header:      header,
 		Purpose:     purpose,
 		Type:        channelType,
-		CreatorId:   c.Session.UserId,
+		CreatorId:   "",
 	}
 
 	if _, err := app.CreateChannel(channel, false); err != nil {
