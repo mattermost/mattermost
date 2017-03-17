@@ -161,7 +161,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = CreatePost(post, channel.TeamId, false); err != nil {
+	if post, err = CreatePost(post, channel.TeamId, false, utils.GetSiteURL()); err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)
@@ -174,7 +174,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := JoinUserToTeam(team, user)
+	err := JoinUserToTeam(team, user, utils.GetSiteURL())
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()

@@ -24,7 +24,7 @@ var (
 	linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 )
 
-func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
+func CreatePostAsUser(post *model.Post, siteURL string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
@@ -41,7 +41,7 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 		return nil, err
 	}
 
-	if rp, err := CreatePost(post, channel.TeamId, true); err != nil {
+	if rp, err := CreatePost(post, channel.TeamId, true, siteURL); err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
 			err.Id == "api.post.create_post.parent_id.app_error" {
@@ -62,7 +62,7 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 
 }
 
-func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func CreatePost(post *model.Post, teamId string, triggerWebhooks bool, siteURL string) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
@@ -119,14 +119,14 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 		}
 	}
 
-	if err := handlePostEvents(rpost, teamId, triggerWebhooks); err != nil {
+	if err := handlePostEvents(rpost, teamId, triggerWebhooks, siteURL); err != nil {
 		return nil, err
 	}
 
 	return rpost, nil
 }
 
-func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
+func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool, siteURL string) *model.AppError {
 	var tchan store.StoreChannel
 	if len(teamId) > 0 {
 		tchan = Srv.Store.Team().Get(teamId)
@@ -163,13 +163,13 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 		user = result.Data.(*model.User)
 	}
 
-	if _, err := SendNotifications(post, team, channel, user); err != nil {
+	if _, err := SendNotifications(post, team, channel, user, siteURL); err != nil {
 		return err
 	}
 
 	if triggerWebhooks {
 		go func() {
-			if err := handleWebhookEvents(post, team, channel, user); err != nil {
+			if err := handleWebhookEvents(post, team, channel, user, siteURL); err != nil {
 				l4g.Error(err.Error())
 			}
 		}()
@@ -180,40 +180,20 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 
 // This method only parses and processes the attachments,
 // all else should be set in the post which is passed
-func parseSlackAttachment(post *model.Post, attachments interface{}) {
+func parseSlackAttachment(post *model.Post, attachments []*model.SlackAttachment) {
 	post.Type = model.POST_SLACK_ATTACHMENT
 
-	if list, success := attachments.([]interface{}); success {
-		for i, aInt := range list {
-			attachment := aInt.(map[string]interface{})
-			if aText, ok := attachment["text"].(string); ok {
-				aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-				attachment["text"] = aText
-				list[i] = attachment
-			}
-			if aText, ok := attachment["pretext"].(string); ok {
-				aText = linkWithTextRegex.ReplaceAllString(aText, "[${2}](${1})")
-				attachment["pretext"] = aText
-				list[i] = attachment
-			}
-			if fVal, ok := attachment["fields"]; ok {
-				if fields, ok := fVal.([]interface{}); ok {
-					// parse attachment field links into Markdown format
-					for j, fInt := range fields {
-						field := fInt.(map[string]interface{})
-						if fValue, ok := field["value"].(string); ok {
-							fValue = linkWithTextRegex.ReplaceAllString(fValue, "[${2}](${1})")
-							field["value"] = fValue
-							fields[j] = field
-						}
-					}
-					attachment["fields"] = fields
-					list[i] = attachment
-				}
+	for _, attachment := range attachments {
+		attachment.Text = parseSlackLinksToMarkdown(attachment.Text)
+		attachment.Pretext = parseSlackLinksToMarkdown(attachment.Pretext)
+
+		for _, field := range attachment.Fields {
+			if value, ok := field.Value.(string); ok {
+				field.Value = parseSlackLinksToMarkdown(value)
 			}
 		}
-		post.AddProp("attachments", list)
 	}
+	post.AddProp("attachments", attachments)
 }
 
 func parseSlackLinksToMarkdown(text string) string {
@@ -365,7 +345,7 @@ func GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *mo
 	}
 }
 
-func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
+func GetPermalinkPost(postId string, userId string, siteURL string) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -382,7 +362,7 @@ func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.App
 			return nil, err
 		}
 
-		if err = JoinChannel(channel, userId); err != nil {
+		if err = JoinChannel(channel, userId, siteURL); err != nil {
 			return nil, err
 		}
 

@@ -1548,6 +1548,10 @@
     "translation": "Initializing post API routes"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Link previews have been disabled by the system administrator."
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "Failed to get 2 members for a direct channel channel_id={{.ChannelId}}"
   },

@@ -211,7 +211,7 @@ func TestIncomingWebhook(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
 
-	app.JoinUserToTeam(team, user)
+	app.JoinUserToTeam(team, user, utils.GetSiteURL())
 
 	app.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.SetTeamId(team.Id)

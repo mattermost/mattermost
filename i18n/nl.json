@@ -1516,6 +1516,10 @@
     "translation": "Initialisatie van de berichten API routes"
   },
   {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
+  },
+  {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
     "translation": "Het is niet gelukt om de 2 deelnemers op te halen van een direct kanaal. channel_id=%v"
   },

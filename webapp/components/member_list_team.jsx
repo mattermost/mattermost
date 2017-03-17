@@ -43,7 +43,7 @@ export default class MemberListTeam extends React.Component {
     }
 
     componentDidMount() {
-        UserStore.addInTeamChangeListener(this.onChange);
+        UserStore.addInTeamChangeListener(this.onTeamChange);
         UserStore.addStatusesChangeListener(this.onChange);
         TeamStore.addChangeListener(this.onTeamChange);
         TeamStore.addStatsChangeListener(this.onStatsChange);
@@ -53,7 +53,7 @@ export default class MemberListTeam extends React.Component {
     }
 
     componentWillUnmount() {
-        UserStore.removeInTeamChangeListener(this.onChange);
+        UserStore.removeInTeamChangeListener(this.onTeamChange);
         UserStore.removeStatusesChangeListener(this.onChange);
         TeamStore.removeChangeListener(this.onTeamChange);
         TeamStore.removeStatsChangeListener(this.onStatsChange);
@@ -88,12 +88,13 @@ export default class MemberListTeam extends React.Component {
     }
 
     search(term) {
+        clearTimeout(this.searchTimeoutId);
+
         if (term === '') {
             this.setState({search: false, term, users: UserStore.getProfileListInTeam(), teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
+            this.searchTimeoutId = '';
             return;
         }
-
-        clearTimeout(this.searchTimeoutId);
 
         const searchTimeoutId = setTimeout(
             () => {
