@@ -23,7 +23,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,
-		CheckOrigin:     nil,
+		CheckOrigin:     true,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
