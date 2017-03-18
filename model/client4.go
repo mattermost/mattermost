@@ -779,6 +779,34 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 	}
 }
 
+// AddTeamMember adds user to a team and return a team member.
+func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId string) (*TeamMember, *Response) {
+	requestBody := make(map[string]string)
+
+	if userId != "" {
+		requestBody["user_id"] = userId
+	}
+
+	if hash != "" {
+		requestBody["hash"] = hash
+	}
+
+	if dataToHash != "" {
+		requestBody["data"] = dataToHash
+	}
+
+	if inviteId != "" {
+		requestBody["invite_id"] = inviteId
+	}
+
+	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId), MapToJson(requestBody)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamStats returns a team stats based on the team id string.
 // Must be authenticated.
 func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
