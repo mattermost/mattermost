@@ -3,11 +3,11 @@ import {FormattedMessage} from 'react-intl';
 
 import DeleteModalTrigger from '../../delete_modal_trigger.jsx';
 
-export default class DeleteIntegration extends DeleteModalTrigger {
+export default class DeleteEmoji extends DeleteModalTrigger {
     get triggerTitle() {
         return (
             <FormattedMessage
-                id='installed_integrations.delete'
+                id='emoji_list.delete'
                 defaultMessage='Delete'
             />
         );
@@ -16,8 +16,8 @@ export default class DeleteIntegration extends DeleteModalTrigger {
     get modalTitle() {
         return (
             <FormattedMessage
-                id='integrations.delete.confirm.title'
-                defaultMessage='Delete Integration'
+                id='emoji_list.delete.confirm.title'
+                defaultMessage='Delete Custom Emoji'
             />
         );
     }
@@ -27,8 +27,8 @@ export default class DeleteIntegration extends DeleteModalTrigger {
             <div className='alert alert-warning'>
                 <i className='fa fa-warning'/>
                 <FormattedMessage
-                    id={this.props.messageId}
-                    defaultMessage='This action permanently deletes the integration and breaks any integrations using it. Are you sure you want to delete it?'
+                    id='emoji_list.delete.confirm.msg'
+                    defaultMessage='This action permanently deletes the custom emoji. Are you sure you want to delete it?'
                 />
             </div>
         );
@@ -37,14 +37,13 @@ export default class DeleteIntegration extends DeleteModalTrigger {
     get modalConfirmButton() {
         return (
             <FormattedMessage
-                id='integrations.delete.confirm.button'
+                id='emoji_list.delete.confirm.button'
                 defaultMessage='Delete'
             />
         );
     }
 }
 
-DeleteIntegration.propTypes = {
-    messageId: React.PropTypes.string.isRequired,
+DeleteEmoji.propTypes = {
     onDelete: React.PropTypes.func.isRequired
 };
