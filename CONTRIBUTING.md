@@ -10,7 +10,7 @@ The one exception may be around release time, where the review process may take 
 
 #### PR submitted
 
-After a PR is submitted, a core committer applies labels and notifies PMs that there is a PR awaiting review by posting in the [PM/Docs PR Review channel](https://pre-release.mattermost.com/core/channels/pmdocs-pr-review-pub), which is a channel to discuss community pull requests that need review by PMs.
+After a PR is submitted, a core committer applies labels and notifies product managers (PMs) that there is a PR awaiting review by posting in the [PM/Docs PR Review channel](https://pre-release.mattermost.com/core/channels/pmdocs-pr-review-pub), which is a channel to discuss community pull requests that need review by PMs.
 
 Then, one or more of the labels is applied:
  - `Awaiting PR`: Applied if the PR is awaiting another to be merged. For example, when a client PR is awaiting a server PR to be merged first. Once the PR is no longer blocked, the core committer removes the `Awaiting PR` label
@@ -20,11 +20,11 @@ Then, one or more of the labels is applied:
 
 #### Stage 1: PM Review
 
-A Product Manager will review the pull request to make sure it:
+A product manager will review the pull request to make sure it:
 
  - Fits with our product roadmap
  - Works as described in the ticket
- - Meets UX guidelines
+ - Meets [user experience guidelines](https://docs.mattermost.com/developer/fx-guidelines.html)
 
 This step is sometimes skipped for bugs or small improvements with a well defined ticket.
 
