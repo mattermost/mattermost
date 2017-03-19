@@ -201,7 +201,7 @@ check-server-style: govet
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt sucess"; \
+		echo "gofmt success"; \
 	else \
 		echo "gofmt failure"; \
 		exit 1; \
