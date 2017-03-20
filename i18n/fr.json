@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Test des réglages e-mail"
+    "translation": "Mattermost - Test des paramètres e-mail"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -146,6 +146,10 @@
   {
     "id": "api.auth.unable_to_get_user.app_error",
     "translation": "Impossible de récupérer l'utilisateur pour vérifier les permissions."
+  },
+  {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
   },
   {
     "id": "api.channel.add_member.added",
@@ -284,6 +288,10 @@
     "translation": "Initialisation des routes de l'API d'administration"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "Vous n'avez pas les permissions requises"
   },
@@ -382,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "Impossible de récupérer le nombre de messages non lus pour user_id=%v et channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,12 +812,16 @@
     "translation": "haussement"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initializing compliance API routes"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Désolé, impossible de trouver cette page."
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "{{.Name}} invalid ou manquant dans le corps de la requête"
+    "translation": "{{.Name}} invalide ou manquant dans le corps de la requête"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -1010,8 +1026,8 @@
     "translation": "Le lien public ne semble pas être valide"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "Le fichier n'a pas d'aperçu d'image"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "File doesn't have a preview image"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1228,6 +1244,10 @@
   {
     "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "Les webhooks entrants ont été désactivés par l'administrateur système."
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "Initializing LDAP API routes"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -2229,7 +2249,7 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>VOS COMPTES DUPLIQUES ONT ETE MIS A NIVEAU</h3>Votre serveur Mattermost a été mis à niveau vers la version 3.0, qui vous permet d'utiliser un seul compte pour plusieurs équipes.<br/><br/>Vous recevez cet email parce que le processus de mise à niveau a détecté que votre compte utilisait la même adresse email ou le même nom d'utilisateur que d'autres comptes présents sur le serveur.<br/><br/>Les mises à niveau suivantes ont été effectuées : <br/><br/>{{if .EmailChanged }}- Une adresse email dupliquée d'un compte de l'équipe `/{{.TeamName}}` a été changé en `{{.Email}}`. Vous devrez utiliser cette nouvelle adresse email la prochaine fois que vous vous connecterez à l'aide de votre adresse email et mot de passe.<br/><br/>{{end}}{{if .UsernameChanged }}- Un nom d'utilisateur en doublon d'un compte de l'équipe `/{{.TeamName}}` a été changé en `{{.Username}}` pour éviter toute confusion avec d'autres comptes.<br/><br/>{{end}} ACTION RECOMMANDÉE : <br/><br/>Il est nécessaire que vous vous connectiez aux équipes qui utilisent vos comptes dupliqués de façon à ajouter votre compte principal à cette équipe et ainsi pouvoir continuer à utiliser vos groupes publics et privés.<br/><br/>De cette façon, votre compte principal aura accès à l'entièreté de l'historique des canaux publics et privés. Vous pouvez continuer à utiliser l'historique des messages privés en utilisant vos comptes dupliqués en vous connectant à l'aide de leurs paramètres d'authentification. <br/><br/>POUR PLUS D'INFORMATION: <br/><br/>Pour plus d'information sur la mise à niveau vers Mattermost 3.0, veuillez vous référer à : <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>VOS COMPTES DUPLIQUES ONT ETE MIS A NIVEAU</h3>Votre serveur Mattermost a été mis à niveau vers la version 3.0, qui vous permet d'utiliser un seul compte pour plusieurs équipes.<br/><br/>Vous recevez cet e-mail parce que le processus de mise à niveau a détecté que votre compte utilisait la même adresse e-mail ou le même nom d'utilisateur que d'autres comptes présents sur le serveur.<br/><br/>Les mises à niveau suivantes ont été effectuées : <br/><br/>{{if .EmailChanged }}- Une adresse e-mail dupliquée d'un compte de l'équipe `/{{.TeamName}}` a été changé en `{{.Email}}`. Vous devrez utiliser cette nouvelle adresse e-mail la prochaine fois que vous vous connecterez à l'aide de votre adresse e-mail et mot de passe.<br/><br/>{{end}}{{if .UsernameChanged }}- Un nom d'utilisateur en doublon d'un compte de l'équipe `/{{.TeamName}}` a été changé en `{{.Username}}` pour éviter toute confusion avec d'autres comptes.<br/><br/>{{end}} ACTION RECOMMANDÉE : <br/><br/>Il est nécessaire que vous vous connectiez aux équipes qui utilisent vos comptes dupliqués de façon à ajouter votre compte principal à cette équipe et ainsi pouvoir continuer à utiliser vos groupes publics et privés.<br/><br/>De cette façon, votre compte principal aura accès à l'entièreté de l'historique des canaux publics et privés. Vous pouvez continuer à utiliser l'historique des messages privés en utilisant vos comptes dupliqués en vous connectant à l'aide de leurs paramètres d'authentification. <br/><br/>POUR PLUS D'INFORMATION: <br/><br/>Pour plus d'information sur la mise à niveau vers Mattermost 3.0, veuillez vous référer à : <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -2621,7 +2641,7 @@
   },
   {
     "id": "api.user.update_password.menu",
-    "translation": "en utilisant le menu préférences"
+    "translation": "en utilisant le menu paramètres"
   },
   {
     "id": "api.user.update_password.oauth.app_error",
@@ -2661,7 +2681,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible d'analyser les réglages de la photo de profil."
+    "translation": "Impossible d'analyser les paramètres de la photo de profil."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3676,6 +3696,10 @@
     "translation": "Impossible d'écrire la requête"
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "La date de création doit être une date valide"
   },
@@ -3757,7 +3781,7 @@
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Intervalle d'envoi d'e-mails par lot invalide pour les réglages de courriels. Doit être égal ou supérieur à 30 secondes."
+    "translation": "Intervalle d'envoi d'e-mails par lot invalide pour les paramètres d'e-mail. Doit être égal ou supérieur à 30 secondes."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -4700,6 +4724,14 @@
     "translation": "Nous n'avons pas pu obtenir les canaux"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "Nous n'avons pas pu incrémenter le nombre de mentions"
   },
@@ -4714,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Nous n'avons pas pu retirer le membre du canal"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

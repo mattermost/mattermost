@@ -148,6 +148,10 @@
     "translation": "Niet mogelijk om de rechten te controleren."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v is door %v aan het kanaal toegevoegd"
   },
@@ -284,6 +288,10 @@
     "translation": "Initialisatie van de kanaal API routes"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "U beschikt niet over de juiste rechten"
   },
@@ -382,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "Onmogelijk om het aantal ongelezen bericht op te halen voor user_id=%v en channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,10 @@
     "translation": "ophalen"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initializing compliance API routes"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },
@@ -1010,8 +1026,8 @@
     "translation": "De publieke link lijkt niet geldig"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "Bestand heeft geen voorvertoning afbeelding"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "File doesn't have a preview image"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1228,6 +1244,10 @@
   {
     "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "Commando's zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "Initializing LDAP API routes"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -3676,6 +3696,10 @@
     "translation": "Fout bij het schrijven van verzoek"
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Aangemaakt op moet een geldige tijd zijn"
   },
@@ -4700,6 +4724,14 @@
     "translation": "We kunnen de kanalen niet ophalen"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "We kunnen de vermeldingen niet ophogen"
   },
@@ -4714,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Het kanaal lid kan niet verwijderd worden"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

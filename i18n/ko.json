@@ -148,6 +148,10 @@
     "translation": "권한을 확인하기 위한 유저 정보를 가져올 수 없습니다."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v 이/가 %v에 의해 채널에 추가되었습니다"
   },
@@ -284,6 +288,10 @@
     "translation": "채널 API 경로 초기화 중"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "사용 권한이 없습니다."
   },
@@ -382,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "읽지 않은 메시지 갯수를 가져오지 못했습니다. user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,10 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initializing compliance API routes"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "죄송합니다, 페이지를 찾을 수 없습니다."
   },
@@ -1010,8 +1026,8 @@
     "translation": "유효하지 않은 링크입니다."
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "파일 미리보기 이미지가 없습니다."
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "File doesn't have a preview image"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1228,6 +1244,10 @@
   {
     "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "Incoming webhook은 관리자가 사용할 수 없게 설정했습니다."
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "Initializing LDAP API routes"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -3676,6 +3696,10 @@
     "translation": "Unable to write request"
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -4700,6 +4724,14 @@
     "translation": "채널을 찾을 수 없습니다"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "We couldn't increment the mention count"
   },
@@ -4714,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

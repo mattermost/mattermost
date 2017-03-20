@@ -148,6 +148,10 @@
     "translation": "Konnte Benutzer zu Berechtigungsüberprüfung nicht abrufen."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v wurde von %v zum Kanal hinzugefügt"
   },
@@ -284,6 +288,10 @@
     "translation": "Initialisiere Kanal-API-Routen"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "Sie haben nicht die erforderlichen Rechte"
   },
@@ -382,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v nicht abrufen, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,10 @@
     "translation": "zucken"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initializing compliance API routes"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Entschuldigung, wir können die Seite nicht finden."
   },
@@ -1010,8 +1026,8 @@
     "translation": "Der öffentliche Link scheint nicht gültig zu sein"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "Datei hat kein Vorschaubild"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "File doesn't have a preview image"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1228,6 +1244,10 @@
   {
     "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "Eingehende Webhooks wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "Initializing LDAP API routes"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1517,7 +1537,7 @@
   },
   {
     "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link Vorschauen wurden vom Systemadministrator deaktiviert"
+    "translation": "Link-Vorschauen wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -3676,6 +3696,10 @@
     "translation": "Problem beim Schreiben der Anfrage"
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Erstellt am muss eine gültige Zeit sein"
   },
@@ -4700,6 +4724,14 @@
     "translation": "Es konnten nicht alle Kanäle abgerufen werden"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "Konnte Erwähnungenanzahl nicht erhöhen"
   },
@@ -4714,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Die Kanalmitglieder konnten nicht entfernt werden"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
