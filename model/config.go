@@ -473,7 +473,7 @@ func (o *Config) SetDefaults() {
 		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
 	}
 
-	if len(*o.FileSettings.PublicLinkSalt) == 0 {
+	if o.FileSettings.PublicLinkSalt == nil || len(*o.FileSettings.PublicLinkSalt) == 0 {
 		o.FileSettings.PublicLinkSalt = new(string)
 		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
 	}

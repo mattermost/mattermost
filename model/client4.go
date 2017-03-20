@@ -1191,12 +1191,23 @@ func (c *Client4) DatabaseRecycle() (bool, *Response) {
 	}
 }
 
+// InvalidateCaches will purge the cache and can affect the performance while is cleaning.
 func (c *Client4) InvalidateCaches() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetCacheRoute()+"/invalidate", ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateConfig will update the server configuration
+func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
+	if r, err := c.DoApiPut(c.GetConfigRoute(), config.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ConfigFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -86,6 +87,47 @@ func TestReloadConfig(t *testing.T) {
 
 	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
+}
+
+func TestUpdateConfig(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	cfg := app.GetConfig()
+
+	_, resp := Client.UpdateConfig(cfg)
+	CheckForbiddenStatus(t, resp)
+
+	SiteName := utils.Cfg.TeamSettings.SiteName
+
+	cfg.TeamSettings.SiteName = "MyFancyName"
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	if len(cfg.TeamSettings.SiteName) == 0 {
+		t.Fatal()
+	} else {
+		if cfg.TeamSettings.SiteName != "MyFancyName" {
+			t.Log("It should update the SiteName")
+			t.Fatal()
+		}
+	}
+
+	//Revert the change
+	cfg.TeamSettings.SiteName = SiteName
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	if len(cfg.TeamSettings.SiteName) == 0 {
+		t.Fatal()
+	} else {
+		if cfg.TeamSettings.SiteName != SiteName {
+			t.Log("It should update the SiteName")
+			t.Fatal()
+		}
+	}
+
 }
 
 func TestEmailTest(t *testing.T) {
