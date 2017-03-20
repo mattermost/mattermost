@@ -539,7 +539,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.AddTeamMember(GenerateTestId(), otherUser.Id, "", "", "")
-	CheckNotFoundStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = Client.AddTeamMember(team.Id, GenerateTestId(), "", "", "")
 	CheckNotFoundStatus(t, resp)

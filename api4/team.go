@@ -242,39 +242,36 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var tm *model.TeamMember
 	var err *model.AppError
-	var team *model.Team
-	if team, err = app.GetTeam(c.Params.TeamId); err != nil {
-		c.Err = err
+	member := model.TeamMemberFromJson(r.Body)
+	if member.TeamId != c.Params.TeamId {
+		c.SetInvalidParam("team_id")
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
-	userId := props["user_id"]
-	hash := props["hash"]
-	data := props["data"]
-	inviteId := props["invite_id"]
+	hash := r.URL.Query().Get("hash")
+	data := r.URL.Query().Get("data")
+	inviteId := r.URL.Query().Get("invite_id")
 
-	if len(userId) > 0 {
-		if len(userId) != 26 {
+	if len(member.UserId) > 0 {
+		if len(member.UserId) != 26 {
 			c.SetInvalidParam("user_id")
 			return
 		}
 
-		if !app.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_ADD_USER_TO_TEAM) {
+		if !app.SessionHasPermissionToTeam(c.Session, member.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
 			c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
 			return
 		}
 
-		tm, err = app.AddTeamMember(team.Id, userId, c.GetSiteURL())
+		member, err = app.AddTeamMember(member.TeamId, member.UserId, c.GetSiteURL())
 	} else if len(hash) > 0 && len(data) > 0 {
-		tm, err = app.AddTeamMemberByHash(c.Session.UserId, hash, data, c.GetSiteURL())
+		member, err = app.AddTeamMemberByHash(c.Session.UserId, hash, data, c.GetSiteURL())
 		if err != nil {
 			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_data.app_error", nil, "", http.StatusNotFound)
 		}
 	} else if len(inviteId) > 0 {
-		tm, err = app.AddTeamMemberByInviteId(inviteId, c.Session.UserId, c.GetSiteURL())
+		member, err = app.AddTeamMemberByInviteId(inviteId, c.Session.UserId, c.GetSiteURL())
 		if err != nil {
 			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_invite_id.app_error", nil, "", http.StatusNotFound)
 		}
@@ -287,7 +284,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(tm.ToJson()))
+	w.Write([]byte(member.ToJson()))
 }
 
 func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
