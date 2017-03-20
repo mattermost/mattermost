@@ -1304,6 +1304,34 @@ func AutocompleteUsersInTeam(teamId string, term string, searchOptions map[strin
 	return autocomplete, nil
 }
 
+func UpdateMfa(activate bool, userId, token, siteUrl string) (bool, *model.AppError) {
+	if activate {
+		if err := ActivateMfa(userId, token); err != nil {
+			return false, err
+		}
+	} else {
+		if err := DeactivateMfa(userId); err != nil {
+			return false, err
+		}
+	}
+
+	go func() {
+		var user *model.User
+		var err *model.AppError
+
+		if user, err = GetUser(userId); err != nil {
+			l4g.Error(err.Error())
+			return
+		}
+
+		if err := SendMfaChangeEmail(user.Email, activate, user.Locale, siteUrl); err != nil {
+			l4g.Error(err.Error())
+		}
+	}()
+
+	return true, nil
+}
+
 func UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string, siteURL string) *model.AppError {
 	oauthUser := provider.GetUserFromJson(userData)
 

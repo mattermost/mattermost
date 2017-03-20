@@ -45,6 +45,8 @@ func InitUser() {
 	BaseRoutes.User.Handle("/sessions", ApiSessionRequired(getSessions)).Methods("GET")
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
+
+	BaseRoutes.User.Handle("/mfa", ApiSessionRequired(updateMfa)).Methods("PUT")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -769,4 +771,43 @@ func verify(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
 	c.Err.StatusCode = http.StatusBadRequest
 	return
+}
+
+func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	props := model.StringInterfaceFromJson(r.Body)
+
+	activate, ok := props["activate"].(bool)
+	if !ok {
+		c.SetInvalidParam("activate")
+		return
+	}
+
+	token := ""
+	if activate {
+		token = props["token"].(string)
+		if len(token) == 0 {
+			c.SetInvalidParam("token")
+			return
+		}
+	}
+
+	c.LogAudit("attempt");
+
+	if _, err := app.UpdateMfa(activate, c.Params.UserId, token, c.GetSiteURL()); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - mfa updated");
+	ReturnStatusOK(w)
 }

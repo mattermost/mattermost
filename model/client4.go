@@ -339,6 +339,22 @@ func (c *Client4) Logout() (bool, *Response) {
 
 // User Section
 
+// UpdateMfa activates multi-factor authenticates for the current user if activate
+// is true and a valid token is provided. If activate is false, then token is not
+// required and multi-factor authentication is disabled for the current user.
+func (c *Client4) UpdateMfa(userId, token string, activate bool) (bool, *Response) {
+	requestBody := make(map[string]interface{})
+	requestBody["activate"] = activate
+	requestBody["token"] = token
+
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/mfa", StringInterfaceToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // CreateUser creates a user in the system based on the provided user struct.
 func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPost(c.GetUsersRoute(), user.ToJson()); err != nil {
