@@ -184,7 +184,6 @@ class PostAttachment extends React.Component {
                 author.push(
                     <img
                         className='attachment__author-icon'
-                        crossOrigin='anonymous'
                         src={data.author_icon}
                         key={'attachment__author-icon'}
                         height='14'
@@ -258,7 +257,6 @@ class PostAttachment extends React.Component {
             image = (
                 <img
                     className='attachment__image'
-                    crossOrigin='anonymous'
                     src={data.image_url}
                 />
             );
@@ -271,7 +269,6 @@ class PostAttachment extends React.Component {
                     className='attachment__thumb-container'
                 >
                     <img
-                        crossOrigin='anonymous'
                         src={data.thumb_url}
                     />
                 </div>
