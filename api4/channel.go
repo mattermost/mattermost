@@ -33,6 +33,7 @@ func InitChannel() {
 
 	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
 	BaseRoutes.ChannelMembers.Handle("/ids", ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
+	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(addChannelMember)).Methods("POST")
 	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
@@ -496,6 +497,51 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	ReturnStatusOK(w)
+}
+
+func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	member := model.ChannelMemberFromJson(r.Body)
+	if member == nil {
+		c.SetInvalidParam("channel_member")
+		return
+	}
+
+	if len(member.UserId) != 26 {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	member.ChannelId = c.Params.ChannelId
+
+	var channel *model.Channel
+	var err *model.AppError
+	if channel, err = app.GetChannel(member.ChannelId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+		return
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+		return
+	}
+
+	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
+		w.Write([]byte(cm.ToJson()))
+	}
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
