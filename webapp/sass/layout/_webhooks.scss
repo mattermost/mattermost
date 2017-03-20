@@ -74,6 +74,9 @@
             }
 
             &.attachment__container--opengraph {
+                padding-left: 5px;
+                border-left-style: none;
+                border-left-color: transparent;
                 display: table;
                 margin: 0;
                 padding-bottom: 13px;
