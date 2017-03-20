@@ -193,7 +193,6 @@ export default class PostAttachmentOpenGraph extends React.Component {
                     element = this.wrapInSmallImageContainer(
                         <img
                             className={'attachment__image attachment__image--openraph'}
-                            crossOrigin='anonymous'
                             src={imageUrl}
                             ref={(img) => {
                                 this.smallImageElement = img;
