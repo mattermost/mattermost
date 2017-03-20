@@ -237,7 +237,7 @@ export default class SearchResults extends React.Component {
                         </li>
                         <li>
                             <FormattedHTMLMessage
-                                id='search_results.usagePin3'
+                                id='search_results.usagePin4'
                                 defaultMessage={'To pin a message: Go to the message that you want to pin and click [...] > "Pin to channel".'}
                             />
                         </li>
