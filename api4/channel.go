@@ -535,7 +535,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId); err != nil {
+	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else {

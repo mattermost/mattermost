@@ -446,7 +446,7 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 	return newMember, nil
 }
 
-func AddChannelMember(userId string, channel *model.Channel, userRequestorId string) (*model.ChannelMember, *model.AppError) {
+func AddChannelMember(userId string, channel *model.Channel, userRequestorId, siteURL string) (*model.ChannelMember, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
 
@@ -464,7 +464,7 @@ func AddChannelMember(userId string, channel *model.Channel, userRequestorId str
 		return nil, err
 	}
 
-	go PostAddToChannelMessage(userRequestor, user, channel)
+	go PostAddToChannelMessage(userRequestor, user, channel, siteURL)
 
 	UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
 
