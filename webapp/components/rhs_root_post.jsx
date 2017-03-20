@@ -114,7 +114,8 @@ export default class RhsRootPost extends React.Component {
         if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
             return true;
         }
-        if (this.state.showRHSEmojiPicker !== nextState.showRHSEmojiPicker){
+
+        if (this.state.showRHSEmojiPicker !== nextState.showRHSEmojiPicker) {
             return true;
         }
 

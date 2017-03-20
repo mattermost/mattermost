@@ -38,9 +38,9 @@ export default class PostInfo extends React.Component {
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
         this.state = {
-            showEmojiPicker: false
+            showEmojiPicker: false,
+            reactionPickerOffset: 21
         };
-
     }
 
     handleDropdownOpened() {
@@ -322,9 +322,20 @@ export default class PostInfo extends React.Component {
     }
 
     reactEmojiClick(emoji) {
+        const threadHeight = document.getElementById('thread--root') ? document.getElementById('thread--root').offsetHeight : 0;
+        const messagesHeight = document.querySelector('div.post-right-comments-container') ? document.querySelector('div.post-right-comments-container').offsetHeight : 0;
+
+        const totalHeight = threadHeight + messagesHeight;
+        let pickerOffset = 0;
+        if (totalHeight > 361) {
+            pickerOffset = -361;
+        } else {
+            pickerOffset = -1 * totalHeight;
+        }
+        pickerOffset = 21;
         const emojiName = emoji.name || emoji.aliases[0];
         PostActions.addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
-        this.setState({showEmojiPicker: false});
+        this.setState({showEmojiPicker: false, reactionPickerOffset: pickerOffset});
     }
 
     render() {

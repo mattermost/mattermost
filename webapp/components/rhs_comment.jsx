@@ -343,9 +343,9 @@ export default class RhsComment extends React.Component {
     }
 
     reactEmojiClick(emoji) {
+        this.setState({showReactEmojiPicker: false});
         const emojiName = emoji.name || emoji.aliases[0];
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
-        this.setState({showReactEmojiPicker: false});
     }
 
     render() {
@@ -582,11 +582,11 @@ export default class RhsComment extends React.Component {
             );
             reactOverlay = (
                 <Overlay
-                    id='rhs_react_overlay'
+                    id={'rhs_react_overlay_' + post.id}
                     show={this.state.showReactEmojiPicker}
-                    placement='left'
+                    placement='top'
                     rootClose={true}
-                    container={this}
+                    container={this.refs['post_body_' + post.id]}
                     onHide={() => this.setState({showReactEmojiPicker: false})}
                     target={() => ReactDOM.findDOMNode(this.refs['rhs_reacticon_' + post.id])}
 
@@ -635,7 +635,10 @@ export default class RhsComment extends React.Component {
         };
 
         return (
-            <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
+            <div
+                ref={'post_body_' + post.id}
+                className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}
+            >
                 <div className='post__content'>
                     {profilePicContainer}
                     <div>
@@ -651,7 +654,7 @@ export default class RhsComment extends React.Component {
                             </li>
                             {options}
                         </ul>
-                        <div className='post__body'>
+                        <div className='post__body' >
                             <div className={postClass}>
                                 {loading}
                                 <PostMessageContainer post={post}/>
