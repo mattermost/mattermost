@@ -226,13 +226,19 @@ export default class SearchResults extends React.Component {
                         <li>
                             <FormattedHTMLMessage
                                 id='search_results.usagePin2'
-                                defaultMessage={'You can pin a message by clicking the "Pin to channel" option from the message\'s menu.'}
+                                defaultMessage='All members of this channel can pin important or useful messages.'
                             />
                         </li>
                         <li>
                             <FormattedHTMLMessage
                                 id='search_results.usagePin3'
-                                defaultMessage='Pinned messages are accessible by all channel members and are a way to mark messages for future reference.'
+                                defaultMessage='Pinned messages are visible to all channel members.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin4'
+                                defaultMessage={'To pin a message: Go to the message that you want to pin and click [...] > "Pin to channel".'}
                             />
                         </li>
                     </ul>
