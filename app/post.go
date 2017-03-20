@@ -4,7 +4,10 @@
 package app
 
 import (
+	"net"
 	"net/http"
+	"net/url"
+	"os"
 	"regexp"
 	"time"
 
@@ -17,12 +20,34 @@ import (
 )
 
 var (
-	c = &http.Client{
-		Timeout: 5 * time.Second,
-	}
+	httpClient *http.Client
 
+	httpTimeout       = time.Duration(5 * time.Second)
 	linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 )
+
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, httpTimeout)
+}
+
+func init() {
+	p, ok := os.LookupEnv("HTTP_PROXY")
+	if ok {
+		if u, err := url.Parse(p); err == nil {
+			httpClient = &http.Client{
+				Transport: &http.Transport{
+					Proxy: http.ProxyURL(u),
+					Dial:  dialTimeout,
+				},
+			}
+			return
+		}
+	}
+
+	httpClient = &http.Client{
+		Timeout: httpTimeout,
+	}
+}
 
 func CreatePostAsUser(post *model.Post, siteURL string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
@@ -484,14 +509,15 @@ func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo,
 func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := c.Get(url)
+	res, err := httpClient.Get(url)
 	if err != nil {
+		l4g.Error(err.Error())
 		return og
 	}
 	defer CloseBody(res)
 
 	if err := og.ProcessHTML(res.Body); err != nil {
-		return og
+		l4g.Error(err.Error())
 	}
 
 	return og
