@@ -127,7 +127,43 @@ func TestUpdateConfig(t *testing.T) {
 			t.Fatal()
 		}
 	}
+}
 
+func TestGetAudits(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	audits, resp := th.SystemAdminClient.GetAudits(0, 100, "")
+	CheckNoError(t, resp)
+
+	if len(audits) == 0 {
+		t.Fatal("should not be empty")
+	}
+
+	audits, resp = th.SystemAdminClient.GetAudits(0, 1, "")
+	CheckNoError(t, resp)
+
+	if len(audits) != 1 {
+		t.Fatal("should only be 1")
+	}
+
+	audits, resp = th.SystemAdminClient.GetAudits(1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(audits) != 1 {
+		t.Fatal("should only be 1")
+	}
+
+	_, resp = th.SystemAdminClient.GetAudits(-1, -1, "")
+	CheckNoError(t, resp)
+
+	_, resp = Client.GetAudits(0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetAudits(0, 100, "")
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestEmailTest(t *testing.T) {

@@ -1114,13 +1114,13 @@ func TestRevokeSessions(t *testing.T) {
 
 }
 
-func TestGetAudits(t *testing.T) {
+func TestGetUserAudits(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
 	user := th.BasicUser
 
-	audits, resp := Client.GetAudits(user.Id, 0, 100, "")
+	audits, resp := Client.GetUserAudits(user.Id, 0, 100, "")
 	for _, audit := range audits {
 		if audit.UserId != user.Id {
 			t.Fatal("user id does not match audit user id")
@@ -1128,14 +1128,14 @@ func TestGetAudits(t *testing.T) {
 	}
 	CheckNoError(t, resp)
 
-	_, resp = Client.GetAudits(th.BasicUser2.Id, 0, 100, "")
+	_, resp = Client.GetUserAudits(th.BasicUser2.Id, 0, 100, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.GetAudits(user.Id, 0, 100, "")
+	_, resp = Client.GetUserAudits(user.Id, 0, 100, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetAudits(user.Id, 0, 100, "")
+	_, resp = th.SystemAdminClient.GetUserAudits(user.Id, 0, 100, "")
 	CheckNoError(t, resp)
 }
 
