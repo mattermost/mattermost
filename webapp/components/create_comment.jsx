@@ -580,7 +580,7 @@ export default class CreateComment extends React.Component {
             emojiPicker = (
                 <EmojiPicker
                     onEmojiClick={this.handleEmojiClick}
-                    topOrBottom='bottom'
+                    pickerLocation='bottom'
                     emojiOffset={this.state.emojiOffset}
                     outsideClick={this.closeEmoji}
                 />

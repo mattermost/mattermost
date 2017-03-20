@@ -14,14 +14,17 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {flagPost, unflagPost, pinPost, unpinPost} from 'actions/post_actions.jsx';
+import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
+import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
+import ReactDOM from 'react-dom';
+
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -37,7 +40,10 @@ export default class RhsRootPost extends React.Component {
         this.unflagPost = this.unflagPost.bind(this);
         this.pinPost = this.pinPost.bind(this);
         this.unpinPost = this.unpinPost.bind(this);
+        this.reactEmojiClick = this.reactEmojiClick.bind(this);
+        this.emojiPickerClick = this.emojiPickerClick.bind(this);
 
+        this.canReact = false;
         this.canEdit = false;
         this.canDelete = false;
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
@@ -45,7 +51,9 @@ export default class RhsRootPost extends React.Component {
         this.state = {
             currentTeamDisplayName: TeamStore.getCurrent().name,
             width: '',
-            height: ''
+            height: '',
+            showRHSEmojiPicker: false,
+            testStateObj: true
         };
     }
 
@@ -70,7 +78,7 @@ export default class RhsRootPost extends React.Component {
         this.canEdit = false;
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.status !== this.props.status) {
             return true;
         }
@@ -104,6 +112,9 @@ export default class RhsRootPost extends React.Component {
         }
 
         if (!Utils.areObjectsEqual(nextProps.currentUser, this.props.currentUser)) {
+            return true;
+        }
+        if (this.state.showRHSEmojiPicker !== nextState.showRHSEmojiPicker){
             return true;
         }
 
@@ -155,6 +166,16 @@ export default class RhsRootPost extends React.Component {
         unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
+    emojiPickerClick() {
+        this.setState({showRHSEmojiPicker: !this.state.showRHSEmojiPicker});
+    }
+
+    reactEmojiClick(emoji) {
+        const emojiName = emoji.name || emoji.aliases[0];
+        addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+        this.setState({showRHSEmojiPicker: false});
+    }
+
     render() {
         const post = this.props.post;
         const user = this.props.user;
@@ -162,6 +183,12 @@ export default class RhsRootPost extends React.Component {
         var timestamp = user ? user.last_picture_update : 0;
         var channel = ChannelStore.get(post.channel_id);
         const flagIcon = Constants.FLAG_ICON_SVG;
+        if (post.state !== Constants.POST_FAILED &&
+            post.state !== Constants.POST_LOADING &&
+            !Utils.isPostEphemeral(post) &&
+            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            this.canReact = true;
+        }
 
         this.canDelete = PostUtils.canDeletePost(post);
         this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
@@ -193,6 +220,41 @@ export default class RhsRootPost extends React.Component {
             } else {
                 channelName = channel.display_name;
             }
+        }
+
+        let react;
+        let reactOverlay;
+
+        if (this.canReact) {
+            react = (
+                <span>
+                    <a
+                        href='#'
+                        className='comment-icon__container reacticon__container reaction'
+                        onClick={this.emojiPickerClick}
+                        ref='rhs_root_reacticon'
+                    ><i className='fa fa-smile-o'/>
+                    </a>
+                </span>
+
+            );
+            reactOverlay = (
+                <Overlay
+                    id='rhs_react_overlay'
+                    show={this.state.showRHSEmojiPicker}
+                    placement='bottom'
+                    rootClose={true}
+                    container={this}
+                    onHide={() => this.setState({showRHSEmojiPicker: false})}
+                    target={() => ReactDOM.findDOMNode(this.refs.rhs_root_reacticon)}
+
+                >
+                    <EmojiPicker
+                        onEmojiClick={this.reactEmojiClick}
+                        pickerLocation='react'
+                    />
+                </Overlay>
+            );
         }
 
         var dropdownContents = [];
@@ -547,6 +609,8 @@ export default class RhsRootPost extends React.Component {
                                 </OverlayTrigger>
                             </li>
                             <li className='col col__reply'>
+                                {reactOverlay}
+                                {react}
                                 {rootOptions}
                             </li>
                         </ul>

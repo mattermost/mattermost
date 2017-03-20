@@ -1,5 +1,23 @@
 @charset "UTF-8";
 
+.reacticon__container {
+    margin-right: 3px;
+    vertical-align: top;
+    margin-right: 3px;
+    font-size: 19px;
+
+    .reacticon {
+        visibility: hidden;
+        display: inline-block;
+        fill: inherit;
+        position: relative;
+        top: 2px;
+        opacity: 0.7;
+
+    }
+
+}
+
 .emoticon {
     background-position: 50% 50%;
     background-repeat: no-repeat;
