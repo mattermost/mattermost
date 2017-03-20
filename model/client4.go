@@ -182,6 +182,10 @@ func (c *Client4) GetOutgoingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/outgoing")
 }
 
+func (c *Client4) GetOutgoingWebhookRoute(hookID string) string {
+	return fmt.Sprintf(c.GetOutgoingWebhooksRoute()+"/%v", hookID)
+}
+
 func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
@@ -1326,6 +1330,16 @@ func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage in
 	} else {
 		defer closeBody(r)
 		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RegenOutgoingHookToken regenerate the outgoing webhook token.
+func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiPost(c.GetOutgoingWebhookRoute(hookId)+"/regen_token", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
 	}
 }
 
