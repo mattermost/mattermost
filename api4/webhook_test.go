@@ -584,3 +584,44 @@ func TestUpdateIncomingHook(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
+
+func TestRegenOutgoingHookToken(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
+	rhook, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.RegenOutgoingHookToken("junk")
+	CheckBadRequestStatus(t, resp)
+
+	//investigate why is act weird on jenkins
+	// _, resp = th.SystemAdminClient.RegenOutgoingHookToken("")
+	// CheckNotFoundStatus(t, resp)
+
+	regenHookToken, resp := th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
+	CheckNoError(t, resp)
+	if regenHookToken.Token == rhook.Token {
+		t.Fatal("regen didn't work properly")
+	}
+
+	_, resp = Client.RegenOutgoingHookToken(rhook.Id)
+	CheckForbiddenStatus(t, resp)
+
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	_, resp = th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
+	CheckNotImplementedStatus(t, resp)
+}
