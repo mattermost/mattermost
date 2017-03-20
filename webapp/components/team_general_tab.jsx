@@ -275,6 +275,7 @@ class GeneralTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='teamOpenInvite'
                                 name='userOpenInviteOptions'
                                 type='radio'
                                 defaultChecked={this.state.allow_open_invite}
@@ -290,6 +291,7 @@ class GeneralTab extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='teamOpenInviteNo'
                                 name='userOpenInviteOptions'
                                 type='radio'
                                 defaultChecked={!this.state.allow_open_invite}
@@ -349,6 +351,7 @@ class GeneralTab extends React.Component {
                         <label className='col-sm-5 control-label visible-xs-block'/>
                         <div className='col-sm-12'>
                             <input
+                                id='teamInviteId'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateInviteId}
@@ -357,6 +360,7 @@ class GeneralTab extends React.Component {
                             />
                             <div className='padding-top x2'>
                                 <a
+                                    id='teamInviteIdRegenerate'
                                     href='#'
                                     onClick={this.handleGenerateInviteId}
                                 >
@@ -430,6 +434,7 @@ class GeneralTab extends React.Component {
                     <label className='col-sm-5 control-label'>{teamNameLabel}</label>
                     <div className='col-sm-7'>
                         <input
+                            id='teamName'
                             className='form-control'
                             type='text'
                             maxLength={Constants.MAX_TEAMNAME_LENGTH.toString()}
@@ -488,6 +493,7 @@ class GeneralTab extends React.Component {
                     <label className='col-sm-5 control-label'>{teamDescriptionLabel}</label>
                     <div className='col-sm-7'>
                         <input
+                            id='teamDescription'
                             className='form-control'
                             type='text'
                             maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH.toString()}
@@ -537,6 +543,7 @@ class GeneralTab extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeButton'
                         type='button'
                         className='close'
                         data-dismiss='modal'
