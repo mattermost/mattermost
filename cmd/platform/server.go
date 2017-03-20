@@ -35,11 +35,6 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Backwards compatibility with -config flag
-	if flagConfigFile != "" {
-		config = flagConfigFile
-	}
-
 	runServer(config)
 	return nil
 }
@@ -63,8 +58,6 @@ func runServer(configFileLocation string) {
 	if model.BuildNumber == "dev" {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true
 	}
-
-	cmdUpdateDb30()
 
 	app.NewServer()
 	app.InitStores()
