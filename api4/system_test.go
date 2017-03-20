@@ -253,7 +253,7 @@ func TestGetLogs(t *testing.T) {
 	logs, resp = th.SystemAdminClient.GetLogs(-1, -1)
 	CheckNoError(t, resp)
 
-	if len(logs) != 0 {
+	if len(logs) == 0 {
 		t.Fatal("should not be empty")
 	}
 
