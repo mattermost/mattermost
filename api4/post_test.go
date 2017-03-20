@@ -135,7 +135,7 @@ func TestUpdatePost(t *testing.T) {
 
 	msg := "a" + model.NewId() + " update post"
 	rpost.Message = msg
-	rupost, resp := Client.UpdatePost(rpost.Id, rpost);
+	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 
 	if rupost.Message != msg {
@@ -147,7 +147,7 @@ func TestUpdatePost(t *testing.T) {
 
 	msg1 := "#hashtag a" + model.NewId() + " update post again"
 	rpost.Message = msg1
-	rrupost, resp := Client.UpdatePost(rpost.Id, rpost);
+	rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 
 	if rrupost.Message != msg1 && rrupost.Hashtags != "#hashtag" {
@@ -159,7 +159,7 @@ func TestUpdatePost(t *testing.T) {
 	CheckNoError(t, resp)
 
 	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "a" + model.NewId() + " update post 2"}
-	_, resp = Client.UpdatePost(rpost2.Id, up2);
+	_, resp = Client.UpdatePost(rpost2.Id, up2)
 	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
@@ -230,7 +230,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	}
 
 	_, resp = Client.GetPostsForChannel("", 0, 60, "")
-	CheckUnauthorizedStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
 	CheckBadRequestStatus(t, resp)
