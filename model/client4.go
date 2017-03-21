@@ -1300,6 +1300,16 @@ func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook
 	}
 }
 
+// UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
+func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiPut(c.GetOutgoingWebhookRoute(hook.Id), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
 func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

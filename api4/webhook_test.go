@@ -625,3 +625,170 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	_, resp = th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
 	CheckNotImplementedStatus(t, resp)
 }
+
+func TestUpdateOutgoingHook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	createdHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
+
+	createdHook, resp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+	CheckNoError(t, resp)
+
+	t.Run("UpdateOutgoingWebhook", func(t *testing.T) {
+		createdHook.DisplayName = "Cats"
+		createdHook.Description = "Get me some cats"
+
+		updatedHook, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook.DisplayName != "Cats" {
+			t.Fatal("did not update")
+		}
+		if updatedHook.Description != "Get me some cats" {
+			t.Fatal("did not update")
+		}
+	})
+
+	t.Run("OutgoingHooksDisabled", func(t *testing.T) {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
+		_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	t.Run("RetainCreateAt", func(t *testing.T) {
+		hook2 := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats"}}
+
+		createdHook2, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook2)
+		CheckNoError(t, resp)
+		createdHook2.DisplayName = "Name2"
+
+		updatedHook2, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook2)
+		CheckNoError(t, resp)
+
+		if updatedHook2.CreateAt != createdHook2.CreateAt {
+			t.Fatal("failed - hook create at should not be changed")
+		}
+	})
+
+	t.Run("ModifyUpdateAt", func(t *testing.T) {
+		createdHook.DisplayName = "Name3"
+
+		updatedHook2, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+		CheckNoError(t, resp)
+
+		if updatedHook2.UpdateAt == createdHook.UpdateAt {
+			t.Fatal("failed - hook updateAt is not updated")
+		}
+	})
+
+	t.Run("UpdateNonExistentHook", func(t *testing.T) {
+		nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats"}}
+
+		_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(nonExistentHook)
+		CheckNotFoundStatus(t, resp)
+
+		nonExistentHook.Id = model.NewId()
+		_, resp = th.SystemAdminClient.UpdateOutgoingWebhook(nonExistentHook)
+		CheckInternalErrorStatus(t, resp)
+	})
+
+	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
+		_, resp := Client.UpdateOutgoingWebhook(createdHook)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+	hook2 := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats2"}}
+
+	createdHook2, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook2)
+	CheckNoError(t, resp)
+
+	_, resp = Client.UpdateOutgoingWebhook(createdHook2)
+	CheckForbiddenStatus(t, resp)
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Logout()
+	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+	th.LoginBasic2()
+	t.Run("RetainHookCreator", func(t *testing.T) {
+		createdHook.DisplayName = "Basic user 2"
+		updatedHook, resp := Client.UpdateOutgoingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook.DisplayName != "Basic user 2" {
+			t.Fatal("should apply the change")
+		}
+		if updatedHook.CreatorId != th.SystemAdminUser.Id {
+			t.Fatal("hook creator should not be changed")
+		}
+	})
+
+	t.Run("UpdateToExistingTriggerWordAndCallback", func(t *testing.T) {
+		t.Run("OnSameChannel", func(t *testing.T) {
+			createdHook.TriggerWords = []string{"rats"}
+
+			_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("OnDifferentChannel", func(t *testing.T) {
+			createdHook.TriggerWords = []string{"cats"}
+			createdHook.ChannelId = th.BasicChannel2.Id
+
+			_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+			CheckNoError(t, resp)
+		})
+	})
+
+	t.Run("UpdateToNonExistentChannel", func(t *testing.T) {
+		createdHook.ChannelId = "junk"
+
+		_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("UpdateToPrivateChannel", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		createdHook.ChannelId = privateChannel.Id
+
+		_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("UpdateToBlankTriggerWordAndChannel", func(t *testing.T) {
+		createdHook.ChannelId = ""
+		createdHook.TriggerWords = nil
+
+		_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
+		CheckInternalErrorStatus(t, resp)
+	})
+
+	team := th.CreateTeamWithClient(Client)
+	user := th.CreateUserWithClient(Client)
+	LinkUserToTeam(user, team)
+	Client.Logout()
+	Client.Login(user.Id, user.Password)
+	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
+		_, resp := Client.UpdateOutgoingWebhook(createdHook)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
