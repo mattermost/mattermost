@@ -1321,6 +1321,16 @@ func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*Ou
 	}
 }
 
+// GetOutgoingWebhook outgoing webhooks on the system requested by Hook Id.
+func (c *Client4) GetOutgoingWebhook(hookId string) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiGet(c.GetOutgoingWebhookRoute(hookId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
 func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&channel_id=%v", page, perPage, channelId)

@@ -419,6 +419,45 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetOutgoingWebhook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
+
+	rhook, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook)
+	CheckNoError(t, resp)
+
+	getHook, resp := th.SystemAdminClient.GetOutgoingWebhook(rhook.Id)
+	CheckNoError(t, resp)
+	if getHook.Id != rhook.Id {
+		t.Fatal("failed to retrieve the correct outgoing hook")
+	}
+
+	_, resp = Client.GetOutgoingWebhook(rhook.Id)
+	CheckForbiddenStatus(t, resp)
+
+	nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id}
+	_, resp = th.SystemAdminClient.GetOutgoingWebhook(nonExistentHook.Id)
+	CheckNotFoundStatus(t, resp)
+
+	nonExistentHook.Id = model.NewId()
+	_, resp = th.SystemAdminClient.GetOutgoingWebhook(nonExistentHook.Id)
+	CheckInternalErrorStatus(t, resp)
+}
+
 func TestUpdateIncomingHook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
