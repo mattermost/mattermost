@@ -379,6 +379,7 @@ export default class ChannelHeader extends React.Component {
         if (isDirect) {
             dropdownContents.push(
                 <li
+                    id='channelEditHeaderDirect'
                     key='edit_header_direct'
                     role='presentation'
                 >
@@ -397,6 +398,7 @@ export default class ChannelHeader extends React.Component {
         } else if (isGroup) {
             dropdownContents.push(
                 <li
+                    id='channelEditHeaderGroup'
                     key='edit_header_direct'
                     role='presentation'
                 >
@@ -415,6 +417,7 @@ export default class ChannelHeader extends React.Component {
 
             dropdownContents.push(
                 <li
+                    id='channelnotificationPreferencesGroup'
                     key='notification_preferences'
                     role='presentation'
                 >
@@ -437,6 +440,7 @@ export default class ChannelHeader extends React.Component {
 
             dropdownContents.push(
                 <li
+                    id='channelAddMembersGroup'
                     key='add_members'
                     role='presentation'
                 >
@@ -455,6 +459,7 @@ export default class ChannelHeader extends React.Component {
         } else {
             dropdownContents.push(
                 <li
+                    id='channelViewInfo'
                     key='view_info'
                     role='presentation'
                 >
@@ -473,6 +478,7 @@ export default class ChannelHeader extends React.Component {
 
             dropdownContents.push(
                 <li
+                    id='channelNotificationPreferences'
                     key='notification_preferences'
                     role='presentation'
                 >
@@ -503,6 +509,7 @@ export default class ChannelHeader extends React.Component {
             if (!ChannelStore.isDefault(channel)) {
                 dropdownContents.push(
                     <li
+                        id='channelAddMembers'
                         key='add_members'
                         role='presentation'
                     >
@@ -522,6 +529,7 @@ export default class ChannelHeader extends React.Component {
 
                 dropdownContents.push(
                     <li
+                        id='channelManageMembers'
                         key='manage_members'
                         role='presentation'
                     >
@@ -548,6 +556,7 @@ export default class ChannelHeader extends React.Component {
 
             const deleteOption = (
                 <li
+                    id='channelDelete'
                     key='delete_channel'
                     role='presentation'
                 >
@@ -570,6 +579,7 @@ export default class ChannelHeader extends React.Component {
             if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
                 dropdownContents.push(
                     <li
+                        id='channelEditHeader'
                         key='set_channel_header'
                         role='presentation'
                     >
@@ -591,6 +601,7 @@ export default class ChannelHeader extends React.Component {
 
                 dropdownContents.push(
                     <li
+                        id='channelEditPurpose'
                         key='set_channel_purpose'
                         role='presentation'
                     >
@@ -612,6 +623,7 @@ export default class ChannelHeader extends React.Component {
 
                 dropdownContents.push(
                     <li
+                        id='channelRename'
                         key='rename_channel'
                         role='presentation'
                     >
@@ -651,6 +663,7 @@ export default class ChannelHeader extends React.Component {
             if (!ChannelStore.isDefault(channel) && canLeave) {
                 dropdownContents.push(
                     <li
+                        id='channelLeave'
                         key='leave_channel'
                         role='presentation'
                     >
@@ -707,6 +720,7 @@ export default class ChannelHeader extends React.Component {
                 overlay={toggleFavoriteTooltip}
             >
                 <a
+                    id='toggleFavorite'
                     href='#'
                     onClick={this.toggleFavorite}
                     className='channel-header__favorites'
@@ -751,10 +765,10 @@ export default class ChannelHeader extends React.Component {
                                     {toggleFavorite}
                                     <div className='dropdown'>
                                         <a
+                                            id='channelHeaderDropdown'
                                             href='#'
                                             className='dropdown-toggle theme'
                                             type='button'
-                                            id='channel_header_dropdown'
                                             data-toggle='dropdown'
                                             aria-expanded='true'
                                         >
@@ -789,7 +803,7 @@ export default class ChannelHeader extends React.Component {
                                 <a
                                     href='#'
                                     type='button'
-                                    id='pinned-posts-button'
+                                    id='pinnedPostsButton'
                                     className='pinned-posts-button'
                                     onClick={this.getPinnedPosts}
                                 >
@@ -813,6 +827,7 @@ export default class ChannelHeader extends React.Component {
                                         overlay={recentMentionsTooltip}
                                     >
                                         <a
+                                            id='searchMentions'
                                             href='#'
                                             type='button'
                                             onClick={this.searchMentions}
@@ -830,6 +845,7 @@ export default class ChannelHeader extends React.Component {
                                         overlay={flaggedTooltip}
                                     >
                                         <a
+                                            id='flaggedPostsButton'
                                             href='#'
                                             type='button'
                                             onClick={this.getFlagged}
