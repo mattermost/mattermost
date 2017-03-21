@@ -217,7 +217,7 @@
                     left: -79px;
                     position: absolute;
                     text-align: right;
-                    top: 4px;
+                    top: 3px;
                     width: 60px;
                 }
 
@@ -246,7 +246,7 @@
                 span {
                     p {
                         &:last-child {
-                            margin-bottom: .3em;
+                            margin-bottom: 0;
                         }
                     }
                 }
@@ -311,7 +311,7 @@
             .flag-icon__container {
                 left: -21px;
                 position: absolute;
-                top: 6px;
+                top: 4px;
             }
 
             .sidebar--right & .flag-icon__container {
@@ -328,7 +328,7 @@
                     .flag-icon__container {
                         left: -19px;
                         position: absolute;
-                        top: 6px;
+                        top: 4px;
                     }
 
                     .post__header {
@@ -404,6 +404,7 @@
                         text-rendering: auto;
                         top: -2px;
                         width: 51px;
+
                         &:hover {
                             text-decoration: underline;
                         }

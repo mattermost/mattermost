@@ -590,6 +590,10 @@
             .status {
                 visibility: hidden;
             }
+
+            > div {
+                margin-bottom: 0;
+            }
         }
 
         &.same--root {
@@ -686,6 +690,10 @@
 
             div {
                 margin-bottom: 0;
+            }
+
+            .post-image__column {
+                margin: 3px 0;
             }
         }
 
