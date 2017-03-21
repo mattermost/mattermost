@@ -101,13 +101,13 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 		params.PreferenceName = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil {
+	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {
 		params.Page = PAGE_DEFAULT
 	} else {
 		params.Page = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("per_page")); err != nil {
+	if val, err := strconv.Atoi(r.URL.Query().Get("per_page")); err != nil || val < 0 {
 		params.PerPage = PER_PAGE_DEFAULT
 	} else if val > PER_PAGE_MAXIMUM {
 		params.PerPage = PER_PAGE_MAXIMUM
