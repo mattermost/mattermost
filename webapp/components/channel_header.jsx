@@ -769,7 +769,6 @@ export default class ChannelHeader extends React.Component {
                                             href='#'
                                             className='dropdown-toggle theme'
                                             type='button'
-                                            id='channel_header_dropdown'
                                             data-toggle='dropdown'
                                             aria-expanded='true'
                                         >
