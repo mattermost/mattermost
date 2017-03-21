@@ -831,3 +831,65 @@ func TestUpdateOutgoingHook(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
+
+func TestDeleteOutgoingHook(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.SystemAdminClient
+
+	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	var resp *model.Response
+	var rhook *model.OutgoingWebhook
+	var hook *model.OutgoingWebhook
+	var status bool
+
+	t.Run("WhenInvalidHookID", func(t *testing.T) {
+		status, resp = Client.DeleteOutgoingWebhook("abc")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("WhenHookDoesNotExist", func(t *testing.T) {
+		status, resp = Client.DeleteOutgoingWebhook(model.NewId())
+		CheckInternalErrorStatus(t, resp)
+	})
+
+	t.Run("WhenHookExists", func(t *testing.T) {
+		hook = &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
+		rhook, resp = Client.CreateOutgoingWebhook(hook)
+		CheckNoError(t, resp)
+
+		if status, resp = Client.DeleteOutgoingWebhook(rhook.Id); !status {
+			t.Fatal("Delete should have succeeded")
+		} else {
+			CheckOKStatus(t, resp)
+		}
+
+		// Get now should not return this deleted hook
+		_, resp = Client.GetIncomingWebhook(rhook.Id, "")
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+		hook = &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
+			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"dogs"}}
+		rhook, resp = Client.CreateOutgoingWebhook(hook)
+		CheckNoError(t, resp)
+
+		th.LoginBasic()
+		Client = th.Client
+
+		_, resp = Client.DeleteOutgoingWebhook(rhook.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+}
