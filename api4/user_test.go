@@ -75,6 +75,23 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
+func TestGetMe(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	ruser, resp := Client.GetMe("")
+	CheckNoError(t, resp)
+
+	if ruser.Id != th.BasicUser.Id {
+		t.Fatal("wrong user")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetMe("")
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
