@@ -2484,6 +2484,10 @@
     "translation": "Initializing user API routes"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Initializing status API routes"
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },
@@ -2862,6 +2866,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "User not found"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
