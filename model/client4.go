@@ -617,10 +617,23 @@ func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag strin
 	}
 }
 
-// Verify user email user id and hash strings.
+// VerifyUserEmail will verify a user's email using user id and hash strings.
 func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
-	requestBody := map[string]string{"uid": userId, "hid": hashId}
-	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify", MapToJson(requestBody)); err != nil {
+	requestBody := map[string]string{"user_id": userId, "hash_id": hashId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/email/verify", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SendVerificationEmail will send an email to the user with the provided email address, if
+// that user exists. The email will contain a link that can be used to verify the user's
+// email address.
+func (c *Client4) SendVerificationEmail(email string) (bool, *Response) {
+	requestBody := map[string]string{"email": email}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/email/verify/send", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
