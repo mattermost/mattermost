@@ -349,6 +349,16 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	}
 }
 
+// GetMe returns the logged in user.
+func (c *Client4) GetMe(etag string) (*User, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(ME), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetUser returns a user based on the provided user id string.
 func (c *Client4) GetUser(userId, etag string) (*User, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId), etag); err != nil {

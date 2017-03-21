@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	ME                      = "me"
 	USER_NOTIFY_ALL         = "all"
 	USER_NOTIFY_MENTION     = "mention"
 	USER_NOTIFY_NONE        = "none"

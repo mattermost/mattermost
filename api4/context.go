@@ -333,6 +333,10 @@ func (c *Context) RequireUserId() *Context {
 		return c
 	}
 
+	if c.Params.UserId == model.ME {
+		c.Params.UserId = c.Session.UserId
+	}
+
 	if len(c.Params.UserId) != 26 {
 		c.SetInvalidUrlParam("user_id")
 	}
