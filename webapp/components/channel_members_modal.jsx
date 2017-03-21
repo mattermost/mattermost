@@ -41,6 +41,7 @@ export default class ChannelMembersModal extends React.Component {
                             />
                         </Modal.Title>
                         <a
+                            id='showInviteModal'
                             className='btn btn-md btn-primary'
                             href='#'
                             onClick={() => {
