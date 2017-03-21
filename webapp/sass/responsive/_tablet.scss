@@ -217,7 +217,7 @@
                     left: -79px;
                     position: absolute;
                     text-align: right;
-                    top: 6px;
+                    top: 4px;
                     width: 60px;
                 }
 
@@ -236,7 +236,7 @@
             }
 
             &:not(.post--thread) {
-                padding: 5px .5em 0 77px;
+                padding: 0 .5em 0 77px;
 
                 .post__link {
                     margin: 4px 0 7px;
@@ -311,7 +311,7 @@
             .flag-icon__container {
                 left: -21px;
                 position: absolute;
-                top: 7px;
+                top: 6px;
             }
 
             .sidebar--right & .flag-icon__container {
@@ -328,7 +328,7 @@
                     .flag-icon__container {
                         left: -19px;
                         position: absolute;
-                        top: 7px;
+                        top: 6px;
                     }
 
                     .post__header {
