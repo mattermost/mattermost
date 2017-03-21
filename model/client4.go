@@ -606,8 +606,8 @@ func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*Team
 	}
 }
 
-// GetAudits returns a list of audit based on the provided user id string.
-func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
+// GetUserAudits returns a list of audit based on the provided user id string.
+func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
@@ -1602,6 +1602,19 @@ func (c *Client4) TestLdap() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Audits Section
+
+// GetAudits returns a list of audits for the whole system.
+func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet("/audits"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return AuditsFromJson(r.Body), BuildResponse(r)
 	}
 }
 
