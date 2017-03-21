@@ -21,6 +21,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
 	BaseRoutes.Users.Handle("", ApiSessionRequired(getUsers)).Methods("GET")
 	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
+	BaseRoutes.Users.Handle("/search", ApiSessionRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/autocomplete", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
@@ -332,6 +333,72 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(model.UserListToJson(users)))
 	}
+}
+
+func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.UserSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	if props.TeamId == "" && props.NotInChannelId != "" {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	if props.InChannelId != "" && !app.SessionHasPermissionToChannel(c.Session, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if props.NotInChannelId != "" && !app.SessionHasPermissionToChannel(c.Session, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if props.TeamId != "" && !app.SessionHasPermissionToTeam(c.Session, props.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	searchOptions := map[string]bool{}
+	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+		hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
+
+		if hideFullName && hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		} else if hideFullName {
+			searchOptions[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME] = true
+		} else if hideEmail {
+			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
+		}
+	}
+
+	var profiles []*model.User
+	var err *model.AppError
+	if props.InChannelId != "" {
+		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, c.IsSystemAdmin())
+	} else if props.NotInChannelId != "" {
+		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, c.IsSystemAdmin())
+	} else {
+		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions, c.IsSystemAdmin())
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
