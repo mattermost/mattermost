@@ -1149,6 +1149,10 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("should have returned exact user added to private channel")
 	}
 
+	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
+	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id)
+	CheckNoError(t, resp)
+
 	cm, resp = Client.AddChannelMember(publicChannel.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
