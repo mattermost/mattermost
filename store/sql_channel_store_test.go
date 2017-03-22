@@ -732,6 +732,110 @@ func TestChannelStoreGetChannels(t *testing.T) {
 	store.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
+func TestChannelStoreGetChannelsByIds(t *testing.T) {
+	Setup()
+
+	co1 := model.Channel{}
+	co1.TeamId = model.NewId()
+	co1.DisplayName = "Channel1"
+	co1.Name = "a" + model.NewId() + "b"
+	co1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&co1))
+
+	co2 := model.Channel{}
+	co2.TeamId = model.NewId()
+	co2.DisplayName = "Channel2"
+	co2.Name = "a" + model.NewId() + "b"
+	co2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&co2))
+
+	cp3 := model.Channel{}
+	cp3.TeamId = model.NewId()
+	cp3.DisplayName = "Channel3"
+	cp3.Name = "a" + model.NewId() + "b"
+	cp3.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&cp3))
+
+	cm1 := model.ChannelMember{}
+	cm1.ChannelId = co1.Id
+	cm1.UserId = model.NewId()
+	cm1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&cm1))
+
+	cm2 := model.ChannelMember{}
+	cm2.ChannelId = co1.Id
+	cm2.UserId = model.NewId()
+	cm2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	Must(store.Channel().SaveMember(&cm2))
+
+	cm2.ChannelId = co2.Id
+	Must(store.Channel().SaveMember(&cm2))
+
+	cm2.ChannelId = cp3.Id
+	Must(store.Channel().SaveMember(&cm2))
+
+	cids := []string{co1.Id}
+	cresult := <-store.Channel().GetChannelsByIds(cids, cm1.UserId)
+	list := cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("should return 1 channel")
+	}
+
+	if (*list)[0].Id != co1.Id {
+		t.Fatal("missing channel")
+	}
+
+	cids = append(cids, co2.Id)
+	cresult = <-store.Channel().GetChannelsByIds(cids, cm1.UserId)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("should return 1 channel")
+	}
+
+	cresult = <-store.Channel().GetChannelsByIds(cids, cm2.UserId)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 2 {
+		t.Fatal("should return 2 channels")
+	}
+
+	cids = append(cids, cp3.Id)
+	cresult = <-store.Channel().GetChannelsByIds(cids, cm2.UserId)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 3 {
+		t.Fatal("should return 3 channels")
+	}
+
+	for i, c := range *list {
+		if c.Id != cids[i] {
+			t.Fatal("missing channel")
+		}
+	}
+
+	cids = append(cids, model.NewId())
+	cresult = <-store.Channel().GetChannelsByIds(cids, cm2.UserId)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 3 {
+		t.Fatal("should return 3 channels")
+	}
+
+	cids = cids[:0]
+	cids = append(cids, model.NewId())
+	cresult = <-store.Channel().GetChannelsByIds(cids, cm2.UserId)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 0 {
+		t.Fatal("should not return a channel")
+	}
+
+	store.Channel().InvalidateAllChannelMembersForUser(cm1.UserId)
+	store.Channel().InvalidateAllChannelMembersForUser(cm2.UserId)
+}
+
 func TestChannelStoreGetMoreChannels(t *testing.T) {
 	Setup()
 

@@ -1053,6 +1053,16 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response
 	}
 }
 
+// GetChannelsByIds gets a list of channels that the user is member of
+func (c *Client4) GetChannelsByIds(channelIds []string) (*ChannelList, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelsRoute()+"/ids", ArrayToJson(channelIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetChannelUnread will return a ChannelUnread object that contains the number of
 // unread messages and mentions for a user.
 func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *Response) {

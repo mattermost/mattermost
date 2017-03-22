@@ -541,6 +541,45 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string) StoreChannel 
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetChannelsByIds(channelIds []string, userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		props := make(map[string]interface{})
+		props["userId"] = userId
+
+		idQuery := ""
+
+		for index, channelId := range channelIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["channelId"+strconv.Itoa(index)] = channelId
+			idQuery += ":channelId" + strconv.Itoa(index)
+		}
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data, "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :userId AND DeleteAt = 0 AND ChannelId IN ("+idQuery+") ORDER BY DisplayName", props)
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetChannelsByIds", "store.sql_channel.get_channels_by_ids.get.app_error", nil, err.Error())
+		}
+
+		if len(*data) == 0 {
+			result.Err = model.NewAppError("SqlChannelStore.GetChannelsByIds", "store.sql_channel.get_channels_by_ids.not_found.app_error", nil, "", http.StatusNotFound)
+		}
+
+		result.Data = data
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

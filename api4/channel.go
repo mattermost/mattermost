@@ -18,6 +18,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("", ApiSessionRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/ids", ApiSessionRequired(getChannelsByIds)).Methods("POST")
 
 	BaseRoutes.Team.Handle("/channels", ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("/channels/search", ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
@@ -575,6 +576,28 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getChannelsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelIds := model.ArrayFromJson(r.Body)
+	if len(channelIds) == 0 {
+		c.SetInvalidParam("channel_ids")
+		return
+	}
+
+	for _, cid := range channelIds {
+		if len(cid) != 26 {
+			c.SetInvalidParam("channel_id")
+			return
+		}
+	}
+
+	if channels, err := app.GetChannelsByIds(channelIds, c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(channels.ToJson()))
+	}
 }
 
 func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
