@@ -201,6 +201,7 @@ type UserStore interface {
 	Search(teamId string, term string, options map[string]bool) StoreChannel
 	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
+	SearchWithoutTeam(term string, options map[string]bool) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
 }
