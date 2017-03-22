@@ -24,7 +24,7 @@ type OriginCheckerProc func(*http.Request) bool
 
 func OriginChecker(r *http.Request) bool {
 	origin := r.Header.Get("Origin")
-	return *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin)
+	return *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(origin, *utils.Cfg.ServiceSettings.AllowCorsFrom)
 }
 
 func connect(c *Context, w http.ResponseWriter, r *http.Request) {
