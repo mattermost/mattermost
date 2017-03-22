@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
+	"path/filepath"
 )
 
 func InitAdmin() {
@@ -787,7 +788,14 @@ func addCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := os.Create(utils.FindDir("config") + fileData.Filename)
+	filename := filepath.Base(fileData.Filename)
+
+	if filename == "." || filename == string(filepath.Separator) {
+		c.Err = model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "")
+		return
+	}
+
+	out, err := os.Create(utils.FindDir("config") + filename)
 	if err != nil {
 		c.Err = model.NewLocAppError("addCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error())
 		return
@@ -802,6 +810,13 @@ func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	filename := props["filename"]
+	filename = filepath.Base(filename)
+
+	if filename == "." || filename == string(filepath.Separator) {
+		c.Err = model.NewLocAppError("AddSamlCertificate", "api.admin.remove_certificate.delete.app_error", nil, "")
+		return
+	}
+
 	if err := os.Remove(utils.FindConfigFile(filename)); err != nil {
 		c.Err = model.NewLocAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error",
 			map[string]interface{}{"Filename": filename}, err.Error())
