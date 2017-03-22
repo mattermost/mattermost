@@ -149,7 +149,7 @@
   },
   {
     "id": "api.brand.init.debug",
-    "translation": "Initializing brand API routes"
+    "translation": "명령어 API 경로 초기화 중"
   },
   {
     "id": "api.channel.add_member.added",
@@ -393,7 +393,7 @@
   },
   {
     "id": "api.cluster.init.debug",
-    "translation": "Initializing cluster API routes"
+    "translation": "사용자 API 경로 초기화 중"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -813,7 +813,7 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "Initializing compliance API routes"
+    "translation": "명령어 API 경로 초기화 중"
   },
   {
     "id": "api.context.404.app_error",
@@ -1027,7 +1027,7 @@
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "File doesn't have a preview image"
+    "translation": "파일 미리보기 이미지가 없습니다."
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1247,7 +1247,7 @@
   },
   {
     "id": "api.ldap.init.debug",
-    "translation": "Initializing LDAP API routes"
+    "translation": "파일 API 경로 초기화 중"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -4725,7 +4725,7 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "We couldn't get public channels"
+    "translation": "채널을 찾을 수 없습니다"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",

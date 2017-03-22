@@ -149,7 +149,7 @@
   },
   {
     "id": "api.brand.init.debug",
-    "translation": "Initializing brand API routes"
+    "translation": "Инициализация API команд"
   },
   {
     "id": "api.channel.add_member.added",
@@ -393,7 +393,7 @@
   },
   {
     "id": "api.cluster.init.debug",
-    "translation": "Initializing cluster API routes"
+    "translation": "Инициализация API пользователей"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -813,7 +813,7 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "Initializing compliance API routes"
+    "translation": "Инициализация API команд"
   },
   {
     "id": "api.context.404.app_error",
@@ -1027,7 +1027,7 @@
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "File doesn't have a preview image"
+    "translation": "Файл не содержит изображения предварительного просмотра"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1247,7 +1247,7 @@
   },
   {
     "id": "api.ldap.init.debug",
-    "translation": "Initializing LDAP API routes"
+    "translation": "Инициализация API файлов"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -4725,11 +4725,11 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "We couldn't get public channels"
+    "translation": "Не удалось получить каналы"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "We couldn't get the channel unread messages"
+    "translation": "Не удалось получить список непрочтённых сообщений для команды"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",

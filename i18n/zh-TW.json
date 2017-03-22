@@ -148,6 +148,10 @@
     "translation": "無法取得使用者以檢查權限。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "正在初始化命令 API 路徑"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v 由 %v 邀請加入頻道"
   },
@@ -284,6 +288,10 @@
     "translation": "正在初始化頻道 API 路徑"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "您沒有適當的權限"
   },
@@ -382,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "無法計算未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "正在初始化使用者 API 路徑"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,10 @@
     "translation": "聳肩"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "正在初始化命令 API 路徑"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "抱歉，無法找到頁面。"
   },
@@ -1010,7 +1026,7 @@
     "translation": "此公開連結不是有效連結"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "檔案沒有預覽圖像"
   },
   {
@@ -1228,6 +1244,10 @@
   {
     "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "傳入的 Webhook 已被系統管理員停用。"
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "正在初始化檔案 API 路徑"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -3676,6 +3696,10 @@
     "translation": "無法寫入要求"
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
@@ -4700,6 +4724,14 @@
     "translation": "無法取得這些頻道"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "無法取得這些頻道"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "無法取得團隊未讀訊息"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "無法遞增提及計數"
   },
@@ -4714,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "無法移除頻道成員"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

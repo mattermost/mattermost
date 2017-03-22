@@ -148,6 +148,10 @@
     "translation": "可以让用户查看权限。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "正在初始化命令 API 路由"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v 由 %v 邀请加入频道"
   },
@@ -284,6 +288,10 @@
     "translation": "正在初始化频道 API 路由"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "您没有对应的权限"
   },
@@ -382,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "无法获取 user_id=%v 以及 channel_id=%v 的未读数量，err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "正在初始化用户 API 路由"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,10 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "正在初始化命令 API 路由"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "对不起，我们找不到该页面。"
   },
@@ -1010,7 +1026,7 @@
     "translation": "公共链接不显示是有效的"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "文件没有预览图"
   },
   {
@@ -1228,6 +1244,10 @@
   {
     "id": "api.incoming_webhook.disabled.app_errror",
     "translation": "传入的 webhooks 已被系统管理员禁用。"
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "正在初始化文件 API 路由"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -3676,6 +3696,10 @@
     "translation": "无法写入请求"
   },
   {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "创建时必须是有效时间"
   },
@@ -4700,6 +4724,14 @@
     "translation": "我们无法获得该频道"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "我们无法获取频道"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "我们无法获取团队未读消息"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "我们不能增加提及数"
   },
@@ -4714,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "我们无法删除频道成员"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
