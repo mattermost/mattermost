@@ -1211,6 +1211,22 @@ func VerifyUserEmail(userId string) *model.AppError {
 	return nil
 }
 
+func SearchUsers(props *model.UserSearch, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
+	if props.WithoutTeam {
+		l4g.Debug("going without team for " + props.Term)
+		return SearchUsersWithoutTeam(props.Term, searchOptions, asAdmin)
+	} else if props.InChannelId != "" {
+		l4g.Debug("going in chan for " + props.Term)
+		return SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, asAdmin)
+	} else if props.NotInChannelId != "" {
+		l4g.Debug("going not in chan team for " + props.Term)
+		return SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, asAdmin)
+	} else {
+		l4g.Debug("going with team for " + props.Term)
+		return SearchUsersInTeam(props.TeamId, props.Term, searchOptions, asAdmin)
+	}
+}
+
 func SearchUsersInChannel(channelId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().SearchInChannel(channelId, term, searchOptions); result.Err != nil {
 		return nil, result.Err
@@ -1241,6 +1257,20 @@ func SearchUsersNotInChannel(teamId string, channelId string, term string, searc
 
 func SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users := result.Data.([]*model.User)
+
+		for _, user := range users {
+			SanitizeProfile(user, asAdmin)
+		}
+
+		return users, nil
+	}
+}
+
+func SearchUsersWithoutTeam(term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchWithoutTeam(term, searchOptions); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
