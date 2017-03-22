@@ -20,6 +20,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 
 	BaseRoutes.Team.Handle("/channels", ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
+	BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
 
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(updateChannel)).Methods("PUT")
@@ -285,6 +286,33 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 	} else {
 		w.Write([]byte(channels.ToJson()))
 		return
+	}
+}
+
+func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	if channels, err := app.GetChannelsForUser(c.Params.TeamId, c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	} else if HandleEtag(channels.Etag(), "Get Channels", w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
+		w.Write([]byte(channels.ToJson()))
 	}
 }
 

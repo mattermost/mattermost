@@ -425,6 +425,54 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	found := make([]bool, 3)
+	for _, c := range *channels {
+		if c.Id == th.BasicChannel.Id {
+			found[0] = true
+		} else if c.Id == th.BasicChannel2.Id {
+			found[1] = true
+		} else if c.Id == th.BasicPrivateChannel.Id {
+			found[2] = true
+		}
+
+		if c.TeamId != th.BasicTeam.Id && c.TeamId != "" {
+			t.Fatal("wrong team")
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing a channel")
+		}
+	}
+
+	channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, resp.Etag)
+	CheckEtag(t, channels, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser("junk", th.BasicUser.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser(model.NewId(), th.BasicUser.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+}
+
 func TestDeleteChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
