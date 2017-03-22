@@ -499,14 +499,14 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
-            dropdownContents.push(
-                <li
-                    key='divider-1'
-                    className='divider'
-                />
-            );
-
             if (!ChannelStore.isDefault(channel)) {
+                dropdownContents.push(
+                    <li
+                        key='divider-1'
+                        className='divider'
+                    />
+                );
+
                 dropdownContents.push(
                     <li
                         id='channelAddMembers'
@@ -547,13 +547,6 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            dropdownContents.push(
-                <li
-                    key='divider-2'
-                    className='divider'
-                />
-            );
-
             const deleteOption = (
                 <li
                     id='channelDelete'
@@ -577,6 +570,13 @@ export default class ChannelHeader extends React.Component {
             );
 
             if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+                dropdownContents.push(
+                    <li
+                        key='divider-2'
+                        className='divider'
+                    />
+                );
+
                 dropdownContents.push(
                     <li
                         id='channelEditHeader'
@@ -652,15 +652,15 @@ export default class ChannelHeader extends React.Component {
                 dropdownContents.push(deleteOption);
             }
 
-            dropdownContents.push(
-                <li
-                    key='divider-3'
-                    className='divider'
-                />
-            );
-
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
             if (!ChannelStore.isDefault(channel) && canLeave) {
+                dropdownContents.push(
+                    <li
+                        key='divider-3'
+                        className='divider'
+                    />
+                );
+
                 dropdownContents.push(
                     <li
                         id='channelLeave'
