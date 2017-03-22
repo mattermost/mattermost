@@ -383,22 +383,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var profiles []*model.User
-	var err *model.AppError
-	if props.InChannelId != "" {
-		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, c.IsSystemAdmin())
-	} else if props.NotInChannelId != "" {
-		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, c.IsSystemAdmin())
-	} else {
-		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions, c.IsSystemAdmin())
-	}
-
-	if err != nil {
+	if profiles, err := app.SearchUsers(props, searchOptions, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
+	} else {
+		w.Write([]byte(model.UserListToJson(profiles)))
 	}
-
-	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
