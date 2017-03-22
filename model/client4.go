@@ -897,6 +897,16 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) (*Chann
 	}
 }
 
+// SearchChannels returns the channels on a team matching the provided search term.
+func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) (*ChannelList, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/channels/search", search.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DeleteChannel deletes channel based on the provided channel id string.
 func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetChannelRoute(channelId)); err != nil {

@@ -529,6 +529,61 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestSearchChannels(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+
+	channels, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found := false
+	for _, c := range *channels {
+		if c.Type != model.CHANNEL_OPEN {
+			t.Fatal("should only return public channels")
+		}
+
+		if c.Id == th.BasicChannel.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("didn't find channel")
+	}
+
+	search.Term = th.BasicPrivateChannel.Name
+	channels, resp = Client.SearchChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found = false
+	for _, c := range *channels {
+		if c.Id == th.BasicPrivateChannel.Id {
+			found = true
+		}
+	}
+
+	if found {
+		t.Fatal("shouldn't find private channel")
+	}
+
+	search.Term = ""
+	_, resp = Client.SearchChannels(th.BasicTeam.Id, search)
+	CheckBadRequestStatus(t, resp)
+
+	search.Term = th.BasicChannel.Name
+	_, resp = Client.SearchChannels(model.NewId(), search)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.SearchChannels("junk", search)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SearchChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+}
+
 func TestDeleteChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
