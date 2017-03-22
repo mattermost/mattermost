@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"path/filepath"
 )
 
 func GetSamlMetadata() (string, *model.AppError) {
@@ -31,13 +32,19 @@ func GetSamlMetadata() (string, *model.AppError) {
 }
 
 func AddSamlCertificate(fileData *multipart.FileHeader) *model.AppError {
+	filename := filepath.Base(fileData.Filename)
+
+	if filename == "." || filename == string(filepath.Separator) {
+		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "")
+	}
+
 	file, err := fileData.Open()
 	defer file.Close()
 	if err != nil {
 		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error())
 	}
 
-	out, err := os.Create(utils.FindDir("config") + fileData.Filename)
+	out, err := os.Create(utils.FindDir("config") + filename)
 	if err != nil {
 		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error())
 	}
@@ -48,6 +55,12 @@ func AddSamlCertificate(fileData *multipart.FileHeader) *model.AppError {
 }
 
 func RemoveSamlCertificate(filename string) *model.AppError {
+	filename = filepath.Base(filename)
+
+	if filename == "." || filename == string(filepath.Separator) {
+		return model.NewLocAppError("AddSamlCertificate", "api.admin.remove_certificate.delete.app_error", nil, "")
+	}
+
 	if err := os.Remove(utils.FindConfigFile(filename)); err != nil {
 		return model.NewLocAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error",
 			map[string]interface{}{"Filename": filename}, err.Error())
