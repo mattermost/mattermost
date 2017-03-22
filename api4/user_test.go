@@ -837,6 +837,57 @@ func TestGetUsers(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetUsersWithoutTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	SystemAdminClient := th.SystemAdminClient
+
+	if _, resp := Client.GetUsersWithoutTeam(0, 100, ""); resp.Error == nil {
+		t.Fatal("should prevent non-admin user from getting users without a team")
+	}
+
+	// These usernames need to appear in the first 100 users for this to work
+
+	user, resp := Client.CreateUser(&model.User{
+		Username: "a000000000" + model.NewId(),
+		Email:    "success+" + model.NewId() + "@simulator.amazonses.com",
+		Password: "Password1",
+	})
+	CheckNoError(t, resp)
+	LinkUserToTeam(user, th.BasicTeam)
+	defer app.Srv.Store.User().PermanentDelete(user.Id)
+
+	user2, resp := Client.CreateUser(&model.User{
+		Username: "a000000001" + model.NewId(),
+		Email:    "success+" + model.NewId() + "@simulator.amazonses.com",
+		Password: "Password1",
+	})
+	CheckNoError(t, resp)
+	defer app.Srv.Store.User().PermanentDelete(user2.Id)
+
+	if rusers, resp := SystemAdminClient.GetUsersWithoutTeam(0, 100, ""); resp.Error != nil {
+		t.Fatal(resp.Error)
+	} else {
+		found1 := false
+		found2 := false
+
+		for _, u := range rusers {
+			if u.Id == user.Id {
+				found1 = true
+			} else if u.Id == user2.Id {
+				found2 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("shouldn't have returned user that has a team")
+		} else if !found2 {
+			t.Fatal("should've returned user that has no teams")
+		}
+	}
+}
+
 func TestGetUsersInTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

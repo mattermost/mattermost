@@ -726,6 +726,54 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 	return storeChannel
 }
 
+func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		query := `
+		SELECT
+			*
+		FROM
+			Users
+		WHERE
+			(SELECT
+				COUNT(0)
+			FROM
+				TeamMembers
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.DeleteAt = 0) = 0
+		ORDER BY
+			Username ASC
+		LIMIT
+			:Limit
+		OFFSET
+			:Offset`
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesWithoutTeam", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
