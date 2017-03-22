@@ -24,6 +24,7 @@ func InitChannel() {
 
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(updateChannel)).Methods("PUT")
+	BaseRoutes.Channel.Handle("/patch", ApiSessionRequired(patchChannel)).Methods("PUT")
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(deleteChannel)).Methods("DELETE")
 	BaseRoutes.Channel.Handle("/stats", ApiSessionRequired(getChannelStats)).Methods("GET")
 
@@ -139,6 +140,37 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		c.LogAudit("name=" + channel.Name)
 		w.Write([]byte(oldChannel.ToJson()))
+	}
+}
+
+func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	patch := model.ChannelPatchFromJson(r.Body)
+	if patch == nil {
+		c.SetInvalidParam("channel")
+		return
+	}
+
+	oldChannel, err := app.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !CanManageChannel(c, oldChannel) {
+		return
+	}
+
+	if rchannel, err := app.PatchChannel(oldChannel, patch); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("")
+		w.Write([]byte(rchannel.ToJson()))
 	}
 }
 

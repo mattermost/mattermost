@@ -46,7 +46,23 @@ type Channel struct {
 	CreatorId     string `json:"creator_id"`
 }
 
+type ChannelPatch struct {
+	DisplayName *string `json:"display_name"`
+	Name        *string `json:"name"`
+	Header      *string `json:"header"`
+	Purpose     *string `json:"purpose"`
+}
+
 func (o *Channel) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (o *ChannelPatch) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
@@ -58,6 +74,17 @@ func (o *Channel) ToJson() string {
 func ChannelFromJson(data io.Reader) *Channel {
 	decoder := json.NewDecoder(data)
 	var o Channel
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
+func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
+	decoder := json.NewDecoder(data)
+	var o ChannelPatch
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o
@@ -135,6 +162,24 @@ func (o *Channel) ExtraUpdated() {
 
 func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
+}
+
+func (o *Channel) Patch(patch *ChannelPatch) {
+	if patch.DisplayName != nil {
+		o.DisplayName = *patch.DisplayName
+	}
+
+	if patch.Name != nil {
+		o.Name = *patch.Name
+	}
+
+	if patch.Header != nil {
+		o.Header = *patch.Header
+	}
+
+	if patch.Purpose != nil {
+		o.Purpose = *patch.Purpose
+	}
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

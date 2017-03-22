@@ -244,6 +244,62 @@ func TestUpdateChannel(t *testing.T) {
 
 }
 
+func TestPatchChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	patch := &model.ChannelPatch{
+		Name:        new(string),
+		DisplayName: new(string),
+		Header:      new(string),
+		Purpose:     new(string),
+	}
+	*patch.Name = model.NewId()
+	*patch.DisplayName = model.NewId()
+	*patch.Header = model.NewId()
+	*patch.Purpose = model.NewId()
+
+	channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+
+	if *patch.Name != channel.Name {
+		t.Fatal("do not match")
+	} else if *patch.DisplayName != channel.DisplayName {
+		t.Fatal("do not match")
+	} else if *patch.Header != channel.Header {
+		t.Fatal("do not match")
+	} else if *patch.Purpose != channel.Purpose {
+		t.Fatal("do not match")
+	}
+
+	patch.Name = nil
+	oldName := channel.Name
+	channel, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+
+	if channel.Name != oldName {
+		t.Fatal("should not have updated")
+	}
+
+	_, resp = Client.PatchChannel("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchChannel(model.NewId(), patch)
+	CheckNotFoundStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	CheckNoError(t, resp)
+}
+
 func TestCreateDirectChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

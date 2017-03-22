@@ -834,6 +834,16 @@ func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
 	}
 }
 
+// PatchChannel partially updates a channel. Any missing fields are not updated.
+func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/patch", patch.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
