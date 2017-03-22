@@ -148,6 +148,15 @@
         // padding-bottom: 10px;
     }
 
+    .emoji-picker__preview_sprite {
+        isplay: inline-block;
+        height: 45px;
+        margin: 3px;
+        vertical-align: top;
+
+        padding: 3px;
+    }
+
     .emoji-picker-items__container {
         > div {
             display: inline-block;
@@ -195,9 +204,18 @@
 
     .emoji-picker__preview-image-box {
         display: table-cell;
-        vertical-align: middle;
+        vertical-align: top;
         height: 36px;
         width: 42px;
+
+        .sprite-preview {
+            height: 36px;
+            width: 36px;
+            vertical-align: top;
+            padding: 0px;
+            border: 0px;
+            display: inline-block;
+        }
     }
 
     .emoji-picker__preview-image {

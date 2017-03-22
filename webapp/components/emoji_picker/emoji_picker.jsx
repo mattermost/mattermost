@@ -72,13 +72,13 @@ class EmojiPicker extends React.Component {
     }
 
     handleCategoryClick(category) {
-        const items = ReactDOM.findDOMNode(this.refs.items);
+        const items = this.refs.items;
 
         if (category === CATEGORIES[0]) {
             // First category includes the search box so just scroll to the top
             items.scrollTop = 0;
         } else {
-            const cat = ReactDOM.findDOMNode(this.refs[category]);
+            const cat = this.refs[category];
             items.scrollTop = cat.offsetTop;
         }
     }
@@ -237,23 +237,30 @@ class EmojiPicker extends React.Component {
         if (selected) {
             let name;
             let aliases;
+            let previewImage;
             if (selected.name) {
                 // This is a custom emoji that matches the model on the server
                 name = selected.name;
                 aliases = [selected.name];
+                previewImage = (<img
+                    className='emoji-picker__preview-image'
+                    align='absmiddle'
+                    src={EmojiStore.getEmojiImageUrl(selected)}
+                                />);
             } else {
                 // This is a system emoji which only has a list of aliases
                 name = selected.aliases[0];
                 aliases = selected.aliases;
+                previewImage = (<span ><img
+                    src='/static/emoji/img_trans.gif'
+                    className={'  emojisprite-preview emoji-' + selected.filename + ' '}
+                    align='absmiddle'
+                                       /></span>);
             }
 
             return (
                 <div className='emoji-picker__preview'>
-                    <img
-                        className='emoji-picker__preview-image'
-                        align='absmiddle'
-                        src={EmojiStore.getEmojiImageUrl(selected)}
-                    />
+                    {previewImage}
                     <span className='emoji-picker__preview-name'>{name}</span>
                     <span className='emoji-picker__preview-aliases'>{aliases.map((alias) => ':' + alias + ':').join(' ')}</span>
                 </div>
