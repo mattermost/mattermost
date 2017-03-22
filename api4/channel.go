@@ -199,18 +199,26 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	channel, err := app.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	if channel, err := app.GetChannel(c.Params.ChannelId); err != nil {
-		c.Err = err
-		return
+	if channel.Type == model.CHANNEL_OPEN {
+		if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
+			return
+		}
 	} else {
-		w.Write([]byte(channel.ToJson()))
-		return
+		if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
 	}
+
+	w.Write([]byte(channel.ToJson()))
+	return
 }
 
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -328,13 +336,19 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-		return
+	if channel.Type == model.CHANNEL_OPEN {
+		if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
+			return
+		}
+	} else {
+		if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
 	}
 
 	w.Write([]byte(channel.ToJson()))
-	return
 }
 
 func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -567,14 +581,16 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
-		return
-	}
+	if c.Params.UserId != c.Session.UserId {
+		if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+			return
+		}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
-		return
+		if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+			return
+		}
 	}
 
 	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel, c.GetSiteURL()); err != nil {

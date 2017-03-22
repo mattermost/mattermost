@@ -308,8 +308,23 @@ func TestGetChannel(t *testing.T) {
 		t.Fatal("ids did not match")
 	}
 
-	_, resp = Client.GetChannel(model.NewId(), "")
+	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	_, resp = Client.GetChannel(th.BasicChannel.Id, "")
+	CheckNoError(t, resp)
+
+	channel, resp = Client.GetChannel(th.BasicPrivateChannel.Id, "")
+	CheckNoError(t, resp)
+
+	if channel.Id != th.BasicPrivateChannel.Id {
+		t.Fatal("ids did not match")
+	}
+
+	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
+	_, resp = Client.GetChannel(th.BasicPrivateChannel.Id, "")
 	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetChannel(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.GetChannel(th.BasicChannel.Id, "")
@@ -321,6 +336,9 @@ func TestGetChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetChannel(th.BasicChannel.Id, "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannel(th.BasicPrivateChannel.Id, "")
 	CheckNoError(t, resp)
 
 	_, resp = th.SystemAdminClient.GetChannel(th.BasicUser.Id, "")
@@ -657,8 +675,26 @@ func TestGetChannelByName(t *testing.T) {
 		t.Fatal("names did not match")
 	}
 
+	channel, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
+
+	if channel.Name != th.BasicPrivateChannel.Name {
+		t.Fatal("names did not match")
+	}
+
+	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
+
+	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
+	_, resp = Client.GetChannelByName(th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	CheckForbiddenStatus(t, resp)
+
 	_, resp = Client.GetChannelByName(GenerateTestChannelName(), th.BasicTeam.Id, "")
 	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetChannelByName(GenerateTestChannelName(), "junk", "")
+	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
@@ -1231,6 +1267,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, model.NewId())
 	CheckNotFoundStatus(t, resp)
 
+	_, resp = Client.RemoveUserFromChannel(model.NewId(), th.BasicUser2.Id)
+	CheckNotFoundStatus(t, resp)
+
 	th.LoginBasic2()
 	_, resp = Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
@@ -1251,6 +1290,10 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser2.Id)
 	CheckNoError(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)

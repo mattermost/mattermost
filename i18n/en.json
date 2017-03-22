@@ -3112,6 +3112,14 @@
     "translation": "Create Group Message"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },

@@ -39,6 +39,7 @@ var PERMISSION_DELETE_PUBLIC_CHANNEL *Permission
 var PERMISSION_DELETE_PRIVATE_CHANNEL *Permission
 var PERMISSION_EDIT_OTHER_USERS *Permission
 var PERMISSION_READ_CHANNEL *Permission
+var PERMISSION_READ_PUBLIC_CHANNEL *Permission
 var PERMISSION_PERMANENT_DELETE_USER *Permission
 var PERMISSION_UPLOAD_FILE *Permission
 var PERMISSION_GET_PUBLIC_LINK *Permission
@@ -195,6 +196,11 @@ func InitalizePermissions() {
 		"authentication.permissions.read_channel.name",
 		"authentication.permissions.read_channel.description",
 	}
+	PERMISSION_READ_PUBLIC_CHANNEL = &Permission{
+		"read_public_channel",
+		"authentication.permissions.read_public_channel.name",
+		"authentication.permissions.read_public_channel.description",
+	}
 	PERMISSION_PERMANENT_DELETE_USER = &Permission{
 		"permanent_delete_user",
 		"authentication.permissions.permanent_delete_user.name",
@@ -326,6 +332,7 @@ func InitalizeRoles() {
 		[]string{
 			PERMISSION_LIST_TEAM_CHANNELS.Id,
 			PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
+			PERMISSION_READ_PUBLIC_CHANNEL.Id,
 			PERMISSION_VIEW_TEAM.Id,
 		},
 	}
