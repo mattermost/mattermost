@@ -283,6 +283,7 @@ export default class Post extends React.Component {
                                 post={post}
                                 currentUser={this.props.currentUser}
                                 sameRoot={this.props.sameRoot}
+                                isLastPost={this.props.isLastPost}
                                 parentPost={parentPost}
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}
@@ -305,6 +306,7 @@ Post.propTypes = {
     sameUser: React.PropTypes.bool,
     sameRoot: React.PropTypes.bool,
     hideProfilePic: React.PropTypes.bool,
+    isLastPost: React.PropTypes.bool,
     isLastComment: React.PropTypes.bool,
     shouldHighlight: React.PropTypes.bool,
     displayNameType: React.PropTypes.string,

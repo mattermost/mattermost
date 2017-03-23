@@ -331,6 +331,7 @@ export default class PostList extends React.Component {
                 <Post
                     key={keyPrefix + 'postKey'}
                     ref={post.id}
+                    isLastPost={i === 0}
                     sameUser={sameUser}
                     sameRoot={sameRoot}
                     post={post}
