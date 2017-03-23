@@ -583,6 +583,9 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by team admin
 	UpdateUserToTeamAdmin(user, team)
 	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -595,6 +598,9 @@ func TestDeleteChannel(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 	UpdateUserToNonTeamAdmin(user, team)
 	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
@@ -623,6 +629,9 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by team admin
 	UpdateUserToTeamAdmin(th.BasicUser, team)
 	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -661,6 +670,9 @@ func TestDeleteChannel(t *testing.T) {
 	// cannot delete by team admin
 	UpdateUserToTeamAdmin(th.BasicUser, team)
 	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckForbiddenStatus(t, resp)
