@@ -1,9 +1,7 @@
-import assert from 'assert';
 import * as CommonUtils from 'utils/commons.jsx';
 
 describe('CommonUtils.getNearestPoint', function() {
-    this.timeout(10000);
-    it('should return nearest point', function() {
+    test('should return nearest point', function() {
         for (const data of [
             {
                 points: [{x: 30, y: 40}, {x: 50, y: 50}, {x: 100, y: 2}, {x: 500, y: 200}, {x: 110, y: 20}, {x: 10, y: 20}],
@@ -26,8 +24,8 @@ describe('CommonUtils.getNearestPoint', function() {
         ]) {
             const nearestPoint = CommonUtils.getNearestPoint(data.pivotPoint, data.points);
 
-            assert.equal(nearestPoint.x, data.nearestPoint.x);
-            assert.equal(nearestPoint.y, data.nearestPoint.y);
+            expect(nearestPoint.x).toEqual(data.nearestPoint.x);
+            expect(nearestPoint.y).toEqual(data.nearestPoint.y);
         }
     });
 });

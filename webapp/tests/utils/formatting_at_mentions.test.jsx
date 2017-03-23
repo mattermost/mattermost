@@ -6,8 +6,6 @@ import assert from 'assert';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
 describe('TextFormatting.AtMentions', function() {
-    this.timeout(10000);
-
     it('At mentions', function() {
         assert.equal(
             TextFormatting.autolinkAtMentions('@user', new Map(), {user: {}}),

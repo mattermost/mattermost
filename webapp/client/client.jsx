@@ -2149,6 +2149,7 @@ export default class Client {
         request.
             post(`${this.getEmojiRoute()}/delete`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send({id}).
             end(this.handleResponse.bind(this, 'deleteEmoji', success, error));
@@ -2218,6 +2219,7 @@ export default class Client {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/save`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'saveReaction', success, error));
@@ -2229,6 +2231,7 @@ export default class Client {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/delete`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'deleteReaction', success, error));

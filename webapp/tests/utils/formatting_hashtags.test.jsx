@@ -6,8 +6,6 @@ import assert from 'assert';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
 describe('TextFormatting.Hashtags', function() {
-    this.timeout(10000);
-
     it('Not hashtags', function(done) {
         assert.equal(
             TextFormatting.formatText('# hashtag').trim(),

@@ -1,63 +1,60 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.Posts', function() {
-    this.timeout(100000);
-
-    it('createPost', function(done) {
-        TestHelper.initBasic(() => {
+    test('createPost', function(done) {
+        TestHelper.initBasic(done, () => {
             var post = TestHelper.fakePost();
             post.channel_id = TestHelper.basicChannel().id;
 
             TestHelper.basicClient().createPost(
                 post,
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
+                    expect(data.id.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getPostById', function(done) {
-        TestHelper.initBasic(() => {
+    test('getPostById', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getPostById(
                 TestHelper.basicPost().id,
                 function(data) {
-                    assert.equal(data.order[0], TestHelper.basicPost().id);
+                    expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getPost', function(done) {
-        TestHelper.initBasic(() => {
+    test('getPost', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getPost(
                 TestHelper.basicChannel().id,
                 TestHelper.basicPost().id,
                 function(data) {
-                    assert.equal(data.order[0], TestHelper.basicPost().id);
+                    expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updatePost', function(done) {
-        TestHelper.initBasic(() => {
+    test('updatePost', function(done) {
+        TestHelper.initBasic(done, () => {
             var post = TestHelper.basicPost();
             post.message = 'new message';
             post.channel_id = TestHelper.basicChannel().id;
@@ -65,83 +62,83 @@ describe('Client.Posts', function() {
             TestHelper.basicClient().updatePost(
                 post,
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
+                    expect(data.id.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('deletePost', function(done) {
-        TestHelper.initBasic(() => {
+    test('deletePost', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().deletePost(
                 TestHelper.basicChannel().id,
                 TestHelper.basicPost().id,
                 function(data) {
-                    assert.equal(data.id, TestHelper.basicPost().id);
+                    expect(data.id).toEqual(TestHelper.basicPost().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('searchPost', function(done) {
-        TestHelper.initBasic(() => {
+    test('searchPost', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().search(
                 'unit test',
                 false,
                 function(data) {
-                    assert.equal(data.order[0], TestHelper.basicPost().id);
+                    expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getPostsPage', function(done) {
-        TestHelper.initBasic(() => {
+    test('getPostsPage', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getPostsPage(
                 TestHelper.basicChannel().id,
                 0,
                 10,
                 function(data) {
-                    assert.equal(data.order[0], TestHelper.basicPost().id);
+                    expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getPosts', function(done) {
-        TestHelper.initBasic(() => {
+    test('getPosts', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getPosts(
                 TestHelper.basicChannel().id,
                 0,
                 function(data) {
-                    assert.equal(data.order[0], TestHelper.basicPost().id);
+                    expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getPostsBefore', function(done) {
-        TestHelper.initBasic(() => {
+    test('getPostsBefore', function(done) {
+        TestHelper.initBasic(done, () => {
             var post = TestHelper.fakePost();
             post.channel_id = TestHelper.basicChannel().id;
 
@@ -154,23 +151,23 @@ describe('Client.Posts', function() {
                         0,
                         10,
                         function(data) {
-                            assert.equal(data.order[0], TestHelper.basicPost().id);
+                            expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getPostsAfter', function(done) {
-        TestHelper.initBasic(() => {
+    test('getPostsAfter', function(done) {
+        TestHelper.initBasic(done, () => {
             var post = TestHelper.fakePost();
             post.channel_id = TestHelper.basicChannel().id;
 
@@ -183,23 +180,23 @@ describe('Client.Posts', function() {
                         0,
                         10,
                         function(data) {
-                            assert.equal(data.order[0], rpost.id);
+                            expect(data.order[0]).toEqual(rpost.id);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getFlaggedPosts', function(done) {
-        TestHelper.initBasic(() => {
+    test('getFlaggedPosts', function(done) {
+        TestHelper.initBasic(done, () => {
             var pref = {};
             pref.user_id = TestHelper.basicUser().id;
             pref.category = 'flagged_post';
@@ -216,16 +213,16 @@ describe('Client.Posts', function() {
                         0,
                         2,
                         function(data) {
-                            assert.equal(data.order[0], TestHelper.basicPost().id);
+                            expect(data.order[0]).toEqual(TestHelper.basicPost().id);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });

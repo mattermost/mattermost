@@ -8,5 +8,8 @@
         "no-unreachable": 0,
         "new-cap": 0,
         "max-nested-callbacks": 0
+    },
+    "env": {
+        "jest": true
     }
 }
