@@ -30,6 +30,9 @@ export default class PostImageEmbed extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.state.loaded && this.props.childComponentDidUpdateFunction) {
+            this.props.childComponentDidUpdateFunction();
+        }
         if (!this.state.loaded && prevProps.link !== this.props.link) {
             this.loadImg(this.props.link);
         }
@@ -44,8 +47,12 @@ export default class PostImageEmbed extends React.Component {
 
     handleLoadComplete() {
         this.setState({
-            loaded: true
+            loaded: true,
+            errored: false
         });
+        if (this.props.onLinkLoaded) {
+            this.props.onLinkLoaded();
+        }
     }
 
     handleLoadError() {
@@ -59,17 +66,8 @@ export default class PostImageEmbed extends React.Component {
     }
 
     render() {
-        if (this.state.errored) {
+        if (this.state.errored || !this.state.loaded) {
             return null;
-        }
-
-        if (!this.state.loaded) {
-            return (
-                <img
-                    className='img-div placeholder'
-                    height='500px'
-                />
-            );
         }
 
         return (
@@ -83,5 +81,7 @@ export default class PostImageEmbed extends React.Component {
 
 PostImageEmbed.propTypes = {
     link: React.PropTypes.string.isRequired,
-    onLinkLoadError: React.PropTypes.func
+    onLinkLoadError: React.PropTypes.func,
+    onLinkLoaded: React.PropTypes.func,
+    childComponentDidUpdateFunction: React.PropTypes.func
 };

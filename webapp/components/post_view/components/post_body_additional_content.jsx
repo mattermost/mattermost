@@ -21,11 +21,13 @@ export default class PostBodyAdditionalContent extends React.Component {
         this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
         this.isLinkToggleable = this.isLinkToggleable.bind(this);
         this.handleLinkLoadError = this.handleLinkLoadError.bind(this);
+        this.handleLinkLoaded = this.handleLinkLoaded.bind(this);
 
         this.state = {
             embedVisible: props.previewCollapsed.startsWith('false'),
             link: Utils.extractFirstLink(props.post.message),
-            linkLoadError: false
+            linkLoadError: false,
+            linkLoaded: false
         };
     }
 
@@ -33,7 +35,8 @@ export default class PostBodyAdditionalContent extends React.Component {
         this.setState({
             embedVisible: nextProps.previewCollapsed.startsWith('false'),
             link: Utils.extractFirstLink(nextProps.post.message),
-            linkLoadError: false
+            linkLoadError: false,
+            linkLoaded: false
         });
     }
 
@@ -48,6 +51,9 @@ export default class PostBodyAdditionalContent extends React.Component {
             return true;
         }
         if (nextState.linkLoadError !== this.state.linkLoadError) {
+            return true;
+        }
+        if (nextState.linkLoaded !== this.state.linkLoaded) {
             return true;
         }
         return false;
@@ -103,6 +109,12 @@ export default class PostBodyAdditionalContent extends React.Component {
         });
     }
 
+    handleLinkLoaded() {
+        this.setState({
+            linkLoaded: true
+        });
+    }
+
     generateToggleableEmbed() {
         const link = this.state.link;
         if (!link) {
@@ -125,6 +137,8 @@ export default class PostBodyAdditionalContent extends React.Component {
                     channelId={this.props.post.channel_id}
                     link={link}
                     onLinkLoadError={this.handleLinkLoadError}
+                    onLinkLoaded={this.handleLinkLoaded}
+                    childComponentDidUpdateFunction={this.props.childComponentDidUpdateFunction}
                 />
             );
         }
@@ -158,14 +172,16 @@ export default class PostBodyAdditionalContent extends React.Component {
             // if message has only one line and starts with a link place toggle in this only line
             // else - place it in new line between message and embed
             const prependToggle = (/^\s*https?:\/\/.*$/).test(this.props.post.message);
-            messageWithToggle.push(
-                <a
-                    className={`post__embed-visibility ${prependToggle ? 'pull-left' : ''}`}
-                    data-expanded={this.state.embedVisible}
-                    aria-label='Toggle Embed Visibility'
-                    onClick={this.toggleEmbedVisibility}
-                />
-            );
+            if (this.state.linkLoaded) {
+                messageWithToggle.push(
+                    <a
+                        className={`post__embed-visibility ${prependToggle ? 'pull-left' : ''}`}
+                        data-expanded={this.state.embedVisible}
+                        aria-label='Toggle Embed Visibility'
+                        onClick={this.toggleEmbedVisibility}
+                    />
+                );
+            }
 
             if (prependToggle) {
                 messageWithToggle.push(this.props.message);
