@@ -284,6 +284,156 @@ func TestGetUserByEmail(t *testing.T) {
 	}
 }
 
+func TestSearchUsers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	search := &model.UserSearch{Term: th.BasicUser.Username}
+
+	users, resp := Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+	_, err := app.UpdateActiveNoLdap(th.BasicUser2.Id, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	search.Term = th.BasicUser2.Username
+	search.AllowInactive = false
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser2.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.AllowInactive = true
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(th.BasicUser2.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+	search.Term = th.BasicUser.Username
+	search.AllowInactive = false
+	search.TeamId = th.BasicTeam.Id
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+	search.NotInChannelId = th.BasicChannel.Id
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.TeamId = ""
+	search.NotInChannelId = ""
+	search.InChannelId = th.BasicChannel.Id
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+	search.InChannelId = ""
+	search.NotInChannelId = th.BasicChannel.Id
+	_, resp = Client.SearchUsers(search)
+	CheckBadRequestStatus(t, resp)
+
+	search.NotInChannelId = model.NewId()
+	search.TeamId = model.NewId()
+	_, resp = Client.SearchUsers(search)
+	CheckForbiddenStatus(t, resp)
+
+	search.NotInChannelId = ""
+	search.TeamId = model.NewId()
+	_, resp = Client.SearchUsers(search)
+	CheckForbiddenStatus(t, resp)
+
+	search.InChannelId = model.NewId()
+	search.TeamId = ""
+	_, resp = Client.SearchUsers(search)
+	CheckForbiddenStatus(t, resp)
+
+	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
+	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	defer func() {
+		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
+		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+	}()
+	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	utils.Cfg.PrivacySettings.ShowFullName = false
+
+	_, err = app.UpdateActiveNoLdap(th.BasicUser2.Id, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	search.InChannelId = ""
+	search.Term = th.BasicUser2.Email
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser2.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.Term = th.BasicUser2.FirstName
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser2.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.Term = th.BasicUser2.LastName
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser2.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.Term = th.BasicUser.FirstName
+	search.InChannelId = th.BasicChannel.Id
+	search.NotInChannelId = th.BasicChannel.Id
+	search.TeamId = th.BasicTeam.Id
+	users, resp = th.SystemAdminClient.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+}
+
+func findUserInList(id string, users []*model.User) bool {
+	for _, user := range users {
+		if user.Id == id {
+			return true
+		}
+	}
+	return false
+}
+
 func TestAutocompleteUsers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

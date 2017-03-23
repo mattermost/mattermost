@@ -2440,6 +2440,59 @@ func TestSearchUsers(t *testing.T) {
 	}
 
 	if _, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, NotInChannelId: th.BasicChannel.Id}); err == nil {
+		t.Fatal("should not have access")
+	}
+
+	userWithoutTeam := th.CreateUser(Client)
+	if result, err := Client.SearchUsers(model.UserSearch{Term: userWithoutTeam.Username}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == userWithoutTeam.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user without team")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: userWithoutTeam.Username, WithoutTeam: true}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == userWithoutTeam.Id {
+				found = true
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user without team")
+		}
+	}
+
+	if result, err := Client.SearchUsers(model.UserSearch{Term: th.BasicUser.Username, WithoutTeam: true}); err != nil {
+		t.Fatal(err)
+	} else {
+		users := result.Data.([]*model.User)
+
+		found := false
+		for _, user := range users {
+			if user.Id == th.BasicUser.Id {
+				found = true
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user with team")
+		}
 	}
 }
 

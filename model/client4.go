@@ -487,6 +487,16 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	}
 }
 
+// SearchUsers returns a list of users based on some search criteria.
+func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/search", search.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPut(c.GetUserRoute(user.Id), user.ToJson()); err != nil {
