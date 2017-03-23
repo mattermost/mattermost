@@ -23,8 +23,9 @@ func InitWebhook() {
 
 	BaseRoutes.OutgoingHooks.Handle("", ApiSessionRequired(createOutgoingHook)).Methods("POST")
 	BaseRoutes.OutgoingHooks.Handle("", ApiSessionRequired(getOutgoingHooks)).Methods("GET")
-	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(updateOutcomingHook)).Methods("PUT")
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(getOutgoingHook)).Methods("GET")
+	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
+	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	BaseRoutes.OutgoingHook.Handle("/regen_token", ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
 }
 
@@ -226,7 +227,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateOutcomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireHookId()
 	if c.Err != nil {
 		return
@@ -394,4 +395,39 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		w.Write([]byte(rhook.ToJson()))
 	}
+}
+
+func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireHookId()
+	if c.Err != nil {
+		return
+	}
+
+	hook, err := app.GetOutgoingWebhook(c.Params.HookId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	if !app.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_WEBHOOKS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
+		return
+	}
+
+	if c.Session.UserId != hook.CreatorId && !app.SessionHasPermissionToTeam(c.Session, hook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
+		return
+	}
+
+	if err := app.DeleteOutgoingWebhook(hook.Id); err != nil {
+		c.LogAudit("fail")
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
 }
