@@ -316,6 +316,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 
 func TestWebsocketOriginSecurity(t *testing.T) {
 	Setup().InitBasic()
+
 	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress
 
 	// Should fail because origin doesn't match
@@ -333,6 +334,35 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Should succeed now because open CORS
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = "*"
+	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
+		"Origin": []string{"http://www.evil.com"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Should succeed now because matching CORS
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = "www.evil.com"
+	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
+		"Origin": []string{"http://www.evil.com"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Should fail because non-matching CORS
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = "www.good.com"
+	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
+		"Origin": []string{"http://www.evil.com"},
+	})
+	if err == nil {
+		t.Fatal("Should have errored because Origin contain AllowCorsFrom")
+	}
+
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = ""
 }
 
 func TestZZWebSocketTearDown(t *testing.T) {
