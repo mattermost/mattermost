@@ -22,6 +22,7 @@ func InitTeam() {
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("", ApiSessionRequired(updateTeam)).Methods("PUT")
+	BaseRoutes.Team.Handle("/patch", ApiSessionRequired(patchTeam)).Methods("PUT")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
@@ -124,6 +125,35 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(updatedTeam.ToJson()))
+}
+
+func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team := model.TeamPatchFromJson(r.Body)
+
+	if team == nil {
+		c.SetInvalidParam("team")
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	patchedTeam, err := app.PatchTeam(c.Params.TeamId, team)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	w.Write([]byte(patchedTeam.ToJson()))
 }
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {

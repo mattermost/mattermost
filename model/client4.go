@@ -781,6 +781,16 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
 	}
 }
 
+// PatchTeam partially updates a team. Any missing fields are not updated.
+func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/patch", patch.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

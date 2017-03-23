@@ -100,11 +100,35 @@ func UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 
 	oldTeam.Sanitize()
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
-	message.Add("team", oldTeam.ToJson())
-	go Publish(message)
+	sendUpdatedTeamEvent(oldTeam)
 
 	return oldTeam, nil
+}
+
+func PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+	team, err := GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	team.Patch(patch)
+
+	updatedTeam, err := UpdateTeam(team)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedTeam.Sanitize()
+
+	sendUpdatedTeamEvent(updatedTeam)
+
+	return updatedTeam, nil
+}
+
+func sendUpdatedTeamEvent(team *model.Team) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
+	message.Add("team", team.ToJson())
+	go Publish(message)
 }
 
 func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
