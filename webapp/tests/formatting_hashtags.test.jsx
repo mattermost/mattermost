@@ -11,7 +11,7 @@ describe('TextFormatting.Hashtags', function() {
     it('Not hashtags', function(done) {
         assert.equal(
             TextFormatting.formatText('# hashtag').trim(),
-            '<h1 id="hashtag" class="markdown__heading">hashtag</h1>'
+            '<h1 class="markdown__heading">hashtag</h1>'
         );
 
         assert.equal(
