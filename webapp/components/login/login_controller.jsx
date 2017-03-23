@@ -89,7 +89,7 @@ export default class LoginController extends React.Component {
         }
 
         // don't trim the password since we support spaces in passwords
-        loginId = loginId.trim();
+        loginId = loginId.trim().toLowerCase();
 
         if (!loginId) {
             // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
