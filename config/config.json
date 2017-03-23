@@ -132,7 +132,8 @@
         "PushNotificationContents": "generic",
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
-        "EmailBatchingInterval": 30
+        "EmailBatchingInterval": 30,
+        "SkipServerCertificateVerification": false
     },
     "RateLimitSettings": {
         "Enable": false,
