@@ -1,5 +1,21 @@
 @charset "UTF-8";
 
+.emojisprite-preview {
+    @include transform(scale(.55));
+    background-image: url(../images/emoji/emojilarge.png);
+    background-repeat: no-repeat;
+    cursor: pointer;
+    height: 64px;
+    max-width: none;
+    transform-origin: 0 0;
+    width: 64px;
+    padding: 0 10px 0 0;
+
+
+}
+
+
+
 
 .emojisprite {
     @include transform(scale(.35));

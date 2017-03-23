@@ -83,7 +83,6 @@ export default class CreatePost extends React.Component {
             showTutorialTip: false,
             showPostDeletedModal: false,
             enableSendButton: false,
-            lastBlurAt: 0,
             showEmojiPicker: false,
             emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         };

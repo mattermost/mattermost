@@ -18,23 +18,31 @@ export default class EmojiPickerPreview extends React.Component {
         if (emoji) {
             let name;
             let aliases;
-            if (emoji.name) {
-                // This is a custom emoji that matches the model on the server
-                name = emoji.name;
-                aliases = [emoji.name];
-            } else {
+            let previewImage;
+
+            if (emoji.aliases) {
                 // This is a system emoji which only has a list of aliases
                 name = emoji.aliases[0];
                 aliases = emoji.aliases;
+                previewImage = (<span className='sprite-preview'><img
+                    src='/static/emoji/img_trans.gif'
+                    className={'  emojisprite-preview emoji-' + emoji.filename + ' '}
+                    align='absmiddle'
+                                                                 /></span>);
+            } else {
+                // This is a custom emoji that matches the model on the server
+                name = emoji.name;
+                aliases = [emoji.name];
+                previewImage = (<img
+                    className='emoji-picker__preview-image'
+                    src={EmojiStore.getEmojiImageUrl(emoji)}
+                                />);
             }
 
             return (
                 <div className='emoji-picker__preview'>
                     <div className='emoji-picker__preview-image-box'>
-                        <img
-                            className='emoji-picker__preview-image'
-                            src={EmojiStore.getEmojiImageUrl(emoji)}
-                        />
+                        {previewImage}
                     </div>
                     <div className='emoji-picker__preview-image-box'>
                         <span className='emoji-picker__preview-name'>{name}</span>
