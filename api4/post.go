@@ -60,6 +60,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	afterPost := r.URL.Query().Get("after")
+	beforePost := r.URL.Query().Get("before")
 	sinceString := r.URL.Query().Get("since")
 
 	var since int64
@@ -84,6 +86,22 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if since > 0 {
 		list, err = app.GetPostsSince(c.Params.ChannelId, since)
+	} else if len(afterPost) > 0 {
+		etag = app.GetPostsEtag(c.Params.ChannelId)
+
+		if HandleEtag(etag, "Get Posts After", w, r) {
+			return
+		}
+
+		list, err = app.GetPostsAfterPost(c.Params.ChannelId, afterPost, c.Params.Page, c.Params.PerPage)
+	} else if len(beforePost) > 0 {
+		etag = app.GetPostsEtag(c.Params.ChannelId)
+
+		if HandleEtag(etag, "Get Posts Before", w, r) {
+			return
+		}
+
+		list, err = app.GetPostsBeforePost(c.Params.ChannelId, beforePost, c.Params.Page, c.Params.PerPage)
 	} else {
 		etag = app.GetPostsEtag(c.Params.ChannelId)
 
