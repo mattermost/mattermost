@@ -103,11 +103,11 @@ class TestHelperClass {
         return post;
     }
 
-    initBasic = (callback, connectWS) => {
+    initBasic = (done, callback, connectWS) => {
         this.basicc = this.createClient();
 
         function throwerror(err) {
-            throw err;
+            done.fail(new Error(err.message));
         }
 
         var d1 = jqd.Deferred();

@@ -1,50 +1,47 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 const fs = require('fs');
 
 describe('Client.Emoji', function() {
-    this.timeout(100000);
-
     const testGifFileName = 'testEmoji.gif';
 
-    before(function() {
+    beforeAll(function() {
         // write a temporary file so that we have something to upload for testing
         const buffer = new Buffer('R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=', 'base64');
         const testGif = fs.openSync(testGifFileName, 'w+');
         fs.writeFileSync(testGif, buffer);
     });
 
-    after(function() {
+    afterAll(function() {
         fs.unlinkSync(testGifFileName);
     });
 
-    it('addEmoji', function(done) {
-        TestHelper.initBasic(() => {
+    test('addEmoji', function(done) {
+        TestHelper.initBasic(done, () => {
             const name = TestHelper.generateId();
 
             TestHelper.basicClient().addEmoji(
                 {creator_id: TestHelper.basicUser().id, name},
                 fs.createReadStream(testGifFileName),
                 function(data) {
-                    assert.equal(data.name, name);
-                    assert.notEqual(data.id, null);
+                    expect(data.name).toEqual(name);
+                    expect(data.id).not.toBeNull();
 
-                    TestHelper.basicClient().deleteEmoji(data.id);
+                    //TestHelper.basicClient().deleteEmoji(data.id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('deleteEmoji', function(done) {
-        TestHelper.initBasic(() => {
+    test('deleteEmoji', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().addEmoji(
                 {creator_id: TestHelper.basicUser().id, name: TestHelper.generateId()},
                 fs.createReadStream(testGifFileName),
@@ -55,19 +52,19 @@ describe('Client.Emoji', function() {
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('listEmoji', function(done) {
-        TestHelper.initBasic(() => {
+    test('listEmoji', function(done) {
+        TestHelper.initBasic(done, () => {
             const name = TestHelper.generateId();
             TestHelper.basicClient().addEmoji(
                 {creator_id: TestHelper.basicUser().id, name},
@@ -75,7 +72,7 @@ describe('Client.Emoji', function() {
                 function() {
                     TestHelper.basicClient().listEmoji(
                         function(data) {
-                            assert(data.length > 0, true);
+                            expect(data.length).toBeGreaterThan(0);
 
                             let found = false;
                             for (const emoji of data) {
@@ -88,16 +85,16 @@ describe('Client.Emoji', function() {
                             if (found) {
                                 done();
                             } else {
-                                done(new Error('test emoji wasn\'t returned'));
+                                done.fail(new Error('test emoji wasn\'t returned'));
                             }
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });

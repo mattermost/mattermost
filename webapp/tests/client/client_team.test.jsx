@@ -1,168 +1,165 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.Team', function() {
-    this.timeout(100000);
-
-    it('findTeamByName', function(done) {
-        TestHelper.initBasic(() => {
+    test('findTeamByName', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().findTeamByName(
                 TestHelper.basicTeam().name,
                 function(data) {
-                    assert.equal(data, true);
+                    expect(data).toBe(true);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('createTeam', function(done) {
+    test('createTeam', function(done) {
         var team = TestHelper.fakeTeam();
-        TestHelper.initBasic(() => {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().createTeam(
                 team,
                 function(data) {
-                    assert.equal(data.id.length > 0, true);
-                    assert.equal(data.name, team.name);
+                    expect(data.id.length).toBeGreaterThan(0);
+                    expect(data.name).toEqual(team.name);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getAllTeams', function(done) {
-        TestHelper.initBasic(() => {
+    test('getAllTeams', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getAllTeams(
                 function(data) {
-                    assert.equal(data[TestHelper.basicTeam().id].name, TestHelper.basicTeam().name);
+                    expect(data[TestHelper.basicTeam().id].name).toEqual(TestHelper.basicTeam().name);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getAllTeamListings', function(done) {
-        TestHelper.initBasic(() => {
+    test('getAllTeamListings', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getAllTeamListings(
                 function(data) {
-                    assert.equal(data != null, true);
+                    expect(data).not.toBeNull();
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getMyTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMyTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMyTeam(
                 function(data) {
-                    assert.equal(data.name, TestHelper.basicTeam().name);
+                    expect(data.name).toEqual(TestHelper.basicTeam().name);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getMyTeamMembers', function(done) {
-        TestHelper.initBasic(() => {
+    test('getMyTeamMembers', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getMyTeamMembers(
                 function(data) {
-                    assert.equal(data.length > 0, true);
+                    expect(data.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getTeamMembers', function(done) {
-        TestHelper.initBasic(() => {
+    test('getTeamMembers', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getTeamMembers(
                 TestHelper.basicTeam().id,
                 0,
                 100,
                 function(data) {
-                    assert.equal(data.length > 0, true);
+                    expect(data.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getTeamMember', function(done) {
-        TestHelper.initBasic(() => {
+    test('getTeamMember', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getTeamMember(
                 TestHelper.basicTeam().id,
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data.user_id, TestHelper.basicUser().id);
-                    assert.equal(data.team_id, TestHelper.basicTeam().id);
+                    expect(data.user_id).toEqual(TestHelper.basicUser().id);
+                    expect(data.team_id).toEqual(TestHelper.basicTeam().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getTeamStats', function(done) {
-        TestHelper.initBasic(() => {
+    test('getTeamStats', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getTeamStats(
                 TestHelper.basicTeam().id,
                 function(data) {
-                    assert.equal(data.total_member_count > 0, true);
+                    expect(data.total_member_count).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getTeamMembersByIds', function(done) {
-        TestHelper.initBasic(() => {
+    test('getTeamMembersByIds', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getTeamMembersByIds(
                 TestHelper.basicTeam().id,
                 [TestHelper.basicUser().id],
                 function(data) {
-                    assert.equal(data[0].user_id, TestHelper.basicUser().id);
-                    assert.equal(data[0].team_id, TestHelper.basicTeam().id);
+                    expect(data[0].user_id).toEqual(TestHelper.basicUser().id);
+                    expect(data[0].team_id).toEqual(TestHelper.basicTeam().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('inviteMembers', function(done) {
-        TestHelper.initBasic(() => {
+    test('inviteMembers', function(done) {
+        TestHelper.initBasic(done, () => {
             var data = {};
             data.invites = [];
             var invite = {};
@@ -174,54 +171,54 @@ describe('Client.Team', function() {
             TestHelper.basicClient().inviteMembers(
                 data,
                 function(dataBack) {
-                    assert.equal(dataBack.invites.length, 1);
+                    expect(dataBack.invites.length).toBe(1);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             var team = TestHelper.basicTeam();
             team.display_name = 'test_updated';
 
             TestHelper.basicClient().updateTeam(
                 team,
                 function(data) {
-                    assert.equal(data.display_name, 'test_updated');
+                    expect(data.display_name).toBe('test_updated');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateTeamDescription', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateTeamDescription', function(done) {
+        TestHelper.initBasic(done, () => {
             var team = TestHelper.basicTeam();
             team.description = 'test_updated';
 
             TestHelper.basicClient().updateTeam(
                 team,
                 function(data) {
-                    assert.equal(data.description, 'test_updated');
+                    expect(data.description).toBe('test_updated');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('addUserToTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('addUserToTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().createUser(
                 TestHelper.fakeUser(),
                 function(user2) {
@@ -229,54 +226,54 @@ describe('Client.Team', function() {
                         '',
                         user2.id,
                         function(data) {
-                            assert.equal(data.user_id, user2.id);
+                            expect(data.user_id).toEqual(user2.id);
                             done();
                         },
                         function(err) {
-                            done(new Error(err.message));
+                            done.fail(new Error(err.message));
                         }
                     );
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('removeUserFromTeam', function(done) {
-        TestHelper.initBasic(() => {
+    test('removeUserFromTeam', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().removeUserFromTeam(
                 '',
                 TestHelper.basicUser().id,
                 function(data) {
-                    assert.equal(data.user_id, TestHelper.basicUser().id);
+                    expect(data.user_id).toEqual(TestHelper.basicUser().id);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getInviteInfo', function(done) {
-        TestHelper.initBasic(() => {
+    test('getInviteInfo', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getInviteInfo(
                 TestHelper.basicTeam().invite_id,
                 function(data) {
-                    assert.equal(data.display_name.length > 0, true);
+                    expect(data.display_name.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('updateTeamMemberRoles', function(done) {
-        TestHelper.initBasic(() => {
+    test('updateTeamMemberRoles', function(done) {
+        TestHelper.initBasic(done, () => {
             var user = TestHelper.basicUser();
             var team = TestHelper.basicTeam();
 
@@ -288,23 +285,22 @@ describe('Client.Team', function() {
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('getTeamByName', function(done) {
-        TestHelper.initBasic(() => {
+    test('getTeamByName', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().getTeamByName(
                 TestHelper.basicTeam().name,
                 function(data) {
-                    console.log(data);
-                    assert.equal(data.name, TestHelper.basicTeam().name);
+                    expect(data.name).toEqual(TestHelper.basicTeam().name);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });

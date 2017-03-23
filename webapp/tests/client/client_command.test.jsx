@@ -1,61 +1,58 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import assert from 'assert';
-import TestHelper from './test_helper.jsx';
+import TestHelper from 'tests/helpers/client-test-helper.jsx';
 
 describe('Client.Commands', function() {
-    this.timeout(100000);
-
-    it('listCommands', function(done) {
-        TestHelper.initBasic(() => {
+    test('listCommands', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().listCommands(
                 function(data) {
-                    assert.equal(data.length > 0, true);
+                    expect(data.length).toBeGreaterThan(0);
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('listTeamCommands', function(done) {
-        TestHelper.initBasic(() => {
+    test('listTeamCommands', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().listTeamCommands(
                 function() {
-                    done(new Error('cmds not enabled'));
+                    done.fail(new Error('cmds not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.command.disabled.app_error');
+                    expect(err.id).toEqual('api.command.disabled.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('executeCommand', function(done) {
-        TestHelper.initBasic(() => {
+    test('executeCommand', function(done) {
+        TestHelper.initBasic(done, () => {
             const args = {};
             args.channel_id = TestHelper.basicChannel().id;
             TestHelper.basicClient().executeCommand(
                 '/shrug',
                 args,
                 function(data) {
-                    assert.equal(data.response_type, 'in_channel');
+                    expect(data.response_type).toEqual('in_channel');
                     done();
                 },
                 function(err) {
-                    done(new Error(err.message));
+                    done.fail(new Error(err.message));
                 }
             );
         });
     });
 
-    it('addCommand', function(done) {
-        TestHelper.initBasic(() => {
+    test('addCommand', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             var cmd = {};
@@ -72,18 +69,18 @@ describe('Client.Commands', function() {
             TestHelper.basicClient().addCommand(
                 cmd,
                 function() {
-                    done(new Error('cmds not enabled'));
+                    done.fail(new Error('cmds not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.command.disabled.app_error');
+                    expect(err.id).toEqual('api.command.disabled.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('editCommand', function(done) {
-        TestHelper.initBasic(() => {
+    test('editCommand', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
 
             var cmd = {};
@@ -100,42 +97,42 @@ describe('Client.Commands', function() {
             TestHelper.basicClient().editCommand(
                 cmd,
                 function() {
-                    done(new Error('cmds not enabled'));
+                    done.fail(new Error('cmds not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.command.disabled.app_error');
+                    expect(err.id).toEqual('api.command.disabled.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('deleteCommand', function(done) {
-        TestHelper.initBasic(() => {
+    test('deleteCommand', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().deleteCommand(
                 TestHelper.generateId(),
                 function() {
-                    done(new Error('cmds not enabled'));
+                    done.fail(new Error('cmds not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.command.disabled.app_error');
+                    expect(err.id).toEqual('api.command.disabled.app_error');
                     done();
                 }
             );
         });
     });
 
-    it('regenCommandToken', function(done) {
-        TestHelper.initBasic(() => {
+    test('regenCommandToken', function(done) {
+        TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().regenCommandToken(
                 TestHelper.generateId(),
                 function() {
-                    done(new Error('cmds not enabled'));
+                    done.fail(new Error('cmds not enabled'));
                 },
                 function(err) {
-                    assert.equal(err.id, 'api.command.disabled.app_error');
+                    expect(err.id).toEqual('api.command.disabled.app_error');
                     done();
                 }
             );

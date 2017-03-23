@@ -6,8 +6,6 @@ import assert from 'assert';
 import * as Markdown from 'utils/markdown.jsx';
 
 describe('Markdown.Imgs', function() {
-    this.timeout(10000);
-
     it('Inline mage', function(done) {
         assert.equal(
             Markdown.format('![Mattermost](/images/icon.png)').trim(),
