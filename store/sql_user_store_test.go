@@ -1505,6 +1505,67 @@ func TestUserStoreSearch(t *testing.T) {
 	}
 }
 
+func TestUserStoreSearchWithoutTeam(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Username = "jimbo" + model.NewId()
+	u1.FirstName = "Tim"
+	u1.LastName = "Bill"
+	u1.Nickname = "Rob"
+	u1.Email = "harold" + model.NewId() + "@simulator.amazonses.com"
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Username = "jim-bobby" + model.NewId()
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+
+	u3 := &model.User{}
+	u3.Username = "jimbo" + model.NewId()
+	u3.Email = model.NewId()
+	u3.DeleteAt = 1
+	Must(store.User().Save(u3))
+
+	tid := model.NewId()
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
+
+	searchOptions := map[string]bool{}
+	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	if r1 := <-store.User().SearchWithoutTeam("", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	if r1 := <-store.User().SearchWithoutTeam("jim", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+
+		found1 := false
+		found2 := false
+		found3 := false
+
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			} else if profile.Id == u2.Id {
+				found2 = true
+			} else if profile.Id == u3.Id {
+				found3 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user1")
+		} else if !found2 {
+			t.Fatal("should have found user2")
+		} else if found3 {
+			t.Fatal("should not have found user3")
+		}
+	}
+}
+
 func TestUserStoreAnalyticsGetInactiveUsersCount(t *testing.T) {
 	Setup()
 

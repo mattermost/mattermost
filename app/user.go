@@ -1211,6 +1211,18 @@ func VerifyUserEmail(userId string) *model.AppError {
 	return nil
 }
 
+func SearchUsers(props *model.UserSearch, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
+	if props.WithoutTeam {
+		return SearchUsersWithoutTeam(props.Term, searchOptions, asAdmin)
+	} else if props.InChannelId != "" {
+		return SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, asAdmin)
+	} else if props.NotInChannelId != "" {
+		return SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, asAdmin)
+	} else {
+		return SearchUsersInTeam(props.TeamId, props.Term, searchOptions, asAdmin)
+	}
+}
+
 func SearchUsersInChannel(channelId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().SearchInChannel(channelId, term, searchOptions); result.Err != nil {
 		return nil, result.Err
@@ -1241,6 +1253,20 @@ func SearchUsersNotInChannel(teamId string, channelId string, term string, searc
 
 func SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users := result.Data.([]*model.User)
+
+		for _, user := range users {
+			SanitizeProfile(user, asAdmin)
+		}
+
+		return users, nil
+	}
+}
+
+func SearchUsersWithoutTeam(term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchWithoutTeam(term, searchOptions); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
