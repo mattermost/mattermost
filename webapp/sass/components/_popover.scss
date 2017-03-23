@@ -36,9 +36,13 @@
     }
 
     .popover__row {
-        border-top: 1px solid transparent;
-        margin: 9px -15px 0;
+        margin: 0 -15px 0;
         padding: 9px 15px 0;
+
+        &.first {
+            border-top: 1px solid transparent;
+            margin-top: 9px;
+        }
 
         > a {
             > i {
@@ -80,6 +84,17 @@
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    &[disabled] {
+        color: $video-circle-offline;
+
+        &:focus,
+        &:hover {
+            color: $video-circle-offline;
+            text-decoration: none;
+        }
+    }
+
 }
 
 .search-help-popover {
