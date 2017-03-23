@@ -1383,6 +1383,16 @@ func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Resp
 	}
 }
 
+// DeleteOutgoingWebhook delete the outgoing webhook on the system requested by Hook Id.
+func (c *Client4) DeleteOutgoingWebhook(hookId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetOutgoingWebhookRoute(hookId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Preferences Section
 
 // GetPreferences returns the user's preferences.
