@@ -8,6 +8,18 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class UserList extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.scrollToTop = this.scrollToTop.bind(this);
+    }
+
+    scrollToTop() {
+        if (this.refs.container) {
+            this.refs.container.scrollTop = 0;
+        }
+    }
+
     render() {
         const users = this.props.users;
 
@@ -44,7 +56,7 @@ export default class UserList extends React.Component {
         }
 
         return (
-            <div>
+            <div ref='container'>
                 {content}
             </div>
         );
