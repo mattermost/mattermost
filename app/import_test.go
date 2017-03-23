@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"runtime/debug"
 	"strings"
 	"testing"
 )
@@ -293,7 +294,21 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.Email = ptrStr("bob@example.com")
 
-	// TODO: Auth Service and Auth Data.
+	data.AuthService = ptrStr("")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to 0-length auth service.")
+	}
+
+	data.AuthService = ptrStr("saml")
+	data.AuthData = ptrStr(strings.Repeat("abcdefghij", 15))
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to too long auth data.")
+	}
+
+	data.AuthData = ptrStr("bobbytables")
+	if err := validateUserImportData(&data); err != nil {
+		t.Fatal("Validation should have succeeded with valid auth service and auth data.")
+	}
 
 	// Test a valid User with all fields populated.
 	data = UserImportData{
@@ -454,6 +469,108 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 	}
 }
 
+func TestImportValidatePostImportData(t *testing.T) {
+
+	// Test with minimum required valid properties.
+	data := PostImportData{
+		Team:     ptrStr("teamname"),
+		Channel:  ptrStr("channelname"),
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with missing required properties.
+	data = PostImportData{
+		Channel:  ptrStr("channelname"),
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = PostImportData{
+		Team:     ptrStr("teamname"),
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = PostImportData{
+		Team:     ptrStr("teamname"),
+		Channel:  ptrStr("channelname"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = PostImportData{
+		Team:     ptrStr("teamname"),
+		Channel:  ptrStr("channelname"),
+		User:     ptrStr("username"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = PostImportData{
+		Team:    ptrStr("teamname"),
+		Channel: ptrStr("channelname"),
+		User:    ptrStr("username"),
+		Message: ptrStr("message"),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	// Test with invalid message.
+	data = PostImportData{
+		Team:     ptrStr("teamname"),
+		Channel:  ptrStr("channelname"),
+		User:     ptrStr("username"),
+		Message:  ptrStr(strings.Repeat("1234567890", 500)),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to too long message.")
+	}
+
+	// Test with invalid CreateAt
+	data = PostImportData{
+		Team:     ptrStr("teamname"),
+		Channel:  ptrStr("channelname"),
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(0),
+	}
+	if err := validatePostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to 0 create-at value.")
+	}
+
+	// Test with valid all optional parameters.
+	data = PostImportData{
+		Team:     ptrStr("teamname"),
+		Channel:  ptrStr("channelname"),
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validatePostImportData(&data); err != nil {
+		t.Fatal("Should have succeeded.")
+	}
+}
+
 func TestImportImportTeam(t *testing.T) {
 	_ = Setup()
 
@@ -468,7 +585,7 @@ func TestImportImportTeam(t *testing.T) {
 	data := TeamImportData{
 		Name:            ptrStr(model.NewId()),
 		DisplayName:     ptrStr("Display Name"),
-		Type:            ptrStr("XXX"),
+		Type:            ptrStr("XYZ"),
 		Description:     ptrStr("The team description."),
 		AllowOpenInvite: ptrBool(true),
 	}
@@ -494,7 +611,7 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Do an invalid team in apply mode, check db changes.
-	data.Type = ptrStr("XXX")
+	data.Type = ptrStr("XYZ")
 	if err := ImportTeam(&data, false); err == nil {
 		t.Fatalf("Import should have failed on invalid team.")
 	}
@@ -734,7 +851,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do an invalid user in dry-run mode.
 	data := UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("n" + model.NewId()),
 	}
 	if err := ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
@@ -751,7 +868,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in dry-run mode.
 	data = UserImportData{
-		Username: ptrStr(model.NewId()),
+		Username: ptrStr("n" + model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
 	if err := ImportUser(&data, true); err != nil {
@@ -785,7 +902,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Do a valid user in apply mode.
-	username := model.NewId()
+	username := "n" + model.NewId()
 	data = UserImportData{
 		Username:  &username,
 		Email:     ptrStr(model.NewId() + "@example.com"),
@@ -920,7 +1037,7 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Failed to get channel from database.")
 	}
 
-	username = model.NewId()
+	username = "n" + model.NewId()
 	data = UserImportData{
 		Username:  &username,
 		Email:     ptrStr(model.NewId() + "@example.com"),
@@ -1209,7 +1326,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Add a user with some preferences.
-	username = model.NewId()
+	username = "n" + model.NewId()
 	data = UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
@@ -1333,6 +1450,252 @@ func TestImportImportUser(t *testing.T) {
 	}
 }
 
+func AssertAllPostsCount(t *testing.T, initialCount int64, change int64, teamName string) {
+	if result := <-Srv.Store.Post().AnalyticsPostCount(teamName, false, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if initialCount+change != result.Data.(int64) {
+			debug.PrintStack()
+			t.Fatalf("Did not find the expected number of posts.")
+		}
+	}
+}
+
+func TestImportImportPost(t *testing.T) {
+	_ = Setup()
+
+	// Create a Team.
+	teamName := model.NewId()
+	ImportTeam(&TeamImportData{
+		Name:        &teamName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	team, err := GetTeamByName(teamName)
+	if err != nil {
+		t.Fatalf("Failed to get team from database.")
+	}
+
+	// Create a Channel.
+	channelName := model.NewId()
+	ImportChannel(&ChannelImportData{
+		Team:        &teamName,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	channel, err := GetChannelByName(channelName, team.Id)
+	if err != nil {
+		t.Fatalf("Failed to get channel from database.")
+	}
+
+	// Create a user.
+	username := "n" + model.NewId()
+	ImportUser(&UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user, err := GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	// Count the number of posts in the testing team.
+	var initialPostCount int64
+	if result := <-Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		initialPostCount = result.Data.(int64)
+	}
+
+	// Try adding an invalid post in dry run mode.
+	data := &PostImportData{
+		Team:    &teamName,
+		Channel: &channelName,
+		User:    &username,
+	}
+	if err := ImportPost(data, true); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+
+	// Try adding a valid post in dry run mode.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Hello"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportPost(data, true); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+
+	// Try adding an invalid post in apply mode.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportPost(data, false); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+
+	// Try adding a valid post with invalid team in apply mode.
+	data = &PostImportData{
+		Team:     ptrStr(model.NewId()),
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportPost(data, false); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+
+	// Try adding a valid post with invalid channel in apply mode.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  ptrStr(model.NewId()),
+		User:     &username,
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportPost(data, false); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+
+	// Try adding a valid post with invalid user in apply mode.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     ptrStr(model.NewId()),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportPost(data, false); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+
+	// Try adding a valid post in apply mode.
+	time := model.GetMillis()
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message"),
+		CreateAt: &time,
+	}
+	if err := ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 1, team.Id)
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id {
+			t.Fatal("Post properties not as expected")
+		}
+	}
+
+	// Update the post.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message"),
+		CreateAt: &time,
+	}
+	if err := ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 1, team.Id)
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id {
+			t.Fatal("Post properties not as expected")
+		}
+	}
+
+	// Save the post with a different time.
+	newTime := time + 1
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message"),
+		CreateAt: &newTime,
+	}
+	if err := ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 2, team.Id)
+
+	// Save the post with a different message.
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message 2"),
+		CreateAt: &time,
+	}
+	if err := ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 3, team.Id)
+
+	// Test with hashtags
+	hashtagTime := time + 2
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message 2 #hashtagmashupcity"),
+		CreateAt: &hashtagTime,
+	}
+	if err := ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 4, team.Id)
+
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id {
+			t.Fatal("Post properties not as expected")
+		}
+		if post.Hashtags != "#hashtagmashupcity" {
+			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
+		}
+	}
+}
+
 func TestImportImportLine(t *testing.T) {
 	_ = Setup()
 
@@ -1362,6 +1725,12 @@ func TestImportImportLine(t *testing.T) {
 	if err := ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type uesr with a nil user.")
 	}
+
+	// Try import line with post type but nil post.
+	line.Type = "post"
+	if err := ImportLine(line, false); err == nil {
+		t.Fatalf("Expected an error when importing a line with type post with a nil post.")
+	}
 }
 
 func TestImportBulkImport(t *testing.T) {
@@ -1369,13 +1738,14 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewId()
 	channelName := model.NewId()
+	username := "n" + model.NewId()
 
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "version", "version": 1}
 {"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
-{"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
-{"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
 
 	if err, line := BulkImport(strings.NewReader(data1), false); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)

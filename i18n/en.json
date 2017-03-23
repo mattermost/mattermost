@@ -148,6 +148,10 @@
     "translation": "Unable to get user to check permissions."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v"
   },
@@ -220,6 +224,14 @@
     "translation": "Invalid user ID for direct channel creation"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "One of the provided users does not exist"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%v has archived the channel."
   },
@@ -274,6 +286,10 @@
   {
     "id": "api.channel.init.debug",
     "translation": "Initializing channel API routes"
+  },
+  {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -374,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -792,6 +812,10 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initializing compliance API routes"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -890,6 +914,10 @@
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
     "translation": "Go to Post"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "Group Message"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -998,7 +1026,7 @@
     "translation": "The public link does not appear to be valid"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "File doesn't have a preview image"
   },
   {
@@ -1212,6 +1240,14 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "Failed to set email verified err=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "Initializing LDAP API routes"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1498,6 +1534,10 @@
   {
     "id": "api.post.init.debug",
     "translation": "Initializing post API routes"
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Link previews have been disabled by the system administrator."
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1800,6 +1840,14 @@
     "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Unable to import user: {{.Username}}\r\n"
   },
@@ -2012,6 +2060,10 @@
     "translation": "You do not have the appropriate permissions"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "Group Message"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
@@ -2021,7 +2073,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "Your email address has changed for {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Your email address has changed"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2089,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Verify new email address for {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Verify new email address"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2145,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team on {{.SiteName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2157,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your MFA has been updated"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2177,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your password has been updated"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2141,7 +2193,11 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "New Group Message from {{ .SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2157,7 +2213,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "Reset your password"
+    "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "You updated your sign-in method on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2166,6 +2226,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "You updated your sign-in method"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2182,14 +2246,6 @@
   {
     "id": "api.templates.signup_team_subject",
     "translation": "{{ .SiteName }} Team Setup"
-  },
-  {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "You updated your sign-in method on {{ .SiteName }} to {{.Method}}.<br>If this change wasn't initiated by you, please contact your system administrator."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2265,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "Your username has changed for {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Your username has changed"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2309,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "You joined {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2356,6 +2412,10 @@
     "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
   },
@@ -2370,10 +2430,6 @@
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
     "translation": "User sign-up with email is disabled."
-  },
-  {
-    "id": "api.user.create_user.disabled.app_error",
-    "translation": "User creation is disabled."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
@@ -2568,6 +2624,10 @@
     "translation": "MFA not configured or available on this server"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Could not get user from {{.Service}} user object"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "Update password failed because context user_id did not match props user_id"
   },
@@ -2688,10 +2748,6 @@
     "translation": "team hub stopping for teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
@@ -2712,11 +2768,11 @@
     "translation": "Either trigger_words or channel_id must be set"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Invalid permissions to delete incoming webhook"
   },
   {
@@ -2726,14 +2782,6 @@
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
     "translation": "Invalid permissions to delete outgoing webhook"
-  },
-  {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Incoming webhooks have been disabled by the system admin."
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2748,12 +2796,40 @@
     "translation": "Initializing webhook API routes"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "Invalid permissions to regenerate outgoing webhook token"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Cannot update webhook across teams"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Incoming webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Invalid permissions to update incoming webhook"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Invalid permissions to regenerate outgoing webhook token"
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Outgoing webhooks can only be updated to public channels."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Invalid permissions to update outgoing webhook."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Either trigger_words or channel_id must be set"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2816,6 +2892,10 @@
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
   {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Import data line has type \"post\" but the post object is null."
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "Import data line has type \"team\" but the team object is null."
   },
@@ -2826,6 +2906,18 @@
   {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "Import data line has unknown type \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Error importing post. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "Error importing post. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -2870,6 +2962,34 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Missing required Post property: Channel."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Missing required Post property: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Post CreateAt must not be zero if it is provided."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Missing required Post property: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Missing required Post property: User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -2982,6 +3102,22 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "Ability to create new group message channels"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "Create Group Message"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3512,24 +3648,24 @@
     "translation": "Invalid channel id"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
     "translation": "Invalid role"
   },
   {
-    "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Invalid email notification value"
-  },
-  {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Invalid mark unread level"
-  },
-  {
-    "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
@@ -3558,6 +3694,18 @@
   {
     "id": "model.client.read_file.app_error",
     "translation": "We encountered an error while reading the file"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "No file under 'image' in request"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "Unable to write request"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4480,6 +4628,10 @@
     "translation": "We encountered an error saving the audit"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "We couldn't get deleted channel type counts"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "We couldn't get channel type counts"
   },
@@ -4580,6 +4732,14 @@
     "translation": "We couldn't get the channels"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "We couldn't increment the mention count"
   },
@@ -4594,6 +4754,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "We couldn't remove the channel member"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -4936,12 +5100,20 @@
     "translation": "We couldn't get the parent posts for the channel"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "We couldn't get the posts for the channel"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "We couldn't get the posts for the channel"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
     "translation": "We couldn't get the posts for the channel"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "We couldn't overwrite the Post"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
@@ -4972,8 +5144,8 @@
     "translation": "You cannot update an existing Post"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "We encountered an error while searching for posts"
+    "id": "store.sql_post.search.warn",
+    "translation": "Query error searching posts: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5300,6 +5472,14 @@
     "translation": "We couldn't update the team name"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "We could not count the inactive users"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "We couldn't get the unique user count"
   },
@@ -5540,6 +5720,10 @@
     "translation": "You cannot overwrite an existing OutgoingWebhook"
   },
   {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "We couldn't update the IncomingWebhook"
+  },
+  {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "We couldn't update the webhook"
   },
@@ -5566,6 +5750,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",

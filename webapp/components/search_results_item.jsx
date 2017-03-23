@@ -79,7 +79,10 @@ export default class SearchResultsItem extends React.Component {
 
     timeTag(post) {
         return (
-            <time className='search-item-time'>
+            <time
+                className='search-item-time'
+                dateTime={Utils.getDateForUnixTicks(post.create_at).toISOString()}
+            >
                 <FormattedDate
                     value={post.create_at}
                     hour12={!this.props.useMilitaryTime}
@@ -286,6 +289,18 @@ export default class SearchResultsItem extends React.Component {
             );
         }
 
+        let pinnedBadge;
+        if (post.is_pinned) {
+            pinnedBadge = (
+                <span className='post__pinned-badge'>
+                    <FormattedMessage
+                        id='post_info.pinned'
+                        defaultMessage='Pinned'
+                    />
+                </span>
+            );
+        }
+
         return (
             <div className='search-item__container'>
                 <div className='date-separator'>
@@ -319,6 +334,7 @@ export default class SearchResultsItem extends React.Component {
                                 {botIndicator}
                                 <li className='col'>
                                     {this.renderTimeTag(post)}
+                                    {pinnedBadge}
                                     {flagContent}
                                 </li>
                                 {rhsControls}

@@ -9,9 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 type SqlPostStore struct {
@@ -62,6 +64,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
+	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -148,6 +151,33 @@ func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) StoreChan
 			s.GetMaster().Insert(oldPost)
 
 			result.Data = newPost
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) Overwrite(post *model.Post) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		post.UpdateAt = model.GetMillis()
+
+		if result.Err = post.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if _, err := s.GetMaster().Update(post); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error())
+		} else {
+			result.Data = post
 		}
 
 		storeChannel <- result
@@ -933,27 +963,28 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 		queryParams["Terms"] = terms
 
-		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.app_error", nil, "teamId="+teamId+", err="+err.Error())
-		}
-
 		list := model.NewPostList()
 
-		for _, p := range posts {
-			if searchType == "Hashtags" {
-				exactMatch := false
-				for _, tag := range strings.Split(p.Hashtags, " ") {
-					if termMap[strings.ToUpper(tag)] {
-						exactMatch = true
+		_, err := s.GetReplica().Select(&posts, searchQuery, queryParams)
+		if err != nil {
+			l4g.Warn(utils.T("store.sql_post.search.warn"), err.Error())
+			// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
+		} else {
+			for _, p := range posts {
+				if searchType == "Hashtags" {
+					exactMatch := false
+					for _, tag := range strings.Split(p.Hashtags, " ") {
+						if termMap[strings.ToUpper(tag)] {
+							exactMatch = true
+						}
+					}
+					if !exactMatch {
+						continue
 					}
 				}
-				if !exactMatch {
-					continue
-				}
+				list.AddPost(p)
+				list.AddOrder(p.Id)
 			}
-			list.AddPost(p)
-			list.AddOrder(p.Id)
 		}
 
 		list.MakeNonNil()
@@ -1124,6 +1155,30 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 			result.Err = model.NewLocAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error())
 		} else {
 			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetPostsCreatedAt(channelId string, time int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt`
+
+		var posts []*model.Post
+		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = posts
 		}
 
 		storeChannel <- result

@@ -333,14 +333,14 @@ func TestClientLoginCert(t *testing.T) {
 	}
 
 	// allowed source address
-	cert.CriticalOptions = map[string]string{"source-address": "127.0.0.42/24"}
+	cert.CriticalOptions = map[string]string{"source-address": "127.0.0.42/24,::42/120"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err != nil {
 		t.Errorf("cert login with source-address failed: %v", err)
 	}
 
 	// disallowed source address
-	cert.CriticalOptions = map[string]string{"source-address": "127.0.0.42"}
+	cert.CriticalOptions = map[string]string{"source-address": "127.0.0.42,::42"}
 	cert.SignCert(rand.Reader, testSigners["ecdsa"])
 	if err := tryAuth(t, clientConfig); err == nil {
 		t.Errorf("cert login with source-address succeeded")

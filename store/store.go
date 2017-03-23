@@ -62,7 +62,9 @@ type TeamStore interface {
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
 	GetAll() StoreChannel
+	GetAllPage(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel
+	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
@@ -75,7 +77,8 @@ type TeamStore interface {
 	GetTotalMemberCount(teamId string) StoreChannel
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
-	GetTeamsUnreadForUser(teamId, userId string) StoreChannel
+	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
+	GetChannelUnreadsForTeam(teamId, userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
@@ -99,6 +102,7 @@ type ChannelStore interface {
 	GetDeletedByName(team_id string, name string) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
+	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
@@ -106,8 +110,7 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
-	GetMember(channelId string, userId string, allowFromCache bool) StoreChannel
-	InvalidateMember(channelId string, userId string)
+	GetMember(channelId string, userId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
@@ -117,6 +120,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
+	GetPinnedPosts(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	PermanentDeleteMembersByChannel(channelId string) StoreChannel
@@ -129,6 +133,8 @@ type ChannelStore interface {
 	SearchInTeam(teamId string, term string) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
+	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
+	GetChannelUnread(channelId, userId string) StoreChannel
 }
 
 type PostStore interface {
@@ -150,6 +156,8 @@ type PostStore interface {
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
 	InvalidateLastPostTimeCache(channelId string)
+	GetPostsCreatedAt(channelId string, time int64) StoreChannel
+	Overwrite(post *model.Post) StoreChannel
 }
 
 type UserStore interface {
@@ -193,6 +201,9 @@ type UserStore interface {
 	Search(teamId string, term string, options map[string]bool) StoreChannel
 	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
+	SearchWithoutTeam(term string, options map[string]bool) StoreChannel
+	AnalyticsGetInactiveUsersCount() StoreChannel
+	AnalyticsGetSystemAdminCount() StoreChannel
 }
 
 type SessionStore interface {
@@ -219,7 +230,7 @@ type ComplianceStore interface {
 	Save(compliance *model.Compliance) StoreChannel
 	Update(compliance *model.Compliance) StoreChannel
 	Get(id string) StoreChannel
-	GetAll() StoreChannel
+	GetAll(offset, limit int) StoreChannel
 	ComplianceExport(compliance *model.Compliance) StoreChannel
 }
 
@@ -257,16 +268,20 @@ type WebhookStore interface {
 	GetIncoming(id string, allowFromCache bool) StoreChannel
 	GetIncomingList(offset, limit int) StoreChannel
 	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
+	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
+
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
 	GetOutgoing(id string) StoreChannel
-	GetOutgoingByChannel(channelId string) StoreChannel
-	GetOutgoingByTeam(teamId string) StoreChannel
+	GetOutgoingList(offset, limit int) StoreChannel
+	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
+	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
@@ -339,6 +354,8 @@ type FileInfoStore interface {
 type ReactionStore interface {
 	Save(reaction *model.Reaction) StoreChannel
 	Delete(reaction *model.Reaction) StoreChannel
-	GetForPost(postId string) StoreChannel
+	InvalidateCacheForPost(postId string)
+	InvalidateCache()
+	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }

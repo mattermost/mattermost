@@ -64,26 +64,31 @@ export function checkVersion() {
 }
 
 export function getChannels() {
-    if (isCallInProgress('getChannels')) {
-        return null;
-    }
-
-    callTracker.getChannels = utils.getTimestamp();
-
-    return Client.getChannels(
-        (data) => {
-            callTracker.getChannels = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CHANNELS,
-                channels: data
-            });
-        },
-        (err) => {
-            callTracker.getChannels = 0;
-            dispatchError(err, 'getChannels');
+    return new Promise((resolve, reject) => {
+        if (isCallInProgress('getChannels')) {
+            resolve();
+            return;
         }
-    );
+
+        callTracker.getChannels = utils.getTimestamp();
+
+        Client.getChannels(
+            (data) => {
+                callTracker.getChannels = 0;
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNELS,
+                    channels: data
+                });
+                resolve();
+            },
+            (err) => {
+                callTracker.getChannels = 0;
+                dispatchError(err, 'getChannels');
+                reject(new Error('Unable to getChannels'));
+            }
+        );
+    });
 }
 
 export function getChannel(id) {
@@ -130,9 +135,9 @@ export function getMyChannelMembers() {
                 resolve();
             },
             (err) => {
-                callTracker.getChannelsUnread = 0;
+                callTracker.getMyChannelMembers = 0;
                 dispatchError(err, 'getMyChannelMembers');
-                reject();
+                reject(new Error('Unable to getMyChannelMembers'));
             }
         );
     });
@@ -161,7 +166,7 @@ export function getMyChannelMembersForTeam(teamId) {
             (err) => {
                 callTracker[`getMyChannelMembers${teamId}`] = 0;
                 dispatchError(err, 'getMyChannelMembersForTeam');
-                reject();
+                reject(new Error('Unable to getMyChannelMembersForTeam'));
             }
         );
     });
@@ -303,7 +308,7 @@ export function getChannelMember(channelId, userId) {
             (err) => {
                 callTracker[`getChannelMember${channelId}${userId}`] = 0;
                 dispatchError(err, 'getChannelMember');
-                reject();
+                reject(new Error('Unable to getChannelMeber'));
             }
         );
     });
@@ -1324,6 +1329,29 @@ export function addIncomingHook(hook, success, error) {
     );
 }
 
+export function updateIncomingHook(hook, success, error) {
+    Client.updateIncomingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_INCOMING_WEBHOOK,
+                incomingWebhook: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'updateIncomingHook');
+            }
+        }
+    );
+}
+
 export function addOutgoingHook(hook, success, error) {
     Client.addOutgoingHook(
         hook,
@@ -1342,6 +1370,29 @@ export function addOutgoingHook(hook, success, error) {
                 error(err);
             } else {
                 dispatchError(err, 'addOutgoingHook');
+            }
+        }
+    );
+}
+
+export function updateOutgoingHook(hook, success, error) {
+    Client.updateOutgoingHook(
+        hook,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.UPDATED_OUTGOING_WEBHOOK,
+                outgoingWebhook: data
+            });
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            } else {
+                dispatchError(err, 'updateOutgoingHook');
             }
         }
     );
@@ -1557,6 +1608,40 @@ export function deleteEmoji(id) {
         (err) => {
             callTracker[callName] = 0;
             dispatchError(err, 'deleteEmoji');
+        }
+    );
+}
+
+export function pinPost(channelId, reaction) {
+    Client.pinPost(
+        channelId,
+        reaction,
+        () => {
+            // the "post_edited" websocket event take cares of updating the posts
+            // the action below is mostly dispatched for the RHS to update
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_PINNED
+            });
+        },
+        (err) => {
+            dispatchError(err, 'pinPost');
+        }
+    );
+}
+
+export function unpinPost(channelId, reaction) {
+    Client.unpinPost(
+        channelId,
+        reaction,
+        () => {
+            // the "post_edited" websocket event take cares of updating the posts
+            // the action below is mostly dispatched for the RHS to update
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_POST_UNPINNED
+            });
+        },
+        (err) => {
+            dispatchError(err, 'unpinPost');
         }
     );
 }

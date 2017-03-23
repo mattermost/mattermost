@@ -219,6 +219,46 @@ func TestCreateDirectChannel(t *testing.T) {
 	}
 }
 
+func TestCreateGroupChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUser(Client)
+
+	userIds := []string{user.Id, user2.Id, user3.Id}
+
+	var channel *model.Channel
+	if result, err := Client.CreateGroupChannel(userIds); err != nil {
+		t.Fatal(err)
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	if channel.Type != model.CHANNEL_GROUP {
+		t.Fatal("channel type was not group")
+	}
+
+	// Don't fail on group channels already existing and return the original channel again
+	if result, err := Client.CreateGroupChannel(userIds); err != nil {
+		t.Fatal(err)
+	} else if result.Data.(*model.Channel).Id != channel.Id {
+		t.Fatal("didn't return original group channel when saving a duplicate")
+	}
+
+	if _, err := Client.CreateGroupChannel([]string{user.Id}); err == nil {
+		t.Fatal("should have failed with not enough users")
+	}
+
+	if _, err := Client.CreateGroupChannel([]string{}); err == nil {
+		t.Fatal("should have failed with not enough users")
+	}
+
+	if _, err := Client.CreateGroupChannel([]string{user.Id, user2.Id, user3.Id, "junk"}); err == nil {
+		t.Fatal("should have failed with non-existent user")
+	}
+}
+
 func TestUpdateChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.SystemAdminClient
@@ -863,7 +903,6 @@ func TestGetChannel(t *testing.T) {
 	if _, err := Client.GetChannels(""); err == nil {
 		t.Fatal("should have failed - wrong team id")
 	}
-
 }
 
 func TestGetMoreChannelsPage(t *testing.T) {
@@ -887,8 +926,8 @@ func TestGetMoreChannelsPage(t *testing.T) {
 	} else {
 		channels := r.Data.(*model.ChannelList)
 
-		// 1 for BasicChannel, 2 for open channels created above
-		if len(*channels) != 3 {
+		// 1 for BasicChannel, 1 for PinnedPostChannel, 2 for open channels created above
+		if len(*channels) != 4 {
 			t.Fatal("wrong length")
 		}
 
@@ -951,11 +990,11 @@ func TestGetChannelCounts(t *testing.T) {
 	} else {
 		counts := result.Data.(*model.ChannelCounts)
 
-		if len(counts.Counts) != 5 {
+		if len(counts.Counts) != 6 {
 			t.Fatal("wrong number of channel counts")
 		}
 
-		if len(counts.UpdateTimes) != 5 {
+		if len(counts.UpdateTimes) != 6 {
 			t.Fatal("wrong number of channel update times")
 		}
 
@@ -985,8 +1024,8 @@ func TestGetMyChannelMembers(t *testing.T) {
 	} else {
 		members := result.Data.(*model.ChannelMembers)
 
-		// town-square, off-topic, basic test channel, channel1, channel2
-		if len(*members) != 5 {
+		// town-square, off-topic, basic test channel, pinned post channel, channel1, channel2
+		if len(*members) != 6 {
 			t.Fatal("wrong number of members", len(*members))
 		}
 	}
@@ -1963,6 +2002,10 @@ func TestViewChannel(t *testing.T) {
 		t.Log(rdata.Member.MsgCount)
 		t.Fatal("message counts don't match")
 	}
+
+	if _, err := Client.DoApiPost(Client.GetTeamRoute()+"/channels/view", "garbage"); err == nil {
+		t.Fatal("should have been an error")
+	}
 }
 
 func TestGetChannelMembersByIds(t *testing.T) {
@@ -2072,5 +2115,26 @@ func TestUpdateChannelRoles(t *testing.T) {
 	// User 1 (channel member) cannot promote itself.
 	if data, meta := th.BasicClient.UpdateChannelRoles(channel.Id, th.BasicUser.Id, CHANNEL_ADMIN); data != nil {
 		t.Fatal("Channel member should not be able to promote itself to channel admin:", meta)
+	}
+}
+
+func TestGetPinnedPosts(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	post1 := th.BasicPost
+	r1 := Client.Must(Client.GetPinnedPosts(post1.ChannelId)).Data.(*model.PostList)
+	if len(r1.Order) != 0 {
+		t.Fatal("should not have gotten a pinned post")
+	}
+
+	post2 := th.PinnedPost
+	r2 := Client.Must(Client.GetPinnedPosts(post2.ChannelId)).Data.(*model.PostList)
+	if len(r2.Order) == 0 {
+		t.Fatal("should have gotten a pinned post")
+	}
+
+	if _, ok := r2.Posts[post2.Id]; !ok {
+		t.Fatal("missing pinned post")
 	}
 }

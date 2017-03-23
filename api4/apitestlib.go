@@ -25,17 +25,49 @@ import (
 )
 
 type TestHelper struct {
-	Client        *model.Client4
-	BasicUser     *model.User
-	BasicUser2    *model.User
-	TeamAdminUser *model.User
-	BasicTeam     *model.Team
-	BasicChannel  *model.Channel
-	BasicChannel2 *model.Channel
-	BasicPost     *model.Post
+	Client              *model.Client4
+	BasicUser           *model.User
+	BasicUser2          *model.User
+	TeamAdminUser       *model.User
+	BasicTeam           *model.Team
+	BasicChannel        *model.Channel
+	BasicPrivateChannel *model.Channel
+	BasicChannel2       *model.Channel
+	BasicPost           *model.Post
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
+}
+
+func SetupEnterprise() *TestHelper {
+	if app.Srv == nil {
+		utils.TranslationsPreInit()
+		utils.LoadConfig("config.json")
+		utils.InitTranslations(utils.Cfg.LocalizationSettings)
+		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.RateLimitSettings.Enable = false
+		utils.Cfg.EmailSettings.SendEmailNotifications = true
+		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
+		utils.Cfg.EmailSettings.SMTPPort = "2500"
+		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
+		utils.DisableDebugLogForTest()
+		utils.License.Features.SetDefaults()
+		app.NewServer()
+		app.InitStores()
+		InitRouter()
+		app.StartServer()
+		utils.InitHTML()
+		InitApi(true)
+		utils.EnableDebugLogForTest()
+		app.Srv.Store.MarkSystemRanUnitTests()
+
+		*utils.Cfg.TeamSettings.EnableOpenServer = true
+	}
+
+	th := &TestHelper{}
+	th.Client = th.CreateClient()
+	th.SystemAdminClient = th.CreateClient()
+	return th
 }
 
 func Setup() *TestHelper {
@@ -104,6 +136,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.LoginTeamAdmin()
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
+	me.BasicPrivateChannel = me.CreatePrivateChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
 	me.BasicUser = me.CreateUser()
@@ -114,6 +147,8 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	app.AddUserToChannel(me.BasicUser2, me.BasicChannel)
 	app.AddUserToChannel(me.BasicUser, me.BasicChannel2)
 	app.AddUserToChannel(me.BasicUser2, me.BasicChannel2)
+	app.AddUserToChannel(me.BasicUser, me.BasicPrivateChannel)
+	app.AddUserToChannel(me.BasicUser2, me.BasicPrivateChannel)
 	app.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
 	me.LoginBasic()
 
@@ -296,7 +331,7 @@ func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := app.JoinUserToTeam(team, user)
+	err := app.JoinUserToTeam(team, user, utils.GetSiteURL())
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
@@ -441,6 +476,14 @@ func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
 	}
 }
 
+func CheckOKStatus(t *testing.T, resp *model.Response) {
+	CheckNoError(t, resp)
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("wrong status code. expected %d got %d", http.StatusOK, resp.StatusCode)
+	}
+}
+
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	if resp.Error == nil {
 		debug.PrintStack()
@@ -453,6 +496,21 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 		t.Log("actual: " + resp.Error.Id)
 		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
+	}
+}
+
+func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
+	if resp.Error == nil {
+		debug.PrintStack()
+		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusInternalServerError))
+		return
+	}
+
+	if resp.StatusCode != http.StatusInternalServerError {
+		debug.PrintStack()
+		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
+		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
+		t.Fatal("wrong status code")
 	}
 }
 
@@ -517,4 +575,50 @@ func cleanupTestFile(info *model.FileInfo) error {
 	}
 
 	return nil
+}
+
+func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
+	utils.DisableDebugLogForTest()
+
+	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+		cm := cmr.Data.(*model.ChannelMember)
+		cm.Roles = "channel_admin channel_user"
+		if sr := <-app.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+			utils.EnableDebugLogForTest()
+			panic(sr.Err)
+		}
+	} else {
+		utils.EnableDebugLogForTest()
+		panic(cmr.Err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
+	if tmr := <-app.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		utils.EnableDebugLogForTest()
+		l4g.Error(tmr.Err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(tmr.Err)
+	}
+	utils.EnableDebugLogForTest()
+}
+
+func UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id}
+	if tmr := <-app.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+		utils.EnableDebugLogForTest()
+		l4g.Error(tmr.Err.Error())
+		l4g.Close()
+		time.Sleep(time.Second)
+		panic(tmr.Err)
+	}
+	utils.EnableDebugLogForTest()
 }

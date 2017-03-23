@@ -14,6 +14,7 @@ type UserSearch struct {
 	InChannelId    string `json:"in_channel_id"`
 	NotInChannelId string `json:"not_in_channel_id"`
 	AllowInactive  bool   `json:"allow_inactive"`
+	WithoutTeam    bool   `json:"without_team"`
 }
 
 // ToJson convert a User to a json string

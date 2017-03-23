@@ -32,7 +32,7 @@ export function isMac() {
 }
 
 export function cmdOrCtrlPressed(e) {
-    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
+    return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
 }
 
 export function isInRole(roles, inRole) {
@@ -104,7 +104,7 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
                     var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
                     notification.onclick = () => {
                         window.focus();
-                        if (channel && channel.type === Constants.DM_CHANNEL) {
+                        if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
                             browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
                         } else if (channel) {
                             browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
@@ -179,7 +179,7 @@ export function displayTime(ticks, utc) {
             ampm = ' PM';
         }
 
-        hours = hours % 12;
+        hours %= 12;
         if (!hours) {
             hours = '12';
         }
@@ -472,11 +472,12 @@ export function applyTheme(theme) {
     if (theme.sidebarText) {
         changeCss('.app__body .ps-container > .ps-scrollbar-y-rail > .ps-scrollbar-y', 'background:' + theme.sidebarText);
         changeCss('.app__body .ps-container:hover .ps-scrollbar-y-rail:hover', 'background:' + changeOpacity(theme.sidebarText, 0.15));
-        changeCss('.sidebar--left .nav-pills__container li>a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.6));
-        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a', 'color:' + theme.sidebarText);
+        changeCss('.sidebar--left .nav-pills__container li>a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a', 'color:' + changeOpacity(theme.sidebarText, 0.6));
+        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.8));
         changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6));
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
         changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText);
+        changeCss('.sidebar--left .status.status--group', 'background:' + changeOpacity(theme.sidebarText, 0.3));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
         changeCss('@media(max-width: 768px){.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + changeOpacity(theme.sidebarText, 0.6));
     }
@@ -500,6 +501,7 @@ export function applyTheme(theme) {
     if (theme.sidebarTextActiveColor) {
         changeCss('.sidebar--left .nav-pills__container li.active a, .sidebar--left .nav-pills__container li.active a:hover, .sidebar--left .nav-pills__container li.active a:focus, .app__body .modal .settings-modal .nav-pills>li.active a, .app__body .modal .settings-modal .nav-pills>li.active a:hover, .app__body .modal .settings-modal .nav-pills>li.active a:active', 'color:' + theme.sidebarTextActiveColor);
         changeCss('.sidebar--left .nav li.active a, .sidebar--left .nav li.active a:hover, .sidebar--left .nav li.active a:focus', 'background:' + changeOpacity(theme.sidebarTextActiveColor, 0.1));
+        changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .nav-pills > li.active a', 'color:' + changeOpacity(theme.sidebarText, 0.8));
     }
 
     if (theme.sidebarHeaderBg) {
@@ -536,14 +538,14 @@ export function applyTheme(theme) {
 
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
-        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;');
-        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj + '!important;');
+        changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj);
+        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj);
     }
 
     if (theme.mentionColor) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
-        changeCss('.sidebar--left .badge', 'color:' + theme.mentionColor + '!important;');
-        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'color:' + theme.mentionColor + '!important;');
+        changeCss('.app__body .sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
+        changeCss('.app__body .sidebar--left .badge', 'color:' + theme.mentionColor);
+        changeCss('.app__body .multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'color:' + theme.mentionColor);
     }
 
     if (theme.centerChannelBg) {
@@ -568,6 +570,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.centerChannelColor) {
+        changeCss('.app__body .mentions__name .status.status--group, .app__body .multi-select__note', 'background:' + changeOpacity(theme.centerChannelColor, 0.12));
         changeCss('.app__body .post-list__arrows, .app__body .post .flag-icon__container', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .modal .status .offline--icon, .app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon', 'fill:' + theme.centerChannelColor);
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
@@ -588,6 +591,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info>div.dropdown .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .channel-header #member_popover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
+        changeCss('.app__body .channel-header #pinned-posts-button', 'fill:' + changeOpacity(theme.centerChannelColor, 0.8));
         changeCss('.app__body .custom-textarea, .app__body .custom-textarea:focus, .app__body .file-preview, .app__body .post-image__details, .app__body .sidebar--right .sidebar-right__body, .app__body .markdown__table th, .app__body .markdown__table td, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .settings-modal .settings-table .settings-content .divider-light, .app__body .webhooks__container, .app__body .dropdown-menu, .app__body .modal .modal-header, .app__body .popover', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .popover.bottom>.arrow', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .search-help-popover .search-autocomplete__divider span, .app__body .suggestion-list__divider > span', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
@@ -617,9 +621,9 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('@media(min-width: 768px){.app__body .post:hover, .app__body .more-modal__list .more-modal__row:hover, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
-        changeCss('.app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
+        changeCss('.app__body .more-modal__row.more-modal__row--selected, .app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('@media(min-width: 768px){.app__body .suggestion-list__content .command:hover, .app__body .mentions__name:hover, .app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
-        changeCss('.app__body .suggestion--selected, .app__body .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
+        changeCss('.app__body .suggestion--selected, .app__body .emoticon-suggestion:hover, .app__body .bot-indicator', 'background:' + changeOpacity(theme.centerChannelColor, 0.15), 1);
         changeCss('code, .app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('@media(min-width: 960px){.app__body .post.current--user:hover .post__body ', 'background: none;');
         changeCss('.app__body .sidebar--right', 'color:' + theme.centerChannelColor);
@@ -656,17 +660,17 @@ export function applyTheme(theme) {
     }
 
     if (theme.buttonBg) {
-        changeCss('.app__body .btn.btn-primary, .app__body .tutorial__circles .circle.active', 'background:' + theme.buttonBg);
+        changeCss('.app__body .btn.btn-primary, .app__body .tutorial__circles .circle.active, .app__body .post__pinned-badge', 'background:' + theme.buttonBg);
         changeCss('.app__body .btn.btn-primary:hover, .app__body .btn.btn-primary:active, .app__body .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.25));
     }
 
     if (theme.buttonColor) {
-        changeCss('.app__body .btn.btn-primary', 'color:' + theme.buttonColor);
+        changeCss('.app__body .btn.btn-primary, .app__body .post__pinned-badge', 'color:' + theme.buttonColor);
     }
 
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .mention--highlight, .app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
-        changeCss('.mention-comment', 'border-color:' + theme.mentionHighlightBg + ' !important');
+        changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
     }
 
@@ -1213,7 +1217,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Lowercase';
+            errorId += 'Lowercase';
         }
 
         if (global.window.mm_config.PasswordRequireUppercase === 'true') {
@@ -1221,7 +1225,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Uppercase';
+            errorId += 'Uppercase';
         }
 
         if (global.window.mm_config.PasswordRequireNumber === 'true') {
@@ -1229,7 +1233,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Number';
+            errorId += 'Number';
         }
 
         if (global.window.mm_config.PasswordRequireSymbol === 'true') {
@@ -1237,7 +1241,7 @@ export function isValidPassword(password) {
                 error = true;
             }
 
-            errorId = errorId + 'Symbol';
+            errorId += 'Symbol';
         }
 
         minimumLength = global.window.mm_config.PasswordMinimumLength;

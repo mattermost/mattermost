@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -97,6 +98,10 @@ func (c *Client4) GetChannelsRoute() string {
 	return fmt.Sprintf("/channels")
 }
 
+func (c *Client4) GetPublicChannelsForTeamRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/channels")
+}
+
 func (c *Client4) GetChannelRoute(channelId string) string {
 	return fmt.Sprintf(c.GetChannelsRoute()+"/%v", channelId)
 }
@@ -121,6 +126,10 @@ func (c *Client4) GetPostsRoute() string {
 	return fmt.Sprintf("/posts")
 }
 
+func (c *Client4) GetConfigRoute() string {
+	return fmt.Sprintf("/config")
+}
+
 func (c *Client4) GetPostRoute(postId string) string {
 	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
 }
@@ -137,8 +146,60 @@ func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
 
+func (c *Client4) GetTestEmailRoute() string {
+	return fmt.Sprintf("/email/test")
+}
+
+func (c *Client4) GetDatabaseRoute() string {
+	return fmt.Sprintf("/database")
+}
+
+func (c *Client4) GetCacheRoute() string {
+	return fmt.Sprintf("/caches")
+}
+
+func (c *Client4) GetClusterRoute() string {
+	return fmt.Sprintf("/cluster")
+}
+
 func (c *Client4) GetIncomingWebhooksRoute() string {
 	return fmt.Sprintf("/hooks/incoming")
+}
+
+func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
+	return fmt.Sprintf(c.GetIncomingWebhooksRoute()+"/%v", hookID)
+}
+
+func (c *Client4) GetComplianceReportsRoute() string {
+	return fmt.Sprintf("/compliance/reports")
+}
+
+func (c *Client4) GetComplianceReportRoute(reportId string) string {
+	return fmt.Sprintf("/compliance/reports/%v", reportId)
+}
+
+func (c *Client4) GetOutgoingWebhooksRoute() string {
+	return fmt.Sprintf("/hooks/outgoing")
+}
+
+func (c *Client4) GetOutgoingWebhookRoute(hookID string) string {
+	return fmt.Sprintf(c.GetOutgoingWebhooksRoute()+"/%v", hookID)
+}
+
+func (c *Client4) GetPreferencesRoute(userId string) string {
+	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
+}
+
+func (c *Client4) GetSamlRoute() string {
+	return fmt.Sprintf("/saml")
+}
+
+func (c *Client4) GetLdapRoute() string {
+	return fmt.Sprintf("/ldap")
+}
+
+func (c *Client4) GetBrandRoute() string {
+	return fmt.Sprintf("/brand")
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -288,6 +349,16 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	}
 }
 
+// GetMe returns the logged in user.
+func (c *Client4) GetMe(etag string) (*User, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(ME), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetUser returns a user based on the provided user id string.
 func (c *Client4) GetUser(userId, etag string) (*User, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId), etag); err != nil {
@@ -315,6 +386,50 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 	} else {
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteUsersInTeam returns the users on a team based on search term.
+func (c *Client4) AutocompleteUsersInTeam(teamId string, username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?in_team=%v&name=%v", teamId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteUsersInChannel returns the users in a channel based on search term.
+func (c *Client4) AutocompleteUsersInChannel(teamId string, channelId string, username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?in_team=%v&in_channel=%v&name=%v", teamId, channelId, username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteUsers returns the users in the system based on search term.
+func (c *Client4) AutocompleteUsers(username string, etag string) (*UserAutocomplete, *Response) {
+	query := fmt.Sprintf("?name=%v", username)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+"/autocomplete"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserAutocompleteFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetProfileImage gets user's profile image. Must be logged in or be a system administrator.
+func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
 	}
 }
 
@@ -372,6 +487,16 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	}
 }
 
+// SearchUsers returns a list of users based on some search criteria.
+func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/search", search.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUser updates a user in the system based on the provided user struct.
 func (c *Client4) UpdateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPut(c.GetUserRoute(user.Id), user.ToJson()); err != nil {
@@ -389,6 +514,22 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) 
 	} else {
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateUserMfa activates multi-factor authentication for a user if activate
+// is true and a valid code is provided. If activate is false, then code is not
+// required and multi-factor authentication is disabled for the user.
+func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Response) {
+	requestBody := make(map[string]interface{})
+	requestBody["activate"] = activate
+	requestBody["code"] = code
+
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/mfa", StringInterfaceToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -468,8 +609,25 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
-// GetAudits returns a list of audit based on the provided user id string.
-func (c *Client4) GetAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
+// GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
+// of unread messages and mentions the current user has for the teams it belongs to.
+// An optional team ID can be set to exclude that team from the results. Must be authenticated.
+func (c *Client4) GetTeamsUnreadForUser(userId, teamIdToExclude string) ([]*TeamUnread, *Response) {
+	optional := ""
+	if teamIdToExclude != "" {
+		optional += fmt.Sprintf("?exclude_team=%s", url.QueryEscape(teamIdToExclude))
+	}
+
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/unread"+optional, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamsUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUserAudits returns a list of audit based on the provided user id string.
+func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag string) (Audits, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/audits"+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
@@ -487,6 +645,40 @@ func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SetProfileImage sets profile image of the user
+func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", "profile.png"); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		// set to http.StatusForbidden(403)
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+	} else if rp.StatusCode >= 300 {
+		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return CheckStatusOK(rp), BuildResponse(rp)
 	}
 }
 
@@ -512,6 +704,17 @@ func (c *Client4) GetTeam(teamId, etag string) (*Team, *Response) {
 	}
 }
 
+// GetAllTeams returns all teams based on permissions.
+func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamByName returns a team based on the provided team name string.
 func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	if r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag); err != nil {
@@ -519,6 +722,16 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	} else {
 		defer closeBody(r)
 		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// TeamExists returns true or false if the team exist or not.
+func (c *Client4) TeamExists(name, etag string) (bool, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamByNameRoute(name)+"/exists", etag); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapBoolFromJson(r.Body)["exists"], BuildResponse(r)
 	}
 }
 
@@ -543,7 +756,7 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 	}
 }
 
-// UpdateTeamMemberRoles will update the roles on a team for a user
+// UpdateTeamMemberRoles will update the roles on a team for a user.
 func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": newRoles}
 	if r, err := c.DoApiPut(c.GetTeamMemberRoute(teamId, userId)+"/roles", MapToJson(requestBody)); err != nil {
@@ -554,10 +767,31 @@ func (c *Client4) UpdateTeamMemberRoles(teamId, userId, newRoles string) (bool, 
 	}
 }
 
+// UpdateTeam will update a team.
+func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(team.Id), team.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamMembersByIds will return an array of team members based on the
+// team id and a list of user ids provided. Must be authenticated.
+func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamMember, *Response) {
+	if r, err := c.DoApiPost(fmt.Sprintf("/teams/%v/members/ids", teamId), ArrayToJson(userIds)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -576,11 +810,33 @@ func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
 	}
 }
 
+// GetTeamUnread will return a TeamUnread object that contains the amount of
+// unread messages and mentions the user has for the specified team.
+// Must be authenticated.
+func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateChannel update a channel based on the provided channel struct.
+func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelRoute(channel.Id), channel.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -607,6 +863,37 @@ func (c *Client4) GetChannel(channelId, etag string) (*Channel, *Response) {
 	} else {
 		defer closeBody(r)
 		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetChannelStats returns statistics for a channel.
+func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/stats", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelStatsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPublicChannelsForTeam returns a channel based on the provided team id string.
+func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetPublicChannelsForTeamRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteChannel deletes channel based on the provided channel id string.
+func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetChannelRoute(channelId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -641,6 +928,17 @@ func (c *Client4) GetChannelMembers(channelId string, page, perPage int, etag st
 	}
 }
 
+// GetChannelMembersByIds gets the channel members in a channel for a list of user ids.
+func (c *Client4) GetChannelMembersByIds(channelId string, userIds []string) (*ChannelMembers, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"/ids", ArrayToJson(userIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMembersFromJson(r.Body), BuildResponse(r)
+
+	}
+}
+
 // GetChannelMember gets a channel member.
 func (c *Client4) GetChannelMember(channelId, userId, etag string) (*ChannelMember, *Response) {
 	if r, err := c.DoApiGet(c.GetChannelMemberRoute(channelId, userId), etag); err != nil {
@@ -672,6 +970,17 @@ func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response
 	}
 }
 
+// GetChannelUnread will return a ChannelUnread object that contains the number of
+// unread messages and mentions for a user.
+func (c *Client4) GetChannelUnread(channelId, userId string) (*ChannelUnread, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/unread", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateChannelRoles will update the roles on a channel for a user.
 func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}
@@ -680,6 +989,17 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Re
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// AddChannelMember adds user to channel and return a channel member.
+func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
+	requestBody := map[string]string{"user_id": userId}
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelMemberFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -698,6 +1018,16 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdatePost updates a post based on the provided post struct.
+func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -794,6 +1124,47 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response) {
 	}
 }
 
+// GetFileThumbnail gets the bytes for a file by id.
+func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/thumbnail", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// GetFileLink gets the public link of a file by id.
+func (c *Client4) GetFileLink(fileId string) (string, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/link", ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		return MapFromJson(r.Body)["link"], BuildResponse(r)
+	}
+}
+
+// GetFilePreview gets the bytes for a file by id.
+func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/preview", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// GetFileInfo gets all the file info objects.
+func (c *Client4) GetFileInfo(fileId string) (*FileInfo, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/info", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return FileInfoFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetFileInfosForPost gets all the file info objects attached to a post.
 func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/files/info", etag); err != nil {
@@ -816,11 +1187,80 @@ func (c *Client4) GetPing() (bool, *Response) {
 	}
 }
 
+func (c *Client4) TestEmail() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetConfig will retrieve the server config with some sanitized items.
+func (c *Client4) GetConfig() (*Config, *Response) {
+	if r, err := c.DoApiGet(c.GetConfigRoute(), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ConfigFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ReloadConfig will reload the server configuration.
+func (c *Client4) ReloadConfig() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetConfigRoute()+"/reload", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DatabaseRecycle will recycle the connections. Discard current connection and get new one.
+func (c *Client4) DatabaseRecycle() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetDatabaseRoute()+"/recycle", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// InvalidateCaches will purge the cache and can affect the performance while is cleaning.
+func (c *Client4) InvalidateCaches() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetCacheRoute()+"/invalidate", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UpdateConfig will update the server configuration
+func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
+	if r, err := c.DoApiPut(c.GetConfigRoute(), config.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ConfigFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Webhooks Section
 
 // CreateIncomingWebhook creates an incoming webhook for a channel.
 func (c *Client4) CreateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
 	if r, err := c.DoApiPost(c.GetIncomingWebhooksRoute(), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateIncomingWebhook updates an incoming webhook for a channel.
+func (c *Client4) UpdateIncomingWebhook(hook *IncomingWebhook) (*IncomingWebhook, *Response) {
+	if r, err := c.DoApiPut(c.GetIncomingWebhookRoute(hook.Id), hook.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -847,5 +1287,432 @@ func (c *Client4) GetIncomingWebhooksForTeam(teamId string, page int, perPage in
 	} else {
 		defer closeBody(r)
 		return IncomingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetIncomingWebhook returns an Incoming webhook given the hook ID
+func (c *Client4) GetIncomingWebhook(hookID string, etag string) (*IncomingWebhook, *Response) {
+	if r, err := c.DoApiGet(c.GetIncomingWebhookRoute(hookID), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return IncomingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteIncomingWebhook deletes and Incoming Webhook given the hook ID
+func (c *Client4) DeleteIncomingWebhook(hookID string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetIncomingWebhookRoute(hookID)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// CreateOutgoingWebhook creates an outgoing webhook for a team or channel.
+func (c *Client4) CreateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiPost(c.GetOutgoingWebhooksRoute(), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateOutgoingWebhook creates an outgoing webhook for a team or channel.
+func (c *Client4) UpdateOutgoingWebhook(hook *OutgoingWebhook) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiPut(c.GetOutgoingWebhookRoute(hook.Id), hook.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhooks returns a page of outgoing webhooks on the system. Page counting starts at 0.
+func (c *Client4) GetOutgoingWebhooks(page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetOutgoingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhook outgoing webhooks on the system requested by Hook Id.
+func (c *Client4) GetOutgoingWebhook(hookId string) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiGet(c.GetOutgoingWebhookRoute(hookId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhooksForChannel returns a page of outgoing webhooks for a channel. Page counting starts at 0.
+func (c *Client4) GetOutgoingWebhooksForChannel(channelId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&channel_id=%v", page, perPage, channelId)
+	if r, err := c.DoApiGet(c.GetOutgoingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOutgoingWebhooksForTeam returns a page of outgoing webhooks for a team. Page counting starts at 0.
+func (c *Client4) GetOutgoingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*OutgoingWebhook, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&team_id=%v", page, perPage, teamId)
+	if r, err := c.DoApiGet(c.GetOutgoingWebhooksRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RegenOutgoingHookToken regenerate the outgoing webhook token.
+func (c *Client4) RegenOutgoingHookToken(hookId string) (*OutgoingWebhook, *Response) {
+	if r, err := c.DoApiPost(c.GetOutgoingWebhookRoute(hookId)+"/regen_token", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OutgoingWebhookFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteOutgoingWebhook delete the outgoing webhook on the system requested by Hook Id.
+func (c *Client4) DeleteOutgoingWebhook(hookId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetOutgoingWebhookRoute(hookId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Preferences Section
+
+// GetPreferences returns the user's preferences.
+func (c *Client4) GetPreferences(userId string) (Preferences, *Response) {
+	if r, err := c.DoApiGet(c.GetPreferencesRoute(userId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		defer closeBody(r)
+		return preferences, BuildResponse(r)
+	}
+}
+
+// UpdatePreferences saves the user's preferences.
+func (c *Client4) UpdatePreferences(userId string, preferences *Preferences) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetPreferencesRoute(userId), preferences.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return true, BuildResponse(r)
+	}
+}
+
+// DeletePreferences deletes the user's preferences.
+func (c *Client4) DeletePreferences(userId string, preferences *Preferences) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPreferencesRoute(userId)+"/delete", preferences.ToJson()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return true, BuildResponse(r)
+	}
+}
+
+// GetPreferencesByCategory returns the user's preferences from the provided category string.
+func (c *Client4) GetPreferencesByCategory(userId string, category string) (Preferences, *Response) {
+	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s", category)
+	if r, err := c.DoApiGet(url, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		preferences, _ := PreferencesFromJson(r.Body)
+		defer closeBody(r)
+		return preferences, BuildResponse(r)
+	}
+}
+
+// GetPreferenceByCategoryAndName returns the user's preferences from the provided category and preference name string.
+func (c *Client4) GetPreferenceByCategoryAndName(userId string, category string, preferenceName string) (*Preference, *Response) {
+	url := fmt.Sprintf(c.GetPreferencesRoute(userId)+"/%s/name/%v", category, preferenceName)
+	if r, err := c.DoApiGet(url, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PreferenceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// SAML Section
+
+// GetSamlMetadata returns metadata for the SAML configuration.
+func (c *Client4) GetSamlMetadata() (string, *Response) {
+	if r, err := c.DoApiGet(c.GetSamlRoute()+"/metadata", ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		return buf.String(), BuildResponse(r)
+	}
+}
+
+func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("certificate", filename); err != nil {
+		return nil, nil, err
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, nil, err
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, nil, err
+	}
+
+	return body.Bytes(), writer, nil
+}
+
+// UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
+func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := samlFileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetSamlRoute()+"/certificate/idp", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
+func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := samlFileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetSamlRoute()+"/certificate/public", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
+func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := samlFileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetSamlRoute()+"/certificate/private", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// DeleteSamlIdpCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
+func (c *Client4) DeleteSamlIdpCertificate() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSamlRoute() + "/certificate/idp"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DeleteSamlPublicCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
+func (c *Client4) DeleteSamlPublicCertificate() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSamlRoute() + "/certificate/public"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DeleteSamlPrivateCertificate deletes the SAML IDP certificate from the server and updates the config to not use it and disable SAML.
+func (c *Client4) DeleteSamlPrivateCertificate() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetSamlRoute() + "/certificate/private"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetSamlCertificateStatus returns metadata for the SAML configuration.
+func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response) {
+	if r, err := c.DoApiGet(c.GetSamlRoute()+"/certificate/status", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return SamlCertificateStatusFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Compliance Section
+
+// CreateComplianceReport creates an incoming webhook for a channel.
+func (c *Client4) CreateComplianceReport(report *Compliance) (*Compliance, *Response) {
+	if r, err := c.DoApiPost(c.GetComplianceReportsRoute(), report.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ComplianceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetComplianceReports returns list of compliance reports.
+func (c *Client4) GetComplianceReports(page, perPage int) (Compliances, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetComplianceReportsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CompliancesFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetComplianceReport returns a compliance report.
+func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) {
+	if r, err := c.DoApiGet(c.GetComplianceReportRoute(reportId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ComplianceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DownloadComplianceReport returns a full compliance report as a file.
+func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
+	var rq *http.Request
+	rq, _ = http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if rp.StatusCode >= 300 {
+		defer rp.Body.Close()
+		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else if data, err := ioutil.ReadAll(rp.Body); err != nil {
+		defer closeBody(rp)
+		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError("DownloadComplianceReport", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode)}
+	} else {
+		defer closeBody(rp)
+		return data, BuildResponse(rp)
+	}
+}
+
+// Cluster Section
+
+// GetClusterStatus returns the status of all the configured cluster nodes.
+func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response) {
+	if r, err := c.DoApiGet(c.GetClusterRoute()+"/status", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ClusterInfosFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// LDAP Section
+
+// SyncLdap will force a sync with the configured LDAP server.
+func (c *Client4) SyncLdap() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetLdapRoute()+"/sync", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// TestLdap will attempt to connect to the configured LDAP server and return OK if configured
+// correctly.
+func (c *Client4) TestLdap() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetLdapRoute()+"/test", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Audits Section
+
+// GetAudits returns a list of audits for the whole system.
+func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet("/audits"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return AuditsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Brand Section
+
+// GetBrandImage retrieves the previously uploaded brand image.
+func (c *Client4) GetBrandImage() ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetBrandRoute()+"/image", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetBrandImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// UploadBrandImage sets the brand image for the system.
+func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", "brand.png"); err != nil {
+		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBrandRoute()+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+	} else if rp.StatusCode >= 300 {
+		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return CheckStatusOK(rp), BuildResponse(rp)
+	}
+}
+
+// Logs Section
+
+// GetLogs page of logs as a string array.
+func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet("/logs"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ArrayFromJson(r.Body), BuildResponse(r)
 	}
 }

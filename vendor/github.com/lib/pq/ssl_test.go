@@ -6,7 +6,6 @@ import (
 	_ "crypto/sha256"
 	"crypto/x509"
 	"database/sql"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -42,10 +41,13 @@ func openSSLConn(t *testing.T, conninfo string) (*sql.DB, error) {
 }
 
 func checkSSLSetup(t *testing.T, conninfo string) {
-	db, err := openSSLConn(t, conninfo)
-	if err == nil {
-		db.Close()
-		t.Fatalf("expected error with conninfo=%q", conninfo)
+	_, err := openSSLConn(t, conninfo)
+	if pge, ok := err.(*Error); ok {
+		if pge.Code.Name() != "invalid_authorization_specification" {
+			t.Fatalf("unexpected error code '%s'", pge.Code.Name())
+		}
+	} else {
+		t.Fatalf("expected %T, got %v", (*Error)(nil), err)
 	}
 }
 
@@ -150,52 +152,31 @@ func TestSSLVerifyCA(t *testing.T) {
 	checkSSLSetup(t, "sslmode=disable user=pqgossltest")
 
 	// Not OK according to the system CA
-	_, err := openSSLConn(t, "host=postgres sslmode=verify-ca user=pqgossltest")
-	if err == nil {
-		t.Fatal("expected error")
+	{
+		_, err := openSSLConn(t, "host=postgres sslmode=verify-ca user=pqgossltest")
+		if _, ok := err.(x509.UnknownAuthorityError); !ok {
+			t.Fatalf("expected %T, got %#+v", x509.UnknownAuthorityError{}, err)
+		}
 	}
-	_, ok := err.(x509.UnknownAuthorityError)
-	if !ok {
-		t.Fatalf("expected x509.UnknownAuthorityError, got %#+v", err)
+
+	// Still not OK according to the system CA; empty sslrootcert is treated as unspecified.
+	{
+		_, err := openSSLConn(t, "host=postgres sslmode=verify-ca user=pqgossltest sslrootcert=''")
+		if _, ok := err.(x509.UnknownAuthorityError); !ok {
+			t.Fatalf("expected %T, got %#+v", x509.UnknownAuthorityError{}, err)
+		}
 	}
 
 	rootCertPath := filepath.Join(os.Getenv("PQSSLCERTTEST_PATH"), "root.crt")
 	rootCert := "sslrootcert=" + rootCertPath + " "
 	// No match on Common Name, but that's OK
-	_, err = openSSLConn(t, rootCert+"host=127.0.0.1 sslmode=verify-ca user=pqgossltest")
-	if err != nil {
+	if _, err := openSSLConn(t, rootCert+"host=127.0.0.1 sslmode=verify-ca user=pqgossltest"); err != nil {
 		t.Fatal(err)
 	}
 	// Everything OK
-	_, err = openSSLConn(t, rootCert+"host=postgres sslmode=verify-ca user=pqgossltest")
-	if err != nil {
+	if _, err := openSSLConn(t, rootCert+"host=postgres sslmode=verify-ca user=pqgossltest"); err != nil {
 		t.Fatal(err)
 	}
-}
-
-func getCertConninfo(t *testing.T, source string) string {
-	var sslkey string
-	var sslcert string
-
-	certpath := os.Getenv("PQSSLCERTTEST_PATH")
-
-	switch source {
-	case "missingkey":
-		sslkey = "/tmp/filedoesnotexist"
-		sslcert = filepath.Join(certpath, "postgresql.crt")
-	case "missingcert":
-		sslkey = filepath.Join(certpath, "postgresql.key")
-		sslcert = "/tmp/filedoesnotexist"
-	case "certtwice":
-		sslkey = filepath.Join(certpath, "postgresql.crt")
-		sslcert = filepath.Join(certpath, "postgresql.crt")
-	case "valid":
-		sslkey = filepath.Join(certpath, "postgresql.key")
-		sslcert = filepath.Join(certpath, "postgresql.crt")
-	default:
-		t.Fatalf("invalid source %q", source)
-	}
-	return fmt.Sprintf("sslmode=require user=pqgosslcert sslkey=%s sslcert=%s", sslkey, sslcert)
 }
 
 // Authenticate over SSL using client certificates
@@ -204,66 +185,95 @@ func TestSSLClientCertificates(t *testing.T) {
 	// Environment sanity check: should fail without SSL
 	checkSSLSetup(t, "sslmode=disable user=pqgossltest")
 
-	// Should also fail without a valid certificate
-	db, err := openSSLConn(t, "sslmode=require user=pqgosslcert")
-	if err == nil {
-		db.Close()
-		t.Fatal("expected error")
+	const baseinfo = "sslmode=require user=pqgosslcert"
+
+	// Certificate not specified, should fail
+	{
+		_, err := openSSLConn(t, baseinfo)
+		if pge, ok := err.(*Error); ok {
+			if pge.Code.Name() != "invalid_authorization_specification" {
+				t.Fatalf("unexpected error code '%s'", pge.Code.Name())
+			}
+		} else {
+			t.Fatalf("expected %T, got %v", (*Error)(nil), err)
+		}
 	}
-	pge, ok := err.(*Error)
+
+	// Empty certificate specified, should fail
+	{
+		_, err := openSSLConn(t, baseinfo+" sslcert=''")
+		if pge, ok := err.(*Error); ok {
+			if pge.Code.Name() != "invalid_authorization_specification" {
+				t.Fatalf("unexpected error code '%s'", pge.Code.Name())
+			}
+		} else {
+			t.Fatalf("expected %T, got %v", (*Error)(nil), err)
+		}
+	}
+
+	// Non-existent certificate specified, should fail
+	{
+		_, err := openSSLConn(t, baseinfo+" sslcert=/tmp/filedoesnotexist")
+		if pge, ok := err.(*Error); ok {
+			if pge.Code.Name() != "invalid_authorization_specification" {
+				t.Fatalf("unexpected error code '%s'", pge.Code.Name())
+			}
+		} else {
+			t.Fatalf("expected %T, got %v", (*Error)(nil), err)
+		}
+	}
+
+	certpath, ok := os.LookupEnv("PQSSLCERTTEST_PATH")
 	if !ok {
-		t.Fatal("expected pq.Error")
+		t.Fatalf("PQSSLCERTTEST_PATH not present in environment")
 	}
-	if pge.Code.Name() != "invalid_authorization_specification" {
-		t.Fatalf("unexpected error code %q", pge.Code.Name())
+
+	sslcert := filepath.Join(certpath, "postgresql.crt")
+
+	// Cert present, key not specified, should fail
+	{
+		_, err := openSSLConn(t, baseinfo+" sslcert="+sslcert)
+		if _, ok := err.(*os.PathError); !ok {
+			t.Fatalf("expected %T, got %#+v", (*os.PathError)(nil), err)
+		}
 	}
+
+	// Cert present, empty key specified, should fail
+	{
+		_, err := openSSLConn(t, baseinfo+" sslcert="+sslcert+" sslkey=''")
+		if _, ok := err.(*os.PathError); !ok {
+			t.Fatalf("expected %T, got %#+v", (*os.PathError)(nil), err)
+		}
+	}
+
+	// Cert present, non-existent key, should fail
+	{
+		_, err := openSSLConn(t, baseinfo+" sslcert="+sslcert+" sslkey=/tmp/filedoesnotexist")
+		if _, ok := err.(*os.PathError); !ok {
+			t.Fatalf("expected %T, got %#+v", (*os.PathError)(nil), err)
+		}
+	}
+
+	// Key has wrong permissions (passing the cert as the key), should fail
+	if _, err := openSSLConn(t, baseinfo+" sslcert="+sslcert+" sslkey="+sslcert); err != ErrSSLKeyHasWorldPermissions {
+		t.Fatalf("expected %s, got %#+v", ErrSSLKeyHasWorldPermissions, err)
+	}
+
+	sslkey := filepath.Join(certpath, "postgresql.key")
 
 	// Should work
-	db, err = openSSLConn(t, getCertConninfo(t, "valid"))
-	if err != nil {
+	if db, err := openSSLConn(t, baseinfo+" sslcert="+sslcert+" sslkey="+sslkey); err != nil {
 		t.Fatal(err)
-	}
-	rows, err := db.Query("SELECT 1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	rows.Close()
-}
-
-// Test errors with ssl certificates
-func TestSSLClientCertificatesMissingFiles(t *testing.T) {
-	maybeSkipSSLTests(t)
-	// Environment sanity check: should fail without SSL
-	checkSSLSetup(t, "sslmode=disable user=pqgossltest")
-
-	// Key missing, should fail
-	_, err := openSSLConn(t, getCertConninfo(t, "missingkey"))
-	if err == nil {
-		t.Fatal("expected error")
-	}
-	// should be a PathError
-	_, ok := err.(*os.PathError)
-	if !ok {
-		t.Fatalf("expected PathError, got %#+v", err)
-	}
-
-	// Cert missing, should fail
-	_, err = openSSLConn(t, getCertConninfo(t, "missingcert"))
-	if err == nil {
-		t.Fatal("expected error")
-	}
-	// should be a PathError
-	_, ok = err.(*os.PathError)
-	if !ok {
-		t.Fatalf("expected PathError, got %#+v", err)
-	}
-
-	// Key has wrong permissions, should fail
-	_, err = openSSLConn(t, getCertConninfo(t, "certtwice"))
-	if err == nil {
-		t.Fatal("expected error")
-	}
-	if err != ErrSSLKeyHasWorldPermissions {
-		t.Fatalf("expected ErrSSLKeyHasWorldPermissions, got %#+v", err)
+	} else {
+		rows, err := db.Query("SELECT 1")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := rows.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if err := db.Close(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }

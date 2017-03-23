@@ -16,14 +16,21 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
+	BaseRoutes.TeamsForUser.Handle("/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
+	BaseRoutes.Team.Handle("", ApiSessionRequired(updateTeam)).Methods("PUT")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
-	BaseRoutes.Team.Handle("/members", ApiSessionRequired(getTeamMembers)).Methods("GET")
+	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
+	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
+
+	BaseRoutes.TeamForUser.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
 
 	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
+	BaseRoutes.TeamByName.Handle("/exists", ApiSessionRequired(teamExists)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
 }
 
@@ -39,7 +46,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId)
+	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -70,6 +77,11 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamName()
+	if c.Err != nil {
+		return
+	}
+
 	if team, err := app.GetTeamByName(c.Params.TeamName); err != nil {
 		c.Err = err
 		return
@@ -82,6 +94,36 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(team.ToJson()))
 		return
 	}
+}
+
+func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team := model.TeamFromJson(r.Body)
+
+	if team == nil {
+		c.SetInvalidParam("team")
+		return
+	}
+
+	team.Id = c.Params.TeamId
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	updatedTeam, err := app.UpdateTeam(team)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(updatedTeam.ToJson()))
 }
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -101,6 +143,29 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(model.TeamListToJson(teams)))
 	}
+}
+
+func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Session.UserId != c.Params.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	// optional team id to be excluded from the result
+	teamId := r.URL.Query().Get("exclude_team")
+
+	unreadTeamsList, err := app.GetTeamsUnreadForUser(teamId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamsUnreadToJson(unreadTeamsList)))
 }
 
 func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -141,6 +206,58 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.TeamMembersToJson(members)))
 		return
 	}
+}
+
+func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	members, err := app.GetTeamMembersByIds(c.Params.TeamId, userIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamMembersToJson(members)))
+}
+
+func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	unreadTeam, err := app.GetTeamUnread(c.Params.TeamId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(unreadTeam.ToJson()))
 }
 
 func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -188,4 +305,40 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	var teams []*model.Team
+	var err *model.AppError
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		teams, err = app.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
+	} else {
+		teams, err = app.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamListToJson(teams)))
+}
+
+func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamName()
+	if c.Err != nil {
+		return
+	}
+
+	resp := make(map[string]bool)
+
+	if _, err := app.GetTeamByName(c.Params.TeamName); err != nil {
+		resp["exists"] = false
+	} else {
+		resp["exists"] = true
+	}
+
+	w.Write([]byte(model.MapBoolToJson(resp)))
+	return
 }

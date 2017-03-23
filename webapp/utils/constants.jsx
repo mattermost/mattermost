@@ -35,6 +35,7 @@ import windows10ThemeImage from 'images/themes/windows_dark.png';
 
 export const Preferences = {
     CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
+    CATEGORY_GROUP_CHANNEL_SHOW: 'group_channel_show',
     CATEGORY_DISPLAY_SETTINGS: 'display_settings',
     DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
     DISPLAY_PREFER_FULL_NAME: 'full_name',
@@ -55,7 +56,10 @@ export const Preferences = {
     CATEGORY_FLAGGED_POST: 'flagged_post',
     CATEGORY_NOTIFICATIONS: 'notifications',
     CATEGORY_FAVORITE_CHANNEL: 'favorite_channel',
-    EMAIL_INTERVAL: 'email_interval'
+    EMAIL_INTERVAL: 'email_interval',
+    INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
+    INTERVAL_FIFTEEN_MINUTES: 15 * 60,
+    INTERVAL_HOUR: 60 * 60
 };
 
 export const ActionTypes = keyMirror({
@@ -86,6 +90,8 @@ export const ActionTypes = keyMirror({
     RECEIVED_POST_SELECTED: null,
     RECEIVED_MENTION_DATA: null,
     RECEIVED_ADD_MENTION: null,
+    RECEIVED_POST_PINNED: null,
+    RECEIVED_POST_UNPINNED: null,
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
@@ -105,6 +111,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_INCOMING_WEBHOOKS: null,
     RECEIVED_INCOMING_WEBHOOK: null,
+    UPDATED_INCOMING_WEBHOOK: null,
     REMOVED_INCOMING_WEBHOOK: null,
     RECEIVED_OUTGOING_WEBHOOKS: null,
     RECEIVED_OUTGOING_WEBHOOK: null,
@@ -160,6 +167,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_GET_POST_LINK_MODAL: null,
     TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
     TOGGLE_GET_PUBLIC_LINK_MODAL: null,
+    TOGGLE_DM_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,
     SUGGESTION_RECEIVED_SUGGESTIONS: null,
@@ -202,6 +210,7 @@ export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
     POST_DELETED: 'post_deleted',
+    CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',
@@ -385,14 +394,18 @@ export const Constants = {
     ],
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     MAX_DMS: 20,
+    MAX_USERS_IN_GM: 8,
+    MIN_USERS_IN_GM: 3,
     MAX_CHANNEL_POPOVER_COUNT: 100,
     DM_CHANNEL: 'D',
+    GM_CHANNEL: 'G',
     OPEN_CHANNEL: 'O',
     PRIVATE_CHANNEL: 'P',
     INVITE_TEAM: 'I',
     OPEN_TEAM: 'O',
     MAX_POST_LEN: 4000,
     EMOJI_SIZE: 16,
+    TEAM_INFO_SVG: "<svg width='100%' height='100%' viewBox='0 0 20 20' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;'> <g transform='matrix(1.17647,0,0,1.17647,-1.55431e-15,-1.00573e-14)'> <path d='M8.5,0C3.797,0 0,3.797 0,8.5C0,13.203 3.797,17 8.5,17C13.203,17 17,13.203 17,8.5C17,3.797 13.203,0 8.5,0ZM10,8.5C10,7.672 9.328,7 8.5,7C7.672,7 7,7.672 7,8.5L7,12.45C7,13.278 7.672,13.95 8.5,13.95C9.328,13.95 10,13.278 10,12.45L10,8.5ZM8.5,3C9.328,3 10,3.672 10,4.5C10,5.328 9.328,6 8.5,6C7.672,6 7,5.328 7,4.5C7,3.672 7.672,3 8.5,3Z'/> </g> </svg>",
     FLAG_ICON_OUTLINE_SVG: "<svg width='12px' height='12px' viewBox='0 0 48 48' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.41421;'> <g> <g transform='matrix(1,0,0,0.957537,-0.5,1.42123)'> <path d='M2.5,0.5C1.4,0.5 0.5,1.4 0.5,2.5L0.5,45.6C0.5,46.7 1.4,47.6 2.5,47.6C3.6,47.6 4.5,46.7 4.5,45.6L4.5,2.5C4.4,1.4 3.5,0.5 2.5,0.5Z'/> </g> <g transform='matrix(0.923469,0,0,0.870026,1.64285,2.0085)'> <path d='M46.4,3.5C43.3,2.1 40.1,1.4 36.5,1.4C32.1,1.4 27.8,2.4 23.6,3.4C19.4,4.4 15.5,5.3 11.6,5.3C10.5,5.3 9.4,5.2 8.4,5.1L8.4,37C9.4,37.1 10.5,37.2 11.6,37.2C16,37.2 20.3,36.2 24.5,35.2C28.7,34.2 32.6,33.3 36.5,33.3C39.5,33.3 42.3,33.9 44.8,35.1C45.4,35.4 46.1,35.3 46.7,35C47.3,34.6 47.6,34 47.6,33.3L47.6,5.3C47.5,4.6 47.1,3.9 46.4,3.5Z' style='stroke-width:3.23px; fill:none;'/> </g> </g> </svg>",
     FLAG_ICON_SVG: "<svg width='12px' height='12px' viewBox='0 0 48 48' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.41421;'> <g> <g transform='matrix(1,0,0,0.957537,-0.5,1.42123)'> <path d='M2.5,0.5C1.4,0.5 0.5,1.4 0.5,2.5L0.5,45.6C0.5,46.7 1.4,47.6 2.5,47.6C3.6,47.6 4.5,46.7 4.5,45.6L4.5,2.5C4.4,1.4 3.5,0.5 2.5,0.5Z'/> </g> <g transform='matrix(0.923469,0,0,0.870026,1.64285,2.0085)'> <path d='M46.4,3.5C43.3,2.1 40.1,1.4 36.5,1.4C32.1,1.4 27.8,2.4 23.6,3.4C19.4,4.4 15.5,5.3 11.6,5.3C10.5,5.3 9.4,5.2 8.4,5.1L8.4,37C9.4,37.1 10.5,37.2 11.6,37.2C16,37.2 20.3,36.2 24.5,35.2C28.7,34.2 32.6,33.3 36.5,33.3C39.5,33.3 42.3,33.9 44.8,35.1C45.4,35.4 46.1,35.3 46.7,35C47.3,34.6 47.6,34 47.6,33.3L47.6,5.3C47.5,4.6 47.1,3.9 46.4,3.5Z' style='stroke-width:3.23px;'/> </g> </g> </svg>",
     ATTACHMENT_ICON_SVG: "<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' viewBox='0 0 48 48' enable-background='new 0 0 48 48' xml:space='preserve'><g><path d='M43.922,6.653c-2.643-2.644-6.201-4.107-9.959-4.069c-3.774,0.019-7.32,1.497-9.983,4.161l-12.3,12.3l-8.523,8.521   c-4.143,4.144-4.217,10.812-0.167,14.862c1.996,1.996,4.626,2.989,7.277,2.989c2.73,0,5.482-1.055,7.583-3.156l15.547-15.545   c0.002-0.002,0.002-0.004,0.004-0.005l5.358-5.358c1.394-1.393,2.176-3.24,2.201-5.2c0.026-1.975-0.716-3.818-2.09-5.192   c-2.834-2.835-7.496-2.787-10.394,0.108L9.689,29.857c-0.563,0.563-0.563,1.474,0,2.036c0.281,0.28,0.649,0.421,1.018,0.421   c0.369,0,0.737-0.141,1.018-0.421l18.787-18.788c1.773-1.774,4.609-1.824,6.322-0.11c0.82,0.82,1.263,1.928,1.247,3.119   c-0.017,1.205-0.497,2.342-1.357,3.201l-5.55,5.551c-0.002,0.002-0.002,0.004-0.004,0.005L15.814,40.225   c-3.02,3.02-7.86,3.094-10.789,0.167c-2.928-2.929-2.854-7.77,0.167-10.791l0.958-0.958c0.001-0.002,0.004-0.002,0.005-0.004   L26.016,8.78c2.123-2.124,4.951-3.303,7.961-3.317c2.998,0.02,5.814,1.13,7.91,3.226c4.35,4.351,4.309,11.472-0.093,15.873   L25.459,40.895c-0.563,0.562-0.563,1.473,0,2.035c0.281,0.281,0.65,0.422,1.018,0.422c0.369,0,0.737-0.141,1.018-0.422   L43.83,26.596C49.354,21.073,49.395,12.126,43.922,6.653z'></path></g></svg>",
@@ -408,6 +421,7 @@ export const Constants = {
     REPLY_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='-158 242 18 18' style='enable-background:new -158 242 18 18;' xml:space='preserve'> <path d='M-142.2,252.6c-2-3-4.8-4.7-8.3-4.8v-3.3c0-0.2-0.1-0.3-0.2-0.3s-0.3,0-0.4,0.1l-6.9,6.2c-0.1,0.1-0.1,0.2-0.1,0.3 c0,0.1,0,0.2,0.1,0.3l6.9,6.4c0.1,0.1,0.3,0.1,0.4,0.1c0.1-0.1,0.2-0.2,0.2-0.4v-3.8c4.2,0,7.4,0.4,9.6,4.4c0.1,0.1,0.2,0.2,0.3,0.2 c0,0,0.1,0,0.1,0c0.2-0.1,0.3-0.3,0.2-0.4C-140.2,257.3-140.6,255-142.2,252.6z M-150.8,252.5c-0.2,0-0.4,0.2-0.4,0.4v3.3l-6-5.5 l6-5.3v2.8c0,0.2,0.2,0.4,0.4,0.4c3.3,0,6,1.5,8,4.5c0.5,0.8,0.9,1.6,1.2,2.3C-144,252.8-147.1,252.5-150.8,252.5z'/> </svg>",
     SCROLL_BOTTOM_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='-239 239 21 23' style='enable-background:new -239 239 21 23;' xml:space='preserve'> <path d='M-239,241.4l2.4-2.4l8.1,8.2l8.1-8.2l2.4,2.4l-10.5,10.6L-239,241.4z M-228.5,257.2l8.1-8.2l2.4,2.4l-10.5,10.6l-10.5-10.6 l2.4-2.4L-228.5,257.2z'/> </svg>",
     VIDEO_ICON: "<svg width='55%'height='100%'viewBox='0 0 13 8'> <g transform='matrix(1,0,0,1,-507,-146)'> <g transform='matrix(0.0133892,0,0,0.014499,500.635,142.838)'> <path d='M1158,547.286L1158,644.276C1158,684.245 1125.55,716.694 1085.58,716.694L579.341,716.694C539.372,716.694 506.922,684.245 506.922,644.276L506.922,306.322C506.922,266.353 539.371,233.904 579.341,233.903L1085.58,233.903C1125.55,233.904 1158,266.353 1158,306.322L1158,402.939L1359.75,253.14C1365.83,248.362 1373.43,245.973 1382.56,245.973C1386.61,245.973 1390.83,246.602 1395.22,247.859C1408.4,252.134 1414.99,259.552 1414.99,270.113L1414.99,680.485C1414.99,691.046 1408.4,698.464 1395.22,702.739C1390.83,703.996 1386.61,704.624 1382.56,704.624C1373.43,704.624 1365.83,702.236 1359.75,697.458L1158,547.286Z'/> </g> </g> </svg>",
+    PIN_ICON: "<svg width='16px' height='16px'  viewBox='0 0 25 25' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' clip-rule='evenodd' stroke-linejoin='round' stroke-miterlimit='1.414'><path d='M24.78 9.236L15.863.316l-1.487 4.46-4.46 4.46L8.43 7.75 3.972 9.235l4.458 4.458L.776 24.388l10.627-7.72 4.46 4.46 1.485-4.46-1.486-1.485 4.46-4.46 4.46-1.487z' fill-rule='nonzero'/></svg>",
     THEMES: {
         default: {
             type: 'Organization',
@@ -429,7 +443,7 @@ export const Constants = {
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#fff2bb',
+            mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
             image: defaultThemeImage
@@ -454,7 +468,7 @@ export const Constants = {
             linkColor: '#2389d7',
             buttonBg: '#23A2FF',
             buttonColor: '#FFFFFF',
-            mentionHighlightBg: '#fff2bb',
+            mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
             image: mattermostThemeImage
@@ -854,6 +868,8 @@ export const Constants = {
     DEFAULT_MAX_NOTIFICATIONS_PER_CHANNEL: 1000,
     MAX_TEAMNAME_LENGTH: 15,
     MAX_TEAMDESCRIPTION_LENGTH: 50,
+    MIN_CHANNELNAME_LENGTH: 2,
+    MAX_CHANNELNAME_LENGTH: 22,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
     MAX_NICKNAME_LENGTH: 22,
@@ -874,8 +890,6 @@ export const Constants = {
     BOT_NAME: 'BOT',
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
-    LICENSE_EXPIRY_NOTIFICATION: 1000 * 60 * 60 * 24 * 15, // 15 days
-    LICENSE_GRACE_PERIOD: 1000 * 60 * 60 * 24 * 15, // 15 days
     PERMISSIONS_ALL: 'all',
     PERMISSIONS_CHANNEL_ADMIN: 'channel_admin',
     PERMISSIONS_TEAM_ADMIN: 'team_admin',
@@ -896,7 +910,8 @@ export const Constants = {
     STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_TIMEOUT: 100,
     ANIMATION_TIMEOUT: 1000,
-    SEARCH_TIMEOUT_MILLISECONDS: 100
+    SEARCH_TIMEOUT_MILLISECONDS: 100,
+    DIAGNOSTICS_SEGMENT_KEY: 'fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok'
 };
 
 export default Constants;

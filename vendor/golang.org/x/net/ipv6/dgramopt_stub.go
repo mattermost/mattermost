@@ -94,14 +94,14 @@ func (c *dgramOpt) IncludeSourceSpecificGroup(ifi *net.Interface, group, source 
 }
 
 // Checksum reports whether the kernel will compute, store or verify a
-// checksum for both incoming and outgoing packets.  If on is true, it
+// checksum for both incoming and outgoing packets. If on is true, it
 // returns an offset in bytes into the data of where the checksum
 // field is located.
 func (c *dgramOpt) Checksum() (on bool, offset int, err error) {
 	return false, 0, errOpNoSupport
 }
 
-// SetChecksum enables the kernel checksum processing.  If on is ture,
+// SetChecksum enables the kernel checksum processing. If on is ture,
 // the offset should be an offset in bytes into the data of where the
 // checksum field is located.
 func (c *dgramOpt) SetChecksum(on bool, offset int) error {

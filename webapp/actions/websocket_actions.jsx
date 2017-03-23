@@ -6,6 +6,7 @@ import $ from 'jquery';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
@@ -21,11 +22,11 @@ import {getSiteURL} from 'utils/url.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
-import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
-import {ActionTypes, Constants, SocketEvents, UserStatuses} from 'utils/constants.jsx';
+import {ActionTypes, Constants, Preferences, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -88,6 +89,26 @@ export function reconnect(includeWebSocket = true) {
     ErrorStore.emitChange();
 }
 
+let intervalId = '';
+const SYNC_INTERVAL_MILLISECONDS = 1000 * 60 * 15; // 15 minutes
+
+export function startPeriodicSync() {
+    clearInterval(intervalId);
+
+    intervalId = setInterval(
+        () => {
+            if (UserStore.getCurrentUser() != null) {
+                reconnect(false);
+            }
+        },
+        SYNC_INTERVAL_MILLISECONDS
+    );
+}
+
+export function stopPeriodicSync() {
+    clearInterval(intervalId);
+}
+
 function handleFirstConnect() {
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
@@ -135,6 +156,10 @@ function handleEvent(msg) {
 
     case SocketEvents.USER_UPDATED:
         handleUserUpdatedEvent(msg);
+        break;
+
+    case SocketEvents.CHANNEL_CREATED:
+        handleChannelCreatedEvent(msg);
         break;
 
     case SocketEvents.CHANNEL_DELETED:
@@ -207,11 +232,6 @@ function handlePostEditEvent(msg) {
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.data.post);
     GlobalActions.emitPostDeletedEvent(post);
-
-    const selectedPostId = PostStore.getSelectedPostId();
-    if (selectedPostId === post.id) {
-        GlobalActions.emitCloseRightHandSide();
-    }
 }
 
 function handleLeaveTeamEvent(msg) {
@@ -238,7 +258,8 @@ function handleUpdateTeamEvent(msg) {
 
 function handleDirectAddedEvent(msg) {
     AsyncClient.getChannel(msg.broadcast.channel_id);
-    loadProfilesAndTeamMembersForDMSidebar();
+    PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, msg.data.teammate_id, 'true');
+    loadProfilesForSidebar();
 }
 
 function handleUserAddedEvent(msg) {
@@ -275,6 +296,15 @@ function handleUserUpdatedEvent(msg) {
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
         UserStore.emitChange(user.id);
+    }
+}
+
+function handleChannelCreatedEvent(msg) {
+    const channelId = msg.data.channel_id;
+    const teamId = msg.data.team_id;
+
+    if (TeamStore.getCurrentId() === teamId && !ChannelStore.getChannelById(channelId)) {
+        AsyncClient.getChannel(channelId);
     }
 }
 

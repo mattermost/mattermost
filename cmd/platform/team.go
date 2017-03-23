@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -154,7 +155,7 @@ func addUserToTeam(team *model.Team, user *model.User, userArg string) {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.JoinUserToTeam(team, user); err != nil {
+	if err := app.JoinUserToTeam(team, user, utils.GetSiteURL()); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name)
 	}
 }

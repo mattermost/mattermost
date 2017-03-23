@@ -4,8 +4,9 @@
 import LoadingScreen from 'components/loading_screen.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
+
 import BrowserStore from 'stores/browser_store.jsx';
-import {track} from 'actions/analytics_actions.jsx';
 import {getInviteInfo} from 'actions/team_actions.jsx';
 import {loginById, createUserWithInvite} from 'actions/user_actions.jsx';
 
@@ -35,6 +36,10 @@ export default class SignupEmail extends React.Component {
         this.isUserValid = this.isUserValid.bind(this);
 
         this.state = this.getInviteInfo();
+    }
+
+    componentDidMount() {
+        trackEvent('signup', 'signup_user_01_welcome');
     }
 
     getInviteInfo() {
@@ -117,7 +122,7 @@ export default class SignupEmail extends React.Component {
     }
 
     handleSignupSuccess(user, data) {
-        track('signup', 'signup_user_02_complete');
+        trackEvent('signup', 'signup_user_02_complete');
         loginById(
             data.id,
             user.password,
@@ -401,8 +406,6 @@ export default class SignupEmail extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_user_01_welcome');
-
         let serverError = null;
         if (this.state.serverError) {
             serverError = (

@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestCreatePost(t *testing.T) {
@@ -98,6 +99,74 @@ func TestCreatePost(t *testing.T) {
 	}
 }
 
+func TestUpdatePost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	utils.SetDefaultRolesBasedOnConfig()
+
+	post := &model.Post{ChannelId: channel.Id, Message: "a" + model.NewId() + "a"}
+	rpost, resp := Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	if rpost.Message != post.Message {
+		t.Fatal("full name didn't match")
+	}
+
+	if rpost.EditAt != 0 {
+		t.Fatal("Newly created post shouldn't have EditAt set")
+	}
+
+	msg := "a" + model.NewId() + " update post"
+	rpost.Message = msg
+	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
+	CheckNoError(t, resp)
+
+	if rupost.Message != msg {
+		t.Fatal("failed to updates")
+	}
+	if rupost.EditAt == 0 {
+		t.Fatal("EditAt not updated for post")
+	}
+
+	msg1 := "#hashtag a" + model.NewId() + " update post again"
+	rpost.Message = msg1
+	rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
+	CheckNoError(t, resp)
+
+	if rrupost.Message != msg1 && rrupost.Hashtags != "#hashtag" {
+		t.Fatal("failed to updates")
+	}
+
+	post2 := &model.Post{ChannelId: channel.Id, Message: "a" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
+	rpost2, resp := Client.CreatePost(post2)
+	CheckNoError(t, resp)
+
+	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "a" + model.NewId() + " update post 2"}
+	_, resp = Client.UpdatePost(rpost2.Id, up2)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdatePost(rpost.Id, rpost)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetPostsForChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -161,7 +230,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	}
 
 	_, resp = Client.GetPostsForChannel("", 0, 60, "")
-	CheckUnauthorizedStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
 	CheckBadRequestStatus(t, resp)

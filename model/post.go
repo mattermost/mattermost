@@ -38,6 +38,7 @@ type Post struct {
 	UpdateAt      int64           `json:"update_at"`
 	EditAt        int64           `json:"edit_at"`
 	DeleteAt      int64           `json:"delete_at"`
+	IsPinned      bool            `json:"is_pinned"`
 	UserId        string          `json:"user_id"`
 	ChannelId     string          `json:"channel_id"`
 	RootId        string          `json:"root_id"`

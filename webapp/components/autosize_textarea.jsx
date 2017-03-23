@@ -84,7 +84,9 @@ export default class AutosizeTextarea extends React.Component {
                     <textarea
                         ref='reference'
                         style={{height: 'auto', width: '100%'}}
-                        value={value || placeholder}
+                        disabled={true}
+                        value={value}
+                        placeholder={placeholder}
                         rows='1'
                         {...otherProps}
                     />

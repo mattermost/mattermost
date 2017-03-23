@@ -16,6 +16,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
 import {updateUser, uploadProfileImage} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -100,6 +101,7 @@ class UserSettingsGeneralTab extends React.Component {
         this.updatePicture = this.updatePicture.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updatePosition = this.updatePosition.bind(this);
+        this.updatedCroppedPicture = this.updatedCroppedPicture.bind(this);
 
         this.state = this.setupInitialState(props);
     }
@@ -127,6 +129,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.username = username;
 
+        trackEvent('settings', 'user_settings_update', {field: 'username'});
+
         this.submitUser(user, Constants.UserUpdateEvents.USERNAME, false);
     }
 
@@ -142,6 +146,8 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.nickname = nickname;
+
+        trackEvent('settings', 'user_settings_update', {field: 'username'});
 
         this.submitUser(user, Constants.UserUpdateEvents.NICKNAME, false);
     }
@@ -160,6 +166,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.first_name = firstName;
         user.last_name = lastName;
+
+        trackEvent('settings', 'user_settings_update', {field: 'fullname'});
 
         this.submitUser(user, Constants.UserUpdateEvents.FULLNAME, false);
     }
@@ -189,6 +197,7 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
+        trackEvent('settings', 'user_settings_update', {field: 'email'});
         this.submitUser(user, Constants.UserUpdateEvents.EMAIL, true);
     }
 
@@ -227,6 +236,8 @@ class UserSettingsGeneralTab extends React.Component {
         if (!this.submitActive) {
             return;
         }
+
+        trackEvent('settings', 'user_settings_update', {field: 'picture'});
 
         const {formatMessage} = this.props.intl;
         const picture = this.state.picture;
@@ -268,6 +279,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.position = position;
 
+        trackEvent('settings', 'user_settings_update', {field: 'position'});
+
         this.submitUser(user, Constants.UserUpdateEvents.Position, false);
     }
 
@@ -297,6 +310,17 @@ class UserSettingsGeneralTab extends React.Component {
 
     updateConfirmEmail(e) {
         this.setState({confirmEmail: e.target.value});
+    }
+
+    updatedCroppedPicture(file) {
+        if (file) {
+            this.setState({picture: file});
+
+            this.submitActive = true;
+            this.setState({clientError: null});
+        } else {
+            this.setState({picture: null});
+        }
     }
 
     updatePicture(e) {
@@ -398,6 +422,7 @@ class UserSettingsGeneralTab extends React.Component {
                             </label>
                             <div className='col-sm-7'>
                                 <input
+                                    id='primaryEmail'
                                     className='form-control'
                                     type='email'
                                     onChange={this.updateEmail}
@@ -419,6 +444,7 @@ class UserSettingsGeneralTab extends React.Component {
                             </label>
                             <div className='col-sm-7'>
                                 <input
+                                    id='confirmEmail'
                                     className='form-control'
                                     type='email'
                                     onChange={this.updateConfirmEmail}
@@ -672,6 +698,7 @@ class UserSettingsGeneralTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='firstName'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateFirstName}
@@ -694,6 +721,7 @@ class UserSettingsGeneralTab extends React.Component {
                         </label>
                         <div className='col-sm-7'>
                             <input
+                                id='lastName'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateLastName}
@@ -820,6 +848,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <label className='col-sm-5 control-label'>{nicknameLabel}</label>
                         <div className='col-sm-7'>
                             <input
+                                id='nickname'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateNickname}
@@ -904,6 +933,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <label className='col-sm-5 control-label'>{usernameLabel}</label>
                         <div className='col-sm-7'>
                             <input
+                                id='username'
                                 maxLength={Constants.MAX_USERNAME_LENGTH}
                                 className='form-control'
                                 type='text'
@@ -994,6 +1024,7 @@ class UserSettingsGeneralTab extends React.Component {
                         <label className='col-sm-5 control-label'>{positionLabel}</label>
                         <div className='col-sm-7'>
                             <input
+                                id='position'
                                 className='form-control'
                                 type='text'
                                 onChange={this.updatePosition}
@@ -1074,6 +1105,7 @@ class UserSettingsGeneralTab extends React.Component {
                     pictureChange={this.updatePicture}
                     submitActive={this.submitActive}
                     loadingPicture={this.state.loadingPicture}
+                    imageCropChange={this.updatedCroppedPicture}
                 />
             );
         } else {
@@ -1111,6 +1143,7 @@ class UserSettingsGeneralTab extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeUserSettings'
                         type='button'
                         className='close'
                         data-dismiss='modal'

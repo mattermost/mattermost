@@ -25,6 +25,7 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/view", ApiUserRequired(viewChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
+	BaseRoutes.Channels.Handle("/create_group", ApiUserRequired(createGroupChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
 	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
@@ -38,6 +39,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/ids", ApiUserRequired(getChannelMembersByIds)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/pinned", ApiUserRequired(getPinnedPosts)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -91,6 +93,38 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sc, err := app.CreateDirectChannel(c.Session.UserId, userId); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(sc.ToJson()))
+	}
+}
+
+func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_CREATE_GROUP_CHANNEL)
+		return
+	}
+
+	userIds := model.ArrayFromJson(r.Body)
+	if len(userIds) == 0 {
+		c.SetInvalidParam("createGroupChannel", "user_ids")
+		return
+	}
+
+	found := false
+	for _, id := range userIds {
+		if id == c.Session.UserId {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		userIds = append(userIds, c.Session.UserId)
+	}
+
+	if sc, err := app.CreateGroupChannel(userIds); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -173,7 +207,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
-			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
+			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName, c.GetSiteURL()); err != nil {
 				l4g.Error(err.Error())
 			}
 		}
@@ -221,7 +255,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader); err != nil {
+		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -267,7 +301,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose); err != nil {
+		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose, c.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -378,7 +412,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err = app.JoinChannel(channel, c.Session.UserId); err != nil {
+	if err = app.JoinChannel(channel, c.Session.UserId, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}
@@ -391,7 +425,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	err := app.LeaveChannel(id, c.Session.UserId)
+	err := app.LeaveChannel(id, c.Session.UserId, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -433,7 +467,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = app.DeleteChannel(channel, c.Session.UserId)
+	err = app.DeleteChannel(channel, c.Session.UserId, c.GetSiteURL())
 	if err != nil {
 		c.Err = err
 		return
@@ -457,7 +491,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT {
+	if channel.TeamId != c.TeamId && !channel.IsGroupOrDirect() {
 		c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelId": id, "TeamId": c.TeamId}, "")
 		return
 	}
@@ -493,7 +527,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if channel.TeamId != c.TeamId && channel.Type != model.CHANNEL_DIRECT {
+		if channel.TeamId != c.TeamId && !channel.IsGroupOrDirect() {
 			c.Err = model.NewLocAppError("getChannel", "api.channel.get_channel.wrong_team.app_error", map[string]interface{}{"ChannelName": channelName, "TeamId": c.TeamId}, "")
 			return
 		}
@@ -565,6 +599,21 @@ func getMyChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+	posts := &model.PostList{}
+
+	if result := <-app.Srv.Store.Channel().GetPinnedPosts(channelId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		posts = result.Data.(*model.PostList)
+	}
+
+	w.Write([]byte(posts.ToJson()))
+}
+
 func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
@@ -614,7 +663,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go app.PostAddToChannelMessage(oUser, nUser, channel)
+	go app.PostAddToChannelMessage(oUser, nUser, channel, c.GetSiteURL())
 
 	app.UpdateChannelLastViewedAt([]string{id}, oUser.Id)
 	w.Write([]byte(cm.ToJson()))
@@ -649,7 +698,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
+	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel, c.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	}
@@ -739,6 +788,10 @@ func autocompleteChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	view := model.ChannelViewFromJson(r.Body)
+	if view == nil {
+		c.SetInvalidParam("viewChannel", "channel_view")
+		return
+	}
 
 	if err := app.ViewChannel(view, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
 		c.Err = err

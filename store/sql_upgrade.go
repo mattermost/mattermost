@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	VERIONS_3_7_0 = "3.7.0"
+	VERSION_3_8_0 = "3.8.0"
+	VERSION_3_7_0 = "3.7.0"
 	VERSION_3_6_0 = "3.6.0"
 	VERSION_3_5_0 = "3.5.0"
 	VERSION_3_4_0 = "3.4.0"
@@ -41,6 +42,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion35(sqlStore)
 	UpgradeDatabaseToVersion36(sqlStore)
 	UpgradeDatabaseToVersion37(sqlStore)
+	UpgradeDatabaseToVersion38(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -233,9 +235,21 @@ func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion37(sqlStore *SqlStore) {
-	// TODO: Uncomment following condition when version 3.7.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_3_6_0, VERSION_3_7_0) {
-	// Add EditAt column to Posts
-	sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
+	if shouldPerformUpgrade(sqlStore, VERSION_3_6_0, VERSION_3_7_0) {
+		// Add EditAt column to Posts
+		sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_3_7_0)
+	}
+}
+
+func UpgradeDatabaseToVersion38(sqlStore *SqlStore) {
+	// TODO: Uncomment following condition when version 3.8.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_3_7_0, VERSION_3_8_0) {
+
+	// Add the IsPinned column to posts.
+	sqlStore.CreateColumnIfNotExists("Posts", "IsPinned", "boolean", "boolean", "0")
+
+	// saveSchemaVersion(sqlStore, VERSION_3_8_0)
 	// }
 }

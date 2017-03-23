@@ -148,6 +148,10 @@
     "translation": "権限を確認するユーザーを取得できません。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "ブランドAPIルートを初期化しています"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%vは、%vによってチャンネルに追加されました"
   },
@@ -220,6 +224,14 @@
     "translation": "ダイレクトチャンネル作成のユーザーIDが不正です"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "グループメッセージチャンネルは３〜８ユーザーでなければなりません"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "指定されたユーザーの一人が存在しません"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%vがチャンネルをアーカイブしました。"
   },
@@ -274,6 +286,10 @@
   {
     "id": "api.channel.init.debug",
     "translation": "チャンネルAPIルートを初期化しています"
+  },
+  {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "チャンネルは既に削除されています"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -374,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "未読数を取得できませんでした user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "クラスターAPIルートを初期化しています"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -792,6 +812,10 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "コンプライアンスAPIルートを初期化しています"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -890,6 +914,10 @@
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
     "translation": "投稿へ行く"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "グループメッセージ"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -998,8 +1026,8 @@
     "translation": "公開リンクが不正です"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "このファイルにはプレビュー画像がありません"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "ファイルにプレビュー画像がありません"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1212,6 +1240,14 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "電子メールを確認済みに設定できませんでした err=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "LDAP APIルートを初期化しています"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1498,6 +1534,10 @@
   {
     "id": "api.post.init.debug",
     "translation": "投稿APIルートを初期化しています"
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1800,6 +1840,14 @@
     "translation": "既存のアカウント{{.Email}}, {{.Username}} とユーザーをマージしようとしましたが、このチームにユーザーを追加できませんでした。\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "ユーザー {{.Username}} はSlackエクスポートで電子メールアドレスが設定されていません。プレイスホルダーの {{.Email}} を利用してください。システムにログインした時、そのユーザーは電子メールアドレスを更新する必要があります。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "ユーザー {{.Username}} はSlackエクスポートで電子メールアドレスが設定されていません。プレイスホルダーの {{.Email}} を利用してください。システムにログインした時、そのユーザーは電子メールアドレスを更新する必要があります。"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "ユーザーをインポートできません: {{.Username}}\r\n"
   },
@@ -2012,6 +2060,10 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "グループメッセージ"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
   },
@@ -2021,7 +2073,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "{{.TeamDisplayName}}用に電子メールアドレスが変更されました"
+    "translation": "[{{ .SiteName }}] あなたの電子メールアドレスが変更されました"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2089,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "{{.TeamDisplayName}}用の電子メールアドレスを確認する"
+    "translation": "[{{ .SiteName }}] 新しい電子メールアドレスを確認してください"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2145,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }}が{{.SiteName}}の{{ .TeamDisplayName }}に参加するように招待しています。"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} があなたを {{ .TeamDisplayName }} チームに招待しました"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2157,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "{{ .SiteName }}のあなたの多要素認証がアップデートされました"
+    "translation": "[{{ .SiteName }}] あなたの多要素認証が更新されました"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2177,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "{{ .SiteName }}の{{.TeamDisplayName}}のパスワードが更新されました。"
+    "translation": "[{{ .SiteName }}] あなたのパスワードが更新されました"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2141,7 +2193,11 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SenderDisplayName}}の投稿した{{.TeamDisplayName}}の{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SenderDisplayName}}からの{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "{{ .SenderDisplayName}} からの新しいグループメッセージ 日付: {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2157,7 +2213,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "パスワードを初期化する"
+    "translation": "[{{ .SiteName }}] あなたのパスワードをリセットしました"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "{{ .SiteName }}のサインイン方法を{{.Method}}に更新しました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2166,6 +2226,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "サインイン方法を更新しました"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] {{ .SiteName }}のサインイン方法が更新されました"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2182,14 +2246,6 @@
   {
     "id": "api.templates.signup_team_subject",
     "translation": "{{ .SiteName }}チームのセットアップ"
-  },
-  {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "{{ .SiteName }}のサインイン方法は{{.Method}}に更新されました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "{{ .SiteName }}へのあなたのサインイン方法を更新しました"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2265,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "{{.TeamDisplayName}}用にユーザー名が変更されました"
+    "translation": "[{{ .SiteName }}] あなたのユーザー名が変更されました"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2309,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "{{ .ServerURL }}に参加しました"
+    "translation": "[{{ .SiteName }}] {{ .ServerURL }}に参加しました"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2354,6 +2410,10 @@
   {
     "id": "api.user.create_user.accepted_domain.app_error",
     "translation": "あなたの指定した電子メールアドレスのドメインは許可されていません。システム管理者に連絡するか他の電子メールアドレスで利用登録してください。"
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "ユーザーの作成は無効です。"
   },
   {
     "id": "api.user.create_user.joining.error",
@@ -2564,6 +2624,10 @@
     "translation": "多要素認証はこのサーバーで設定されていないか利用できません"
   },
   {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "{{.Service}}ユーザーオブジェクトからユーザーを取得できませんでした"
+  },
+  {
     "id": "api.user.update_password.context.app_error",
     "translation": "user_idが一致しないためパスワードを更新できませんでした"
   },
@@ -2684,10 +2748,6 @@
     "translation": "teamId=%v用のチームハブを停止しています"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
@@ -2708,11 +2768,11 @@
     "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "内向きのウェブフックを削除するのに十分な権限が付与されていません"
   },
   {
@@ -2722,14 +2782,6 @@
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
     "translation": "外向きのウェブフックを削除するのに十分な権限が付与されていません"
-  },
-  {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2744,12 +2796,40 @@
     "translation": "ウェブフックAPIルートを初期化しています"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "他チームのウェブフックは更新できません"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "内向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "外向きのウェブフックは、公開チャンネルに対してのみ更新できます。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "外向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2812,6 +2892,10 @@
     "translation": "インポートデータに \"channel\" という型がありましたが、そのチャンネルのオブジェクトがnullでした。"
   },
   {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "インポートデータに \"post\" という型がありましたが、その投稿のオブジェクトがnullでした。"
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "インポートデータに \"team\" という型がありましたが、そのチームのオブジェクトがnullでした。"
   },
@@ -2824,8 +2908,20 @@
     "translation": "インポートデータに不明な型 \"{{.Type}}\"がありました。"
   },
   {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.ChannelName}}\" のチャンネルが見つかりません。"
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.Username}}\" のユーザーが見つかりません。"
+  },
+  {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "チャンネル作成日時は0ではないはずです。"
+    "translation": "チャンネル作成日時には0を設定できません。"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2868,12 +2964,40 @@
     "translation": "必須のチャンネル設定値 type が存在しません。"
   },
   {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "必須の投稿設定値 Channel が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "必須の投稿設定値 create_at が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "投稿の作成日には0を設定できません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "投稿メッセージ設定値が許可された最大長を超えています。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "必須の投稿設定値 Message が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "必須の投稿設定値 Team が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "必須の投稿設定値 User が存在しません。"
+  },
+  {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
     "translation": "チームの許可されたドメインが長すぎます。"
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "チームの作成日時は0ではないはずです。"
+    "translation": "チームの作成日時には0を設定できません。"
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -2978,6 +3102,14 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "ユーザーのチームメンバーシップにチーム名が存在しません。"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "新しいグループメッセージチャンネルを作成できるようにする"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "グループメッセージを作成する"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3508,8 +3640,16 @@
     "translation": "不正なチャンネルIDです"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "電子メール通知の設定値が不正です"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "不正な通知レベルです"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "プッシュ通知のレベルが不正です"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3546,6 +3686,18 @@
   {
     "id": "model.client.read_file.app_error",
     "translation": "ファイルを読み込む際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "リクエストの'image'以下にファイルがありません"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "リクエストを書き込めません"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "リクエストからSAML証明書のマルチパートを作成する際にエラーになりました"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4468,6 +4620,10 @@
     "translation": "監査データを保存する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "削除済みのチャンネル形式数を取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "チャンネル形式数を取得できませんでした"
   },
@@ -4568,6 +4724,14 @@
     "translation": "チャンネルが見付かりませんでした"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "公開チャンネルが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "チャンネルの未読メッセージを取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "あなたについての投稿数を集計できませんでした"
   },
@@ -4582,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "チャンネルのメンバーを削除できません"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "ピン止めされた投稿が見付かりません"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -4924,12 +5092,20 @@
     "translation": "チャンネルの親に当たる投稿を取得できませんでした"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "チャンネルの投稿を取得できませんでした"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "チャンネルの投稿を取得できませんでした"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
     "translation": "チャンネルの投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "投稿の上書きができませんでした"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
@@ -4960,8 +5136,8 @@
     "translation": "既存の投稿は更新できません。"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "投稿を検索する際にエラーが発生しました"
+    "id": "store.sql_post.search.warn",
+    "translation": "投稿検索時のクエリエラー: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5288,6 +5464,14 @@
     "translation": "チーム名を更新できませんでした"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "無効なユーザー数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "システム管理者数を取得できませんでした"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "重複なしのユーザー数を取得できませんでした"
   },
@@ -5528,6 +5712,10 @@
     "translation": "既存のOutgoingWebhookを上書きできませんでした"
   },
   {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "内向きのウェブフックを更新できませんでした"
+  },
+  {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "ウェブフックを更新できませんでした"
   },
@@ -5554,6 +5742,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "ファイルを{{.Filename}}に保存中にエラーが発生しました"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "mattermostの設定ファイルをロードできませんでした:  DefaultClientLocale はサポートされているロケールでなければなりません"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "mattermostの設定ファイルをロードできませんでした:  DefaultServerLocale はサポートされているロケールでなければなりません"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "mattermostの設定ファイルをロードできませんでした:  AvailableLocales はDefaultClientLocaleを含んでいなければなりません"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",

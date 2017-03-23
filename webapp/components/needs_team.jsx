@@ -12,8 +12,11 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import PostStore from 'stores/post_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
+import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx';
+
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
@@ -94,6 +97,7 @@ export default class NeedsTeam extends React.Component {
         GlobalActions.viewLoggedIn();
 
         startPeriodicStatusUpdates();
+        startPeriodicSync();
 
         // Set up tracking for whether the window is active
         window.isActive = true;
@@ -140,6 +144,7 @@ export default class NeedsTeam extends React.Component {
             iNoBounce.disable();
         }
         stopPeriodicStatusUpdates();
+        stopPeriodicSync();
     }
 
     render() {
@@ -173,12 +178,25 @@ export default class NeedsTeam extends React.Component {
                 </div>
             );
         }
+
+        let channel = ChannelStore.getByName(this.props.params.channel);
+        if (channel == null) {
+            // the permalink view is not really tied to a particular channel but still needs it
+            const postId = PostStore.getFocusedPostId();
+            const post = PostStore.getEarliestPostFromPage(postId);
+
+            // the post take some time before being available on page load
+            if (post != null) {
+                channel = ChannelStore.get(post.channel_id);
+            }
+        }
+
         return (
             <div className='channel-view'>
                 <ErrorBar/>
                 <WebrtcNotification/>
                 <div className='container-fluid'>
-                    <SidebarRight/>
+                    <SidebarRight channel={channel}/>
                     <SidebarRightMenu teamType={this.state.team.type}/>
                     <WebrtcSidebar/>
                     {content}

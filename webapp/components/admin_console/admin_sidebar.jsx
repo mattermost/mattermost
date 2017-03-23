@@ -250,7 +250,7 @@ export default class AdminSidebar extends React.Component {
                         title={
                             <FormattedMessage
                                 id='admin.sidebar.metrics'
-                                defaultMessage='Performance Monitoring (Beta)'
+                                defaultMessage='Performance Monitoring'
                             />
                         }
                     />
@@ -685,6 +685,16 @@ export default class AdminSidebar extends React.Component {
                                         <FormattedMessage
                                             id='admin.sidebar.customEmoji'
                                             defaultMessage='Custom Emoji'
+                                        />
+
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='link_previews'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.linkPreviews'
+                                            defaultMessage='Link Previews'
                                         />
 
                                     }

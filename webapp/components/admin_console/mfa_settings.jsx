@@ -52,9 +52,9 @@ export default class MfaSettings extends AdminSettings {
             <SettingsGroup>
                 <div className='banner'>
                     <div className='banner__content'>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='admin.mfa.bannerDesc'
-                            defaultMessage='Multi-factor authentication is only available for accounts with LDAP and email login methods. If there are users on your system with other login methods, it is recommended you set up multi-factor authentication directly with the SSO or SAML provider.'
+                            defaultMessage="<a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>Multi-factor authentication</a> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider."
                         />
                     </div>
                 </div>
@@ -69,7 +69,7 @@ export default class MfaSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.mfaDesc'
-                            defaultMessage='When true, users will be given the option to add multi-factor authentication to their account. They will need a smartphone and an authenticator app such as Google Authenticator.'
+                            defaultMessage='When true, users with AD/LDAP or email login can add multi-factor authentication to their account using Google Authenticator.'
                         />
                     }
                     value={this.state.enableMultifactorAuthentication}
@@ -86,7 +86,7 @@ export default class MfaSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.service.enforceMfaDesc'
-                            defaultMessage="When true, users on the system will be required to set up <a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>multi-factor authentication</a>. Any logged in users will be redirected to the multi-factor authentication setup page until they successfully add MFA to their account.<br/><br/>It is recommended you turn on enforcement during non-peak hours, when people are less likely to be using the system. New users will be required to set up multi-factor authentication when they first sign up. After set up, users will not be able to remove multi-factor authentication unless enforcement is disabled.<br/><br/>Please note that multi-factor authentication is only available for accounts with LDAP and email login methods. Mattermost will not enforce multi-factor authentication for other login methods. If there are users on your system using other login methods, it is recommended you set up and enforce multi-factor authentication directly with the SSO or SAML provider."
+                            defaultMessage="When true, <a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>multi-factor authentication</a> is required for login. New users will be required to configure MFA on signup. Logged in users without MFA configured are redirected to the MFA setup page until configuration is complete.<br/><br/>If your system has users with login methods other than AD/LDAP and email, MFA must be enforced with the authentication provider outside of Mattermost."
                         />
                     }
                     disabled={!this.state.enableMultifactorAuthentication}

@@ -148,6 +148,10 @@
     "translation": "Niet mogelijk om de rechten te controleren."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initialisatie van de opdracht API routes"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v is door %v aan het kanaal toegevoegd"
   },
@@ -220,6 +224,14 @@
     "translation": "Invalid user ID for direct channel creation"
   },
   {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "One of the provided users does not exist"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%v heeft het kanaal gearchiveerd."
   },
@@ -276,6 +288,10 @@
     "translation": "Initialisatie van de kanaal API routes"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "U beschikt niet over de juiste rechten"
   },
@@ -301,7 +317,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Fout bij het weergeven van het bericht over de bijgewerkte weergavenaam %v"
+    "translation": "Fout bij het weergeven van het bericht over de bijgewerkte weergavenaam"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -374,6 +390,10 @@
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
     "translation": "Onmogelijk om het aantal ongelezen bericht op te halen voor user_id=%v en channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initialisatie van de gebruikers api"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -792,6 +812,10 @@
     "translation": "ophalen"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initialisatie van de opdracht API routes"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },
@@ -890,6 +914,10 @@
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
     "translation": "Ga naar Bericht"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "Group Message"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -998,7 +1026,7 @@
     "translation": "De publieke link lijkt niet geldig"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "Bestand heeft geen voorvertoning afbeelding"
   },
   {
@@ -1212,6 +1240,14 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "Fout tijdens het instellen van e-mail verificatie. Fout=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "Commando's zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "Initialisatie bestand API routes"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1498,6 +1534,10 @@
   {
     "id": "api.post.init.debug",
     "translation": "Initialisatie van de berichten API routes"
+  },
+  {
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
@@ -1800,6 +1840,14 @@
     "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "Kan gebruiker niet importeren: {{.Username}}\r\n"
   },
@@ -2012,6 +2060,10 @@
     "translation": "U beschikt niet over de juiste rechten"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "Group Message"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Uw e-mailadres voor {{.TeamDisplayName}} is veranderd naar {{.NewEmail}}.<br>Als u deze wijziging niet zelf gemaakt hebt, neem kontakt op met de systeembeheerder."
   },
@@ -2021,7 +2073,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "Je e-mailadres voor {{.TeamDisplayName}} is gewijzigd"
+    "translation": "[{{ .SiteName }}] Your email address has changed"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2037,7 +2089,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "Verifieer het nieuwe e-mail adres voor {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] Verify new email address"
   },
   {
     "id": "api.templates.email_footer",
@@ -2093,7 +2145,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }} heeft U uitgenodigd om lid te worden van team {{ .TeamDisplayName }} op {{.SiteName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2105,7 +2157,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "Your MFA has been updated on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your MFA has been updated"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2125,7 +2177,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "Uw wachtwoord werd bijgewerkt voor {{.TeamDisplayName}} op {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your password has been updated"
   },
   {
     "id": "api.templates.post_body.button",
@@ -2144,6 +2196,10 @@
     "translation": "{{.SubjectText}} in {{.TeamDisplayName}} van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
   },
   {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+  },
+  {
     "id": "api.templates.reset_body.button",
     "translation": "Wachtwoord opnieuw instellen"
   },
@@ -2157,7 +2213,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "Herstel uw wachtwoord"
+    "translation": "[{{ .SiteName }}] Reset your password"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Uw inlog methode is bijgewerkt voor {{.SiteName}} naar {{.Method}}.<br>Als deze aanpassing niet door U gedaan is, neem dan contact op met uw systeembeheerder."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2166,6 +2226,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "Uw inlog methode is bijgewerkt"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] You updated your sign-in method on {{ .SiteName }}"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2182,14 +2246,6 @@
   {
     "id": "api.templates.signup_team_subject",
     "translation": "{{ .SiteName }} Team configuratie"
-  },
-  {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "Uw inlog methode is bijgewerkt voor {{.SiteName}} naar {{.Method}}.<br>Als deze aanpassing niet door U gedaan is, neem dan contact op met uw systeembeheerder."
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "U heeft uw inlog methode op {{ .SiteName }} bijgewerkt"
   },
   {
     "id": "api.templates.upgrade_30_body.info",
@@ -2209,7 +2265,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "Uw e-mailadres voor {{.TeamDisplayName}} is gewijzigd"
+    "translation": "[{{ .SiteName }}] Your username has changed"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2253,7 +2309,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "Je hebt je aangesloten bij {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2354,6 +2410,10 @@
   {
     "id": "api.user.create_user.accepted_domain.app_error",
     "translation": "Het email adress dat is opgegeven behoord niet tot een van de geldige domeinen. Neem contact op met de beheerder, of log in met een ander e-mail adres."
+  },
+  {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "User creation is disabled."
   },
   {
     "id": "api.user.create_user.joining.error",
@@ -2513,7 +2573,7 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "Aanpassings mail voor notificatie kon niet verstuurd worden, fout=%v"
+    "translation": "Aanpassings mail voor notificatie kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
@@ -2562,6 +2622,10 @@
   {
     "id": "api.user.update_mfa.not_available.app_error",
     "translation": "'MFA' is niet geconfigueerd of niet beschikbaar op deze server"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "Kan geen gebruiker creeeren voor service {{.Service}}"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -2684,10 +2748,6 @@
     "translation": "Team hub word gestopt voor teamId=%v"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "Commando's zijn uitgeschakeld door de beheerder."
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "Uitgaande webhooks zijn uitgeschakeld door de beheerder."
   },
@@ -2708,11 +2768,11 @@
     "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "Commando's zijn uitgeschakeld door de beheerder."
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "Onjuiste rechten voor het verwijderen van de webhook opdracht"
   },
   {
@@ -2722,14 +2782,6 @@
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
     "translation": "Onjuiste rechten voor het verwijderen van de uitgaande webhook opdracht"
-  },
-  {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "Commando's zijn uitgeschakeld door de beheerder."
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "Uitgaande webhooks zijn uitgeschakeld door de beheerder."
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2744,12 +2796,40 @@
     "translation": "Initialisatie van de webhook api"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "Ongeldige rechten om tokens voor uitgaande webhooks opnieuw te genereren"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "Fout bij het bijwerken van commando's voor meerdere teams"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "Commando's zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "Onjuiste rechten voor het verwijderen van de webhook opdracht"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
     "translation": "Uitgaande webhooks zijn uitgeschakeld door de beheerder."
   },
   {
-    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Ongeldige rechten om tokens voor uitgaande webhooks opnieuw te genereren"
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "Uitgaande webhooks van hetzelfde kanaal kunnen niet dezelfde trigger-woorden/callback URL's hebben."
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "Uitgaande webhooks kunnen alleen aan publieke kanalen gekoppeld worden."
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "Onjuiste rechten voor het aanmaken van een uitgaande webhook."
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd"
   },
   {
     "id": "api.webrtc.disabled.app_error",
@@ -2812,6 +2892,10 @@
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
   {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "Import data line has type \"post\" but the post object is null."
+  },
+  {
     "id": "app.import.import_line.null_team.error",
     "translation": "Import data line has type \"team\" but the team object is null."
   },
@@ -2822,6 +2906,18 @@
   {
     "id": "app.import.import_line.unknown_line_type.error",
     "translation": "Import data line has unknown type \"{{.Type}}\"."
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "Error importing post. Channel with name \"{{.ChannelName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "Error importing post. Team with name \"{{.TeamName}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -2866,6 +2962,34 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "Missing required Post property: Channel."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "Missing required Post property: create_at."
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "Post CreateAt must not be zero if it is provided."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "Missing required Post property: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "Missing required Post property: Team."
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Missing required Post property: User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -2978,6 +3102,14 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "Ability to create new group message channels"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "Create Group Message"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3508,8 +3640,16 @@
     "translation": "Ongeldig kanaal id"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "Invalid email notification value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Ongeldig waarschuwings nivo"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "Invalid push notification level"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3546,6 +3686,18 @@
   {
     "id": "model.client.read_file.app_error",
     "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "Geen bestand bij 'image' in aanvraag"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "Fout bij het schrijven van verzoek"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4468,6 +4620,10 @@
     "translation": "Fout bij het opslaan van de audit data"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "We kunnen de kanalen typen niet tellen"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "We kunnen de kanalen typen niet tellen"
   },
@@ -4568,6 +4724,14 @@
     "translation": "We kunnen de kanalen niet ophalen"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We kunnen de kanalen niet ophalen"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "We kunnen de vermeldingen niet ophogen"
   },
@@ -4582,6 +4746,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Het kanaal lid kan niet verwijderd worden"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -4924,12 +5092,20 @@
     "translation": "We kunnen het start bericht voor het kanaal niet ophalen"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "We kunnen de berichten van het kanaal niet ophalen"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "We kunnen de berichten van het kanaal niet ophalen"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
     "translation": "We kunnen de berichten van het kanaal niet ophalen"
+  },
+  {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "Het bericht kan niet verwijderd worden"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
@@ -4960,8 +5136,8 @@
     "translation": "Een bestaand bericht kan niet bijwerkt worden"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het zoeken naar berichten"
+    "id": "store.sql_post.search.warn",
+    "translation": "Query error searching posts: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -5288,6 +5464,14 @@
     "translation": "De teamnaam kan niet bijgewerkt worden"
   },
   {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "De gebruikers kunnen niet geteld worden"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "We kunnen het aantal unieke gebruikers niet tellen"
   },
@@ -5528,6 +5712,10 @@
     "translation": "Een uitgaande webhook kan niet overschreven worden"
   },
   {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "De binnenkomende webhook kan niet opgeslagen worden"
+  },
+  {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "De webhook kan niet bijgewerkt worden"
   },
@@ -5554,6 +5742,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "Er is ee probleem opgetreden bij het opslaan van het bestand in {{.Filename}}"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",

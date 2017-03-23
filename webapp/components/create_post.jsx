@@ -133,7 +133,11 @@ export default class CreatePost extends React.Component {
                     }
 
                     if (data.goto_location && data.goto_location.length > 0) {
-                        browserHistory.push(data.goto_location);
+                        if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
+                            browserHistory.push(data.goto_location);
+                        } else {
+                            window.open(data.goto_location);
+                        }
                     }
                 },
                 (err) => {
@@ -497,6 +501,7 @@ export default class CreatePost extends React.Component {
                 placement='top'
                 screens={screens}
                 overlayClass='tip-overlay--chat'
+                diagnosticsTag='tutorial_tip_1_sending_messages'
             />
         );
     }

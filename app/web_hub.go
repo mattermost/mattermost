@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"runtime"
+	"runtime/debug"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -22,6 +23,7 @@ type Hub struct {
 	broadcast      chan *model.WebSocketEvent
 	stop           chan string
 	invalidateUser chan string
+	ExplicitStop   bool
 }
 
 var hubs []*Hub = make([]*Hub, 0)
@@ -34,6 +36,7 @@ func NewWebHub() *Hub {
 		broadcast:      make(chan *model.WebSocketEvent, 4096),
 		stop:           make(chan string),
 		invalidateUser: make(chan string),
+		ExplicitStop:   false,
 	}
 }
 
@@ -86,6 +89,7 @@ func HubUnregister(webConn *WebConn) {
 }
 
 func Publish(message *model.WebSocketEvent) {
+
 	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
 		metrics.IncrementWebsocketEvent(message.Event)
 	}
@@ -170,18 +174,6 @@ func InvalidateCacheForUser(userId string) {
 	}
 }
 
-func InvalidateCacheForChannelMember(channelId string, userId string) {
-	InvalidateCacheForChannelMemberSkipClusterSend(channelId, userId)
-
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().InvalidateCacheForChannelMember(channelId, userId)
-	}
-}
-
-func InvalidateCacheForChannelMemberSkipClusterSend(channelId string, userId string) {
-	Srv.Store.Channel().InvalidateMember(channelId, userId)
-}
-
 func InvalidateCacheForUserSkipClusterSend(userId string) {
 	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
@@ -208,6 +200,18 @@ func InvalidateWebConnSessionCacheForUser(userId string) {
 	if len(hubs) != 0 {
 		GetHubForUserId(userId).InvalidateUser(userId)
 	}
+}
+
+func InvalidateCacheForReactions(postId string) {
+	InvalidateCacheForReactionsSkipClusterSend(postId)
+
+	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+		cluster.InvalidateCacheForReactions(postId)
+	}
+}
+
+func InvalidateCacheForReactionsSkipClusterSend(postId string) {
+	Srv.Store.Reaction().InvalidateCacheForPost(postId)
 }
 
 func (h *Hub) Register(webConn *WebConn) {
@@ -237,7 +241,11 @@ func (h *Hub) Stop() {
 }
 
 func (h *Hub) Start() {
-	go func() {
+	var doStart func()
+	var doRecoverableStart func()
+	var doRecover func()
+
+	doStart = func() {
 		for {
 			select {
 			case webCon := <-h.register:
@@ -305,9 +313,31 @@ func (h *Hub) Start() {
 				for _, webCon := range h.connections {
 					webCon.WebSocket.Close()
 				}
+				h.ExplicitStop = true
 
 				return
 			}
 		}
-	}()
+	}
+
+	doRecoverableStart = func() {
+		defer doRecover()
+		doStart()
+	}
+
+	doRecover = func() {
+		if !h.ExplicitStop {
+			if r := recover(); r != nil {
+				l4g.Error(fmt.Sprintf("Recovering from Hub panic. Panic was: %v", r))
+			} else {
+				l4g.Error("Webhub stopped unexpectedly. Recovering.")
+			}
+
+			l4g.Error(string(debug.Stack()))
+
+			go doRecoverableStart()
+		}
+	}
+
+	go doRecoverableStart()
 }

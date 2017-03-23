@@ -4,12 +4,13 @@
 package api
 
 import (
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 func InitReaction() {
@@ -72,6 +73,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		reaction := result.Data.(*model.Reaction)
 
+		app.InvalidateCacheForReactions(reaction.PostId)
+
 		w.Write([]byte(reaction.ToJson()))
 	}
 }
@@ -126,6 +129,8 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, channelId, reaction, post)
 
+		app.InvalidateCacheForReactions(reaction.PostId)
+
 		ReturnStatusOK(w)
 	}
 }
@@ -179,7 +184,7 @@ func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Reaction().GetForPost(postId); result.Err != nil {
+	if result := <-app.Srv.Store.Reaction().GetForPost(postId, true); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

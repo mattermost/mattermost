@@ -19,6 +19,7 @@ class SearchStoreClass extends EventEmitter {
         this.searchResults = null;
         this.isMentionSearch = false;
         this.isFlaggedPosts = false;
+        this.isPinnedPosts = false;
         this.isVisible = false;
         this.searchTerm = '';
     }
@@ -83,6 +84,10 @@ class SearchStoreClass extends EventEmitter {
         return this.isFlaggedPosts;
     }
 
+    getIsPinnedPosts() {
+        return this.isPinnedPosts;
+    }
+
     storeSearchTerm(term) {
         this.searchTerm = term;
     }
@@ -91,10 +96,11 @@ class SearchStoreClass extends EventEmitter {
         return this.searchTerm;
     }
 
-    storeSearchResults(results, isMentionSearch, isFlaggedPosts) {
+    storeSearchResults(results, isMentionSearch, isFlaggedPosts, isPinnedPosts) {
         this.searchResults = results;
         this.isMentionSearch = isMentionSearch;
         this.isFlaggedPosts = isFlaggedPosts;
+        this.isPinnedPosts = isPinnedPosts;
     }
 
     deletePost(post) {
@@ -120,7 +126,7 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_SEARCH:
-        SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts);
+        SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts, action.is_pinned_posts);
         SearchStore.emitSearchChange();
         break;
     case ActionTypes.RECEIVED_SEARCH_TERM:

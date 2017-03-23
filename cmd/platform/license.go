@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +40,7 @@ func uploadLicenseCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if _, err := api.SaveLicense(fileBytes); err != nil {
+	if _, err := app.SaveLicense(fileBytes); err != nil {
 		return err
 	}
 

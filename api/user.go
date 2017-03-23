@@ -89,7 +89,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(hash) > 0 {
-		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"))
+		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"), c.GetSiteURL())
 	} else if len(inviteId) > 0 {
 		ruser, err = app.CreateUserWithInviteId(user, inviteId, c.GetSiteURL())
 	} else {
@@ -158,7 +158,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	var err *model.AppError
 	if user, err = app.GetUserByAuth(&authData, service); err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			if user, err = app.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), ""); err != nil {
+			if user, err = app.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), "", c.GetSiteURL()); err != nil {
 				c.Err = err
 				return nil
 			}
@@ -167,10 +167,16 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 		return nil
 	}
 
+	if err = app.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, c.siteURL); err != nil {
+		c.Err = err
+		return nil
+	}
+
 	doLogin(c, w, r, user, "")
 	if c.Err != nil {
 		return nil
 	}
+
 	return user
 }
 
@@ -1405,7 +1411,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
-	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
+	if user, err := samlInterface.DoLogin(encodedXML, relayProps, c.GetSiteURL()); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusFound
 		return
@@ -1445,7 +1451,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, c.GetSiteURL()+val, http.StatusFound)
 			return
 		}
-		http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
+
+		if action == "mobile" {
+			w.Write([]byte(""))
+		} else {
+			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
+		}
 	}
 }
 
@@ -1524,26 +1535,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var profiles []*model.User
-	var err *model.AppError
-	if props.InChannelId != "" {
-		profiles, err = app.SearchUsersInChannel(props.InChannelId, props.Term, searchOptions)
-	} else if props.NotInChannelId != "" {
-		profiles, err = app.SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions)
-	} else {
-		profiles, err = app.SearchUsersInTeam(props.TeamId, props.Term, searchOptions)
-	}
-
-	if err != nil {
+	if profiles, err := app.SearchUsers(props, searchOptions, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
+	} else {
+		w.Write([]byte(model.UserListToJson(profiles)))
 	}
-
-	for _, p := range profiles {
-		sanitizeProfile(c, p)
-	}
-
-	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
 func getProfilesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1593,18 +1590,10 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions)
+	autocomplete, err := app.AutocompleteUsersInChannel(teamId, channelId, term, searchOptions, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range autocomplete.InChannel {
-		sanitizeProfile(c, p)
-	}
-
-	for _, p := range autocomplete.OutOfChannel {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -1631,14 +1620,10 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions)
+	autocomplete, err := app.AutocompleteUsersInTeam(teamId, term, searchOptions, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range autocomplete.InTeam {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(autocomplete.ToJson()))
@@ -1659,13 +1644,9 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var profiles []*model.User
 	var err *model.AppError
 
-	if profiles, err = app.SearchUsersInTeam("", term, searchOptions); err != nil {
+	if profiles, err = app.SearchUsersInTeam("", term, searchOptions, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
-	}
-
-	for _, p := range profiles {
-		sanitizeProfile(c, p)
 	}
 
 	w.Write([]byte(model.UserListToJson(profiles)))

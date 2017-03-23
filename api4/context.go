@@ -333,6 +333,10 @@ func (c *Context) RequireUserId() *Context {
 		return c
 	}
 
+	if c.Params.UserId == model.ME {
+		c.Params.UserId = c.Session.UserId
+	}
+
 	if len(c.Params.UserId) != 26 {
 		c.SetInvalidUrlParam("user_id")
 	}
@@ -396,6 +400,17 @@ func (c *Context) RequireFileId() *Context {
 	return c
 }
 
+func (c *Context) RequireReportId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.ReportId) != 26 {
+		c.SetInvalidUrlParam("report_id")
+	}
+	return c
+}
+
 func (c *Context) RequireTeamName() *Context {
 	if c.Err != nil {
 		return c
@@ -427,6 +442,42 @@ func (c *Context) RequireEmail() *Context {
 
 	if !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidUrlParam("email")
+	}
+
+	return c
+}
+
+func (c *Context) RequireCategory() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidAlphaNum(c.Params.Category, true) {
+		c.SetInvalidUrlParam("category")
+	}
+
+	return c
+}
+
+func (c *Context) RequirePreferenceName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidAlphaNum(c.Params.PreferenceName, true) {
+		c.SetInvalidUrlParam("preference_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireHookId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.HookId) != 26 {
+		c.SetInvalidUrlParam("hook_id")
 	}
 
 	return c

@@ -79,6 +79,16 @@ export default class SearchResultsHeader extends React.Component {
                     defaultMessage='Flagged Posts'
                 />
             );
+        } else if (this.props.isPinnedPosts) {
+            title = (
+                <FormattedMessage
+                    id='search_header.title4'
+                    defaultMessage='Pinned posts in {channelDisplayName}'
+                    values={{
+                        channelDisplayName: this.props.channelDisplayName
+                    }}
+                />
+            );
         }
 
         return (
@@ -131,5 +141,7 @@ SearchResultsHeader.propTypes = {
     isMentionSearch: React.PropTypes.bool,
     toggleSize: React.PropTypes.func,
     shrink: React.PropTypes.func,
-    isFlaggedPosts: React.PropTypes.bool
+    isFlaggedPosts: React.PropTypes.bool,
+    isPinnedPosts: React.PropTypes.bool,
+    channelDisplayName: React.PropTypes.string.isRequired
 };

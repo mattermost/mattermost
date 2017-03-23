@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestNewClient(t *testing.T) {
@@ -118,6 +119,39 @@ func TestClientOptPort(t *testing.T) {
 	}
 }
 
+func TestNotHoldingLockWhileMakingHTTPRequests(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(250 * time.Millisecond)
+		w.Header().Add("Replay-Nonce", "12345")
+		w.Header().Add("Retry-After", "0")
+		writeJSONResponse(w, &challenge{Type: "http-01", Status: "Valid", URI: "http://example.com/", Token: "token"})
+	}))
+	defer ts.Close()
+
+	privKey, _ := rsa.GenerateKey(rand.Reader, 512)
+	j := &jws{privKey: privKey, directoryURL: ts.URL}
+	ch := make(chan bool)
+	resultCh := make(chan bool)
+	go func() {
+		j.Nonce()
+		ch <- true
+	}()
+	go func() {
+		j.Nonce()
+		ch <- true
+	}()
+	go func() {
+		<-ch
+		<-ch
+		resultCh <- true
+	}()
+	select {
+	case <-resultCh:
+	case <-time.After(400 * time.Millisecond):
+		t.Fatal("JWS is probably holding a lock while making HTTP request")
+	}
+}
+
 func TestValidate(t *testing.T) {
 	var statuses []string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -165,6 +199,43 @@ func TestValidate(t *testing.T) {
 		} else if err != nil && !strings.Contains(err.Error(), tst.want) {
 			t.Errorf("[%s] validate: got error %v, want something with %q", tst.name, err, tst.want)
 		}
+	}
+}
+
+func TestGetChallenges(t *testing.T) {
+	var ts *httptest.Server
+	ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "GET", "HEAD":
+			w.Header().Add("Replay-Nonce", "12345")
+			w.Header().Add("Retry-After", "0")
+			writeJSONResponse(w, directory{NewAuthzURL: ts.URL, NewCertURL: ts.URL, NewRegURL: ts.URL, RevokeCertURL: ts.URL})
+		case "POST":
+			writeJSONResponse(w, authorization{})
+		}
+	}))
+	defer ts.Close()
+
+	keyBits := 512 // small value keeps test fast
+	keyType := RSA2048
+	key, err := rsa.GenerateKey(rand.Reader, keyBits)
+	if err != nil {
+		t.Fatal("Could not generate test key:", err)
+	}
+	user := mockUser{
+		email:      "test@test.com",
+		regres:     &RegistrationResource{NewAuthzURL: ts.URL},
+		privatekey: key,
+	}
+
+	client, err := NewClient(ts.URL, user, keyType)
+	if err != nil {
+		t.Fatalf("Could not create client: %v", err)
+	}
+
+	_, failures := client.getChallenges([]string{"example.com"})
+	if failures["example.com"] == nil {
+		t.Fatal("Expecting \"Server did not provide next link to proceed\" error, got nil")
 	}
 }
 

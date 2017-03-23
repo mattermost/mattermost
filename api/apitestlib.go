@@ -6,6 +6,7 @@ package api
 import (
 	"time"
 
+	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -21,6 +22,7 @@ type TestHelper struct {
 	BasicUser2   *model.User
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
+	PinnedPost   *model.Post
 
 	SystemAdminClient  *model.Client
 	SystemAdminTeam    *model.Team
@@ -42,6 +44,7 @@ func SetupEnterprise() *TestHelper {
 		InitRouter()
 		app.StartServer()
 		utils.InitHTML()
+		api4.InitApi(false)
 		InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
@@ -90,6 +93,9 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicClient.SetTeamId(me.BasicTeam.Id)
 	me.BasicChannel = me.CreateChannel(me.BasicClient, me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicClient, me.BasicChannel)
+
+	pinnedPostChannel := me.CreateChannel(me.BasicClient, me.BasicTeam)
+	me.PinnedPost = me.CreatePinnedPost(me.BasicClient, pinnedPostChannel)
 
 	return me
 }
@@ -152,7 +158,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := app.JoinUserToTeam(team, user)
+	err := app.JoinUserToTeam(team, user, utils.GetSiteURL())
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
@@ -194,15 +200,13 @@ func UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id, true); cmr.Err == nil {
+	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
 		cm.Roles = "channel_admin channel_user"
 		if sr := <-app.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
 		}
-
-		app.InvalidateCacheForChannelMember(cm.ChannelId, cm.UserId)
 	} else {
 		utils.EnableDebugLogForTest()
 		panic(cmr.Err)
@@ -214,15 +218,13 @@ func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 func MakeUserChannelUser(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id, true); cmr.Err == nil {
+	if cmr := <-app.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
 		cm.Roles = "channel_user"
 		if sr := <-app.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
 		}
-
-		app.InvalidateCacheForChannelMember(cm.ChannelId, cm.UserId)
 	} else {
 		utils.EnableDebugLogForTest()
 		panic(cmr.Err)
@@ -261,6 +263,21 @@ func (me *TestHelper) CreatePost(client *model.Client, channel *model.Channel) *
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	r := client.Must(client.CreatePost(post)).Data.(*model.Post)
+	utils.EnableDebugLogForTest()
+	return r
+}
+
+func (me *TestHelper) CreatePinnedPost(client *model.Client, channel *model.Channel) *model.Post {
+	id := model.NewId()
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "message_" + id,
+		IsPinned:  true,
 	}
 
 	utils.DisableDebugLogForTest()

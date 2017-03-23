@@ -1,0 +1,58 @@
+@charset 'UTF-8';
+
+.multi-select__container {
+    display: table;
+    padding: 0 15px;
+    width: 100%;
+
+    .Select {
+        display: table-cell;
+        padding-right: 15px;
+        vertical-align: top;
+        width: 100%;
+    }
+
+    .btn {
+        display: table-cell;
+        height: 36px;
+        min-width: 60px;
+        vertical-align: top;
+    }
+
+    .Select-control {
+        border-radius: 1px;
+    }
+
+    .Select-value {
+        white-space: nowrap;
+    }
+
+    .Select-value-label {
+        overflow: hidden;
+    }
+}
+
+.multi-select__help {
+    padding: 10px 15px 0;
+
+    > div:not(.multi-select__note),
+    > span {
+        @include opacity(.6);
+    }
+}
+
+.multi-select__note {
+    @include border-radius(3px);
+    display: table;
+    margin-top: 5px;
+    padding: 8px 13px;
+    width: 100%;
+
+    > div {
+        display: table-cell;
+
+        &.note__icon {
+            width: 15px;
+        }
+    }
+}

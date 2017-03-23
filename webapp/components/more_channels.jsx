@@ -99,13 +99,14 @@ export default class MoreChannels extends React.Component {
     }
 
     search(term) {
+        clearTimeout(this.searchTimeoutId);
+
         if (term === '') {
             this.onChange(true);
             this.setState({search: false});
+            this.searchTimeoutId = '';
             return;
         }
-
-        clearTimeout(this.searchTimeoutId);
 
         const searchTimeoutId = setTimeout(
             () => {

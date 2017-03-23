@@ -62,12 +62,15 @@
 
 .has-error {
     .help-block,
-    .control-label,
     .radio,
     .checkbox,
     .radio-inline,
     .checkbox-inline {
         color: $red;
+    }
+
+    .control-label {
+        color: inherit;
     }
 
     &.radio,

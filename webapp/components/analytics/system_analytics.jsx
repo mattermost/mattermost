@@ -1,7 +1,6 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Banner from 'components/admin_console/banner.jsx';
 import LineChart from './line_chart.jsx';
 import DoughnutChart from './doughnut_chart.jsx';
 import StatisticCount from './statistic_count.jsx';
@@ -9,7 +8,6 @@ import StatisticCount from './statistic_count.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import {isLicenseExpired, isLicenseExpiring, displayExpiryDate} from 'utils/license_utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
@@ -217,7 +215,7 @@ class SystemAnalytics extends React.Component {
             );
 
             advancedStats = (
-                <div className='row'>
+                <div>
                     <StatisticCount
                         title={
                             <FormattedMessage
@@ -287,36 +285,6 @@ class SystemAnalytics extends React.Component {
                     {postTypeGraph}
                 </div>
             );
-
-            if (isLicenseExpired()) {
-                banner = (
-                    <Banner
-                        description={
-                            <FormattedHTMLMessage
-                                id='analytics.system.expiredBanner'
-                                defaultMessage='The Enterprise license expired on {date}. You have 15 days from this date to renew the license, please contact <a href="mailto:commercial@mattermost.com">commercial@mattermost.com</a>.'
-                                values={{
-                                    date: displayExpiryDate()
-                                }}
-                            />
-                        }
-                    />
-                );
-            } else if (isLicenseExpiring()) {
-                banner = (
-                    <Banner
-                        description={
-                            <FormattedHTMLMessage
-                                id='analytics.system.expiringBanner'
-                                defaultMessage='The Enterprise license is expiring on {date}. To renew your license, please contact <a href="mailto:commercial@mattermost.com">commercial@mattermost.com</a>.'
-                                values={{
-                                    date: displayExpiryDate()
-                                }}
-                            />
-                        }
-                    />
-                );
-            }
         }
 
         const userCount = (
@@ -388,7 +356,7 @@ class SystemAnalytics extends React.Component {
         let secondRow;
         if (isLicensed && skippedIntensiveQueries) {
             firstRow = (
-                <div className='row'>
+                <div>
                     {userCount}
                     {teamCount}
                     {channelCount}
@@ -397,7 +365,7 @@ class SystemAnalytics extends React.Component {
             );
 
             secondRow = (
-                <div className='row'>
+                <div>
                     {commandCount}
                     {incomingCount}
                     {outgoingCount}
@@ -405,7 +373,7 @@ class SystemAnalytics extends React.Component {
             );
         } else if (isLicensed && !skippedIntensiveQueries) {
             firstRow = (
-                <div className='row'>
+                <div>
                     {userCount}
                     {teamCount}
                     {channelCount}
@@ -414,7 +382,7 @@ class SystemAnalytics extends React.Component {
             );
 
             secondRow = (
-                <div className='row'>
+                <div>
                     {sessionCount}
                     {commandCount}
                     {incomingCount}
@@ -423,7 +391,7 @@ class SystemAnalytics extends React.Component {
             );
         } else if (!isLicensed) {
             firstRow = (
-                <div className='row'>
+                <div>
                     {userCount}
                     {teamCount}
                     {channelCount}
@@ -433,7 +401,7 @@ class SystemAnalytics extends React.Component {
         }
 
         const thirdRow = (
-            <div className='row'>
+            <div>
                 {dailyActiveUsers}
                 {monthlyActiveUsers}
             </div>
@@ -448,10 +416,12 @@ class SystemAnalytics extends React.Component {
                     />
                 </h3>
                 {banner}
-                {firstRow}
-                {secondRow}
-                {thirdRow}
-                {advancedStats}
+                <div className='row'>
+                    {firstRow}
+                    {secondRow}
+                    {thirdRow}
+                    {advancedStats}
+                </div>
                 {advancedGraphs}
                 {postTotalGraph}
                 {activeUserGraph}

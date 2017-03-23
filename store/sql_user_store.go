@@ -127,7 +127,6 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 }
 
 func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
-
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -164,7 +163,9 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			}
 
 			if user.IsOAuthUser() {
-				user.Email = oldUser.Email
+				if !trustedUpdateData {
+					user.Email = oldUser.Email
+				}
 			} else if user.IsLDAPUser() && !trustedUpdateData {
 				if user.Username != oldUser.Username ||
 					user.Email != oldUser.Email {
@@ -1178,7 +1179,13 @@ func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON cm.ChannelId = c.Id AND cm.UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		if count, err := us.GetReplica().SelectInt(`
+		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		FROM Channels c
+		INNER JOIN ChannelMembers cm
+		      ON cm.ChannelId = c.Id
+		      AND cm.UserId = :UserId
+		      AND c.DeleteAt = 0`, map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetMentionCount", "store.sql_user.get_unread_count.app_error", nil, err.Error())
 		} else {
 			result.Data = count
@@ -1247,6 +1254,36 @@ func (us SqlUserStore) Search(teamId string, term string, options map[string]boo
 		}
 
 		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+		SELECT
+			*
+		FROM
+			Users
+		WHERE
+			(SELECT
+				COUNT(0)
+			FROM
+				TeamMembers
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.DeleteAt = 0) = 0
+			SEARCH_CLAUSE
+			INACTIVE_CLAUSE
+			ORDER BY Username ASC
+		LIMIT 100`
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{})
 		close(storeChannel)
 
 	}()
@@ -1437,4 +1474,43 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 	}
 
 	return result
+}
+
+func (us SqlUserStore) AnalyticsGetInactiveUsersCount() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0"); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) AnalyticsGetSystemAdminCount() StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT count(*) FROM Users WHERE Roles LIKE :Roles and DeleteAt = 0", map[string]interface{}{"Roles": "%system_admin%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsGetSystemAdminCount", "store.sql_user.analytics_get_system_admin_count.app_error", nil, err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
 }

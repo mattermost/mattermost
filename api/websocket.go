@@ -5,6 +5,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
@@ -19,11 +20,25 @@ func InitWebSocket() {
 	app.HubStart()
 }
 
+type OriginCheckerProc func(*http.Request) bool
+
+func OriginChecker(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	return *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(origin, *utils.Cfg.ServiceSettings.AllowCorsFrom)
+}
+
 func connect(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	var originChecker OriginCheckerProc = nil
+
+	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
+		originChecker = OriginChecker
+	}
+
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,
-		CheckOrigin:     true,
+		CheckOrigin:     originChecker,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)

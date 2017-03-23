@@ -209,6 +209,8 @@ export default class CreateComment extends React.Component {
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     this.showPostDeletedModal();
+                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
+                    this.setState({message: post.message});
                 } else {
                     this.forceUpdate();
                 }
@@ -315,7 +317,7 @@ export default class CreateComment extends React.Component {
     }
 
     handleFileUploadChange() {
-        this.focusTextbox(true);
+        this.focusTextbox();
     }
 
     handleUploadStart(clientIds) {
@@ -347,7 +349,7 @@ export default class CreateComment extends React.Component {
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
         // Focus on preview if needed
-        this.refs.preview.refs.container.scrollIntoViewIfNeeded();
+        this.refs.preview.refs.container.scrollIntoView();
 
         const enableAddButton = this.handleEnableAddButton(draft.message, draft.fileInfos);
 

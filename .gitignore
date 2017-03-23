@@ -77,6 +77,7 @@ enterprise
 
 cover.out
 ecover.out
+*.test
 
 .agignore
 .ctags

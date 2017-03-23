@@ -11,12 +11,13 @@ import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import {getFlaggedPosts} from 'actions/post_actions.jsx';
+import {getFlaggedPosts, getPinnedPosts} from 'actions/post_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import React from 'react';
+import React, {PropTypes} from 'react';
 
 export default class SidebarRight extends React.Component {
     constructor(props) {
@@ -26,6 +27,7 @@ export default class SidebarRight extends React.Component {
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onSelectedChange = this.onSelectedChange.bind(this);
+        this.onPostPinnedChange = this.onPostPinnedChange.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onShowSearch = this.onShowSearch.bind(this);
@@ -38,6 +40,7 @@ export default class SidebarRight extends React.Component {
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
             isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
+            isPinnedPosts: SearchStore.getIsPinnedPosts(),
             postRightVisible: Boolean(PostStore.getSelectedPost()),
             expanded: false,
             fromSearch: false,
@@ -49,6 +52,7 @@ export default class SidebarRight extends React.Component {
     componentDidMount() {
         SearchStore.addSearchChangeListener(this.onSearchChange);
         PostStore.addSelectedPostChangeListener(this.onSelectedChange);
+        PostStore.addPostPinnedChangeListener(this.onPostPinnedChange);
         SearchStore.addShowSearchListener(this.onShowSearch);
         UserStore.addChangeListener(this.onUserChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
@@ -58,6 +62,7 @@ export default class SidebarRight extends React.Component {
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onSearchChange);
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
+        PostStore.removePostPinnedChangeListener(this.onPostPinnedChange);
         SearchStore.removeShowSearchListener(this.onShowSearch);
         UserStore.removeChangeListener(this.onUserChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -70,6 +75,10 @@ export default class SidebarRight extends React.Component {
     componentWillUpdate(nextProps, nextState) {
         const isOpen = this.state.searchVisible || this.state.postRightVisible;
         const willOpen = nextState.searchVisible || nextState.postRightVisible;
+
+        if (!isOpen && willOpen) {
+            trackEvent('ui', 'ui_rhs_opened');
+        }
 
         if (isOpen !== willOpen) {
             PostStore.jumpPostsViewSidebarOpen();
@@ -132,6 +141,12 @@ export default class SidebarRight extends React.Component {
         });
     }
 
+    onPostPinnedChange() {
+        if (this.props.channel && this.state.isPinnedPosts) {
+            getPinnedPosts(this.props.channel.id);
+        }
+    }
+
     onShrink() {
         this.setState({
             expanded: false
@@ -142,7 +157,8 @@ export default class SidebarRight extends React.Component {
         this.setState({
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
-            isFlaggedPosts: SearchStore.getIsFlaggedPosts()
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
+            isPinnedPosts: SearchStore.getIsPinnedPosts()
         });
     }
 
@@ -177,9 +193,11 @@ export default class SidebarRight extends React.Component {
                 <SearchResults
                     isMentionSearch={this.state.isMentionSearch}
                     isFlaggedPosts={this.state.isFlaggedPosts}
+                    isPinnedPosts={this.state.isPinnedPosts}
                     useMilitaryTime={this.state.useMilitaryTime}
                     toggleSize={this.toggleSize}
                     shrink={this.onShrink}
+                    channelDisplayName={this.props.channel ? this.props.channel.display_name : ''}
                 />
             );
         } else if (this.state.postRightVisible) {
@@ -217,3 +235,7 @@ export default class SidebarRight extends React.Component {
         );
     }
 }
+
+SidebarRight.propTypes = {
+    channel: PropTypes.object
+};

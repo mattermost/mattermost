@@ -69,3 +69,17 @@ func TestChannelMemberIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestChannelUnreadJson(t *testing.T) {
+	o := ChannelUnread{ChannelId: NewId(), TeamId: NewId(), MsgCount: 5, MentionCount: 3}
+	json := o.ToJson()
+	ro := ChannelUnreadFromJson(strings.NewReader(json))
+
+	if o.TeamId != ro.TeamId {
+		t.Fatal("Team Ids do not match")
+	}
+
+	if o.MentionCount != ro.MentionCount {
+		t.Fatal("MentionCount do not match")
+	}
+}

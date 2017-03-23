@@ -53,6 +53,12 @@
         border: none;
     }
 
+    .date-separator {
+        hr {
+            border-top: 1px solid #eee;
+        }
+    }
+
     .post-create__container {
         width: 100%;
 
@@ -147,7 +153,8 @@
     @include flex(1 1 auto);
     overflow: auto;
     position: relative;
-
+    padding-top: 10px;
+    
     .file-preview__container {
         margin-top: 5px;
     }
