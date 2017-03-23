@@ -6,8 +6,8 @@ import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
-
-import loadingGif from 'images/load.gif';
+import FileUploadProgress from './file_upload_progress.jsx';
+import TruncateText from './truncate_text.jsx';
 
 export default class FilePreview extends React.Component {
     constructor(props) {
@@ -49,36 +49,49 @@ export default class FilePreview extends React.Component {
                 <div
                     key={info.id}
                     className={className}
+                    title={info.name}
                 >
-                    {previewImage}
-                    <a
-                        className='file-preview__remove'
-                        onClick={this.handleRemove.bind(this, info.id)}
-                    >
-                        <i className='fa fa-remove'/>
-                    </a>
+                    <div className='file-preview__image-container'>
+                        {previewImage}
+                        <a
+                            className='file-preview__remove'
+                            onClick={this.handleRemove.bind(this, info.id)}
+                        >
+                            <i className='fa fa-remove'/>
+                        </a>
+                    </div>
+                    <TruncateText length={20}>{info.name}</TruncateText>
                 </div>
             );
         });
 
         this.props.uploadsInProgress.forEach((clientId) => {
+            let percent;
+            let fileName;
+            let uploadComponent = <p>{'Starting upload...'}</p>;
+            if (this.props.uploadsProgressPercent[clientId]) {
+                percent = this.props.uploadsProgressPercent[clientId].percent;
+                fileName = this.props.uploadsProgressPercent[clientId].fileName;
+                uploadComponent = <p><TruncateText length={20}>{'Uploading '} {fileName}</TruncateText></p>;
+            }
             previews.push(
                 <div
                     ref={clientId}
                     key={clientId}
                     className='file-preview'
                     data-client-id={clientId}
+                    title={fileName}
                 >
-                    <img
-                        className='spinner'
-                        src={loadingGif}
-                    />
-                    <a
-                        className='file-preview__remove'
-                        onClick={this.handleRemove.bind(this, clientId)}
-                    >
-                        <i className='fa fa-remove'/>
-                    </a>
+                    <div className='file-preview__image-container'>
+                        <FileUploadProgress percent={Math.min(percent, 98)}/>
+                        <a
+                            className='file-preview__remove'
+                            onClick={this.handleRemove.bind(this, clientId)}
+                        >
+                            <i className='fa fa-remove'/>
+                        </a>
+                    </div>
+                    {uploadComponent}
                 </div>
             );
         });
@@ -96,10 +109,12 @@ export default class FilePreview extends React.Component {
 
 FilePreview.defaultProps = {
     fileInfos: [],
-    uploadsInProgress: []
+    uploadsInProgress: [],
+    uploadsProgressPercent: {}
 };
 FilePreview.propTypes = {
     onRemove: React.PropTypes.func.isRequired,
     fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    uploadsInProgress: React.PropTypes.array
+    uploadsInProgress: React.PropTypes.array,
+    uploadsProgressPercent: React.PropTypes.object
 };

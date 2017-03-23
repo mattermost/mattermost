@@ -1832,7 +1832,7 @@ export default class Client {
 
     // Routes for Files
 
-    uploadFile(file, filename, channelId, clientId, success, error) {
+    uploadFile(file, filename, channelId, clientId, success, error, progress) {
         this.trackEvent('api', 'api_files_upload', {team_id: this.getTeamId(), channel_id: channelId});
 
         return request.
@@ -1842,6 +1842,7 @@ export default class Client {
             field('channel_id', channelId).
             field('client_ids', clientId).
             accept('application/json').
+            on('progress', progress).
             end(this.handleResponse.bind(this, 'uploadFile', success, error));
     }
 

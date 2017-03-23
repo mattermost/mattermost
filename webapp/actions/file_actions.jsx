@@ -4,7 +4,7 @@
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
-export function uploadFile(file, name, channelId, clientId, success, error) {
+export function uploadFile(file, name, channelId, clientId, success, error, progress) {
     Client.uploadFile(
         file,
         name,
@@ -21,6 +21,7 @@ export function uploadFile(file, name, channelId, clientId, success, error) {
             if (error) {
                 error(err);
             }
-        }
+        },
+        progress.bind(this, name)
     );
 }

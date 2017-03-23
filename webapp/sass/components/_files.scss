@@ -1,9 +1,9 @@
 @charset 'UTF-8';
 
 .file-preview__container {
-    height: 100px;
+    height: 120px;
     margin: 1px 0 10px;
-    max-height: 100px;
+    max-height: 120px;
     overflow-x: auto;
     overflow-y: hidden;
     position: relative;
@@ -13,15 +13,30 @@
 
 .file-preview {
     @include clearfix;
-    border: 1px solid $light-gray;
     display: inline-block;
-    height: 100px;
+    height: 80px;
     margin: 0 0 0 10px;
     position: relative;
-    width: 120px;
+    width: 100px;
+    overflow: visible;
 
     &:first-child {
         margin-left: 0;
+    }
+
+    .truncate-text__wrap {
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+
+    .file-preview__image-container {
+        height: 80%;
+        border: 1px solid $light-gray;
+    }
+
+    .file-preview__image, .file-icon {
+        max-height: 100%;
+        overflow:hidden;
     }
 
     .spinner {
@@ -301,4 +316,12 @@
 .view-image__loading {
     background: $black;
     min-height: 100px;
+}
+
+.file-upload-progress__circle {
+    margin: 10px 30px 5px 30px;
+
+    .file-upload-progress__inside-text {
+        font-size: 20px;
+    }
 }
