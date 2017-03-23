@@ -60,24 +60,49 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sinceString := r.URL.Query().Get("since")
+
+	var since int64
+	var parseError error
+
+	if len(sinceString) > 0 {
+		since, parseError = strconv.ParseInt(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+	}
+
 	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	etag := app.GetPostsEtag(c.Params.ChannelId)
+	var list *model.PostList
+	var err *model.AppError
+	etag := ""
 
-	if HandleEtag(etag, "Get Posts", w, r) {
-		return
+	if since > 0 {
+		list, err = app.GetPostsSince(c.Params.ChannelId, since)
+	} else {
+		etag = app.GetPostsEtag(c.Params.ChannelId)
+
+		if HandleEtag(etag, "Get Posts", w, r) {
+			return
+		}
+
+		list, err = app.GetPostsPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
 	}
 
-	if list, err := app.GetPostsPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage); err != nil {
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-		w.Write([]byte(list.ToJson()))
 	}
+
+	if len(etag) > 0 {
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	}
+	w.Write([]byte(list.ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {

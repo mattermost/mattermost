@@ -174,9 +174,12 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post1 := th.CreatePost()
 	post2 := th.CreatePost()
-	post3 := th.CreatePost()
-	post4 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
-	post4, _ = Client.CreatePost(post4)
+	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post3, _ = Client.CreatePost(post3)
+
+	time := model.GetMillis()
+
+	post4 := th.CreatePost()
 
 	posts, resp := Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
@@ -207,7 +210,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		t.Fatal("wrong number returned")
 	}
 
-	if _, ok := posts.Posts[post4.Id]; !ok {
+	if _, ok := posts.Posts[post3.Id]; !ok {
 		t.Fatal("missing comment")
 	}
 
@@ -227,6 +230,30 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	if len(posts.Order) != 0 {
 		t.Fatal("should be no posts")
+	}
+
+	post5 := th.CreatePost()
+
+	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, time)
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.CreateAt < time {
+			t.Fatal("bad create at for post returned")
+		}
+
+		if p.Id == post4.Id {
+			found[0] = true
+		} else if p.Id == post5.Id {
+			found[1] = true
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
 	}
 
 	_, resp = Client.GetPostsForChannel("", 0, 60, "")
