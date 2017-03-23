@@ -157,20 +157,14 @@ export function loadNewDMIfNeeded(userId) {
     }
 }
 
+function isMissingTeamMember(teamId, userId) {
+    return !TeamStore.hasActiveMemberInTeam(teamId, userId) && !TeamStore.hasMemberNotInTeam(teamId, userId);
+}
+
 export function loadProfilesAndTeamMembersForDMSidebar() {
-    const dmPrefs = PreferenceStore.getCategory(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
     const teamId = TeamStore.getCurrentId();
     const profilesToLoad = [];
     const membersToLoad = [];
-
-    for (const [key, value] of dmPrefs) {
-        if (value === 'true') {
-            if (!UserStore.hasProfile(key)) {
-                profilesToLoad.push(key);
-            }
-            membersToLoad.push(key);
-        }
-    }
 
     const channelMembers = ChannelStore.getMyMembers();
     const channels = ChannelStore.getChannels();
@@ -181,25 +175,29 @@ export function loadProfilesAndTeamMembersForDMSidebar() {
             continue;
         }
 
-        const member = channelMembers[channel.id];
-        if (!member) {
-            continue;
+        const teammateId = channel.name.replace(UserStore.getCurrentId(), '').replace('__', '');
+        const isVisible = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammateId);
+
+        if (isMissingTeamMember(teamId, teammateId)) {
+            membersToLoad.push(teammateId);
         }
 
-        const teammateId = channel.name.replace(member.user_id, '').replace('__', '');
+        if (!UserStore.hasProfile(teammateId)) {
+            profilesToLoad.push(teammateId);
+        }
 
-        if (member.mention_count > 0 && membersToLoad.indexOf(teammateId) === -1) {
-            membersToLoad.push(teammateId);
+        if (!isVisible) {
+            const member = channelMembers[channel.id];
+            if (!member || member.mention_count === 0) {
+                continue;
+            }
+
             newPreferences.push({
                 user_id: UserStore.getCurrentId(),
                 category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
                 name: teammateId,
                 value: 'true'
             });
-
-            if (!UserStore.hasProfile(teammateId)) {
-                profilesToLoad.push(teammateId);
-            }
         }
     }
 
