@@ -189,7 +189,8 @@ var usernames = []struct {
 	expected bool
 }{
 	{"spin-punch", true},
-	{"sp", false},
+	{"sp", true},
+	{"s", true},
 	{"1spin-punch", false},
 	{"-spin-punch", false},
 	{".spin-punch", false},
