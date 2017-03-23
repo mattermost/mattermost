@@ -36,8 +36,6 @@ export function createSafeId(str) {
         return null;
     }
 
-    //return str;
-
     return str.replace(' ', '_');
 }
 
