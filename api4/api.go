@@ -170,6 +170,7 @@ func InitApi(full bool) {
 	InitCluster()
 	InitLdap()
 	InitBrand()
+	InitCommand()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

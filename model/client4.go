@@ -202,6 +202,10 @@ func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
 }
 
+func (c *Client4) GetCommandsRoute() string {
+	return fmt.Sprintf("/commands")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -1714,5 +1718,17 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
 	} else {
 		defer closeBody(r)
 		return ArrayFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Commands Section
+
+// CreateCommand will create a new command if the user have the right permissions.
+func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
+	if r, err := c.DoApiPost(c.GetCommandsRoute(), cmd.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandFromJson(r.Body), BuildResponse(r)
 	}
 }
