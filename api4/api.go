@@ -171,6 +171,7 @@ func InitApi(full bool) {
 	InitLdap()
 	InitBrand()
 	InitCommand()
+	InitStatus()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

@@ -190,6 +190,10 @@ func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
 
+func (c *Client4) GetStatusRoute(userId string) string {
+	return fmt.Sprintf(c.GetUserRoute(userId) + "/status")
+}
+
 func (c *Client4) GetSamlRoute() string {
 	return fmt.Sprintf("/saml")
 }
@@ -1762,5 +1766,17 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 	} else {
 		defer closeBody(r)
 		return CommandFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Status Section
+
+// GetUserStatus returns a user based on the provided user id string.
+func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response) {
+	if r, err := c.DoApiGet(c.GetStatusRoute(userId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return StatusFromJson(r.Body), BuildResponse(r)
 	}
 }
