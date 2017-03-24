@@ -23,7 +23,7 @@
 }
 
 .textarea-wrapper {
-    min-height: 36px;
+    min-height: 37px;
     position: relative;
 
     .textbox-preview-area {
@@ -371,7 +371,15 @@
         padding: .5em 15px 0;
         width: 100%;
     }
+    #reply_textbox.custom-textarea-emoji{
+        bottom: 0;
+        max-height: 162px !important;
+        padding-right: 60px;
+        padding-top: 6px;
+        resize: none;
 
+
+    }
     .center {
         max-width: 1028px;
     }
@@ -386,6 +394,25 @@
                 -ms-overflow-style: auto;
                 overflow: auto;
                 padding-right: 43px;
+                resize: none;
+            }
+
+            #post_textbox-reference.custom-textarea-emoji {
+                padding-right: 43px;
+                resize: none;
+            }
+
+
+            #reply_textbox.custom-textarea-emoji {
+                padding-right: 60px;
+                resize: none;
+
+            }
+
+            #post_textbox.custom-textarea-emoji {
+                padding-right: 60px;
+                resize: none;
+
             }
         }
     }
@@ -425,8 +452,28 @@
             max-height: 162px !important;
             padding-right: 35px;
             padding-top: 8px;
+            resize: none;
+
         }
 
+        #post_textbox-reference.custom-textarea-emoji {
+            bottom: 0;
+            max-height: 162px !important;
+            padding-right: 35px;
+            padding-top: 8px;
+            resize: none;
+
+        }
+
+
+        #post_textbox.custom-textarea-emoji {
+            bottom: 0;
+            max-height: 162px !important;
+            padding-right: 60px;
+            padding-top: 8px;
+            resize: none;
+
+        }
         .textarea-div {
             line-height: 1.5;
             max-height: 163px !important;
@@ -436,13 +483,12 @@
         }
 
         .btn-file {
-            @include opacity(.5);
             @include single-transition(all, .15s);
             font-size: 16px;
-            padding: 7px 9px 6px;
+            padding: 8px 9px 4px;
             position: absolute;
             right: 0;
-            top: 1px;
+            top: 0;
             z-index: 5;
 
             svg {
@@ -452,7 +498,6 @@
 
             &:hover,
             &:active {
-                @include opacity(.9);
                 box-shadow: none;
             }
 
@@ -463,6 +508,48 @@
                 &:active {
                     @include opacity(.1);
                 }
+            }
+
+            .icon--attachment {
+                @include opacity(.5);
+                display: inline-block;
+                position: relative;
+                vertical-align: top;
+
+                input {
+                    cursor: pointer;
+                    direction: ltr;
+                    filter: alpha(opacity=0);
+                    font-size: 23px;
+                    height: 100%;
+                    margin: 0;
+                    opacity: 0;
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    width: 100%;
+                }
+
+                &:hover {
+                    @include opacity(.9);
+                }
+            }
+        }
+
+
+        .icon--emoji-picker {
+            @include opacity(.5);
+            @include single-transition(all, .15s);
+            cursor: pointer;
+            font-size: 19px;
+            margin-left: 7px;
+            position: relative;
+            vertical-align: top;
+
+            &:hover,
+            &:active {
+                @include opacity(.9);
+                box-shadow: none;
             }
         }
 
