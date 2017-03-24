@@ -1,5 +1,5 @@
 hash: a64cfc8472f6345146f4d111d841cca8b8efb25e3d4872865670a3f7db63b23b
-updated: 2017-03-24T14:01:42.605554665-07:00
+updated: 2017-03-24T16:11:53.990600794-07:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -44,6 +44,17 @@ imports:
   version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
   subpackages:
   - simplelru
+- name: github.com/hashicorp/hcl
+  version: 630949a3c5fa3c613328e1b8256052cbc2327c9b
+  subpackages:
+  - hcl/ast
+  - hcl/parser
+  - hcl/scanner
+  - hcl/strconv
+  - hcl/token
+  - json/parser
+  - json/scanner
+  - json/token
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jaytaylor/html2text
@@ -54,6 +65,8 @@ imports:
   version: 472a0745531a17dbac346e828b4c60e73ddff30c
   subpackages:
   - oid
+- name: github.com/magiconair/properties
+  version: 51463bfca2576e06c62a8504b5c0f06d61312647
 - name: github.com/mattermost/rsc
   version: bbaefb05eaa0389ea712340066837c8ce4d287f9
   subpackages:
@@ -73,6 +86,8 @@ imports:
   - pkg/s3signer
   - pkg/s3utils
   - pkg/set
+- name: github.com/mitchellh/mapstructure
+  version: 53818660ed4955e899c0bcafa97299a388bd7c8e
 - name: github.com/mssola/user_agent
   version: 85b2f5798558a46fc23443c596e781712f4b7792
 - name: github.com/nicksnyder/go-i18n
@@ -86,6 +101,10 @@ imports:
   version: 3b0c4852c5b9710340f1ed7b1a529c46a3bc0fc1
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+- name: github.com/pelletier/go-buffruneio
+  version: c37440a7cf42ac63b919c752ca73a85067e05992
+- name: github.com/pelletier/go-toml
+  version: f6e7596e8daafd44dc9e5c208dc73035020c8481
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
@@ -111,8 +130,16 @@ imports:
   version: 2d840d861c322bdf5346ba7917af1c2285e653d3
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
+- name: github.com/spf13/afero
+  version: 9be650865eab0c12963d8753212f4f9c66cdcf12
+  subpackages:
+  - mem
+- name: github.com/spf13/cast
+  version: ce135a4ebeee6cfe9a26c93ee0d37825f26113c7
 - name: github.com/spf13/cobra
   version: 7be4beda01ec05d0b93d80b3facd2b6f44080d94
+- name: github.com/spf13/jwalterweatherman
+  version: fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
@@ -150,6 +177,11 @@ imports:
   version: 8fd966b47dbdd4faa03de0d06e3d733baeb9a1a9
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: fc7fa097411d30e6708badff276c4c164425590c
+  subpackages:
+  - transform
+  - unicode/norm
 - name: golang.org/x/time
   version: f51c12702a4d776e4c1fa9b0fabab841babae631
   subpackages:
