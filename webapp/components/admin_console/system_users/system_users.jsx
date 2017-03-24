@@ -20,10 +20,9 @@ import {getStandardAnalytics, getTeamStats} from 'utils/async_client.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-// import ManageUsers from './manage_users.jsx';
-import ManageUsersList from './manage_users_list.jsx';
+import SystemUsersList from './system_users_list.jsx';
 
-const ALL_TEAMS = '';
+const ALL_USERS = '';
 const NO_TEAM = 'no_team';
 
 const USERS_PER_PAGE = 50;
@@ -40,7 +39,7 @@ to do (without triggering eslint)
 - remove anything only used by old pages
 */
 
-export default class ManageUsersContainer extends React.Component {
+export default class SystemUsers extends React.Component {
     constructor(props) {
         super(props);
 
@@ -64,7 +63,7 @@ export default class ManageUsersContainer extends React.Component {
             totalUsers: AnalyticsStore.getAllSystem()[StatTypes.TOTAL_USERS],
             users: UserStore.getProfileList(),
 
-            teamId: ALL_TEAMS,
+            teamId: ALL_USERS,
             term: '',
             loading: true,
             searching: false
@@ -111,7 +110,7 @@ export default class ManageUsersContainer extends React.Component {
     }
 
     updateTotalUsersFromStore(teamId = this.state.teamId) {
-        if (teamId === ALL_TEAMS) {
+        if (teamId === ALL_USERS) {
             this.setState({
                 totalUsers: AnalyticsStore.getAllSystem()[StatTypes.TOTAL_USERS]
             });
@@ -135,7 +134,7 @@ export default class ManageUsersContainer extends React.Component {
             return;
         }
 
-        if (teamId === ALL_TEAMS) {
+        if (teamId === ALL_USERS) {
             this.setState({users: UserStore.getProfileList()});
         } else if (teamId === NO_TEAM) {
             this.setState({users: UserStore.getProfileListWithoutTeam()});
@@ -145,7 +144,7 @@ export default class ManageUsersContainer extends React.Component {
     }
 
     loadDataForTeam(teamId) {
-        if (teamId === ALL_TEAMS) {
+        if (teamId === ALL_USERS) {
             loadProfiles(0, Constants.PROFILE_CHUNK_SIZE, this.loadComplete);
             getStandardAnalytics();
         } else if (teamId === NO_TEAM) {
@@ -171,7 +170,7 @@ export default class ManageUsersContainer extends React.Component {
     nextPage(page) {
         // Paging isn't supported while searching
 
-        if (this.state.teamId === ALL_TEAMS) {
+        if (this.state.teamId === ALL_USERS) {
             loadProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE, this.loadComplete);
         } else if (this.state.teamId === NO_TEAM) {
             loadProfilesWithoutTeam(page + 1, USERS_PER_PAGE, this.loadComplete);
@@ -313,7 +312,7 @@ export default class ManageUsersContainer extends React.Component {
         });
 
         return (
-            <div>
+            <div className='system-users-filter'>
                 <div className='col-md-8'>
                     <input
                         ref='filter'
@@ -323,13 +322,23 @@ export default class ManageUsersContainer extends React.Component {
                     />
                 </div>
                 <label className='col-md-4'>
-                    <span className='manage-users-filter__label'>{'Filter:'}</span>
+                    <span className='system-users-filter__label'>{'Filter:'}</span>
                     <select
-                        className='form-control manage-users-filter__dropdown'
+                        className='form-control system-users-filter__dropdown'
                         onChange={this.handleTeamChange}
                     >
-                        <option value={ALL_TEAMS}>{'All Users'}</option>
-                        <option value={NO_TEAM}>{'No Teams'}</option>
+                        <option value={ALL_USERS}>
+                            <FormattedMessage
+                                id='admin.system_users.allUsers'
+                                defaultMessage='All Users'
+                            />
+                        </option>
+                        <option value={NO_TEAM}>
+                            <FormattedMessage
+                                id='admin.system_users.noTeams'
+                                defaultMessage='No Teams'
+                            />
+                        </option>
                         {teamOptions}
                     </select>
                 </label>
@@ -355,7 +364,7 @@ export default class ManageUsersContainer extends React.Component {
             <div className='wrapper--fixed'>
                 <h3>
                     <FormattedMessage
-                        id='admin.manageUsers.title'
+                        id='admin.system_users.title'
                         defaultMessage='{siteName} Users'
                         values={{
                             siteName: global.mm_config.SiteName
@@ -363,7 +372,7 @@ export default class ManageUsersContainer extends React.Component {
                     />
                 </h3>
                 <div className='more-modal__list member-list-holder'>
-                    <ManageUsersList
+                    <SystemUsersList
                         renderFilterRow={this.renderFilterRow}
                         search={this.search}
                         nextPage={this.nextPage}

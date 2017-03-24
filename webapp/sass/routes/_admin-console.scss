@@ -479,14 +479,15 @@
     width: 130px;
 }
 
-.manage-users-filter__label {
-    width: 22%;
-    display: inline-block;
-}
+.system-users-filter {
+    .system-users-filter__label {
+        width: 22%;
+        display: inline-block;
+    }
 
-
-.manage-users-filter__dropdown {
-    width: 78%;
-    display: inline-block;
-    text-overflow: ellipsis;
+    .system-users-filter__dropdown {
+        width: 78%;
+        display: inline-block;
+        text-overflow: ellipsis;
+    }
 }
