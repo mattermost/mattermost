@@ -31,6 +31,15 @@
         }
     }
 
+    .post-create__container{
+        .post-create-body {
+            .icon__postcontent_picker {
+                display:none;
+                top: -7px;
+            }
+        }
+    }
+
     .suggestion-list__content {
         max-height: 145px;
     }
@@ -1096,6 +1105,13 @@
         .post-create__container {
             form {
                 padding: .5em 1em;
+            }
+
+            .emoji-rhs {
+                position: relative;
+                display: none;
+                top: 1px;
+                right: -1px;
             }
 
             .msg-typing:empty {

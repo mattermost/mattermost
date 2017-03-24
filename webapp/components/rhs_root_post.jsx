@@ -517,7 +517,10 @@ export default class RhsRootPost extends React.Component {
         };
 
         return (
-            <div className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}>
+            <div
+                id='thread--root'
+                className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}
+            >
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>
                     {profilePicContainer}

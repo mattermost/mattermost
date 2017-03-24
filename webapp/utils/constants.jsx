@@ -176,7 +176,9 @@ export const ActionTypes = keyMirror({
     SUGGESTION_SELECT_NEXT: null,
     SUGGESTION_SELECT_PREVIOUS: null,
 
-    BROWSER_CHANGE_FOCUS: null
+    BROWSER_CHANGE_FOCUS: null,
+
+    EMOJI_POSTED: null
 });
 
 export const WebrtcActionTypes = keyMirror({
@@ -856,6 +858,10 @@ export const Constants = {
         WEBRTC_PREVIEW: {
             label: 'webrtc_preview',
             description: 'Enable WebRTC one on one calls'
+        },
+        EMOJI_PICKER_PREVIEW: {
+            label: 'emojipicker',
+            description: 'Enable emoji picker'
         }
     },
     OVERLAY_TIME_DELAY_SMALL: 100,
