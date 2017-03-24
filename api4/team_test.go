@@ -534,6 +534,44 @@ func TestGetTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetTeamMembersForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	members, resp := Client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	found := false
+	for _, m := range members {
+		if m.TeamId == th.BasicTeam.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("missing team member")
+	}
+
+	_, resp = Client.GetTeamMembersForUser("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamMembersForUser(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+}
+
 func TestGetTeamMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
