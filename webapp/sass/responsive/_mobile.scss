@@ -1727,10 +1727,16 @@
     }
 }
 
-// on iOS, allow clicks within an input's label to actually propagate through to the input itself
+// on iOS, allow clicks within an input's label to actually propagate through to the input itself,
+// but still allow clicks to a elements to go trough
 // http://stackoverflow.com/a/34810294/6325807
-label span {
+label {
+  span {
     pointer-events: none;
+  }
+  span a {
+    pointer-events: all;
+  }
 }
 
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
