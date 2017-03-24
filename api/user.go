@@ -1234,34 +1234,16 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUser(c.Session.UserId); err != nil {
-		c.Err = err
-		return
-	}
-
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
-		c.Err = model.NewLocAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	secret, img, err := mfaInterface.GenerateSecret(user)
+	secret, err := app.GenerateMfaSecret(c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	resp := map[string]string{}
-	resp["qr_code"] = b64.StdEncoding.EncodeToString(img)
-	resp["secret"] = secret
-
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
-	w.Write([]byte(model.MapToJson(resp)))
+	w.Write([]byte(secret.ToJson()))
 }
 
 func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
