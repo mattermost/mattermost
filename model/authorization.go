@@ -343,7 +343,6 @@ func InitalizeRoles() {
 		"authentication.roles.team_admin.description",
 		[]string{
 			PERMISSION_EDIT_OTHERS_POSTS.Id,
-			PERMISSION_ADD_USER_TO_TEAM.Id,
 			PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			PERMISSION_MANAGE_TEAM.Id,
 			PERMISSION_IMPORT_TEAM.Id,
@@ -400,6 +399,7 @@ func InitalizeRoles() {
 							PERMISSION_DELETE_POST.Id,
 							PERMISSION_DELETE_OTHERS_POSTS.Id,
 							PERMISSION_CREATE_TEAM.Id,
+							PERMISSION_ADD_USER_TO_TEAM.Id,
 						},
 						ROLE_TEAM_USER.Permissions...,
 					),

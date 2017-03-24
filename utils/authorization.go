@@ -195,17 +195,26 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	// If team admins are given permission
-	if *Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
-		model.ROLE_TEAM_ADMIN.Permissions = append(
-			model.ROLE_TEAM_ADMIN.Permissions,
+	// Grant permissions for inviting and adding users to a team.
+	if IsLicensed {
+		if *Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
+			model.ROLE_TEAM_ADMIN.Permissions = append(
+				model.ROLE_TEAM_ADMIN.Permissions,
+				model.PERMISSION_INVITE_USER.Id,
+				model.PERMISSION_ADD_USER_TO_TEAM.Id,
+			)
+		} else if *Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_ALL {
+			model.ROLE_SYSTEM_USER.Permissions = append(
+				model.ROLE_SYSTEM_USER.Permissions,
+				model.PERMISSION_INVITE_USER.Id,
+				model.PERMISSION_ADD_USER_TO_TEAM.Id,
+			)
+		}
+	} else {
+		model.ROLE_TEAM_USER.Permissions = append(
+			model.ROLE_TEAM_USER.Permissions,
 			model.PERMISSION_INVITE_USER.Id,
-		)
-		// If it's not restricted to system admin or team admin, then give all users permission
-	} else if *Cfg.TeamSettings.RestrictTeamInvite != model.PERMISSIONS_SYSTEM_ADMIN {
-		model.ROLE_SYSTEM_USER.Permissions = append(
-			model.ROLE_SYSTEM_USER.Permissions,
-			model.PERMISSION_INVITE_USER.Id,
+			model.PERMISSION_ADD_USER_TO_TEAM.Id,
 		)
 	}
 
