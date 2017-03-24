@@ -380,6 +380,16 @@ func CheckUserSanitization(t *testing.T, user *model.User) {
 	}
 }
 
+func CheckTeamSanitization(t *testing.T, team *model.Team) {
+	if team.Email != "" {
+		t.Fatal("email wasn't blank")
+	}
+
+	if team.AllowedDomains != "" {
+		t.Fatal("'allowed domains' wasn't blank")
+	}
+}
+
 func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 	if !reflect.ValueOf(data).IsNil() {
 		debug.PrintStack()

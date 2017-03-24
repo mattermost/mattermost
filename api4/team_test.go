@@ -247,6 +247,75 @@ func TestUpdateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPatchTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	patch := &model.TeamPatch{}
+
+	patch.DisplayName = new(string)
+	*patch.DisplayName = "Other name"
+	patch.Description = new(string)
+	*patch.Description = "Other description"
+	patch.CompanyName = new(string)
+	*patch.CompanyName = "Other company name"
+	patch.InviteId = new(string)
+	*patch.InviteId = "inviteid1"
+	patch.AllowOpenInvite = new(bool)
+	*patch.AllowOpenInvite = true
+
+	rteam, resp := Client.PatchTeam(team.Id, patch)
+	CheckNoError(t, resp)
+	CheckTeamSanitization(t, rteam)
+
+	if rteam.DisplayName != "Other name" {
+		t.Fatal("DisplayName did not update properly")
+	}
+	if rteam.Description != "Other description" {
+		t.Fatal("Description did not update properly")
+	}
+	if rteam.CompanyName != "Other company name" {
+		t.Fatal("CompanyName did not update properly")
+	}
+	if rteam.InviteId != "inviteid1" {
+		t.Fatal("InviteId did not update properly")
+	}
+	if rteam.AllowOpenInvite != true {
+		t.Fatal("AllowOpenInvite did not update properly")
+	}
+
+	_, resp = Client.PatchTeam("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchTeam(GenerateTestId(), patch)
+	CheckForbiddenStatus(t, resp)
+
+	if r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	Client.Logout()
+	_, resp = Client.PatchTeam(team.Id, patch)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.PatchTeam(team.Id, patch)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchTeam(team.Id, patch)
+	CheckNoError(t, resp)
+}
+
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
