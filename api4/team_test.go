@@ -744,6 +744,37 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestRemoveTeamMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "", "", "")
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveTeamMember("junk", th.BasicUser2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+}
+
 func TestGetTeamStats(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

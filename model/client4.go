@@ -845,6 +845,16 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	}
 }
 
+// RemoveTeamMember will remove a user from a team.
+func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetTeamStats returns a team stats based on the team id string.
 // Must be authenticated.
 func (c *Client4) GetTeamStats(teamId, etag string) (*TeamStats, *Response) {
