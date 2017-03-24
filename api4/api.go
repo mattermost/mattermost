@@ -176,6 +176,7 @@ func InitApi(full bool) {
 	InitCommand()
 	InitStatus()
 	InitWebSocket()
+	InitEmoji()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

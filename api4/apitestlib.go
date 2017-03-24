@@ -564,6 +564,21 @@ func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	}
 }
 
+func CheckPayLoadTooLargeStatus(t *testing.T, resp *model.Response) {
+	if resp.Error == nil {
+		debug.PrintStack()
+		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusRequestEntityTooLarge))
+		return
+	}
+
+	if resp.StatusCode != http.StatusRequestEntityTooLarge {
+		debug.PrintStack()
+		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
+		t.Log("expected: " + strconv.Itoa(http.StatusRequestEntityTooLarge))
+		t.Fatal("wrong status code")
+	}
+}
+
 func readTestFile(name string) ([]byte, error) {
 	path := utils.FindDir("tests")
 	file, err := os.Open(path + "/" + name)
