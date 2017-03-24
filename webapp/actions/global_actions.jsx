@@ -65,6 +65,8 @@ export function emitChannelClickEvent(channel) {
 
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
 
+        loadProfilesForSidebar();
+
         AppDispatcher.handleViewAction({
             type: ActionTypes.CLICK_CHANNEL,
             name: chan.name,
