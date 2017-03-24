@@ -17,15 +17,17 @@ export default class SearchableUserList extends React.Component {
         total: React.PropTypes.number,
         extraInfo: React.PropTypes.object,
         nextPage: React.PropTypes.func.isRequired,
+        previousPage: React.PropTypes.func.isRequired,
         search: React.PropTypes.func.isRequired,
         actions: React.PropTypes.arrayOf(React.PropTypes.func),
         actionProps: React.PropTypes.object,
         actionUserProps: React.PropTypes.object,
         focusOnMount: React.PropTypes.bool,
+        renderFilterRow: React.PropTypes.func,
 
         page: React.PropTypes.number.isRequired,
         term: React.PropTypes.string.isRequired,
-        onTermChanged: React.PropTypes.func.isRequired
+        onTermChange: React.PropTypes.func.isRequired
     };
 
     static defaultProps = {
@@ -93,7 +95,7 @@ export default class SearchableUserList extends React.Component {
     }
 
     handleInput(e) {
-        this.props.onTermChanged(e.target.value);
+        this.props.onTermChange(e.target.value);
         this.props.search(e.target.value);
     }
 
@@ -154,10 +156,10 @@ export default class SearchableUserList extends React.Component {
                 );
             }
 
-            if (this.props.total) {
-                const startCount = this.props.page * this.props.usersPerPage;
-                const endCount = startCount + usersToDisplay.length;
+            const startCount = this.props.page * this.props.usersPerPage;
+            const endCount = startCount + usersToDisplay.length;
 
+            if (this.props.total) {
                 count = (
                     <FormattedMessage
                         id='filtered_user_list.countTotalPage'

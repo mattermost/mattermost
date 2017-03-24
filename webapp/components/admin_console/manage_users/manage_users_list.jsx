@@ -1,41 +1,36 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 
-import SearchableUserList from './searchable_user_list.jsx';
+import SearchableUserList from 'components/searchable_user_list/searchable_user_list.jsx';
+import SearchableUserListContainer from 'components/searchable_user_list/searchable_user_list_container.jsx';
 
-export default class SearchableUserListContainer extends React.Component {
+export default class ManageUsersList extends React.Component {
     static propTypes = {
-        users: React.PropTypes.arrayOf(React.PropTypes.object),
-        usersPerPage: React.PropTypes.number,
-        total: React.PropTypes.number,
-        extraInfo: React.PropTypes.object,
-        nextPage: React.PropTypes.func.isRequired,
-        search: React.PropTypes.func.isRequired,
-        actions: React.PropTypes.arrayOf(React.PropTypes.func),
-        actionProps: React.PropTypes.object,
-        actionUserProps: React.PropTypes.object,
-        focusOnMount: React.PropTypes.bool
+        ...SearchableUserListContainer.propTypes,
+
+        teamId: React.PropTypes.string.isRequired,
+        term: React.PropTypes.string.isRequired,
+        onTermChange: React.PropTypes.func.isRequired
     };
 
     constructor(props) {
         super(props);
-
-        this.handleTermChange = this.handleTermChange.bind(this);
 
         this.nextPage = this.nextPage.bind(this);
         this.previousPage = this.previousPage.bind(this);
         this.search = this.search.bind(this);
 
         this.state = {
-            term: '',
             page: 0
         };
     }
 
-    handleTermChange(term) {
-        this.setState({term});
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.teamId !== this.props.teamId) {
+            this.setState({page: 0});
+        }
     }
 
     nextPage() {
@@ -64,8 +59,8 @@ export default class SearchableUserListContainer extends React.Component {
                 previousPage={this.previousPage}
                 search={this.search}
                 page={this.state.page}
-                term={this.state.term}
-                onTermChange={this.handleTermChange}
+                term={this.props.term}
+                onTermChange={this.props.onTermChange}
             />
         );
     }
