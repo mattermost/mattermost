@@ -133,6 +133,29 @@ export function loadTeamMembersForProfilesList(profiles, teamId = TeamStore.getC
     loadTeamMembersForProfiles(list, teamId, success, error);
 }
 
+export function loadProfilesWithoutTeam(page, perPage, success, error) {
+    Client.getProfilesWithoutTeam(
+        page,
+        perPage,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_WITHOUT_TEAM,
+                profiles: data,
+                page
+            });
+
+            loadStatusesForProfilesMap(data);
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getProfilesWithoutTeam');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 function loadTeamMembersForProfiles(userIds, teamId, success, error) {
     Client.getTeamMembersByIds(
         teamId,

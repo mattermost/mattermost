@@ -98,6 +98,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_PROFILE: null,
     RECEIVED_PROFILES_IN_CHANNEL: null,
     RECEIVED_PROFILES_NOT_IN_CHANNEL: null,
+    RECEIVED_PROFILES_WITHOUT_TEAM: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
     RECEIVED_AUDITS: null,
@@ -205,7 +206,8 @@ export const UserStatuses = {
 };
 
 export const UserSearchOptions = {
-    ALLOW_INACTIVE: 'allow_inactive'
+    ALLOW_INACTIVE: 'allow_inactive',
+    WITHOUT_TEAM: 'without_team'
 };
 
 export const SocketEvents = {
