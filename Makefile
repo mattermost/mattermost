@@ -90,14 +90,6 @@ start-docker:
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    	echo starting mattermost-webrtc; \
-        docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest > /dev/null; \
-    elif [ $(shell docker ps | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    	echo restarting mattermost-webrtc; \
-        docker start mattermost-webrtc > /dev/null; \
-    fi
-
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
 		echo starting mattermost-inbucket; \
 		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:latest > /dev/null; \
@@ -148,11 +140,6 @@ stop-docker:
 		docker stop mattermost-openldap > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-		echo stopping mattermost-webrtc; \
-		docker stop mattermost-webrtc > /dev/null; \
-	fi
-
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
 		echo stopping mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
@@ -177,12 +164,6 @@ clean-docker:
 		echo removing mattermost-openldap; \
 		docker stop mattermost-openldap > /dev/null; \
 		docker rm -v mattermost-openldap > /dev/null; \
-	fi
-
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-		echo removing mattermost-webrtc; \
-		docker stop mattermost-webrtc > /dev/null; \
-		docker rm -v mattermost-webrtc > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
