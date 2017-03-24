@@ -1,5 +1,5 @@
-hash: 16f4195c9f272374d667cd1f05a85d3d3ac9f25148b01e9a982fc606c855c621
-updated: 2017-03-24T13:57:41.659455046-07:00
+hash: a64cfc8472f6345146f4d111d841cca8b8efb25e3d4872865670a3f7db63b23b
+updated: 2017-03-24T14:01:42.605554665-07:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -156,8 +156,6 @@ imports:
   - rate
 - name: gopkg.in/asn1-ber.v1
   version: 4e86f4367175e39f69d9358a5f17b4dda270378d
-- name: gopkg.in/fsnotify.v1
-  version: 629574ca2a5df945712d3079857300b5e4da0236
 - name: gopkg.in/gomail.v2
   version: 41f3572897373c5538c50a2402db15db079fa4fd
 - name: gopkg.in/square/go-jose.v1

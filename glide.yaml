@@ -39,8 +39,6 @@ import:
 - package: golang.org/x/image
   subpackages:
   - bmp
-- package: gopkg.in/fsnotify.v1
-  version: v1.4.2
 - package: gopkg.in/throttled/throttled.v2
   version: v2.0.3
   subpackages:
