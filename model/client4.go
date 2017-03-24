@@ -1943,6 +1943,17 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 	}
 }
 
+// ListCommands will retrieve a list of commands available in the team.
+func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Response) {
+	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
+	if r, err := c.DoApiGet(c.GetCommandsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Status Section
 
 // GetUserStatus returns a user based on the provided user id string.
