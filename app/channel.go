@@ -676,8 +676,8 @@ func GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (
 	}
 }
 
-func GetChannelsByIds(channelIds []string, userId string) (*model.ChannelList, *model.AppError) {
-	if result := <-Srv.Store.Channel().GetChannelsByIds(channelIds, userId); result.Err != nil {
+func GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelList), nil
