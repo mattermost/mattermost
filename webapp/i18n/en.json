@@ -2163,6 +2163,8 @@
   "user.settings.notifications.desktop.title": "Desktop notifications",
   "user.settings.notifications.desktop.unlimited": "Unlimited",
   "user.settings.notifications.desktopSounds": "Desktop notification sounds",
+  "user.settings.notifications.email.disabled": "Disabled by System Administrator",
+  "user.settings.notifications.email.disabled_long": "Email notifications have been disabled by your System Administrator.",
   "user.settings.notifications.email.everyHour": "Every hour",
   "user.settings.notifications.email.everyXMinutes": "Every {count, plural, one {minute} other {{count, number} minutes}}",
   "user.settings.notifications.email.immediately": "Immediately",
