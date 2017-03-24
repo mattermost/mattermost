@@ -575,6 +575,10 @@ export function applyTheme(theme) {
         changeCss('body.app__body', 'scrollbar-face-color:' + theme.centerChannelBg);
         changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg);
         changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg);
+        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .emoji-picker-react, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
+
+        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
     }
 
     if (theme.centerChannelColor) {
@@ -651,6 +655,23 @@ export function applyTheme(theme) {
         changeCss('.app__body .navbar .status .offline--icon', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
+        changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
+        changeCss('.app__body .emoji-picker-react', 'color:' + theme.centerChannelColor);
+        changeCss('.app__body .emoji-picker-bottom', 'color:' + theme.centerChannelColor);
+        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker__items', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .emoji-picker__categories', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
+
+        changeCss('.app__body .emoji-picker__preview', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker__category, .app__body .emoji-picker__category:focus, .app__body .emoji-picker__category:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.3));
+        changeCss('.app__body .emoji-picker__category--selected, .app__body .emoji-picker__category--selected:focus, .app__body .emoji-picker__category--selected:hover', 'color:' + theme.centerChannelColor);
+        changeCss('.app__body .emoji-picker__item:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
+        changeCss('.app__body .emojisprite:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
+        changeCss('.app__body .icon__postcontent_picker:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
     }
 
     if (theme.newMessageSeparator) {
@@ -661,7 +682,7 @@ export function applyTheme(theme) {
     if (theme.linkColor) {
         changeCss('.app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor);
         changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5));
-        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
+        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .reacticon__container, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'background:' + changeOpacity(theme.linkColor, 0.1));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'border-color:' + changeOpacity(theme.linkColor, 0.4));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'color:' + theme.linkColor);

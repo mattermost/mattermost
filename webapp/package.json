@@ -75,6 +75,7 @@
     "react-dom": "15.4.2",
     "sass-loader": "6.0.3",
     "style-loader": "0.13.2",
+    "react-outside-event": "1.2.4",
     "url-loader": "0.5.8",
     "webpack": "2.2.1",
     "webpack-node-externals": "1.5.4"
