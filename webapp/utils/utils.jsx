@@ -31,6 +31,14 @@ export function isMac() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
 
+export function createSafeId(str) {
+    if (str === null) {
+        return null;
+    }
+
+    return str.replace(' ', '_');
+}
+
 export function cmdOrCtrlPressed(e) {
     return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
 }
