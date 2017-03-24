@@ -25,6 +25,7 @@ func InitTeam() {
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
+	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(addTeamMember)).Methods("POST")
 
 	BaseRoutes.TeamForUser.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
 
@@ -233,6 +234,57 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.TeamMembersToJson(members)))
+}
+
+func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	var err *model.AppError
+	member := model.TeamMemberFromJson(r.Body)
+	if member.TeamId != c.Params.TeamId {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	hash := r.URL.Query().Get("hash")
+	data := r.URL.Query().Get("data")
+	inviteId := r.URL.Query().Get("invite_id")
+
+	if len(member.UserId) > 0 {
+		if len(member.UserId) != 26 {
+			c.SetInvalidParam("user_id")
+			return
+		}
+
+		if !app.SessionHasPermissionToTeam(c.Session, member.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+			c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
+			return
+		}
+
+		member, err = app.AddTeamMember(member.TeamId, member.UserId, c.GetSiteURL())
+	} else if len(hash) > 0 && len(data) > 0 {
+		member, err = app.AddTeamMemberByHash(c.Session.UserId, hash, data, c.GetSiteURL())
+		if err != nil {
+			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_data.app_error", nil, "", http.StatusNotFound)
+		}
+	} else if len(inviteId) > 0 {
+		member, err = app.AddTeamMemberByInviteId(inviteId, c.Session.UserId, c.GetSiteURL())
+		if err != nil {
+			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_invite_id.app_error", nil, "", http.StatusNotFound)
+		}
+	} else {
+		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(member.ToJson()))
 }
 
 func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {

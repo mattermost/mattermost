@@ -391,6 +391,48 @@ func GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, 
 	}
 }
 
+func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.AppError) {
+	if _, err := AddUserToTeam(teamId, userId, siteURL); err != nil {
+		return nil, err
+	}
+
+	if teamMember, err := GetTeamMember(teamId, userId); err != nil {
+		return nil, err
+	} else {
+		return teamMember, nil
+	}
+}
+
+func AddTeamMemberByHash(userId, hash, data, siteURL string) (*model.TeamMember, *model.AppError) {
+	var team *model.Team
+	var err *model.AppError
+
+	if team, err = AddUserToTeamByHash(userId, hash, data, siteURL); err != nil {
+		return nil, err
+	}
+
+	if teamMember, err := GetTeamMember(team.Id, userId); err != nil {
+		return nil, err
+	} else {
+		return teamMember, nil
+	}
+}
+
+func AddTeamMemberByInviteId(inviteId, userId, siteURL string) (*model.TeamMember, *model.AppError) {
+	var team *model.Team
+	var err *model.AppError
+
+	if team, err = AddUserToTeamByInviteId(inviteId, userId, siteURL); err != nil {
+		return nil, err
+	}
+
+	if teamMember, err := GetTeamMember(team.Id, userId); err != nil {
+		return nil, err
+	} else {
+		return teamMember, nil
+	}
+}
+
 func GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError) {
 	result := <-Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
 	if result.Err != nil {
