@@ -215,6 +215,31 @@ func TestGzipHandlerContentLength(t *testing.T) {
 	assert.NotEqual(t, b, body)
 }
 
+func TestGzipDoubleClose(t *testing.T) {
+	// reset the pool for the default compression so we can make sure duplicates
+	// aren't added back by double close
+	addLevelPool(gzip.DefaultCompression)
+
+	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// call close here and it'll get called again interally by
+		// NewGzipLevelHandler's handler defer
+		w.Write([]byte("test"))
+		w.(io.Closer).Close()
+	}))
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("Accept-Encoding", "gzip")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	// the second close shouldn't have added the same writer
+	// so we pull out 2 writers from the pool and make sure they're different
+	w1 := gzipWriterPools[poolIndex(gzip.DefaultCompression)].Get()
+	w2 := gzipWriterPools[poolIndex(gzip.DefaultCompression)].Get()
+	// assert.NotEqual looks at the value and not the address, so we use regular ==
+	assert.False(t, w1 == w2)
+}
+
 // --------------------------------------------------------------------
 
 func BenchmarkGzipHandler_S2k(b *testing.B)   { benchmark(b, false, 2048) }

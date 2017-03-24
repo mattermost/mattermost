@@ -1,5 +1,5 @@
-hash: cd23f3578895da94079e79ec355cca1eb64867c5b58f02fc5ec00dd88576d575
-updated: 2017-03-13T15:29:09.097298322-04:00
+hash: 16f4195c9f272374d667cd1f05a85d3d3ac9f25148b01e9a982fc606c855c621
+updated: 2017-03-24T13:57:41.659455046-07:00
 imports:
 - name: github.com/alecthomas/log4go
   version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
@@ -15,6 +15,8 @@ imports:
   version: 41a3523719dfbe7e8f853fbd4061867543db5270
   subpackages:
   - opengraph
+- name: github.com/fsnotify/fsnotify
+  version: 629574ca2a5df945712d3079857300b5e4da0236
 - name: github.com/go-gorp/gorp
   version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - name: github.com/go-ldap/ldap
@@ -49,7 +51,7 @@ imports:
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/lib/pq
-  version: e4af84aab01e159ca479940dbde304519e8e8811
+  version: 472a0745531a17dbac346e828b4c60e73ddff30c
   subpackages:
   - oid
 - name: github.com/mattermost/rsc
@@ -63,7 +65,7 @@ imports:
   subpackages:
   - pbutil
 - name: github.com/miekg/dns
-  version: c862b7e359850847d4945cce311db2ea90cab7c0
+  version: b54e1be39a9c14cd0bcea6df97eb15b3ec5e8cde
 - name: github.com/minio/minio-go
   version: 52cc94e879db78c2e2c6e160869df943137ec4cd
   subpackages:
@@ -81,7 +83,7 @@ imports:
   - i18n/language
   - i18n/translation
 - name: github.com/NYTimes/gziphandler
-  version: fb3533722e14198abe471546c9798fd556531451
+  version: 3b0c4852c5b9710340f1ed7b1a529c46a3bc0fc1
 - name: github.com/pborman/uuid
   version: a97ce2ca70fa5a848076093f05e639a89ca34d06
 - name: github.com/prometheus/client_golang
@@ -110,25 +112,27 @@ imports:
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
 - name: github.com/spf13/cobra
-  version: 16c014f1a19d865b765b420e74508f80eb831ada
+  version: 7be4beda01ec05d0b93d80b3facd2b6f44080d94
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
+- name: github.com/spf13/viper
+  version: 84f94806c67f59dd7ae87bc5351f7a9c94a4558d
 - name: github.com/tylerb/graceful
   version: d72b0151351a13d0421b763b88f791469c4f5dc7
 - name: github.com/xenolf/lego
-  version: 6cac0ea7d8b28c889f709ec7fa92e92b82f490dd
+  version: 0e2937900b224325f4476745a9b53aef246b7410
   subpackages:
   - acme
 - name: github.com/xtgo/uuid
   version: a0b114877d4caeffbd7f87e3757c17fce570fea7
 - name: golang.org/x/crypto
-  version: 728b753d0135da6801d45a38e6f43ff55779c5c2
+  version: 459e26527287adbc2adcc5d0d49abff9a5f315a7
   subpackages:
   - bcrypt
   - blowfish
   - ocsp
 - name: golang.org/x/image
-  version: 793f3be7dac93749dec06ae3fbe7d0ded4bdcf3d
+  version: c0851fbc5b9272dd7d08a021e9e3d2a21027b51f
   subpackages:
   - bmp
   - font
@@ -136,14 +140,14 @@ imports:
   - tiff
   - tiff/lzw
 - name: golang.org/x/net
-  version: a6577fac2d73be281a500b310739095313165611
+  version: 78ebe5c8b6a27ec13109c73c22193d618270e1e1
   subpackages:
   - context
   - html
   - html/atom
   - publicsuffix
 - name: golang.org/x/sys
-  version: 99f16d856c9836c42d24e7ab64ea72916925fa97
+  version: 8fd966b47dbdd4faa03de0d06e3d733baeb9a1a9
   subpackages:
   - unix
 - name: golang.org/x/time

@@ -72,6 +72,8 @@ func TestMultipleSimpleQuery(t *testing.T) {
 	}
 }
 
+const contextRaceIterations = 100
+
 func TestContextCancelExec(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()
@@ -93,6 +95,20 @@ func TestContextCancelExec(t *testing.T) {
 		t.Fatal("expected error")
 	} else if err.Error() != "context canceled" {
 		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for i := 0; i < contextRaceIterations; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			if _, err := db.ExecContext(ctx, "select 1"); err != nil {
+				t.Fatal(err)
+			}
+		}()
+
+		if _, err := db.Exec("select 1"); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -117,6 +133,25 @@ func TestContextCancelQuery(t *testing.T) {
 		t.Fatal("expected error")
 	} else if err.Error() != "context canceled" {
 		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for i := 0; i < contextRaceIterations; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			rows, err := db.QueryContext(ctx, "select 1")
+			cancel()
+			if err != nil {
+				t.Fatal(err)
+			} else if err := rows.Close(); err != nil {
+				t.Fatal(err)
+			}
+		}()
+
+		if rows, err := db.Query("select 1"); err != nil {
+			t.Fatal(err)
+		} else if err := rows.Close(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -152,5 +187,24 @@ func TestContextCancelBegin(t *testing.T) {
 		t.Fatal("expected error")
 	} else if err.Error() != "context canceled" {
 		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for i := 0; i < contextRaceIterations; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			tx, err := db.BeginTx(ctx, nil)
+			cancel()
+			if err != nil {
+				t.Fatal(err)
+			} else if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+				t.Fatal(err)
+			}
+		}()
+
+		if tx, err := db.Begin(); err != nil {
+			t.Fatal(err)
+		} else if err := tx.Rollback(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }

@@ -79,3 +79,6 @@ import:
 - package: github.com/jaytaylor/html2text
 - package: gopkg.in/gomail.v2
   version: 2.0.0
+- package: github.com/spf13/viper
+- package: github.com/fsnotify/fsnotify
+  version: v1.4.2
