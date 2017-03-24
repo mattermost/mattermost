@@ -434,6 +434,14 @@ func GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model
 	}
 }
 
+func GetUsersNotInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
 func GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := GetUsersInTeam(teamId, offset, limit)
 	if err != nil {
@@ -463,8 +471,25 @@ func GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*
 	return users, nil
 }
 
+func GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersNotInTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
 func GetUsersInTeamEtag(teamId string) string {
 	return (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
+}
+
+func GetUsersNotInTeamEtag(teamId string) string {
+	return (<-Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string)
 }
 
 func GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {

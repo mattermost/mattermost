@@ -467,6 +467,17 @@ func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag stri
 	}
 }
 
+// GetUsersNotInTeam returns a page of users who are not in a team. Page counting starts at 0.
+func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?not_in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetUsersInChannel returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)

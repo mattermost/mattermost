@@ -205,6 +205,8 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options map[string]bool) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
+	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
+	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 }
 
 type SessionStore interface {
