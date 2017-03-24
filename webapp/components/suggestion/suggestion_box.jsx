@@ -25,6 +25,7 @@ export default class SuggestionBox extends React.Component {
         this.handleCompositionEnd = this.handleCompositionEnd.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
+        this.blur = this.blur.bind(this);
 
         this.suggestionId = Utils.generateId();
         SuggestionStore.registerSuggestionBox(this.suggestionId);
@@ -187,6 +188,10 @@ export default class SuggestionBox extends React.Component {
         for (const provider of this.props.providers) {
             provider.handlePretextChanged(this.suggestionId, pretext);
         }
+    }
+
+    blur() {
+        this.refs.textbox.blur();
     }
 
     render() {
