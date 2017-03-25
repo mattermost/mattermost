@@ -801,10 +801,12 @@ func (rr *NSEC3) pack(msg []byte, off int, compression map[string]int, compress 
 	if err != nil {
 		return off, err
 	}
-	if rr.Salt == "-" { /* do nothing, empty salt */
-	}
-	if err != nil {
-		return off, err
+	// Only pack salt if value is not "-", i.e. empty
+	if rr.Salt != "-" {
+		off, err = packStringHex(rr.Salt, msg, off)
+		if err != nil {
+			return off, err
+		}
 	}
 	off, err = packUint8(rr.HashLength, msg, off)
 	if err != nil {
@@ -844,10 +846,12 @@ func (rr *NSEC3PARAM) pack(msg []byte, off int, compression map[string]int, comp
 	if err != nil {
 		return off, err
 	}
-	if rr.Salt == "-" { /* do nothing, empty salt */
-	}
-	if err != nil {
-		return off, err
+	// Only pack salt if value is not "-", i.e. empty
+	if rr.Salt != "-" {
+		off, err = packStringHex(rr.Salt, msg, off)
+		if err != nil {
+			return off, err
+		}
 	}
 	rr.Header().Rdlength = uint16(off - headerEnd)
 	return off, nil
