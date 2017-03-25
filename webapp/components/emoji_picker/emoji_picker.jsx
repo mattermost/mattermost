@@ -296,6 +296,8 @@ class EmojiPicker extends React.Component {
             cssclass += 'emoji-picker-bottom';
         } else if (this.props.pickerLocation === 'react') {
             cssclass = 'emoji-picker-react';
+        } else if (this.props.pickerLocation === 'react-rhs-comment') {
+            cssclass = 'emoji-picker-react-rhs-comment';
         }
 
         const pickerStyle = this.props.emojiOffset ? {top: this.props.emojiOffset} : {};

@@ -434,7 +434,10 @@ export default class RhsThread extends React.Component {
                         renderView={renderView}
                         onScroll={this.handleScroll}
                     >
-                        <div className='post-right__scroll'>
+                        <div
+                            ref='post-right__scroll'
+                            className='post-right__scroll'
+                        >
                             <DateSeparator
                                 date={previousPostDay}
                             />

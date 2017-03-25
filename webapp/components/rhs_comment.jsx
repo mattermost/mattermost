@@ -52,8 +52,8 @@ export default class RhsComment extends React.Component {
             currentTeamDisplayName: TeamStore.getCurrent().name,
             width: '',
             height: '',
-            showReactEmojiPicker: false
-
+            showReactEmojiPicker: false,
+            reactPickerOffset: 15
         };
     }
 
@@ -339,7 +339,15 @@ export default class RhsComment extends React.Component {
     }
 
     emojiPickerClick() {
-        this.setState({showReactEmojiPicker: !this.state.showReactEmojiPicker});
+        let reactOffset = 15;
+        const reactHeight = 360;
+        const reactionIconY = ReactDOM.findDOMNode(this).getBoundingClientRect().top;
+        const rhsHeight = 700; // ReactDOM.findDOMNode(this).parent.parent.parent.getBoundingClientRect().height;
+        const spaceAvail = rhsHeight - reactionIconY;
+        if (spaceAvail < reactHeight) {
+            reactOffset = (spaceAvail - 360);
+        }
+        this.setState({showReactEmojiPicker: !this.state.showReactEmojiPicker, reactPickerOffset: reactOffset});
     }
 
     reactEmojiClick(emoji) {
@@ -593,7 +601,8 @@ export default class RhsComment extends React.Component {
                 >
                     <EmojiPicker
                         onEmojiClick={this.reactEmojiClick}
-                        pickerLocation='react'
+                        pickerLocation='react-rhs-comment'
+                        emojiOffset={this.state.reactPickerOffset}
                     />
                 </Overlay>
             );

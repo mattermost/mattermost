@@ -63,13 +63,36 @@
     }
 }
 
-.emoji-picker-react {
+.emoji-picker-react-rhs-comment {
     position: absolute;
     width: 278px;
     border: 1px solid;
     min-height: 298px;
     border-radius: 3px;
     top: 21px;
+    right:59px;
+    z-index: 100;
+    .emoji-picker__search-container {
+        position: relative;
+
+        .emoji-picker__search-icon {
+            padding-left: 6px;
+            padding-top: 6px;
+            position: absolute;
+            font-size: 13px;
+        }
+
+
+    }
+}
+
+.emoji-picker-react {
+    position: absolute;
+    width: 278px;
+    border: 1px solid;
+    min-height: 298px;
+    border-radius: 3px;
+    top: 42px;
     right:59px;
     z-index: 100;
     .emoji-picker__search-container {

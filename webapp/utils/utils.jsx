@@ -569,6 +569,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg);
         changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .emoji-picker-react, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .emoji-picker-react-rhs-comment, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
 
         changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
     }
