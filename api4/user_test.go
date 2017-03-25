@@ -1303,7 +1303,7 @@ func TestGetUserAudits(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestVerify(t *testing.T) {
+func TestVerifyUserEmail(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
 	Client := th.Client
@@ -1320,13 +1320,32 @@ func TestVerify(t *testing.T) {
 	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
 	CheckBadRequestStatus(t, resp)
 
-	// Comment per request from Joram, he will investigate why it fail with a wrong status
-	// hashId = ruser.Id+GenerateTestId()
-	// _, resp = Client.VerifyUserEmail("", hashId)
-	// CheckBadRequestStatus(t, resp)
-
 	_, resp = Client.VerifyUserEmail(ruser.Id, "")
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestSendVerificationEmail(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	pass, resp := Client.SendVerificationEmail(th.BasicUser.Email)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = Client.SendVerificationEmail("")
+	CheckBadRequestStatus(t, resp)
+
+	// Even non-existent emails should return 200 OK
+	_, resp = Client.SendVerificationEmail(GenerateTestEmail())
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SendVerificationEmail(th.BasicUser.Email)
+	CheckNoError(t, resp)
 }
 
 func TestSetProfileImage(t *testing.T) {

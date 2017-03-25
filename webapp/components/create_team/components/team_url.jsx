@@ -81,9 +81,9 @@ export default class TeamUrl extends React.Component {
         for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
             if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
                 this.setState({nameError: (
-                    <FormattedMessage
+                    <FormattedHTMLMessage
                         id='create_team.team_url.taken'
-                        defaultMessage='URL is taken or contains a reserved word'
+                        defaultMessage='This URL <a href="https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url" target="_blank">starts with a reserved word</a> or is unavailable. Please try another.'
                     />)
                 });
                 return;
@@ -101,7 +101,7 @@ export default class TeamUrl extends React.Component {
                     this.setState({nameError: (
                         <FormattedMessage
                             id='create_team.team_url.unavailable'
-                            defaultMessage='This URL is unavailable. Please try another.'
+                            defaultMessage='This URL is taken or unavailable. Please try another.'
                         />)
                     });
                     this.setState({isLoading: false});

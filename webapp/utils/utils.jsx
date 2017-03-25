@@ -36,7 +36,7 @@ export function createSafeId(str) {
         return null;
     }
 
-    return str.replace(' ', '_');
+    return str.replace(new RegExp(' ', 'g'), '_');
 }
 
 export function cmdOrCtrlPressed(e) {

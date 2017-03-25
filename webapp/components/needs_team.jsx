@@ -16,6 +16,7 @@ import PostStore from 'stores/post_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx';
+import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
@@ -108,7 +109,7 @@ export default class NeedsTeam extends React.Component {
 
             window.isActive = true;
             if (new Date().getTime() - this.blurTime > UNREAD_CHECK_TIME_MILLISECONDS) {
-                AsyncClient.getMyChannelMembers();
+                AsyncClient.getMyChannelMembers().then(loadProfilesForSidebar);
             }
         });
 

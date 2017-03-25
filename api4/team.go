@@ -26,7 +26,9 @@ func InitTeam() {
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
+	BaseRoutes.TeamMembersForUser.Handle("", ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(addTeamMember)).Methods("POST")
+	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(removeTeamMember)).Methods("DELETE")
 
 	BaseRoutes.TeamForUser.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
 
@@ -239,6 +241,26 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	members, err := app.GetTeamMembersForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamMembersToJson(members)))
+}
+
 func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -315,6 +337,27 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(member.ToJson()))
+}
+
+func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Session.UserId != c.Params.UserId {
+		if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_REMOVE_USER_FROM_TEAM) {
+			c.SetPermissionError(model.PERMISSION_REMOVE_USER_FROM_TEAM)
+			return
+		}
+	}
+
+	if err := app.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {

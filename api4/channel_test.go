@@ -257,6 +257,62 @@ func TestUpdateChannel(t *testing.T) {
 
 }
 
+func TestPatchChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	patch := &model.ChannelPatch{
+		Name:        new(string),
+		DisplayName: new(string),
+		Header:      new(string),
+		Purpose:     new(string),
+	}
+	*patch.Name = model.NewId()
+	*patch.DisplayName = model.NewId()
+	*patch.Header = model.NewId()
+	*patch.Purpose = model.NewId()
+
+	channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+
+	if *patch.Name != channel.Name {
+		t.Fatal("do not match")
+	} else if *patch.DisplayName != channel.DisplayName {
+		t.Fatal("do not match")
+	} else if *patch.Header != channel.Header {
+		t.Fatal("do not match")
+	} else if *patch.Purpose != channel.Purpose {
+		t.Fatal("do not match")
+	}
+
+	patch.Name = nil
+	oldName := channel.Name
+	channel, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+
+	if channel.Name != oldName {
+		t.Fatal("should not have updated")
+	}
+
+	_, resp = Client.PatchChannel("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchChannel(model.NewId(), patch)
+	CheckNotFoundStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	CheckNoError(t, resp)
+}
+
 func TestCreateDirectChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -435,6 +491,109 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+}
+
+func TestGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	found := make([]bool, 3)
+	for _, c := range *channels {
+		if c.Id == th.BasicChannel.Id {
+			found[0] = true
+		} else if c.Id == th.BasicChannel2.Id {
+			found[1] = true
+		} else if c.Id == th.BasicPrivateChannel.Id {
+			found[2] = true
+		}
+
+		if c.TeamId != th.BasicTeam.Id && c.TeamId != "" {
+			t.Fatal("wrong team")
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing a channel")
+		}
+	}
+
+	channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, resp.Etag)
+	CheckEtag(t, channels, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser("junk", th.BasicUser.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetChannelsForTeamForUser(model.NewId(), th.BasicUser.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+}
+
+func TestSearchChannels(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+
+	channels, resp := Client.SearchChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found := false
+	for _, c := range *channels {
+		if c.Type != model.CHANNEL_OPEN {
+			t.Fatal("should only return public channels")
+		}
+
+		if c.Id == th.BasicChannel.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("didn't find channel")
+	}
+
+	search.Term = th.BasicPrivateChannel.Name
+	channels, resp = Client.SearchChannels(th.BasicTeam.Id, search)
+	CheckNoError(t, resp)
+
+	found = false
+	for _, c := range *channels {
+		if c.Id == th.BasicPrivateChannel.Id {
+			found = true
+		}
+	}
+
+	if found {
+		t.Fatal("shouldn't find private channel")
+	}
+
+	search.Term = ""
+	_, resp = Client.SearchChannels(th.BasicTeam.Id, search)
+	CheckBadRequestStatus(t, resp)
+
+	search.Term = th.BasicChannel.Name
+	_, resp = Client.SearchChannels(model.NewId(), search)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.SearchChannels("junk", search)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SearchChannels(th.BasicTeam.Id, search)
 	CheckNoError(t, resp)
 }
 
