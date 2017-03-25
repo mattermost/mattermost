@@ -819,6 +819,16 @@ func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag stri
 	}
 }
 
+// GetTeamMembersForUser returns the team members for a user.
+func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMember, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/members", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamMembersByIds will return an array of team members based on the
 // team id and a list of user ids provided. Must be authenticated.
 func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamMember, *Response) {
@@ -849,6 +859,16 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	} else {
 		defer closeBody(r)
 		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RemoveTeamMember will remove a user from a team.
+func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
