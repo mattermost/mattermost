@@ -158,7 +158,6 @@ ResetPasswordModal.defaultProps = {
 ResetPasswordModal.propTypes = {
     intl: intlShape.isRequired,
     user: React.PropTypes.object,
-    team: React.PropTypes.object,
     show: React.PropTypes.bool.isRequired,
     onModalSubmit: React.PropTypes.func,
     onModalDismissed: React.PropTypes.func

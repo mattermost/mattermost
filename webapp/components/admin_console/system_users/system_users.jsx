@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {
     loadProfiles,
@@ -135,7 +135,7 @@ export default class SystemUsers extends React.Component {
         }
 
         if (teamId === ALL_USERS) {
-            this.setState({users: UserStore.getProfileList()});
+            this.setState({users: UserStore.getProfileList(false, true)});
         } else if (teamId === NO_TEAM) {
             this.setState({users: UserStore.getProfileListWithoutTeam()});
         } else {
@@ -272,65 +272,6 @@ export default class SystemUsers extends React.Component {
         );
     }
 
-    getInfoForUser(user) {
-        const info = [];
-
-        if (user.auth_service) {
-            let service;
-            if (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) {
-                service = user.auth_service.toUpperCase();
-            } else {
-                service = Utils.toTitleCase(user.auth_service);
-            }
-
-            info.push(
-                <FormattedHTMLMessage
-                    key='admin.user_item.authServiceNotEmail'
-                    id='admin.user_item.authServiceNotEmail'
-                    defaultMessage='<strong>Sign-in Method:</strong> {service}'
-                    values={{
-                        service
-                    }}
-                />
-            );
-        } else {
-            info.push(
-                <FormattedHTMLMessage
-                    key='admin.user_item.authServiceEmail'
-                    id='admin.user_item.authServiceEmail'
-                    defaultMessage='<strong>Sign-in Method:</strong> Email'
-                />
-            );
-        }
-
-        const mfaEnabled = global.window.mm_license.IsLicensed === 'true' &&
-            global.window.mm_license.MFA === 'true' &&
-            global.window.mm_config.EnableMultifactorAuthentication === 'true';
-        if (mfaEnabled) {
-            info.push(', ');
-
-            if (user.mfa_active) {
-                info.push(
-                    <FormattedHTMLMessage
-                        key='admin.user_item.mfaYes'
-                        id='admin.user_item.mfaYes'
-                        defaultMessage='<strong>MFA</strong>: Yes'
-                    />
-                );
-            } else {
-                info.push(
-                    <FormattedHTMLMessage
-                        key='admin.user_item.mfaNo'
-                        id='admin.user_item.mfaNo'
-                        defaultMessage='<strong>MFA</strong>: No'
-                    />
-                );
-            }
-        }
-
-        return info;
-    }
-
     renderFilterRow(doSearch) {
         let teams = [];
 
@@ -367,18 +308,8 @@ export default class SystemUsers extends React.Component {
                         className='form-control system-users-filter__dropdown'
                         onChange={this.handleTeamChange}
                     >
-                        <option value={ALL_USERS}>
-                            <FormattedMessage
-                                id='admin.system_users.allUsers'
-                                defaultMessage='All Users'
-                            />
-                        </option>
-                        <option value={NO_TEAM}>
-                            <FormattedMessage
-                                id='admin.system_users.noTeams'
-                                defaultMessage='No Teams'
-                            />
-                        </option>
+                        <option value={ALL_USERS}>{Utils.localizeMessage('admin.system_users.allUsers', 'All Users')}</option>
+                        <option value={NO_TEAM}>{Utils.localizeMessage('admin.system_users.noTeams', 'No Teams')}</option>
                         {teamOptions}
                     </select>
                 </label>
@@ -388,18 +319,10 @@ export default class SystemUsers extends React.Component {
 
     render() {
         let users = null;
-        const actionUserProps = {};
-        const extraInfo = {};
-
         if (!this.state.loading) {
             users = this.state.users;
-
-            for (const user of users) {
-                extraInfo[user.id] = this.getInfoForUser(user);
-            }
         }
 
-        // actions={[AdminTeamMembersDropdown]}
         return (
             <div className='wrapper--fixed'>
                 <h3>
@@ -419,21 +342,11 @@ export default class SystemUsers extends React.Component {
                         users={users}
                         usersPerPage={USERS_PER_PAGE}
                         total={this.state.totalUsers}
-                        extraInfo={extraInfo}
-                        actionProps={{}}
-                        actionUserProps={actionUserProps}
                         teamId={this.state.teamId}
                         term={this.state.term}
                         onTermChange={this.handleTermChange}
                     />
                 </div>
-                {/*<ResetPasswordModal
-                    user={this.state.user}
-                    show={this.state.showPasswordModal}
-                    team={this.state.team}
-                    onModalSubmit={this.doPasswordResetSubmit}
-                    onModalDismissed={this.doPasswordResetDismiss}
-                />*/}
             </div>
         );
     }
