@@ -319,7 +319,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 	props := StringMap{}
 	for k, v := range u.Props {
-		_, ok := options["props_" + k]
+		_, ok := options["props_"+k]
 		if ok {
 			props[k] = v
 		}

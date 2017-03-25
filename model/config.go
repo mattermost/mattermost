@@ -1385,7 +1385,7 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	options["fullname"] = o.PrivacySettings.ShowFullName
 	options["email"] = o.PrivacySettings.ShowEmailAddress
 	for _, s := range o.PrivacySettings.ShowProps {
-		options["props_" + s] = true
+		options["props_"+s] = true
 	}
 
 	return options

@@ -361,20 +361,19 @@ func TestGetUser(t *testing.T) {
 	Client.Logout()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Username: "n" + model.NewId()}
-	user.Props = map[string]string{"foo":"1","bar":"2"}
+	user.Props = map[string]string{"foo": "1", "bar": "2"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: "Corey", LastName: "Hulen", Username: "n" + model.NewId()}
-	user2.Props = map[string]string{"foo":"1","bar":"2"}
+	user2.Props = map[string]string{"foo": "1", "bar": "2"}
 	ruser2, _ := Client.CreateUser(&user2, "")
 	LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
 
-
 	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Username: "n" + model.NewId()}
-	user3.Props = map[string]string{"foo":"1","bar":"2"}
+	user3.Props = map[string]string{"foo": "1", "bar": "2"}
 	ruser3, _ := Client.CreateUser(&user3, "")
 	LinkUserToTeam(ruser3.Data.(*model.User), rteam2.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser3.Data.(*model.User).Id))
@@ -411,12 +410,13 @@ func TestGetUser(t *testing.T) {
 	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
 	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
 	propsPrivacy := utils.Cfg.PrivacySettings.ShowProps
-	
+
 	defer func() {
 		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
 		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
 		utils.Cfg.PrivacySettings.ShowProps = propsPrivacy
 	}()
+
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 	utils.Cfg.PrivacySettings.ShowFullName = false
 	utils.Cfg.PrivacySettings.ShowProps = []string{}
