@@ -313,6 +313,13 @@ func newGopherTilesHandler() http.Handler {
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ms, _ := strconv.Atoi(r.FormValue("latency"))
+		push, _ := strconv.ParseBool(r.FormValue("push"))
+
+		cacheBust := time.Now().UnixNano()
+		if push {
+			pushTiles(w, cacheBust, ms, xt, yt)
+		}
+
 		const nanosPerMilli = 1e6
 		if r.FormValue("x") != "" {
 			x, _ := strconv.Atoi(r.FormValue("x"))
@@ -329,13 +336,13 @@ func newGopherTilesHandler() http.Handler {
 		fmt.Fprintf(w, "A grid of %d tiled images is below. Compare:<p>", xt*yt)
 		for _, ms := range []int{0, 30, 200, 1000} {
 			d := time.Duration(ms) * nanosPerMilli
-			fmt.Fprintf(w, "[<a href='https://%s/gophertiles?latency=%d'>HTTP/2, %v latency</a>] [<a href='http://%s/gophertiles?latency=%d'>HTTP/1, %v latency</a>]<br>\n",
+			fmt.Fprintf(w, "[<a href='https://%s/gophertiles?latency=%d'>HTTP/2, %v latency</a>] [<a href='https://%s/gophertiles?latency=%d&push=true'>HTTP/2, %v latency with Server Push</a>] [<a href='http://%s/gophertiles?latency=%d'>HTTP/1, %v latency</a>]<br>\n",
+				httpsHost(), ms, d,
 				httpsHost(), ms, d,
 				httpHost(), ms, d,
 			)
 		}
 		io.WriteString(w, "<p>\n")
-		cacheBust := time.Now().UnixNano()
 		for y := 0; y < yt; y++ {
 			for x := 0; x < xt; x++ {
 				fmt.Fprintf(w, "<img width=%d height=%d src='/gophertiles?x=%d&y=%d&cachebust=%d&latency=%d'>",
@@ -354,6 +361,21 @@ function showtimes() {
 </script>
 <hr><a href='/'>&lt;&lt Back to Go HTTP/2 demo server</a></body></html>`)
 	})
+}
+
+func pushTiles(w http.ResponseWriter, cacheBust int64, latency int, xt, yt int) {
+	pusher, ok := w.(http.Pusher)
+	if !ok {
+		return
+	}
+	for y := 0; y < yt; y++ {
+		for x := 0; x < xt; x++ {
+			img := fmt.Sprintf("/gophertiles?x=%d&y=%d&cachebust=%d&latency=%d", x, y, cacheBust, latency)
+			if err := pusher.Push(img, nil); err != nil {
+				log.Printf("Failed to push %v: %v", img, err)
+			}
+		}
+	}
 }
 
 func httpsHost() string {

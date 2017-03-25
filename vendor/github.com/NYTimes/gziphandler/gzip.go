@@ -117,6 +117,7 @@ func (w *GzipResponseWriter) Close() error {
 
 	err := w.gw.Close()
 	gzipWriterPools[w.index].Put(w.gw)
+	w.gw = nil
 	return err
 }
 

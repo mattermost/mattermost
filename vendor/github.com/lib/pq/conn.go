@@ -98,7 +98,7 @@ type conn struct {
 	namei     int
 	scratch   [512]byte
 	txnStatus transactionStatus
-	txnClosed chan<- struct{}
+	txnFinish func()
 
 	// Save connection arguments to use during CancelRequest.
 	dialer Dialer
@@ -528,9 +528,8 @@ func (cn *conn) Begin() (_ driver.Tx, err error) {
 }
 
 func (cn *conn) closeTxn() {
-	if cn.txnClosed != nil {
-		close(cn.txnClosed)
-		cn.txnClosed = nil
+	if finish := cn.txnFinish; finish != nil {
+		finish()
 	}
 }
 
@@ -893,16 +892,9 @@ func (cn *conn) send(m *writeBuf) {
 	}
 }
 
-func (cn *conn) sendStartupPacket(m *writeBuf) {
-	// sanity check
-	if m.buf[0] != 0 {
-		panic("oops")
-	}
-
+func (cn *conn) sendStartupPacket(m *writeBuf) error {
 	_, err := cn.c.Write((m.wrap())[1:])
-	if err != nil {
-		panic(err)
-	}
+	return err
 }
 
 // Send a message of type typ to the server on the other end of cn.  The
@@ -1024,7 +1016,9 @@ func (cn *conn) ssl(o values) {
 
 	w := cn.writeBuf(0)
 	w.int32(80877103)
-	cn.sendStartupPacket(w)
+	if err := cn.sendStartupPacket(w); err != nil {
+		panic(err)
+	}
 
 	b := cn.scratch[:1]
 	_, err := io.ReadFull(cn.c, b)
@@ -1085,7 +1079,9 @@ func (cn *conn) startup(o values) {
 		w.string(v)
 	}
 	w.string("")
-	cn.sendStartupPacket(w)
+	if err := cn.sendStartupPacket(w); err != nil {
+		panic(err)
+	}
 
 	for {
 		t, r := cn.recv()
@@ -1319,7 +1315,7 @@ func (cn *conn) parseComplete(commandTag string) (driver.Result, string) {
 
 type rows struct {
 	cn       *conn
-	closed   chan<- struct{}
+	finish   func()
 	colNames []string
 	colTyps  []oid.Oid
 	colFmts  []format
@@ -1330,8 +1326,8 @@ type rows struct {
 }
 
 func (rs *rows) Close() error {
-	if rs.closed != nil {
-		defer close(rs.closed)
+	if finish := rs.finish; finish != nil {
+		defer finish()
 	}
 	// no need to look at cn.bad as Next() will
 	for {
