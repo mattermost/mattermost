@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -16,7 +16,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {getStandardAnalytics, getTeamStats} from 'utils/async_client.jsx';
+import {getStandardAnalytics, getTeamStats, getUser} from 'utils/async_client.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -29,10 +29,8 @@ const USERS_PER_PAGE = 50;
 
 /*
 to do (without triggering eslint)
-- allow searching by id if no results are returned
 - dropdown
 - manage teams
-- containerize
 - move stats page
 - add filter to stats page
 - update sidebar
@@ -53,8 +51,10 @@ export default class SystemUsers extends React.Component {
         this.handleTeamChange = this.handleTeamChange.bind(this);
         this.handleTermChange = this.handleTermChange.bind(this);
         this.nextPage = this.nextPage.bind(this);
+
         this.doSearch = this.doSearch.bind(this);
         this.search = this.search.bind(this);
+        this.getUserById = this.getUserById.bind(this);
 
         this.renderFilterRow = this.renderFilterRow.bind(this);
 
@@ -198,7 +198,8 @@ export default class SystemUsers extends React.Component {
         clearTimeout(this.searchTimeoutId);
 
         this.setState({
-            loading: true
+            loading: true,
+            users: []
         });
 
         const options = {
@@ -219,10 +220,14 @@ export default class SystemUsers extends React.Component {
                             return;
                         }
 
-                        this.setState({
-                            loading: false,
-                            users
-                        });
+                        if (users.length > 0) {
+                            this.setState({
+                                loading: false,
+                                users
+                            });
+                        } else {
+                            this.getUserById(term, searchTimeoutId);
+                        }
                     }
                 );
             },
@@ -230,6 +235,41 @@ export default class SystemUsers extends React.Component {
         );
 
         this.searchTimeoutId = searchTimeoutId;
+    }
+
+    getUserById(id, searchTimeoutId) {
+        if (UserStore.hasProfile(id)) {
+            this.setState({
+                loading: false,
+                users: [UserStore.getProfile(id)]
+            });
+
+            return;
+        }
+
+        getUser(
+            id,
+            (user) => {
+                if (searchTimeoutId !== this.searchTimeoutId) {
+                    return;
+                }
+
+                this.setState({
+                    loading: false,
+                    users: [user]
+                });
+            },
+            () => {
+                if (searchTimeoutId !== this.searchTimeoutId) {
+                    return;
+                }
+
+                this.setState({
+                    loading: false,
+                    users: []
+                });
+            }
+        );
     }
 
     getInfoForUser(user) {

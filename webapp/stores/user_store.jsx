@@ -231,7 +231,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     hasProfile(userId) {
-        return this.getProfile(userId) != null;
+        return this.getProfiles.hasOwnProperty(userId);
     }
 
     getProfileByUsername(username) {
