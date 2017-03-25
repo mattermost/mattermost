@@ -244,14 +244,14 @@
 
     .emoji-picker__preview-image-box {
         display: table-cell;
-        vertical-align: top;
+        vertical-align: middle;
         height: 36px;
         width: 42px;
 
         .sprite-preview {
             height: 36px;
             width: 36px;
-            vertical-align: top;
+            vertical-align: middle;
             padding: 0px;
             border: 0px;
             display: inline-block;
