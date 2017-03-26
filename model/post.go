@@ -54,6 +54,13 @@ type Post struct {
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 }
 
+type PostPatch struct {
+	IsPinned     *bool        `json:"is_pinned"`
+	Message      *string      `json:"message"`
+	FileIds      *StringArray `json:"file_ids"`
+	HasReactions *bool        `json:"has_reactions"`
+}
+
 func (o *Post) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -189,4 +196,42 @@ func (o *Post) AddProp(key string, value interface{}) {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
+}
+
+func (p *Post) Patch(patch *PostPatch) {
+	if patch.IsPinned != nil {
+		p.IsPinned = *patch.IsPinned
+	}
+
+	if patch.Message != nil {
+		p.Message = *patch.Message
+	}
+
+	if patch.FileIds != nil {
+		p.FileIds = *patch.FileIds
+	}
+
+	if patch.HasReactions != nil {
+		p.HasReactions = *patch.HasReactions
+	}
+}
+
+func (o *PostPatch) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
+}
+
+func PostPatchFromJson(data io.Reader) *PostPatch {
+	decoder := json.NewDecoder(data)
+	var post PostPatch
+	err := decoder.Decode(&post)
+	if err != nil {
+		return nil
+	}
+
+	return &post
 }
