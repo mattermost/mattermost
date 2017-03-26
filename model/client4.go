@@ -190,6 +190,10 @@ func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
 
+func (c *Client4) GetStatusRoute(userId string) string {
+	return fmt.Sprintf(c.GetUserRoute(userId) + "/status")
+}
+
 func (c *Client4) GetSamlRoute() string {
 	return fmt.Sprintf("/saml")
 }
@@ -200,6 +204,10 @@ func (c *Client4) GetLdapRoute() string {
 
 func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
+}
+
+func (c *Client4) GetCommandsRoute() string {
+	return fmt.Sprintf("/commands")
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -637,10 +645,23 @@ func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag strin
 	}
 }
 
-// Verify user email user id and hash strings.
+// VerifyUserEmail will verify a user's email using user id and hash strings.
 func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
-	requestBody := map[string]string{"uid": userId, "hid": hashId}
-	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify", MapToJson(requestBody)); err != nil {
+	requestBody := map[string]string{"user_id": userId, "hash_id": hashId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/email/verify", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// SendVerificationEmail will send an email to the user with the provided email address, if
+// that user exists. The email will contain a link that can be used to verify the user's
+// email address.
+func (c *Client4) SendVerificationEmail(email string) (bool, *Response) {
+	requestBody := map[string]string{"email": email}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/email/verify/send", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -777,10 +798,30 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
 	}
 }
 
+// PatchTeam partially updates a team. Any missing fields are not updated.
+func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) {
+	if r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/patch", patch.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetTeamMembersForUser returns the team members for a user.
+func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMember, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/members", etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -796,6 +837,38 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 	} else {
 		defer closeBody(r)
 		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AddTeamMember adds user to a team and return a team member.
+func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId string) (*TeamMember, *Response) {
+	member := &TeamMember{TeamId: teamId, UserId: userId}
+
+	var query string
+
+	if inviteId != "" {
+		query += fmt.Sprintf("?invite_id=%v", inviteId)
+	}
+
+	if hash != "" && dataToHash != "" {
+		query += fmt.Sprintf("?hash=%v&data=%v", hash, dataToHash)
+	}
+
+	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+query, member.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RemoveTeamMember will remove a user from a team.
+func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -844,6 +917,16 @@ func (c *Client4) UpdateChannel(channel *Channel) (*Channel, *Response) {
 	}
 }
 
+// PatchChannel partially updates a channel. Any missing fields are not updated.
+func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelRoute(channelId)+"/patch", patch.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
@@ -876,10 +959,30 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 	}
 }
 
-// GetPublicChannelsForTeam returns a channel based on the provided team id string.
+// GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetPublicChannelsForTeamRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetChannelsForTeamForUser returns a list channels of on a team for a user.
+func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) (*ChannelList, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/channels", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// SearchChannels returns the channels on a team matching the provided search term.
+func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) (*ChannelList, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/channels/search", search.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -1068,6 +1171,39 @@ func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Respons
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
 func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
+func (c *Client4) GetPostsSince(channelId string, time int64) (*PostList, *Response) {
+	query := fmt.Sprintf("?since=%v", time)
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPostsAfter gets a page of posts that were posted after the post provided.
+func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string) (*PostList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPostsBefore gets a page of posts that were posted before the post provided.
+func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string) (*PostList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
 	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
@@ -1714,5 +1850,29 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
 	} else {
 		defer closeBody(r)
 		return ArrayFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Commands Section
+
+// CreateCommand will create a new command if the user have the right permissions.
+func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
+	if r, err := c.DoApiPost(c.GetCommandsRoute(), cmd.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Status Section
+
+// GetUserStatus returns a user based on the provided user id string.
+func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response) {
+	if r, err := c.DoApiGet(c.GetStatusRoute(userId), etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return StatusFromJson(r.Body), BuildResponse(r)
 	}
 }

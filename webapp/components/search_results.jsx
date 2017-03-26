@@ -3,7 +3,6 @@
 
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
-import SearchBox from './search_bar.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
@@ -168,11 +167,6 @@ export default class SearchResults extends React.Component {
 
     render() {
         var results = this.state.results;
-        var currentId = UserStore.getCurrentId();
-        var searchForm = null;
-        if (currentId) {
-            searchForm = <SearchBox isFocus={Utils.isMobile()}/>;
-        }
         var noResults = (!results || !results.order || !results.order.length);
         const searchTerm = this.state.searchTerm;
         const profiles = this.state.profiles || {};
@@ -312,23 +306,20 @@ export default class SearchResults extends React.Component {
         }
 
         return (
-            <div className='sidebar--right__content'>
-                <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
-                <div className='sidebar-right__body'>
-                    <SearchResultsHeader
-                        isMentionSearch={this.props.isMentionSearch}
-                        toggleSize={this.props.toggleSize}
-                        shrink={this.props.shrink}
-                        isFlaggedPosts={this.props.isFlaggedPosts}
-                        isPinnedPosts={this.props.isPinnedPosts}
-                        channelDisplayName={this.props.channelDisplayName}
-                    />
-                    <div
-                        id='search-items-container'
-                        className='search-items-container'
-                    >
-                        {ctls}
-                    </div>
+            <div className='sidebar-right__body'>
+                <SearchResultsHeader
+                    isMentionSearch={this.props.isMentionSearch}
+                    toggleSize={this.props.toggleSize}
+                    shrink={this.props.shrink}
+                    isFlaggedPosts={this.props.isFlaggedPosts}
+                    isPinnedPosts={this.props.isPinnedPosts}
+                    channelDisplayName={this.props.channelDisplayName}
+                />
+                <div
+                    id='search-items-container'
+                    className='search-items-container'
+                >
+                    {ctls}
                 </div>
             </div>
         );

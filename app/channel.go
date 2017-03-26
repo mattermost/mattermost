@@ -260,6 +260,11 @@ func UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	}
 }
 
+func PatchChannel(channel *model.Channel, patch *model.ChannelPatch) (*model.Channel, *model.AppError) {
+	channel.Patch(patch)
+	return UpdateChannel(channel)
+}
+
 func UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError

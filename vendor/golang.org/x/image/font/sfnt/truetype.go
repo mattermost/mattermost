@@ -84,13 +84,16 @@ func parseLoca(src *source, loca table, glyfOffset uint32, indexToLocFormat bool
 // glyph begins with the following [10 byte] header".
 const glyfHeaderLen = 10
 
-// appendGlyfSegments appends to dst the segments encoded in the glyf data.
-func appendGlyfSegments(dst []Segment, data []byte) ([]Segment, error) {
+func loadGlyf(f *Font, b *Buffer, x GlyphIndex, stackBottom, recursionDepth uint32) error {
+	data, _, _, err := f.viewGlyphData(b, x)
+	if err != nil {
+		return err
+	}
 	if len(data) == 0 {
-		return dst, nil
+		return nil
 	}
 	if len(data) < glyfHeaderLen {
-		return nil, errInvalidGlyphData
+		return errInvalidGlyphData
 	}
 	index := glyfHeaderLen
 
@@ -99,34 +102,33 @@ func appendGlyfSegments(dst []Segment, data []byte) ([]Segment, error) {
 	case numContours == -1:
 		// We have a compound glyph. No-op.
 	case numContours == 0:
-		return dst, nil
+		return nil
 	case numContours > 0:
 		// We have a simple (non-compound) glyph.
 		index += 2 * int(numContours)
 		if index > len(data) {
-			return nil, errInvalidGlyphData
+			return errInvalidGlyphData
 		}
 		// The +1 for numPoints is because the value in the file format is
 		// inclusive, but Go's slice[:index] semantics are exclusive.
 		numPoints = 1 + int(u16(data[index-2:]))
 	default:
-		return nil, errInvalidGlyphData
+		return errInvalidGlyphData
 	}
 
-	// TODO: support compound glyphs.
 	if numContours < 0 {
-		return nil, errUnsupportedCompoundGlyph
+		return loadCompoundGlyf(f, b, data[glyfHeaderLen:], stackBottom, recursionDepth)
 	}
 
 	// Skip the hinting instructions.
 	index += 2
 	if index > len(data) {
-		return nil, errInvalidGlyphData
+		return errInvalidGlyphData
 	}
 	hintsLength := int(u16(data[index-2:]))
 	index += hintsLength
 	if index > len(data) {
-		return nil, errInvalidGlyphData
+		return errInvalidGlyphData
 	}
 
 	// For simple (non-compound) glyphs, the remainder of the glyf data
@@ -140,7 +142,7 @@ func appendGlyfSegments(dst []Segment, data []byte) ([]Segment, error) {
 	flagIndex := int32(index)
 	xIndex, yIndex, ok := findXYIndexes(data, index, numPoints)
 	if !ok {
-		return nil, errInvalidGlyphData
+		return errInvalidGlyphData
 	}
 
 	// The second pass decodes each (flags, x, y) tuple in row order.
@@ -157,13 +159,10 @@ func appendGlyfSegments(dst []Segment, data []byte) ([]Segment, error) {
 	}
 	for g.nextContour() {
 		for g.nextSegment() {
-			dst = append(dst, g.seg)
+			b.segments = append(b.segments, g.seg)
 		}
 	}
-	if g.err != nil {
-		return nil, g.err
-	}
-	return dst, nil
+	return g.err
 }
 
 func findXYIndexes(data []byte, index, numPoints int) (xIndex, yIndex int32, ok bool) {
@@ -213,6 +212,115 @@ func findXYIndexes(data []byte, index, numPoints int) (xIndex, yIndex int32, ok 
 		return 0, 0, false
 	}
 	return int32(index), int32(index + xDataLen), true
+}
+
+func loadCompoundGlyf(f *Font, b *Buffer, data []byte, stackBottom, recursionDepth uint32) error {
+	if recursionDepth++; recursionDepth == maxCompoundRecursionDepth {
+		return errUnsupportedCompoundGlyph
+	}
+
+	// Read and process the compound glyph's components. They are two separate
+	// for loops, since reading parses the elements of the data slice, and
+	// processing can overwrite the backing array.
+
+	stackTop := stackBottom
+	for {
+		if stackTop >= maxCompoundStackSize {
+			return errUnsupportedCompoundGlyph
+		}
+		elem := &b.compoundStack[stackTop]
+		stackTop++
+
+		if len(data) < 4 {
+			return errInvalidGlyphData
+		}
+		flags := u16(data)
+		elem.glyphIndex = GlyphIndex(u16(data[2:]))
+		if flags&flagArg1And2AreWords == 0 {
+			if len(data) < 6 {
+				return errInvalidGlyphData
+			}
+			elem.dx = int16(int8(data[4]))
+			elem.dy = int16(int8(data[5]))
+			data = data[6:]
+		} else {
+			if len(data) < 8 {
+				return errInvalidGlyphData
+			}
+			elem.dx = int16(u16(data[4:]))
+			elem.dy = int16(u16(data[6:]))
+			data = data[8:]
+		}
+
+		if flags&flagArgsAreXYValues == 0 {
+			return errUnsupportedCompoundGlyph
+		}
+		elem.hasTransform = flags&(flagWeHaveAScale|flagWeHaveAnXAndYScale|flagWeHaveATwoByTwo) != 0
+		if elem.hasTransform {
+			switch {
+			case flags&flagWeHaveAScale != 0:
+				if len(data) < 2 {
+					return errInvalidGlyphData
+				}
+				elem.transformXX = int16(u16(data))
+				elem.transformXY = 0
+				elem.transformYX = 0
+				elem.transformYY = elem.transformXX
+				data = data[2:]
+			case flags&flagWeHaveAnXAndYScale != 0:
+				if len(data) < 4 {
+					return errInvalidGlyphData
+				}
+				elem.transformXX = int16(u16(data[0:]))
+				elem.transformXY = 0
+				elem.transformYX = 0
+				elem.transformYY = int16(u16(data[2:]))
+				data = data[4:]
+			case flags&flagWeHaveATwoByTwo != 0:
+				if len(data) < 8 {
+					return errInvalidGlyphData
+				}
+				elem.transformXX = int16(u16(data[0:]))
+				elem.transformXY = int16(u16(data[2:]))
+				elem.transformYX = int16(u16(data[4:]))
+				elem.transformYY = int16(u16(data[6:]))
+				data = data[8:]
+			}
+		}
+
+		if flags&flagMoreComponents == 0 {
+			break
+		}
+	}
+
+	// To support hinting, we'd have to save the remaining bytes in data here
+	// and interpret them after the for loop below, since that for loop's
+	// loadGlyf calls can overwrite the backing array.
+
+	for i := stackBottom; i < stackTop; i++ {
+		elem := &b.compoundStack[i]
+		base := len(b.segments)
+		if err := loadGlyf(f, b, elem.glyphIndex, stackTop, recursionDepth); err != nil {
+			return err
+		}
+		dx, dy := fixed.Int26_6(elem.dx), fixed.Int26_6(elem.dy)
+		segs := b.segments[base:]
+		if elem.hasTransform {
+			txx := elem.transformXX
+			txy := elem.transformXY
+			tyx := elem.transformYX
+			tyy := elem.transformYY
+			for j := range segs {
+				transformArgs(&segs[j].Args, txx, txy, tyx, tyy, dx, dy)
+			}
+		} else {
+			for j := range segs {
+				translateArgs(&segs[j].Args, dx, dy)
+			}
+		}
+	}
+
+	return nil
 }
 
 type glyfIter struct {

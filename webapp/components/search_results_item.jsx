@@ -4,6 +4,7 @@
 import $ from 'jquery';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import UserProfile from './user_profile.jsx';
+import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from './profile_picture.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -159,6 +160,16 @@ export default class SearchResultsItem extends React.Component {
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
             compactClass = 'post--compact';
+        }
+
+        let fileAttachment = null;
+        if (post.file_ids && post.file_ids.length > 0) {
+            fileAttachment = (
+                <FileAttachmentListContainer
+                    post={post}
+                    compactDisplay={this.props.compactDisplay}
+                />
+            );
         }
 
         let message;
@@ -341,6 +352,7 @@ export default class SearchResultsItem extends React.Component {
                             </ul>
                             <div className='search-item-snippet post__body'>
                                 {message}
+                                {fileAttachment}
                             </div>
                         </div>
                     </div>

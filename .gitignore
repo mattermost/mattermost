@@ -78,6 +78,7 @@ enterprise
 cover.out
 ecover.out
 *.test
+webapp/coverage
 
 .agignore
 .ctags

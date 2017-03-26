@@ -32,7 +32,8 @@ export default class Textbox extends React.Component {
         onBlur: React.PropTypes.func,
         supportsCommands: React.PropTypes.bool.isRequired,
         handlePostError: React.PropTypes.func,
-        suggestionListStyle: React.PropTypes.string
+        suggestionListStyle: React.PropTypes.string,
+        emojiEnabled: React.PropTypes.bool
     };
 
     static defaultProps = {
@@ -249,7 +250,7 @@ export default class Textbox extends React.Component {
                 <SuggestionBox
                     id={this.props.id}
                     ref='message'
-                    className={`form-control custom-textarea ${this.state.connection}`}
+                    className={`form-control custom-textarea${this.props.emojiEnabled ? '-emoji' : ''} ${this.state.connection}`}
                     type='textarea'
                     spellCheck='true'
                     placeholder={this.props.createMessage}

@@ -174,9 +174,12 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post1 := th.CreatePost()
 	post2 := th.CreatePost()
-	post3 := th.CreatePost()
-	post4 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
-	post4, _ = Client.CreatePost(post4)
+	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post3, _ = Client.CreatePost(post3)
+
+	time := model.GetMillis()
+
+	post4 := th.CreatePost()
 
 	posts, resp := Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
@@ -207,7 +210,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		t.Fatal("wrong number returned")
 	}
 
-	if _, ok := posts.Posts[post4.Id]; !ok {
+	if _, ok := posts.Posts[post3.Id]; !ok {
 		t.Fatal("missing comment")
 	}
 
@@ -229,6 +232,30 @@ func TestGetPostsForChannel(t *testing.T) {
 		t.Fatal("should be no posts")
 	}
 
+	post5 := th.CreatePost()
+
+	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, time)
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.CreateAt < time {
+			t.Fatal("bad create at for post returned")
+		}
+
+		if p.Id == post4.Id {
+			found[0] = true
+		} else if p.Id == post5.Id {
+			found[1] = true
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
+	}
+
 	_, resp = Client.GetPostsForChannel("", 0, 60, "")
 	CheckBadRequestStatus(t, resp)
 
@@ -244,6 +271,90 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
+}
+
+func TestGetPostsAfterAndBefore(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := th.CreatePost()
+	post5 := th.CreatePost()
+
+	posts, resp := Client.GetPostsBefore(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.Id == post1.Id {
+			found[0] = true
+		} else if p.Id == post2.Id {
+			found[1] = true
+		}
+
+		if p.Id == post4.Id || p.Id == post5.Id {
+			t.Fatal("returned posts after")
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
+	}
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 1 {
+		t.Fatal("too many posts returned")
+	}
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 0 {
+		t.Fatal("should have no posts")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	found = make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.Id == post4.Id {
+			found[0] = true
+		} else if p.Id == post5.Id {
+			found[1] = true
+		}
+
+		if p.Id == post1.Id || p.Id == post2.Id {
+			t.Fatal("returned posts before")
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 1 {
+		t.Fatal("too many posts returned")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 0 {
+		t.Fatal("should have no posts")
+	}
 }
 
 func TestGetPost(t *testing.T) {

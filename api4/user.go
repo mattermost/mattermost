@@ -35,7 +35,8 @@ func InitUser() {
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
 	BaseRoutes.Users.Handle("/password/reset", ApiHandler(resetPassword)).Methods("POST")
 	BaseRoutes.Users.Handle("/password/reset/send", ApiHandler(sendPasswordReset)).Methods("POST")
-	BaseRoutes.User.Handle("/email/verify", ApiHandler(verify)).Methods("POST")
+	BaseRoutes.Users.Handle("/email/verify", ApiHandler(verifyUserEmail)).Methods("POST")
+	BaseRoutes.Users.Handle("/email/verify/send", ApiHandler(sendVerificationEmail)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
@@ -797,18 +798,18 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func verify(c *Context, w http.ResponseWriter, r *http.Request) {
+func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	userId := props["uid"]
+	userId := props["user_id"]
 	if len(userId) != 26 {
-		c.SetInvalidParam("uid")
+		c.SetInvalidParam("user_id")
 		return
 	}
 
-	hashedId := props["hid"]
+	hashedId := props["hash_id"]
 	if len(hashedId) == 0 {
-		c.SetInvalidParam("hid")
+		c.SetInvalidParam("hash_id")
 		return
 	}
 
@@ -823,7 +824,32 @@ func verify(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
+	c.Err = model.NewLocAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, "")
 	c.Err.StatusCode = http.StatusBadRequest
 	return
+}
+
+func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	email := props["email"]
+	if len(email) == 0 {
+		c.SetInvalidParam("email")
+		return
+	}
+
+	user, err := app.GetUserForLogin(email, false)
+	if err != nil {
+		// Don't want to leak whether the email is valid or not
+		ReturnStatusOK(w)
+		return
+	}
+
+	if _, err := app.GetStatus(user.Id); err != nil {
+		go app.SendVerifyEmail(user.Id, user.Email, user.Locale, c.GetSiteURL())
+	} else {
+		go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale, c.GetSiteURL())
+	}
+
+	ReturnStatusOK(w)
 }

@@ -5,6 +5,8 @@ import $ from 'jquery';
 
 import SearchResults from './search_results.jsx';
 import RhsThread from './rhs_thread.jsx';
+import SearchBox from './search_bar.jsx';
+import FileUploadOverlay from './file_upload_overlay.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -188,30 +190,43 @@ export default class SidebarRight extends React.Component {
             expandedClass = 'sidebar--right--expanded';
         }
 
+        var currentId = UserStore.getCurrentId();
+        var searchForm = null;
+        if (currentId) {
+            searchForm = <SearchBox isFocus={this.state.searchVisible && Utils.isMobile()}/>;
+        }
+
         if (this.state.searchVisible) {
             content = (
-                <SearchResults
-                    isMentionSearch={this.state.isMentionSearch}
-                    isFlaggedPosts={this.state.isFlaggedPosts}
-                    isPinnedPosts={this.state.isPinnedPosts}
-                    useMilitaryTime={this.state.useMilitaryTime}
-                    toggleSize={this.toggleSize}
-                    shrink={this.onShrink}
-                    channelDisplayName={this.props.channel ? this.props.channel.display_name : ''}
-                />
+                <div className='sidebar--right__content'>
+                    <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                    <SearchResults
+                        isMentionSearch={this.state.isMentionSearch}
+                        isFlaggedPosts={this.state.isFlaggedPosts}
+                        isPinnedPosts={this.state.isPinnedPosts}
+                        useMilitaryTime={this.state.useMilitaryTime}
+                        toggleSize={this.toggleSize}
+                        shrink={this.onShrink}
+                        channelDisplayName={this.props.channel ? this.props.channel.display_name : ''}
+                    />
+                </div>
             );
         } else if (this.state.postRightVisible) {
             content = (
-                <RhsThread
-                    fromFlaggedPosts={this.state.fromFlaggedPosts}
-                    fromSearch={this.state.fromSearch}
-                    isWebrtc={WebrtcStore.isBusy()}
-                    isMentionSearch={this.state.isMentionSearch}
-                    currentUser={this.state.currentUser}
-                    useMilitaryTime={this.state.useMilitaryTime}
-                    toggleSize={this.toggleSize}
-                    shrink={this.onShrink}
-                />
+                <div className='post-right__container'>
+                    <FileUploadOverlay overlayType='right'/>
+                    <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                    <RhsThread
+                        fromFlaggedPosts={this.state.fromFlaggedPosts}
+                        fromSearch={this.state.fromSearch}
+                        isWebrtc={WebrtcStore.isBusy()}
+                        isMentionSearch={this.state.isMentionSearch}
+                        currentUser={this.state.currentUser}
+                        useMilitaryTime={this.state.useMilitaryTime}
+                        toggleSize={this.toggleSize}
+                        shrink={this.onShrink}
+                    />
+                </div>
             );
         }
 

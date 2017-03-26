@@ -15,7 +15,8 @@ import PostMessageView from './post_message_view.jsx';
 export default class PostMessageContainer extends React.Component {
     static propTypes = {
         post: React.PropTypes.object.isRequired,
-        options: React.PropTypes.object
+        options: React.PropTypes.object,
+        isLastPost: React.PropTypes.bool
     };
 
     static defaultProps = {
@@ -90,6 +91,7 @@ export default class PostMessageContainer extends React.Component {
             <PostMessageView
                 options={this.props.options}
                 post={this.props.post}
+                isLastPost={this.props.isLastPost}
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}

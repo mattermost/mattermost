@@ -103,7 +103,7 @@ func ExchangeConn(c net.Conn, m *Msg) (r *Msg, err error) {
 // case of truncation.
 // It is up to the caller to create a message that allows for larger responses to be
 // returned. Specifically this means adding an EDNS0 OPT RR that will advertise a larger
-// buffer, see SetEdns0. Messsages without an OPT RR will fallback to the historic limit
+// buffer, see SetEdns0. Messages without an OPT RR will fallback to the historic limit
 // of 512 bytes.
 func (c *Client) Exchange(m *Msg, a string) (r *Msg, rtt time.Duration, err error) {
 	if !c.SingleInflight {

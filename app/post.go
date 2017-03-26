@@ -395,6 +395,22 @@ func GetPermalinkPost(postId string, userId string, siteURL string) (*model.Post
 	}
 }
 
+func GetPostsBeforePost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
+func GetPostsAfterPost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
 func GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
 	var pchan store.StoreChannel
 	if before {

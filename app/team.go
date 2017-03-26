@@ -100,11 +100,35 @@ func UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 
 	oldTeam.Sanitize()
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
-	message.Add("team", oldTeam.ToJson())
-	go Publish(message)
+	sendUpdatedTeamEvent(oldTeam)
 
 	return oldTeam, nil
+}
+
+func PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+	team, err := GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	team.Patch(patch)
+
+	updatedTeam, err := UpdateTeam(team)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedTeam.Sanitize()
+
+	sendUpdatedTeamEvent(updatedTeam)
+
+	return updatedTeam, nil
+}
+
+func sendUpdatedTeamEvent(team *model.Team) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
+	message.Add("team", team.ToJson())
+	go Publish(message)
 }
 
 func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -388,6 +412,48 @@ func GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, 
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.TeamMember), nil
+	}
+}
+
+func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.AppError) {
+	if _, err := AddUserToTeam(teamId, userId, siteURL); err != nil {
+		return nil, err
+	}
+
+	if teamMember, err := GetTeamMember(teamId, userId); err != nil {
+		return nil, err
+	} else {
+		return teamMember, nil
+	}
+}
+
+func AddTeamMemberByHash(userId, hash, data, siteURL string) (*model.TeamMember, *model.AppError) {
+	var team *model.Team
+	var err *model.AppError
+
+	if team, err = AddUserToTeamByHash(userId, hash, data, siteURL); err != nil {
+		return nil, err
+	}
+
+	if teamMember, err := GetTeamMember(team.Id, userId); err != nil {
+		return nil, err
+	} else {
+		return teamMember, nil
+	}
+}
+
+func AddTeamMemberByInviteId(inviteId, userId, siteURL string) (*model.TeamMember, *model.AppError) {
+	var team *model.Team
+	var err *model.AppError
+
+	if team, err = AddUserToTeamByInviteId(inviteId, userId, siteURL); err != nil {
+		return nil, err
+	}
+
+	if teamMember, err := GetTeamMember(team.Id, userId); err != nil {
+		return nil, err
+	} else {
+		return teamMember, nil
 	}
 }
 

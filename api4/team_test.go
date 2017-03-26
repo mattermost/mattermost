@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
@@ -246,6 +247,75 @@ func TestUpdateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPatchTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	patch := &model.TeamPatch{}
+
+	patch.DisplayName = new(string)
+	*patch.DisplayName = "Other name"
+	patch.Description = new(string)
+	*patch.Description = "Other description"
+	patch.CompanyName = new(string)
+	*patch.CompanyName = "Other company name"
+	patch.InviteId = new(string)
+	*patch.InviteId = "inviteid1"
+	patch.AllowOpenInvite = new(bool)
+	*patch.AllowOpenInvite = true
+
+	rteam, resp := Client.PatchTeam(team.Id, patch)
+	CheckNoError(t, resp)
+	CheckTeamSanitization(t, rteam)
+
+	if rteam.DisplayName != "Other name" {
+		t.Fatal("DisplayName did not update properly")
+	}
+	if rteam.Description != "Other description" {
+		t.Fatal("Description did not update properly")
+	}
+	if rteam.CompanyName != "Other company name" {
+		t.Fatal("CompanyName did not update properly")
+	}
+	if rteam.InviteId != "inviteid1" {
+		t.Fatal("InviteId did not update properly")
+	}
+	if rteam.AllowOpenInvite != true {
+		t.Fatal("AllowOpenInvite did not update properly")
+	}
+
+	_, resp = Client.PatchTeam("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchTeam(GenerateTestId(), patch)
+	CheckForbiddenStatus(t, resp)
+
+	if r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	Client.Logout()
+	_, resp = Client.PatchTeam(team.Id, patch)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.PatchTeam(team.Id, patch)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchTeam(team.Id, patch)
+	CheckNoError(t, resp)
+}
+
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -464,6 +534,44 @@ func TestGetTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetTeamMembersForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	members, resp := Client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+
+	found := false
+	for _, m := range members {
+		if m.TeamId == th.BasicTeam.Id {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("missing team member")
+	}
+
+	_, resp = Client.GetTeamMembersForUser("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetTeamMembersForUser(model.NewId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetTeamMembersForUser(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+}
+
 func TestGetTeamMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
@@ -500,6 +608,171 @@ func TestGetTeamMembersByIds(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestAddTeamMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	otherUser := th.CreateUser()
+
+	// by user_id
+	th.LoginTeamAdmin()
+
+	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	CheckNoError(t, resp)
+
+	if tm == nil {
+		t.Fatal("should have returned team member")
+	}
+
+	if tm.UserId != otherUser.Id {
+		t.Fatal("user ids should have matched")
+	}
+
+	if tm.TeamId != team.Id {
+		t.Fatal("team ids should have matched")
+	}
+
+	tm, resp = Client.AddTeamMember(team.Id, "junk", "", "", "")
+	CheckBadRequestStatus(t, resp)
+
+	if tm != nil {
+		t.Fatal("should have not returned team member")
+	}
+
+	_, resp = Client.AddTeamMember("junk", otherUser.Id, "", "", "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.AddTeamMember(GenerateTestId(), otherUser.Id, "", "", "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.AddTeamMember(team.Id, GenerateTestId(), "", "", "")
+	CheckNotFoundStatus(t, resp)
+
+	th.LoginBasic()
+
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	CheckNoError(t, resp)
+
+	// by hash and data
+	Client.Login(otherUser.Email, otherUser.Password)
+
+	dataObject := make(map[string]string)
+	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis())
+	dataObject["id"] = team.Id
+
+	data := model.MapToJson(dataObject)
+	hashed := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
+	CheckNoError(t, resp)
+
+	if tm == nil {
+		t.Fatal("should have returned team member")
+	}
+
+	if tm.UserId != otherUser.Id {
+		t.Fatal("user ids should have matched")
+	}
+
+	if tm.TeamId != team.Id {
+		t.Fatal("team ids should have matched")
+	}
+
+	tm, resp = Client.AddTeamMember(team.Id, "", "junk", data, "")
+	CheckNotFoundStatus(t, resp)
+
+	if tm != nil {
+		t.Fatal("should have not returned team member")
+	}
+
+	_, resp = Client.AddTeamMember(team.Id, "", hashed, "junk", "")
+	CheckNotFoundStatus(t, resp)
+
+	// expired data of more than 50 hours
+	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
+	data = model.MapToJson(dataObject)
+	hashed = model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
+	CheckNotFoundStatus(t, resp)
+
+	// invalid team id
+	dataObject["id"] = GenerateTestId()
+	data = model.MapToJson(dataObject)
+	hashed = model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
+	CheckNotFoundStatus(t, resp)
+
+	// by invite_id
+	Client.Login(otherUser.Email, otherUser.Password)
+
+	tm, resp = Client.AddTeamMember(team.Id, "", "", "", team.InviteId)
+	CheckNoError(t, resp)
+
+	if tm == nil {
+		t.Fatal("should have returned team member")
+	}
+
+	if tm.UserId != otherUser.Id {
+		t.Fatal("user ids should have matched")
+	}
+
+	if tm.TeamId != team.Id {
+		t.Fatal("team ids should have matched")
+	}
+
+	tm, resp = Client.AddTeamMember(team.Id, "", "", "", "junk")
+	CheckNotFoundStatus(t, resp)
+
+	if tm != nil {
+		t.Fatal("should have not returned team member")
+	}
+
+	_, resp = Client.AddTeamMember(team.Id, "", "", "", "junk")
+	CheckNotFoundStatus(t, resp)
+}
+
+func TestRemoveTeamMember(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "", "", "")
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveTeamMember("junk", th.BasicUser2.Id)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
 }
 
 func TestGetTeamStats(t *testing.T) {

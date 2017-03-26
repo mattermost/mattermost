@@ -20,9 +20,12 @@ func InitChannel() {
 	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
 
 	BaseRoutes.Team.Handle("/channels", ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
+	BaseRoutes.Team.Handle("/channels/search", ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
+	BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
 
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(updateChannel)).Methods("PUT")
+	BaseRoutes.Channel.Handle("/patch", ApiSessionRequired(patchChannel)).Methods("PUT")
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(deleteChannel)).Methods("DELETE")
 	BaseRoutes.Channel.Handle("/stats", ApiSessionRequired(getChannelStats)).Methods("GET")
 
@@ -138,6 +141,37 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		c.LogAudit("name=" + channel.Name)
 		w.Write([]byte(oldChannel.ToJson()))
+	}
+}
+
+func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	patch := model.ChannelPatchFromJson(r.Body)
+	if patch == nil {
+		c.SetInvalidParam("channel")
+		return
+	}
+
+	oldChannel, err := app.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !CanManageChannel(c, oldChannel) {
+		return
+	}
+
+	if rchannel, err := app.PatchChannel(oldChannel, patch); err != nil {
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("")
+		w.Write([]byte(rchannel.ToJson()))
 	}
 }
 
@@ -285,6 +319,63 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 	} else {
 		w.Write([]byte(channels.ToJson()))
 		return
+	}
+}
+
+func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	if channels, err := app.GetChannelsForUser(c.Params.TeamId, c.Params.UserId); err != nil {
+		c.Err = err
+		return
+	} else if HandleEtag(channels.Etag(), "Get Channels", w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
+		w.Write([]byte(channels.ToJson()))
+	}
+}
+
+func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
+		return
+	}
+
+	if channels, err := app.SearchChannels(c.Params.TeamId, props.Term); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(channels.ToJson()))
 	}
 }
 

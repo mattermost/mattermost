@@ -19,14 +19,23 @@
             width: 300px;
         }
     }
-
+    .post-right__scroll{
+        .post-create__container{
+            .post-create-body {
+                .icon__emoji_picker {
+                    display:none;
+                    top: -7px;
+                }
+            }
+        }
+    }
     .post-create__container {
         form {
             padding: .5em 0 0;
         }
 
         .post-create-footer {
-            padding: 0 45px;
+            padding: 0 45px 0 8px;
 
             .post-error {
                 position: relative;
@@ -46,6 +55,7 @@
                 display: table-cell;
                 padding-left: 45px;
 
+
                 .sidebar--right & {
                     padding-left: 0;
                 }
@@ -54,15 +64,30 @@
             .app__content & {
                 .btn-file {
                     bottom: -2px;
-                    left: 0;
+                    left: 10px;
                     line-height: 36px;
                     padding: 0;
                     top: auto;
-                    width: 45px;
+                    width: 25px;
                 }
             }
 
-            .send-button {
+            .app__content & {
+                .icon {
+                    position: relative;
+                    top: 3px;
+
+                }
+            }
+
+            .icon__emoji_picker {
+                position: relative;
+                display: none;
+                top: 1px;
+                right: -1px;
+            }
+
+                    .send-button {
                 display: table-cell;
             }
         }

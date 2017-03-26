@@ -62,10 +62,6 @@
     .post-create__container {
         width: 100%;
 
-        .textarea-wrapper {
-            min-height: 100px;
-        }
-
         .btn {
             margin-bottom: 10px;
             
@@ -154,6 +150,7 @@
     overflow: auto;
     position: relative;
     padding-top: 10px;
+    min-height: 429px;
     
     .file-preview__container {
         margin-top: 5px;

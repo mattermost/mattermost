@@ -25,13 +25,14 @@ type Routes struct {
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9_-\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email}'
 
-	Teams        *mux.Router // 'api/v4/teams'
-	TeamsForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
-	Team         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}'
-	TeamForUser  *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}'
-	TeamByName   *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
-	TeamMembers  *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
-	TeamMember   *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
+	Teams              *mux.Router // 'api/v4/teams'
+	TeamsForUser       *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
+	Team               *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}'
+	TeamForUser        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}'
+	TeamByName         *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
+	TeamMembers        *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
+	TeamMember         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
+	TeamMembersForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/members'
 
 	Channels                 *mux.Router // 'api/v4/channels'
 	Channel                  *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}'
@@ -111,6 +112,7 @@ func InitApi(full bool) {
 	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
 	BaseRoutes.TeamMember = BaseRoutes.TeamMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.TeamMembersForUser = BaseRoutes.User.PathPrefix("/teams/members").Subrouter()
 
 	BaseRoutes.Channels = BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
 	BaseRoutes.Channel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
@@ -170,6 +172,8 @@ func InitApi(full bool) {
 	InitCluster()
 	InitLdap()
 	InitBrand()
+	InitCommand()
+	InitStatus()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

@@ -22,7 +22,7 @@ type Status struct {
 	Status         string `json:"status"`
 	Manual         bool   `json:"manual"`
 	LastActivityAt int64  `json:"last_activity_at"`
-	ActiveChannel  string `json:"active_channel" db:"-"`
+	ActiveChannel  string `json:"-" db:"-"`
 }
 
 func (o *Status) ToJson() string {

@@ -417,6 +417,13 @@ export function removePostFromStore(post) {
     PostStore.emitChange();
 }
 
+export function emitEmojiPosted(emoji) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.EMOJI_POSTED,
+        alias: emoji
+    });
+}
+
 export function deletePost(channelId, post, success, error) {
     Client.deletePost(
         channelId,
