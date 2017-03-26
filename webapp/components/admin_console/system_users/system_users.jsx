@@ -31,9 +31,6 @@ const USERS_PER_PAGE = 50;
 /*
 to do (without triggering eslint)
 - dropdown
-- manage teams
-- move stats page
-- add filter to stats page
 - update sidebar
 - remove anything only used by old pages
 */

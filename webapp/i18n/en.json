@@ -962,6 +962,7 @@
   "analytics.system.totalWebsockets": "WebSocket Conns",
   "analytics.team.activeUsers": "Active Users With Posts",
   "analytics.team.newlyCreated": "Newly Created Users",
+  "analytics.team.noTeams": "There are no teams on this server for which to view statistics.",
   "analytics.team.privateGroups": "Private Groups",
   "analytics.team.publicChannels": "Public Channels",
   "analytics.team.recentActive": "Recent Active Users",
