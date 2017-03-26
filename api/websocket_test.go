@@ -319,6 +319,10 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress
 
+	defer func() {
+		*utils.Cfg.ServiceSettings.AllowCorsFrom = ""
+	}()
+
 	// Should fail because origin doesn't match
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
@@ -362,7 +366,6 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 		t.Fatal("Should have errored because Origin contain AllowCorsFrom")
 	}
 
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = ""
 }
 
 func TestZZWebSocketTearDown(t *testing.T) {
