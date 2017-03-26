@@ -58,19 +58,28 @@ func TestCreateTeam(t *testing.T) {
 func TestAddUserToTeam(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
 	th.BasicClient.Logout()
+
+	// Test adding a user to a team you are not a member of.
+	th.SystemAdminClient.SetTeamId(th.BasicTeam.Id)
+	th.SystemAdminClient.Must(th.SystemAdminClient.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id))
+
 	th.LoginBasic2()
 
 	user2 := th.CreateUser(th.BasicClient)
 
 	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user2.Id); err == nil {
-		t.Fatal("Should have failed because of permissions")
+		t.Fatal("Should have failed because of not being a team member")
 	}
 
-	th.SystemAdminClient.SetTeamId(th.BasicTeam.Id)
-	if _, err := th.SystemAdminClient.UpdateTeamRoles(th.BasicUser2.Id, "team_user team_admin"); err != nil {
+	// Test adding a user to a team you are a member of.
+	th.BasicClient.Logout()
+	th.LoginBasic()
+
+	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user2.Id); err != nil {
 		t.Fatal(err)
 	}
 
+	// Check it worked properly.
 	if result, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user2.Id); err != nil {
 		t.Fatal(err)
 	} else {
@@ -81,6 +90,69 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	if _, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, user2.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	// Restore config/license at end of test case.
+	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+
+	// Set the config so that only team admins can add a user to a team.
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Test without the EE license to see that the permission restriction is ignored.
+	user3 := th.CreateUser(th.BasicClient)
+	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user3.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	// Add an EE license.
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Check that a regular user can't add someone to the team.
+	user4 := th.CreateUser(th.BasicClient)
+	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user4.Id); err == nil {
+		t.Fatal("should have failed due to permissions error")
+	}
+
+	// Should work as team admin.
+	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	app.InvalidateAllCaches()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	user5 := th.CreateUser(th.BasicClient)
+	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user5.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	// Change permission level to System Admin
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Should not work as team admin.
+	user6 := th.CreateUser(th.BasicClient)
+	if _, err := th.BasicClient.AddUserToTeam(th.BasicTeam.Id, user6.Id); err == nil {
+		t.Fatal("should have failed due to permissions error")
+	}
+
+	// Should work as system admin.
+	user7 := th.CreateUser(th.BasicClient)
+	if _, err := th.SystemAdminClient.AddUserToTeam(th.BasicTeam.Id, user7.Id); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -314,10 +386,12 @@ func TestInviteMembers(t *testing.T) {
 	defer func() {
 		utils.IsLicensed = isLicensed
 		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.IsLicensed = true
 	utils.License = &model.License{Features: &model.Features{}}
 	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.InviteMembers(invites); err == nil {
 		t.Fatal("should have errored not team admin and licensed")
