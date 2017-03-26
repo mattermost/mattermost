@@ -91,10 +91,10 @@ start-docker:
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    	echo starting mattermost-webrtc; \
+		echo starting mattermost-webrtc; \
         docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest > /dev/null; \
     elif [ $(shell docker ps | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    	echo restarting mattermost-webrtc; \
+		echo restarting mattermost-webrtc; \
         docker start mattermost-webrtc > /dev/null; \
     fi
 
@@ -198,13 +198,14 @@ check-client-style:
 
 check-server-style: govet
 	@echo Running GOFMT
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
-	@echo "$(GOFMT_OUTPUT)"
-	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt success"; \
-	else \
+	@gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1 > gofmt_output.log
+	@if test -s gofmt_output.log; then \
+	    cat gofmt_output.log; \
 		echo "gofmt failure"; \
 		exit 1; \
+	else \
+		echo "gofmt success"; \
+		rm gofmt_output.log; \
 	fi
 
 check-style: check-client-style check-server-style
