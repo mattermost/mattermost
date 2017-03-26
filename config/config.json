@@ -144,7 +144,8 @@
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
-        "ShowFullName": true
+        "ShowFullName": true,
+        "ShowProps": []
     },
     "SupportSettings": {
         "TermsOfServiceLink": "https://about.mattermost.com/default-terms/",

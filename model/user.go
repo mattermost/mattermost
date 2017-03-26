@@ -316,6 +316,16 @@ func (u *User) Sanitize(options map[string]bool) {
 	if len(options) != 0 && !options["authservice"] {
 		u.AuthService = ""
 	}
+
+	props := StringMap{}
+	for k, v := range u.Props {
+		_, ok := options["props_"+k]
+		if ok {
+			props[k] = v
+		}
+	}
+
+	u.Props = props
 }
 
 func (u *User) ClearNonProfileFields() {
@@ -325,7 +335,6 @@ func (u *User) ClearNonProfileFields() {
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
-	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0

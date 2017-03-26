@@ -266,6 +266,7 @@ type RateLimitSettings struct {
 type PrivacySettings struct {
 	ShowEmailAddress bool
 	ShowFullName     bool
+	ShowProps        []string
 }
 
 type SupportSettings struct {
@@ -1383,6 +1384,9 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 	options := map[string]bool{}
 	options["fullname"] = o.PrivacySettings.ShowFullName
 	options["email"] = o.PrivacySettings.ShowEmailAddress
+	for _, s := range o.PrivacySettings.ShowProps {
+		options["props_"+s] = true
+	}
 
 	return options
 }

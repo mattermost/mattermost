@@ -361,16 +361,19 @@ func TestGetUser(t *testing.T) {
 	Client.Logout()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Username: "n" + model.NewId()}
+	user.Props = map[string]string{"foo": "1", "bar": "2"}
 	ruser, _ := Client.CreateUser(&user, "")
 	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: "Corey", LastName: "Hulen", Username: "n" + model.NewId()}
+	user2.Props = map[string]string{"foo": "1", "bar": "2"}
 	ruser2, _ := Client.CreateUser(&user2, "")
 	LinkUserToTeam(ruser2.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser2.Data.(*model.User).Id))
 
 	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Username: "n" + model.NewId()}
+	user3.Props = map[string]string{"foo": "1", "bar": "2"}
 	ruser3, _ := Client.CreateUser(&user3, "")
 	LinkUserToTeam(ruser3.Data.(*model.User), rteam2.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser3.Data.(*model.User).Id))
@@ -406,17 +409,23 @@ func TestGetUser(t *testing.T) {
 
 	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
 	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	propsPrivacy := utils.Cfg.PrivacySettings.ShowProps
+
 	defer func() {
 		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
 		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+		utils.Cfg.PrivacySettings.ShowProps = propsPrivacy
 	}()
+
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 	utils.Cfg.PrivacySettings.ShowFullName = false
+	utils.Cfg.PrivacySettings.ShowProps = []string{}
 
 	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		u := result.Data.(*model.User)
+		fmt.Println(u.Props)
 		if u.Password != "" {
 			t.Fatal("password must be empty")
 		}
@@ -432,15 +441,25 @@ func TestGetUser(t *testing.T) {
 		if u.LastName != "" {
 			t.Fatal("full name should be sanitized")
 		}
+		_, ok := u.Props["foo"]
+		if ok {
+			t.Fatal("'foo' prop should be sanitized")
+		}
+		_, ok = u.Props["bar"]
+		if ok {
+			t.Fatal("'bar' prop should be sanitized")
+		}
 	}
 
 	utils.Cfg.PrivacySettings.ShowEmailAddress = true
 	utils.Cfg.PrivacySettings.ShowFullName = true
+	utils.Cfg.PrivacySettings.ShowProps = []string{"foo"}
 
 	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
 	} else {
 		u := result.Data.(*model.User)
+		fmt.Println(u.Props)
 		if u.Email == "" {
 			t.Fatal("email should not be sanitized")
 		}
@@ -449,6 +468,14 @@ func TestGetUser(t *testing.T) {
 		}
 		if u.LastName == "" {
 			t.Fatal("full name should not be sanitized")
+		}
+		_, ok := u.Props["foo"]
+		if !ok {
+			t.Fatal("'foo' prop should not be sanitized")
+		}
+		_, ok = u.Props["bar"]
+		if ok {
+			t.Fatal("'bar' prop should be sanitized")
 		}
 	}
 
