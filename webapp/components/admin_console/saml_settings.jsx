@@ -130,12 +130,10 @@ export default class SamlSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.authentication.saml'
-                    defaultMessage='SAML'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.authentication.saml'
+                defaultMessage='SAML'
+            />
         );
     }
 

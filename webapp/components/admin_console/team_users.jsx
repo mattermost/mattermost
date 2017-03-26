@@ -259,7 +259,7 @@ export default class UserList extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='admin.userList.title2'
                         defaultMessage='Users for {team} ({count})'

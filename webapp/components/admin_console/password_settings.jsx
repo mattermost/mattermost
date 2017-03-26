@@ -138,12 +138,10 @@ export default class PasswordSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.security.password'
-                    defaultMessage='Password'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.security.password'
+                defaultMessage='Password'
+            />
         );
     }
 

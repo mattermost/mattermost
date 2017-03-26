@@ -318,7 +318,7 @@ export default class SystemUsers extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='admin.system_users.title'
                         defaultMessage='{siteName} Users'

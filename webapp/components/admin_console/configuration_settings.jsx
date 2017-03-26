@@ -64,12 +64,10 @@ export default class ConfigurationSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.configuration'
-                    defaultMessage='Configuration'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.configuration'
+                defaultMessage='Configuration'
+            />
         );
     }
 

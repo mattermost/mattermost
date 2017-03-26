@@ -28,7 +28,6 @@
     }
 
     h3 {
-        border-bottom: 1px solid alpha-color($black, .1);
         font-weight: 600;
         margin: 1em 0;
         padding-bottom: .5em;
@@ -275,6 +274,10 @@
     .member-count {
         @include opacity(.7);
         margin-top: 8px;
+    }
+
+    .admin-console-header {
+        border-bottom: 1px solid alpha-color($black, .1);
     }
 }
 

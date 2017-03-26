@@ -38,12 +38,10 @@ export default class MetricsSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.advance.metrics'
-                    defaultMessage='Performance Monitoring'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.advance.metrics'
+                defaultMessage='Performance Monitoring'
+            />
         );
     }
 

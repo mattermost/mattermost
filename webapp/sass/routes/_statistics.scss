@@ -83,4 +83,32 @@
             }
         }
     }
+
+    .team-statistics__header-row {
+        margin: 1.5em 0;
+    }
+
+    .team-statistics__header {
+        display: inline-block;
+        margin-bottom: 0;
+        margin-right: 30px;
+        margin-top: 0;
+        padding-bottom: .5em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: calc(100% - 230px);
+
+        h3 {
+            margin: 0;
+        }
+    }
+
+    .team-statistics__team-filter {
+        display: inline-block;
+        width: 200px;
+
+        &__dropdown {
+            text-overflow: ellipsis;
+        }
+    }
 }

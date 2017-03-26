@@ -39,12 +39,10 @@ export default class SessionSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.security.session'
-                    defaultMessage='Sessions'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.security.session'
+                defaultMessage='Sessions'
+            />
         );
     }
 
