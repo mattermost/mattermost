@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 import React from 'react';
 
-import {sortTeamsByDisplayName} from 'utils/utils.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 
 export default class SelectTeamModal extends React.Component {
     constructor(props) {

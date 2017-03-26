@@ -1117,17 +1117,6 @@ export function windowHeight() {
     return $(window).height();
 }
 
-// Use when sorting multiple teams by their `display_name` field
-export function sortTeamsByDisplayName(a, b) {
-    const locale = LocalizationStore.getLocale();
-
-    if (a.display_name !== b.display_name) {
-        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
-    }
-
-    return a.name.localeCompare(b.name, locale, {numeric: true});
-}
-
 export function getChannelTerm(channelType) {
     let channelTerm = 'Channel';
     if (channelType === Constants.PRIVATE_CHANNEL) {

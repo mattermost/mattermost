@@ -18,6 +18,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -637,7 +638,7 @@ export default class Sidebar extends React.Component {
 
         // create elements for all 4 types of channels
         const favoriteItems = this.state.favoriteChannels.
-            sort(Utils.sortTeamsByDisplayName).
+            sort(sortTeamsByDisplayName).
             map((channel, index, arr) => {
                 if (channel.type === Constants.DM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);

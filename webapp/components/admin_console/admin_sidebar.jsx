@@ -6,6 +6,7 @@ import React from 'react';
 
 import AdminStore from 'stores/admin_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSidebarHeader from './admin_sidebar_header.jsx';
@@ -154,7 +155,7 @@ export default class AdminSidebar extends React.Component {
             }
         });
 
-        teamsArray = teamsArray.sort(Utils.sortTeamsByDisplayName);
+        teamsArray = teamsArray.sort(sortTeamsByDisplayName);
 
         for (let i = 0; i < teamsArray.length; i++) {
             const team = teamsArray[i];

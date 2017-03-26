@@ -18,6 +18,7 @@ import UserStore from 'stores/user_store.jsx';
 
 import {getStandardAnalytics, getTeamStats, getUser} from 'utils/async_client.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
+import {convertTeamMapToList} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SystemUsersList from './system_users_list.jsx';
@@ -59,7 +60,7 @@ export default class SystemUsers extends React.Component {
         this.renderFilterRow = this.renderFilterRow.bind(this);
 
         this.state = {
-            teams: AdminStore.getAllTeams(),
+            teams: convertTeamMapToList(AdminStore.getAllTeams()),
             totalUsers: AnalyticsStore.getAllSystem()[StatTypes.TOTAL_USERS],
             users: UserStore.getProfileList(),
 
@@ -106,7 +107,7 @@ export default class SystemUsers extends React.Component {
     }
 
     updateTeamsFromStore() {
-        this.setState({teams: AdminStore.getAllTeams()});
+        this.setState({teams: convertTeamMapToList(AdminStore.getAllTeams())});
     }
 
     updateTotalUsersFromStore(teamId = this.state.teamId) {
@@ -273,15 +274,7 @@ export default class SystemUsers extends React.Component {
     }
 
     renderFilterRow(doSearch) {
-        let teams = [];
-
-        Reflect.ownKeys(this.state.teams).forEach((key) => {
-            teams.push(this.state.teams[key]);
-        });
-
-        teams = teams.sort(Utils.sortTeamsByDisplayName);
-
-        const teamOptions = teams.map((team) => {
+        const teams = this.state.teams.map((team) => {
             return (
                 <option
                     key={team.id}
@@ -310,7 +303,7 @@ export default class SystemUsers extends React.Component {
                     >
                         <option value={ALL_USERS}>{Utils.localizeMessage('admin.system_users.allUsers', 'All Users')}</option>
                         <option value={NO_TEAM}>{Utils.localizeMessage('admin.system_users.noTeams', 'No Teams')}</option>
-                        {teamOptions}
+                        {teams}
                     </select>
                 </label>
             </div>
