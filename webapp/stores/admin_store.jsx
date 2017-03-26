@@ -4,8 +4,6 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
-import BrowserStore from 'stores/browser_store.jsx';
-
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -137,18 +135,6 @@ class AdminStoreClass extends EventEmitter {
 
     getTeam(id) {
         return this.teams[id];
-    }
-
-    getSelectedTeams() {
-        const result = BrowserStore.getItem('selected_teams');
-        if (!result) {
-            return {};
-        }
-        return result;
-    }
-
-    saveSelectedTeams(teams) {
-        BrowserStore.setItem('selected_teams', teams);
     }
 }
 

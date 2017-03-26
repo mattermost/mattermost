@@ -297,6 +297,7 @@ export default class SystemUsers extends React.Component {
                     <select
                         className='form-control system-users-filter__dropdown'
                         onChange={this.handleTeamChange}
+                        value={this.state.teamId}
                     >
                         <option value={ALL_USERS}>{Utils.localizeMessage('admin.system_users.allUsers', 'All Users')}</option>
                         <option value={NO_TEAM}>{Utils.localizeMessage('admin.system_users.noTeams', 'No Teams')}</option>

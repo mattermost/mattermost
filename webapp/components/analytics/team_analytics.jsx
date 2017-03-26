@@ -32,12 +32,7 @@ export default class TeamAnalytics extends React.Component {
         this.handleTeamChange = this.handleTeamChange.bind(this);
 
         const teams = convertTeamMapToList(AdminStore.getAllTeams());
-        let teamId;
-        if (teams.length === 0) {
-            teamId = '';
-        } else {
-            teamId = BrowserStore.getGlobalItem(LAST_ANALYTICS_TEAM, teams[0].id);
-        }
+        const teamId = BrowserStore.getGlobalItem(LAST_ANALYTICS_TEAM, teams.length > 0 ? teams[0].id : '');
 
         this.state = {
             teams,
@@ -53,6 +48,10 @@ export default class TeamAnalytics extends React.Component {
 
         if (this.state.teamId !== '') {
             this.getData(this.state.teamId);
+        }
+
+        if (this.state.teams.length === 0) {
+            AsyncClient.getAllTeams();
         }
     }
 
@@ -95,15 +94,17 @@ export default class TeamAnalytics extends React.Component {
     onAllTeamsChange() {
         const teams = convertTeamMapToList(AdminStore.getAllTeams());
 
-        if (this.state.teamId === '' && teams.length > 0) {
-            this.setState({
-                teamId: teams[0].id,
-                team: teams[0]
-            });
-        } else if (this.state.teamId) {
-            this.setState({
-                team: AdminStore.getTeam(this.state.teamId)
-            });
+        if (teams.length > 0) {
+            if (this.state.teamId) {
+                this.setState({
+                    team: AdminStore.getTeam(this.state.teamId)
+                });
+            } else {
+                this.setState({
+                    teamId: teams[0].id,
+                    team: teams[0]
+                });
+            }
         }
 
         this.setState({
@@ -248,6 +249,7 @@ export default class TeamAnalytics extends React.Component {
                         <select
                             className='form-control team-statistics__team-filter__dropdown'
                             onChange={this.handleTeamChange}
+                            value={this.state.teamId}
                         >
                             {teams}
                         </select>
