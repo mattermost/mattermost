@@ -72,6 +72,10 @@
     "translation": "Image storage is not configured."
   },
   {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initializing deprecated API routes"
+  },
+  {
     "id": "api.admin.init.debug",
     "translation": "Initializing admin API routes"
   },
