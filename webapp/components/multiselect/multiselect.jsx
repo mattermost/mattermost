@@ -111,7 +111,8 @@ export default class MultiSelect extends React.Component {
     }
 
     render() {
-        const options = this.props.options;
+        const options = Object.assign([], this.props.options);
+        const values = this.props.values;
 
         let numRemainingText;
         if (this.props.numRemainingText) {
@@ -140,6 +141,17 @@ export default class MultiSelect extends React.Component {
                     <div>{this.props.noteText}</div>
                 </div>
             );
+        }
+
+        const valueMap = {};
+        for (let i = 0; i < values.length; i++) {
+            valueMap[values[i].id] = true;
+        }
+
+        for (let i = options.length - 1; i >= 0; i--) {
+            if (valueMap[options[i].id]) {
+                options.splice(i, 1);
+            }
         }
 
         if (options && options.length > this.props.perPage) {
