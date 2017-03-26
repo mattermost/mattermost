@@ -75,7 +75,16 @@ export default class SearchBar extends React.Component {
                 this.setState(newState);
             }
             if (doSearch) {
-                this.performSearch(newState.searchTerm, isMentionSearch);
+                performSearch(
+                    newState.searchTerm,
+                    isMentionSearch,
+                    () => {
+                        this.handleSearchOnSuccess();
+                    },
+                    () => {
+                        this.handleSearchOnError();
+                    }
+                );
             }
         }
     }
