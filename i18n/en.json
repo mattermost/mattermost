@@ -144,6 +144,22 @@
     "translation": "Error rendering template %v err=%v"
   },
   {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initializing user WebSocket API routes"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initializing system WebSocket API routes"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Initializing status WebSocket API routes"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initializing webrtc WebSocket API routes"
+  },
+  {
     "id": "api.auth.unable_to_get_user.app_error",
     "translation": "Unable to get user to check permissions."
   },

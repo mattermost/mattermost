@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/wsapi"
 
 	s3 "github.com/minio/minio-go"
 )
@@ -55,9 +56,11 @@ func SetupEnterprise() *TestHelper {
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
+		wsapi.InitRouter()
 		app.StartServer()
 		utils.InitHTML()
 		InitApi(true)
+		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
 
@@ -85,8 +88,10 @@ func Setup() *TestHelper {
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
+		wsapi.InitRouter()
 		app.StartServer()
 		InitApi(true)
+		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
 
@@ -165,6 +170,10 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 
 func (me *TestHelper) CreateClient() *model.Client4 {
 	return model.NewAPIv4Client("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+}
+
+func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4("ws://localhost"+utils.Cfg.ServiceSettings.ListenAddress, me.Client.AuthToken)
 }
 
 func (me *TestHelper) CreateUser() *model.User {

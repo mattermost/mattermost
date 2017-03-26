@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/wsapi"
 	"github.com/spf13/cobra"
 	"os/signal"
 	"syscall"
@@ -47,8 +48,10 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	initDBCommandContextCobra(cmd)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	api.InitRouter()
+	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
+	wsapi.InitApi()
 	setupClientTests()
 	app.StartServer()
 	runWebClientTests()
@@ -61,8 +64,10 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	initDBCommandContextCobra(cmd)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	api.InitRouter()
+	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
+	wsapi.InitApi()
 	setupClientTests()
 	app.StartServer()
 
