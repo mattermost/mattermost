@@ -617,6 +617,17 @@ func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	}
 }
 
+// AttachDeviceId attaches a mobile device ID to the current session.
+func (c *Client4) AttachDeviceId(deviceId string) (bool, *Response) {
+	requestBody := map[string]string{"device_id": deviceId}
+	if r, err := c.DoApiPut(c.GetUsersRoute()+"/sessions/device", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetTeamsUnreadForUser will return an array with TeamUnread objects that contain the amount
 // of unread messages and mentions the current user has for the teams it belongs to.
 // An optional team ID can be set to exclude that team from the results. Must be authenticated.
