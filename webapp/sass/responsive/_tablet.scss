@@ -220,9 +220,8 @@
         .sidebar--right__title {
             display: inline-block;
             max-width: 300px;
-            white-space: nowrap;
-            overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
     }
 
