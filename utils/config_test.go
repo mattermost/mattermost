@@ -15,8 +15,9 @@ func TestConfig(t *testing.T) {
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
-	os.Setenv("MM_SERVICESETTINGS_LISTENADDRESS", ":8011")
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://hello")
+
+	os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Enviroment")
+	os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
 	os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
 
@@ -24,11 +25,11 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	EnableConfigFromEnviromentVars()
 	LoadConfig("config.json")
 
-	if Cfg.ServiceSettings.ListenAddress != ":8011" {
+	if Cfg.TeamSettings.SiteName != "From Enviroment" {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	if *Cfg.ServiceSettings.SiteURL != "http://hello" {
+	if *Cfg.TeamSettings.CustomBrandText != "Custom Brand" {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
@@ -40,12 +41,12 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
-	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+	os.Unsetenv("MM_TEAMSETTINGS_SITENAME")
+	os.Unsetenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
 	os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
 
-	Cfg.ServiceSettings.ListenAddress = ":8065"
+	Cfg.TeamSettings.SiteName = "Mattermost"
 	*Cfg.ServiceSettings.SiteURL = ""
 	*Cfg.ServiceSettings.EnableCommands = true
 	*Cfg.ServiceSettings.ReadTimeout = 300
@@ -53,7 +54,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 	LoadConfig("config.json")
 
-	if Cfg.ServiceSettings.ListenAddress != ":8065" {
+	if Cfg.TeamSettings.SiteName != "Mattermost" {
 		t.Fatal("should have been reset")
 	}
 
