@@ -18,7 +18,8 @@ import React from 'react';
 export default class SystemUsersDropdown extends React.Component {
     static propTypes = {
         user: React.PropTypes.object.isRequired,
-        doPasswordReset: React.PropTypes.func.isRequired
+        doPasswordReset: React.PropTypes.func.isRequired,
+        doManageTeams: React.PropTypes.func.isRequired
     };
 
     constructor(props) {
@@ -28,6 +29,7 @@ export default class SystemUsersDropdown extends React.Component {
         this.handleMakeActive = this.handleMakeActive.bind(this);
         this.handleMakeNotActive = this.handleMakeNotActive.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
+        this.handleManageTeams = this.handleManageTeams.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
         this.handleResetMfa = this.handleResetMfa.bind(this);
         this.handleDemoteSystemAdmin = this.handleDemoteSystemAdmin.bind(this);
@@ -92,6 +94,12 @@ export default class SystemUsersDropdown extends React.Component {
                 this.setState({serverError: err.message});
             }
         );
+    }
+
+    handleManageTeams(e) {
+        e.preventDefault();
+
+        this.props.doManageTeams(this.props.user);
     }
 
     handleResetPassword(e) {
@@ -177,6 +185,7 @@ export default class SystemUsersDropdown extends React.Component {
         let showMakeSystemAdmin = !Utils.isSystemAdmin(user.roles);
         let showMakeActive = false;
         let showMakeNotActive = !Utils.isSystemAdmin(user.roles);
+        let showManageTeams = true;
         const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
         const showMfaReset = mfaEnabled && user.mfa_active;
 
@@ -191,6 +200,7 @@ export default class SystemUsersDropdown extends React.Component {
             showMakeSystemAdmin = false;
             showMakeActive = true;
             showMakeNotActive = false;
+            showManageTeams = false;
         }
 
         let disableActivationToggle = false;
@@ -276,6 +286,21 @@ export default class SystemUsersDropdown extends React.Component {
                             id='admin.user_item.makeInactive'
                             defaultMessage='Make Inactive'
                         />
+                    </a>
+                </li>
+            );
+        }
+
+        let manageTeams = null;
+        if (showManageTeams) {
+            manageTeams = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleManageTeams}
+                    >
+                        {'Manage Teams'}
                     </a>
                 </li>
             );
@@ -404,6 +429,7 @@ export default class SystemUsersDropdown extends React.Component {
                     {makeActive}
                     {makeNotActive}
                     {makeSystemAdmin}
+                    {manageTeams}
                     {mfaReset}
                     {passwordReset}
                 </ul>
