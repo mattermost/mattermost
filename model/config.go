@@ -231,27 +231,28 @@ type FileSettings struct {
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail    bool
-	EnableSignInWithEmail    *bool
-	EnableSignInWithUsername *bool
-	SendEmailNotifications   bool
-	RequireEmailVerification bool
-	FeedbackName             string
-	FeedbackEmail            string
-	FeedbackOrganization     *string
-	SMTPUsername             string
-	SMTPPassword             string
-	SMTPServer               string
-	SMTPPort                 string
-	ConnectionSecurity       string
-	InviteSalt               string
-	PasswordResetSalt        string
-	SendPushNotifications    *bool
-	PushNotificationServer   *string
-	PushNotificationContents *string
-	EnableEmailBatching      *bool
-	EmailBatchingBufferSize  *int
-	EmailBatchingInterval    *int
+	EnableSignUpWithEmail             bool
+	EnableSignInWithEmail             *bool
+	EnableSignInWithUsername          *bool
+	SendEmailNotifications            bool
+	RequireEmailVerification          bool
+	FeedbackName                      string
+	FeedbackEmail                     string
+	FeedbackOrganization              *string
+	SMTPUsername                      string
+	SMTPPassword                      string
+	SMTPServer                        string
+	SMTPPort                          string
+	ConnectionSecurity                string
+	InviteSalt                        string
+	PasswordResetSalt                 string
+	SendPushNotifications             *bool
+	PushNotificationServer            *string
+	PushNotificationContents          *string
+	EnableEmailBatching               *bool
+	EmailBatchingBufferSize           *int
+	EmailBatchingInterval             *int
+	SkipServerCertificateVerification *bool
 }
 
 type RateLimitSettings struct {
@@ -678,6 +679,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.EmailBatchingInterval == nil {
 		o.EmailSettings.EmailBatchingInterval = new(int)
 		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
+	}
+
+	if o.EmailSettings.SkipServerCertificateVerification == nil {
+		o.EmailSettings.SkipServerCertificateVerification = new(bool)
+		*o.EmailSettings.SkipServerCertificateVerification = false
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
