@@ -31,6 +31,7 @@ func TestWebhookStoreUpdateIncoming(t *testing.T) {
 	previousUpdatedAt := o1.UpdateAt
 
 	o1.DisplayName = "TestHook"
+	time.Sleep(10 * time.Millisecond)
 
 	if result := (<-store.Webhook().UpdateIncoming(o1)); result.Err != nil {
 		t.Fatal("updation of incoming hook failed", result.Err)
