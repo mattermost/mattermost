@@ -619,6 +619,56 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 	return storeChannel
 }
 
+func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		props := make(map[string]interface{})
+		props["teamId"] = teamId
+
+		idQuery := ""
+
+		for index, channelId := range channelIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["channelId"+strconv.Itoa(index)] = channelId
+			idQuery += ":channelId" + strconv.Itoa(index)
+		}
+
+		data := &model.ChannelList{}
+		_, err := s.GetReplica().Select(data,
+			`SELECT
+			    *
+			FROM
+			    Channels
+			WHERE
+			    TeamId = :teamId
+					AND Type = 'O'
+					AND DeleteAt = 0
+					AND Id IN (`+idQuery+`)
+			ORDER BY DisplayName`,
+			props)
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.get.app_error", nil, err.Error())
+		}
+
+		if len(*data) == 0 {
+			result.Err = model.NewAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.not_found.app_error", nil, "", http.StatusNotFound)
+		}
+
+		result.Data = data
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 type channelIdWithCountAndUpdateAt struct {
 	Id            string
 	TotalMsgCount int64
