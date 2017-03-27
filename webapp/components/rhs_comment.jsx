@@ -592,10 +592,7 @@ export default class RhsComment extends React.Component {
                                 <PostMessageContainer post={post}/>
                             </div>
                             {fileAttachment}
-                            <ReactionListContainer
-                                post={post}
-                                currentUserId={this.props.currentUser.id}
-                            />
+                            <ReactionListContainer post={post}/>
                         </div>
                     </div>
                 </div>

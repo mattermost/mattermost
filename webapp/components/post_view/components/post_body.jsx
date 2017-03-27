@@ -196,10 +196,7 @@ export default class PostBody extends React.Component {
                 <div className={'post__body ' + mentionHighlightClass}>
                     {messageWithAdditionalContent}
                     {fileAttachmentHolder}
-                    <ReactionListContainer
-                        post={post}
-                        currentUserId={this.props.currentUser.id}
-                    />
+                    <ReactionListContainer post={post}/>
                 </div>
             </div>
         );
