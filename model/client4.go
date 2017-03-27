@@ -1004,6 +1004,16 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 	}
 }
 
+// GetPinnedPosts gets a list of pinned posts.
+func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Response) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/pinned", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

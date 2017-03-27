@@ -29,6 +29,7 @@ func InitChannel() {
 	BaseRoutes.Channel.Handle("/patch", ApiSessionRequired(patchChannel)).Methods("PUT")
 	BaseRoutes.Channel.Handle("", ApiSessionRequired(deleteChannel)).Methods("DELETE")
 	BaseRoutes.Channel.Handle("/stats", ApiSessionRequired(getChannelStats)).Methods("GET")
+	BaseRoutes.Channel.Handle("/pinned", ApiSessionRequired(getPinnedPosts)).Methods("GET")
 
 	BaseRoutes.ChannelForUser.Handle("/unread", ApiSessionRequired(getChannelUnread)).Methods("GET")
 
@@ -301,6 +302,28 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	stats := model.ChannelStats{ChannelId: c.Params.ChannelId, MemberCount: memberCount}
 	w.Write([]byte(stats.ToJson()))
+}
+
+func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if posts, err := app.GetPinnedPosts(c.Params.ChannelId); err != nil {
+		c.Err = err
+		return
+	} else if HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
+		return
+	} else {
+		w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
+		w.Write([]byte(posts.ToJson()))
+	}
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
