@@ -53,3 +53,39 @@ func TestGetUserStatus(t *testing.T) {
 		t.Fatal("Should return offline status")
 	}
 }
+
+func TestGetUsersStatusesByIds(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	usersIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
+
+	usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
+	CheckNoError(t, resp)
+	for _, userStatus := range usersStatuses {
+		if userStatus.Status != "offline" {
+			t.Fatal("Status should be offline")
+		}
+	}
+
+	app.SetStatusOnline(th.BasicUser.Id, "", true)
+	app.SetStatusOnline(th.BasicUser2.Id, "", true)
+	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
+	CheckNoError(t, resp)
+	for _, userStatus := range usersStatuses {
+		if userStatus.Status != "online" {
+			t.Fatal("Status should be offline")
+		}
+	}
+
+	app.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+	app.SetStatusAwayIfNeeded(th.BasicUser2.Id, true)
+	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
+	CheckNoError(t, resp)
+	for _, userStatus := range usersStatuses {
+		if userStatus.Status != "away" {
+			t.Fatal("Status should be offline")
+		}
+	}
+}

@@ -194,8 +194,12 @@ func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
 
-func (c *Client4) GetStatusRoute(userId string) string {
+func (c *Client4) GetUserStatusRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/status")
+}
+
+func (c *Client4) GetUserStatusesRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute() + "/status")
 }
 
 func (c *Client4) GetSamlRoute() string {
@@ -1947,10 +1951,20 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 
 // GetUserStatus returns a user based on the provided user id string.
 func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response) {
-	if r, err := c.DoApiGet(c.GetStatusRoute(userId), etag); err != nil {
+	if r, err := c.DoApiGet(c.GetUserStatusRoute(userId), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
 		return StatusFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersStatusesByIds returns a list of users status based on the provided user ids.
+func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response) {
+	if r, err := c.DoApiPost(c.GetUserStatusesRoute()+"/ids", ArrayToJson(userIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return StatusListFromJson(r.Body), BuildResponse(r)
 	}
 }
