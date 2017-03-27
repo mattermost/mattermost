@@ -934,6 +934,87 @@ func TestChannelStoreGetPublicChannelsForTeam(t *testing.T) {
 	}
 }
 
+func TestChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T) {
+	Setup()
+
+	teamId1 := model.NewId()
+
+	oc1 := model.Channel{}
+	oc1.TeamId = teamId1
+	oc1.DisplayName = "OpenChannel1Team1"
+	oc1.Name = "a" + model.NewId() + "b"
+	oc1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&oc1))
+
+	oc2 := model.Channel{}
+	oc2.TeamId = model.NewId()
+	oc2.DisplayName = "OpenChannel2TeamOther"
+	oc2.Name = "a" + model.NewId() + "b"
+	oc2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&oc2))
+
+	pc3 := model.Channel{}
+	pc3.TeamId = teamId1
+	pc3.DisplayName = "PrivateChannel3Team1"
+	pc3.Name = "a" + model.NewId() + "b"
+	pc3.Type = model.CHANNEL_PRIVATE
+	Must(store.Channel().Save(&pc3))
+
+	cids := []string{oc1.Id}
+	cresult := <-store.Channel().GetPublicChannelsByIdsForTeam(teamId1, cids)
+	list := cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("should return 1 channel")
+	}
+
+	if (*list)[0].Id != oc1.Id {
+		t.Fatal("missing channel")
+	}
+
+	cids = append(cids, oc2.Id)
+	cids = append(cids, model.NewId())
+	cids = append(cids, pc3.Id)
+	cresult = <-store.Channel().GetPublicChannelsByIdsForTeam(teamId1, cids)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("should return 1 channel")
+	}
+
+	oc4 := model.Channel{}
+	oc4.TeamId = teamId1
+	oc4.DisplayName = "OpenChannel4Team1"
+	oc4.Name = "a" + model.NewId() + "b"
+	oc4.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&oc4))
+
+	cids = append(cids, oc4.Id)
+	cresult = <-store.Channel().GetPublicChannelsByIdsForTeam(teamId1, cids)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 2 {
+		t.Fatal("should return 2 channels")
+	}
+
+	if (*list)[0].Id != oc1.Id {
+		t.Fatal("missing channel")
+	}
+
+	if (*list)[1].Id != oc4.Id {
+		t.Fatal("missing channel")
+	}
+
+	cids = cids[:0]
+	cids = append(cids, model.NewId())
+	cresult = <-store.Channel().GetPublicChannelsByIdsForTeam(teamId1, cids)
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 0 {
+		t.Fatal("should not return a channel")
+	}
+}
+
 func TestChannelStoreGetChannelCounts(t *testing.T) {
 	Setup()
 

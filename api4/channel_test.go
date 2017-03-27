@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"testing"
 
@@ -491,6 +492,68 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+}
+
+func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+	input := []string{th.BasicChannel.Id}
+	output := []string{th.BasicChannel.DisplayName}
+
+	channels, resp := Client.GetPublicChannelsByIdsForTeam(teamId, input)
+	CheckNoError(t, resp)
+
+	if len(*channels) != 1 {
+		t.Fatal("should return 1 channel")
+	}
+
+	if (*channels)[0].DisplayName != output[0] {
+		t.Fatal("missing channel")
+	}
+
+	input = append(input, GenerateTestId())
+	input = append(input, th.BasicChannel2.Id)
+	input = append(input, th.BasicPrivateChannel.Id)
+	output = append(output, th.BasicChannel2.DisplayName)
+	sort.Strings(output)
+
+	channels, resp = Client.GetPublicChannelsByIdsForTeam(teamId, input)
+	CheckNoError(t, resp)
+
+	if len(*channels) != 2 {
+		t.Fatal("should return 2 channels")
+	}
+
+	for i, c := range *channels {
+		if c.DisplayName != output[i] {
+			t.Fatal("missing channel")
+		}
+	}
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(GenerateTestId(), input)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{})
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{"junk"})
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{GenerateTestId()})
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{th.BasicPrivateChannel.Id})
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, input)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
 }
 
