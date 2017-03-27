@@ -130,6 +130,10 @@ func (c *Client4) GetConfigRoute() string {
 	return fmt.Sprintf("/config")
 }
 
+func (c *Client4) GetLicenseRoute() string {
+	return fmt.Sprintf("/license")
+}
+
 func (c *Client4) GetPostRoute(postId string) string {
 	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
 }
@@ -1344,6 +1348,7 @@ func (c *Client4) GetPing() (bool, *Response) {
 	}
 }
 
+// TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
@@ -1370,6 +1375,28 @@ func (c *Client4) ReloadConfig() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetOldClientConfig will retrieve the parts of the server configuration needed by the
+// client, formatted in the old format.
+func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response) {
+	if r, err := c.DoApiGet(c.GetConfigRoute()+"/client?format=old", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOldClientLicense will retrieve the parts of the server license needed by the
+// client, formatted in the old format.
+func (c *Client4) GetOldClientLicense(etag string) (map[string]string, *Response) {
+	if r, err := c.DoApiGet(c.GetLicenseRoute()+"/client?format=old", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -1,6 +1,7 @@
 package api4
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -126,6 +127,58 @@ func TestUpdateConfig(t *testing.T) {
 			t.Log("It should update the SiteName")
 			t.Fatal()
 		}
+	}
+}
+
+func TestGetOldClientConfig(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	config, resp := Client.GetOldClientConfig("")
+	CheckNoError(t, resp)
+
+	if len(config["Version"]) == 0 {
+		t.Fatal("config not returned correctly")
+	}
+
+	Client.Logout()
+
+	_, resp = Client.GetOldClientConfig("")
+	CheckNoError(t, resp)
+
+	if _, err := Client.DoApiGet("/config/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should have errored with 501")
+	}
+
+	if _, err := Client.DoApiGet("/config/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
+		t.Fatal("should have errored with 400")
+	}
+}
+
+func TestGetOldClientLicense(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	license, resp := Client.GetOldClientLicense("")
+	CheckNoError(t, resp)
+
+	if len(license["IsLicensed"]) == 0 {
+		t.Fatal("license not returned correctly")
+	}
+
+	Client.Logout()
+
+	_, resp = Client.GetOldClientLicense("")
+	CheckNoError(t, resp)
+
+	if _, err := Client.DoApiGet("/license/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should have errored with 501")
+	}
+
+	if _, err := Client.DoApiGet("/license/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
+		t.Fatal("should have errored with 400")
 	}
 }
 
