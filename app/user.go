@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"fmt"
 	"hash/fnv"
 	"image"
@@ -552,6 +553,27 @@ func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppErr
 
 		return users, nil
 	}
+}
+
+func GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		return nil, model.NewAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		return nil, err
+	}
+
+	secret, img, err := mfaInterface.GenerateSecret(user)
+	if err != nil {
+		return nil, err
+	}
+
+	mfaSecret := &model.MfaSecret{Secret: secret, QRCode: b64.StdEncoding.EncodeToString(img)}
+	return mfaSecret, nil
 }
 
 func ActivateMfa(userId, token string) *model.AppError {

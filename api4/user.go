@@ -30,7 +30,6 @@ func InitUser() {
 	BaseRoutes.User.Handle("/image", ApiSessionRequired(setProfileImage)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
-	BaseRoutes.User.Handle("/mfa", ApiSessionRequired(updateUserMfa)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
@@ -38,6 +37,10 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/password/reset/send", ApiHandler(sendPasswordReset)).Methods("POST")
 	BaseRoutes.Users.Handle("/email/verify", ApiHandler(verifyUserEmail)).Methods("POST")
 	BaseRoutes.Users.Handle("/email/verify/send", ApiHandler(sendVerificationEmail)).Methods("POST")
+
+	BaseRoutes.Users.Handle("/mfa", ApiHandler(checkUserMfa)).Methods("POST")
+	BaseRoutes.User.Handle("/mfa", ApiSessionRequired(updateUserMfa)).Methods("PUT")
+	BaseRoutes.User.Handle("/mfa/generate", ApiSessionRequired(generateMfaSecret)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
@@ -554,6 +557,30 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
+func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	loginId := props["login_id"]
+	if len(loginId) == 0 {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
+	resp := map[string]interface{}{}
+	resp["mfa_required"] = false
+
+	if !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
+		w.Write([]byte(model.StringInterfaceToJson(resp)))
+		return
+	}
+
+	if user, err := app.GetUserForLogin(loginId, false); err == nil {
+		resp["mfa_required"] = user.MfaActive
+	}
+
+	w.Write([]byte(model.StringInterfaceToJson(resp)))
+}
+
 func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -591,6 +618,29 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success - mfa updated")
 	ReturnStatusOK(w)
+}
+
+func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	secret, err := app.GenerateMfaSecret(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+	w.Write([]byte(secret.ToJson()))
 }
 
 func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {

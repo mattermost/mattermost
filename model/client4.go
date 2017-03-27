@@ -545,6 +545,36 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 	}
 }
 
+// CheckUserMfa checks whether a user has MFA active on their account or not based on the
+// provided login id.
+func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
+	requestBody := make(map[string]interface{})
+	requestBody["login_id"] = loginId
+
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/mfa", StringInterfaceToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		data := StringInterfaceFromJson(r.Body)
+		if mfaRequired, ok := data["mfa_required"].(bool); !ok {
+			return false, BuildResponse(r)
+		} else {
+			return mfaRequired, BuildResponse(r)
+		}
+	}
+}
+
+// GenerateMfaSecret will generate a new MFA secret for a user and return it as a string and
+// as a base64 encoded image QR code.
+func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response) {
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/mfa/generate", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MfaSecretFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *Response) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
