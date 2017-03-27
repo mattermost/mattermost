@@ -28,13 +28,6 @@ const NO_TEAM = 'no_team';
 
 const USERS_PER_PAGE = 50;
 
-/*
-to do (without triggering eslint)
-- dropdown
-- update sidebar
-- remove anything only used by old pages
-*/
-
 export default class SystemUsers extends React.Component {
     constructor(props) {
         super(props);
