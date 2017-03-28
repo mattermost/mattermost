@@ -87,8 +87,10 @@ export default class SettingItemMax extends React.Component {
         }
 
         let title;
+        let titleProp = 'unknownTitle';
         if (this.props.title) {
             title = <li className='col-sm-12 section-title'>{this.props.title}</li>;
+            titleProp = this.props.title;
         }
 
         return (
@@ -107,7 +109,7 @@ export default class SettingItemMax extends React.Component {
                             {clientError}
                             {submit}
                             <a
-                                id={Utils.createSafeId(this.props.title) + 'Cancel'}
+                                id={Utils.createSafeId(titleProp) + 'Cancel'}
                                 className='btn btn-sm'
                                 href='#'
                                 onClick={this.props.updateSection}
