@@ -149,7 +149,7 @@
   },
   {
     "id": "api.brand.init.debug",
-    "translation": "正在初始化命令 API 路由"
+    "translation": "正在初始化商标 API 路由"
   },
   {
     "id": "api.channel.add_member.added",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
+    "translation": "频道已被删除"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -393,7 +393,7 @@
   },
   {
     "id": "api.cluster.init.debug",
-    "translation": "正在初始化用户 API 路由"
+    "translation": "正在初始化机群 API 路由"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -813,7 +813,11 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "正在初始化命令 API 路由"
+    "translation": "正在初始化合规 API 路由"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.context.404.app_error",
@@ -1247,7 +1251,7 @@
   },
   {
     "id": "api.ldap.init.debug",
-    "translation": "正在初始化文件 API 路由"
+    "translation": "正在初始化LDAP API 路由"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1284,6 +1288,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "该许可证只支持 {{.Users}} 用户，当你的系统有 {{.Count}} 唯一用户。唯一用户通过邮件地址计算。你可以从站点报告 -> 查看统计查看总数量。"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1928,12 +1936,32 @@
     "translation": "正在初始化状态 API 路由"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "正在初始化状态 API 路由"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "更新 user_id=%v 和 session_id=%v 的 LastActivityAt 失败，err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "保存 user_id=%v 状态时失败，err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "User not found"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Invalid data."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Invalid invite id. No team matches with this invite id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parameter required to add user to team."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3128,6 +3156,14 @@
     "translation": "管理团队角色"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "允许读取公共频道"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "读取公共频道"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "可以邀请用户到团队"
   },
@@ -3697,7 +3733,7 @@
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
+    "translation": "创建 SAML 证书多部分表格请求失败"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4680,6 +4716,14 @@
     "translation": "没有找到频道"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "我们无法获取频道"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "我们找不到存在的已删除频道"
   },
@@ -4725,11 +4769,11 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "我们无法获取频道"
+    "translation": "我们无法获取公共频道"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "我们无法获取团队未读消息"
+    "translation": "我们无法获取频道未读消息"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -4749,7 +4793,7 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "We couldn't find the pinned posts"
+    "translation": "我们无法找到置顶消息"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",

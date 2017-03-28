@@ -816,6 +816,10 @@
     "translation": "명령어 API 경로 초기화 중"
   },
   {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "죄송합니다, 페이지를 찾을 수 없습니다."
   },
@@ -1284,6 +1288,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "시스템이 {{.Count}} 유니크 사용자를 가질 때, 이 라이센스는 {{.Users}} 사용자 만을 지원합니다. 유니크 사용자는 이메일 주소 개수로 구분 됩니다. 사용자 수는 사이트 리포트 -> 통계 보기에서 확인할 수 있습니다."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1928,12 +1936,32 @@
     "translation": "상태 API 루트를 초기화 중"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "상태 API 루트를 초기화 중"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "LastActivityAt 업데이트에 실패했습니다. user_id=%v and session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Failed to save status for user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "User not found"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Invalid data."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Invalid invite id. No team matches with this invite id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parameter required to add user to team."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2193,7 +2221,7 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SubjectText}} on {{.SenderDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.post_subject_in_group_message",
@@ -3126,6 +3154,14 @@
   {
     "id": "authentication.permissions.manage_team_roles.name",
     "translation": "Manage Team Roles"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -4678,6 +4714,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No channels were found"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
