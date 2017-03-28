@@ -31,9 +31,17 @@ export function isMac() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
 
-export function createSafeId(str) {
-    if (str === null) {
+export function createSafeId(prop) {
+    if (prop === null) {
         return null;
+    }
+
+    var str = '';
+
+    if (prop.props && prop.props.defaultMessage) {
+        str = prop.props.defaultMessage;
+    } else {
+        str = prop.toString();
     }
 
     return str.replace(new RegExp(' ', 'g'), '_');
