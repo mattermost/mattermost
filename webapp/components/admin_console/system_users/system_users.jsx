@@ -276,8 +276,8 @@ export default class SystemUsers extends React.Component {
         });
 
         return (
-            <div className='system-users-filter'>
-                <div className='col-md-8'>
+            <div className='system-users__filter-row'>
+                <div className='system-users__filter'>
                     <input
                         ref='filter'
                         className='form-control filter-textbox'
@@ -285,10 +285,10 @@ export default class SystemUsers extends React.Component {
                         onInput={doSearch}
                     />
                 </div>
-                <label className='col-md-4'>
-                    <span className='system-users-filter__label'>{'Filter:'}</span>
+                <label>
+                    <span className='system-users__team-filter-label'>{'Filter:'}</span>
                     <select
-                        className='form-control system-users-filter__dropdown'
+                        className='form-control system-users__team-filter'
                         onChange={this.handleTeamChange}
                         value={this.state.teamId}
                     >

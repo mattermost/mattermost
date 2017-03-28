@@ -482,15 +482,22 @@
     width: 130px;
 }
 
-.system-users-filter {
-    .system-users-filter__label {
-        width: 22%;
-        display: inline-block;
+.system-users__filter-row {
+    display: flex;
+    margin-left: 15px;
+    margin-right: 15px;
+
+    .system-users__filter {
+        flex: 1;
+        margin-right: 15px;
     }
 
-    .system-users-filter__dropdown {
-        width: 78%;
+    .system-users__team-filter-label {
+        margin-right: 15px;
+    }
+
+    .system-users__team-filter {
         display: inline-block;
-        text-overflow: ellipsis;
+        width: 200px
     }
 }

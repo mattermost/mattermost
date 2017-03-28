@@ -222,7 +222,7 @@ export default class TeamAnalytics extends React.Component {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <div className='row admin-console-header team-statistics__header-row'>
+                <div className='admin-console-header team-statistics__header-row'>
                     <div className='team-statistics__header'>
                         <h3>
                             <FormattedMessage
