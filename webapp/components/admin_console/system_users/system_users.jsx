@@ -16,7 +16,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {getStandardAnalytics, getTeamStats, getUser} from 'utils/async_client.jsx';
+import {getAllTeams, getStandardAnalytics, getTeamStats, getUser} from 'utils/async_client.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import {convertTeamMapToList} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -72,6 +72,7 @@ export default class SystemUsers extends React.Component {
         UserStore.addWithoutTeamChangeListener(this.updateUsersFromStore);
 
         this.loadDataForTeam(this.state.teamId);
+        getAllTeams();
     }
 
     componentWillUpdate(nextProps, nextState) {
