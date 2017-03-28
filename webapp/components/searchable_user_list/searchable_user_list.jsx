@@ -23,6 +23,7 @@ export default class SearchableUserList extends React.Component {
         actionProps: React.PropTypes.object,
         actionUserProps: React.PropTypes.object,
         focusOnMount: React.PropTypes.bool,
+        renderCount: React.PropTypes.func,
         renderFilterRow: React.PropTypes.func,
 
         page: React.PropTypes.number.isRequired,
@@ -49,6 +50,8 @@ export default class SearchableUserList extends React.Component {
         this.focusSearchBar = this.focusSearchBar.bind(this);
 
         this.handleInput = this.handleInput.bind(this);
+
+        this.renderCount = this.renderCount.bind(this);
 
         this.nextTimeoutId = 0;
 
@@ -99,30 +102,68 @@ export default class SearchableUserList extends React.Component {
         this.props.search(e.target.value);
     }
 
-    render() {
-        let nextButton;
-        let previousButton;
-        let usersToDisplay;
-        let count;
+    renderCount(users) {
+        if (!users) {
+            return null;
+        }
 
-        if (this.props.users == null) {
-            usersToDisplay = this.props.users;
-        } else if (this.props.term || this.props.users == null) {
-            usersToDisplay = this.props.users;
+        const count = users.length;
+        const total = this.props.total;
+        const isSearch = Boolean(this.props.term);
 
-            if (this.props.total) {
-                count = (
+        let startCount;
+        let endCount;
+        if (isSearch) {
+            startCount = -1;
+            endCount = -1;
+        } else {
+            startCount = this.props.page * this.props.usersPerPage;
+            endCount = startCount + count;
+        }
+
+        if (this.props.renderCount) {
+            return this.props.renderCount(count, this.props.total, startCount, endCount, isSearch);
+        }
+
+        if (this.props.total) {
+            if (isSearch) {
+                return (
                     <FormattedMessage
                         id='filtered_user_list.countTotal'
                         defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
                         values={{
-                            count: usersToDisplay.length || 0,
-                            total: this.props.total
+                            count,
+                            total
                         }}
                     />
                 );
             }
-        } else {
+
+            return (
+                <FormattedMessage
+                    id='filtered_user_list.countTotalPage'
+                    defaultMessage='{startCount, number} - {endCount, number} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
+                    values={{
+                        count,
+                        startCount: startCount + 1,
+                        endCount,
+                        total
+                    }}
+                />
+            );
+        }
+
+        return null;
+    }
+
+    render() {
+        let nextButton;
+        let previousButton;
+        let usersToDisplay;
+
+        if (this.props.term || !this.props.users) {
+            usersToDisplay = this.props.users;
+        } else if (!this.props.term) {
             const pageStart = this.props.page * this.props.usersPerPage;
             const pageEnd = pageStart + this.props.usersPerPage;
             usersToDisplay = this.props.users.slice(pageStart, pageEnd);
@@ -155,24 +196,6 @@ export default class SearchableUserList extends React.Component {
                     </button>
                 );
             }
-
-            const startCount = this.props.page * this.props.usersPerPage;
-            const endCount = startCount + usersToDisplay.length;
-
-            if (this.props.total) {
-                count = (
-                    <FormattedMessage
-                        id='filtered_user_list.countTotalPage'
-                        defaultMessage='{startCount, number} - {endCount, number} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
-                        values={{
-                            count: usersToDisplay.length,
-                            startCount: startCount + 1,
-                            endCount,
-                            total: this.props.total
-                        }}
-                    />
-                );
-            }
         }
 
         let filterRow;
@@ -197,7 +220,7 @@ export default class SearchableUserList extends React.Component {
                 <div className='filter-row'>
                     {filterRow}
                     <div className='col-sm-12'>
-                        <span className='member-count pull-left'>{count}</span>
+                        <span className='member-count pull-left'>{this.renderCount(usersToDisplay)}</span>
                     </div>
                 </div>
                 <div

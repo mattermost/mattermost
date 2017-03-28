@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import React from 'react';
-import {FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import ResetPasswordModal from 'components/admin_console/reset_password_modal.jsx';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list.jsx';
@@ -153,6 +153,48 @@ export default class SystemUsersList extends React.Component {
         return info;
     }
 
+    renderCount(count, total, startCount, endCount, isSearch) {
+        if (total) {
+            if (isSearch) {
+                return (
+                    <FormattedMessage
+                        id='system_users_list.countSearch'
+                        defaultMessage='{count, number} {count, plural, one {user} other {users}} of {total} total'
+                        values={{
+                            count,
+                            total
+                        }}
+                    />
+                );
+            } else if (startCount !== 0 || endCount !== total) {
+                return (
+                    <FormattedMessage
+                        id='system_users_list.countPage'
+                        defaultMessage='{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total} total'
+                        values={{
+                            count,
+                            startCount: startCount + 1,
+                            endCount,
+                            total
+                        }}
+                    />
+                );
+            }
+
+            return (
+                <FormattedMessage
+                    id='system_users_list.count'
+                    defaultMessage='{count, number} {count, plural, one {user} other {users}}'
+                    values={{
+                        count
+                    }}
+                />
+            );
+        }
+
+        return null;
+    }
+
     render() {
         const extraInfo = {};
         if (this.props.users) {
@@ -165,6 +207,7 @@ export default class SystemUsersList extends React.Component {
             <div>
                 <SearchableUserList
                     {...this.props}
+                    renderCount={this.renderCount}
                     extraInfo={extraInfo}
                     actions={[SystemUsersDropdown]}
                     actionProps={{

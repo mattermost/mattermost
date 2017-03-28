@@ -327,6 +327,7 @@ export default class SystemUsers extends React.Component {
                         users={users}
                         usersPerPage={USERS_PER_PAGE}
                         total={this.state.totalUsers}
+                        teams={this.state.teams}
                         teamId={this.state.teamId}
                         term={this.state.term}
                         onTermChange={this.handleTermChange}
