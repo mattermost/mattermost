@@ -164,6 +164,7 @@ export default class TeamAnalytics extends React.Component {
             postTotalGraph = (
                 <div className='row'>
                     <LineChart
+                        key={this.state.team.id}
                         title={
                             <FormattedMessage
                                 id='analytics.team.totalPosts'
@@ -185,6 +186,7 @@ export default class TeamAnalytics extends React.Component {
             userActiveGraph = (
                 <div className='row'>
                     <LineChart
+                        key={this.state.team.id}
                         title={
                             <FormattedMessage
                                 id='analytics.team.activeUsers'
