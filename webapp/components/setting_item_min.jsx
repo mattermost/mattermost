@@ -13,7 +13,7 @@ export default class SettingItemMin extends React.Component {
             editButton = (
                 <li className='col-xs-12 col-sm-3 section-edit'>
                     <a
-                        id={Utils.createSafeId(this.props.title.toString() + 'Edit')}
+                        id={Utils.createSafeId(this.props.title) + 'Edit'}
                         className='theme'
                         href='#'
                         onClick={this.props.updateSection}
@@ -36,7 +36,7 @@ export default class SettingItemMin extends React.Component {
                 <li className='col-xs-12 col-sm-9 section-title'>{this.props.title}</li>
                 {editButton}
                 <li
-                    id={Utils.createSafeId(this.props.title.toString() + 'Desc')}
+                    id={Utils.createSafeId(this.props.title) + 'Desc'}
                     className='col-xs-12 section-describe'
                 >
                     {this.props.describe}
