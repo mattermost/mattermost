@@ -229,7 +229,7 @@ export default class TeamAnalytics extends React.Component {
                                 id='analytics.team.title'
                                 defaultMessage='Team Statistics for {team}'
                                 values={{
-                                    team: this.state.team.name
+                                    team: this.state.team.display_name
                                 }}
                             />
                         </h3>
