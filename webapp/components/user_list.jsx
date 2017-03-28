@@ -43,12 +43,12 @@ export default class UserList extends React.Component {
             content = (
                 <div
                     key='no-users-found'
-                    className='no-channel-message'
+                    className='more-modal__placeholder-row'
                 >
-                    <p className='primary-message'>
+                    <p>
                         <FormattedMessage
                             id='user_list.notFound'
-                            defaultMessage='No users found :('
+                            defaultMessage='No users found'
                         />
                     </p>
                 </div>
