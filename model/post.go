@@ -55,10 +55,11 @@ type Post struct {
 }
 
 type PostPatch struct {
-	IsPinned     *bool        `json:"is_pinned"`
-	Message      *string      `json:"message"`
-	FileIds      *StringArray `json:"file_ids"`
-	HasReactions *bool        `json:"has_reactions"`
+	IsPinned     *bool            `json:"is_pinned"`
+	Message      *string          `json:"message"`
+	Props        *StringInterface `json:"props"`
+	FileIds      *StringArray     `json:"file_ids"`
+	HasReactions *bool            `json:"has_reactions"`
 }
 
 func (o *Post) ToJson() string {
@@ -205,6 +206,10 @@ func (p *Post) Patch(patch *PostPatch) {
 
 	if patch.Message != nil {
 		p.Message = *patch.Message
+	}
+
+	if patch.Props != nil {
+		p.Props = *patch.Props
 	}
 
 	if patch.FileIds != nil {

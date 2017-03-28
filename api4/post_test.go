@@ -194,6 +194,7 @@ func TestPatchPost(t *testing.T) {
 		ChannelId:    channel.Id,
 		IsPinned:     true,
 		Message:      "#hashtag a message",
+		Props:        model.StringInterface{"channel_header": "old_header"},
 		FileIds:      model.StringArray{"file1", "file2"},
 		HasReactions: true,
 	}
@@ -205,6 +206,8 @@ func TestPatchPost(t *testing.T) {
 	*patch.IsPinned = false
 	patch.Message = new(string)
 	*patch.Message = "#otherhashtag other message"
+	patch.Props = new(model.StringInterface)
+	*patch.Props = model.StringInterface{"channel_header": "new_header"}
 	patch.FileIds = new(model.StringArray)
 	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
 	patch.HasReactions = new(bool)
@@ -218,6 +221,12 @@ func TestPatchPost(t *testing.T) {
 	}
 	if rpost.Message != "#otherhashtag other message" {
 		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.Props) != 1 {
+		t.Fatal("Props did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.Props, *patch.Props) {
+		t.Fatal("Props did not update properly")
 	}
 	if rpost.Hashtags != "#otherhashtag" {
 		t.Fatal("Message did not update properly")
@@ -251,6 +260,10 @@ func TestPatchPost(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.PatchPost(post.Id, patch)
 	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginTeamAdmin()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
 
 	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
 	CheckNoError(t, resp)

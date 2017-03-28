@@ -299,6 +299,7 @@ func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	*newPost = *oldPost
 
 	newPost.Message = post.Message
+	newPost.Props = post.Props
 	newPost.EditAt = model.GetMillis()
 	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
 	newPost.IsPinned = post.IsPinned
