@@ -39,8 +39,6 @@ import:
 - package: golang.org/x/image
   subpackages:
   - bmp
-- package: gopkg.in/fsnotify.v1
-  version: v1.4.2
 - package: gopkg.in/throttled/throttled.v2
   version: v2.0.3
   subpackages:
@@ -79,3 +77,6 @@ import:
 - package: github.com/jaytaylor/html2text
 - package: gopkg.in/gomail.v2
   version: 2.0.0
+- package: github.com/spf13/viper
+- package: github.com/fsnotify/fsnotify
+  version: v1.4.2

@@ -1009,6 +1009,86 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }*/
 
+func TestCheckUserMfa(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	required, resp := Client.CheckUserMfa(th.BasicUser.Email)
+	CheckNoError(t, resp)
+
+	if required {
+		t.Fatal("should be false - mfa not active")
+	}
+
+	_, resp = Client.CheckUserMfa("")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	required, resp = Client.CheckUserMfa(th.BasicUser.Email)
+	CheckNoError(t, resp)
+
+	if required {
+		t.Fatal("should be false - mfa not active")
+	}
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	*utils.License.Features.MFA = true
+	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
+
+	th.LoginBasic()
+
+	required, resp = Client.CheckUserMfa(th.BasicUser.Email)
+	CheckNoError(t, resp)
+
+	if required {
+		t.Fatal("should be false - mfa not active")
+	}
+
+	Client.Logout()
+
+	required, resp = Client.CheckUserMfa(th.BasicUser.Email)
+	CheckNoError(t, resp)
+
+	if required {
+		t.Fatal("should be false - mfa not active")
+	}
+}
+
+/*func TestGenerateMfaSecret(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	_, resp := Client.GenerateMfaSecret(th.BasicUser.Id)
+	CheckNotImplementedStatus(t, resp)
+
+	_, resp = Client.GenerateMfaSecret("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GenerateMfaSecret(model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.GenerateMfaSecret(th.BasicUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
+	CheckNotImplementedStatus(t, resp)
+}*/
+
 func TestUpdateUserPassword(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -1275,7 +1355,36 @@ func TestRevokeSessions(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RevokeSession(th.SystemAdminUser.Id, session.Id)
 	CheckNoError(t, resp)
+}
 
+func TestAttachDeviceId(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
+	pass, resp := Client.AttachDeviceId(deviceId)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if sessions, err := app.GetSessions(th.BasicUser.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if sessions[0].DeviceId != deviceId {
+			t.Fatal("Missing device Id")
+		}
+	}
+
+	_, resp = Client.AttachDeviceId("")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.AttachDeviceId("")
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetUserAudits(t *testing.T) {

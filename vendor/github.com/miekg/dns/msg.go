@@ -327,7 +327,6 @@ End:
 // UnpackDomainName unpacks a domain name into a string.
 func UnpackDomainName(msg []byte, off int) (string, int, error) {
 	s := make([]byte, 0, 64)
-	labels := 0
 	off1 := 0
 	lenmsg := len(msg)
 	ptr := 0 // number of pointers followed
@@ -370,15 +369,6 @@ Loop:
 					}
 				}
 			}
-			// never exceed the allowed label count lenght (63) 
-			if labels >= 63 { 
-				return "", lenmsg, &Error{err: "name exceeds 63 labels"}
-			}
-			labels += 1
-			// never exceed the allowed doman name length (255 octets) 
-			if len(s) >= 255 {
-				return "", lenmsg, &Error{err: "name exceeded allowed 255 octets"}
-			}
 			s = append(s, '.')
 			off += c
 		case 0xC0:
@@ -398,9 +388,6 @@ Loop:
 			if ptr++; ptr > 10 {
 				return "", lenmsg, &Error{err: "too many compression pointers"}
 			}
-			// pointer should guarantee that it advances and points forwards at least
-			// but the condition on previous three lines guarantees that it's
-			// at least loop-free
 			off = (c^0xC0)<<8 | int(c1)
 		default:
 			// 0x80 and 0x40 are reserved

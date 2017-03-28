@@ -17,8 +17,12 @@ func InitSystem() {
 
 	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
-	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(updateConfig)).Methods("PUT")
+	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
+	BaseRoutes.ApiRoot.Handle("/config/client", ApiHandler(getClientConfig)).Methods("GET")
+
+	BaseRoutes.ApiRoot.Handle("/license/client", ApiHandler(getClientLicense)).Methods("GET")
+
 	BaseRoutes.ApiRoot.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/email/test", ApiSessionRequired(testEmail)).Methods("POST")
 	BaseRoutes.ApiRoot.Handle("/database/recycle", ApiSessionRequired(databaseRecycle)).Methods("POST")
@@ -154,4 +158,42 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.ArrayToJson(lines)))
+}
+
+func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	format := r.URL.Query().Get("format")
+
+	if format == "" {
+		c.Err = model.NewAppError("getClientConfig", "api.config.client.old_format.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if format != "old" {
+		c.SetInvalidParam("format")
+		return
+	}
+
+	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
+}
+
+func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	format := r.URL.Query().Get("format")
+
+	if format == "" {
+		c.Err = model.NewAppError("getClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if format != "old" {
+		c.SetInvalidParam("format")
+		return
+	}
+
+	etag := utils.GetClientLicenseEtag(true)
+	if HandleEtag(etag, "Get Client License", w, r) {
+		return
+	}
+
+	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+	w.Write([]byte(model.MapToJson(utils.GetSanitizedClientLicense())))
 }

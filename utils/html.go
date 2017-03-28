@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/fsnotify/fsnotify"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"gopkg.in/fsnotify.v1"
 )
 
 // Global storage for templates

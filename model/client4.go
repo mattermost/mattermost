@@ -98,7 +98,7 @@ func (c *Client4) GetChannelsRoute() string {
 	return fmt.Sprintf("/channels")
 }
 
-func (c *Client4) GetPublicChannelsForTeamRoute(teamId string) string {
+func (c *Client4) GetChannelsForTeamRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/channels")
 }
 
@@ -128,6 +128,10 @@ func (c *Client4) GetPostsRoute() string {
 
 func (c *Client4) GetConfigRoute() string {
 	return fmt.Sprintf("/config")
+}
+
+func (c *Client4) GetLicenseRoute() string {
+	return fmt.Sprintf("/license")
 }
 
 func (c *Client4) GetPostRoute(postId string) string {
@@ -541,6 +545,36 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 	}
 }
 
+// CheckUserMfa checks whether a user has MFA active on their account or not based on the
+// provided login id.
+func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
+	requestBody := make(map[string]interface{})
+	requestBody["login_id"] = loginId
+
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/mfa", StringInterfaceToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		data := StringInterfaceFromJson(r.Body)
+		if mfaRequired, ok := data["mfa_required"].(bool); !ok {
+			return false, BuildResponse(r)
+		} else {
+			return mfaRequired, BuildResponse(r)
+		}
+	}
+}
+
+// GenerateMfaSecret will generate a new MFA secret for a user and return it as a string and
+// as a base64 encoded image QR code.
+func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response) {
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/mfa/generate", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MfaSecretFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *Response) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
@@ -610,6 +644,17 @@ func (c *Client4) GetSessions(userId, etag string) ([]*Session, *Response) {
 func (c *Client4) RevokeSession(userId, sessionId string) (bool, *Response) {
 	requestBody := map[string]string{"session_id": sessionId}
 	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/sessions/revoke", MapToJson(requestBody)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// AttachDeviceId attaches a mobile device ID to the current session.
+func (c *Client4) AttachDeviceId(deviceId string) (bool, *Response) {
+	requestBody := map[string]string{"device_id": deviceId}
+	if r, err := c.DoApiPut(c.GetUsersRoute()+"/sessions/device", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -819,6 +864,16 @@ func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag stri
 	}
 }
 
+// GetTeamMembersForUser returns the team members for a user.
+func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMember, *Response) {
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/members", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetTeamMembersByIds will return an array of team members based on the
 // team id and a list of user ids provided. Must be authenticated.
 func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamMember, *Response) {
@@ -849,6 +904,16 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	} else {
 		defer closeBody(r)
 		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RemoveTeamMember will remove a user from a team.
+func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -942,7 +1007,17 @@ func (c *Client4) GetChannelStats(channelId string, etag string) (*ChannelStats,
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if r, err := c.DoApiGet(c.GetPublicChannelsForTeamRoute(teamId)+query, etag); err != nil {
+	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string
+func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*ChannelList, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -962,7 +1037,7 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) (*Chann
 
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) (*ChannelList, *Response) {
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/channels/search", search.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -1303,6 +1378,7 @@ func (c *Client4) GetPing() (bool, *Response) {
 	}
 }
 
+// TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
@@ -1329,6 +1405,28 @@ func (c *Client4) ReloadConfig() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetOldClientConfig will retrieve the parts of the server configuration needed by the
+// client, formatted in the old format.
+func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response) {
+	if r, err := c.DoApiGet(c.GetConfigRoute()+"/client?format=old", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOldClientLicense will retrieve the parts of the server license needed by the
+// client, formatted in the old format.
+func (c *Client4) GetOldClientLicense(etag string) (map[string]string, *Response) {
+	if r, err := c.DoApiGet(c.GetLicenseRoute()+"/client?format=old", etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -2,7 +2,7 @@ SplineFontDB: 3.0
 FontName: glyfTest
 FullName: glyfTest
 FamilyName: glyfTest
-Weight: Regular
+Weight: Book
 Copyright: Copyright 2016 The Go Authors. All rights reserved.\nUse of this font is governed by a BSD-style license that can be found at https://golang.org/LICENSE.
 Version: 001.000
 ItalicAngle: -11.25
@@ -10,38 +10,75 @@ UnderlinePosition: -204
 UnderlineWidth: 102
 Ascent: 1638
 Descent: 410
+sfntRevision: 0x00010000
 LayerCount: 2
 Layer: 0 1 "Back"  1
 Layer: 1 1 "Fore"  0
-XUID: [1021 367 888937226 7862908]
+XUID: [1021 367 888937226 5879518]
 FSType: 8
-OS2Version: 0
+OS2Version: 4
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1484386143
-ModificationTime: 1484386143
+ModificationTime: 1489831626
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
 LineGap: 184
 VLineGap: 0
-OS2TypoAscent: 0
-OS2TypoAOffset: 1
-OS2TypoDescent: 0
-OS2TypoDOffset: 1
+Panose: 2 0 5 3 0 0 0 0 0 0
+OS2TypoAscent: 1638
+OS2TypoAOffset: 0
+OS2TypoDescent: -410
+OS2TypoDOffset: 0
 OS2TypoLinegap: 184
-OS2WinAscent: 0
-OS2WinAOffset: 1
+OS2WinAscent: 1984
+OS2WinAOffset: 0
 OS2WinDescent: 0
-OS2WinDOffset: 1
-HheadAscent: 0
-HheadAOffset: 1
+OS2WinDOffset: 0
+HheadAscent: 1984
+HheadAOffset: 0
 HheadDescent: 0
-HheadDOffset: 1
+HheadDOffset: 0
+OS2SubXSize: 1331
+OS2SubYSize: 1433
+OS2SubXOff: 55
+OS2SubYOff: 286
+OS2SupXSize: 1331
+OS2SupYSize: 1433
+OS2SupXOff: -191
+OS2SupYOff: 983
+OS2StrikeYSize: 102
+OS2StrikeYPos: 530
 OS2Vendor: 'PfEd'
+OS2CodePages: 00000001.00000000
+OS2UnicodeRanges: 00000001.00000000.00000000.00000000
 MarkAttachClasses: 1
 DEI: 91125
-LangName: 1033 
+ShortTable: cvt  2
+  68
+  1297
+EndShort
+ShortTable: maxp 16
+  1
+  0
+  10
+  18
+  2
+  8
+  2
+  2
+  0
+  1
+  1
+  0
+  64
+  46
+  2
+  1
+EndShort
+LangName: 1033 "" "" "Regular" "FontForge : glyfTest : 18-3-2017" "" "Version 001.000" 
+GaspTable: 1 65535 2 0
 Encoding: UnicodeBmp
 UnicodeInterp: none
 NameList: Adobe Glyph List
@@ -49,18 +86,47 @@ DisplaySize: -24
 AntiAlias: 1
 FitToEm: 1
 WinInfo: 0 32 23
-BeginPrivate: 0
-EndPrivate
-TeXData: 1 0 0 346030 173015 115343 0 -1048576 115343 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
-BeginChars: 65536 2
+BeginChars: 65539 10
+
+StartChar: .notdef
+Encoding: 65536 -1 0
+Width: 748
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+68 0 m 1,0,-1
+ 68 1365 l 1,1,-1
+ 612 1365 l 1,2,-1
+ 612 0 l 1,3,-1
+ 68 0 l 1,0,-1
+136 68 m 1,4,-1
+ 544 68 l 1,5,-1
+ 544 1297 l 1,6,-1
+ 136 1297 l 1,7,-1
+ 136 68 l 1,4,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: .null
+Encoding: 65537 -1 1
+Width: 0
+Flags: W
+LayerCount: 2
+EndChar
+
+StartChar: nonmarkingreturn
+Encoding: 65538 -1 2
+Width: 682
+Flags: W
+LayerCount: 2
+EndChar
 
 StartChar: zero
-Encoding: 48 48 0
+Encoding: 48 48 3
 Width: 1228
-VWidth: 0
 Flags: W
-HStem: 0 205<508 700> 1434 205<529 720>
-VStem: 205 164<500 1088> 860 164<550 1139>
 LayerCount: 2
 Fore
 SplineSet
@@ -69,7 +135,7 @@ SplineSet
  369 471 369 471 435 338 c 0,4,5
  502 205 502 205 614 205 c 0,6,7
  860 205 860 205 860 1024 c 0,8,9
- 860 1167 860 1167 793 1300 c 0,10,11
+ 860 1167 860 1167 793 1300 c 1,10,11
  727 1434 727 1434 614 1434 c 0,0,1
 614 1638 m 0,12,13
  1024 1638 1024 1638 1024 819 c 128,-1,14
@@ -81,21 +147,78 @@ Validated: 1
 EndChar
 
 StartChar: one
-Encoding: 49 49 1
+Encoding: 49 49 4
 Width: 819
-VWidth: 0
 Flags: W
-HStem: 0 43G<205 614>
-VStem: 205 410<0 1638>
 LayerCount: 2
 Fore
 SplineSet
-205 0 m 25,0,-1
+205 0 m 1,0,-1
  205 1638 l 1,1,-1
  614 1638 l 1,2,-1
  614 0 l 1,3,-1
- 205 0 l 25,0,-1
+ 205 0 l 1,0,-1
 EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: five
+Encoding: 53 53 5
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 1,0,-1
+ 0 100 l 1,1,-1
+ 400 100 l 1,2,-1
+ 400 0 l 1,3,-1
+ 0 0 l 1,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: six
+Encoding: 54 54 6
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 1 0 0 1 111 234 2
+Validated: 1
+EndChar
+
+StartChar: seven
+Encoding: 55 55 7
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 0.5 0 0 0.5 56 117 2
+Validated: 1
+EndChar
+
+StartChar: eight
+Encoding: 56 56 8
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 1.5 0 0 0.5 56 117 2
+Validated: 1
+EndChar
+
+StartChar: nine
+Encoding: 57 57 9
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 1.36603 0.5 0.365967 0.865967 237 258 2
 Validated: 1
 EndChar
 EndChars

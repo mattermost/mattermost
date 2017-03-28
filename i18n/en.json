@@ -48,6 +48,14 @@
     "translation": "September"
   },
   {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request"
   },
@@ -4706,6 +4714,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No channels were found"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "We couldn't get the channels"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",

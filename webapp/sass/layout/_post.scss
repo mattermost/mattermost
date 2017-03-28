@@ -677,6 +677,18 @@
             .status {
                 visibility: hidden;
             }
+
+            > div {
+                margin-bottom: 0;
+            }
+        }
+
+        &.same--root {
+            &.same--user {
+                .post__header {
+                    height: 0;
+                }
+            }
         }
 
         .post__img {
@@ -728,19 +740,20 @@
         }
 
         .markdown__heading {
-            clear: both;
-            margin: 7px 0;
+            font-size: 1em;
+            margin: 0;
         }
 
         .post__header {
             height: 22px;
+            margin-bottom: 0;
         }
 
         .post__body {
             background: transparent !important;
-            line-height: 1.6;
+            line-height: 1.5;
             margin-top: -1px;
-            padding: 3px 0;
+            padding: 3px 0 0;
 
             .img-div {
                 max-height: 150px;
@@ -760,6 +773,14 @@
             ul {
                 clear: both;
                 padding-left: 20px;
+            }
+
+            div {
+                margin-bottom: 0;
+            }
+
+            .post-image__column {
+                margin: 3px 0;
             }
         }
 
@@ -853,6 +874,7 @@
         line-height: 1.6em;
         margin: 0;
         white-space: pre-wrap;
+        width: 100%;
         word-break: break-word;
     }
 
