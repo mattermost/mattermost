@@ -67,6 +67,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"), c.GetSiteURL())
 	} else if len(inviteId) > 0 {
 		ruser, err = app.CreateUserWithInviteId(user, inviteId, c.GetSiteURL())
+	} else if c.IsSystemAdmin() {
+		ruser, err = app.CreateUserAsAdmin(user, c.GetSiteURL())
 	} else {
 		ruser, err = app.CreateUserFromSignup(user, c.GetSiteURL())
 	}
