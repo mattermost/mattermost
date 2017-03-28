@@ -816,6 +816,10 @@
     "translation": "Inicializando rutas del API de cumplimiento"
   },
   {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
@@ -1284,6 +1288,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "Esta licencia sólo soporta {{.Users}} usuarios, cuando tu sistema tiene {{.Count}} usuarios únicos. Los usuarios únicos se cuentan por direcciónes de correo electrónico distintas. Puedes ver el totoal de usuarios en REPORTES DEL SITIO -> Ver Estadísticas."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Nuevo formato de la licencia de cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
   },
   {
     "id": "api.license.init.debug",
@@ -1928,12 +1936,32 @@
     "translation": "Inicializando rutas del API para los estatus"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Inicializando rutas del API para los estatus"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Falla al guardar el estado del user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Usuario no encontrado"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "datos inválidos."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "ID de invitación no válido. No hay un equipo que coincida con el id de invitación."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parámetro requerido para agregar un usuario al equipo."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3126,6 +3154,14 @@
   {
     "id": "authentication.permissions.manage_team_roles.name",
     "translation": "Administrar los roles del Equipo"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Capacidad para leer los canales públicos"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Leer Canales Públicos"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -4678,6 +4714,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No se encontró ningún canal"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "No pudimos obtener los canales"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No se encontró el canal"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
