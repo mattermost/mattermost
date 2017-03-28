@@ -14,7 +14,6 @@ import BrowserStore from 'stores/browser_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {StatTypes} from 'utils/constants.jsx';
 import {convertTeamMapToList} from 'utils/team_utils.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import LineChart from './line_chart.jsx';
 import StatisticCount from './statistic_count.jsx';
@@ -71,18 +70,6 @@ export default class TeamAnalytics extends React.Component {
     componentWillUnmount() {
         AnalyticsStore.removeChangeListener(this.onChange);
         AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!Utils.areObjectsEqual(nextState.stats, this.state.stats)) {
-            return true;
-        }
-
-        if (nextState.teamId !== this.state.teamId) {
-            return true;
-        }
-
-        return false;
     }
 
     onChange() {
