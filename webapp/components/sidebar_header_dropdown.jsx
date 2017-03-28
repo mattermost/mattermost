@@ -304,7 +304,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             sysAdminLink = (
                 <li>
                     <Link
-                        id="System_Consol"
+                        id='System_Console'
                         to={'/admin_console'}
                         onClick={this.handleClick}
                     >
