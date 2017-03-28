@@ -35,6 +35,7 @@ type TestHelper struct {
 	BasicPrivateChannel *model.Channel
 	BasicChannel2       *model.Channel
 	BasicPost           *model.Post
+	PinnedPost          *model.Post
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -144,6 +145,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
+	me.PinnedPost = me.CreatePinnedPost()
 	me.BasicUser = me.CreateUser()
 	LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
