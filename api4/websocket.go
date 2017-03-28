@@ -1,7 +1,7 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package api4
 
 import (
 	"net/http"
@@ -15,10 +15,11 @@ import (
 
 func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
-	BaseRoutes.Users.Handle("/websocket", ApiAppHandlerTrustRequester(connect)).Methods("GET")
+
+	BaseRoutes.ApiRoot.Handle("/websocket", ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
 }
 
-func connect(c *Context, w http.ResponseWriter, r *http.Request) {
+func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	originChecker := utils.GetOriginChecker(r)
 
 	upgrader := websocket.Upgrader{
@@ -34,7 +35,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := app.NewWebConn(ws, c.Session, c.T, c.Locale)
+	wc := app.NewWebConn(ws, c.Session, c.T, "")
 
 	if len(c.Session.UserId) > 0 {
 		app.HubRegister(wc)
