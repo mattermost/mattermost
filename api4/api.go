@@ -92,7 +92,6 @@ var BaseRoutes *Routes
 func InitRouter() {
 	app.Srv.Router = mux.NewRouter()
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
-	app.Srv.WebSocketRouter = app.NewWebSocketRouter()
 }
 
 func InitApi(full bool) {
@@ -174,6 +173,7 @@ func InitApi(full bool) {
 	InitBrand()
 	InitCommand()
 	InitStatus()
+	InitWebSocket()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

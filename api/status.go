@@ -18,18 +18,11 @@ func InitStatus() {
 
 	BaseRoutes.Users.Handle("/status", ApiUserRequired(getStatusesHttp)).Methods("GET")
 	BaseRoutes.Users.Handle("/status/ids", ApiUserRequired(getStatusesByIdsHttp)).Methods("POST")
-	app.Srv.WebSocketRouter.Handle("get_statuses", ApiWebSocketHandler(getStatusesWebSocket))
-	app.Srv.WebSocketRouter.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIdsWebSocket))
 }
 
 func getStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
 	statusMap := model.StatusMapToInterfaceMap(app.GetAllStatuses())
 	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
-}
-
-func getStatusesWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	statusMap := app.GetAllStatuses()
-	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
 func getStatusesByIdsHttp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -47,19 +40,4 @@ func getStatusesByIdsHttp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
-}
-
-func getStatusesByIdsWebSocket(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	var userIds []string
-	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
-		l4g.Error(model.StringInterfaceToJson(req.Data))
-		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
-	}
-
-	statusMap, err := app.GetStatusesByIds(userIds)
-	if err != nil {
-		return nil, err
-	}
-
-	return statusMap, nil
 }

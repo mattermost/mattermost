@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/wsapi"
 
 	l4g "github.com/alecthomas/log4go"
 )
@@ -42,10 +43,12 @@ func SetupEnterprise() *TestHelper {
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
+		wsapi.InitRouter()
 		app.StartServer()
 		utils.InitHTML()
 		api4.InitApi(false)
 		InitApi()
+		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
 
@@ -70,8 +73,10 @@ func Setup() *TestHelper {
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
+		wsapi.InitRouter()
 		app.StartServer()
 		InitApi()
+		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
 

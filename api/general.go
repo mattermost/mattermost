@@ -10,7 +10,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -21,8 +20,6 @@ func InitGeneral() {
 	BaseRoutes.General.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
 	BaseRoutes.General.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
 	BaseRoutes.General.Handle("/ping", ApiAppHandler(ping)).Methods("GET")
-
-	app.Srv.WebSocketRouter.Handle("ping", ApiWebSocketHandler(webSocketPing))
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -71,14 +68,4 @@ func ping(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["version"] = model.CurrentVersion
 	m["server_time"] = fmt.Sprintf("%v", model.GetMillis())
 	w.Write([]byte(model.MapToJson(m)))
-}
-
-func webSocketPing(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	data := map[string]interface{}{}
-	data["text"] = "pong"
-	data["version"] = model.CurrentVersion
-	data["server_time"] = model.GetMillis()
-	data["node_id"] = ""
-
-	return data, nil
 }

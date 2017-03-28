@@ -1,7 +1,7 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package wsapi
 
 import (
 	l4g "github.com/alecthomas/log4go"

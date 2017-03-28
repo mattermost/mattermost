@@ -61,7 +61,6 @@ var BaseRoutes *Routes
 func InitRouter() {
 	app.Srv.Router = mux.NewRouter()
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
-	app.Srv.WebSocketRouter = app.NewWebSocketRouter()
 }
 
 func InitApi() {
