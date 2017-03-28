@@ -688,6 +688,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
+		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(cm.ToJson()))
 	}
 }

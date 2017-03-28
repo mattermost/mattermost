@@ -41,5 +41,6 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("success")
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rcmd.ToJson()))
 }

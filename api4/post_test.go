@@ -22,6 +22,7 @@ func TestCreatePost(t *testing.T) {
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rpost.Message != post.Message {
 		t.Fatal("message didn't match")
