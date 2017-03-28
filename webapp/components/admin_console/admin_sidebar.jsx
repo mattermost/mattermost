@@ -26,6 +26,10 @@ export default class AdminSidebar extends React.Component {
 
     componentDidMount() {
         this.updateTitle();
+
+        if (!Utils.isMobile()) {
+            $('.admin-sidebar .nav-pills__container').perfectScrollbar();
+        }
     }
 
     componentDidUpdate() {
