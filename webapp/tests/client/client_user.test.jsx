@@ -651,23 +651,6 @@ describe('Client.User', function() {
         });
     });
 
-    test('setActiveChannel', function(done) {
-        TestHelper.initBasic(done, () => {
-            var ids = [];
-            ids.push(TestHelper.basicUser().id);
-
-            TestHelper.basicClient().setActiveChannel(
-                TestHelper.basicChannel().id,
-                function() {
-                    done();
-                },
-                function(err) {
-                    done.fail(new Error(err.message));
-                }
-            );
-        });
-    });
-
     test('verifyEmail', function(done) {
         TestHelper.initBasic(done, () => {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
