@@ -75,7 +75,7 @@ export default class WebserverModeDropdownSetting extends React.Component {
                 values={[
                     {value: 'gzip', text: Utils.localizeMessage('admin.webserverModeGzip', 'gzip')},
                     {value: 'uncompressed', text: Utils.localizeMessage('admin.webserverModeUncompressed', 'Uncompressed')},
-                    {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDiabled', 'Disabled')}
+                    {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDisabled', 'Disabled')}
                 ]}
                 label={
                     <FormattedMessage
