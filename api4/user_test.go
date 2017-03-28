@@ -866,25 +866,24 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	defer app.Srv.Store.User().PermanentDelete(user2.Id)
 
-	if rusers, resp := SystemAdminClient.GetUsersWithoutTeam(0, 100, ""); resp.Error != nil {
-		t.Fatal(resp.Error)
-	} else {
-		found1 := false
-		found2 := false
+	rusers, resp := SystemAdminClient.GetUsersWithoutTeam(0, 100, "")
+	CheckNoError(t, resp)
 
-		for _, u := range rusers {
-			if u.Id == user.Id {
-				found1 = true
-			} else if u.Id == user2.Id {
-				found2 = true
-			}
-		}
+	found1 := false
+	found2 := false
 
-		if found1 {
-			t.Fatal("shouldn't have returned user that has a team")
-		} else if !found2 {
-			t.Fatal("should've returned user that has no teams")
+	for _, u := range rusers {
+		if u.Id == user.Id {
+			found1 = true
+		} else if u.Id == user2.Id {
+			found2 = true
 		}
+	}
+
+	if found1 {
+		t.Fatal("shouldn't have returned user that has a team")
+	} else if !found2 {
+		t.Fatal("should've returned user that has no teams")
 	}
 }
 
