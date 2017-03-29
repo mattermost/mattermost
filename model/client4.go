@@ -1193,6 +1193,16 @@ func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
 	}
 }
 
+// PatchPost partially updates a post. Any missing fields are not updated.
+func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId)+"/patch", patch.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPost gets a single post.
 func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId), etag); err != nil {
