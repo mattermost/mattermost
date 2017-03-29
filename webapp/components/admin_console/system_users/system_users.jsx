@@ -26,6 +26,7 @@ import SystemUsersList from './system_users_list.jsx';
 const ALL_USERS = '';
 const NO_TEAM = 'no_team';
 
+const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 export default class SystemUsers extends React.Component {
@@ -217,9 +218,19 @@ export default class SystemUsers extends React.Component {
                                 loading: false,
                                 users
                             });
-                        } else {
+                        } else if (term.length === USER_ID_LENGTH) {
+                            // This term didn't match any users name, but it does look like it might be a user's ID
                             this.getUserById(term, searchTimeoutId);
+                        } else {
+                            this.setState({
+                                loading: false
+                            });
                         }
+                    },
+                    () => {
+                        this.setState({
+                            loading: false
+                        });
                     }
                 );
             },
