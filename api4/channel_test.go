@@ -1322,6 +1322,45 @@ func TestGetChannelStats(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetPinnedPosts(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	posts, resp := Client.GetPinnedPosts(channel.Id, "")
+	CheckNoError(t, resp)
+	if len(posts.Posts) != 0 {
+		t.Fatal("should not have gotten a pinned post")
+	}
+
+	pinnedPost := th.CreatePinnedPost()
+	posts, resp = Client.GetPinnedPosts(channel.Id, "")
+	CheckNoError(t, resp)
+	if len(posts.Posts) != 1 {
+		t.Fatal("should have returned 1 pinned post")
+	}
+	if _, ok := posts.Posts[pinnedPost.Id]; !ok {
+		t.Fatal("missing pinned post")
+	}
+
+	posts, resp = Client.GetPinnedPosts(channel.Id, resp.Etag)
+	CheckEtag(t, posts, resp)
+
+	_, resp = Client.GetPinnedPosts(GenerateTestId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetPinnedPosts("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetPinnedPosts(channel.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetPinnedPosts(channel.Id, "")
+	CheckNoError(t, resp)
+}
+
 func TestUpdateChannelRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
