@@ -309,7 +309,7 @@ func TestUnpinPost(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	pinnedPost := th.PinnedPost
+	pinnedPost := th.CreatePinnedPost()
 	pass, resp := Client.UnpinPost(pinnedPost.Id)
 	CheckNoError(t, resp)
 
