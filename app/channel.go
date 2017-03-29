@@ -1053,3 +1053,11 @@ func PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 	return nil
 }
+
+func GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetPinnedPosts(channelId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
