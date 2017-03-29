@@ -120,7 +120,22 @@ export default class SystemUsers extends React.Component {
 
     updateUsersFromStore(teamId = this.state.teamId, term = this.state.term) {
         if (term) {
-            if (teamId !== this.state.teamId) {
+            if (teamId === this.state.teamId) {
+                // Search results aren't in the store, so manually update the users in them
+                const users = [...this.state.users];
+
+                for (let i = 0; i < users.length; i++) {
+                    const user = users[i];
+
+                    if (UserStore.hasProfile(user.id)) {
+                        users[i] = UserStore.getProfile(user.id);
+                    }
+                }
+
+                this.setState({
+                    users
+                });
+            } else {
                 this.doSearch(teamId, term, true);
             }
 

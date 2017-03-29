@@ -603,20 +603,16 @@ export function updateUserNotifyProps(data, success, error) {
 
 export function updateUserRoles(userId, newRoles, success, error) {
     Client.updateUserRoles(
-      userId,
-      newRoles,
-      () => {
-          AsyncClient.getUser(userId);
-
-          if (success) {
-              success();
-          }
-      },
-      (err) => {
-          if (error) {
-              error(err);
-          }
-      }
+        userId,
+        newRoles,
+        () => {
+            AsyncClient.getUser(
+                userId,
+                success,
+                error
+            );
+        },
+        error
     );
 }
 
@@ -681,18 +677,17 @@ export function checkMfa(loginId, success, error) {
 
 export function updateActive(userId, active, success, error) {
     Client.updateActive(userId, active,
-        () => {
-            AsyncClient.getUser(userId);
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILE,
+                profile: data
+            });
 
             if (success) {
-                success();
+                success(data);
             }
         },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        }
+        error
     );
 }
 
