@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import * as TeamActions from 'actions/team_actions.jsx';
 
@@ -176,7 +177,10 @@ export default class ManageTeamsModal extends React.Component {
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
-                        {'Manage Teams'}
+                        <FormattedMessage
+                            id='admin.user_item.manageTeams'
+                            defaultMessage='Manage Teams'
+                        />
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>

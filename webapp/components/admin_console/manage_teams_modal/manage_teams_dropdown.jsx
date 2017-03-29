@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {DropdownButton, MenuItem} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 import {updateTeamMemberRoles, removeUserFromTeam} from 'actions/team_actions.jsx';
 
@@ -82,19 +83,33 @@ export default class ManageTeamsDropdown extends React.Component {
 
         let title;
         if (isTeamAdmin) {
-            title = 'Team Admin';
+            title = Utils.localizeMessage('admin.user_item.teamAdmin', 'Team Admin');
         } else {
-            title = 'Team Member';
+            title = Utils.localizeMessage('admin.user_item.teamMember', 'Team Member');
         }
 
         let makeTeamAdmin = null;
         if (!isTeamAdmin) {
-            makeTeamAdmin = <MenuItem onSelect={this.makeTeamAdmin}>{'Make Team Admin'}</MenuItem>;
+            makeTeamAdmin = (
+                <MenuItem onSelect={this.makeTeamAdmin}>
+                    <FormattedMessage
+                        id='admin.user_item.makeTeamAdmin'
+                        defaultMessage='Make Team Admin'
+                    />
+                </MenuItem>
+            );
         }
 
         let makeMember = null;
         if (isTeamAdmin) {
-            makeMember = <MenuItem onSelect={this.makeMember}>{'Make Member'}</MenuItem>;
+            makeMember = (
+                <MenuItem onSelect={this.makeMember}>
+                    <FormattedMessage
+                        id='admin.user_item.makeMember'
+                        defaultMessage='Make Member'
+                    />
+                </MenuItem>
+            );
         }
 
         return (
@@ -106,7 +121,12 @@ export default class ManageTeamsDropdown extends React.Component {
             >
                 {makeTeamAdmin}
                 {makeMember}
-                <MenuItem onSelect={this.removeFromTeam}>{'Remove from Team'}</MenuItem>
+                <MenuItem onSelect={this.removeFromTeam}>
+                    <FormattedMessage
+                        id='team_members_dropdown.leave_team'
+                        defaultMessage='Remove from Team'
+                    />
+                </MenuItem>
             </DropdownButton>
         );
     }

@@ -300,7 +300,10 @@ export default class SystemUsersDropdown extends React.Component {
                         href='#'
                         onClick={this.handleManageTeams}
                     >
-                        {'Manage Teams'}
+                        <FormattedMessage
+                            id='admin.user_item.manageTeams'
+                            defaultMessage='Manage Teams'
+                        />
                     </a>
                 </li>
             );

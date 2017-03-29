@@ -896,6 +896,7 @@
   "admin.user_item.makeMember": "Make Member",
   "admin.user_item.makeSysAdmin": "Make System Admin",
   "admin.user_item.makeTeamAdmin": "Make Team Admin",
+  "admin.user_item.manageTeams": "Manage Teams",
   "admin.user_item.member": "Member",
   "admin.user_item.mfaNo": "<strong>MFA</strong>: No",
   "admin.user_item.mfaYes": "<strong>MFA</strong>: Yes",
