@@ -299,23 +299,50 @@ func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	*newPost = *oldPost
 
 	newPost.Message = post.Message
+	newPost.Props = post.Props
 	newPost.EditAt = model.GetMillis()
 	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+	newPost.IsPinned = post.IsPinned
+	newPost.HasReactions = post.HasReactions
+	newPost.FileIds = post.FileIds
 
 	if result := <-Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 		return nil, result.Err
 	} else {
 		rpost := result.Data.(*model.Post)
 
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
-		message.Add("post", rpost.ToJson())
-
-		go Publish(message)
+		sendUpdatedPostEvent(rpost)
 
 		InvalidateCacheForChannelPosts(rpost.ChannelId)
 
 		return rpost, nil
 	}
+}
+
+func PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+	post, err := GetSinglePost(postId)
+	if err != nil {
+		return nil, err
+	}
+
+	post.Patch(patch)
+
+	updatedPost, err := UpdatePost(post)
+	if err != nil {
+		return nil, err
+	}
+
+	sendUpdatedPostEvent(updatedPost)
+	InvalidateCacheForChannelPosts(updatedPost.ChannelId)
+
+	return updatedPost, nil
+}
+
+func sendUpdatedPostEvent(post *model.Post) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
+	message.Add("post", post.ToJson())
+
+	go Publish(message)
 }
 
 func GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {

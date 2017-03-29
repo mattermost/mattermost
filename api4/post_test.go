@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -165,6 +166,107 @@ func TestUpdatePost(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestPatchPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	utils.SetDefaultRolesBasedOnConfig()
+
+	post := &model.Post{
+		ChannelId:    channel.Id,
+		IsPinned:     true,
+		Message:      "#hashtag a message",
+		Props:        model.StringInterface{"channel_header": "old_header"},
+		FileIds:      model.StringArray{"file1", "file2"},
+		HasReactions: true,
+	}
+	post, _ = Client.CreatePost(post)
+
+	patch := &model.PostPatch{}
+
+	patch.IsPinned = new(bool)
+	*patch.IsPinned = false
+	patch.Message = new(string)
+	*patch.Message = "#otherhashtag other message"
+	patch.Props = new(model.StringInterface)
+	*patch.Props = model.StringInterface{"channel_header": "new_header"}
+	patch.FileIds = new(model.StringArray)
+	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
+	patch.HasReactions = new(bool)
+	*patch.HasReactions = false
+
+	rpost, resp := Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+
+	if rpost.IsPinned != false {
+		t.Fatal("IsPinned did not update properly")
+	}
+	if rpost.Message != "#otherhashtag other message" {
+		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.Props) != 1 {
+		t.Fatal("Props did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.Props, *patch.Props) {
+		t.Fatal("Props did not update properly")
+	}
+	if rpost.Hashtags != "#otherhashtag" {
+		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.FileIds) != 3 {
+		t.Fatal("FileIds did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
+		t.Fatal("FileIds did not update properly")
+	}
+	if rpost.HasReactions != false {
+		t.Fatal("HasReactions did not update properly")
+	}
+
+	if r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	_, resp = Client.PatchPost("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchPost(GenerateTestId(), patch)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginTeamAdmin()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
 }
 
 func TestGetPostsForChannel(t *testing.T) {
