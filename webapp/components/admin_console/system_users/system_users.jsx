@@ -313,7 +313,12 @@ export default class SystemUsers extends React.Component {
                     />
                 </div>
                 <label>
-                    <span className='system-users__team-filter-label'>{'Filter:'}</span>
+                    <span className='system-users__team-filter-label'>
+                        <FormattedMessage
+                            id='filtered_user_list.show'
+                            defaultMessage='Filter:'
+                        />
+                    </span>
                     <select
                         className='form-control system-users__team-filter'
                         onChange={this.handleTeamChange}
