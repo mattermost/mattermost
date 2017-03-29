@@ -4,7 +4,10 @@
 package api4
 
 import (
+	"bytes"
+	"io"
 	"net/http"
+	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -36,6 +39,8 @@ func InitTeam() {
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
 	BaseRoutes.TeamByName.Handle("/exists", ApiSessionRequired(teamExists)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
+
+	BaseRoutes.Team.Handle("/import", ApiSessionRequired(importTeam)).Methods("POST")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -466,4 +471,78 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(model.MapBoolToJson(resp)))
 	return
+}
+
+func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_IMPORT_TEAM) {
+		c.SetPermissionError(model.PERMISSION_IMPORT_TEAM)
+		return
+	}
+
+	if err := r.ParseMultipartForm(10000000); err != nil {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error())
+		return
+	}
+
+	importFromArray, ok := r.MultipartForm.Value["importFrom"]
+	importFrom := importFromArray[0]
+
+	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
+	if !ok {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.unavailable.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileSize, err := strconv.ParseInt(fileSizeStr[0], 10, 64)
+	if err != nil {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.integer.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileInfoArray, ok := r.MultipartForm.File["file"]
+	if !ok {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.no_file.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(fileInfoArray) <= 0 {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.array.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileInfo := fileInfoArray[0]
+
+	fileData, err := fileInfo.Open()
+	defer fileData.Close()
+	if err != nil {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.open.app_error", nil, err.Error())
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	var log *bytes.Buffer
+	switch importFrom {
+	case "slack":
+		var err *model.AppError
+		if err, log = app.SlackImport(fileData, fileSize, c.Params.TeamId); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusBadRequest
+		}
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
+	w.Header().Set("Content-Type", "application/octet-stream")
+	if c.Err != nil {
+		w.WriteHeader(c.Err.StatusCode)
+	}
+	io.Copy(w, bytes.NewReader(log.Bytes()))
 }

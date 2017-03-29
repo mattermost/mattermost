@@ -94,6 +94,10 @@ func (c *Client4) GetTeamStatsRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/stats")
 }
 
+func (c *Client4) GetTeamImportRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/import")
+}
+
 func (c *Client4) GetChannelsRoute() string {
 	return fmt.Sprintf("/channels")
 }
@@ -270,6 +274,27 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 	} else {
 		defer closeBody(rp)
 		return FileUploadResponseFromJson(rp.Body), BuildResponse(rp)
+	}
+}
+
+func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) ([]byte, *Response) {
+	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq.Header.Set("Content-Type", contentType)
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
+	} else if rp.StatusCode >= 300 {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else if data, err := ioutil.ReadAll(rp.Body); err != nil {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError("UploadImportTeam", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode)}
+	} else {
+		defer closeBody(rp)
+		return data, BuildResponse(rp)
 	}
 }
 
@@ -960,6 +985,36 @@ func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response) 
 		defer closeBody(r)
 		return TeamUnreadFromJson(r.Body), BuildResponse(r)
 	}
+}
+
+// ImportTeam will update the roles on a team for a user.
+func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, teamId string) ([]byte, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("file", filename); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if part, err := writer.CreateFormField("filesize"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file_size.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, strings.NewReader(strconv.Itoa(filesize))); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file_size.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if part, err := writer.CreateFormField("importFrom"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.import_from.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.import_from.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	return c.DoUploadImportTeam(c.GetTeamImportRoute(teamId), body.Bytes(), writer.FormDataContentType())
 }
 
 // Channel Section

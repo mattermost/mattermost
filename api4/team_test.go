@@ -4,9 +4,11 @@
 package api4
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/platform/app"
@@ -1044,4 +1046,78 @@ func TestTeamExists(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.TeamExists(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestImportTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+
+	t.Run("ImportTeam", func(t *testing.T) {
+		var data []byte
+		var err error
+		data, err = readTestFile("Fake_Team_Import.zip")
+		if err != nil && len(data) == 0 {
+			t.Fatal("Error while reading the test file.")
+		}
+
+		// Import the channels/users/posts
+		fileResp, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		fileReturned := fmt.Sprintf("%s", fileResp)
+		if !strings.Contains(fileReturned, "darth.vader@stardeath.com") {
+			t.Log(fileReturned)
+			t.Fatal("failed to report the user was imported")
+		}
+
+		// Checking the imported users
+		importedUser, resp := th.SystemAdminClient.GetUserByUsername("bot_test", "")
+		CheckNoError(t, resp)
+		if importedUser.Username != "bot_test" {
+			t.Fatal("username should match with the imported user")
+		}
+
+		importedUser, resp = th.SystemAdminClient.GetUserByUsername("lordvader", "")
+		CheckNoError(t, resp)
+		if importedUser.Username != "lordvader" {
+			t.Fatal("username should match with the imported user")
+		}
+
+		// Checking the imported Channels
+		importedChannel, resp := th.SystemAdminClient.GetChannelByName("testchannel", th.BasicTeam.Id, "")
+		CheckNoError(t, resp)
+		if importedChannel.Name != "testchannel" {
+			t.Fatal("names did not match expected: testchannel")
+		}
+
+		importedChannel, resp = th.SystemAdminClient.GetChannelByName("general", th.BasicTeam.Id, "")
+		CheckNoError(t, resp)
+		if importedChannel.Name != "general" {
+			t.Fatal("names did not match expected: general")
+		}
+
+		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		if posts.Posts[posts.Order[3]].Message != "This is a test post to test the import process" {
+			t.Fatal("missing posts in the import process")
+		}
+	})
+
+	t.Run("MissingFile", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.ImportTeam(nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("WrongPermission", func(t *testing.T) {
+		var data []byte
+		var err error
+		data, err = readTestFile("Fake_Team_Import.zip")
+		if err != nil && len(data) == 0 {
+			t.Fatal("Error while reading the test file.")
+		}
+
+		// Import the channels/users/posts
+		_, resp := th.Client.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+	})
 }
