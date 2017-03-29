@@ -35,7 +35,7 @@ type WebConn struct {
 	Locale                    string
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
-	Sequence                  uint64
+	Sequence                  int64
 }
 
 func NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
@@ -105,13 +105,19 @@ func (c *WebConn) WritePump() {
 				return
 			}
 
-			//msgCopy := *msg
-			//msgCopy.Sequence = c.Sequence
-			msg.SetSequence(c.Sequence)
-			c.Sequence++
+			var msgBytes []byte
+			if evt, ok := msg.(*model.WebSocketEvent); ok {
+				cpyEvt := &model.WebSocketEvent{}
+				*cpyEvt = *evt
+				cpyEvt.Sequence = c.Sequence
+				msgBytes = []byte(cpyEvt.ToJson())
+				c.Sequence++
+			} else {
+				msgBytes = []byte(msg.ToJson())
+			}
 
 			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteMessage(websocket.TextMessage, []byte(msg.ToJson())); err != nil {
+			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
 				// browsers will appear as CloseNoStatusReceived
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))

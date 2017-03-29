@@ -37,7 +37,6 @@ type WebSocketMessage interface {
 	ToJson() string
 	IsValid() bool
 	EventType() string
-	SetSequence(seq uint64)
 }
 
 type WebsocketBroadcast struct {
@@ -48,11 +47,10 @@ type WebsocketBroadcast struct {
 }
 
 type WebSocketEvent struct {
-	Event          string                 `json:"event"`
-	Data           map[string]interface{} `json:"data"`
-	Broadcast      *WebsocketBroadcast    `json:"broadcast"`
-	Sequence       uint64                 `json:"seq"`
-	PreComputeJson []byte                 `json:"-"`
+	Event     string                 `json:"event"`
+	Data      map[string]interface{} `json:"data"`
+	Broadcast *WebsocketBroadcast    `json:"broadcast"`
+	Sequence  int64                  `json:"seq"`
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
@@ -70,10 +68,6 @@ func (o *WebSocketEvent) IsValid() bool {
 
 func (o *WebSocketEvent) EventType() string {
 	return o.Event
-}
-
-func (o *WebSocketEvent) SetSequence(seq uint64) {
-	o.Sequence = seq
 }
 
 func (o *WebSocketEvent) ToJson() string {
@@ -97,11 +91,10 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 }
 
 type WebSocketResponse struct {
-	Status         string                 `json:"status"`
-	SeqReply       int64                  `json:"seq_reply,omitempty"`
-	Data           map[string]interface{} `json:"data,omitempty"`
-	Error          *AppError              `json:"error,omitempty"`
-	PreComputeJson []byte                 `json:"-"`
+	Status   string                 `json:"status"`
+	SeqReply int64                  `json:"seq_reply,omitempty"`
+	Data     map[string]interface{} `json:"data,omitempty"`
+	Error    *AppError              `json:"error,omitempty"`
 }
 
 func (m *WebSocketResponse) Add(key string, value interface{}) {
@@ -122,9 +115,6 @@ func (o *WebSocketResponse) IsValid() bool {
 
 func (o *WebSocketResponse) EventType() string {
 	return ""
-}
-
-func (o *WebSocketResponse) SetSequence(seq uint64) {
 }
 
 func (o *WebSocketResponse) ToJson() string {
