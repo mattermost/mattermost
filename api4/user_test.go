@@ -15,9 +15,10 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
+	AdminClient := th.SystemAdminClient
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
 
@@ -63,6 +64,19 @@ func TestCreateUser(t *testing.T) {
 	_, resp = Client.CreateUser(ruser)
 	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
 	CheckBadRequestStatus(t, resp)
+
+	openServer := *utils.Cfg.TeamSettings.EnableOpenServer
+	canCreateAccount := utils.Cfg.TeamSettings.EnableUserCreation
+	defer func() {
+		*utils.Cfg.TeamSettings.EnableOpenServer = openServer
+		utils.Cfg.TeamSettings.EnableUserCreation = canCreateAccount
+	}()
+	*utils.Cfg.TeamSettings.EnableOpenServer = false
+	utils.Cfg.TeamSettings.EnableUserCreation = false
+
+	user2 := &model.User{Email: GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername()}
+	_, resp = AdminClient.CreateUser(user2)
+	CheckNoError(t, resp)
 
 	if r, err := Client.DoApiPost("/users", "garbage"); err == nil {
 		t.Fatal("should have errored")
