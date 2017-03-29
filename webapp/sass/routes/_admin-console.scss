@@ -533,12 +533,12 @@
         align-items: center;
         display: flex;
         padding: 10px;
+    }
 
-        & + & {
-            border-top-color: lightgray;
-            border-top-style: solid;
-            border-top-width: 1px;
-        }
+    .manage-teams__team + .manage-teams__team {
+        border-top-color: lightgray;
+        border-top-style: solid;
+        border-top-width: 1px;
     }
 
     .manage-teams__team-name {
