@@ -324,7 +324,8 @@ export default class RhsThread extends React.Component {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
         const profiles = this.state.profiles || {};
-        let previousPostDay = Utils.getDateForUnixTicks(selected.create_at);
+        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
+        let previousPostDay = rootPostDay;
 
         if (postsArray == null || selected == null) {
             return (
@@ -425,7 +426,7 @@ export default class RhsThread extends React.Component {
                 >
                     <div className='post-right__scroll'>
                         <DateSeparator
-                            date={previousPostDay}
+                            date={rootPostDay.toDateString()}
                         />
                         <RootPost
                             ref={selected.id}
