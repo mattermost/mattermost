@@ -882,3 +882,13 @@ export function loadProfiles(offset = UserStore.getPagingOffset(), limit = Const
         }
     );
 }
+
+export function getMissingProfiles(ids, success, error) {
+    const missingIds = ids.filter((id) => !UserStore.hasProfile(id));
+
+    if (missingIds.length === 0) {
+        return;
+    }
+
+    AsyncClient.getProfilesByIds(missingIds, success, error);
+}
