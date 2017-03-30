@@ -17,6 +17,7 @@ func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
 	BaseRoutes.User.Handle("/status", ApiHandler(getUserStatus)).Methods("GET")
+	BaseRoutes.Users.Handle("/status/ids", ApiHandler(getUserStatusesByIds)).Methods("POST")
 
 }
 
@@ -25,6 +26,8 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	// No permission check required
 
 	if statusMap, err := app.GetUserStatusesByIds([]string{c.Params.UserId}); err != nil {
 		c.Err = err
@@ -36,5 +39,23 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.Write([]byte(statusMap[0].ToJson()))
 		}
+	}
+}
+
+func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	// No permission check required
+
+	if statusMap, err := app.GetUserStatusesByIds(userIds); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.StatusListToJson(statusMap)))
 	}
 }

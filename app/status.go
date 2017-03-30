@@ -126,6 +126,7 @@ func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
 
 	// For the case where the user does not have a row in the Status table and cache
 	// remove the existing ids from missingUserIds and then create a offline state for the missing ones
+	// This also return the status offline for the non-existing Ids in the system
 	for i := 0; i < len(missingUserIds); i++ {
 		missingUserId := missingUserIds[i]
 		for _, userMap := range statusMap {
