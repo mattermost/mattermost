@@ -63,7 +63,7 @@ export default class AdminSidebarSection extends React.Component {
 
         let sidebarItem = (
             <Link
-                id=Utils.createSafeId(this.props.name)
+                id={Utils.createSafeId(this.props.name)}
                 className={`${className}-title`}
                 activeClassName={`${className}-title ${className}-title--active`}
                 onlyActiveOnIndex={this.props.onlyActiveOnIndex}
@@ -83,7 +83,7 @@ export default class AdminSidebarSection extends React.Component {
                     className={`${className}-title`}
                 >
                     <span
-                        id=Utils.createSafeId(this.props.name)
+                        id={Utils.createSafeId(this.props.name)}
                         className={`${className}-title__text`}
                     >
                         {this.props.title}
