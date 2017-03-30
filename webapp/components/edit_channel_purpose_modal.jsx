@@ -71,7 +71,7 @@ export default class EditChannelPurposeModal extends React.Component {
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {
-                    this.setState({serverError: Utils.localizeMessage('edit_channel_puropse_modal.error', 'This channel purpose is too long, please enter a shorter one')});
+                    this.setState({serverError: Utils.localizeMessage('edit_channel_purpose_modal.error', 'This channel purpose is too long, please enter a shorter one')});
                 } else {
                     this.setState({serverError: err.message});
                 }

@@ -70,7 +70,7 @@ func (s SqlReactionStore) Save(reaction *model.Reaction) StoreChannel {
 			} else {
 				if err := transaction.Commit(); err != nil {
 					// don't need to rollback here since the transaction is already closed
-					result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit.app_error", nil, err.Error())
+					result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.commit.app_error", nil, err.Error())
 				}
 			}
 
@@ -103,7 +103,7 @@ func (s SqlReactionStore) Delete(reaction *model.Reaction) StoreChannel {
 				result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error())
 			} else if err := transaction.Commit(); err != nil {
 				// don't need to rollback here since the transaction is already closed
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_preference.delete.commit.app_error", nil, err.Error())
+				result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error())
 			} else {
 				result.Data = reaction
 			}
