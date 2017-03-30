@@ -217,13 +217,13 @@ export function createStandardIntroMessage(channel, centeredIntro) {
         uiType = (
             <FormattedMessage
                 id='intro_messages.group'
-                defaultMessage='private group'
+                defaultMessage='private channel'
             />
         );
         memberMessage = (
             <FormattedMessage
                 id='intro_messages.onlyInvited'
-                defaultMessage=' Only invited members can see this private group.'
+                defaultMessage=' Only invited members can see this private channel.'
             />
         );
     } else {
