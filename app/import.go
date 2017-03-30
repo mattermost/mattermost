@@ -865,7 +865,7 @@ func OldImportUser(team *model.Team, user *model.User) *model.User {
 			l4g.Error(utils.T("api.import.import_user.set_email.error"), cresult.Err)
 		}
 
-		if err := JoinUserToTeam(team, user, utils.GetSiteURL()); err != nil {
+		if err := JoinUserToTeam(team, user); err != nil {
 			l4g.Error(utils.T("api.import.import_user.join_team.error"), err)
 		}
 

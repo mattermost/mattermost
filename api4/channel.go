@@ -733,7 +733,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId, c.GetSiteURL()); err != nil {
+	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -768,7 +768,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel, c.GetSiteURL()); err != nil {
+	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel); err != nil {
 		c.Err = err
 		return
 	}

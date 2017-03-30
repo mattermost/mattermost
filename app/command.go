@@ -38,7 +38,7 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-func CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, siteURL string) (*model.Post, *model.AppError) {
+func CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse) (*model.Post, *model.AppError) {
 	post.Message = parseSlackLinksToMarkdown(response.Text)
 	post.CreateAt = model.GetMillis()
 
@@ -48,7 +48,7 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 
 	switch response.ResponseType {
 	case model.COMMAND_RESPONSE_TYPE_IN_CHANNEL:
-		return CreatePost(post, teamId, true, siteURL)
+		return CreatePost(post, teamId, true)
 	case model.COMMAND_RESPONSE_TYPE_EPHEMERAL:
 		if response.Text == "" {
 			return post, nil

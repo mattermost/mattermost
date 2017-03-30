@@ -285,7 +285,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		action := props["action"]
 		switch action {
 		case model.OAUTH_ACTION_SIGNUP:
-			if user, err := app.CreateOAuthUser(service, body, teamId, c.GetSiteURL()); err != nil {
+			if user, err := app.CreateOAuthUser(service, body, teamId); err != nil {
 				c.Err = err
 			} else {
 				doLogin(c, w, r, user, "")
@@ -297,7 +297,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_LOGIN:
 			user := LoginByOAuth(c, w, r, service, body)
 			if len(teamId) > 0 {
-				c.Err = app.AddUserToTeamByTeamId(teamId, user, c.GetSiteURL())
+				c.Err = app.AddUserToTeamByTeamId(teamId, user)
 			}
 			if c.Err == nil {
 				if val, ok := props["redirect_to"]; ok {

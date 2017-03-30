@@ -29,7 +29,7 @@ func CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	}
 }
 
-func CreateTeamWithUser(team *model.Team, userId string, siteURL string) (*model.Team, *model.AppError) {
+func CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
 	if user, err = GetUser(userId); err != nil {
@@ -47,7 +47,7 @@ func CreateTeamWithUser(team *model.Team, userId string, siteURL string) (*model
 		return nil, err
 	}
 
-	if err = JoinUserToTeam(rteam, user, siteURL); err != nil {
+	if err = JoinUserToTeam(rteam, user); err != nil {
 		return nil, err
 	}
 
@@ -161,7 +161,7 @@ func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*mode
 	return member, nil
 }
 
-func AddUserToTeam(teamId string, userId string, siteURL string) (*model.Team, *model.AppError) {
+func AddUserToTeam(teamId string, userId string) (*model.Team, *model.AppError) {
 	tchan := Srv.Store.Team().Get(teamId)
 	uchan := Srv.Store.User().Get(userId)
 
@@ -179,22 +179,22 @@ func AddUserToTeam(teamId string, userId string, siteURL string) (*model.Team, *
 		user = result.Data.(*model.User)
 	}
 
-	if err := JoinUserToTeam(team, user, siteURL); err != nil {
+	if err := JoinUserToTeam(team, user); err != nil {
 		return nil, err
 	}
 
 	return team, nil
 }
 
-func AddUserToTeamByTeamId(teamId string, user *model.User, siteURL string) *model.AppError {
+func AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
 	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
 		return result.Err
 	} else {
-		return JoinUserToTeam(result.Data.(*model.Team), user, siteURL)
+		return JoinUserToTeam(result.Data.(*model.Team), user)
 	}
 }
 
-func AddUserToTeamByHash(userId string, hash string, data string, siteURL string) (*model.Team, *model.AppError) {
+func AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
 	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
@@ -223,14 +223,14 @@ func AddUserToTeamByHash(userId string, hash string, data string, siteURL string
 		user = result.Data.(*model.User)
 	}
 
-	if err := JoinUserToTeam(team, user, siteURL); err != nil {
+	if err := JoinUserToTeam(team, user); err != nil {
 		return nil, err
 	}
 
 	return team, nil
 }
 
-func AddUserToTeamByInviteId(inviteId string, userId string, siteURL string) (*model.Team, *model.AppError) {
+func AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
 	tchan := Srv.Store.Team().GetByInviteId(inviteId)
 	uchan := Srv.Store.User().Get(userId)
 
@@ -248,7 +248,7 @@ func AddUserToTeamByInviteId(inviteId string, userId string, siteURL string) (*m
 		user = result.Data.(*model.User)
 	}
 
-	if err := JoinUserToTeam(team, user, siteURL); err != nil {
+	if err := JoinUserToTeam(team, user); err != nil {
 		return nil, err
 	}
 
@@ -293,7 +293,7 @@ func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) 
 	return false, nil
 }
 
-func JoinUserToTeam(team *model.Team, user *model.User, siteURL string) *model.AppError {
+func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	if alreadyAdded, err := joinUserToTeam(team, user); err != nil {
 		return err
@@ -308,7 +308,7 @@ func JoinUserToTeam(team *model.Team, user *model.User, siteURL string) *model.A
 	}
 
 	// Soft error if there is an issue joining the default channels
-	if err := JoinDefaultChannels(team.Id, user, channelRole, siteURL); err != nil {
+	if err := JoinDefaultChannels(team.Id, user, channelRole); err != nil {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
 	}
 

@@ -63,7 +63,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId, c.GetSiteURL())
+	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return

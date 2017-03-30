@@ -87,7 +87,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(hash) > 0 {
-		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"), c.GetSiteURL())
+		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"))
 	} else if len(inviteId) > 0 {
 		ruser, err = app.CreateUserWithInviteId(user, inviteId, c.GetSiteURL())
 	} else {
@@ -156,7 +156,7 @@ func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service st
 	var err *model.AppError
 	if user, err = app.GetUserByAuth(&authData, service); err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			if user, err = app.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), "", c.GetSiteURL()); err != nil {
+			if user, err = app.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), ""); err != nil {
 				c.Err = err
 				return nil
 			}
@@ -1391,7 +1391,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
-	if user, err := samlInterface.DoLogin(encodedXML, relayProps, c.GetSiteURL()); err != nil {
+	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusFound
 		return
