@@ -1632,3 +1632,137 @@ func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
 		}
 	}
 }
+
+func TestUserStoreGetProfilesNotInTeam(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+	Must(store.User().UpdateUpdateAt(u1.Id))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.User().UpdateUpdateAt(u2.Id))
+
+	var initialUsersNotInTeam int
+	var etag1, etag2, etag3 string
+
+	if er1 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er1.Err != nil {
+		t.Fatal(er1.Err)
+	} else {
+		etag1 = er1.Data.(string)
+	}
+
+	if r1 := <-store.User().GetProfilesNotInTeam(teamId, 0, 100000); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		initialUsersNotInTeam = len(users)
+		if initialUsersNotInTeam < 1 {
+			t.Fatalf("Should be at least 1 user not in the team")
+		}
+
+		found := false
+		for _, u := range users {
+			if u.Id == u2.Id {
+				found = true
+			}
+			if u.Id == u1.Id {
+				t.Fatalf("Should not have found user1")
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user2")
+		}
+	}
+
+	time.Sleep(time.Millisecond * 10)
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
+	Must(store.User().UpdateUpdateAt(u2.Id))
+
+	if er2 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er2.Err != nil {
+		t.Fatal(er2.Err)
+	} else {
+		etag2 = er2.Data.(string)
+		if etag1 == etag2 {
+			t.Fatalf("etag should have changed")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesNotInTeam(teamId, 0, 100000); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+
+		if len(users) != initialUsersNotInTeam-1 {
+			t.Fatalf("Should be one less user not in team")
+		}
+
+		for _, u := range users {
+			if u.Id == u2.Id {
+				t.Fatalf("Should not have found user2")
+			}
+			if u.Id == u1.Id {
+				t.Fatalf("Should not have found user1")
+			}
+		}
+	}
+
+	time.Sleep(time.Millisecond * 10)
+	Must(store.Team().RemoveMember(teamId, u1.Id))
+	Must(store.Team().RemoveMember(teamId, u2.Id))
+	Must(store.User().UpdateUpdateAt(u1.Id))
+	Must(store.User().UpdateUpdateAt(u2.Id))
+
+	if er3 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er3.Err != nil {
+		t.Fatal(er3.Err)
+	} else {
+		etag3 = er3.Data.(string)
+		t.Log(etag3)
+		if etag1 == etag3 || etag3 == etag2 {
+			t.Fatalf("etag should have changed")
+		}
+	}
+
+	if r3 := <-store.User().GetProfilesNotInTeam(teamId, 0, 100000); r3.Err != nil {
+		t.Fatal(r3.Err)
+	} else {
+		users := r3.Data.([]*model.User)
+		found1, found2 := false, false
+		for _, u := range users {
+			if u.Id == u2.Id {
+				found2 = true
+			}
+			if u.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if !found1 || !found2 {
+			t.Fatal("missing user1 or user2")
+		}
+	}
+
+	time.Sleep(time.Millisecond * 10)
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}))
+	Must(store.User().UpdateUpdateAt(u3.Id))
+
+	if er4 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er4.Err != nil {
+		t.Fatal(er4.Err)
+	} else {
+		etag4 := er4.Data.(string)
+		t.Log(etag4)
+		if etag4 != etag3 {
+			t.Fatalf("etag should be the same")
+		}
+	}
+}
