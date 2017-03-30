@@ -373,6 +373,49 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	}
 }
 
+func TestUserStoreGetProfilesWithoutTeam(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	// These usernames need to appear in the first 100 users for this to work
+
+	u1 := &model.User{}
+	u1.Username = "a000000000" + model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+	defer store.User().PermanentDelete(u1.Id)
+
+	u2 := &model.User{}
+	u2.Username = "a000000001" + model.NewId()
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	defer store.User().PermanentDelete(u2.Id)
+
+	if r1 := <-store.User().GetProfilesWithoutTeam(0, 100); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+
+		found1 := false
+		found2 := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found1 = true
+			} else if u.Id == u2.Id {
+				found2 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("shouldn't have returned user on team")
+		} else if !found2 {
+			t.Fatal("should've returned user without any teams")
+		}
+	}
+}
+
 func TestUserStoreGetAllProfilesInChannel(t *testing.T) {
 	Setup()
 

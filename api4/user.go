@@ -269,6 +269,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
+	withoutTeam := r.URL.Query().Get("without_team")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
 		c.SetInvalidParam("team_id")
@@ -279,7 +280,15 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	etag := ""
 
-	if len(notInChannelId) > 0 {
+	if withoutTeamBool, err := strconv.ParseBool(withoutTeam); err == nil && withoutTeamBool {
+		// Use a special permission for now
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_LIST_USERS_WITHOUT_TEAM) {
+			c.SetPermissionError(model.PERMISSION_LIST_USERS_WITHOUT_TEAM)
+			return
+		}
+
+		profiles, err = app.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	} else if len(notInChannelId) > 0 {
 		if !app.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return

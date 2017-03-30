@@ -579,6 +579,27 @@ func GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage
 	return users, nil
 }
 
+func GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersWithoutTeam(page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
+func GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesWithoutTeam(offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
 func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
 		return nil, result.Err
