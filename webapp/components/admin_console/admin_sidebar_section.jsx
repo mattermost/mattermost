@@ -82,10 +82,7 @@ export default class AdminSidebarSection extends React.Component {
                 <div
                     className={`${className}-title`}
                 >
-                    <span
-                        id={Utils.createSafeId(this.props.name)}
-                        className={`${className}-title__text`}
-                    >
+                    <span className={`${className}-title__text`}>
                         {this.props.title}
                     </span>
                     {this.props.action}
