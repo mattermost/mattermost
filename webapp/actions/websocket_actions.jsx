@@ -61,7 +61,13 @@ export function initialize() {
 
     WebSocketClient.setEventCallback(handleEvent);
     WebSocketClient.setFirstConnectCallback(handleFirstConnect);
-    WebSocketClient.setMissedEventCallback(() => reconnect(false));
+    WebSocketClient.setReconnectCallback(() => reconnect(false));
+    WebSocketClient.setMissedEventCallback(() => {
+        if (global.window.mm_config.EnableDeveloper === 'true') {
+            Client.logClientError('missed websocket event seq=' + WebSocketClient.eventSequence);
+        }
+        reconnect(false);
+    });
     WebSocketClient.setCloseCallback(handleClose);
     WebSocketClient.initialize(connUrl);
 }
