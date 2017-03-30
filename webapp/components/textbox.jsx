@@ -157,6 +157,10 @@ export default class Textbox extends React.Component {
         this.setState({preview: !this.state.preview});
     }
 
+    hidePreview() {
+        this.setState({preview: false});
+    }
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.channelId !== this.props.channelId) {
             // Update channel id for AtMentionProvider.
