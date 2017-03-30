@@ -184,6 +184,8 @@ export default class EditPostModal extends React.Component {
     }
 
     onModalHide() {
+        this.refs.editbox.hidePreview();
+
         if (this.state.refocusId !== '') {
             setTimeout(() => {
                 const element = $(this.state.refocusId).get(0);
