@@ -14,6 +14,8 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -153,33 +155,61 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	return nil
 }
 
+func EnableConfigFromEnviromentVars() {
+	viper.SetEnvPrefix("mm")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+}
+
+func EnableConfigWatch() {
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
+		LoadConfig(CfgFileName)
+	})
+}
+
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
 func LoadConfig(fileName string) {
 
-	fileName = FindConfigFile(fileName)
+	fileNameWithExtension := filepath.Base(fileName)
+	fileExtension := filepath.Ext(fileNameWithExtension)
+	fileDir := filepath.Dir(fileName)
 
-	file, err := os.Open(fileName)
-	if err != nil {
-		panic(T("utils.config.load_config.opening.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
-	}
-
-	decoder := json.NewDecoder(file)
-	config := model.Config{}
-	err = decoder.Decode(&config)
-	if err != nil {
-		panic(T("utils.config.load_config.decoding.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
-	}
-
-	if _, err := file.Stat(); err != nil {
-		panic(T("utils.config.load_config.getting.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
+	if len(fileNameWithExtension) > 0 {
+		fileNameOnly := fileNameWithExtension[:len(fileNameWithExtension)-len(fileExtension)]
+		viper.SetConfigName(fileNameOnly)
 	} else {
-		CfgFileName = fileName
+		viper.SetConfigName("config")
 	}
+
+	if len(fileDir) > 0 {
+		viper.AddConfigPath(fileDir)
+	}
+
+	viper.SetConfigType("json")
+	viper.AddConfigPath("./config")
+	viper.AddConfigPath("../config")
+	viper.AddConfigPath(".")
+
+	configReadErr := viper.ReadInConfig()
+	if configReadErr != nil {
+		errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": configReadErr.Error()})
+		fmt.Fprintln(os.Stderr, errMsg)
+		os.Exit(1)
+	}
+
+	var config model.Config
+	unmarshalErr := viper.Unmarshal(&config)
+	if unmarshalErr != nil {
+		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": unmarshalErr.Error()})
+		fmt.Fprintln(os.Stderr, errMsg)
+		os.Exit(1)
+	}
+
+	CfgFileName = viper.ConfigFileUsed()
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
 		len(config.EmailSettings.InviteSalt) == 0 || len(config.EmailSettings.PasswordResetSalt) == 0
@@ -191,7 +221,7 @@ func LoadConfig(fileName string) {
 	}
 
 	if needSave {
-		if err := SaveConfig(fileName, &config); err != nil {
+		if err := SaveConfig(CfgFileName, &config); err != nil {
 			l4g.Warn(T(err.Id))
 		}
 	}
