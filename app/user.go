@@ -105,6 +105,19 @@ func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (
 	return ruser, nil
 }
 
+func CreateUserAsAdmin(user *model.User, siteURL string) (*model.User, *model.AppError) {
+	ruser, err := CreateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, siteURL); err != nil {
+		l4g.Error(err.Error())
+	}
+
+	return ruser, nil
+}
+
 func CreateUserFromSignup(user *model.User, siteURL string) (*model.User, *model.AppError) {
 	if err := IsUserSignUpAllowed(); err != nil {
 		return nil, err
