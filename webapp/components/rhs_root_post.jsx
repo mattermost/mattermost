@@ -559,10 +559,7 @@ export default class RhsRootPost extends React.Component {
                                 />
                             </div>
                             {fileAttachment}
-                            <ReactionListContainer
-                                post={post}
-                                currentUserId={this.props.currentUser.id}
-                            />
+                            <ReactionListContainer post={post}/>
                         </div>
                     </div>
                 </div>
