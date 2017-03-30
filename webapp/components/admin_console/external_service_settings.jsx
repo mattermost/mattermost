@@ -32,12 +32,10 @@ export default class ExternalServiceSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.integrations.external'
-                    defaultMessage='External Services'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.integrations.external'
+                defaultMessage='External Services'
+            />
         );
     }
 

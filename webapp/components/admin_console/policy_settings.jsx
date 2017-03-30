@@ -55,12 +55,10 @@ export default class PolicySettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.policy'
-                    defaultMessage='Policy'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.policy'
+                defaultMessage='Policy'
+            />
         );
     }
 

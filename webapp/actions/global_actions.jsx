@@ -25,6 +25,7 @@ const ActionTypes = Constants.ActionTypes;
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import en from 'i18n/en.json';
@@ -594,7 +595,7 @@ export function redirectUserToDefaultTeam() {
         }
 
         if (myTeams.length > 0) {
-            myTeams = myTeams.sort(Utils.sortTeamsByDisplayName);
+            myTeams = myTeams.sort(sortTeamsByDisplayName);
             teamId = myTeams[0].id;
         }
     }

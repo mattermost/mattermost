@@ -44,12 +44,10 @@ export default class RateSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.rate.title'
-                    defaultMessage='Rate Limit Settings'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.rate.title'
+                defaultMessage='Rate Limit Settings'
+            />
         );
     }
 

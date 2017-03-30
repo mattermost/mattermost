@@ -31,12 +31,10 @@ export default class LinkPreviewsSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.customization.linkPreviews'
-                    defaultMessage='Link Previews'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.customization.linkPreviews'
+                defaultMessage='Link Previews'
+            />
         );
     }
 

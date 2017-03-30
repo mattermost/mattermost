@@ -36,12 +36,10 @@ export default class ConnectionSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.security.connection'
-                    defaultMessage='Connections'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.security.connection'
+                defaultMessage='Connections'
+            />
         );
     }
 

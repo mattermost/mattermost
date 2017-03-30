@@ -46,12 +46,10 @@ export default class DatabaseSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.database.title'
-                    defaultMessage='Database Settings'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.database.title'
+                defaultMessage='Database Settings'
+            />
         );
     }
 

@@ -1126,6 +1126,29 @@ export default class Client {
         this.trackEvent('api', 'api_profiles_get_not_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
+    getProfilesWithoutTeam(page, perPage, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?without_team=1&page=${page}&per_page=${perPage}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesWithoutTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_without_team');
+    }
+
     getProfilesByIds(userIds, success, error) {
         request.
             post(`${this.getUsersRoute()}/ids`).

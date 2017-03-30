@@ -41,12 +41,10 @@ export default class LegalAndSupportSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.customization.support'
-                    defaultMessage='Legal and Support'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.customization.support'
+                defaultMessage='Legal and Support'
+            />
         );
     }
 
