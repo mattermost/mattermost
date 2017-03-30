@@ -314,7 +314,7 @@ export function getChannelMember(channelId, userId) {
     });
 }
 
-export function getUser(userId) {
+export function getUser(userId, success, error) {
     const callName = `getUser${userId}`;
 
     if (isCallInProgress(callName)) {
@@ -331,10 +331,18 @@ export function getUser(userId) {
                 type: ActionTypes.RECEIVED_PROFILE,
                 profile: data
             });
+
+            if (success) {
+                success(data);
+            }
         },
         (err) => {
-            callTracker[callName] = 0;
-            dispatchError(err, 'getUser');
+            if (error) {
+                error(err);
+            } else {
+                callTracker[callName] = 0;
+                dispatchError(err, 'getUser');
+            }
         }
     );
 }

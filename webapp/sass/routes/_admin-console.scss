@@ -28,7 +28,6 @@
     }
 
     h3 {
-        border-bottom: 1px solid alpha-color($black, .1);
         font-weight: 600;
         margin: 1em 0;
         padding-bottom: .5em;
@@ -276,6 +275,10 @@
         @include opacity(.7);
         margin-top: 8px;
     }
+
+    .admin-console-header {
+        border-bottom: 1px solid alpha-color($black, .1);
+    }
 }
 
 .brand-img {
@@ -477,4 +480,24 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 130px;
+}
+
+.system-users__filter-row {
+    display: flex;
+    margin-left: 15px;
+    margin-right: 15px;
+
+    .system-users__filter {
+        flex: 1;
+        margin-right: 15px;
+    }
+
+    .system-users__team-filter-label {
+        margin-right: 15px;
+    }
+
+    .system-users__team-filter {
+        display: inline-block;
+        width: 200px
+    }
 }

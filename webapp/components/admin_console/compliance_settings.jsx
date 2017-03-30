@@ -38,12 +38,10 @@ export default class ComplianceSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.compliance.title'
-                    defaultMessage='Compliance Settings'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.compliance.title'
+                defaultMessage='Compliance Settings'
+            />
         );
     }
 

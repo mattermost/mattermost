@@ -35,12 +35,10 @@ export default class EmailAuthenticationSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.authentication.email'
-                    defaultMessage='Email'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.authentication.email'
+                defaultMessage='Email'
+            />
         );
     }
 

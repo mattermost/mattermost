@@ -56,12 +56,10 @@ export default class EmailSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.notifications.email'
-                    defaultMessage='Email'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.notifications.email'
+                defaultMessage='Email'
+            />
         );
     }
 

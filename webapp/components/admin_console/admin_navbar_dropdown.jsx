@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
-import {sortTeamsByDisplayName} from 'utils/utils.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';

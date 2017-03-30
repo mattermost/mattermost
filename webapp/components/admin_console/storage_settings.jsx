@@ -52,12 +52,10 @@ export default class StorageSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.files.storage'
-                    defaultMessage='Storage'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.files.storage'
+                defaultMessage='Storage'
+            />
         );
     }
 

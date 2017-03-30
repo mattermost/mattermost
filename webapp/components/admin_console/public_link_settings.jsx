@@ -34,12 +34,10 @@ export default class PublicLinkSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.security.public_links'
-                    defaultMessage='Public Links'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.security.public_links'
+                defaultMessage='Public Links'
+            />
         );
     }
 
