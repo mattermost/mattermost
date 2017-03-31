@@ -2010,3 +2010,14 @@ func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response)
 		return StatusListFromJson(r.Body), BuildResponse(r)
 	}
 }
+
+// UpdateUserStatus returns a user based on the provided user id string.
+func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, *Response) {
+	if r, err := c.DoApiPut(c.GetUserStatusRoute(userId), userStatus.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return StatusFromJson(r.Body), BuildResponse(r)
+
+	}
+}
