@@ -244,7 +244,10 @@ function handleLeaveTeamEvent(msg) {
             Client.setTeamId('');
             BrowserStore.removeGlobalItem('team');
             BrowserStore.removeGlobalItem(msg.data.team_id);
-            GlobalActions.redirectUserToDefaultTeam();
+
+            if (!global.location.pathname.startsWith('/admin_console')) {
+                GlobalActions.redirectUserToDefaultTeam();
+            }
         }
     } else {
         UserStore.removeProfileFromTeam(msg.data.team_id, msg.data.user_id);
