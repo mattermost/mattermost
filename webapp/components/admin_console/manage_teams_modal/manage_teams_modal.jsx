@@ -14,6 +14,7 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import ManageTeamsDropdown from './manage_teams_dropdown.jsx';
+import RemoveFromTeamButton from './remove_from_team_button.jsx';
 
 export default class ManageTeamsModal extends React.Component {
     static propTypes = {
@@ -105,6 +106,8 @@ export default class ManageTeamsModal extends React.Component {
             return <LoadingScreen/>;
         }
 
+        const isSystemAdmin = Utils.isAdmin(user.roles);
+
         let name = Utils.getFullName(user);
         if (name) {
             name += ` (@${user.username})`;
@@ -120,6 +123,29 @@ export default class ManageTeamsModal extends React.Component {
                     return null;
                 }
 
+                let action;
+                if (isSystemAdmin) {
+                    action = (
+                        <RemoveFromTeamButton
+                            user={user}
+                            team={team}
+                            onError={this.handleError}
+                            onMemberRemove={this.handleMemberRemove}
+                        />
+                    );
+                } else {
+                    action = (
+                        <ManageTeamsDropdown
+                            user={user}
+                            team={team}
+                            teamMember={teamMember}
+                            onError={this.handleError}
+                            onMemberChange={this.handleMemberChange}
+                            onMemberRemove={this.handleMemberRemove}
+                        />
+                    );
+                }
+
                 return (
                     <div
                         key={team.id}
@@ -129,20 +155,25 @@ export default class ManageTeamsModal extends React.Component {
                             {team.display_name}
                         </div>
                         <div className='manage-teams__team-actions'>
-                            <ManageTeamsDropdown
-                                user={user}
-                                team={team}
-                                teamMember={teamMember}
-                                onError={this.handleError}
-                                onMemberChange={this.handleMemberChange}
-                                onMemberRemove={this.handleMemberRemove}
-                            />
+                            {action}
                         </div>
                     </div>
                 );
             });
         } else {
             teamList = <LoadingScreen/>;
+        }
+
+        let systemAdminIndicator = null;
+        if (isSystemAdmin) {
+            systemAdminIndicator = (
+                <div className='manage-teams__system-admin'>
+                    <FormattedMessage
+                        id='admin.user_item.sysAdmin'
+                        defaultMessage='System Admin'
+                    />
+                </div>
+            );
         }
 
         return (
@@ -160,6 +191,7 @@ export default class ManageTeamsModal extends React.Component {
                             {user.email}
                         </div>
                     </div>
+                    {systemAdminIndicator}
                 </div>
                 <div className='manage-teams__teams'>
                     {teamList}

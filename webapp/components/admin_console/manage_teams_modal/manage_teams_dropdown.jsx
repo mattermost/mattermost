@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import React from 'react';
-import {DropdownButton, MenuItem} from 'react-bootstrap';
+import {Dropdown, MenuItem} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {updateTeamMemberRoles, removeUserFromTeam} from 'actions/team_actions.jsx';
@@ -113,21 +113,25 @@ export default class ManageTeamsDropdown extends React.Component {
         }
 
         return (
-            <DropdownButton
+            <Dropdown
                 id={`manage-teams-${this.props.user.id}-${this.props.teamMember.team_id}`}
                 open={this.state.show}
                 onToggle={this.toggleDropdown}
-                title={title}
             >
-                {makeTeamAdmin}
-                {makeMember}
-                <MenuItem onSelect={this.removeFromTeam}>
-                    <FormattedMessage
-                        id='team_members_dropdown.leave_team'
-                        defaultMessage='Remove from Team'
-                    />
-                </MenuItem>
-            </DropdownButton>
+                <Dropdown.Toggle useAnchor={true}>
+                    {title}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                    {makeTeamAdmin}
+                    {makeMember}
+                    <MenuItem onSelect={this.removeFromTeam}>
+                        <FormattedMessage
+                            id='team_members_dropdown.leave_team'
+                            defaultMessage='Remove from Team'
+                        />
+                    </MenuItem>
+                </Dropdown.Menu>
+            </Dropdown>
         );
     }
 }
