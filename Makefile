@@ -246,7 +246,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f config/*.key
 endif
 
-test-server: test-te test-postgres test-ee
+test-server: test-te test-ee
 
 internal-test-web-client: start-docker prepare-enterprise
 	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
