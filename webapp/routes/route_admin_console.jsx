@@ -85,9 +85,9 @@ export default (
             />
         </Route>
         <Route path='authentication'>
-            <IndexRedirect to='authenticationEmail'/>
+            <IndexRedirect to='authentication_email'/>
             <Route
-                path='authenticationEmail'
+                path='authentication_email'
                 component={EmailAuthenticationSettings}
             />
             <Route
@@ -135,9 +135,9 @@ export default (
             />
         </Route>
         <Route path='notifications'>
-            <IndexRedirect to='notificationsEmail'/>
+            <IndexRedirect to='notifications_email'/>
             <Route
-                path='notificationsEmail'
+                path='notifications_email'
                 component={EmailSettings}
             />
             <Route
