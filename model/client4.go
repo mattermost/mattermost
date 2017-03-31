@@ -1249,6 +1249,26 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 	}
 }
 
+// PinPost pin a post based on provided post id string.
+func (c *Client4) PinPost(postId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/pin", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UnpinPost unpin a post based on provided post id string.
+func (c *Client4) UnpinPost(postId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/unpin", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetPost gets a single post.
 func (c *Client4) GetPost(postId string, etag string) (*Post, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId), etag); err != nil {

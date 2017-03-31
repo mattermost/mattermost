@@ -26,6 +26,8 @@ func InitPost() {
 	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(updatePost)).Methods("PUT")
 	BaseRoutes.Post.Handle("/patch", ApiSessionRequired(patchPost)).Methods("PUT")
+	BaseRoutes.Post.Handle("/pin", ApiSessionRequired(pinPost)).Methods("POST")
+	BaseRoutes.Post.Handle("/unpin", ApiSessionRequired(unpinPost)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -272,6 +274,38 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(patchedPost.ToJson()))
+}
+
+func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	patch := &model.PostPatch{}
+	patch.IsPinned = new(bool)
+	*patch.IsPinned = isPinned
+
+	_, err := app.PatchPost(c.Params.PostId, patch)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func pinPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	saveIsPinnedPost(c, w, r, true)
+}
+
+func unpinPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	saveIsPinnedPost(c, w, r, false)
 }
 
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {

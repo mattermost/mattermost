@@ -270,6 +270,76 @@ func TestPatchPost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPinPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post := th.BasicPost
+	pass, resp := Client.PinPost(post.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if rpost, err := app.GetSinglePost(post.Id); err != nil && rpost.IsPinned != true {
+		t.Fatal("failed to pin post")
+	}
+
+	pass, resp = Client.PinPost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	_, resp = Client.PinPost(GenerateTestId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.PinPost(post.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PinPost(post.Id)
+	CheckNoError(t, resp)
+}
+
+func TestUnpinPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pinnedPost := th.CreatePinnedPost()
+	pass, resp := Client.UnpinPost(pinnedPost.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if rpost, err := app.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned != false {
+		t.Fatal("failed to pin post")
+	}
+
+	pass, resp = Client.UnpinPost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	_, resp = Client.UnpinPost(GenerateTestId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UnpinPost(pinnedPost.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
+	CheckNoError(t, resp)
+}
+
 func TestGetPostsForChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
