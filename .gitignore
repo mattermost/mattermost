@@ -5,6 +5,8 @@ node_modules
 /dist
 /webapp/dist
 npm-debug.log
+mattermost.mattermost-license
+config/mattermost.mattermost-license
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
