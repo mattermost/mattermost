@@ -61,6 +61,8 @@ type TeamStore interface {
 	Get(id string) StoreChannel
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
+	SearchAll(term string) StoreChannel
+	SearchOpen(term string) StoreChannel
 	GetAll() StoreChannel
 	GetAllPage(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel

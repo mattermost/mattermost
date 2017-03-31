@@ -817,6 +817,16 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	}
 }
 
+// SearchTeams returns teams matching the provided search term.
+func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // TeamExists returns true or false if the team exist or not.
 func (c *Client4) TeamExists(name, etag string) (bool, *Response) {
 	if r, err := c.DoApiGet(c.GetTeamByNameRoute(name)+"/exists", etag); err != nil {

@@ -5508,6 +5508,14 @@
     "translation": "We couldn't save the team member"
   },
   {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "We encountered an error searching open teams"
+  },
+  {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "We encountered an error searching teams"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "We couldn't update the team"
   },
