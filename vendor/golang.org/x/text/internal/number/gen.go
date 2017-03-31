@@ -364,7 +364,7 @@ func genFormats(w *gen.CodeWriter, data *cldr.CLDR) {
 	}
 
 	// Fill the first slot with a dummy so we can identify unspecified tags.
-	formats := []number.Format{{}}
+	formats := []number.Pattern{{}}
 	patterns := map[string]int{}
 
 	// TODO: It would be possible to eliminate two of these slices by having

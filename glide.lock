@@ -1,8 +1,9 @@
-hash: a64cfc8472f6345146f4d111d841cca8b8efb25e3d4872865670a3f7db63b23b
-updated: 2017-03-24T16:11:53.990600794-07:00
+hash: 193ce14426dc6d4ae2da1c1aad08389a157529f829ed12948095239e18e045a5
+updated: 2017-03-30T22:26:27.084209918-07:00
 imports:
 - name: github.com/alecthomas/log4go
-  version: e5dc62318d9bd58682f1dceb53a4b24e8253682f
+  version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
+  repo: https://github.com/mattermost/log4go.git
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
@@ -104,7 +105,7 @@ imports:
 - name: github.com/pelletier/go-buffruneio
   version: c37440a7cf42ac63b919c752ca73a85067e05992
 - name: github.com/pelletier/go-toml
-  version: f6e7596e8daafd44dc9e5c208dc73035020c8481
+  version: e32a2e04744250647a72bf17da1b09befc03b6b1
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
@@ -178,7 +179,7 @@ imports:
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: fc7fa097411d30e6708badff276c4c164425590c
+  version: 65f4f820a7954b82e5c9325e1e088a4fda098f36
   subpackages:
   - transform
   - unicode/norm

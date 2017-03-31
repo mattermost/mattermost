@@ -136,7 +136,7 @@ func (n Info) Symbol(t SymbolType) string {
 	return symData.Elem(int(symIndex[n.symIndex][t]))
 }
 
-func formatForLang(t language.Tag, index []byte) *Format {
+func formatForLang(t language.Tag, index []byte) *Pattern {
 	for ; ; t = t.Parent() {
 		if x, ok := language.CompactIndex(t); ok {
 			return &formats[index[x]]

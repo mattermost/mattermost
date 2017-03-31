@@ -16,9 +16,11 @@ import (
 func dec(e encoding.Encoding) (dir string, t transform.Transformer, err error) {
 	return "Decode", e.NewDecoder(), nil
 }
+
 func encASCIISuperset(e encoding.Encoding) (dir string, t transform.Transformer, err error) {
 	return "Encode", e.NewEncoder(), internal.ErrASCIIReplacement
 }
+
 func encEBCDIC(e encoding.Encoding) (dir string, t transform.Transformer, err error) {
 	return "Encode", e.NewEncoder(), internal.RepertoireError(0x3f)
 }
@@ -197,6 +199,57 @@ func TestBasics(t *testing.T) {
 
 	for _, tc := range testCases {
 		enctest.TestEncoding(t, tc.e, tc.encoded, tc.utf8, "", "")
+	}
+}
+
+var windows1255TestCases = []struct {
+	b  byte
+	ok bool
+	r  rune
+}{
+	{'\x00', true, '\u0000'},
+	{'\x1a', true, '\u001a'},
+	{'\x61', true, '\u0061'},
+	{'\x7f', true, '\u007f'},
+	{'\x80', true, '\u20ac'},
+	{'\x95', true, '\u2022'},
+	{'\xa0', true, '\u00a0'},
+	{'\xc0', true, '\u05b0'},
+	{'\xfc', true, '\ufffd'},
+	{'\xfd', true, '\u200e'},
+	{'\xfe', true, '\u200f'},
+	{'\xff', true, '\ufffd'},
+	{encoding.ASCIISub, false, '\u0400'},
+	{encoding.ASCIISub, false, '\u2603'},
+	{encoding.ASCIISub, false, '\U0001f4a9'},
+}
+
+func TestDecodeByte(t *testing.T) {
+	for _, tc := range windows1255TestCases {
+		if !tc.ok {
+			continue
+		}
+
+		got := Windows1255.DecodeByte(tc.b)
+		want := tc.r
+		if got != want {
+			t.Errorf("DecodeByte(%#02x): got %#08x, want %#08x", tc.b, got, want)
+		}
+	}
+}
+
+func TestEncodeRune(t *testing.T) {
+	for _, tc := range windows1255TestCases {
+		// There can be multiple tc.b values that map to tc.r = '\ufffd'.
+		if tc.r == '\ufffd' {
+			continue
+		}
+
+		gotB, gotOK := Windows1255.EncodeRune(tc.r)
+		wantB, wantOK := tc.b, tc.ok
+		if gotB != wantB || gotOK != wantOK {
+			t.Errorf("EncodeRune(%#08x): got (%#02x, %t), want (%#02x, %t)", tc.r, gotB, gotOK, wantB, wantOK)
+		}
 	}
 }
 

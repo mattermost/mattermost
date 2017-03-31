@@ -190,6 +190,38 @@ check-server-style: govet
 
 check-style: check-client-style check-server-style
 
+
+test-te-race: start-docker prepare-enterprise
+	@echo Testing TE race conditions
+
+	@echo "Packages to test: "$(TE_PACKAGES)
+
+	@for package in $(TE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.v -test.timeout=2000s $$package || exit 1; \
+	done
+
+test-ee-race: start-docker prepare-enterprise
+	@echo Testing EE race conditions
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo "Packages to test: "$(EE_PACKAGES)
+
+	for package in $(EE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c $$package; \
+		if [ -f $$(basename $$package).test ]; then \
+			echo "Testing "$$package; \
+			./$$(basename $$package).test -race -test.v -test.timeout=2000s || exit 1; \
+		fi; \
+	done
+
+	rm -f config/*.crt
+	rm -f config/*.key
+endif
+
+test-server-race: test-te-race test-ee-race
+
 test-te: start-docker prepare-enterprise
 	@echo Testing TE
 
