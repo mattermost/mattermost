@@ -22,6 +22,7 @@ func TestCreateTeam(t *testing.T) {
 	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
 	rteam, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rteam.Name != team.Name {
 		t.Fatal("names did not match")
@@ -635,6 +636,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.LoginBasic()
 	tm, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	// Check all the returned data.
 	if tm == nil {

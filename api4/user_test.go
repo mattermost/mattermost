@@ -24,6 +24,7 @@ func TestCreateUser(t *testing.T) {
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	Client.Login(user.Email, user.Password)
 

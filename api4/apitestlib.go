@@ -442,6 +442,15 @@ func CheckNoError(t *testing.T, resp *model.Response) {
 	}
 }
 
+func CheckCreatedStatus(t *testing.T, resp *model.Response) {
+	if resp.StatusCode != http.StatusCreated {
+		debug.PrintStack()
+		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
+		t.Log("expected: " + strconv.Itoa(http.StatusCreated))
+		t.Fatal("wrong status code")
+	}
+}
+
 func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
 	if resp.Error == nil {
 		debug.PrintStack()

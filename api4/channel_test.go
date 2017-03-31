@@ -27,6 +27,7 @@ func TestCreateChannel(t *testing.T) {
 
 	rchannel, resp := Client.CreateChannel(channel)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rchannel.Name != channel.Name {
 		t.Fatal("names did not match")
@@ -1501,6 +1502,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if cm.ChannelId != publicChannel.Id {
 		t.Fatal("should have returned exact channel")
