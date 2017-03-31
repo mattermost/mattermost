@@ -1115,6 +1115,11 @@ func TestGetFlaggedPosts(t *testing.T) {
 	if len(r2.Order) != 0 {
 		t.Fatal("should not have gotten a flagged post")
 	}
+
+	Client.SetTeamId(model.NewId())
+	if _, err := Client.GetFlaggedPosts(0, 2); err == nil {
+		t.Fatal("should have failed - bad team id")
+	}
 }
 
 func TestGetMessageForNotification(t *testing.T) {
