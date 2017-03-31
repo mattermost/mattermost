@@ -138,7 +138,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(user.Id, t)
-			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", "http://localhost:8065")
+			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(user.Id, t)
 
 			if user.Username != gitlabUserObj.Username {
@@ -153,7 +153,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(user.Id, t)
-			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", "http://localhost:8065")
+			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(user.Id, t)
 
 			if user.Username == gitlabUserObj.Username {
@@ -169,7 +169,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(user.Id, t)
-			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", "http://localhost:8065")
+			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(user.Id, t)
 
 			if user.Email != gitlabUserObj.Email {
@@ -188,7 +188,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(user.Id, t)
-			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", "http://localhost:8065")
+			UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 			user = getUserFromDB(user.Id, t)
 
 			if user.Email == gitlabUserObj.Email {
@@ -203,7 +203,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(user.Id, t)
-		UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", "http://localhost:8065")
+		UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 		user = getUserFromDB(user.Id, t)
 
 		if user.FirstName != "Updated" {
@@ -217,7 +217,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(user.Id, t)
-		UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", "http://localhost:8065")
+		UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
 		user = getUserFromDB(user.Id, t)
 
 		if user.LastName != "Lastname" {

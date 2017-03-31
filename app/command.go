@@ -268,7 +268,7 @@ func HandleCommandResponse(command *model.Command, args *model.CommandArgs, resp
 		}
 	}
 
-	if _, err := CreateCommandPost(post, args.TeamId, response, args.SiteURL); err != nil {
+	if _, err := CreateCommandPost(post, args.TeamId, response); err != nil {
 		l4g.Error(err.Error())
 	}
 

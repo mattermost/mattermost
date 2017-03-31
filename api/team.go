@@ -131,7 +131,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.InviteNewUsersToTeam(invites.ToEmailList(), c.TeamId, c.Session.UserId, c.GetSiteURL()); err != nil {
+	if err := app.InviteNewUsersToTeam(invites.ToEmailList(), c.TeamId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}

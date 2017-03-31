@@ -66,7 +66,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.UserId = c.Session.UserId
 	commandArgs.T = c.T
 	commandArgs.Session = c.Session
-	commandArgs.SiteURL = c.GetSiteURL()
+	commandArgs.SiteURL = c.GetSiteURLHeader()
 
 	response, err := app.ExecuteCommand(commandArgs)
 	if err != nil {

@@ -45,7 +45,7 @@ func (me *JoinProvider) DoCommand(args *model.CommandArgs, message string) *mode
 				return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
-			if err := JoinChannel(channel, args.UserId, args.SiteURL); err != nil {
+			if err := JoinChannel(channel, args.UserId); err != nil {
 				return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
