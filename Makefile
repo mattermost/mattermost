@@ -190,7 +190,6 @@ check-server-style: govet
 
 check-style: check-client-style check-server-style
 
-
 test-te-race: start-docker prepare-enterprise
 	@echo Testing TE race conditions
 
@@ -223,10 +222,12 @@ endif
 
 test-server-race: test-te-race test-ee-race
 
-test-te: start-docker prepare-enterprise
+do-cover-file:
+	@echo "mode: count" > cover.out
+
+test-te: start-docker prepare-enterprise do-cover-file
 	@echo Testing TE
 
-	@echo "mode: count" > cover.out
 
 	@echo "Packages to test: "$(TE_PACKAGES)
 
@@ -255,7 +256,7 @@ test-postgres: start-docker prepare-enterprise
 	@sed -i'' -e 's|"DriverName": "postgres"|"DriverName": "mysql"|g' config/config.json
 	@rm config/config.json-e
 
-test-ee: start-docker prepare-enterprise
+test-ee: start-docker prepare-enterprise do-cover-file
 	@echo Testing EE
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
