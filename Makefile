@@ -206,6 +206,22 @@ test-te: start-docker prepare-enterprise
 		fi; \
 	done
 
+test-postgres: start-docker prepare-enterprise
+	@echo Testing Postgres
+
+	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
+	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) github.com/mattermost/platform/store || exit 1; \
+	if [ -f cprofile.out ]; then \
+		tail -n +2 cprofile.out >> cover.out; \
+		rm cprofile.out; \
+	fi; \
+
+	@sed -i'' -e 's|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|g' config/config.json
+	@sed -i'' -e 's|"DriverName": "postgres"|"DriverName": "mysql"|g' config/config.json
+	@rm config/config.json-e
+
 test-ee: start-docker prepare-enterprise
 	@echo Testing EE
 
@@ -230,7 +246,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f config/*.key
 endif
 
-test-server: test-te test-ee
+test-server: test-te test-postgres test-ee
 
 internal-test-web-client: start-docker prepare-enterprise
 	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
