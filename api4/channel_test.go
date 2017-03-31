@@ -1440,6 +1440,56 @@ func TestUpdateChannelRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestUpdateChannelNotifyProps(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	props := map[string]string{}
+	props[model.DESKTOP_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	props[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_MENTION
+
+	pass, resp := Client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	member, err := app.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if member.NotifyProps[model.DESKTOP_NOTIFY_PROP] != model.CHANNEL_NOTIFY_MENTION {
+		t.Fatal("bad update")
+	} else if member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
+		t.Fatal("bad update")
+	}
+
+	_, resp = Client.UpdateChannelNotifyProps("junk", th.BasicUser.Id, props)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, "junk", props)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(model.NewId(), th.BasicUser.Id, props)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, model.NewId(), props)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, map[string]string{})
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	CheckNoError(t, resp)
+}
+
 func TestAddChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
