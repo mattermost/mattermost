@@ -11,6 +11,7 @@ import Client from 'client/web_client.jsx';
 
 import LoadingScreen from 'components/loading_screen.jsx';
 
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import ManageTeamsDropdown from './manage_teams_dropdown.jsx';
@@ -66,7 +67,7 @@ export default class ManageTeamsModal extends React.Component {
     loadTeamsAndTeamMembers(user = this.props.user) {
         TeamActions.getTeamsForUser(user.id, (teams) => {
             this.setState({
-                teams
+                teams: teams.sort(sortTeamsByDisplayName)
             });
         });
 
