@@ -618,7 +618,7 @@ export default class CreatePost extends React.Component {
             emojiPicker = (
                 <EmojiPicker
                     onEmojiClick={this.handleEmojiClick}
-                    topOrBottom='top'
+                    pickerLocation='top'
                     outsideClick={this.closeEmoji}
 
                 />
