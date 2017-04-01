@@ -64,14 +64,15 @@
 
         .btn {
             margin-bottom: 10px;
-            
+
             &.disabled {
                 background: grey !important;
                 border-color: transparent !important;
             }
         }
 
-        .custom-textarea {
+        .custom-textarea,
+        .custom-textarea-emoji {
             min-height: 100px;
         }
 
@@ -150,8 +151,8 @@
     overflow: auto;
     position: relative;
     padding-top: 10px;
-    min-height: 429px;
-    
+    min-height: 700px;
+
     .file-preview__container {
         margin-top: 5px;
     }

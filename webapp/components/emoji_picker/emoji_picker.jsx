@@ -34,7 +34,7 @@ class EmojiPicker extends React.Component {
     static propTypes = {
         customEmojis: React.PropTypes.object,
         onEmojiClick: React.PropTypes.func.isRequired,
-        topOrBottom: React.PropTypes.string.isRequired,
+        pickerLocation: React.PropTypes.string.isRequired,
         emojiOffset: React.PropTypes.number,
         outsideClick: React.PropTypes.func
     }
@@ -68,7 +68,9 @@ class EmojiPicker extends React.Component {
 
     onOutsideEvent = (event) => {
         // Handle the event.
-        this.props.outsideClick(event);
+        if (this.props.outsideClick) {
+            this.props.outsideClick(event);
+        }
     }
 
     handleCategoryClick(category) {
@@ -287,7 +289,17 @@ class EmojiPicker extends React.Component {
                 items.push(this.renderCategory(category, this.state.filter));
             }
         }
-        const cssclass = this.props.topOrBottom === 'top' ? 'emoji-picker' : 'emoji-picker-bottom';
+        let cssclass = 'emoji-picker ';
+        if (this.props.pickerLocation === 'top') {
+            cssclass += 'emoji-picker-top';
+        } else if (this.props.pickerLocation === 'bottom') {
+            cssclass += 'emoji-picker-bottom';
+        } else if (this.props.pickerLocation === 'react') {
+            cssclass = 'emoji-picker-react';
+        } else if (this.props.pickerLocation === 'react-rhs-comment') {
+            cssclass = 'emoji-picker-react-rhs-comment';
+        }
+
         const pickerStyle = this.props.emojiOffset ? {top: this.props.emojiOffset} : {};
         return (
             <div

@@ -300,6 +300,7 @@ export function addReaction(channelId, postId, emojiName) {
         user_id: UserStore.getCurrentId(),
         emoji_name: emojiName
     };
+    emitEmojiPosted(emojiName);
 
     AsyncClient.saveReaction(channelId, reaction);
 }
