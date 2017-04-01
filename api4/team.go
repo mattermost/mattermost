@@ -22,6 +22,7 @@ func InitTeam() {
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("", ApiSessionRequired(updateTeam)).Methods("PUT")
+	BaseRoutes.Team.Handle("", ApiSessionRequired(softDeleteTeam)).Methods("DELETE")
 	BaseRoutes.Team.Handle("/patch", ApiSessionRequired(patchTeam)).Methods("PUT")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
@@ -157,6 +158,26 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("")
 	w.Write([]byte(patchedTeam.ToJson()))
+}
+
+func softDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	err := app.SoftDeleteTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {

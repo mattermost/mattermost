@@ -318,6 +318,48 @@ func TestPatchTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestSoftDeleteTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	ok, resp := Client.SoftDeleteTeam(team.Id)
+	CheckNoError(t, resp)
+
+	if !ok {
+		t.Fatal("should have returned true")
+	}
+
+	rteam, err := app.GetTeam(team.Id)
+	if err != nil {
+		t.Fatal("should have returned archived team")
+	}
+	if rteam.DeleteAt == 0 {
+		t.Fatal("should have not set to zero")
+	}
+
+	ok, resp = Client.SoftDeleteTeam("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if ok {
+		t.Fatal("should have returned false")
+	}
+
+	otherTeam := th.BasicTeam
+	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SoftDeleteTeam(otherTeam.Id)
+	CheckNoError(t, resp)
+}
+
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
