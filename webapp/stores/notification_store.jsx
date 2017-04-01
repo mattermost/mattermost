@@ -105,7 +105,9 @@ class NotificationStoreClass extends EventEmitter {
             }
 
             let duration = Constants.DEFAULT_NOTIFICATION_DURATION;
-            if (user.notify_props && user.notify_props.desktop_duration) {
+            if (user.notify_props && (user.notify_props.desktop_duration === 0 || user.notify_props.desktop_duration === '0')) {
+                duration = 0;
+            } else if (user.notify_props && user.notify_props.desktop_duration) {
                 duration = parseInt(user.notify_props.desktop_duration, 10) * 1000;
             }
 
