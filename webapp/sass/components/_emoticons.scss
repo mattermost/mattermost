@@ -174,14 +174,25 @@
             width: 21px;
             padding: 0px;
             border: 0px;
+            text-align: center;
+            border-radius: 6px;
+            overflow: hidden;
         }
     }
 
     .emoji-picker__item {
-        border-radius: 6px;
         cursor: pointer;
         font-size: 18px;
         margin: 3px;
+    }
+    .emoticon {
+        max-height: 21px;
+        max-width: 21px;
+        min-height: 0;
+        min-width: 0;
+        width: auto;
+        height: auto;
+        margin: 0 auto;
     }
 }
 .emojisprite-wrapper {
@@ -207,6 +218,7 @@
         vertical-align: middle;
         height: 36px;
         width: 42px;
+        text-align: center;
 
         .sprite-preview {
             height: 36px;
@@ -221,8 +233,6 @@
     .emoji-picker__preview-image {
         max-height: 36px;
         max-width: 42px;
-        padding: 0 10px 0 0;
-
     }
 
     .emoji-picker__preview-name {
