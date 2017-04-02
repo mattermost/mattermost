@@ -61,6 +61,7 @@
         "RestrictPrivateChannelManagement": "all",
         "RestrictPublicChannelDeletion": "all",
         "RestrictPrivateChannelDeletion": "all",
+        "RestrictPrivateChannelManageMembers": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000
