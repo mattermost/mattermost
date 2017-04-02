@@ -252,6 +252,12 @@ class TeamStoreClass extends EventEmitter {
         }
     }
 
+    removeMemberNotInTeam(teamId = this.getCurrentId(), userId) {
+        if (this.members_not_in_team[teamId]) {
+            Reflect.deleteProperty(this.members_not_in_team[teamId], userId);
+        }
+    }
+
     getMembersInTeam(teamId = this.getCurrentId()) {
         return Object.assign({}, this.members_in_team[teamId]) || {};
     }

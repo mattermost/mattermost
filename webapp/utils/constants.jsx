@@ -95,6 +95,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
+    RECEIVED_PROFILES_NOT_IN_TEAM: null,
     RECEIVED_PROFILE: null,
     RECEIVED_PROFILES_IN_CHANNEL: null,
     RECEIVED_PROFILES_NOT_IN_CHANNEL: null,

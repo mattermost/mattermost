@@ -681,6 +681,30 @@ export default class Client {
         this.trackEvent('api', 'api_teams_invite_members');
     }
 
+    addUsersToTeam(teamId, userIds, success, error) {
+        let nonEmptyTeamId = teamId;
+        if (nonEmptyTeamId === '') {
+            nonEmptyTeamId = this.getTeamId();
+        }
+
+        const teamMembers = userIds.map((userId) => {
+            return {
+                team_id: nonEmptyTeamId,
+                user_id: userId
+            };
+        });
+
+        request.
+            post(`${this.url}/api/v4/teams/${nonEmptyTeamId}/members/batch`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(teamMembers).
+            end(this.handleResponse.bind(this, 'addUsersToTeam', success, error));
+
+        this.trackEvent('api', 'api_teams_batch_add_members', {team_id: nonEmptyTeamId, count: teamMembers.length});
+    }
+
     removeUserFromTeam(teamId, userId, success, error) {
         let nonEmptyTeamId = teamId;
         if (nonEmptyTeamId === '') {
@@ -1124,6 +1148,29 @@ export default class Client {
         this.trackEvent('api', 'api_profiles_get_in_team', {team_id: teamId});
     }
 
+    getProfilesNotInTeam(teamId, offset, limit, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?not_in_team=${this.getTeamId()}&page=${offset}&per_page=${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesNotInTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_not_in_team', {team_id: teamId});
+    }
+
     getProfilesInChannel(channelId, offset, limit, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/users/${offset}/${limit}`).
@@ -1189,6 +1236,19 @@ export default class Client {
             accept('application/json').
             send({term, team_id: teamId, ...options}).
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
+    }
+
+    searchUsersNotInTeam(term, teamId, options, success, error) {
+        // Note that this is calling an APIv4 Endpoint since no APIv3 equivalent exists.
+        request.
+            post(`${this.url}/api/v4/users/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term, not_in_team_id: teamId, ...options}).
+            end(this.handleResponse.bind(this, 'searchUsersNotInTeam', success, error));
+
+        this.trackEvent('api', 'api_search_users_not_in_team', {team_id: teamId});
     }
 
     autocompleteUsersInChannel(term, channelId, success, error) {
