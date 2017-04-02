@@ -78,6 +78,10 @@ func (c *Client4) GetTeamRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/%v", teamId)
 }
 
+func (c *Client4) GetTeamAutoCompleteCommandsRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/commands/autocomplete", teamId)
+}
+
 func (c *Client4) GetTeamByNameRoute(teamName string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/name/%v", teamName)
 }
@@ -2023,6 +2027,16 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Response) {
 	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
 	if r, err := c.DoApiGet(c.GetCommandsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ListCommands will retrieve a list of commands available in the team.
+func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamAutoCompleteCommandsRoute(teamId), ""); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
