@@ -38,12 +38,10 @@ export default class MfaSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.mfa.title'
-                    defaultMessage='Multi-factor Authentication'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.mfa.title'
+                defaultMessage='Multi-factor Authentication'
+            />
         );
     }
 

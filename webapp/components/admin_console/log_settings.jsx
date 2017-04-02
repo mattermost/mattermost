@@ -49,12 +49,10 @@ export default class LogSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.log'
-                    defaultMessage='Logging'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.log'
+                defaultMessage='Logging'
+            />
         );
     }
 

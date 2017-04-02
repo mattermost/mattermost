@@ -72,6 +72,10 @@
     "translation": "Image storage is not configured."
   },
   {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initializing deprecated API routes"
+  },
+  {
     "id": "api.admin.init.debug",
     "translation": "Initializing admin API routes"
   },
@@ -142,6 +146,22 @@
   {
     "id": "api.api.render.error",
     "translation": "Error rendering template %v err=%v"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initializing user WebSocket API routes"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initializing system WebSocket API routes"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Initializing status WebSocket API routes"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initializing webrtc WebSocket API routes"
   },
   {
     "id": "api.auth.unable_to_get_user.app_error",
@@ -388,7 +408,7 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
   },
   {
@@ -814,6 +834,10 @@
   {
     "id": "api.compliance.init.debug",
     "translation": "Initializing compliance API routes"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.context.404.app_error",
@@ -1284,6 +1308,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1928,12 +1956,32 @@
     "translation": "Initializing status API routes"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Initializing status API routes"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Failed to save status for user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "User not found"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Invalid data."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Invalid invite id. No team matches with this invite id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parameter required to add user to team."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2042,18 +2090,6 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "Permanently deleted team %v id=%v"
-  },
-  {
-    "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2484,10 +2520,6 @@
     "translation": "Initializing user API routes"
   },
   {
-    "id": "api.status.init.debug",
-    "translation": "Initializing status API routes"
-  },
-  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },
@@ -2868,10 +2900,6 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
-    "id": "api.status.user_not_found.app_error",
-    "translation": "User not found"
-  },
-  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
@@ -3132,14 +3160,6 @@
     "translation": "Create Group Message"
   },
   {
-    "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
-  },
-  {
-    "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
-  },
-  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },
@@ -3154,6 +3174,14 @@
   {
     "id": "authentication.permissions.manage_team_roles.name",
     "translation": "Manage Team Roles"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -4706,6 +4734,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No channels were found"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "We couldn't get the channels"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",

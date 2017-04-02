@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"testing"
 
@@ -26,6 +27,7 @@ func TestCreateChannel(t *testing.T) {
 
 	rchannel, resp := Client.CreateChannel(channel)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rchannel.Name != channel.Name {
 		t.Fatal("names did not match")
@@ -491,6 +493,68 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+}
+
+func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+	input := []string{th.BasicChannel.Id}
+	output := []string{th.BasicChannel.DisplayName}
+
+	channels, resp := Client.GetPublicChannelsByIdsForTeam(teamId, input)
+	CheckNoError(t, resp)
+
+	if len(*channels) != 1 {
+		t.Fatal("should return 1 channel")
+	}
+
+	if (*channels)[0].DisplayName != output[0] {
+		t.Fatal("missing channel")
+	}
+
+	input = append(input, GenerateTestId())
+	input = append(input, th.BasicChannel2.Id)
+	input = append(input, th.BasicPrivateChannel.Id)
+	output = append(output, th.BasicChannel2.DisplayName)
+	sort.Strings(output)
+
+	channels, resp = Client.GetPublicChannelsByIdsForTeam(teamId, input)
+	CheckNoError(t, resp)
+
+	if len(*channels) != 2 {
+		t.Fatal("should return 2 channels")
+	}
+
+	for i, c := range *channels {
+		if c.DisplayName != output[i] {
+			t.Fatal("missing channel")
+		}
+	}
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(GenerateTestId(), input)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{})
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{"junk"})
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{GenerateTestId()})
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, []string{th.BasicPrivateChannel.Id})
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.GetPublicChannelsByIdsForTeam(teamId, input)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
 }
 
@@ -1259,6 +1323,45 @@ func TestGetChannelStats(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetPinnedPosts(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	posts, resp := Client.GetPinnedPosts(channel.Id, "")
+	CheckNoError(t, resp)
+	if len(posts.Posts) != 0 {
+		t.Fatal("should not have gotten a pinned post")
+	}
+
+	pinnedPost := th.CreatePinnedPost()
+	posts, resp = Client.GetPinnedPosts(channel.Id, "")
+	CheckNoError(t, resp)
+	if len(posts.Posts) != 1 {
+		t.Fatal("should have returned 1 pinned post")
+	}
+	if _, ok := posts.Posts[pinnedPost.Id]; !ok {
+		t.Fatal("missing pinned post")
+	}
+
+	posts, resp = Client.GetPinnedPosts(channel.Id, resp.Etag)
+	CheckEtag(t, posts, resp)
+
+	_, resp = Client.GetPinnedPosts(GenerateTestId(), "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetPinnedPosts("junk", "")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetPinnedPosts(channel.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetPinnedPosts(channel.Id, "")
+	CheckNoError(t, resp)
+}
+
 func TestUpdateChannelRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -1338,6 +1441,56 @@ func TestUpdateChannelRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestUpdateChannelNotifyProps(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	props := map[string]string{}
+	props[model.DESKTOP_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	props[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_MENTION
+
+	pass, resp := Client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	member, err := app.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if member.NotifyProps[model.DESKTOP_NOTIFY_PROP] != model.CHANNEL_NOTIFY_MENTION {
+		t.Fatal("bad update")
+	} else if member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
+		t.Fatal("bad update")
+	}
+
+	_, resp = Client.UpdateChannelNotifyProps("junk", th.BasicUser.Id, props)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, "junk", props)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(model.NewId(), th.BasicUser.Id, props)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, model.NewId(), props)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, map[string]string{})
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UpdateChannelNotifyProps(th.BasicChannel.Id, th.BasicUser.Id, props)
+	CheckNoError(t, resp)
+}
+
 func TestAddChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -1349,6 +1502,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if cm.ChannelId != publicChannel.Id {
 		t.Fatal("should have returned exact channel")

@@ -34,6 +34,7 @@ func TestCreateCommand(t *testing.T) {
 
 	createdCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 	if createdCmd.CreatorId != th.SystemAdminUser.Id {
 		t.Fatal("user ids didn't match")
 	}

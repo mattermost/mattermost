@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/wsapi"
 
 	s3 "github.com/minio/minio-go"
 )
@@ -55,9 +56,11 @@ func SetupEnterprise() *TestHelper {
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
+		wsapi.InitRouter()
 		app.StartServer()
 		utils.InitHTML()
 		InitApi(true)
+		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
 
@@ -85,8 +88,10 @@ func Setup() *TestHelper {
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
+		wsapi.InitRouter()
 		app.StartServer()
 		InitApi(true)
+		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
 		app.Srv.Store.MarkSystemRanUnitTests()
 
@@ -167,6 +172,10 @@ func (me *TestHelper) CreateClient() *model.Client4 {
 	return model.NewAPIv4Client("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
 }
 
+func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4("ws://localhost"+utils.Cfg.ServiceSettings.ListenAddress, me.Client.AuthToken)
+}
+
 func (me *TestHelper) CreateUser() *model.User {
 	return me.CreateUserWithClient(me.Client)
 }
@@ -238,6 +247,10 @@ func (me *TestHelper) CreatePost() *model.Post {
 	return me.CreatePostWithClient(me.Client, me.BasicChannel)
 }
 
+func (me *TestHelper) CreatePinnedPost() *model.Post {
+	return me.CreatePinnedPostWithClient(me.Client, me.BasicChannel)
+}
+
 func (me *TestHelper) CreateMessagePost(message string) *model.Post {
 	return me.CreateMessagePostWithClient(me.Client, me.BasicChannel, message)
 }
@@ -248,6 +261,24 @@ func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	rpost, resp := client.CreatePost(post)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
+	utils.EnableDebugLogForTest()
+	return rpost
+}
+
+func (me *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel *model.Channel) *model.Post {
+	id := model.NewId()
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "message_" + id,
+		IsPinned:  true,
 	}
 
 	utils.DisableDebugLogForTest()
@@ -408,6 +439,15 @@ func CheckNoError(t *testing.T, resp *model.Response) {
 	if resp.Error != nil {
 		debug.PrintStack()
 		t.Fatal("Expected no error, got " + resp.Error.Error())
+	}
+}
+
+func CheckCreatedStatus(t *testing.T, resp *model.Response) {
+	if resp.StatusCode != http.StatusCreated {
+		debug.PrintStack()
+		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
+		t.Log("expected: " + strconv.Itoa(http.StatusCreated))
+		t.Fatal("wrong status code")
 	}
 }
 

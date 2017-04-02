@@ -41,7 +41,6 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal.jsx';
 import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
-import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
 
 import iNoBounce from 'inobounce';
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -212,7 +211,6 @@ export default class NeedsTeam extends React.Component {
                     <EditPostModal/>
                     <DeletePostModal/>
                     <RemovedFromChannelModal/>
-                    <SelectTeamModal/>
                 </div>
             </div>
         );

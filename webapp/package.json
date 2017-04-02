@@ -8,7 +8,7 @@
   "dependencies": {
     "autolinker": "1.4.2",
     "bootstrap": "3.3.7",
-    "bootstrap-colorpicker": "2.5.1",
+    "bootstrap-colorpicker": "2.3.6",
     "chart.js": "2.5.0",
     "compass-mixins": "0.12.10",
     "fastclick": "1.0.6",

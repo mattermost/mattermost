@@ -50,12 +50,10 @@ export default class WebrtcSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.integrations.webrtc'
-                    defaultMessage='Mattermost WebRTC (Beta)'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.integrations.webrtc'
+                defaultMessage='Mattermost WebRTC (Beta)'
+            />
         );
     }
 

@@ -409,7 +409,7 @@ class SystemAnalytics extends React.Component {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='analytics.system.title'
                         defaultMessage='System Statistics'

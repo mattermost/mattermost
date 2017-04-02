@@ -44,6 +44,7 @@
             font-weight: normal !important;
 
             &.header-list__right {
+                white-space: nowrap;
                 padding-right: 4px;
             }
         }

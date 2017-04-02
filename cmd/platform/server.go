@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/web"
+	"github.com/mattermost/platform/wsapi"
 	"github.com/spf13/cobra"
 )
 
@@ -62,8 +63,10 @@ func runServer(configFileLocation string) {
 	app.NewServer()
 	app.InitStores()
 	api.InitRouter()
+	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
+	wsapi.InitApi()
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {

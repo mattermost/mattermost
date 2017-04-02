@@ -726,6 +726,54 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 	return storeChannel
 }
 
+func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		query := `
+		SELECT
+			*
+		FROM
+			Users
+		WHERE
+			(SELECT
+				COUNT(0)
+			FROM
+				TeamMembers
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.DeleteAt = 0) = 0
+		ORDER BY
+			Username ASC
+		LIMIT
+			:Limit
+		OFFSET
+			:Offset`
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesWithoutTeam", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string) StoreChannel {
 	storeChannel := make(StoreChannel)
 
@@ -1506,6 +1554,79 @@ func (us SqlUserStore) AnalyticsGetSystemAdminCount() StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsGetSystemAdminCount", "store.sql_user.analytics_get_system_admin_count.app_error", nil, err.Error())
 		} else {
 			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, `
+            SELECT
+                u.*
+            FROM Users u
+            LEFT JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
+            WHERE tm.UserId IS NULL
+            ORDER BY u.Username ASC
+            LIMIT :Limit OFFSET :Offset
+            `, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt, err := us.GetReplica().SelectInt(`
+            SELECT
+                u.UpdateAt
+            FROM Users u
+            LEFT JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
+            WHERE tm.UserId IS NULL
+            ORDER BY u.UpdateAt DESC
+            LIMIT 1
+            `, map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+		} else {
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result

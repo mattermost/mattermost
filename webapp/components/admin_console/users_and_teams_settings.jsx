@@ -51,12 +51,10 @@ export default class UsersAndTeamsSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.usersAndTeams'
-                    defaultMessage='Users and Teams'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.usersAndTeams'
+                defaultMessage='Users and Teams'
+            />
         );
     }
 

@@ -3,12 +3,11 @@
 
 import React from 'react';
 
-import Reaction from './reaction.jsx';
+import Reaction from './reaction_container.jsx';
 
 export default class ReactionListView extends React.Component {
     static propTypes = {
         post: React.PropTypes.object.isRequired,
-        currentUserId: React.PropTypes.string.isRequired,
         reactions: React.PropTypes.arrayOf(React.PropTypes.object),
         emojis: React.PropTypes.object.isRequired
     }
@@ -33,7 +32,6 @@ export default class ReactionListView extends React.Component {
                 <Reaction
                     key={emojiName}
                     post={this.props.post}
-                    currentUserId={this.props.currentUserId}
                     emojiName={emojiName}
                     reactions={reactionsByName.get(emojiName)}
                     emojis={this.props.emojis}

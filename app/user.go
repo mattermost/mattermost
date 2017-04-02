@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"fmt"
 	"hash/fnv"
 	"image"
@@ -96,6 +97,19 @@ func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (
 	}
 
 	AddDirectChannels(team.Id, ruser)
+
+	if err := SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, siteURL); err != nil {
+		l4g.Error(err.Error())
+	}
+
+	return ruser, nil
+}
+
+func CreateUserAsAdmin(user *model.User, siteURL string) (*model.User, *model.AppError) {
+	ruser, err := CreateUser(user)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, siteURL); err != nil {
 		l4g.Error(err.Error())
@@ -433,6 +447,14 @@ func GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model
 	}
 }
 
+func GetUsersNotInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
 func GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := GetUsersInTeam(teamId, offset, limit)
 	if err != nil {
@@ -462,8 +484,25 @@ func GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*
 	return users, nil
 }
 
+func GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersNotInTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
 func GetUsersInTeamEtag(teamId string) string {
 	return (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
+}
+
+func GetUsersNotInTeamEtag(teamId string) string {
+	return (<-Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string)
 }
 
 func GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -540,6 +579,27 @@ func GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage
 	return users, nil
 }
 
+func GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersWithoutTeam(page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
+func GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesWithoutTeam(offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
 func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().GetProfileByIds(userIds, true); result.Err != nil {
 		return nil, result.Err
@@ -552,6 +612,27 @@ func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppErr
 
 		return users, nil
 	}
+}
+
+func GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
+	mfaInterface := einterfaces.GetMfaInterface()
+	if mfaInterface == nil {
+		return nil, model.NewAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	var user *model.User
+	var err *model.AppError
+	if user, err = GetUser(userId); err != nil {
+		return nil, err
+	}
+
+	secret, img, err := mfaInterface.GenerateSecret(user)
+	if err != nil {
+		return nil, err
+	}
+
+	mfaSecret := &model.MfaSecret{Secret: secret, QRCode: b64.StdEncoding.EncodeToString(img)}
+	return mfaSecret, nil
 }
 
 func ActivateMfa(userId, token string) *model.AppError {

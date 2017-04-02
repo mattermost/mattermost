@@ -111,12 +111,10 @@ export default class OAuthSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.authentication.oauth'
-                    defaultMessage='OAuth 2.0'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.authentication.oauth'
+                defaultMessage='OAuth 2.0'
+            />
         );
     }
 

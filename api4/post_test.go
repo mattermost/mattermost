@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -22,6 +23,7 @@ func TestCreatePost(t *testing.T) {
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rpost.Message != post.Message {
 		t.Fatal("message didn't match")
@@ -165,6 +167,177 @@ func TestUpdatePost(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestPatchPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	utils.SetDefaultRolesBasedOnConfig()
+
+	post := &model.Post{
+		ChannelId:    channel.Id,
+		IsPinned:     true,
+		Message:      "#hashtag a message",
+		Props:        model.StringInterface{"channel_header": "old_header"},
+		FileIds:      model.StringArray{"file1", "file2"},
+		HasReactions: true,
+	}
+	post, _ = Client.CreatePost(post)
+
+	patch := &model.PostPatch{}
+
+	patch.IsPinned = new(bool)
+	*patch.IsPinned = false
+	patch.Message = new(string)
+	*patch.Message = "#otherhashtag other message"
+	patch.Props = new(model.StringInterface)
+	*patch.Props = model.StringInterface{"channel_header": "new_header"}
+	patch.FileIds = new(model.StringArray)
+	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
+	patch.HasReactions = new(bool)
+	*patch.HasReactions = false
+
+	rpost, resp := Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+
+	if rpost.IsPinned != false {
+		t.Fatal("IsPinned did not update properly")
+	}
+	if rpost.Message != "#otherhashtag other message" {
+		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.Props) != 1 {
+		t.Fatal("Props did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.Props, *patch.Props) {
+		t.Fatal("Props did not update properly")
+	}
+	if rpost.Hashtags != "#otherhashtag" {
+		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.FileIds) != 3 {
+		t.Fatal("FileIds did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
+		t.Fatal("FileIds did not update properly")
+	}
+	if rpost.HasReactions != false {
+		t.Fatal("HasReactions did not update properly")
+	}
+
+	if r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	_, resp = Client.PatchPost("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchPost(GenerateTestId(), patch)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginTeamAdmin()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+}
+
+func TestPinPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post := th.BasicPost
+	pass, resp := Client.PinPost(post.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if rpost, err := app.GetSinglePost(post.Id); err != nil && rpost.IsPinned != true {
+		t.Fatal("failed to pin post")
+	}
+
+	pass, resp = Client.PinPost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	_, resp = Client.PinPost(GenerateTestId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.PinPost(post.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PinPost(post.Id)
+	CheckNoError(t, resp)
+}
+
+func TestUnpinPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pinnedPost := th.CreatePinnedPost()
+	pass, resp := Client.UnpinPost(pinnedPost.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if rpost, err := app.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned != false {
+		t.Fatal("failed to pin post")
+	}
+
+	pass, resp = Client.UnpinPost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	_, resp = Client.UnpinPost(GenerateTestId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UnpinPost(pinnedPost.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
+	CheckNoError(t, resp)
 }
 
 func TestGetPostsForChannel(t *testing.T) {

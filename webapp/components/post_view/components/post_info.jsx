@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import ReactDOM from 'react-dom';
 
 import PostTime from './post_time.jsx';
 
@@ -12,7 +13,8 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
+import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -28,10 +30,17 @@ export default class PostInfo extends React.Component {
         this.unflagPost = this.unflagPost.bind(this);
         this.pinPost = this.pinPost.bind(this);
         this.unpinPost = this.unpinPost.bind(this);
+        this.reactEmojiClick = this.reactEmojiClick.bind(this);
+        this.emojiPickerClick = this.emojiPickerClick.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
+
+        this.state = {
+            showEmojiPicker: false,
+            reactionPickerOffset: 21
+        };
     }
 
     handleDropdownOpened() {
@@ -271,6 +280,10 @@ export default class PostInfo extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
+    emojiPickerClick() {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
     removePost() {
         GlobalActions.emitRemovePost(this.props.post);
     }
@@ -308,6 +321,14 @@ export default class PostInfo extends React.Component {
         PostActions.unflagPost(this.props.post.id);
     }
 
+    reactEmojiClick(emoji) {
+        const pickerOffset = 21;
+
+        const emojiName = emoji.name || emoji.aliases[0];
+        PostActions.addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+        this.setState({showEmojiPicker: false, reactionPickerOffset: pickerOffset});
+    }
+
     render() {
         var post = this.props.post;
         var comments = '';
@@ -335,8 +356,44 @@ export default class PostInfo extends React.Component {
                         className='comment-icon'
                         dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
                     />
-                    {commentCountText}
+                    <span className='comment-count'>
+                        {commentCountText}
+                    </span>
                 </a>
+            );
+        }
+
+        let react;
+        if (post.state !== Constants.POST_FAILED &&
+            post.state !== Constants.POST_LOADING &&
+            !Utils.isPostEphemeral(post) &&
+            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            react = (
+                <span>
+                    <Overlay
+                        show={this.state.showEmojiPicker}
+                        placement='top'
+                        rootClose={true}
+                        container={this}
+                        onHide={() => this.setState({showEmojiPicker: false})}
+                        target={() => ReactDOM.findDOMNode(this.refs['reactIcon_' + post.id])}
+
+                    >
+                        <EmojiPicker
+                            onEmojiClick={this.reactEmojiClick}
+                            pickerLocation='top'
+
+                        />
+                    </Overlay>
+                    <a
+                        href='#'
+                        className='reacticon__container'
+                        onClick={this.emojiPickerClick}
+                        ref={'reactIcon_' + post.id}
+                    ><i className='fa fa-smile-o'/>
+                    </a>
+                </span>
+
             );
         }
 
@@ -358,6 +415,7 @@ export default class PostInfo extends React.Component {
                         >
                             {dropdown}
                         </div>
+                        {react}
                         {comments}
                     </li>
                 );
@@ -445,6 +503,7 @@ export default class PostInfo extends React.Component {
                         postId={post.id}
                     />
                     {pinnedBadge}
+                    {this.state.showEmojiPicker}
                     {flagTrigger}
                 </li>
                 {options}

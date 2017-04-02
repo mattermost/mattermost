@@ -41,7 +41,7 @@ import NativeAppLinkSettings from 'components/admin_console/native_app_link_sett
 import ComplianceSettings from 'components/admin_console/compliance_settings.jsx';
 import RateSettings from 'components/admin_console/rate_settings.jsx';
 import DeveloperSettings from 'components/admin_console/developer_settings.jsx';
-import TeamUsers from 'components/admin_console/team_users.jsx';
+import SystemUsers from 'components/admin_console/system_users/system_users.jsx';
 import TeamAnalytics from 'components/analytics/team_analytics.jsx';
 import LicenseSettings from 'components/admin_console/license_settings.jsx';
 import Audits from 'components/admin_console/audits.jsx';
@@ -217,18 +217,26 @@ export default (
                 component={MetricsSettings}
             />
         </Route>
+        <Route
+            path='users'
+            component={SystemUsers}
+        />
+        <Route
+            path='team_analytics'
+            component={TeamAnalytics}
+        />
         <Route path='team'>
             <Redirect
                 from=':team'
-                to=':team/users'
+                to='../users'
             />
-            <Route
-                path=':team/users'
-                component={TeamUsers}
+            <Redirect
+                from=':team/users'
+                to='../users'
             />
-            <Route
-                path=':team/analytics'
-                component={TeamAnalytics}
+            <Redirect
+                from=':team/analytics'
+                to='../team_analytics'
             />
             <Redirect
                 from='*'

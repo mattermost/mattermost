@@ -39,12 +39,10 @@ export default class CustomEmojiSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.customization.customEmoji'
-                    defaultMessage='Custom Emoji'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.customization.customEmoji'
+                defaultMessage='Custom Emoji'
+            />
         );
     }
 

@@ -111,6 +111,7 @@ const (
 
 type ServiceSettings struct {
 	SiteURL                                  *string
+	LicenseFileLocation                      *string
 	ListenAddress                            string
 	ConnectionSecurity                       *string
 	TLSCertFile                              *string
@@ -231,27 +232,28 @@ type FileSettings struct {
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail    bool
-	EnableSignInWithEmail    *bool
-	EnableSignInWithUsername *bool
-	SendEmailNotifications   bool
-	RequireEmailVerification bool
-	FeedbackName             string
-	FeedbackEmail            string
-	FeedbackOrganization     *string
-	SMTPUsername             string
-	SMTPPassword             string
-	SMTPServer               string
-	SMTPPort                 string
-	ConnectionSecurity       string
-	InviteSalt               string
-	PasswordResetSalt        string
-	SendPushNotifications    *bool
-	PushNotificationServer   *string
-	PushNotificationContents *string
-	EnableEmailBatching      *bool
-	EmailBatchingBufferSize  *int
-	EmailBatchingInterval    *int
+	EnableSignUpWithEmail             bool
+	EnableSignInWithEmail             *bool
+	EnableSignInWithUsername          *bool
+	SendEmailNotifications            bool
+	RequireEmailVerification          bool
+	FeedbackName                      string
+	FeedbackEmail                     string
+	FeedbackOrganization              *string
+	SMTPUsername                      string
+	SMTPPassword                      string
+	SMTPServer                        string
+	SMTPPort                          string
+	ConnectionSecurity                string
+	InviteSalt                        string
+	PasswordResetSalt                 string
+	SendPushNotifications             *bool
+	PushNotificationServer            *string
+	PushNotificationContents          *string
+	EnableEmailBatching               *bool
+	EmailBatchingBufferSize           *int
+	EmailBatchingInterval             *int
+	SkipServerCertificateVerification *bool
 }
 
 type RateLimitSettings struct {
@@ -496,6 +498,10 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.SiteURL = SERVICE_SETTINGS_DEFAULT_SITE_URL
 	}
 
+	if o.ServiceSettings.LicenseFileLocation == nil {
+		o.ServiceSettings.LicenseFileLocation = new(string)
+	}
+
 	if o.ServiceSettings.EnableLinkPreviews == nil {
 		o.ServiceSettings.EnableLinkPreviews = new(bool)
 		*o.ServiceSettings.EnableLinkPreviews = false
@@ -678,6 +684,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.EmailBatchingInterval == nil {
 		o.EmailSettings.EmailBatchingInterval = new(int)
 		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
+	}
+
+	if o.EmailSettings.SkipServerCertificateVerification == nil {
+		o.EmailSettings.SkipServerCertificateVerification = new(bool)
+		*o.EmailSettings.SkipServerCertificateVerification = false
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
