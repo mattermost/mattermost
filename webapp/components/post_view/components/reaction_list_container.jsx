@@ -81,16 +81,12 @@ export default class ReactionListContainer extends React.Component {
     }
 
     render() {
-        if (this.props.post.has_reactions && this.state.reactions.length > 0) {
-            return (
-                <ReactionListView
-                    post={this.props.post}
-                    reactions={this.state.reactions}
-                    emojis={this.state.emojis}
-                />
-            );
-        }
-
-        return null;
+        return (
+            <ReactionListView
+                post={this.props.post}
+                reactions={this.state.reactions}
+                emojis={this.state.emojis}
+            />
+        );
     }
 }
