@@ -100,6 +100,9 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 		return nil, model.NewLocAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "")
 	}
 
+	app.ReloadConfig()
+	app.InvalidateAllCaches()
+
 	return license, nil
 }
 
