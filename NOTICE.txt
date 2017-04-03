@@ -4354,6 +4354,11 @@ SOFTWARE.
 
 This product contains a modified portion of `viper` for handling configuration in Go programs. Built by Steve Francia.
 
+* HOMEPAGE:
+  * https://github.com/spf13/viper
+
+* LICENSE:
+
 The MIT License (MIT)
 
 Copyright (c) 2014 Steve Francia
@@ -4380,6 +4385,11 @@ SOFTWARE.
 
 This product contains a modified version of `gomail` for sending emails. Built by Alexandre Cesaro.
 
+* HOMEPAGE:
+  * https://github.com/go-gomail/gomail
+
+* LICENSE:
+
 The MIT License (MIT)
 
 Copyright (c) 2014 Alexandre Cesaro
@@ -4404,6 +4414,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ----
 
 This product contains a modified version of `fsnotify` for file system notifications. Built by the Go Authors and the fsnotify Authors.
+
+* HOMEPAGE:
+  * https://github.com/fsnotify/fsnotify
+
+* LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 Copyright (c) 2012 fsnotify Authors. All rights reserved.
