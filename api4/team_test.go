@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -403,6 +404,81 @@ func TestGetTeamByName(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.GetTeamByName(rteam2.Name, "")
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestSearchAllTeams(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	oTeam := th.BasicTeam
+
+	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	Client.CreateTeam(pTeam)
+
+	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	if !reflect.DeepEqual(rteams[0], oTeam) {
+		t.Fatal("invalid team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: oTeam.DisplayName})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	if !reflect.DeepEqual(rteams[0], oTeam) {
+		t.Fatal("invalid team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 0 {
+		t.Fatal("should have not returned team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 0 {
+		t.Fatal("should have not returned team")
+	}
+
+	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 0 {
+		t.Fatal("should have not returned team")
+	}
+
+	Client.Logout()
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	CheckUnauthorizedStatus(t, resp)
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetTeamsForUser(t *testing.T) {
