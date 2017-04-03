@@ -149,7 +149,7 @@
   },
   {
     "id": "api.brand.init.debug",
-    "translation": "Initialisiere Befehle-API-Routen"
+    "translation": "Initialisiere Marken-API-Routen"
   },
   {
     "id": "api.channel.add_member.added",
@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Verwaltung und Erstellung von privaten Gruppen ist auf Systemadministratoren begrenzt."
+    "translation": "Verwaltung und Erstellung von öffentlichen Kanälen ist auf Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Verwaltung und Erstellung von privaten Gruppen ist auf Team- und Systemadministratoren begrenzt."
+    "translation": "Verwaltung und Erstellung von öffentlichen Kanälen ist auf Team- und Systemadministratoren begrenzt."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
+    "translation": "Der Kanal ist bereits gelöscht"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -388,12 +388,12 @@
     "translation": "Versuch einer ungültigen Änderung am Standardkanal {{.Channel}} durchzuführen"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v nicht abrufen, err=%v"
   },
   {
     "id": "api.cluster.init.debug",
-    "translation": "Initialisiere Benutzer-API-Routen"
+    "translation": "Initialisiere Cluster-API-Routen"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -813,11 +813,11 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "Initialisiere Befehle-API-Routen"
+    "translation": "Initialisiere Compliance-API-Routen"
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "Das neue Format für die Clientkonfiguration wird noch nicht unterstützt. Bitte geben Sie format=old in der Anfrage an."
   },
   {
     "id": "api.context.404.app_error",
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ein unbekannter Fehler ist aufgetreten. Bitte kontaktieren Sie den Support."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initialisiere veraltete API-Routen"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1251,7 +1255,7 @@
   },
   {
     "id": "api.ldap.init.debug",
-    "translation": "Initialisiere Datei-API-Routen"
+    "translation": "Initialisiere LDAP-API-Routen"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1291,7 +1295,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "Das neue Format für die Clientlizenz wird nocht nicht unterstützt. Bitte geben Sie format=old in der Anfrage an."
   },
   {
     "id": "api.license.init.debug",
@@ -1949,19 +1953,19 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "User not found"
+    "translation": "Benutzer nicht gefunden"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
+    "translation": "Ungültige Daten"
   },
   {
     "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
+    "translation": "Ungültige Einladungs-ID. Kein Team entspricht dieser Einladungs-ID"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "Parameter um Benutzer zu Team hinzuzufügen erforderlich."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3157,11 +3161,11 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
+    "translation": "Möglichkeit öffentliche Kanäle zu lesen"
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
+    "translation": "Öffentliche Kanäle lesen"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3484,22 +3488,6 @@
     "translation": "Seite nicht gefunden"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "Sie werden von allen öffentlichen Kanälen und privaten Gruppen entfernt.  Wenn das Team privat ist können Sie nicht erneut beitreten.  Sind Sie sich sicher?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "Nein"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Dieses Team verlassen?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Ja"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Konnte Kanal nicht finden: %v, %v Möglichkeiten gesucht"
   },
@@ -3732,8 +3720,28 @@
     "translation": "Problem beim Schreiben der Anfrage"
   },
   {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
     "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
+    "translation": "Fehler bei der Erstellung der SAML Zertifikat Multipart Form Anfrage"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4717,11 +4725,11 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Es konnten nicht alle Kanäle abgerufen werden"
+    "translation": "Die Kanäle konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found"
+    "translation": "Kein Kanal gefunden"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -4769,11 +4777,11 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Es konnten nicht alle Kanäle abgerufen werden"
+    "translation": "Die öffentlichen Kanäle konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Die ungelesenen Mitteilungen des Teams konnten nicht abgerufen werden"
+    "translation": "Die ungelesenen Mitteilungen des Kanals konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -4793,7 +4801,7 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "We couldn't find the pinned posts"
+    "translation": "Die angepinnten Nachrichten konnten nicht gefunden werden"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "Das Teammitglied konnte nicht gespeichert werden"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Das Team konnte nicht aktualisiert werden"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Fehler beim Erstellen der Ordner Überwachung %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Initialisiere Status WebSocket-API-Routen"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initialisiere System WebSocket-API-Routen"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initialisiere Benutzer WebSocket-API-Routen"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initialisiere webrtc WebSocket-API-Routen"
   }
 ]

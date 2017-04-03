@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Gerenciamento de Canais Privados e criação é restrito apenas para Administradores do Sistema."
+    "translation": "Gerenciamento de Canais Públicos e criação é restrito apenas para Administradores do Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Gerenciamento de Canais Privados e criação é restrito apenas para o Time e Administradores do Sistema."
+    "translation": "Gerenciamento de Canais Públicos e criação é restrito apenas para o Time e Administradores do Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -388,7 +388,7 @@
     "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Não foi possível obter o número de não lidos para o user_id=%v e channel_id=%v, err=%v"
   },
   {
@@ -817,7 +817,7 @@
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "O novo formato para a configuração do cliente não é suportado ainda. Por favor, especifique na query string format=old."
   },
   {
     "id": "api.context.404.app_error",
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ocorreu um erro desconhecido. Por favor contato com o suporte."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Inicializando as rotas da API que serão descontinuadas"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1291,7 +1295,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "O novo formato para a licença do cliente não é suportado ainda. Por favor, especifique na query string format=old."
   },
   {
     "id": "api.license.init.debug",
@@ -3484,22 +3488,6 @@
     "translation": "Página não encontrada"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "Você será removido de todos os canais públicos e grupos privados.  Se a equipe é privada você não será capaz de se juntar à equipe.  Você tem certeza?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "Não"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Deixar a equipe?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Sim"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Não foi possível encontrar o canal %v, procurado %v possibilidades"
   },
@@ -3730,6 +3718,26 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Não foi possível escrever o pedido"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -4721,7 +4729,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found"
+    "translation": "Nenhum canal encontrado"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "Não foi possível salvar o membro da equipe"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Encontramos um erro ao procurar pelos canais"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Encontramos um erro ao procurar pelos canais"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Não foi possível atualizar a equipe"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Falha ao adicionar diretório observador %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Inicializando as rotas de API web socket de status"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Inicializando as rotas de API web socket do sistema"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Inicializando as rotas de API web socket de usuários"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Inicializando as rotas de API web socket de webrtc"
   }
 ]

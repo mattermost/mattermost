@@ -149,7 +149,7 @@
   },
   {
     "id": "api.brand.init.debug",
-    "translation": "Initialisation des routes de l'API des commandes"
+    "translation": "Initialisation des routes de l'API de marque"
   },
   {
     "id": "api.channel.add_member.added",
@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "La création et l'administration de groupes privés sont réservées aux administrateurs système."
+    "translation": "La création et l'administration du canal public sont réservées aux administrateurs système."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "La création et l'administration du canal public sont réservées aux administrateurs systèmes et administrateurs d'équipes."
+    "translation": "La création et l'administration du canal public sont réservées aux administrateurs systèmes et administrateurs d'équipe."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
+    "translation": "Le can est déjà supprimé"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -388,12 +388,12 @@
     "translation": "Échec de la tentative de mise à jour du canal par défaut {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
-    "translation": "Impossible de récupérer le nombre de messages non lus pour user_id=%v et channel_id=%v, err=%v"
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
+    "translation": "Impossible de récupérer le nombre de messages non lus pour l'user_id=%v et le channel_id=%v, err=%v"
   },
   {
     "id": "api.cluster.init.debug",
-    "translation": "Initialisation des routes de l'API utilisateur"
+    "translation": "Initialisation des routes de l'API de cluster"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -813,11 +813,11 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "Initialisation des routes de l'API des commandes"
+    "translation": "Initialisation des routes de l'API de compatibilité"
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "Le nouveau format pour la configuration du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
   },
   {
     "id": "api.context.404.app_error",
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Une erreur inconnue est survenue. Veuillez contacter le support."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initialisation des routes dépréciées de l'API"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1031,7 +1035,7 @@
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "Le fichier n'a pas d'aperçu d'image"
+    "translation": "Le fichier n'a pas d'image d'aperçu"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1251,7 +1255,7 @@
   },
   {
     "id": "api.ldap.init.debug",
-    "translation": "Initialisation des routes de l'API des fichiers"
+    "translation": "Initialisation des routes de l'API LDAP"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1291,7 +1295,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "Le nouveau format pour la licence du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
   },
   {
     "id": "api.license.init.debug",
@@ -1949,19 +1953,19 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "User not found"
+    "translation": "Utilisateur introuvable"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
+    "translation": "Donnée invalide."
   },
   {
     "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
+    "translation": "ID d'invitation invalide. Aucune équipe ne correspond à cet ID d'invitation."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "Paramètre requis pour ajouter l'utilisateur à une équipe."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3157,11 +3161,11 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
+    "translation": "Possibilité de lire les canaux publics"
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
+    "translation": "Lire les canaux publics"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3269,7 +3273,7 @@
   },
   {
     "id": "ent.compliance.run_started.info",
-    "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
+    "translation": "L'export de compatibilité a démarré pour le job '{{.JobName}}' à '{{.FilePath}}'"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3482,22 +3486,6 @@
   {
     "id": "error.not_found.title",
     "translation": "Page introuvable"
-  },
-  {
-    "id": "leave_team_modal.desc",
-    "translation": "Vous serez supprimé de tous les canaux et groupes privés. Si l'équipe est privée, vous ne pourrez plus la rejoindre à nouveau. Êtes-vous sûr ?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "Non"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Quitter l'équipe ?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Oui"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -3732,8 +3720,28 @@
     "translation": "Impossible d'écrire la requête"
   },
   {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
     "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
+    "translation": "Erreur lors de la création de la requête pour le formulaire multipart pour le certificat SAML"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3777,7 +3785,7 @@
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "URL invalude. Il doit s'agir d'une URL valide et commencer par http:// ou https://"
+    "translation": "URL invalide. L'URL doit être valide et commencer par http:// ou https://"
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -3829,7 +3837,7 @@
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Sécurité de connexion invalide dans les paramètres de messagerie. Doit être '', 'TLS' ou 'STARTTLS'"
+    "translation": "Sécurité de connexion invalide pour les paramètres e-mail. Doit être '', 'TLS' ou 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -3909,7 +3917,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Sécurité de connexion invalide dans les paramètres de messagerie. Doit être '', 'TLS' ou 'STARTTLS'"
+    "translation": "Sécurité de connexion invalide pour les paramètres AD/LDAP. Doit être '', 'TLS' ou 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4717,11 +4725,11 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir les canaux"
+    "translation": "Impossible de récupérer les canaux"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found"
+    "translation": "Aucun canal trouvé"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -4769,11 +4777,11 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir les canaux"
+    "translation": "Impossible de récupérer les canaux publics"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Impossible de récupérer la liste des messages non lus des équipes"
+    "translation": "Impossible de récupérer les messages non lus du canal"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -4793,7 +4801,7 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "We couldn't find the pinned posts"
+    "translation": "Impossible de récupérer les messages épinglés"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "Nous n'avons pas pu enregistrer le membre du canal"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Nous avons rencontré une erreur durant la recherche des canaux"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Nous avons rencontré une erreur durant la recherche des canaux"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Nous n'avons pas pu mettre à jour l'équipe"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Échec de l'ajout du dossier à l'observateur %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Initialisation des routes de l'API des statuts"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initialisation des routes systèmes de l'API WebSocket"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initialisation des routes utilisateurs de l'API WebSocket"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initialisation des routes de l'API WebSocket webrtc"
   }
 ]
