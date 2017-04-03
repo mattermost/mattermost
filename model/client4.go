@@ -914,6 +914,16 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) 
 	}
 }
 
+// SoftDeleteTeam deletes the team softly (archive only, not permanent delete).
+func (c *Client4) SoftDeleteTeam(teamId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamRoute(teamId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
