@@ -24,6 +24,7 @@ func TestCreateUser(t *testing.T) {
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	Client.Login(user.Email, user.Password)
 
@@ -1176,7 +1177,7 @@ func TestCheckUserMfa(t *testing.T) {
 	}
 }
 
-/*func TestGenerateMfaSecret(t *testing.T) {
+func TestGenerateMfaSecret(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
@@ -1197,7 +1198,7 @@ func TestCheckUserMfa(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
 	CheckNotImplementedStatus(t, resp)
-}*/
+}
 
 func TestUpdateUserPassword(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

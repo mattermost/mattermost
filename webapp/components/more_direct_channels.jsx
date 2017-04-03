@@ -266,14 +266,14 @@ export default class MoreDirectChannels extends React.Component {
                 note = (
                     <FormattedMessage
                         id='more_direct_channels.new_convo_note.full'
-                        defaultMessage='You’ve reached the maximum number of people for this conversation. Consider creating a private group instead.'
+                        defaultMessage='You’ve reached the maximum number of people for this conversation. Consider creating a private channel instead.'
                     />
                 );
             } else {
                 note = (
                     <FormattedMessage
                         id='more_direct_channels.new_convo_note'
-                        defaultMessage='This will start a new conversation. If you’re adding a lot of people, consider creating a private group instead.'
+                        defaultMessage='This will start a new conversation. If you’re adding a lot of people, consider creating a private channel instead.'
                     />
                 );
             }

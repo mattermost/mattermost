@@ -1186,6 +1186,16 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Re
 	}
 }
 
+// UpdateChannelNotifyProps will update the notification properties on a channel for a user.
+func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[string]string) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/notify_props", MapToJson(props)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
 	requestBody := map[string]string{"user_id": userId}
@@ -1236,6 +1246,26 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 	} else {
 		defer closeBody(r)
 		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// PinPost pin a post based on provided post id string.
+func (c *Client4) PinPost(postId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/pin", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UnpinPost unpin a post based on provided post id string.
+func (c *Client4) UnpinPost(postId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/unpin", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -1986,6 +2016,17 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 	} else {
 		defer closeBody(r)
 		return CommandFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ListCommands will retrieve a list of commands available in the team.
+func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Response) {
+	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
+	if r, err := c.DoApiGet(c.GetCommandsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

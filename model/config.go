@@ -111,6 +111,7 @@ const (
 
 type ServiceSettings struct {
 	SiteURL                                  *string
+	LicenseFileLocation                      *string
 	ListenAddress                            string
 	ConnectionSecurity                       *string
 	TLSCertFile                              *string
@@ -495,6 +496,10 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.SiteURL == nil {
 		o.ServiceSettings.SiteURL = new(string)
 		*o.ServiceSettings.SiteURL = SERVICE_SETTINGS_DEFAULT_SITE_URL
+	}
+
+	if o.ServiceSettings.LicenseFileLocation == nil {
+		o.ServiceSettings.LicenseFileLocation = new(string)
 	}
 
 	if o.ServiceSettings.EnableLinkPreviews == nil {

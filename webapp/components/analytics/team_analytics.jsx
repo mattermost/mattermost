@@ -270,7 +270,7 @@ export default class TeamAnalytics extends React.Component {
                         title={
                             <FormattedMessage
                                 id='analytics.team.privateGroups'
-                                defaultMessage='Private Groups'
+                                defaultMessage='Private Channels'
                             />
                         }
                         icon='fa-globe'

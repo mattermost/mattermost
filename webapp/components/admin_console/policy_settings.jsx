@@ -179,7 +179,7 @@ export default class PolicySettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelCreationTitle'
-                            defaultMessage='Enable private group creation for:'
+                            defaultMessage='Enable private channel creation for:'
                         />
                     }
                     value={this.state.restrictPrivateChannelCreation}
@@ -187,7 +187,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelCreationDescription'
-                            defaultMessage='Set policy on who can create private groups.'
+                            defaultMessage='Set policy on who can create private channels.'
                         />
                     }
                 />
@@ -202,7 +202,7 @@ export default class PolicySettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelManagementTitle'
-                            defaultMessage='Enable private group renaming for:'
+                            defaultMessage='Enable private channel renaming for:'
                         />
                     }
                     value={this.state.restrictPrivateChannelManagement}
@@ -210,7 +210,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelManagementDescription'
-                            defaultMessage='Set policy on who can rename and set the header or purpose for private groups.'
+                            defaultMessage='Set policy on who can rename and set the header or purpose for private channels.'
                         />
                     }
                 />
@@ -225,7 +225,7 @@ export default class PolicySettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelDeletionTitle'
-                            defaultMessage='Enable private group deletion for:'
+                            defaultMessage='Enable private channel deletion for:'
                         />
                     }
                     value={this.state.restrictPrivateChannelDeletion}
@@ -233,7 +233,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelDeletionDescription'
-                            defaultMessage='Set policy on who can delete private groups. Deleted groups can be recovered from the database using a {commandLineToolLink}.'
+                            defaultMessage='Set policy on who can delete private channels. Deleted channels can be recovered from the database using a {commandLineToolLink}.'
                             values={{
                                 commandLineToolLink: (
                                     <a

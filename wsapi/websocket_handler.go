@@ -27,7 +27,6 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
 		sessionErr.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
-		errResp.DoPreComputeJson()
 
 		conn.Send <- errResp
 		return
@@ -44,14 +43,12 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError)
 		err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
-		errResp.DoPreComputeJson()
 
 		conn.Send <- errResp
 		return
 	}
 
 	resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, data)
-	resp.DoPreComputeJson()
 
 	conn.Send <- resp
 }

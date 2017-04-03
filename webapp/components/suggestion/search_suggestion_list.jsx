@@ -33,7 +33,7 @@ export default class SearchSuggestionList extends SuggestionList {
             text = (
                 <FormattedMessage
                     id='suggestion.search.private'
-                    defaultMessage='Private Groups'
+                    defaultMessage='Private Channels'
                 />
             );
         }

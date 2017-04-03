@@ -1,5 +1,16 @@
 @charset "UTF-8";
 
+.reacticon {
+    display: inline-block;
+    fill: inherit;
+    opacity: .7;
+    position: relative;
+    top: 2px;
+    vertical-align: middle;
+    visibility: hidden;
+
+}
+
 .emoticon {
     background-position: 50% 50%;
     background-repeat: no-repeat;
@@ -45,6 +56,51 @@
     }
 }
 
+.emoji-picker-react-rhs-comment {
+    position: absolute;
+    width: 278px;
+    border: 1px solid;
+    min-height: 298px;
+    border-radius: 3px;
+    top: 21px;
+    right:59px;
+    z-index: 100;
+    .emoji-picker__search-container {
+        position: relative;
+
+        .emoji-picker__search-icon {
+            padding-left: 6px;
+            padding-top: 6px;
+            position: absolute;
+            font-size: 13px;
+        }
+
+
+    }
+}
+
+.emoji-picker-react {
+    position: absolute;
+    width: 278px;
+    border: 1px solid;
+    min-height: 298px;
+    border-radius: 3px;
+    top: 42px;
+    right:59px;
+    z-index: 100;
+    .emoji-picker__search-container {
+        position: relative;
+
+        .emoji-picker__search-icon {
+            padding-left: 6px;
+            padding-top: 6px;
+            position: absolute;
+            font-size: 13px;
+        }
+
+
+    }
+}
 
 
 .emoji-picker-bottom {

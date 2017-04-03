@@ -81,7 +81,7 @@ class LeaveTeamModal extends React.Component {
                     <Modal.Body>
                         <FormattedMessage
                             id='leave_team_modal.desc'
-                            defaultMessage='You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?'
+                            defaultMessage='You will be removed from all public and private channels.  If the team is private you will not be able to rejoin the team.  Are you sure?'
                         />
                     </Modal.Body>
                     <Modal.Footer>
