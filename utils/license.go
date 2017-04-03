@@ -16,13 +16,27 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
 )
 
-var IsLicensed bool = false
+var isLicensed int32 = 0
+
+func IsLicensed() bool {
+	return atomic.LoadInt32(&isLicensed) == 1
+}
+
+func SetLicensed(licensed bool) {
+	if licensed {
+		atomic.StoreInt32(&isLicensed, 1)
+	} else {
+		atomic.StoreInt32(&isLicensed, 0)
+	}
+}
+
 var License *model.License = &model.License{
 	Features: new(model.Features),
 }
