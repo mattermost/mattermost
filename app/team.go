@@ -682,6 +682,20 @@ func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	return nil
 }
 
+func SoftDeleteTeam(teamId string) *model.AppError {
+	team, err := GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	team.DeleteAt = model.GetMillis()
+	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}
+
 func GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	tchan := Srv.Store.Team().GetTotalMemberCount(teamId)
 	achan := Srv.Store.Team().GetActiveMemberCount(teamId)
