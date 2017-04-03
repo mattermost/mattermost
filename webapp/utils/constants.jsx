@@ -894,6 +894,7 @@ export const Constants = {
     MIN_HASHTAG_LINK_LENGTH: 3,
     CHANNEL_SCROLL_ADJUSTMENT: 100,
     EMOJI_PATH: '/static/emoji',
+    RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
     MTPNS: 'http://push-test.mattermost.com',
