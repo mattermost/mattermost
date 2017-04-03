@@ -178,7 +178,7 @@ export default class ErrorBar extends React.Component {
             let defaultMessage;
             if (global.mm_config.EnableSignUpWithGitLab === 'true') {
                 id = 'error_bar.site_url_gitlab';
-                defaultMessage = 'Site URL is now a required setting. Please configure it in {link} or in gitlab.rb if you\'re using GitLab Mattermost.';
+                defaultMessage = 'Site URL is now a required setting. Please configure it in the System Console or in gitlab.rb if you\'re using GitLab Mattermost.';
             } else {
                 id = 'error_bar.site_url';
                 defaultMessage = 'Site URL is now a required setting. Please configure it in {link}.';
