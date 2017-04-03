@@ -978,6 +978,22 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	}
 }
 
+// AddTeamMember adds a number of users to a team and returns the team members.
+func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember, *Response) {
+	var members []*TeamMember
+	for _, userId := range userIds {
+		member := &TeamMember{TeamId: teamId, UserId: userId}
+		members = append(members, member)
+	}
+
+	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+"/batch", TeamMembersToJson(members)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // RemoveTeamMember will remove a user from a team.
 func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId)); err != nil {

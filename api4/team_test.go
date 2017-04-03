@@ -948,6 +948,137 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestAddTeamMembers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	otherUser := th.CreateUser()
+	userList := []string{
+		otherUser.Id,
+	}
+
+	if err := app.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	// Regular user can't add a member to a team they don't belong to.
+	th.LoginBasic2()
+	tm, resp := Client.AddTeamMembers(team.Id, userList)
+	CheckForbiddenStatus(t, resp)
+	Client.Logout()
+
+	// Regular user can add a member to a team they belong to.
+	th.LoginBasic()
+	tm, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	// Check all the returned data.
+	if tm[0] == nil {
+		t.Fatal("should have returned team member")
+	}
+
+	if tm[0].UserId != otherUser.Id {
+		t.Fatal("user ids should have matched")
+	}
+
+	if tm[0].TeamId != team.Id {
+		t.Fatal("team ids should have matched")
+	}
+
+	// Check with various invalid requests.
+	_, resp = Client.AddTeamMembers("junk", userList)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.AddTeamMembers(GenerateTestId(), userList)
+	CheckForbiddenStatus(t, resp)
+
+	testUserList := append(userList, GenerateTestId())
+	_, resp = Client.AddTeamMembers(team.Id, testUserList)
+	CheckNotFoundStatus(t, resp)
+
+	// Test with many users.
+	for i := 0; i < 25; i++ {
+		testUserList = append(testUserList, GenerateTestId())
+	}
+	_, resp = Client.AddTeamMembers(team.Id, testUserList)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	// Check effects of config and license changes.
+	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+
+	// Set the config so that only team admins can add a user to a team.
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Test without the EE license to see that the permission restriction is ignored.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+
+	// Add an EE license.
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Check that a regular user can't add someone to the team.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckForbiddenStatus(t, resp)
+
+	// Update user to team admin
+	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	app.InvalidateAllCaches()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Should work as a team admin.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+
+	// Change permission level to System Admin
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Should not work as team admin.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckForbiddenStatus(t, resp)
+
+	// Should work as system admin.
+	_, resp = th.SystemAdminClient.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+
+	// Change permission level to All
+	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
+	app.InvalidateAllCaches()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Should work as a regular user.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+}
+
 func TestRemoveTeamMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
