@@ -25,6 +25,7 @@ export default class ChangeUrlModal extends React.Component {
             userEdit: false
         };
     }
+
     componentWillReceiveProps(nextProps) {
         // This check prevents the url being deleted when we re-render
         // because of user status check
@@ -34,15 +35,18 @@ export default class ChangeUrlModal extends React.Component {
             });
         }
     }
+
     componentDidUpdate(prevProps) {
         if (this.props.show === true && prevProps.show === false) {
             ReactDOM.findDOMNode(this.refs.urlinput).select();
         }
     }
+
     onURLChanged(e) {
         const url = e.target.value.trim();
         this.setState({currentURL: url.replace(/[^A-Za-z0-9-_]/g, '').toLowerCase(), userEdit: true});
     }
+
     getURLError(url) {
         let error = []; //eslint-disable-line prefer-const
         if (url.length < 2) {
@@ -101,6 +105,7 @@ export default class ChangeUrlModal extends React.Component {
         }
         return error;
     }
+
     doSubmit(e) {
         e.preventDefault();
 
@@ -113,10 +118,12 @@ export default class ChangeUrlModal extends React.Component {
         this.setState({urlError: '', userEdit: false});
         this.props.onModalSubmit(url);
     }
+
     doCancel() {
         this.setState({urlError: '', userEdit: false});
         this.props.onModalDismissed();
     }
+
     render() {
         let urlClass = 'input-group input-group--limit';
         let error = null;
@@ -155,9 +162,19 @@ export default class ChangeUrlModal extends React.Component {
                     className='form-horizontal'
                 >
                     <Modal.Body>
-                        <div className='modal-intro'>{this.props.description}</div>
+                        <div className='modal-intro'>
+                            <FormattedMessage
+                                id='channel_flow.changeUrlDescription'
+                                defaultMessage='Some characters are now allowed in URLs and may be removed.'
+                            />
+                        </div>
                         <div className='form-group'>
-                            <label className='col-sm-2 form__label control-label'>{this.props.urlLabel}</label>
+                            <label className='col-sm-2 form__label control-label'>
+                                <FormattedMessage
+                                    id='change_url.urlLabel'
+                                    defaultMessage='Channel URL'
+                                />
+                            </label>
                             <div className='col-sm-10'>
                                 <div className={urlClass}>
                                     <OverlayTrigger
@@ -211,8 +228,6 @@ export default class ChangeUrlModal extends React.Component {
 ChangeUrlModal.defaultProps = {
     show: false,
     title: 'Change URL',
-    desciption: '',
-    urlLabel: 'URL',
     submitButtonText: 'Save',
     currentURL: '',
     serverError: null
@@ -220,10 +235,8 @@ ChangeUrlModal.defaultProps = {
 
 ChangeUrlModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    title: React.PropTypes.string,
-    description: React.PropTypes.string,
-    urlLabel: React.PropTypes.string,
-    submitButtonText: React.PropTypes.string,
+    title: React.PropTypes.node,
+    submitButtonText: React.PropTypes.node,
     currentURL: React.PropTypes.string,
     serverError: React.PropTypes.node,
     onModalSubmit: React.PropTypes.func.isRequired,

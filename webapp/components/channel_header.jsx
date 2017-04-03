@@ -349,21 +349,6 @@ export default class ChannelHeader extends React.Component {
             channelTitle = ChannelUtils.buildGroupChannelName(channel.id);
         }
 
-        let channelTerm = (
-            <FormattedMessage
-                id='channel_header.channel'
-                defaultMessage='Channel'
-            />
-        );
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
-            channelTerm = (
-                <FormattedMessage
-                    id='channel_header.group'
-                    defaultMessage='Group'
-                />
-            );
-        }
-
         let popoverListMembers;
         if (!isDirect) {
             popoverListMembers = (
@@ -560,10 +545,7 @@ export default class ChannelHeader extends React.Component {
                     >
                         <FormattedMessage
                             id='channel_header.delete'
-                            defaultMessage='Delete {term}'
-                            values={{
-                                term: (channelTerm)
-                            }}
+                            defaultMessage='Delete Channel'
                         />
                     </ToggleModalButton>
                 </li>
@@ -590,10 +572,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.setHeader'
-                                defaultMessage='Edit {term} Header'
-                                values={{
-                                    term: (channelTerm)
-                                }}
+                                defaultMessage='Edit Channel Header'
                             />
                         </ToggleModalButton>
                     </li>
@@ -612,10 +591,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.setPurpose'
-                                defaultMessage='Edit {term} Purpose'
-                                values={{
-                                    term: (channelTerm)
-                                }}
+                                defaultMessage='Edit Channel Purpose'
                             />
                         </a>
                     </li>
@@ -634,10 +610,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.rename'
-                                defaultMessage='Rename {term}'
-                                values={{
-                                    term: (channelTerm)
-                                }}
+                                defaultMessage='Rename Channel'
                             />
                         </a>
                     </li>
@@ -674,10 +647,7 @@ export default class ChannelHeader extends React.Component {
                         >
                             <FormattedMessage
                                 id='channel_header.leave'
-                                defaultMessage='Leave {term}'
-                                values={{
-                                    term: (channelTerm)
-                                }}
+                                defaultMessage='Leave Channel'
                             />
                         </a>
                     </li>
