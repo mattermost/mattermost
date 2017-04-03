@@ -241,21 +241,6 @@ export default class Navbar extends React.Component {
 
     createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
         if (channel) {
-            let channelTerm = (
-                <FormattedMessage
-                    id='channel_header.channel'
-                    defaultMessage='Channel'
-                />
-                );
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
-                channelTerm = (
-                    <FormattedMessage
-                        id='channel_header.group'
-                        defaultMessage='Group'
-                    />
-                );
-            }
-
             let viewInfoOption;
             let viewPinnedPostsOption;
             let addMembersOption;
@@ -449,10 +434,7 @@ export default class Navbar extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_header.setHeader'
-                                    defaultMessage='Set {term} Header...'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
+                                    defaultMessage='Edit Channel Header'
                                 />
                             </a>
                         </li>
@@ -467,10 +449,7 @@ export default class Navbar extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_header.setPurpose'
-                                    defaultMessage='Set {term} Purpose...'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
+                                    defaultMessage='Edit Channel Purpose'
                                 />
                             </a>
                         </li>
@@ -485,10 +464,7 @@ export default class Navbar extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_header.rename'
-                                    defaultMessage='Rename {term}...'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
+                                    defaultMessage='Rename Channel'
                                 />
                             </a>
                         </li>
@@ -506,10 +482,7 @@ export default class Navbar extends React.Component {
                                 >
                                     <FormattedMessage
                                         id='channel_header.delete'
-                                        defaultMessage='Delete {term}...'
-                                        values={{
-                                            term: (channelTerm)
-                                        }}
+                                        defaultMessage='Delete Channel'
                                     />
                                 </ToggleModalButton>
                             </li>
@@ -528,10 +501,7 @@ export default class Navbar extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_header.leave'
-                                    defaultMessage='Leave {term}'
-                                    values={{
-                                        term: (channelTerm)
-                                    }}
+                                    defaultMessage='Leave Channel'
                                 />
                             </a>
                         </li>

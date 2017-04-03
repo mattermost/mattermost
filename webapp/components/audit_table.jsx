@@ -14,7 +14,7 @@ const holders = defineMessages({
     },
     channelCreated: {
         id: 'audit_table.channelCreated',
-        defaultMessage: 'Created the {channelName} channel/group'
+        defaultMessage: 'Created the {channelName} channel'
     },
     establishedDM: {
         id: 'audit_table.establishedDM',
@@ -22,23 +22,23 @@ const holders = defineMessages({
     },
     nameUpdated: {
         id: 'audit_table.nameUpdated',
-        defaultMessage: 'Updated the {channelName} channel/group name'
+        defaultMessage: 'Updated the {channelName} channel name'
     },
     headerUpdated: {
         id: 'audit_table.headerUpdated',
-        defaultMessage: 'Updated the {channelName} channel/group header'
+        defaultMessage: 'Updated the {channelName} channel header'
     },
     channelDeleted: {
         id: 'audit_table.channelDeleted',
-        defaultMessage: 'Deleted the channel/group with the URL {url}'
+        defaultMessage: 'Deleted the channel with the URL {url}'
     },
     userAdded: {
         id: 'audit_table.userAdded',
-        defaultMessage: 'Added {username} to the {channelName} channel/group'
+        defaultMessage: 'Added {username} to the {channelName} channel'
     },
     userRemoved: {
         id: 'audit_table.userRemoved',
-        defaultMessage: 'Removed {username} to the {channelName} channel/group'
+        defaultMessage: 'Removed {username} to the {channelName} channel'
     },
     attemptedRegisterApp: {
         id: 'audit_table.attemptedRegisterApp',
