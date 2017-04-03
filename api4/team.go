@@ -20,6 +20,7 @@ func InitTeam() {
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
+	BaseRoutes.Teams.Handle("/search", ApiSessionRequired(searchTeams)).Methods("POST")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
@@ -446,6 +447,35 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		teams, err = app.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
 	} else {
 		teams, err = app.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamListToJson(teams)))
+}
+
+func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.TeamSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("team_search")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	var teams []*model.Team
+	var err *model.AppError
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		teams, err = app.SearchAllTeams(props.Term)
+	} else {
+		teams, err = app.SearchOpenTeams(props.Term)
 	}
 
 	if err != nil {
