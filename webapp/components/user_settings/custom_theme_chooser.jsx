@@ -83,6 +83,10 @@ const messages = defineMessages({
         id: 'user.settings.custom_theme.buttonColor',
         defaultMessage: 'Button Text'
     },
+    errorTextColor: {
+        id: 'user.settings.custom_theme.errorTextColor',
+        defaultMessage: 'Error Text Color'
+    },
     mentionHighlightBg: {
         id: 'user.settings.custom_theme.mentionHighlightBg',
         defaultMessage: 'Mention Highlight BG'
