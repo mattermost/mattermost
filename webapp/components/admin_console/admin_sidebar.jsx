@@ -389,7 +389,7 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
-                                    name='email'
+                                    name='authentication_email'
                                     title={
                                         <FormattedMessage
                                             id='admin.sidebar.email'
@@ -469,7 +469,7 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
-                                    name='email'
+                                    name='notifications_email'
                                     title={
                                         <FormattedMessage
                                             id='admin.sidebar.email'
