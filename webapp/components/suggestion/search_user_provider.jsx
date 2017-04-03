@@ -86,5 +86,7 @@ export default class SearchUserProvider extends Provider {
                 }
             );
         }
+
+        return Boolean(captured);
     }
 }
