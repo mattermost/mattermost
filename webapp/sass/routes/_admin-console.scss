@@ -540,12 +540,12 @@
     .manage-teams__system-admin {
         margin-left: 10px;
         opacity: 0.5;
+        padding-right: 10px;
     }
 
     .manage-teams__team {
         align-items: center;
         display: flex;
-        font-weight: bold;
         padding: 10px;
     }
 
@@ -557,6 +557,7 @@
 
     .manage-teams__team-name {
         flex: 1;
+        font-weight: bold;
         overflow: hidden;
         text-overflow: ellipsis;
     }
