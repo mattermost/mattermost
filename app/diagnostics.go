@@ -4,6 +4,8 @@
 package app
 
 import (
+	"log"
+	"os"
 	"runtime"
 
 	"github.com/mattermost/platform/model"
@@ -44,7 +46,7 @@ var client *analytics.Client
 
 func SendDailyDiagnostics() {
 	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		initDiagnostics()
+		initDiagnostics("")
 		trackActivity()
 		trackConfig()
 		trackLicense()
@@ -52,9 +54,16 @@ func SendDailyDiagnostics() {
 	}
 }
 
-func initDiagnostics() {
+func initDiagnostics(endpoint string) {
 	if client == nil {
 		client = analytics.New(SEGMENT_KEY)
+		// For testing
+		if endpoint != "" {
+			client.Endpoint = endpoint
+			client.Verbose = true
+			client.Size = 1
+			client.Logger = log.New(os.Stdout, "segment ", log.LstdFlags)
+		}
 		client.Identify(&analytics.Identify{
 			UserId: utils.CfgDiagnosticId,
 		})
