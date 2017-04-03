@@ -281,9 +281,11 @@ func LoadConfig(fileName string) {
 	}
 
 	if needSave {
+		cfgMutex.Unlock()
 		if err := SaveConfig(CfgFileName, &config); err != nil {
 			l4g.Warn(T(err.Id))
 		}
+		cfgMutex.Lock()
 	}
 
 	if err := ValidateLocales(&config); err != nil {
