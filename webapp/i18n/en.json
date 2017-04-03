@@ -1670,7 +1670,7 @@
   "mobile.components.select_server_view.proceed": "Proceed",
   "mobile.components.select_server_view.siteUrlPlaceholder": "https://mattermost.example.com",
   "mobile.create_channel": "Create",
-  "mobile.create_channel.private": "New Private Group",
+  "mobile.create_channel.private": "New Private Channel",
   "mobile.create_channel.public": "New Public Channel",
   "mobile.custom_list.no_results": "No Results",
   "mobile.edit_post.title": "Editing Message",
