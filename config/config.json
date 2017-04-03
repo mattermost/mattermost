@@ -73,7 +73,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "9s6fu4q8d5oryzn65tkeofbn1kt4q6wt"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -97,7 +97,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "wtemgmdo1dhdtpzupy1o8jm5korb1aj6",
+        "PublicLinkSalt": "",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -126,8 +126,8 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "a3hhgeyb5qocdhb7x3eybbd79wbu7fzs",
-        "PasswordResetSalt": "anp1e4nim8dmsa887yompjy6qhj4eiqg",
+        "InviteSalt": "",
+        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
