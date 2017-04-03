@@ -112,7 +112,7 @@ export default class LogSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.log.fileDescription'
-                            defaultMessage='Typically set to true in production.  When true, log files are written to the log file specified in file location field below.'
+                            defaultMessage='Typically set to true in production.  When true, log files are written to the mattermost.log file specified in the location field below.'
                         />
                     }
                     value={this.state.enableFile}
@@ -149,7 +149,7 @@ export default class LogSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.log.locationDescription'
-                            defaultMessage='File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'
+                            defaultMessage='Path to which log files are written. If blank, will be set to ./logs/, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'
                         />
                     }
                     value={this.state.fileLocation}
