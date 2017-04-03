@@ -427,6 +427,24 @@ func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.Ap
 	}
 }
 
+func AddTeamMembers(teamId string, userIds []string, siteURL string) ([]*model.TeamMember, *model.AppError) {
+	var members []*model.TeamMember
+
+	for _, userId := range userIds {
+		if _, err := AddUserToTeam(teamId, userId, siteURL); err != nil {
+			return nil, err
+		}
+
+		if teamMember, err := GetTeamMember(teamId, userId); err != nil {
+			return nil, err
+		} else {
+			members = append(members, teamMember)
+		}
+	}
+
+	return members, nil
+}
+
 func AddTeamMemberByHash(userId, hash, data, siteURL string) (*model.TeamMember, *model.AppError) {
 	var team *model.Team
 	var err *model.AppError

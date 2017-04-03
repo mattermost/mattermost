@@ -12,6 +12,10 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	MAX_ADD_MEMBERS_BATCH = 20
+)
+
 func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
@@ -28,6 +32,7 @@ func InitTeam() {
 	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
 	BaseRoutes.TeamMembersForUser.Handle("", ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(addTeamMember)).Methods("POST")
+	BaseRoutes.TeamMembers.Handle("/batch", ApiSessionRequired(addTeamMembers)).Methods("POST")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(removeTeamMember)).Methods("DELETE")
 
 	BaseRoutes.TeamForUser.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
@@ -338,6 +343,51 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(member.ToJson()))
+}
+
+func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	var err *model.AppError
+	members := model.TeamMembersFromJson(r.Body)
+
+	if len(members) > MAX_ADD_MEMBERS_BATCH || len(members) == 0 {
+		c.SetInvalidParam("too many members in batch")
+		return
+	}
+
+	var userIds []string
+	for _, member := range members {
+		if member.TeamId != c.Params.TeamId {
+			c.SetInvalidParam("team_id for member with user_id=" + member.UserId)
+			return
+		}
+
+		if len(member.UserId) != 26 {
+			c.SetInvalidParam("user_id")
+			return
+		}
+
+		userIds = append(userIds, member.UserId)
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+		c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
+		return
+	}
+
+	members, err = app.AddTeamMembers(c.Params.TeamId, userIds, c.GetSiteURL())
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(model.TeamMembersToJson(members)))
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
