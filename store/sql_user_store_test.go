@@ -130,6 +130,10 @@ func TestUserStoreUpdate(t *testing.T) {
 			t.Fatal("Email should have been updated as the update is trusted")
 		}
 	}
+
+	if result := <-store.User().UpdateLastPictureUpdate(u1.Id); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	}
 }
 
 func TestUserStoreUpdateUpdateAt(t *testing.T) {
@@ -217,20 +221,39 @@ func TestUserCount(t *testing.T) {
 	}
 }
 
-func TestUserStoreGetAllProfiles(t *testing.T) {
+func TestGetAllUsingAuthService(t *testing.T) {
 	Setup()
 
-	teamId := model.NewId()
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.AuthService = "someservice"
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.AuthService = "someservice"
+	Must(store.User().Save(u2))
+
+	if r1 := <-store.User().GetAllUsingAuthService(u1.AuthService); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) < 2 {
+			t.Fatal("invalid returned users")
+		}
+	}
+}
+
+func TestUserStoreGetAllProfiles(t *testing.T) {
+	Setup()
 
 	u1 := &model.User{}
 	u1.Email = model.NewId()
 	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	u2 := &model.User{}
 	u2.Email = model.NewId()
 	Must(store.User().Save(u2))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
 	if r1 := <-store.User().GetAllProfiles(0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -247,6 +270,34 @@ func TestUserStoreGetAllProfiles(t *testing.T) {
 		users := r2.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users, limit did not work")
+		}
+	}
+
+	if r2 := <-store.User().GetAll(); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) < 2 {
+			t.Fatal("invalid returned users")
+		}
+	}
+
+	etag := ""
+	if r2 := <-store.User().GetEtagForAllProfiles(); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		etag = r2.Data.(string)
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	Must(store.User().Save(u3))
+
+	if r2 := <-store.User().GetEtagForAllProfiles(); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if etag == r2.Data.(string) {
+			t.Fatal("etags should not match")
 		}
 	}
 }
@@ -291,6 +342,26 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	} else {
 		if len(r2.Data.([]*model.User)) != 0 {
 			t.Fatal("should have returned empty map")
+		}
+	}
+
+	etag := ""
+	if r2 := <-store.User().GetEtagForProfiles(teamId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		etag = r2.Data.(string)
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}))
+
+	if r2 := <-store.User().GetEtagForProfiles(teamId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if etag == r2.Data.(string) {
+			t.Fatal("etags should not match")
 		}
 	}
 }
@@ -502,6 +573,7 @@ func TestUserStoreGetAllProfilesInChannel(t *testing.T) {
 		}
 	}
 
+	store.User().InvalidateProfilesInChannelCacheByUser(u1.Id)
 	store.User().InvalidateProfilesInChannelCache(c2.Id)
 }
 

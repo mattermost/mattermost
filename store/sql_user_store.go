@@ -4,7 +4,6 @@
 package store
 
 import (
-	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -421,58 +420,6 @@ func (us SqlUserStore) GetAll() StoreChannel {
 		storeChannel <- result
 		close(storeChannel)
 
-	}()
-
-	return storeChannel
-}
-
-func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-
-	go func() {
-		result := StoreResult{}
-
-		var ids []string
-		_, err := s.GetReplica().Select(ids, `
-			SELECT
-			    Id
-			FROM
-			    Users
-			WHERE
-			    Id IN (SELECT DISTINCT
-			            UserId
-			        FROM
-			            ChannelMembers
-			        WHERE
-			            ChannelMembers.UserId != :UserId
-			                AND ChannelMembers.ChannelId IN (SELECT 
-			                    Channels.Id
-			                FROM
-			                    Channels,
-			                    ChannelMembers
-			                WHERE
-			                    Channels.Type = 'D'
-			                        AND Channels.Id = ChannelMembers.ChannelId
-			                        AND ChannelMembers.UserId = :UserId))
-			        OR Id IN (SELECT
-			            Name
-			        FROM
-			            Preferences
-			        WHERE
-			            UserId = :UserId
-			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC
-        `, map[string]interface{}{"UserId": userId})
-
-		if err != nil || len(ids) == 0 {
-			result.Data = fmt.Sprintf("%v.%v.0.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
-		} else {
-			allIds := strings.Join(ids, "")
-			result.Data = fmt.Sprintf("%v.%x.%v.%v.%v", model.CurrentVersion, md5.Sum([]byte(allIds)), len(ids), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
-		}
-
-		storeChannel <- result
-		close(storeChannel)
 	}()
 
 	return storeChannel
