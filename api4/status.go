@@ -18,7 +18,7 @@ func InitStatus() {
 
 	BaseRoutes.User.Handle("/status", ApiHandler(getUserStatus)).Methods("GET")
 	BaseRoutes.Users.Handle("/status/ids", ApiHandler(getUserStatusesByIds)).Methods("POST")
-
+	BaseRoutes.User.Handle("/status", ApiHandler(updateUserStatus)).Methods("PUT")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -58,4 +58,36 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(model.StatusListToJson(statusMap)))
 	}
+}
+
+func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	status := model.StatusFromJson(r.Body)
+	if status == nil {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	switch status.Status {
+	case "online":
+		app.SetStatusOnline(c.Params.UserId, "", true)
+	case "offline":
+		app.SetStatusOffline(c.Params.UserId, true)
+	case "away":
+		app.SetStatusAwayIfNeeded(c.Params.UserId, true)
+	default:
+		c.SetInvalidParam("status")
+		return
+	}
+
+	getUserStatus(c, w, r)
 }
