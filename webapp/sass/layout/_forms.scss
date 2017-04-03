@@ -69,8 +69,10 @@
         color: $red;
     }
 
-    .control-label {
-        color: inherit;
+    .form__label {
+        &.control-label {
+            color: inherit;
+        }
     }
 
     &.radio,
