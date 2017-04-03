@@ -49,7 +49,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.create_at.app_error", nil, "client_id="+ad.ClientId)
 	}
 
-	if len(ad.RedirectUri) > 256 {
+	if len(ad.RedirectUri) == 0 || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
 		return NewLocAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ad.ClientId)
 	}
 

@@ -387,6 +387,12 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) StoreChan
 	go func() {
 		result := StoreResult{}
 
+		if result.Err = accessData.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
 		if _, err := as.GetMaster().Exec("UPDATE OAuthAccessData SET Token = :Token, ExpiresAt = :ExpiresAt WHERE ClientId = :ClientId AND UserID = :UserId",
 			map[string]interface{}{"Token": accessData.Token, "ExpiresAt": accessData.ExpiresAt, "ClientId": accessData.ClientId, "UserId": accessData.UserId}); err != nil {
 			result.Err = model.NewLocAppError("SqlOAuthStore.Update", "store.sql_oauth.update_access_data.app_error", nil,
