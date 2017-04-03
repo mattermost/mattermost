@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -101,8 +100,8 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 		return nil, model.NewLocAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "")
 	}
 
-	app.ReloadConfig()
-	app.InvalidateAllCaches()
+	ReloadConfig()
+	InvalidateAllCaches()
 
 	return license, nil
 }
