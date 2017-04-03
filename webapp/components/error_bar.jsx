@@ -178,10 +178,10 @@ export default class ErrorBar extends React.Component {
             let defaultMessage;
             if (global.mm_config.EnableSignUpWithGitLab === 'true') {
                 id = 'error_bar.site_url_gitlab';
-                defaultMessage = 'Site URL is now a required setting. Please configure it in the System Console or in gitlab.rb if you\'re using GitLab Mattermost.';
+                defaultMessage = '{docsLink} is now a required setting. Please configure it in the System Console or in gitlab.rb if you\'re using GitLab Mattermost.';
             } else {
                 id = 'error_bar.site_url';
-                defaultMessage = 'Site URL is now a required setting. Please configure it in {link}.';
+                defaultMessage = '{docsLink} is now a required setting. Please configure it in {link}.';
             }
 
             message = (
@@ -189,6 +189,18 @@ export default class ErrorBar extends React.Component {
                     id={id}
                     defaultMessage={defaultMessage}
                     values={{
+                        docsLink: (
+                            <a
+                                href='https://docs.mattermost.com/administration/config-settings.html#site-url'
+                                rel='noopener noreferrer'
+                                target='_blank'
+                            >
+                                <FormattedMessage
+                                    id='error_bar.site_url.docsLink'
+                                    defaultMessage='Site URL'
+                                />
+                            </a>
+                        ),
                         link: (
                             <Link to='/admin_console/general/configuration'>
                                 <FormattedMessage
