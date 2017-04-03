@@ -76,23 +76,6 @@
                 }
             }
         }
-
-        &.move--left {
-            .post {
-                &.post--root,
-                &.other--root {
-                    .post__header {
-                        padding-right: 70px;
-                    }
-                }
-
-                &.post--comment {
-                    .post__header {
-                        padding-right: 70px;
-                    }
-                }
-            }
-        }
     }
 }
 

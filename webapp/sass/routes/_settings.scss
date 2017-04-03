@@ -80,6 +80,10 @@
 
         label {
             font-weight: 600;
+
+            &.has-error {
+                font-weight: normal;
+            }
         }
 
         .no-padding--left {
