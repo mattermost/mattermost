@@ -71,6 +71,8 @@ func FindDir(dir string) string {
 }
 
 func DisableDebugLogForTest() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 	if l4g.Global["stdout"] != nil {
 		originalDisableDebugLvl = l4g.Global["stdout"].Level
 		l4g.Global["stdout"].Level = l4g.ERROR
@@ -78,6 +80,8 @@ func DisableDebugLogForTest() {
 }
 
 func EnableDebugLogForTest() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 	if l4g.Global["stdout"] != nil {
 		l4g.Global["stdout"].Level = originalDisableDebugLvl
 	}
