@@ -1497,8 +1497,13 @@ func TestAddChannelMember(t *testing.T) {
 	Client := th.Client
 	user := th.BasicUser
 	user2 := th.BasicUser2
+	team := th.BasicTeam
 	publicChannel := th.CreatePublicChannel()
 	privateChannel := th.CreatePrivateChannel()
+
+	user3 := th.CreateUserWithClient(th.SystemAdminClient)
+	_, resp := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id, "", "", team.InviteId)
+	CheckNoError(t, resp)
 
 	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckNoError(t, resp)
@@ -1582,10 +1587,139 @@ func TestAddChannelMember(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+
+	// Test policy does not apply to TE.
+	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = restrictPrivateChannel
+	}()
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Login(user2.Username, user2.Password)
+	privateChannel = th.CreatePrivateChannel()
+	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	// Add a license
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_ALL
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Check that a regular channel user can add other users.
+	Client.Login(user2.Username, user2.Password)
+	privateChannel = th.CreatePrivateChannel()
+	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	// Test with CHANNEL_ADMIN level permission.
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Login(user2.Username, user2.Password)
+	privateChannel = th.CreatePrivateChannel()
+	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckForbiddenStatus(t, resp)
+	Client.Logout()
+
+	MakeUserChannelAdmin(user, privateChannel)
+	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	// Test with TEAM_ADMIN level permission.
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_TEAM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Login(user2.Username, user2.Password)
+	privateChannel = th.CreatePrivateChannel()
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckForbiddenStatus(t, resp)
+	Client.Logout()
+
+	UpdateUserToTeamAdmin(user, team)
+	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	// Test with SYSTEM_ADMIN level permission.
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	Client.Login(user2.Username, user2.Password)
+	privateChannel = th.CreatePrivateChannel()
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	Client.Login(user.Username, user.Password)
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckForbiddenStatus(t, resp)
+	Client.Logout()
+
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user3.Id)
+	CheckNoError(t, resp)
 }
 
 func TestRemoveChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+	team := th.BasicTeam
 	defer TearDown()
 	Client := th.Client
 
@@ -1634,5 +1768,119 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	th.LoginBasic()
+	UpdateUserToNonTeamAdmin(user1, team)
+	app.InvalidateAllCaches()
+
+	// Test policy does not apply to TE.
+	restrictPrivateChannel := *utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = restrictPrivateChannel
+	}()
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// Add a license
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_ALL
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Check that a regular channel user can remove other users.
+	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// Test with CHANNEL_ADMIN level permission.
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	MakeUserChannelAdmin(user1, privateChannel)
+	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// Test with TEAM_ADMIN level permission.
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_TEAM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	UpdateUserToTeamAdmin(user1, team)
+	app.InvalidateAllCaches()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// Test with SYSTEM_ADMIN level permission.
+	*utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+
+	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 }
