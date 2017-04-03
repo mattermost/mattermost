@@ -1546,6 +1546,47 @@ func TestUserStoreSearch(t *testing.T) {
 			t.Fatal("should have found user")
 		}
 	}
+
+	// Search Users not in Team.
+	u4 := &model.User{}
+	u4.Username = "simon" + model.NewId()
+	u4.Email = model.NewId()
+	u4.DeleteAt = 0
+	Must(store.User().Save(u4))
+
+	if r1 := <-store.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u4.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().SearchNotInTeam(tid, "jimb", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user")
+		}
+	}
 }
 
 func TestUserStoreSearchWithoutTeam(t *testing.T) {
