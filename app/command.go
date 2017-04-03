@@ -61,7 +61,8 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 	return post, nil
 }
 
-func ListCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+// previous ListCommands now ListAutocompleteCommands
+func ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {
@@ -101,6 +102,36 @@ func ListTeamCommands(teamId string) ([]*model.Command, *model.AppError) {
 	} else {
 		return result.Data.([]*model.Command), nil
 	}
+}
+
+func ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+	commands := make([]*model.Command, 0, 32)
+	seen := make(map[string]bool)
+	for _, value := range commandProviders {
+		cpy := *value.GetCommand(T)
+		if cpy.AutoComplete && !seen[cpy.Id] {
+			cpy.Sanitize()
+			seen[cpy.Trigger] = true
+			commands = append(commands, &cpy)
+		}
+	}
+
+	if *utils.Cfg.ServiceSettings.EnableCommands {
+		if result := <-Srv.Store.Command().GetByTeam(teamId); result.Err != nil {
+			return nil, result.Err
+		} else {
+			teamCmds := result.Data.([]*model.Command)
+			for _, cmd := range teamCmds {
+				if !seen[cmd.Id] {
+					cmd.Sanitize()
+					seen[cmd.Trigger] = true
+					commands = append(commands, cmd)
+				}
+			}
+		}
+	}
+
+	return commands, nil
 }
 
 func ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {

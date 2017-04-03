@@ -34,7 +34,7 @@ func InitCommand() {
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
-	commands, err := app.ListCommands(c.TeamId, c.T)
+	commands, err := app.ListAutocompleteCommands(c.TeamId, c.T)
 	if err != nil {
 		c.Err = err
 		return

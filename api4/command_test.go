@@ -59,3 +59,80 @@ func TestCreateCommand(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.command.disabled.app_error")
 }
+
+func TestListCommands(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	newCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "custom_command"}
+
+	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+
+	t.Run("ListSystemAndCustomCommands", func(t *testing.T) {
+		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, false)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundCustom := false
+		for _, command := range listCommands {
+			if command.Trigger == "echo" {
+				foundEcho = true
+			}
+			if command.Trigger == "custom_command" {
+				foundCustom = true
+			}
+		}
+		if !foundEcho {
+			t.Fatal("Couldn't find echo command")
+		}
+		if !foundCustom {
+			t.Fatal("Should list the custom command")
+		}
+	})
+
+	t.Run("ListCustomOnlyCommands", func(t *testing.T) {
+		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, true)
+		CheckNoError(t, resp)
+
+		if len(listCommands) > 1 {
+			t.Fatal("Should list just one custom command")
+		}
+		if listCommands[0].Trigger != "custom_command" {
+			t.Fatal("Wrong custom command trigger")
+		}
+	})
+
+	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
+		_, resp := Client.ListCommands(th.BasicTeam.Id, true)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("RegularUserCanListOnlySystemCommands", func(t *testing.T) {
+		listCommands, resp := Client.ListCommands(th.BasicTeam.Id, false)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundCustom := false
+		for _, command := range listCommands {
+			if command.Trigger == "echo" {
+				foundEcho = true
+			}
+			if command.Trigger == "custom_command" {
+				foundCustom = true
+			}
+		}
+		if !foundEcho {
+			t.Fatal("Couldn't find echo command")
+		}
+		if foundCustom {
+			t.Fatal("Should not list the custom command")
+		}
+	})
+}
