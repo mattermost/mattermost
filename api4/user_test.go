@@ -385,6 +385,45 @@ func TestSearchUsers(t *testing.T) {
 	_, resp = Client.SearchUsers(search)
 	CheckForbiddenStatus(t, resp)
 
+	// Test search for users not in any team
+	search.TeamId = ""
+	search.NotInChannelId = ""
+	search.InChannelId = ""
+	search.NotInTeamId = th.BasicTeam.Id
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	oddUser := th.CreateUser()
+	search.Term = oddUser.Username
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(oddUser.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, oddUser.Id, "", "", th.BasicTeam.InviteId)
+	CheckNoError(t, resp)
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(oddUser.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.NotInTeamId = model.NewId()
+	_, resp = Client.SearchUsers(search)
+	CheckForbiddenStatus(t, resp)
+
+	search.Term = th.BasicUser.Username
+
 	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
 	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
 	defer func() {
@@ -400,6 +439,7 @@ func TestSearchUsers(t *testing.T) {
 	}
 
 	search.InChannelId = ""
+	search.NotInTeamId = ""
 	search.Term = th.BasicUser2.Email
 	users, resp = Client.SearchUsers(search)
 	CheckNoError(t, resp)

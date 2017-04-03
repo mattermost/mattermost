@@ -1339,6 +1339,32 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) S
 	return storeChannel
 }
 
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+			SELECT
+				Users.*
+			FROM Users
+			LEFT JOIN TeamMembers tm
+				ON tm.UserId = Users.Id
+				AND tm.TeamId = :NotInTeamId
+			WHERE
+				tm.UserId IS NULL
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+			ORDER BY Users.Username ASC
+			LIMIT 100`
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"NotInTeamId": notInTeamId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
 func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

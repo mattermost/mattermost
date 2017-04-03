@@ -1299,6 +1299,8 @@ func SearchUsers(props *model.UserSearch, searchOptions map[string]bool, asAdmin
 		return SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, asAdmin)
 	} else if props.NotInChannelId != "" {
 		return SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, asAdmin)
+	} else if props.NotInTeamId != "" {
+		return SearchUsersNotInTeam(props.NotInTeamId, props.Term, searchOptions, asAdmin)
 	} else {
 		return SearchUsersInTeam(props.TeamId, props.Term, searchOptions, asAdmin)
 	}
@@ -1334,6 +1336,20 @@ func SearchUsersNotInChannel(teamId string, channelId string, term string, searc
 
 func SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users := result.Data.([]*model.User)
+
+		for _, user := range users {
+			SanitizeProfile(user, asAdmin)
+		}
+
+		return users, nil
+	}
+}
+
+func SearchUsersNotInTeam(notInTeamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchNotInTeam(notInTeamId, term, searchOptions); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
