@@ -987,7 +987,7 @@ func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response) 
 	}
 }
 
-// ImportTeam will update the roles on a team for a user.
+// ImportTeam will import an exported team from other app into a existing team.
 func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, teamId string) ([]byte, *Response) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
