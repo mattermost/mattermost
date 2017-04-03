@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
