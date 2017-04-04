@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Privégroep-beheer en -aanmaak is voorbehouden aan systeembeheerders."
+    "translation": "Alleen systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Privégroep-beheer en -aanmaak is voorbehouden aan team- en systeembeheerders."
+    "translation": "Alleen team- en systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -388,7 +388,7 @@
     "translation": "Een ongeldige bijwerkings-poging van het standaard kanaal {{.Channel}} is geprobeerd"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Onmogelijk om het aantal ongelezen bericht op te halen voor user_id=%v en channel_id=%v, err=%v"
   },
   {
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Een onbekende fout is opgetreden. Neem contact op met support."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initialisatie van de opdracht API routes"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -3484,22 +3488,6 @@
     "translation": "Pagina niet gevonden"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "Je word verwijdert van alle publieke kanalen en privé groepen. Als het team privé is kan je niet opnieuw lid worden van het team. Weet je get zeker?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "Nee"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Verlaat het team?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Ja"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Kan het kanaal %v niet vinden, %v mogelijkheden doorzocht"
   },
@@ -3730,6 +3718,26 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Fout bij het schrijven van verzoek"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "Het team lid kan niet opgeslagen worden"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Het team kan niet bijgewerkt worden"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Toevoegen van een directory om te controleren is mislukt %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Het initialiseren van status api routes"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initialisatie van de websocket api"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initialisatie van de websocket api"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initialisatie van de websocket api"
   }
 ]

@@ -72,10 +72,6 @@
     "translation": "Image storage is not configured."
   },
   {
-    "id": "api.deprecated.init.debug",
-    "translation": "Initializing deprecated API routes"
-  },
-  {
     "id": "api.admin.init.debug",
     "translation": "Initializing admin API routes"
   },
@@ -146,22 +142,6 @@
   {
     "id": "api.api.render.error",
     "translation": "Error rendering template %v err=%v"
-  },
-  {
-    "id": "wsapi.user.init.debug",
-    "translation": "Initializing user WebSocket API routes"
-  },
-  {
-    "id": "wsapi.system.init.debug",
-    "translation": "Initializing system WebSocket API routes"
-  },
-  {
-    "id": "wsapi.status.init.debug",
-    "translation": "Initializing status WebSocket API routes"
-  },
-  {
-    "id": "wsapi.webrtc.init.debug",
-    "translation": "Initializing webrtc WebSocket API routes"
   },
   {
     "id": "api.auth.unable_to_get_user.app_error",
@@ -906,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "An unknown error has occurred. Please contact support."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initializing deprecated API routes"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -3736,28 +3720,28 @@
     "translation": "Unable to write request"
   },
   {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
   },
   {
     "id": "model.client.upload_post_attachment.file.app_error",
     "translation": "Error writing file to multipart form"
   },
   {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
   },
   {
     "id": "model.client.upload_post_attachment.import_from.app_error",
     "translation": "Error writing importFrom to multipart form"
   },
   {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -5512,12 +5496,12 @@
     "translation": "We couldn't save the team member"
   },
   {
-    "id": "store.sql_team.search_open_team.app_error",
-    "translation": "We encountered an error searching open teams"
-  },
-  {
     "id": "store.sql_team.search_all_team.app_error",
     "translation": "We encountered an error searching teams"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "We encountered an error searching open teams"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6090,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Initializing status WebSocket API routes"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initializing system WebSocket API routes"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initializing user WebSocket API routes"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initializing webrtc WebSocket API routes"
   }
 ]

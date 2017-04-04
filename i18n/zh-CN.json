@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系统管理能创建与管理私有群组。"
+    "translation": "只有系统管理员能创建公开频道。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有团体和系统管理员能管理与创建私有群组。"
+    "translation": "只有团队和系统管理员能创建与管理公开频道。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -388,7 +388,7 @@
     "translation": "对默认频道试图执行一个无效的更新 {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "无法获取 user_id=%v 以及 channel_id=%v 的未读数量，err=%v"
   },
   {
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "发生未知错误。请联系我们。"
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "正在初始化已弃用 API 路由"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1949,19 +1953,19 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "User not found"
+    "translation": "未找到用户"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
+    "translation": "无效数据。"
   },
   {
     "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
+    "translation": "无效邀请 id。没有匹配此邀请 id 的团队。"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "添加用户到团队所需的参数。"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3484,22 +3488,6 @@
     "translation": "未找到该页面"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "您将会从所有公开频道和私有组中移除。如果团队是私有的你将无法再加入。您确定吗？"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "不"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "退出团队？"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "是"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "找不到频道：%v，已搜索 %v 可能性"
   },
@@ -3730,6 +3718,26 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "无法写入请求"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -4721,7 +4729,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found"
+    "translation": "未找到频道"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "我们无法保存该频道成员"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "我们搜索频道时遇到错误"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "我们搜索频道时遇到错误"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "我们无法更新该团队"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "无法添加目录给观察者 %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "正在初始化状态 WebSocket API 路由"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "正在初始化系统 Websocket API 路由"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "正在初始化用户 Websocket API 路由"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "正在初始化 webrtc Websocket API 路由"
   }
 ]
