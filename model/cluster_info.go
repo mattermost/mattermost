@@ -18,7 +18,7 @@ type ClusterInfo struct {
 	InterNodeUrl       string       `json:"internode_url"`
 	Hostname           string       `json:"hostname"`
 	LastSuccessfulPing int64        `json:"last_ping"`
-	isAlive            int32        `json:"is_alive"`
+	Alive              int32        `json:"is_alive"`
 	Mutex              sync.RWMutex `json:"-"`
 }
 
@@ -52,14 +52,14 @@ func ClusterInfoFromJson(data io.Reader) *ClusterInfo {
 
 func (me *ClusterInfo) SetAlive(alive bool) {
 	if alive {
-		atomic.StoreInt32(&me.isAlive, 1)
+		atomic.StoreInt32(&me.Alive, 1)
 	} else {
-		atomic.StoreInt32(&me.isAlive, 0)
+		atomic.StoreInt32(&me.Alive, 0)
 	}
 }
 
 func (me *ClusterInfo) IsAlive() bool {
-	return atomic.LoadInt32(&me.isAlive) == 1
+	return atomic.LoadInt32(&me.Alive) == 1
 }
 
 func (me *ClusterInfo) HaveEstablishedInitialContact() bool {
