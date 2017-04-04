@@ -29,7 +29,7 @@ func CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	}
 }
 
-func CreateTeamWithUser(team *model.Team, userId string, siteURL string) (*model.Team, *model.AppError) {
+func CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
 	if user, err = GetUser(userId); err != nil {
@@ -47,7 +47,7 @@ func CreateTeamWithUser(team *model.Team, userId string, siteURL string) (*model
 		return nil, err
 	}
 
-	if err = JoinUserToTeam(rteam, user, siteURL); err != nil {
+	if err = JoinUserToTeam(rteam, user); err != nil {
 		return nil, err
 	}
 
@@ -161,7 +161,7 @@ func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*mode
 	return member, nil
 }
 
-func AddUserToTeam(teamId string, userId string, siteURL string) (*model.Team, *model.AppError) {
+func AddUserToTeam(teamId string, userId string) (*model.Team, *model.AppError) {
 	tchan := Srv.Store.Team().Get(teamId)
 	uchan := Srv.Store.User().Get(userId)
 
@@ -179,22 +179,22 @@ func AddUserToTeam(teamId string, userId string, siteURL string) (*model.Team, *
 		user = result.Data.(*model.User)
 	}
 
-	if err := JoinUserToTeam(team, user, siteURL); err != nil {
+	if err := JoinUserToTeam(team, user); err != nil {
 		return nil, err
 	}
 
 	return team, nil
 }
 
-func AddUserToTeamByTeamId(teamId string, user *model.User, siteURL string) *model.AppError {
+func AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
 	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
 		return result.Err
 	} else {
-		return JoinUserToTeam(result.Data.(*model.Team), user, siteURL)
+		return JoinUserToTeam(result.Data.(*model.Team), user)
 	}
 }
 
-func AddUserToTeamByHash(userId string, hash string, data string, siteURL string) (*model.Team, *model.AppError) {
+func AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
 	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
@@ -223,14 +223,14 @@ func AddUserToTeamByHash(userId string, hash string, data string, siteURL string
 		user = result.Data.(*model.User)
 	}
 
-	if err := JoinUserToTeam(team, user, siteURL); err != nil {
+	if err := JoinUserToTeam(team, user); err != nil {
 		return nil, err
 	}
 
 	return team, nil
 }
 
-func AddUserToTeamByInviteId(inviteId string, userId string, siteURL string) (*model.Team, *model.AppError) {
+func AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
 	tchan := Srv.Store.Team().GetByInviteId(inviteId)
 	uchan := Srv.Store.User().Get(userId)
 
@@ -248,7 +248,7 @@ func AddUserToTeamByInviteId(inviteId string, userId string, siteURL string) (*m
 		user = result.Data.(*model.User)
 	}
 
-	if err := JoinUserToTeam(team, user, siteURL); err != nil {
+	if err := JoinUserToTeam(team, user); err != nil {
 		return nil, err
 	}
 
@@ -293,7 +293,7 @@ func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) 
 	return false, nil
 }
 
-func JoinUserToTeam(team *model.Team, user *model.User, siteURL string) *model.AppError {
+func JoinUserToTeam(team *model.Team, user *model.User) *model.AppError {
 
 	if alreadyAdded, err := joinUserToTeam(team, user); err != nil {
 		return err
@@ -308,7 +308,7 @@ func JoinUserToTeam(team *model.Team, user *model.User, siteURL string) *model.A
 	}
 
 	// Soft error if there is an issue joining the default channels
-	if err := JoinDefaultChannels(team.Id, user, channelRole, siteURL); err != nil {
+	if err := JoinDefaultChannels(team.Id, user, channelRole); err != nil {
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
 	}
 
@@ -431,8 +431,8 @@ func GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, 
 	}
 }
 
-func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.AppError) {
-	if _, err := AddUserToTeam(teamId, userId, siteURL); err != nil {
+func AddTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	if _, err := AddUserToTeam(teamId, userId); err != nil {
 		return nil, err
 	}
 
@@ -450,11 +450,11 @@ func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func AddTeamMembers(teamId string, userIds []string, siteURL string) ([]*model.TeamMember, *model.AppError) {
+func AddTeamMembers(teamId string, userIds []string) ([]*model.TeamMember, *model.AppError) {
 	var members []*model.TeamMember
 
 	for _, userId := range userIds {
-		if _, err := AddUserToTeam(teamId, userId, siteURL); err != nil {
+		if _, err := AddUserToTeam(teamId, userId); err != nil {
 			return nil, err
 		}
 
@@ -473,11 +473,11 @@ func AddTeamMembers(teamId string, userIds []string, siteURL string) ([]*model.T
 	return members, nil
 }
 
-func AddTeamMemberByHash(userId, hash, data, siteURL string) (*model.TeamMember, *model.AppError) {
+func AddTeamMemberByHash(userId, hash, data string) (*model.TeamMember, *model.AppError) {
 	var team *model.Team
 	var err *model.AppError
 
-	if team, err = AddUserToTeamByHash(userId, hash, data, siteURL); err != nil {
+	if team, err = AddUserToTeamByHash(userId, hash, data); err != nil {
 		return nil, err
 	}
 
@@ -488,11 +488,11 @@ func AddTeamMemberByHash(userId, hash, data, siteURL string) (*model.TeamMember,
 	}
 }
 
-func AddTeamMemberByInviteId(inviteId, userId, siteURL string) (*model.TeamMember, *model.AppError) {
+func AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMember, *model.AppError) {
 	var team *model.Team
 	var err *model.AppError
 
-	if team, err = AddUserToTeamByInviteId(inviteId, userId, siteURL); err != nil {
+	if team, err = AddUserToTeamByInviteId(inviteId, userId); err != nil {
 		return nil, err
 	}
 
@@ -610,7 +610,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	return nil
 }
 
-func InviteNewUsersToTeam(emailList []string, teamId, senderId, siteURL string) *model.AppError {
+func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
 	if len(emailList) == 0 {
 		err := model.NewLocAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "")
 		err.StatusCode = http.StatusBadRequest
@@ -634,7 +634,7 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId, siteURL string) 
 		user = result.Data.(*model.User)
 	}
 
-	SendInviteEmails(team, user.GetDisplayName(), emailList, siteURL)
+	SendInviteEmails(team, user.GetDisplayName(), emailList, utils.GetSiteURL())
 
 	return nil
 }

@@ -163,7 +163,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := app.JoinUserToTeam(team, user, utils.GetSiteURL())
+	err := app.JoinUserToTeam(team, user)
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
