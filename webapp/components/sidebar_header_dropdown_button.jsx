@@ -15,6 +15,7 @@ export default class SidebarHeaderDropdownButton extends React.PureComponent {
         return (
             <a
                 href='#'
+                id='sidebarHeaderDropdownButton'
                 className='sidebar-header-dropdown__toggle'
                 onClick={this.props.onClick}
             >
