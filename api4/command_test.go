@@ -136,3 +136,63 @@ func TestListCommands(t *testing.T) {
 		}
 	})
 }
+
+func TestListAutocompleteCommands(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	newCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "custom_command"}
+
+	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+
+	t.Run("ListAutocompleteCommandsOnly", func(t *testing.T) {
+		listCommands, resp := th.SystemAdminClient.ListAutocompleteCommands(th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundCustom := false
+		for _, command := range listCommands {
+			if command.Trigger == "echo" {
+				foundEcho = true
+			}
+			if command.Trigger == "custom_command" {
+				foundCustom = true
+			}
+		}
+		if !foundEcho {
+			t.Fatal("Couldn't find echo command")
+		}
+		if foundCustom {
+			t.Fatal("Should not list the custom command")
+		}
+	})
+
+	t.Run("RegularUserCanListOnlySystemCommands", func(t *testing.T) {
+		listCommands, resp := Client.ListAutocompleteCommands(th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundCustom := false
+		for _, command := range listCommands {
+			if command.Trigger == "echo" {
+				foundEcho = true
+			}
+			if command.Trigger == "custom_command" {
+				foundCustom = true
+			}
+		}
+		if !foundEcho {
+			t.Fatal("Couldn't find echo command")
+		}
+		if foundCustom {
+			t.Fatal("Should not list the custom command")
+		}
+	})
+}
