@@ -137,8 +137,10 @@ func SaveConfig(cfg *model.Config) *model.AppError {
 	}
 
 	//oldCfg := utils.Cfg
+	utils.DisableConfigWatch()
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
+	utils.EnableConfigWatch()
 
 	if einterfaces.GetMetricsInterface() != nil {
 		if *utils.Cfg.MetricsSettings.Enable {
