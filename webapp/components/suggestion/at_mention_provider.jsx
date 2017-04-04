@@ -6,7 +6,6 @@ import Provider from './provider.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
 
@@ -112,58 +111,60 @@ export default class AtMentionProvider extends Provider {
 
     handlePretextChanged(suggestionId, pretext) {
         const captured = XRegExp.cache('(?:^|\\W)@([\\pL\\d\\-_.]*)$', 'i').exec(pretext.toLowerCase());
-        if (captured) {
-            const prefix = captured[1];
+        if (!captured) {
+            return false;
+        }
 
-            this.startNewRequest(prefix);
+        const prefix = captured[1];
 
-            autocompleteUsersInChannel(
-                prefix,
-                this.channelId,
-                (data) => {
-                    if (this.shouldCancelDispatch(prefix)) {
-                        return;
-                    }
+        this.startNewRequest(prefix);
 
-                    const members = data.in_channel;
-                    for (const id of Object.keys(members)) {
-                        members[id].type = Constants.MENTION_MEMBERS;
-                    }
+        autocompleteUsersInChannel(
+            prefix,
+            this.channelId,
+            (data) => {
+                if (this.shouldCancelDispatch(prefix)) {
+                    return;
+                }
 
-                    const nonmembers = data.out_of_channel;
-                    for (const id of Object.keys(nonmembers)) {
-                        nonmembers[id].type = Constants.MENTION_NONMEMBERS;
-                    }
+                const members = data.in_channel;
+                for (const id of Object.keys(members)) {
+                    members[id].type = Constants.MENTION_MEMBERS;
+                }
 
-                    let specialMentions = [];
-                    if (!pretext.startsWith('/msg')) {
-                        specialMentions = ['here', 'channel', 'all'].filter((item) => {
-                            return item.startsWith(prefix);
-                        }).map((name) => {
-                            return {username: name, type: Constants.MENTION_SPECIAL};
-                        });
-                    }
+                const nonmembers = data.out_of_channel;
+                for (const id of Object.keys(nonmembers)) {
+                    nonmembers[id].type = Constants.MENTION_NONMEMBERS;
+                }
 
-                    let users = members.concat(specialMentions).concat(nonmembers);
-                    const me = UserStore.getCurrentUser();
-                    users = users.filter((user) => {
-                        return user.id !== me.id;
-                    });
-
-                    const mentions = users.map((user) => '@' + user.username);
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                        id: suggestionId,
-                        matchedPretext: `@${captured[1]}`,
-                        terms: mentions,
-                        items: users,
-                        component: AtMentionSuggestion
+                let specialMentions = [];
+                if (!pretext.startsWith('/msg')) {
+                    specialMentions = ['here', 'channel', 'all'].filter((item) => {
+                        return item.startsWith(prefix);
+                    }).map((name) => {
+                        return {username: name, type: Constants.MENTION_SPECIAL};
                     });
                 }
-            );
-        } else {
-            SuggestionStore.clearSuggestions(suggestionId);
-        }
+
+                let users = members.concat(specialMentions).concat(nonmembers);
+                const me = UserStore.getCurrentUser();
+                users = users.filter((user) => {
+                    return user.id !== me.id;
+                });
+
+                const mentions = users.map((user) => '@' + user.username);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                    id: suggestionId,
+                    matchedPretext: `@${captured[1]}`,
+                    terms: mentions,
+                    items: users,
+                    component: AtMentionSuggestion
+                });
+            }
+        );
+
+        return true;
     }
 }
