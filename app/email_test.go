@@ -61,7 +61,6 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 
 func TestSendEmailChangeVerifyEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var userId string = "5349853498543jdfvndf9834"
 	var newUserEmail string = "newtest@example.com"
@@ -113,7 +112,6 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 
 func TestSendEmailChangeEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var oldEmail string = "test@example.com"
 	var newUserEmail string = "newtest@example.com"
@@ -161,7 +159,6 @@ func TestSendEmailChangeEmail(t *testing.T) {
 
 func TestSendVerifyEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var userId string = "5349853498543jdfvndf9834"
 	var userEmail string = "test@example.com"
@@ -213,7 +210,6 @@ func TestSendVerifyEmail(t *testing.T) {
 
 func TestSendSignInChangeEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var email string = "test@example.com"
 	var locale string = "en"
@@ -261,7 +257,6 @@ func TestSendSignInChangeEmail(t *testing.T) {
 
 func TestSendWelcomeEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var userId string = "32432nkjnijn432uj32"
 	var email string = "test@example.com"
@@ -355,7 +350,6 @@ func TestSendWelcomeEmail(t *testing.T) {
 
 func TestSendPasswordChangeEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var email string = "test@example.com"
 	var locale string = "en"
@@ -403,7 +397,6 @@ func TestSendPasswordChangeEmail(t *testing.T) {
 
 func TestSendMfaChangeEmail(t *testing.T) {
 	Setup()
-	utils.LoadConfig("config.json")
 
 	var email string = "test@example.com"
 	var locale string = "en"
@@ -488,7 +481,6 @@ func TestSendMfaChangeEmail(t *testing.T) {
 
 func TestSendInviteEmails(t *testing.T) {
 	th := Setup().InitBasic()
-	utils.LoadConfig("config.json")
 
 	var email1 string = "test1@example.com"
 	var email2 string = "test2@example.com"
@@ -564,7 +556,6 @@ func TestSendInviteEmails(t *testing.T) {
 
 func TestSendPasswordReset(t *testing.T) {
 	th := Setup().InitBasic()
-	utils.LoadConfig("config.json")
 
 	var siteURL string = "http://test.mattermost.io"
 	// var locale string = "en"
