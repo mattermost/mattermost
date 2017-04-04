@@ -224,6 +224,10 @@ export const TutorialSteps = {
     MENU_POPOVER: 3
 };
 
+export const ErrorPageTypes = {
+    LOCAL_STORAGE: 'local_storage'
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
@@ -232,6 +236,7 @@ export const Constants = {
     UserStatuses,
     UserSearchOptions,
     TutorialSteps,
+    ErrorPageTypes,
 
     PayloadSources: keyMirror({
         SERVER_ACTION: null,
