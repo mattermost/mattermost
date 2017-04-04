@@ -150,3 +150,11 @@ export function switchTeams(url) {
     AsyncClient.viewChannel();
     browserHistory.push(url);
 }
+
+export function getTeamsForUser(userId, success, error) {
+    Client.getTeamsForUser(userId, success, error);
+}
+
+export function getTeamMembersForUser(userId, success, error) {
+    Client.getTeamMembersForUser(userId, success, error);
+}

@@ -550,6 +550,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAllTeamListings', success, error));
     }
 
+    getTeamsForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
+    }
+
     getMyTeam(success, error) {
         request.
             get(`${this.getTeamNeededRoute()}/me`).
@@ -584,6 +594,16 @@ export default class Client {
         type('application/json').
         accept('application/json').
         end(this.handleResponse.bind(this, 'getMyTeamMembers', success, error));
+    }
+
+    getTeamMembersForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams/members`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
     }
 
     getMyTeamsUnread(teamId, success, error) {
@@ -1273,6 +1293,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
 
         this.trackEvent('api', 'api_users_update_profile_picture');
+    }
+
+    getProfilePictureUrl(id, lastPictureUpdate) {
+        let url = `${this.getUsersRoute()}/${id}/image`;
+
+        if (lastPictureUpdate) {
+            url += `?time=${lastPictureUpdate}`;
+        }
+
+        return url;
     }
 
     // Channel Routes Section
