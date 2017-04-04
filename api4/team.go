@@ -673,7 +673,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.Session.UserId, utils.GetSiteURL())
+	err := app.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
