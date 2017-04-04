@@ -48,6 +48,7 @@ func InitTeam() {
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
 
 	BaseRoutes.Team.Handle("/import", ApiSessionRequired(importTeam)).Methods("POST")
+	BaseRoutes.Team.Handle("/invite/email", ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -647,4 +648,36 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(c.Err.StatusCode)
 	}
 	io.Copy(w, bytes.NewReader(log.Bytes()))
+}
+
+func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_INVITE_USER) {
+		c.SetPermissionError(model.PERMISSION_INVITE_USER)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+		c.SetPermissionError(model.PERMISSION_INVITE_USER)
+		return
+	}
+
+	emailList := model.ArrayFromJson(r.Body)
+
+	if len(emailList) == 0 {
+		c.SetInvalidParam("user_email")
+		return
+	}
+
+	err := app.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.Session.UserId, utils.GetSiteURL())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

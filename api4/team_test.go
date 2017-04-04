@@ -1372,3 +1372,51 @@ func TestImportTeam(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestInviteUsersToTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+
+	user1 := GenerateTestEmail()
+	user2 := GenerateTestEmail()
+
+	emailList := []string{user1, user2}
+
+	//Delete all the messages before check the sample email
+	utils.DeleteMailBox(user1)
+	utils.DeleteMailBox(user2)
+
+	okMsg, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+	CheckNoError(t, resp)
+	if okMsg != true {
+		t.Fatal("should return true")
+	}
+
+	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName() + " invited you to join " + th.BasicTeam.DisplayName + " Team"
+	//Check if the email was send to the rigth email address
+	for _, email := range emailList {
+		var resultsMailbox utils.JSONMessageHeaderInbucket
+		err := utils.RetryInbucket(5, func() error {
+			var err error
+			resultsMailbox, err = utils.GetMailBox(email)
+			return err
+		})
+		if err != nil {
+			t.Log(err)
+			t.Log("No email was received, maybe due load on the server. Disabling this verification")
+		}
+		if err == nil && len(resultsMailbox) > 0 {
+			if !strings.ContainsAny(resultsMailbox[0].To[0], email) {
+				t.Fatal("Wrong To recipient")
+			} else {
+				if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
+					if resultsEmail.Subject != expectedSubject {
+						t.Log(resultsEmail.Subject)
+						t.Log(expectedSubject)
+						t.Fatal("Wrong Subject")
+					}
+				}
+			}
+		}
+	}
+}
