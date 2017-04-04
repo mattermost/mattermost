@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
+import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal.jsx';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal.jsx';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list.jsx';
 
@@ -35,6 +36,9 @@ export default class SystemUsersList extends React.Component {
         this.previousPage = this.previousPage.bind(this);
         this.search = this.search.bind(this);
 
+        this.doManageTeams = this.doManageTeams.bind(this);
+        this.doManageTeamsDismiss = this.doManageTeamsDismiss.bind(this);
+
         this.doPasswordReset = this.doPasswordReset.bind(this);
         this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
         this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
@@ -42,6 +46,7 @@ export default class SystemUsersList extends React.Component {
         this.state = {
             page: 0,
 
+            showManageTeamsModal: false,
             showPasswordModal: false,
             user: null
         };
@@ -69,6 +74,20 @@ export default class SystemUsersList extends React.Component {
         if (term !== '') {
             this.setState({page: 0});
         }
+    }
+
+    doManageTeams(user) {
+        this.setState({
+            showManageTeamsModal: true,
+            user
+        });
+    }
+
+    doManageTeamsDismiss() {
+        this.setState({
+            showManageTeamsModal: false,
+            user: null
+        });
     }
 
     doPasswordReset(user) {
@@ -211,7 +230,8 @@ export default class SystemUsersList extends React.Component {
                     extraInfo={extraInfo}
                     actions={[SystemUsersDropdown]}
                     actionProps={{
-                        doPasswordReset: this.doPasswordReset
+                        doPasswordReset: this.doPasswordReset,
+                        doManageTeams: this.doManageTeams
                     }}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
@@ -219,6 +239,11 @@ export default class SystemUsersList extends React.Component {
                     page={this.state.page}
                     term={this.props.term}
                     onTermChange={this.props.onTermChange}
+                />
+                <ManageTeamsModal
+                    user={this.state.user}
+                    show={this.state.showManageTeamsModal}
+                    onModalDismissed={this.doManageTeamsDismiss}
                 />
                 <ResetPasswordModal
                     user={this.state.user}
