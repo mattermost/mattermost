@@ -211,7 +211,10 @@ export function emitPostFocusEvent(postId, onSuccess) {
                 link += 'town-square';
             }
 
-            browserHistory.push('/error?message=' + encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.')) + '&link=' + encodeURIComponent(link));
+            const message = encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.'));
+            const title = encodeURIComponent(Utils.localizeMessage('permalink.error.title', 'Message Not Found'));
+
+            browserHistory.push('/error?message=' + message + '&title=' + title + '&link=' + encodeURIComponent(link));
         }
     );
 }
