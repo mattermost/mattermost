@@ -281,6 +281,10 @@ export const StatTypes = keyMirror({
     MONTHLY_ACTIVE_USERS: null
 });
 
+export const ErrorPageTypes = {
+    LOCAL_STORAGE: 'local_storage'
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
@@ -290,6 +294,8 @@ export const Constants = {
     UserSearchOptions,
     TutorialSteps,
     PostTypes,
+    ErrorPageTypes,
+
     IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_TO_CHANNEL, PostTypes.ADD_REMOVE],
 
     PayloadSources: keyMirror({
