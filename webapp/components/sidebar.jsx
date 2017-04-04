@@ -18,6 +18,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -445,7 +446,7 @@ export default class Sidebar extends React.Component {
             <div>
                 <FormattedHTMLMessage
                     id='sidebar.tutorialScreen1'
-                    defaultMessage='<h4>Channels</h4><p><strong>Channels</strong> organize conversations across different topics. They’re open to everyone on your team. To send private communications use <strong>Direct Messages</strong> for a single person or <strong>Private Groups</strong> for multiple people.</p>'
+                    defaultMessage='<h4>Channels</h4><p><strong>Channels</strong> organize conversations across different topics. They’re open to everyone on your team. To send private communications use <strong>Direct Messages</strong> for a single person or <strong>Private Channels</strong> for multiple people.</p>'
                 />
             </div>
         );
@@ -472,7 +473,7 @@ export default class Sidebar extends React.Component {
                     id='sidebar.tutorialScreen3'
                     defaultMessage='<h4>Creating and Joining Channels</h4>
                     <p>Click <strong>"More..."</strong> to create a new channel or join an existing one.</p>
-                    <p>You can also create a new channel or private group by clicking the <strong>"+" symbol</strong> next to the channel or private group header.</p>'
+                    <p>You can also create a new public or private channel by clicking the <strong>"+" symbol</strong> next to the public or private channel header.</p>'
                 />
             </div>
         );
@@ -637,7 +638,7 @@ export default class Sidebar extends React.Component {
 
         // create elements for all 4 types of channels
         const favoriteItems = this.state.favoriteChannels.
-            sort(Utils.sortTeamsByDisplayName).
+            sort(sortTeamsByDisplayName).
             map((channel, index, arr) => {
                 if (channel.type === Constants.DM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
@@ -699,7 +700,7 @@ export default class Sidebar extends React.Component {
             <Tooltip id='new-channel-tooltip' >
                 <FormattedMessage
                     id='sidebar.createChannel'
-                    defaultMessage='Create new channel'
+                    defaultMessage='Create new public channel'
                 />
             </Tooltip>
         );
@@ -707,7 +708,7 @@ export default class Sidebar extends React.Component {
             <Tooltip id='new-group-tooltip'>
                 <FormattedMessage
                     id='sidebar.createGroup'
-                    defaultMessage='Create new group'
+                    defaultMessage='Create new private channel'
                 />
             </Tooltip>
         );
@@ -871,7 +872,7 @@ export default class Sidebar extends React.Component {
                             <h4>
                                 <FormattedMessage
                                     id='sidebar.pg'
-                                    defaultMessage='Private Groups'
+                                    defaultMessage='Private Channels'
                                 />
                                 {createPrivateChannelIcon}
                             </h4>

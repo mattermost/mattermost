@@ -71,7 +71,7 @@ export default class EditChannelPurposeModal extends React.Component {
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {
-                    this.setState({serverError: Utils.localizeMessage('edit_channel_puropse_modal.error', 'This channel purpose is too long, please enter a shorter one')});
+                    this.setState({serverError: Utils.localizeMessage('edit_channel_purpose_modal.error', 'This channel purpose is too long, please enter a shorter one')});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -110,21 +110,6 @@ export default class EditChannelPurposeModal extends React.Component {
             );
         }
 
-        let channelType = (
-            <FormattedMessage
-                id='edit_channel_purpose_modal.channel'
-                defaultMessage='Channel'
-            />
-        );
-        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
-            channelType = (
-                <FormattedMessage
-                    id='edit_channel_purpose_modal.group'
-                    defaultMessage='Group'
-                />
-            );
-        }
-
         return (
             <Modal
                 className='modal-edit-channel-purpose'
@@ -142,10 +127,7 @@ export default class EditChannelPurposeModal extends React.Component {
                     <p>
                         <FormattedMessage
                             id='edit_channel_purpose_modal.body'
-                            defaultMessage='Describe how this {type} should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
-                            values={{
-                                type: (channelType)
-                            }}
+                            defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
                         />
                     </p>
                     <textarea

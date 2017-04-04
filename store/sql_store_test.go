@@ -25,10 +25,18 @@ func Setup() {
 }
 
 func TestSqlStore1(t *testing.T) {
+	utils.TranslationsPreInit()
 	utils.LoadConfig("config.json")
 	utils.Cfg.SqlSettings.Trace = true
 
 	store := NewSqlStore()
+	store.Close()
+
+	utils.Cfg.SqlSettings.DataSourceReplicas = []string{utils.Cfg.SqlSettings.DataSource}
+
+	store = NewSqlStore()
+	store.TotalMasterDbConnections()
+	store.TotalReadDbConnections()
 	store.Close()
 
 	utils.LoadConfig("config.json")

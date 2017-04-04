@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -21,13 +22,36 @@ func LoadLicense() {
 	}
 
 	if len(licenseId) != 26 {
-		l4g.Info(utils.T("mattermost.load_license.find.warn"))
-		return
+		// Lets attempt to load the file from disk since it was missing from the DB
+		fileName := utils.GetLicenseFileLocation(*utils.Cfg.ServiceSettings.LicenseFileLocation)
+
+		if _, err := os.Stat(fileName); err == nil {
+			l4g.Info("License key has not been uploaded.  Loading license key from disk at %v", fileName)
+			licenseBytes := utils.GetLicenseFileFromDisk(fileName)
+
+			if success, licenseStr := utils.ValidateLicense(licenseBytes); success {
+				licenseFileFromDisk := model.LicenseFromJson(strings.NewReader(licenseStr))
+				licenseId = licenseFileFromDisk.Id
+				if _, err := SaveLicense(licenseBytes); err != nil {
+					l4g.Info("Failed to save license key loaded from disk err=%v", err.Error())
+					return
+				}
+			} else {
+				l4g.Error("Found license key at %v but it appears to be invalid.", fileName)
+				return
+			}
+
+		} else {
+			l4g.Info(utils.T("mattermost.load_license.find.warn"))
+			l4g.Debug("We could not find the license key in the database or on disk at %v", fileName)
+			return
+		}
 	}
 
 	if result := <-Srv.Store.License().Get(licenseId); result.Err == nil {
 		record := result.Data.(*model.LicenseRecord)
 		utils.LoadLicense([]byte(record.Bytes))
+		l4g.Info("License key valid unlocking enterprise features.")
 	} else {
 		l4g.Info(utils.T("mattermost.load_license.find.warn"))
 	}
@@ -58,15 +82,15 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 		record.Bytes = string(licenseBytes)
 		rchan := Srv.Store.License().Save(record)
 
-		sysVar := &model.System{}
-		sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
-		sysVar.Value = license.Id
-		schan := Srv.Store.System().SaveOrUpdate(sysVar)
-
 		if result := <-rchan; result.Err != nil {
 			RemoveLicense()
 			return nil, model.NewLocAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+result.Err.Error())
 		}
+
+		sysVar := &model.System{}
+		sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
+		sysVar.Value = license.Id
+		schan := Srv.Store.System().SaveOrUpdate(sysVar)
 
 		if result := <-schan; result.Err != nil {
 			RemoveLicense()
@@ -77,7 +101,6 @@ func SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	}
 
 	ReloadConfig()
-
 	InvalidateAllCaches()
 
 	return license, nil

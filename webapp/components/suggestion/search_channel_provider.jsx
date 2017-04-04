@@ -85,5 +85,7 @@ export default class SearchChannelProvider extends Provider {
                 }
             );
         }
+
+        return Boolean(captured);
     }
 }

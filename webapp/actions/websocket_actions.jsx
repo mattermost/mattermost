@@ -61,6 +61,13 @@ export function initialize() {
 
     WebSocketClient.setEventCallback(handleEvent);
     WebSocketClient.setFirstConnectCallback(handleFirstConnect);
+    WebSocketClient.setReconnectCallback(() => reconnect(false));
+    WebSocketClient.setMissedEventCallback(() => {
+        if (global.window.mm_config.EnableDeveloper === 'true') {
+            Client.logClientError('missed websocket event seq=' + WebSocketClient.eventSequence);
+        }
+        reconnect(false);
+    });
     WebSocketClient.setCloseCallback(handleClose);
     WebSocketClient.initialize(connUrl);
 }
@@ -244,7 +251,10 @@ function handleLeaveTeamEvent(msg) {
             Client.setTeamId('');
             BrowserStore.removeGlobalItem('team');
             BrowserStore.removeGlobalItem(msg.data.team_id);
-            GlobalActions.redirectUserToDefaultTeam();
+
+            if (!global.location.pathname.startsWith('/admin_console')) {
+                GlobalActions.redirectUserToDefaultTeam();
+            }
         }
     } else {
         UserStore.removeProfileFromTeam(msg.data.team_id, msg.data.user_id);

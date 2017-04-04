@@ -33,12 +33,10 @@ export default class PrivacySettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.privacy'
-                    defaultMessage='Privacy'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.privacy'
+                defaultMessage='Privacy'
+            />
         );
     }
 

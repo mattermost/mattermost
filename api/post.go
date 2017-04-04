@@ -161,7 +161,12 @@ func getFlaggedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if posts, err := app.GetFlaggedPosts(c.Session.UserId, offset, limit); err != nil {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	if posts, err := app.GetFlaggedPostsForTeam(c.Session.UserId, c.TeamId, offset, limit); err != nil {
 		c.Err = err
 		return
 	} else {

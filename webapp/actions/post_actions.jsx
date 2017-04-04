@@ -10,6 +10,7 @@ import UserStore from 'stores/user_store.jsx';
 import {loadStatusesForChannel} from 'actions/status_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
+import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -32,6 +33,14 @@ export function handleNewPost(post, msg) {
         }
     }
 
+    if (ChannelStore.getMyMember(post.channel_id)) {
+        completePostReceive(post, websocketMessageProps);
+    } else {
+        AsyncClient.getChannelMember(post.channel_id, UserStore.getCurrentId()).then(() => completePostReceive(post, websocketMessageProps));
+    }
+}
+
+function completePostReceive(post, websocketMessageProps) {
     if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {
         Client.getPost(
             post.channel_id,
@@ -51,6 +60,8 @@ export function handleNewPost(post, msg) {
                     websocketMessageProps
                 });
 
+                sendDesktopNotification(post, websocketMessageProps);
+
                 loadProfilesForPosts(data.posts);
             },
             (err) => {
@@ -66,6 +77,8 @@ export function handleNewPost(post, msg) {
         post,
         websocketMessageProps
     });
+
+    sendDesktopNotification(post, websocketMessageProps);
 }
 
 export function pinPost(channelId, postId) {
@@ -300,6 +313,7 @@ export function addReaction(channelId, postId, emojiName) {
         user_id: UserStore.getCurrentId(),
         emoji_name: emojiName
     };
+    emitEmojiPosted(emojiName);
 
     AsyncClient.saveReaction(channelId, reaction);
 }

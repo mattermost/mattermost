@@ -4,7 +4,10 @@
 package api4
 
 import (
+	"bytes"
+	"io"
 	"net/http"
+	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -12,22 +15,29 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	MAX_ADD_MEMBERS_BATCH = 20
+)
+
 func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
 	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
+	BaseRoutes.Teams.Handle("/search", ApiSessionRequired(searchTeams)).Methods("POST")
 	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	BaseRoutes.TeamsForUser.Handle("/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("", ApiSessionRequired(updateTeam)).Methods("PUT")
+	BaseRoutes.Team.Handle("", ApiSessionRequired(softDeleteTeam)).Methods("DELETE")
 	BaseRoutes.Team.Handle("/patch", ApiSessionRequired(patchTeam)).Methods("PUT")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
 	BaseRoutes.TeamMembersForUser.Handle("", ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(addTeamMember)).Methods("POST")
+	BaseRoutes.TeamMembers.Handle("/batch", ApiSessionRequired(addTeamMembers)).Methods("POST")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(removeTeamMember)).Methods("DELETE")
 
 	BaseRoutes.TeamForUser.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
@@ -36,6 +46,9 @@ func InitTeam() {
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
 	BaseRoutes.TeamByName.Handle("/exists", ApiSessionRequired(teamExists)).Methods("GET")
 	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
+
+	BaseRoutes.Team.Handle("/import", ApiSessionRequired(importTeam)).Methods("POST")
+	BaseRoutes.Team.Handle("/invite/email", ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -157,6 +170,26 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("")
 	w.Write([]byte(patchedTeam.ToJson()))
+}
+
+func softDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	err := app.SoftDeleteTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -336,7 +369,53 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(member.ToJson()))
+}
+
+func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	var err *model.AppError
+	members := model.TeamMembersFromJson(r.Body)
+
+	if len(members) > MAX_ADD_MEMBERS_BATCH || len(members) == 0 {
+		c.SetInvalidParam("too many members in batch")
+		return
+	}
+
+	var userIds []string
+	for _, member := range members {
+		if member.TeamId != c.Params.TeamId {
+			c.SetInvalidParam("team_id for member with user_id=" + member.UserId)
+			return
+		}
+
+		if len(member.UserId) != 26 {
+			c.SetInvalidParam("user_id")
+			return
+		}
+
+		userIds = append(userIds, member.UserId)
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+		c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
+		return
+	}
+
+	members, err = app.AddTeamMembers(c.Params.TeamId, userIds, c.GetSiteURL())
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(model.TeamMembersToJson(members)))
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -450,6 +529,35 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.TeamListToJson(teams)))
 }
 
+func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.TeamSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("team_search")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	var teams []*model.Team
+	var err *model.AppError
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		teams, err = app.SearchAllTeams(props.Term)
+	} else {
+		teams, err = app.SearchOpenTeams(props.Term)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.TeamListToJson(teams)))
+}
+
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamName()
 	if c.Err != nil {
@@ -466,4 +574,110 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte(model.MapBoolToJson(resp)))
 	return
+}
+
+func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_IMPORT_TEAM) {
+		c.SetPermissionError(model.PERMISSION_IMPORT_TEAM)
+		return
+	}
+
+	if err := r.ParseMultipartForm(10000000); err != nil {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error())
+		return
+	}
+
+	importFromArray, ok := r.MultipartForm.Value["importFrom"]
+	importFrom := importFromArray[0]
+
+	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
+	if !ok {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.unavailable.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileSize, err := strconv.ParseInt(fileSizeStr[0], 10, 64)
+	if err != nil {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.integer.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileInfoArray, ok := r.MultipartForm.File["file"]
+	if !ok {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.no_file.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if len(fileInfoArray) <= 0 {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.array.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	fileInfo := fileInfoArray[0]
+
+	fileData, err := fileInfo.Open()
+	defer fileData.Close()
+	if err != nil {
+		c.Err = model.NewLocAppError("importTeam", "api.team.import_team.open.app_error", nil, err.Error())
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	var log *bytes.Buffer
+	switch importFrom {
+	case "slack":
+		var err *model.AppError
+		if err, log = app.SlackImport(fileData, fileSize, c.Params.TeamId); err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusBadRequest
+		}
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
+	w.Header().Set("Content-Type", "application/octet-stream")
+	if c.Err != nil {
+		w.WriteHeader(c.Err.StatusCode)
+	}
+	io.Copy(w, bytes.NewReader(log.Bytes()))
+}
+
+func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_INVITE_USER) {
+		c.SetPermissionError(model.PERMISSION_INVITE_USER)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.Params.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+		c.SetPermissionError(model.PERMISSION_INVITE_USER)
+		return
+	}
+
+	emailList := model.ArrayFromJson(r.Body)
+
+	if len(emailList) == 0 {
+		c.SetInvalidParam("user_email")
+		return
+	}
+
+	err := app.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.Session.UserId, utils.GetSiteURL())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

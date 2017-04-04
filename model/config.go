@@ -111,6 +111,7 @@ const (
 
 type ServiceSettings struct {
 	SiteURL                                  *string
+	LicenseFileLocation                      *string
 	ListenAddress                            string
 	ConnectionSecurity                       *string
 	TLSCertFile                              *string
@@ -279,26 +280,27 @@ type SupportSettings struct {
 }
 
 type TeamSettings struct {
-	SiteName                         string
-	MaxUsersPerTeam                  int
-	EnableTeamCreation               bool
-	EnableUserCreation               bool
-	EnableOpenServer                 *bool
-	RestrictCreationToDomains        string
-	EnableCustomBrand                *bool
-	CustomBrandText                  *string
-	CustomDescriptionText            *string
-	RestrictDirectMessage            *string
-	RestrictTeamInvite               *string
-	RestrictPublicChannelManagement  *string
-	RestrictPrivateChannelManagement *string
-	RestrictPublicChannelCreation    *string
-	RestrictPrivateChannelCreation   *string
-	RestrictPublicChannelDeletion    *string
-	RestrictPrivateChannelDeletion   *string
-	UserStatusAwayTimeout            *int64
-	MaxChannelsPerTeam               *int64
-	MaxNotificationsPerChannel       *int64
+	SiteName                            string
+	MaxUsersPerTeam                     int
+	EnableTeamCreation                  bool
+	EnableUserCreation                  bool
+	EnableOpenServer                    *bool
+	RestrictCreationToDomains           string
+	EnableCustomBrand                   *bool
+	CustomBrandText                     *string
+	CustomDescriptionText               *string
+	RestrictDirectMessage               *string
+	RestrictTeamInvite                  *string
+	RestrictPublicChannelManagement     *string
+	RestrictPrivateChannelManagement    *string
+	RestrictPublicChannelCreation       *string
+	RestrictPrivateChannelCreation      *string
+	RestrictPublicChannelDeletion       *string
+	RestrictPrivateChannelDeletion      *string
+	RestrictPrivateChannelManageMembers *string
+	UserStatusAwayTimeout               *int64
+	MaxChannelsPerTeam                  *int64
+	MaxNotificationsPerChannel          *int64
 }
 
 type LdapSettings struct {
@@ -497,6 +499,10 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.SiteURL = SERVICE_SETTINGS_DEFAULT_SITE_URL
 	}
 
+	if o.ServiceSettings.LicenseFileLocation == nil {
+		o.ServiceSettings.LicenseFileLocation = new(string)
+	}
+
 	if o.ServiceSettings.EnableLinkPreviews == nil {
 		o.ServiceSettings.EnableLinkPreviews = new(bool)
 		*o.ServiceSettings.EnableLinkPreviews = false
@@ -614,6 +620,11 @@ func (o *Config) SetDefaults() {
 		o.TeamSettings.RestrictPrivateChannelDeletion = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
 		*o.TeamSettings.RestrictPrivateChannelDeletion = *o.TeamSettings.RestrictPrivateChannelManagement
+	}
+
+	if o.TeamSettings.RestrictPrivateChannelManageMembers == nil {
+		o.TeamSettings.RestrictPrivateChannelManageMembers = new(string)
+		*o.TeamSettings.RestrictPrivateChannelManageMembers = PERMISSIONS_ALL
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {

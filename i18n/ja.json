@@ -816,6 +816,10 @@
     "translation": "コンプライアンスAPIルートを初期化しています"
   },
   {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -1284,6 +1288,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "あなたのシステムは{{.Count}}の重複のないユーザーが使ってます。このライセンスは{{.Users}}ユーザーのみサポートしています。重複のないユーザー数は、電子メールアドレスによって決められます。全ユーザー数は、サイトリポート->統計を見るを参照してください。"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1928,12 +1936,32 @@
     "translation": "状態APIルートを初期化しています"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "状態APIルートを初期化しています"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "LastActivityAtを更新できませんでした user_id=%v、session_id=%v、err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "状態を保存できませんでした user_id=%v、err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "ユーザーが見付かりません"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "不正なデータです。"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "不正な招待IDです。この招待IDに一致するチームはありません。"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "チームにユーザーを追加するにはパラメーターが必要です。"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3126,6 +3154,14 @@
   {
     "id": "authentication.permissions.manage_team_roles.name",
     "translation": "チームの役割を管理する"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "公開チャンネルを読めるようにする"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "公開チャンネルを読む"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -4678,6 +4714,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "チャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "チャンネルが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",

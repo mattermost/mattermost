@@ -44,12 +44,10 @@ export default class CustomBrandSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.customization.customBrand'
-                    defaultMessage='Custom Branding'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.customization.customBrand'
+                defaultMessage='Custom Branding'
+            />
         );
     }
 

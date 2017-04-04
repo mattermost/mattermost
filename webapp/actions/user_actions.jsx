@@ -133,6 +133,29 @@ export function loadTeamMembersForProfilesList(profiles, teamId = TeamStore.getC
     loadTeamMembersForProfiles(list, teamId, success, error);
 }
 
+export function loadProfilesWithoutTeam(page, perPage, success, error) {
+    Client.getProfilesWithoutTeam(
+        page,
+        perPage,
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_WITHOUT_TEAM,
+                profiles: data,
+                page
+            });
+
+            loadStatusesForProfilesMap(data);
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'getProfilesWithoutTeam');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 function loadTeamMembersForProfiles(userIds, teamId, success, error) {
     Client.getTeamMembersByIds(
         teamId,
@@ -580,20 +603,16 @@ export function updateUserNotifyProps(data, success, error) {
 
 export function updateUserRoles(userId, newRoles, success, error) {
     Client.updateUserRoles(
-      userId,
-      newRoles,
-      () => {
-          AsyncClient.getUser(userId);
-
-          if (success) {
-              success();
-          }
-      },
-      (err) => {
-          if (error) {
-              error(err);
-          }
-      }
+        userId,
+        newRoles,
+        () => {
+            AsyncClient.getUser(
+                userId,
+                success,
+                error
+            );
+        },
+        error
     );
 }
 
@@ -658,18 +677,17 @@ export function checkMfa(loginId, success, error) {
 
 export function updateActive(userId, active, success, error) {
     Client.updateActive(userId, active,
-        () => {
-            AsyncClient.getUser(userId);
+        (data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILE,
+                profile: data
+            });
 
             if (success) {
-                success();
+                success(data);
             }
         },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        }
+        error
     );
 }
 
@@ -881,4 +899,14 @@ export function loadProfiles(offset = UserStore.getPagingOffset(), limit = Const
             }
         }
     );
+}
+
+export function getMissingProfiles(ids, success, error) {
+    const missingIds = ids.filter((id) => !UserStore.hasProfile(id));
+
+    if (missingIds.length === 0) {
+        return;
+    }
+
+    AsyncClient.getProfilesByIds(missingIds, success, error);
 }

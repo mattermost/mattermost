@@ -72,6 +72,8 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"), c.GetSiteURL())
 	} else if len(inviteId) > 0 {
 		ruser, err = app.CreateUserWithInviteId(user, inviteId, c.GetSiteURL())
+	} else if c.IsSystemAdmin() {
+		ruser, err = app.CreateUserAsAdmin(user, c.GetSiteURL())
 	} else {
 		ruser, err = app.CreateUserFromSignup(user, c.GetSiteURL())
 	}
@@ -264,8 +266,10 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	inTeamId := r.URL.Query().Get("in_team")
+	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
+	withoutTeam := r.URL.Query().Get("without_team")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
 		c.SetInvalidParam("team_id")
@@ -276,13 +280,33 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	etag := ""
 
-	if len(notInChannelId) > 0 {
+	if withoutTeamBool, err := strconv.ParseBool(withoutTeam); err == nil && withoutTeamBool {
+		// Use a special permission for now
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_LIST_USERS_WITHOUT_TEAM) {
+			c.SetPermissionError(model.PERMISSION_LIST_USERS_WITHOUT_TEAM)
+			return
+		}
+
+		profiles, err = app.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	} else if len(notInChannelId) > 0 {
 		if !app.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
 		profiles, err = app.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+	} else if len(notInTeamId) > 0 {
+		if !app.SessionHasPermissionToTeam(c.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		etag = app.GetUsersNotInTeamEtag(inTeamId)
+		if HandleEtag(etag, "Get Users Not in Team", w, r) {
+			return
+		}
+
+		profiles, err = app.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(inTeamId) > 0 {
 		if !app.SessionHasPermissionToTeam(c.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -369,6 +393,11 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.TeamId != "" && !app.SessionHasPermissionToTeam(c.Session, props.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	if props.NotInTeamId != "" && !app.SessionHasPermissionToTeam(c.Session, props.NotInTeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}

@@ -550,6 +550,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAllTeamListings', success, error));
     }
 
+    getTeamsForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
+    }
+
     getMyTeam(success, error) {
         request.
             get(`${this.getTeamNeededRoute()}/me`).
@@ -584,6 +594,16 @@ export default class Client {
         type('application/json').
         accept('application/json').
         end(this.handleResponse.bind(this, 'getMyTeamMembers', success, error));
+    }
+
+    getTeamMembersForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams/members`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
     }
 
     getMyTeamsUnread(teamId, success, error) {
@@ -1126,6 +1146,29 @@ export default class Client {
         this.trackEvent('api', 'api_profiles_get_not_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
+    getProfilesWithoutTeam(page, perPage, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?without_team=1&page=${page}&per_page=${perPage}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesWithoutTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_without_team');
+    }
+
     getProfilesByIds(userIds, success, error) {
         request.
             post(`${this.getUsersRoute()}/ids`).
@@ -1250,6 +1293,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
 
         this.trackEvent('api', 'api_users_update_profile_picture');
+    }
+
+    getProfilePictureUrl(id, lastPictureUpdate) {
+        let url = `${this.getUsersRoute()}/${id}/image`;
+
+        if (lastPictureUpdate) {
+            url += `?time=${lastPictureUpdate}`;
+        }
+
+        return url;
     }
 
     // Channel Routes Section

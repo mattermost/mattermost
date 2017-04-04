@@ -45,6 +45,26 @@ func StatusFromJson(data io.Reader) *Status {
 	}
 }
 
+func StatusListToJson(u []*Status) string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func StatusListFromJson(data io.Reader) []*Status {
+	decoder := json.NewDecoder(data)
+	var statuses []*Status
+	err := decoder.Decode(&statuses)
+	if err == nil {
+		return statuses
+	} else {
+		return nil
+	}
+}
+
 func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {
 	interfaceMap := map[string]interface{}{}
 	for _, s := range statusMap {

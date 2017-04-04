@@ -98,6 +98,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_PROFILE: null,
     RECEIVED_PROFILES_IN_CHANNEL: null,
     RECEIVED_PROFILES_NOT_IN_CHANNEL: null,
+    RECEIVED_PROFILES_WITHOUT_TEAM: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
     RECEIVED_AUDITS: null,
@@ -205,7 +206,8 @@ export const UserStatuses = {
 };
 
 export const UserSearchOptions = {
-    ALLOW_INACTIVE: 'allow_inactive'
+    ALLOW_INACTIVE: 'allow_inactive',
+    WITHOUT_TEAM: 'without_team'
 };
 
 export const SocketEvents = {
@@ -253,6 +255,29 @@ export const PostTypes = {
     EPHEMERAL: 'system_ephemeral'
 };
 
+export const StatTypes = keyMirror({
+    TOTAL_USERS: null,
+    TOTAL_PUBLIC_CHANNELS: null,
+    TOTAL_PRIVATE_GROUPS: null,
+    TOTAL_POSTS: null,
+    TOTAL_TEAMS: null,
+    TOTAL_FILE_POSTS: null,
+    TOTAL_HASHTAG_POSTS: null,
+    TOTAL_IHOOKS: null,
+    TOTAL_OHOOKS: null,
+    TOTAL_COMMANDS: null,
+    TOTAL_SESSIONS: null,
+    POST_PER_DAY: null,
+    USERS_WITH_POSTS_PER_DAY: null,
+    RECENTLY_ACTIVE_USERS: null,
+    NEWLY_CREATED_USERS: null,
+    TOTAL_WEBSOCKET_CONNECTIONS: null,
+    TOTAL_MASTER_DB_CONNECTIONS: null,
+    TOTAL_READ_DB_CONNECTIONS: null,
+    DAILY_ACTIVE_USERS: null,
+    MONTHLY_ACTIVE_USERS: null
+});
+
 export const Constants = {
     Preferences,
     SocketEvents,
@@ -269,28 +294,7 @@ export const Constants = {
         VIEW_ACTION: null
     }),
 
-    StatTypes: keyMirror({
-        TOTAL_USERS: null,
-        TOTAL_PUBLIC_CHANNELS: null,
-        TOTAL_PRIVATE_GROUPS: null,
-        TOTAL_POSTS: null,
-        TOTAL_TEAMS: null,
-        TOTAL_FILE_POSTS: null,
-        TOTAL_HASHTAG_POSTS: null,
-        TOTAL_IHOOKS: null,
-        TOTAL_OHOOKS: null,
-        TOTAL_COMMANDS: null,
-        TOTAL_SESSIONS: null,
-        POST_PER_DAY: null,
-        USERS_WITH_POSTS_PER_DAY: null,
-        RECENTLY_ACTIVE_USERS: null,
-        NEWLY_CREATED_USERS: null,
-        TOTAL_WEBSOCKET_CONNECTIONS: null,
-        TOTAL_MASTER_DB_CONNECTIONS: null,
-        TOTAL_READ_DB_CONNECTIONS: null,
-        DAILY_ACTIVE_USERS: null,
-        MONTHLY_ACTIVE_USERS: null
-    }),
+    StatTypes,
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
 
@@ -445,6 +449,7 @@ export const Constants = {
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#a94442',
             mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
@@ -470,6 +475,7 @@ export const Constants = {
             linkColor: '#2389d7',
             buttonBg: '#23A2FF',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#a94442',
             mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
@@ -495,6 +501,7 @@ export const Constants = {
             linkColor: '#A4FFEB',
             buttonBg: '#4CBBA4',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#ff6461',
             mentionHighlightBg: '#984063',
             mentionHighlightLink: '#A4FFEB',
             codeTheme: 'solarized-dark',
@@ -520,6 +527,7 @@ export const Constants = {
             linkColor: '#0D93FF',
             buttonBg: '#0177e7',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#ff6461',
             mentionHighlightBg: '#784098',
             mentionHighlightLink: '#A4FFEB',
             codeTheme: 'monokai',
@@ -601,6 +609,11 @@ export const Constants = {
             group: 'centerChannelElements',
             id: 'newMessageSeparator',
             uiName: 'New Message Separator'
+        },
+        {
+            group: 'centerChannelElements',
+            id: 'errorTextColor',
+            uiName: 'Error Text Color'
         },
         {
             group: 'centerChannelElements',
@@ -890,6 +903,7 @@ export const Constants = {
     MIN_HASHTAG_LINK_LENGTH: 3,
     CHANNEL_SCROLL_ADJUSTMENT: 100,
     EMOJI_PATH: '/static/emoji',
+    RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
     MTPNS: 'http://push-test.mattermost.com',

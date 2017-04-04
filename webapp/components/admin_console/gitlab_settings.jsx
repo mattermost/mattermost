@@ -44,12 +44,10 @@ export default class GitLabSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.authentication.gitlab'
-                    defaultMessage='GitLab'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.authentication.gitlab'
+                defaultMessage='GitLab'
+            />
         );
     }
 

@@ -367,6 +367,22 @@ func GetAllOpenTeams() ([]*model.Team, *model.AppError) {
 	}
 }
 
+func SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().SearchAll(term); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
+func SearchOpenTeams(term string) ([]*model.Team, *model.AppError) {
+	if result := <-Srv.Store.Team().SearchOpen(term); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Team), nil
+	}
+}
+
 func GetAllOpenTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	if result := <-Srv.Store.Team().GetAllTeamPageListing(offset, limit); result.Err != nil {
 		return nil, result.Err
@@ -420,11 +436,41 @@ func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.Ap
 		return nil, err
 	}
 
-	if teamMember, err := GetTeamMember(teamId, userId); err != nil {
+	var teamMember *model.TeamMember
+	var err *model.AppError
+	if teamMember, err = GetTeamMember(teamId, userId); err != nil {
 		return nil, err
-	} else {
-		return teamMember, nil
 	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
+	message.Add("team_id", teamId)
+	message.Add("user_id", userId)
+	Publish(message)
+
+	return teamMember, nil
+}
+
+func AddTeamMembers(teamId string, userIds []string, siteURL string) ([]*model.TeamMember, *model.AppError) {
+	var members []*model.TeamMember
+
+	for _, userId := range userIds {
+		if _, err := AddUserToTeam(teamId, userId, siteURL); err != nil {
+			return nil, err
+		}
+
+		if teamMember, err := GetTeamMember(teamId, userId); err != nil {
+			return nil, err
+		} else {
+			members = append(members, teamMember)
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
+		message.Add("team_id", teamId)
+		message.Add("user_id", userId)
+		Publish(message)
+	}
+
+	return members, nil
 }
 
 func AddTeamMemberByHash(userId, hash, data, siteURL string) (*model.TeamMember, *model.AppError) {
@@ -660,6 +706,20 @@ func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if result := <-Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}
+
+func SoftDeleteTeam(teamId string) *model.AppError {
+	team, err := GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	team.DeleteAt = model.GetMillis()
+	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
 		return result.Err
 	}
 

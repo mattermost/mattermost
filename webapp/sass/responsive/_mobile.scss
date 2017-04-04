@@ -1,6 +1,10 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .post-code {
+        word-wrap: normal;
+    }
+
     .table-responsive {
         border: none;
     }
@@ -234,6 +238,10 @@
                 position: absolute;
                 top: 31px;
             }
+        }
+
+        .reacticon__container {
+            display: none;
         }
 
         .post__dropdown {

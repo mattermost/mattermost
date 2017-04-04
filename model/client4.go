@@ -78,6 +78,10 @@ func (c *Client4) GetTeamRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/%v", teamId)
 }
 
+func (c *Client4) GetTeamAutoCompleteCommandsRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamsRoute()+"/%v/commands/autocomplete", teamId)
+}
+
 func (c *Client4) GetTeamByNameRoute(teamName string) string {
 	return fmt.Sprintf(c.GetTeamsRoute()+"/name/%v", teamName)
 }
@@ -92,6 +96,10 @@ func (c *Client4) GetTeamMembersRoute(teamId string) string {
 
 func (c *Client4) GetTeamStatsRoute(teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/stats")
+}
+
+func (c *Client4) GetTeamImportRoute(teamId string) string {
+	return fmt.Sprintf(c.GetTeamRoute(teamId) + "/import")
 }
 
 func (c *Client4) GetChannelsRoute() string {
@@ -194,8 +202,12 @@ func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
 
-func (c *Client4) GetStatusRoute(userId string) string {
+func (c *Client4) GetUserStatusRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/status")
+}
+
+func (c *Client4) GetUserStatusesRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute() + "/status")
 }
 
 func (c *Client4) GetSamlRoute() string {
@@ -270,6 +282,27 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 	} else {
 		defer closeBody(rp)
 		return FileUploadResponseFromJson(rp.Body), BuildResponse(rp)
+	}
+}
+
+func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) ([]byte, *Response) {
+	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq.Header.Set("Content-Type", contentType)
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
+	} else if rp.StatusCode >= 300 {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else if data, err := ioutil.ReadAll(rp.Body); err != nil {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError("UploadImportTeam", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode)}
+	} else {
+		defer closeBody(rp)
+		return data, BuildResponse(rp)
 	}
 }
 
@@ -467,6 +500,17 @@ func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag stri
 	}
 }
 
+// GetUsersNotInTeam returns a page of users who are not in a team. Page counting starts at 0.
+func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?not_in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetUsersInChannel returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
@@ -481,6 +525,17 @@ func (c *Client4) GetUsersInChannel(channelId string, page int, perPage int, eta
 // GetUsersNotInChannel returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetUsersNotInChannel(teamId, channelId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_team=%v&not_in_channel=%v&page=%v&per_page=%v", teamId, channelId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersWithoutTeam returns a page of users on the system that aren't on any teams. Page counting starts at 0.
+func (c *Client4) GetUsersWithoutTeam(page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?without_team=1&page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
@@ -791,6 +846,16 @@ func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	}
 }
 
+// SearchTeams returns teams matching the provided search term.
+func (c *Client4) SearchTeams(search *TeamSearch) ([]*Team, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamsRoute()+"/search", search.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // TeamExists returns true or false if the team exist or not.
 func (c *Client4) TeamExists(name, etag string) (bool, *Response) {
 	if r, err := c.DoApiGet(c.GetTeamByNameRoute(name)+"/exists", etag); err != nil {
@@ -853,6 +918,16 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) 
 	}
 }
 
+// SoftDeleteTeam deletes the team softly (archive only, not permanent delete).
+func (c *Client4) SoftDeleteTeam(teamId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamRoute(teamId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -907,6 +982,22 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	}
 }
 
+// AddTeamMember adds a number of users to a team and returns the team members.
+func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember, *Response) {
+	var members []*TeamMember
+	for _, userId := range userIds {
+		member := &TeamMember{TeamId: teamId, UserId: userId}
+		members = append(members, member)
+	}
+
+	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+"/batch", TeamMembersToJson(members)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamMembersFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // RemoveTeamMember will remove a user from a team.
 func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId)); err != nil {
@@ -937,6 +1028,46 @@ func (c *Client4) GetTeamUnread(teamId, userId string) (*TeamUnread, *Response) 
 	} else {
 		defer closeBody(r)
 		return TeamUnreadFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ImportTeam will import an exported team from other app into a existing team.
+func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, teamId string) ([]byte, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("file", filename); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if part, err := writer.CreateFormField("filesize"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file_size.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, strings.NewReader(strconv.Itoa(filesize))); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.file_size.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if part, err := writer.CreateFormField("importFrom"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.import_from.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.import_from.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, &Response{Error: NewAppError("UploadImportTeam", "model.client.upload_post_attachment.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	return c.DoUploadImportTeam(c.GetTeamImportRoute(teamId), body.Bytes(), writer.FormDataContentType())
+}
+
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email", ArrayToJson(userEmails)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -1160,6 +1291,16 @@ func (c *Client4) UpdateChannelRoles(channelId, userId, roles string) (bool, *Re
 	}
 }
 
+// UpdateChannelNotifyProps will update the notification properties on a channel for a user.
+func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[string]string) (bool, *Response) {
+	if r, err := c.DoApiPut(c.GetChannelMemberRoute(channelId, userId)+"/notify_props", MapToJson(props)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // AddChannelMember adds user to channel and return a channel member.
 func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
 	requestBody := map[string]string{"user_id": userId}
@@ -1210,6 +1351,26 @@ func (c *Client4) PatchPost(postId string, patch *PostPatch) (*Post, *Response) 
 	} else {
 		defer closeBody(r)
 		return PostFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// PinPost pin a post based on provided post id string.
+func (c *Client4) PinPost(postId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/pin", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// UnpinPost unpin a post based on provided post id string.
+func (c *Client4) UnpinPost(postId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/unpin", ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
@@ -1963,14 +2124,56 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 	}
 }
 
+// ListCommands will retrieve a list of commands available in the team.
+func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Response) {
+	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
+	if r, err := c.DoApiGet(c.GetCommandsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ListCommands will retrieve a list of commands available in the team.
+func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamAutoCompleteCommandsRoute(teamId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Status Section
 
 // GetUserStatus returns a user based on the provided user id string.
 func (c *Client4) GetUserStatus(userId, etag string) (*Status, *Response) {
-	if r, err := c.DoApiGet(c.GetStatusRoute(userId), etag); err != nil {
+	if r, err := c.DoApiGet(c.GetUserStatusRoute(userId), etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
 		return StatusFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersStatusesByIds returns a list of users status based on the provided user ids.
+func (c *Client4) GetUsersStatusesByIds(userIds []string) ([]*Status, *Response) {
+	if r, err := c.DoApiPost(c.GetUserStatusesRoute()+"/ids", ArrayToJson(userIds)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return StatusListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateUserStatus sets a user's status based on the provided user id string.
+func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, *Response) {
+	if r, err := c.DoApiPut(c.GetUserStatusRoute(userId), userStatus.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return StatusFromJson(r.Body), BuildResponse(r)
+
 	}
 }

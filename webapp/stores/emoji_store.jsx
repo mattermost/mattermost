@@ -10,7 +10,6 @@ import * as Emoji from 'utils/emoji.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'changed';
-const RECENT_EMOJI_KEY = 'recentEmojis';
 const MAXIMUM_RECENT_EMOJI = 27;
 
 // Wrap the contents of the store so that we don't need to construct an ES6 map where most of the content
@@ -171,11 +170,11 @@ class EmojiStore extends EventEmitter {
         if (recentEmojis.length > MAXIMUM_RECENT_EMOJI) {
             recentEmojis.splice(0, recentEmojis.length - MAXIMUM_RECENT_EMOJI);
         }
-        localStorage.setItem(RECENT_EMOJI_KEY, JSON.stringify(recentEmojis));
+        localStorage.setItem(Constants.RECENT_EMOJI_KEY, JSON.stringify(recentEmojis));
     }
 
     getRecentEmojis() {
-        const result = JSON.parse(localStorage.getItem(RECENT_EMOJI_KEY));
+        const result = JSON.parse(localStorage.getItem(Constants.RECENT_EMOJI_KEY));
         if (!result) {
             return [];
         }

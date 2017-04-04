@@ -100,12 +100,10 @@ export default class PushSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.notifications.title'
-                    defaultMessage='Notification Settings'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.notifications.title'
+                defaultMessage='Notification Settings'
+            />
         );
     }
 

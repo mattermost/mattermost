@@ -355,7 +355,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             return (
                 <FormattedMessage
                     id='user.settings.advance.emojipicker'
-                    defaultMessage='Enable the emoji picker'
+                    defaultMessage='Enable emoji picker for reactions and message input box'
                 />
             );
         default:

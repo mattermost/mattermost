@@ -183,6 +183,39 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
+	// Restrict permissions for Private Channel Manage Members
+	if IsLicensed {
+		switch *Cfg.TeamSettings.RestrictPrivateChannelManageMembers {
+		case model.PERMISSIONS_ALL:
+			model.ROLE_CHANNEL_USER.Permissions = append(
+				model.ROLE_CHANNEL_USER.Permissions,
+				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			)
+			break
+		case model.PERMISSIONS_CHANNEL_ADMIN:
+			model.ROLE_TEAM_ADMIN.Permissions = append(
+				model.ROLE_TEAM_ADMIN.Permissions,
+				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			)
+			model.ROLE_CHANNEL_ADMIN.Permissions = append(
+				model.ROLE_CHANNEL_ADMIN.Permissions,
+				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			)
+			break
+		case model.PERMISSIONS_TEAM_ADMIN:
+			model.ROLE_TEAM_ADMIN.Permissions = append(
+				model.ROLE_TEAM_ADMIN.Permissions,
+				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+			)
+			break
+		}
+	} else {
+		model.ROLE_CHANNEL_USER.Permissions = append(
+			model.ROLE_CHANNEL_USER.Permissions,
+			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		)
+	}
+
 	if !*Cfg.ServiceSettings.EnableOnlyAdminIntegrations {
 		model.ROLE_TEAM_USER.Permissions = append(
 			model.ROLE_TEAM_USER.Permissions,

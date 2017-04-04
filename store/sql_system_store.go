@@ -34,7 +34,7 @@ func (s SqlSystemStore) Save(system *model.System) StoreChannel {
 		result := StoreResult{}
 
 		if err := s.GetMaster().Insert(system); err != nil {
-			result.Err = model.NewLocAppError("SqlSystemStore.Save", "store.sql_system.save.app_error", nil, "")
+			result.Err = model.NewLocAppError("SqlSystemStore.Save", "store.sql_system.save.app_error", nil, err.Error())
 		}
 
 		storeChannel <- result

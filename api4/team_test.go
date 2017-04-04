@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/platform/app"
@@ -22,6 +25,7 @@ func TestCreateTeam(t *testing.T) {
 	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
 	rteam, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rteam.Name != team.Name {
 		t.Fatal("names did not match")
@@ -317,6 +321,48 @@ func TestPatchTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestSoftDeleteTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	ok, resp := Client.SoftDeleteTeam(team.Id)
+	CheckNoError(t, resp)
+
+	if !ok {
+		t.Fatal("should have returned true")
+	}
+
+	rteam, err := app.GetTeam(team.Id)
+	if err != nil {
+		t.Fatal("should have returned archived team")
+	}
+	if rteam.DeleteAt == 0 {
+		t.Fatal("should have not set to zero")
+	}
+
+	ok, resp = Client.SoftDeleteTeam("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if ok {
+		t.Fatal("should have returned false")
+	}
+
+	otherTeam := th.BasicTeam
+	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SoftDeleteTeam(otherTeam.Id)
+	CheckNoError(t, resp)
+}
+
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -400,6 +446,81 @@ func TestGetTeamByName(t *testing.T) {
 	th.LoginBasic()
 	_, resp = Client.GetTeamByName(rteam2.Name, "")
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestSearchAllTeams(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	oTeam := th.BasicTeam
+
+	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	Client.CreateTeam(pTeam)
+
+	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	if !reflect.DeepEqual(rteams[0], oTeam) {
+		t.Fatal("invalid team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: oTeam.DisplayName})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	if !reflect.DeepEqual(rteams[0], oTeam) {
+		t.Fatal("invalid team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 0 {
+		t.Fatal("should have not returned team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 0 {
+		t.Fatal("should have not returned team")
+	}
+
+	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
+	CheckNoError(t, resp)
+
+	if len(rteams) != 0 {
+		t.Fatal("should have not returned team")
+	}
+
+	Client.Logout()
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	CheckUnauthorizedStatus(t, resp)
+
+	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetTeamsForUser(t *testing.T) {
@@ -635,6 +756,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.LoginBasic()
 	tm, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	// Check all the returned data.
 	if tm == nil {
@@ -824,6 +946,137 @@ func TestAddTeamMember(t *testing.T) {
 
 	_, resp = Client.AddTeamMember(team.Id, "", "", "", "junk")
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestAddTeamMembers(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+	otherUser := th.CreateUser()
+	userList := []string{
+		otherUser.Id,
+	}
+
+	if err := app.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	// Regular user can't add a member to a team they don't belong to.
+	th.LoginBasic2()
+	tm, resp := Client.AddTeamMembers(team.Id, userList)
+	CheckForbiddenStatus(t, resp)
+	Client.Logout()
+
+	// Regular user can add a member to a team they belong to.
+	th.LoginBasic()
+	tm, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	// Check all the returned data.
+	if tm[0] == nil {
+		t.Fatal("should have returned team member")
+	}
+
+	if tm[0].UserId != otherUser.Id {
+		t.Fatal("user ids should have matched")
+	}
+
+	if tm[0].TeamId != team.Id {
+		t.Fatal("team ids should have matched")
+	}
+
+	// Check with various invalid requests.
+	_, resp = Client.AddTeamMembers("junk", userList)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.AddTeamMembers(GenerateTestId(), userList)
+	CheckForbiddenStatus(t, resp)
+
+	testUserList := append(userList, GenerateTestId())
+	_, resp = Client.AddTeamMembers(team.Id, testUserList)
+	CheckNotFoundStatus(t, resp)
+
+	// Test with many users.
+	for i := 0; i < 25; i++ {
+		testUserList = append(testUserList, GenerateTestId())
+	}
+	_, resp = Client.AddTeamMembers(team.Id, testUserList)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	// Check effects of config and license changes.
+	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+
+	// Set the config so that only team admins can add a user to a team.
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Test without the EE license to see that the permission restriction is ignored.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+
+	// Add an EE license.
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Check that a regular user can't add someone to the team.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckForbiddenStatus(t, resp)
+
+	// Update user to team admin
+	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	app.InvalidateAllCaches()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Should work as a team admin.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+
+	// Change permission level to System Admin
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	// Should not work as team admin.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckForbiddenStatus(t, resp)
+
+	// Should work as system admin.
+	_, resp = th.SystemAdminClient.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
+
+	// Change permission level to All
+	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
+	app.InvalidateAllCaches()
+	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+	utils.SetDefaultRolesBasedOnConfig()
+	th.LoginBasic()
+
+	// Should work as a regular user.
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
 }
 
 func TestRemoveTeamMember(t *testing.T) {
@@ -1044,4 +1297,126 @@ func TestTeamExists(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.TeamExists(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestImportTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+
+	t.Run("ImportTeam", func(t *testing.T) {
+		var data []byte
+		var err error
+		data, err = readTestFile("Fake_Team_Import.zip")
+		if err != nil && len(data) == 0 {
+			t.Fatal("Error while reading the test file.")
+		}
+
+		// Import the channels/users/posts
+		fileResp, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		fileReturned := fmt.Sprintf("%s", fileResp)
+		if !strings.Contains(fileReturned, "darth.vader@stardeath.com") {
+			t.Log(fileReturned)
+			t.Fatal("failed to report the user was imported")
+		}
+
+		// Checking the imported users
+		importedUser, resp := th.SystemAdminClient.GetUserByUsername("bot_test", "")
+		CheckNoError(t, resp)
+		if importedUser.Username != "bot_test" {
+			t.Fatal("username should match with the imported user")
+		}
+
+		importedUser, resp = th.SystemAdminClient.GetUserByUsername("lordvader", "")
+		CheckNoError(t, resp)
+		if importedUser.Username != "lordvader" {
+			t.Fatal("username should match with the imported user")
+		}
+
+		// Checking the imported Channels
+		importedChannel, resp := th.SystemAdminClient.GetChannelByName("testchannel", th.BasicTeam.Id, "")
+		CheckNoError(t, resp)
+		if importedChannel.Name != "testchannel" {
+			t.Fatal("names did not match expected: testchannel")
+		}
+
+		importedChannel, resp = th.SystemAdminClient.GetChannelByName("general", th.BasicTeam.Id, "")
+		CheckNoError(t, resp)
+		if importedChannel.Name != "general" {
+			t.Fatal("names did not match expected: general")
+		}
+
+		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		if posts.Posts[posts.Order[3]].Message != "This is a test post to test the import process" {
+			t.Fatal("missing posts in the import process")
+		}
+	})
+
+	t.Run("MissingFile", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.ImportTeam(nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("WrongPermission", func(t *testing.T) {
+		var data []byte
+		var err error
+		data, err = readTestFile("Fake_Team_Import.zip")
+		if err != nil && len(data) == 0 {
+			t.Fatal("Error while reading the test file.")
+		}
+
+		// Import the channels/users/posts
+		_, resp := th.Client.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestInviteUsersToTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+
+	user1 := GenerateTestEmail()
+	user2 := GenerateTestEmail()
+
+	emailList := []string{user1, user2}
+
+	//Delete all the messages before check the sample email
+	utils.DeleteMailBox(user1)
+	utils.DeleteMailBox(user2)
+
+	okMsg, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+	CheckNoError(t, resp)
+	if okMsg != true {
+		t.Fatal("should return true")
+	}
+
+	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName() + " invited you to join " + th.BasicTeam.DisplayName + " Team"
+	//Check if the email was send to the rigth email address
+	for _, email := range emailList {
+		var resultsMailbox utils.JSONMessageHeaderInbucket
+		err := utils.RetryInbucket(5, func() error {
+			var err error
+			resultsMailbox, err = utils.GetMailBox(email)
+			return err
+		})
+		if err != nil {
+			t.Log(err)
+			t.Log("No email was received, maybe due load on the server. Disabling this verification")
+		}
+		if err == nil && len(resultsMailbox) > 0 {
+			if !strings.ContainsAny(resultsMailbox[0].To[0], email) {
+				t.Fatal("Wrong To recipient")
+			} else {
+				if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
+					if resultsEmail.Subject != expectedSubject {
+						t.Log(resultsEmail.Subject)
+						t.Log(expectedSubject)
+						t.Fatal("Wrong Subject")
+					}
+				}
+			}
+		}
+	}
 }

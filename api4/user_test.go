@@ -15,14 +15,16 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
+	AdminClient := th.SystemAdminClient
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	Client.Login(user.Email, user.Password)
 
@@ -63,6 +65,19 @@ func TestCreateUser(t *testing.T) {
 	_, resp = Client.CreateUser(ruser)
 	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
 	CheckBadRequestStatus(t, resp)
+
+	openServer := *utils.Cfg.TeamSettings.EnableOpenServer
+	canCreateAccount := utils.Cfg.TeamSettings.EnableUserCreation
+	defer func() {
+		*utils.Cfg.TeamSettings.EnableOpenServer = openServer
+		utils.Cfg.TeamSettings.EnableUserCreation = canCreateAccount
+	}()
+	*utils.Cfg.TeamSettings.EnableOpenServer = false
+	utils.Cfg.TeamSettings.EnableUserCreation = false
+
+	user2 := &model.User{Email: GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername()}
+	_, resp = AdminClient.CreateUser(user2)
+	CheckNoError(t, resp)
 
 	if r, err := Client.DoApiPost("/users", "garbage"); err == nil {
 		t.Fatal("should have errored")
@@ -370,6 +385,45 @@ func TestSearchUsers(t *testing.T) {
 	_, resp = Client.SearchUsers(search)
 	CheckForbiddenStatus(t, resp)
 
+	// Test search for users not in any team
+	search.TeamId = ""
+	search.NotInChannelId = ""
+	search.InChannelId = ""
+	search.NotInTeamId = th.BasicTeam.Id
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(th.BasicUser.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	oddUser := th.CreateUser()
+	search.Term = oddUser.Username
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if !findUserInList(oddUser.Id, users) {
+		t.Fatal("should have found user")
+	}
+
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, oddUser.Id, "", "", th.BasicTeam.InviteId)
+	CheckNoError(t, resp)
+
+	users, resp = Client.SearchUsers(search)
+	CheckNoError(t, resp)
+
+	if findUserInList(oddUser.Id, users) {
+		t.Fatal("should not have found user")
+	}
+
+	search.NotInTeamId = model.NewId()
+	_, resp = Client.SearchUsers(search)
+	CheckForbiddenStatus(t, resp)
+
+	search.Term = th.BasicUser.Username
+
 	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
 	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
 	defer func() {
@@ -385,6 +439,7 @@ func TestSearchUsers(t *testing.T) {
 	}
 
 	search.InChannelId = ""
+	search.NotInTeamId = ""
 	search.Term = th.BasicUser2.Email
 	users, resp = Client.SearchUsers(search)
 	CheckNoError(t, resp)
@@ -837,6 +892,56 @@ func TestGetUsers(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetUsersWithoutTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	SystemAdminClient := th.SystemAdminClient
+
+	if _, resp := Client.GetUsersWithoutTeam(0, 100, ""); resp.Error == nil {
+		t.Fatal("should prevent non-admin user from getting users without a team")
+	}
+
+	// These usernames need to appear in the first 100 users for this to work
+
+	user, resp := Client.CreateUser(&model.User{
+		Username: "a000000000" + model.NewId(),
+		Email:    "success+" + model.NewId() + "@simulator.amazonses.com",
+		Password: "Password1",
+	})
+	CheckNoError(t, resp)
+	LinkUserToTeam(user, th.BasicTeam)
+	defer app.Srv.Store.User().PermanentDelete(user.Id)
+
+	user2, resp := Client.CreateUser(&model.User{
+		Username: "a000000001" + model.NewId(),
+		Email:    "success+" + model.NewId() + "@simulator.amazonses.com",
+		Password: "Password1",
+	})
+	CheckNoError(t, resp)
+	defer app.Srv.Store.User().PermanentDelete(user2.Id)
+
+	rusers, resp := SystemAdminClient.GetUsersWithoutTeam(0, 100, "")
+	CheckNoError(t, resp)
+
+	found1 := false
+	found2 := false
+
+	for _, u := range rusers {
+		if u.Id == user.Id {
+			found1 = true
+		} else if u.Id == user2.Id {
+			found2 = true
+		}
+	}
+
+	if found1 {
+		t.Fatal("shouldn't have returned user that has a team")
+	} else if !found2 {
+		t.Fatal("should've returned user that has no teams")
+	}
+}
+
 func TestGetUsersInTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -880,6 +985,52 @@ func TestGetUsersInTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+}
+
+func TestGetUsersNotInTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+
+	rusers, resp := Client.GetUsersNotInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+	for _, u := range rusers {
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetUsersNotInTeam(teamId, 0, 60, resp.Etag)
+	CheckEtag(t, rusers, resp)
+
+	rusers, resp = Client.GetUsersNotInTeam(teamId, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersNotInTeam(teamId, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	rusers, resp = Client.GetUsersNotInTeam(teamId, 10000, 100, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 0 {
+		t.Fatal("should be no users")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersNotInTeam(teamId, 0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+
+	user := th.CreateUser()
+	Client.Login(user.Email, user.Password)
+	_, resp = Client.GetUsersNotInTeam(teamId, 0, 60, "")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetUsersNotInTeam(teamId, 0, 60, "")
 	CheckNoError(t, resp)
 }
 
@@ -1066,7 +1217,7 @@ func TestCheckUserMfa(t *testing.T) {
 	}
 }
 
-/*func TestGenerateMfaSecret(t *testing.T) {
+func TestGenerateMfaSecret(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
@@ -1087,7 +1238,7 @@ func TestCheckUserMfa(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
 	CheckNotImplementedStatus(t, resp)
-}*/
+}
 
 func TestUpdateUserPassword(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

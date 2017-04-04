@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ChannelInviteButton from './channel_invite_button.jsx';
-import SearchableUserList from './searchable_user_list.jsx';
+import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container.jsx';
 import LoadingScreen from './loading_screen.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';

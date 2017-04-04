@@ -901,11 +901,6 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	if len(id) == 0 {
-		c.SetInvalidParam("deauthorizeOAuthApp", "id")
-		return
-	}
-
 	// revoke app sessions
 	if result := <-app.Srv.Store.OAuth().GetAccessDataByUserForApp(c.Session.UserId, id); result.Err != nil {
 		c.Err = result.Err
@@ -945,11 +940,6 @@ func regenerateOAuthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	id := params["id"]
-
-	if len(id) == 0 {
-		c.SetInvalidParam("regenerateOAuthSecret", "id")
-		return
-	}
 
 	var oauthApp *model.OAuthApp
 	if result := <-app.Srv.Store.OAuth().GetApp(id); result.Err != nil {

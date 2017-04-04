@@ -1,38 +1,40 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ConfirmModal from '../confirm_modal.jsx';
+import ConfirmModal from 'components/confirm_modal.jsx';
 
-import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {updateUserRoles, updateActive} from 'actions/user_actions.jsx';
-import {updateTeamMemberRoles, removeUserFromTeam} from 'actions/team_actions.jsx';
 import {adminResetMfa} from 'actions/admin_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
 import React from 'react';
 
-export default class AdminTeamMembersDropdown extends React.Component {
+export default class SystemUsersDropdown extends React.Component {
+    static propTypes = {
+        user: React.PropTypes.object.isRequired,
+        doPasswordReset: React.PropTypes.func.isRequired,
+        doManageTeams: React.PropTypes.func.isRequired
+    };
+
     constructor(props) {
         super(props);
 
         this.handleMakeMember = this.handleMakeMember.bind(this);
-        this.handleRemoveFromTeam = this.handleRemoveFromTeam.bind(this);
         this.handleMakeActive = this.handleMakeActive.bind(this);
         this.handleMakeNotActive = this.handleMakeNotActive.bind(this);
-        this.handleMakeTeamAdmin = this.handleMakeTeamAdmin.bind(this);
         this.handleMakeSystemAdmin = this.handleMakeSystemAdmin.bind(this);
+        this.handleManageTeams = this.handleManageTeams.bind(this);
         this.handleResetPassword = this.handleResetPassword.bind(this);
         this.handleResetMfa = this.handleResetMfa.bind(this);
         this.handleDemoteSystemAdmin = this.handleDemoteSystemAdmin.bind(this);
         this.handleDemoteSubmit = this.handleDemoteSubmit.bind(this);
         this.handleDemoteCancel = this.handleDemoteCancel.bind(this);
-        this.doMakeMember = this.doMakeMember.bind(this);
-        this.doMakeTeamAdmin = this.doMakeTeamAdmin.bind(this);
 
         this.state = {
             serverError: null,
@@ -51,16 +53,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
                 this.setState({serverError: err.message});
             }
         );
-
-        updateTeamMemberRoles(
-            this.props.teamMember.team_id,
-            this.props.user.id,
-            'team_user',
-            null,
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
     }
 
     handleMakeMember(e) {
@@ -71,17 +63,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
         } else {
             this.doMakeMember();
         }
-    }
-
-    handleRemoveFromTeam() {
-        removeUserFromTeam(
-            this.props.teamMember.team_id,
-            this.props.user.id,
-            null,
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
     }
 
     handleMakeActive(e) {
@@ -102,28 +83,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
         );
     }
 
-    doMakeTeamAdmin() {
-        updateTeamMemberRoles(
-            this.props.teamMember.team_id,
-            this.props.user.id,
-            'team_user team_admin',
-            null,
-            (err) => {
-                this.setState({serverError: err.message});
-            }
-        );
-    }
-
-    handleMakeTeamAdmin(e) {
-        e.preventDefault();
-        const me = UserStore.getCurrentUser();
-        if (this.props.user.id === me.id && me.roles.includes('system_admin')) {
-            this.handleDemoteSystemAdmin(this.props.user, 'teamadmin');
-        } else {
-            this.doMakeTeamAdmin();
-        }
-    }
-
     handleMakeSystemAdmin(e) {
         e.preventDefault();
 
@@ -135,6 +94,12 @@ export default class AdminTeamMembersDropdown extends React.Component {
                 this.setState({serverError: err.message});
             }
         );
+    }
+
+    handleManageTeams(e) {
+        e.preventDefault();
+
+        this.props.doManageTeams(this.props.user);
     }
 
     handleResetPassword(e) {
@@ -174,8 +139,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
     handleDemoteSubmit() {
         if (this.state.role === 'member') {
             this.doMakeMember();
-        } else {
-            this.doMakeTeamAdmin();
         }
 
         const teamUrl = TeamStore.getCurrentTeamUrl();
@@ -197,9 +160,8 @@ export default class AdminTeamMembersDropdown extends React.Component {
             );
         }
 
-        const teamMember = this.props.teamMember;
         const user = this.props.user;
-        if (!user || !teamMember) {
+        if (!user) {
             return <div/>;
         }
         let currentRoles = (
@@ -208,15 +170,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
                 defaultMessage='Member'
             />
         );
-
-        if (teamMember.roles.length > 0 && Utils.isAdmin(teamMember.roles)) {
-            currentRoles = (
-                <FormattedMessage
-                    id='team_members_dropdown.teamAdmin'
-                    defaultMessage='Team Admin'
-                />
-            );
-        }
 
         if (user.roles.length > 0 && Utils.isSystemAdmin(user.roles)) {
             currentRoles = (
@@ -228,11 +181,11 @@ export default class AdminTeamMembersDropdown extends React.Component {
         }
 
         const me = UserStore.getCurrentUser();
-        let showMakeMember = Utils.isAdmin(teamMember.roles) || Utils.isSystemAdmin(user.roles);
-        let showMakeAdmin = !Utils.isAdmin(teamMember.roles) && !Utils.isSystemAdmin(user.roles);
+        let showMakeMember = Utils.isSystemAdmin(user.roles);
         let showMakeSystemAdmin = !Utils.isSystemAdmin(user.roles);
         let showMakeActive = false;
         let showMakeNotActive = !Utils.isSystemAdmin(user.roles);
+        let showManageTeams = true;
         const mfaEnabled = global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true' && global.window.mm_config.EnableMultifactorAuthentication === 'true';
         const showMfaReset = mfaEnabled && user.mfa_active;
 
@@ -244,10 +197,10 @@ export default class AdminTeamMembersDropdown extends React.Component {
                 />
             );
             showMakeMember = false;
-            showMakeAdmin = false;
             showMakeSystemAdmin = false;
             showMakeActive = true;
             showMakeNotActive = false;
+            showManageTeams = false;
         }
 
         let disableActivationToggle = false;
@@ -273,24 +226,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
             );
         }
 
-        let makeAdmin = null;
-        if (showMakeAdmin) {
-            makeAdmin = (
-                <li role='presentation'>
-                    <a
-                        role='menuitem'
-                        href='#'
-                        onClick={this.handleMakeTeamAdmin}
-                    >
-                        <FormattedMessage
-                            id='admin.user_item.makeTeamAdmin'
-                            defaultMessage='Make Team Admin'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
         let makeMember = null;
         if (showMakeMember) {
             makeMember = (
@@ -303,24 +238,6 @@ export default class AdminTeamMembersDropdown extends React.Component {
                         <FormattedMessage
                             id='admin.user_item.makeMember'
                             defaultMessage='Make Member'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        let removeFromTeam = null;
-        if (this.props.user.id !== me.id) {
-            removeFromTeam = (
-                <li role='presentation'>
-                    <a
-                        role='menuitem'
-                        href='#'
-                        onClick={this.handleRemoveFromTeam}
-                    >
-                        <FormattedMessage
-                            id='team_members_dropdown.leave_team'
-                            defaultMessage='Remove From Team'
                         />
                     </a>
                 </li>
@@ -368,6 +285,24 @@ export default class AdminTeamMembersDropdown extends React.Component {
                         <FormattedMessage
                             id='admin.user_item.makeInactive'
                             defaultMessage='Make Inactive'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
+        let manageTeams = null;
+        if (showManageTeams) {
+            manageTeams = (
+                <li role='presentation'>
+                    <a
+                        role='menuitem'
+                        href='#'
+                        onClick={this.handleManageTeams}
+                    >
+                        <FormattedMessage
+                            id='admin.user_item.manageTeams'
+                            defaultMessage='Manage Teams'
                         />
                     </a>
                 </li>
@@ -493,12 +428,11 @@ export default class AdminTeamMembersDropdown extends React.Component {
                     className='dropdown-menu member-menu'
                     role='menu'
                 >
-                    {removeFromTeam}
-                    {makeAdmin}
                     {makeMember}
                     {makeActive}
                     {makeNotActive}
                     {makeSystemAdmin}
+                    {manageTeams}
                     {mfaReset}
                     {passwordReset}
                 </ul>
@@ -508,9 +442,3 @@ export default class AdminTeamMembersDropdown extends React.Component {
         );
     }
 }
-
-AdminTeamMembersDropdown.propTypes = {
-    user: React.PropTypes.object.isRequired,
-    teamMember: React.PropTypes.object.isRequired,
-    doPasswordReset: React.PropTypes.func.isRequired
-};

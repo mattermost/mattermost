@@ -3,28 +3,33 @@
 
 import React from 'react';
 
-import Reaction from './reaction.jsx';
+import Reaction from './reaction_container.jsx';
 
 export default class ReactionListView extends React.Component {
     static propTypes = {
         post: React.PropTypes.object.isRequired,
-        currentUserId: React.PropTypes.string.isRequired,
         reactions: React.PropTypes.arrayOf(React.PropTypes.object),
         emojis: React.PropTypes.object.isRequired
     }
 
     render() {
+        if (!this.props.post.has_reactions || (this.props.reactions && this.props.reactions.length === 0)) {
+            return null;
+        }
+
         const reactionsByName = new Map();
         const emojiNames = [];
 
-        for (const reaction of this.props.reactions) {
-            const emojiName = reaction.emoji_name;
+        if (this.props.reactions) {
+            for (const reaction of this.props.reactions) {
+                const emojiName = reaction.emoji_name;
 
-            if (reactionsByName.has(emojiName)) {
-                reactionsByName.get(emojiName).push(reaction);
-            } else {
-                emojiNames.push(emojiName);
-                reactionsByName.set(emojiName, [reaction]);
+                if (reactionsByName.has(emojiName)) {
+                    reactionsByName.get(emojiName).push(reaction);
+                } else {
+                    emojiNames.push(emojiName);
+                    reactionsByName.set(emojiName, [reaction]);
+                }
             }
         }
 
@@ -33,7 +38,6 @@ export default class ReactionListView extends React.Component {
                 <Reaction
                     key={emojiName}
                     post={this.props.post}
-                    currentUserId={this.props.currentUserId}
                     emojiName={emojiName}
                     reactions={reactionsByName.get(emojiName)}
                     emojis={this.props.emojis}

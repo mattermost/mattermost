@@ -105,6 +105,19 @@ func CreateUserWithInviteId(user *model.User, inviteId string, siteURL string) (
 	return ruser, nil
 }
 
+func CreateUserAsAdmin(user *model.User, siteURL string) (*model.User, *model.AppError) {
+	ruser, err := CreateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, siteURL); err != nil {
+		l4g.Error(err.Error())
+	}
+
+	return ruser, nil
+}
+
 func CreateUserFromSignup(user *model.User, siteURL string) (*model.User, *model.AppError) {
 	if err := IsUserSignUpAllowed(); err != nil {
 		return nil, err
@@ -434,6 +447,14 @@ func GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model
 	}
 }
 
+func GetUsersNotInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
+}
+
 func GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := GetUsersInTeam(teamId, offset, limit)
 	if err != nil {
@@ -463,8 +484,25 @@ func GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*
 	return users, nil
 }
 
+func GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersNotInTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
 func GetUsersInTeamEtag(teamId string) string {
 	return (<-Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
+}
+
+func GetUsersNotInTeamEtag(teamId string) string {
+	return (<-Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string)
 }
 
 func GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -539,6 +577,27 @@ func GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage
 	}
 
 	return users, nil
+}
+
+func GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := GetUsersWithoutTeam(page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		SanitizeProfile(user, asAdmin)
+	}
+
+	return users, nil
+}
+
+func GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesWithoutTeam(offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.User), nil
+	}
 }
 
 func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -1240,6 +1299,8 @@ func SearchUsers(props *model.UserSearch, searchOptions map[string]bool, asAdmin
 		return SearchUsersInChannel(props.InChannelId, props.Term, searchOptions, asAdmin)
 	} else if props.NotInChannelId != "" {
 		return SearchUsersNotInChannel(props.TeamId, props.NotInChannelId, props.Term, searchOptions, asAdmin)
+	} else if props.NotInTeamId != "" {
+		return SearchUsersNotInTeam(props.NotInTeamId, props.Term, searchOptions, asAdmin)
 	} else {
 		return SearchUsersInTeam(props.TeamId, props.Term, searchOptions, asAdmin)
 	}
@@ -1275,6 +1336,20 @@ func SearchUsersNotInChannel(teamId string, channelId string, term string, searc
 
 func SearchUsersInTeam(teamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
 	if result := <-Srv.Store.User().Search(teamId, term, searchOptions); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users := result.Data.([]*model.User)
+
+		for _, user := range users {
+			SanitizeProfile(user, asAdmin)
+		}
+
+		return users, nil
+	}
+}
+
+func SearchUsersNotInTeam(notInTeamId string, term string, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().SearchNotInTeam(notInTeamId, term, searchOptions); result.Err != nil {
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)

@@ -10,11 +10,13 @@ export default class WebSocketClient {
         this.conn = null;
         this.connectionUrl = null;
         this.sequence = 1;
+        this.eventSequence = 0;
         this.connectFailCount = 0;
         this.eventCallback = null;
         this.responseCallbacks = {};
         this.firstConnectCallback = null;
         this.reconnectCallback = null;
+        this.missedEventCallback = null;
         this.errorCallback = null;
         this.closeCallback = null;
     }
@@ -37,6 +39,8 @@ export default class WebSocketClient {
         this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
+            this.eventSequence = 0;
+
             if (token) {
                 this.sendMessage('authentication_challenge', {token});
             }
@@ -108,6 +112,11 @@ export default class WebSocketClient {
                     Reflect.deleteProperty(this.responseCallbacks, msg.seq_reply);
                 }
             } else if (this.eventCallback) {
+                if (msg.seq !== this.eventSequence && this.missedEventCallback) {
+                    console.log('missed websocket event, act_seq=' + msg.seq + ' exp_seq=' + this.eventSequence); //eslint-disable-line no-console
+                    this.missedEventCallback();
+                }
+                this.eventSequence = msg.seq + 1;
                 this.eventCallback(msg);
             }
         };
@@ -123,6 +132,10 @@ export default class WebSocketClient {
 
     setReconnectCallback(callback) {
         this.reconnectCallback = callback;
+    }
+
+    setMissedEventCallback(callback) {
+        this.missedEventCallback = callback;
     }
 
     setErrorCallback(callback) {
