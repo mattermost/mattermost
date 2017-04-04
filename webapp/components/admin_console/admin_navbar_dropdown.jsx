@@ -73,7 +73,7 @@ export default class AdminNavbarDropdown extends React.Component {
                 teams.push(
                     <li key={'team_' + team.name}>
                         <Link
-                            id={Utils.createSafeId('swithTo'+team.name)}
+                            id={'swithTo' + Utils.createSafeId(team.name)}
                             to={'/' + team.name + '/channels/town-square'}
                         >
                             <FormattedMessage
