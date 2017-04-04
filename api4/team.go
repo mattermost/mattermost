@@ -407,7 +407,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err = app.AddTeamMembers(c.Params.TeamId, userIds)
+	members, err = app.AddTeamMembers(c.Params.TeamId, userIds, c.Session.UserId)
 
 	if err != nil {
 		c.Err = err

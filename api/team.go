@@ -153,7 +153,7 @@ func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := app.AddUserToTeam(c.TeamId, userId); err != nil {
+	if _, err := app.AddUserToTeam(c.TeamId, userId, ""); err != nil {
 		c.Err = err
 		return
 	}
