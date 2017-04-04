@@ -32,8 +32,17 @@ func CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
 	return channels, nil
 }
 
-func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *model.AppError {
+func JoinDefaultChannels(teamId string, user *model.User, channelRole string, userRequestorId string) *model.AppError {
 	var err *model.AppError = nil
+
+	var requestor *model.User
+	if userRequestorId != "" {
+		if u := <-Srv.Store.User().Get(userRequestorId); u.Err != nil {
+			return u.Err
+		} else {
+			requestor = u.Data.(*model.User)
+		}
+	}
 
 	if result := <-Srv.Store.Channel().GetByName(teamId, "town-square", true); result.Err != nil {
 		err = result.Err
@@ -47,8 +56,14 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			err = cmResult.Err
 		}
 
-		if err := postJoinChannelMessage(user, townSquare); err != nil {
-			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+		if requestor == nil {
+			if err := postJoinChannelMessage(user, townSquare); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
+		} else {
+			if err := PostAddToChannelMessage(requestor, user, townSquare); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
 		}
 
 		InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
@@ -66,8 +81,14 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string) *m
 			err = cmResult.Err
 		}
 
-		if err := postJoinChannelMessage(user, offTopic); err != nil {
-			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+	if requestor == nil {
+			if err := postJoinChannelMessage(user, offTopic); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
+		} else {
+			if err := PostAddToChannelMessage(requestor, user, offTopic); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
 		}
 
 		InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
