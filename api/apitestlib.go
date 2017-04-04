@@ -86,6 +86,18 @@ func Setup() *TestHelper {
 	return &TestHelper{}
 }
 
+func ReloadConfigForSetup() {
+	utils.LoadConfig("config.json")
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.RateLimitSettings.Enable = false
+	utils.Cfg.EmailSettings.SendEmailNotifications = true
+	utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
+	utils.Cfg.EmailSettings.SMTPPort = "2500"
+	utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
+}
+
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)

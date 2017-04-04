@@ -2,6 +2,7 @@ package: github.com/mattermost/platform
 import:
 - package: github.com/NYTimes/gziphandler
 - package: github.com/alecthomas/log4go
+  repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
   version: v1.0.0
