@@ -138,6 +138,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_MSG: null,
 
+    RECEIVED_TEAM: null,
     RECEIVED_MY_TEAM: null,
     CREATED_TEAM: null,
     UPDATE_TEAM: null,
@@ -220,6 +221,7 @@ export const SocketEvents = {
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',
     NEW_USER: 'new_user',
+    ADDED_TO_TEAM: 'added_to_team',
     LEAVE_TEAM: 'leave_team',
     UPDATE_TEAM: 'update_team',
     USER_ADDED: 'user_added',

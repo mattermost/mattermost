@@ -489,6 +489,15 @@ export default class Client {
 
     // Team Routes Section
 
+    getTeam(teamId, success, error) {
+        request.
+            get(`${this.getTeamsRoute()}/${teamId}/me`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeam', success, error));
+    }
+
     findTeamByName(teamName, success, error) {
         request.
             post(`${this.getTeamsRoute()}/find_team_by_name`).
