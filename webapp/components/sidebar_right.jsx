@@ -196,6 +196,17 @@ export default class SidebarRight extends React.Component {
             searchForm = <SearchBox isFocus={this.state.searchVisible && Utils.isMobile()}/>;
         }
 
+        const channel = this.props.channel;
+
+        let channelDisplayName = '';
+        if (channel) {
+            if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+                channelDisplayName = Utils.localizeMessage('rhs_root.direct', 'Direct Message');
+            } else {
+                channelDisplayName = channel.display_name;
+            }
+        }
+
         if (this.state.searchVisible) {
             content = (
                 <div className='sidebar--right__content'>
@@ -207,7 +218,7 @@ export default class SidebarRight extends React.Component {
                         useMilitaryTime={this.state.useMilitaryTime}
                         toggleSize={this.toggleSize}
                         shrink={this.onShrink}
-                        channelDisplayName={this.props.channel ? this.props.channel.display_name : ''}
+                        channelDisplayName={channelDisplayName}
                     />
                 </div>
             );
