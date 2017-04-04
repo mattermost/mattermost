@@ -116,7 +116,7 @@
   },
   "scripts": {
     "check": "eslint --ext \".jsx\" --ignore-pattern node_modules --quiet .",
-    "build": "cross-env NODE_ENV=production webpack",
+    "build": "cross-env NODE_ENV=production webpack --display-error-details --verbose --progress",
     "run": "cross-env NODE_ENV=production webpack --progress --watch",
     "run-fullmap": "webpack --progress --watch",
     "test": "jest",
