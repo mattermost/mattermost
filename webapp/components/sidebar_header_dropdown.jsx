@@ -11,6 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
+import SidebarHeaderDropdownButton from './sidebar_header_dropdown_button.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 
@@ -454,17 +455,10 @@ export default class SidebarHeaderDropdown extends React.Component {
                 className='sidebar-header-dropdown'
                 pullRight={true}
             >
-                <a
-                    href='#'
-                    className='sidebar-header-dropdown__toggle'
+                <SidebarHeaderDropdownButton
                     bsRole='toggle'
                     onClick={this.toggleDropdown}
-                >
-                    <span
-                        className='sidebar-header-dropdown__icon'
-                        dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
-                    />
-                </a>
+                />
                 <Dropdown.Menu>
                     <li>
                         <a
