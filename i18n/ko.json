@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "비공개 그룹 생성, 관리는 시스템 관리자 권한이 필요합니다."
+    "translation": "공개 채널 생성, 관리는 시스템 관리자 권한이 필요합니다."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "비공개 그룹 생성, 관리는 팀 관리자 또는 시스템 관리자 권한이 필요합니다."
+    "translation": "공개 채널 생성, 관리는 팀 관리자 또는 시스템 관리자 권한이 필요합니다."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -388,7 +388,7 @@
     "translation": "기본 채널 {{.Channel}}에 적절하지 않은 갱신을 시도했습니다"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "읽지 않은 메시지 갯수를 가져오지 못했습니다. user_id=%v and channel_id=%v, err=%v"
   },
   {
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "알 수 없는 오류가 발생했습니다. 지원 서비스에 연락하시기 바랍니다."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "명령어 API 경로 초기화 중"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -3484,22 +3488,6 @@
     "translation": "페이지가 없습니다."
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "No"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Leave the team?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Yes"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilites searched"
   },
@@ -3730,6 +3718,26 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Unable to write request"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "채널을 찾을 수 없습니다"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "We encountered an error updating the channel"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "We encountered an error updating the channel"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "상태 API 루트를 초기화 중"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "웹소켓 API 경로 초기화 중"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "웹소켓 API 경로 초기화 중"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "웹소켓 API 경로 초기화 중"
   }
 ]

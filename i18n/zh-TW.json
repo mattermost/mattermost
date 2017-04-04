@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系統管理員能建立與管理私人群組。"
+    "translation": "只有系統管理員能建立與管理公開頻道。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有團隊和系統管理員能建立與管理私人群組。"
+    "translation": "只有團隊和系統管理員能建立與管理公開頻道。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -388,7 +388,7 @@
     "translation": "已對預設頻道 {{.Channel}} 嘗試執行無效的更新"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "無法計算未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
   },
   {
@@ -886,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "發生未知的錯誤。請聯繫支援單位。"
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "正在初始化命令 API 路徑"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -3484,22 +3488,6 @@
     "translation": "找不到頁面"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "將離開所有的公開頻道與私人群組。如果團隊是私人團隊，將無法重新加入。您確定嘛？"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "不"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "退出團隊？"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "是"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "找不到: %v 頻道，已搜尋 %v 的可能性"
   },
@@ -3730,6 +3718,26 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "無法寫入要求"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -5488,6 +5496,14 @@
     "translation": "無法儲存該團隊成員"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "搜尋頻道時遇到錯誤"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "搜尋頻道時遇到錯誤"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "無法更新團隊"
   },
@@ -6058,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "新增目錄至監控 %v 失敗"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "正在初始化狀態 API 路徑"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "正在初始化 web socket API 路徑"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "正在初始化 web socket API 路徑"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "正在初始化 web socket API 路徑"
   }
 ]
