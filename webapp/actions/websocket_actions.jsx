@@ -153,6 +153,10 @@ function handleEvent(msg) {
         handleUpdateTeamEvent(msg);
         break;
 
+    case SocketEvents.ADDED_TO_TEAM:
+        handleTeamAddedEvent(msg);
+        break;
+
     case SocketEvents.USER_ADDED:
         handleUserAddedEvent(msg);
         break;
@@ -239,6 +243,27 @@ function handlePostEditEvent(msg) {
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.data.post);
     GlobalActions.emitPostDeletedEvent(post);
+}
+
+function handleTeamAddedEvent(msg) {
+    Client.getTeam(msg.data.team_id, (team) => {
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_TEAM,
+            team
+        });
+
+        Client.getMyTeamMembers((data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
+                team_members: data
+            });
+            AsyncClient.getMyTeamsUnread();
+        }, (err) => {
+            AsyncClient.dispatchError(err, 'getMyTeamMembers');
+        });
+    }, (err) => {
+        AsyncClient.dispatchError(err, 'getTeam');
+    });
 }
 
 function handleLeaveTeamEvent(msg) {

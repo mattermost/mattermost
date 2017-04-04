@@ -252,6 +252,12 @@ class TeamStoreClass extends EventEmitter {
         }
     }
 
+    removeMemberNotInTeam(teamId = this.getCurrentId(), userId) {
+        if (this.members_not_in_team[teamId]) {
+            Reflect.deleteProperty(this.members_not_in_team[teamId], userId);
+        }
+    }
+
     getMembersInTeam(teamId = this.getCurrentId()) {
         return Object.assign({}, this.members_in_team[teamId]) || {};
     }
@@ -363,6 +369,10 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_MY_TEAM:
         TeamStore.saveMyTeam(action.team);
+        TeamStore.emitChange();
+        break;
+    case ActionTypes.RECEIVED_TEAM:
+        TeamStore.saveTeam(action.team);
         TeamStore.emitChange();
         break;
     case ActionTypes.CREATED_TEAM:
