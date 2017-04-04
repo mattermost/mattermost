@@ -84,7 +84,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	post.UserId = c.Session.UserId
 
-	rpost, err := app.UpdatePost(post)
+	rpost, err := app.UpdatePost(post, true)
 	if err != nil {
 		c.Err = err
 		return

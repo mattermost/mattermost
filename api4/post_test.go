@@ -167,6 +167,15 @@ func TestUpdatePost(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.UpdatePost(rpost.Id, rpost)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+	CheckNoError(t, resp)
 }
 
 func TestPatchPost(t *testing.T) {
@@ -261,6 +270,10 @@ func TestPatchPost(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.PatchPost(post.Id, patch)
 	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
 	_, resp = Client.PatchPost(post.Id, patch)
