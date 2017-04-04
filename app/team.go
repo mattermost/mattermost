@@ -436,11 +436,18 @@ func AddTeamMember(teamId, userId, siteURL string) (*model.TeamMember, *model.Ap
 		return nil, err
 	}
 
-	if teamMember, err := GetTeamMember(teamId, userId); err != nil {
+	var teamMember *model.TeamMember
+	var err *model.AppError
+	if teamMember, err = GetTeamMember(teamId, userId); err != nil {
 		return nil, err
-	} else {
-		return teamMember, nil
 	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
+	message.Add("team_id", teamId)
+	message.Add("user_id", userId)
+	Publish(message)
+
+	return teamMember, nil
 }
 
 func AddTeamMembers(teamId string, userIds []string, siteURL string) ([]*model.TeamMember, *model.AppError) {
@@ -456,6 +463,11 @@ func AddTeamMembers(teamId string, userIds []string, siteURL string) ([]*model.T
 		} else {
 			members = append(members, teamMember)
 		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
+		message.Add("team_id", teamId)
+		message.Add("user_id", userId)
+		Publish(message)
 	}
 
 	return members, nil
