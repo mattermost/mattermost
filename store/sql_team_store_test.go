@@ -4,9 +4,10 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestTeamStoreSave(t *testing.T) {
@@ -153,6 +154,130 @@ func TestTeamStoreSearchByName(t *testing.T) {
 			t.Log(o1.ToJson())
 			t.Fatal("invalid returned team")
 		}
+	}
+}
+
+func TestTeamStoreSearchAll(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "ADisplayName" + model.NewId()
+	o1.Name = "a" + model.NewId() + "a"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+
+	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	p2 := model.Team{}
+	p2.DisplayName = "BDisplayName" + model.NewId()
+	p2.Name = "b" + model.NewId() + "b"
+	p2.Email = model.NewId() + "@nowhere.com"
+	p2.Type = model.TEAM_INVITE
+
+	if err := (<-store.Team().Save(&p2)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	r1 := <-store.Team().SearchAll(o1.Name)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+	if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		t.Fatal("invalid returned team")
+	}
+
+	r1 = <-store.Team().SearchAll(p2.DisplayName)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+	if r1.Data.([]*model.Team)[0].ToJson() != p2.ToJson() {
+		t.Fatal("invalid returned team")
+	}
+
+	r1 = <-store.Team().SearchAll("junk")
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 0 {
+		t.Fatal("should have not returned a team")
+	}
+}
+
+func TestTeamStoreSearchOpen(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "ADisplayName" + model.NewId()
+	o1.Name = "a" + model.NewId() + "a"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+
+	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	p2 := model.Team{}
+	p2.DisplayName = "BDisplayName" + model.NewId()
+	p2.Name = "b" + model.NewId() + "b"
+	p2.Email = model.NewId() + "@nowhere.com"
+	p2.Type = model.TEAM_INVITE
+
+	if err := (<-store.Team().Save(&p2)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	r1 := <-store.Team().SearchOpen(o1.Name)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+	if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		t.Fatal("invalid returned team")
+	}
+
+	r1 = <-store.Team().SearchOpen(o1.DisplayName)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 1 {
+		t.Fatal("should have returned 1 team")
+	}
+	if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		t.Fatal("invalid returned team")
+	}
+
+	r1 = <-store.Team().SearchOpen(p2.Name)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 0 {
+		t.Fatal("should have not returned a team")
+	}
+
+	r1 = <-store.Team().SearchOpen(p2.DisplayName)
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 0 {
+		t.Fatal("should have not returned a team")
+	}
+
+	r1 = <-store.Team().SearchOpen("junk")
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 0 {
+		t.Fatal("should have not returned a team")
 	}
 }
 

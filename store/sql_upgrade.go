@@ -47,7 +47,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
 	if sqlStore.SchemaVersion == "" {
-		if result := <-sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
+		if result := <-sqlStore.system.SaveOrUpdate(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
 			l4g.Critical(result.Err.Error())
 			time.Sleep(time.Second)
 			os.Exit(EXIT_VERSION_SAVE_MISSING)
@@ -66,7 +66,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 }
 
 func saveSchemaVersion(sqlStore *SqlStore, version string) {
-	if result := <-sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
+	if result := <-sqlStore.system.Update(&model.System{Name: "Version", Value: version}); result.Err != nil {
 		l4g.Critical(result.Err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_VERSION_SAVE)

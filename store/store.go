@@ -61,6 +61,8 @@ type TeamStore interface {
 	Get(id string) StoreChannel
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
+	SearchAll(term string) StoreChannel
+	SearchOpen(term string) StoreChannel
 	GetAll() StoreChannel
 	GetAllPage(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel
@@ -126,7 +128,6 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	PermanentDeleteMembersByChannel(channelId string) StoreChannel
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
-	SetLastViewedAt(channelId string, userId string, newLastViewedAt int64) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	ExtraUpdateByUser(userId string, time int64) StoreChannel
@@ -202,6 +203,7 @@ type UserStore interface {
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
 	Search(teamId string, term string, options map[string]bool) StoreChannel
+	SearchNotInTeam(notInTeamId string, term string, options map[string]bool) StoreChannel
 	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
 	SearchWithoutTeam(term string, options map[string]bool) StoreChannel

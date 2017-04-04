@@ -257,6 +257,48 @@ func (s SqlTeamStore) SearchByName(name string) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlTeamStore) SearchAll(term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var teams []*model.Team
+
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error())
+		}
+
+		result.Data = teams
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlTeamStore) SearchOpen(term string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var teams []*model.Team
+
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error())
+		}
+
+		result.Data = teams
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlTeamStore) GetAll() StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

@@ -449,6 +449,7 @@ export const Constants = {
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#a94442',
             mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
@@ -474,6 +475,7 @@ export const Constants = {
             linkColor: '#2389d7',
             buttonBg: '#23A2FF',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#a94442',
             mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
@@ -499,6 +501,7 @@ export const Constants = {
             linkColor: '#A4FFEB',
             buttonBg: '#4CBBA4',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#ff6461',
             mentionHighlightBg: '#984063',
             mentionHighlightLink: '#A4FFEB',
             codeTheme: 'solarized-dark',
@@ -524,6 +527,7 @@ export const Constants = {
             linkColor: '#0D93FF',
             buttonBg: '#0177e7',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#ff6461',
             mentionHighlightBg: '#784098',
             mentionHighlightLink: '#A4FFEB',
             codeTheme: 'monokai',
@@ -605,6 +609,11 @@ export const Constants = {
             group: 'centerChannelElements',
             id: 'newMessageSeparator',
             uiName: 'New Message Separator'
+        },
+        {
+            group: 'centerChannelElements',
+            id: 'errorTextColor',
+            uiName: 'Error Text Color'
         },
         {
             group: 'centerChannelElements',
@@ -894,6 +903,7 @@ export const Constants = {
     MIN_HASHTAG_LINK_LENGTH: 3,
     CHANNEL_SCROLL_ADJUSTMENT: 100,
     EMOJI_PATH: '/static/emoji',
+    RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
     MTPNS: 'http://push-test.mattermost.com',

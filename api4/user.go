@@ -397,6 +397,11 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if props.NotInTeamId != "" && !app.SessionHasPermissionToTeam(c.Session, props.NotInTeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 

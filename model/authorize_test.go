@@ -39,9 +39,19 @@ func TestAuthIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
+	ad.ClientId = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Client Id")
+	}
+
 	ad.ClientId = NewId()
 	if err := ad.IsValid(); err == nil {
 		t.Fatal()
+	}
+
+	ad.UserId = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed User Id")
 	}
 
 	ad.UserId = NewId()
@@ -49,9 +59,24 @@ func TestAuthIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
+	ad.Code = NewRandomString(129)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Code to long")
+	}
+
+	ad.Code = ""
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Code not set")
+	}
+
 	ad.Code = NewId()
 	if err := ad.IsValid(); err == nil {
 		t.Fatal()
+	}
+
+	ad.ExpiresIn = 0
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed invalid ExpiresIn")
 	}
 
 	ad.ExpiresIn = 1
@@ -59,8 +84,53 @@ func TestAuthIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
+	ad.CreateAt = 0
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Invalid Create At")
+	}
+
 	ad.CreateAt = 1
-	if err := ad.IsValid(); err != nil {
+	if err := ad.IsValid(); err == nil {
 		t.Fatal()
+	}
+
+	ad.State = NewRandomString(129)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed invalid State")
+	}
+
+	ad.State = NewRandomString(128)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal(err)
+	}
+
+	ad.Scope = NewRandomString(129)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed invalid Scope")
+	}
+
+	ad.Scope = NewRandomString(128)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal()
+	}
+
+	ad.RedirectUri = ""
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Redirect URI not set")
+	}
+
+	ad.RedirectUri = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed invalid URL")
+	}
+
+	ad.RedirectUri = NewRandomString(257)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed invalid URL")
+	}
+
+	ad.RedirectUri = "http://example.com"
+	if err := ad.IsValid(); err != nil {
+		t.Fatal(err)
 	}
 }

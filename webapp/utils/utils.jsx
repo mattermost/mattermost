@@ -707,6 +707,10 @@ export function applyTheme(theme) {
         changeCss('.app__body .btn.btn-primary, .app__body .post__pinned-badge', 'color:' + theme.buttonColor);
     }
 
+    if (theme.errorTextColor) {
+        changeCss('.app__body .has-error .help-block, .app__body .has-error .control-label, .app__body .has-error .radio, .app__body .has-error .checkbox, .app__body .has-error .radio-inline, .app__body .has-error .checkbox-inline, .app__body .has-error.radio label, .app__body .has-error.checkbox label, .app__body .has-error.radio-inline label, .app__body .has-error.checkbox-inline label', 'color:' + theme.errorTextColor);
+    }
+
     if (theme.mentionHighlightBg) {
         changeCss('.app__body .mention--highlight, .app__body .search-highlight', 'background:' + theme.mentionHighlightBg);
         changeCss('.app__body .post.post--comment .post__body.mention-comment', 'border-color:' + theme.mentionHighlightBg);
