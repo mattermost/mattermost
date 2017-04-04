@@ -247,11 +247,10 @@ func SendEphemeralPost(teamId, userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
+func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	if utils.IsLicensed {
 		if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER {
-			err := model.NewLocAppError("updatePost", "api.post.update_post.permissions_denied.app_error", nil, "")
-			err.StatusCode = http.StatusForbidden
+			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
 			return nil, err
 		}
 	}
@@ -263,33 +262,28 @@ func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
 
 		if oldPost == nil {
-			err := model.NewLocAppError("updatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id)
-			err.StatusCode = http.StatusBadRequest
+			err := model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 			return nil, err
 		}
 
 		if oldPost.UserId != post.UserId {
-			err := model.NewLocAppError("updatePost", "api.post.update_post.permissions.app_error", nil, "oldUserId="+oldPost.UserId)
-			err.StatusCode = http.StatusBadRequest
+			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions.app_error", nil, "oldUserId="+oldPost.UserId, http.StatusBadRequest)
 			return nil, err
 		}
 
 		if oldPost.DeleteAt != 0 {
-			err := model.NewLocAppError("updatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "")
-			err.StatusCode = http.StatusBadRequest
+			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 			return nil, err
 		}
 
 		if oldPost.IsSystemMessage() {
-			err := model.NewLocAppError("updatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id)
-			err.StatusCode = http.StatusBadRequest
+			err := model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 			return nil, err
 		}
 
 		if utils.IsLicensed {
 			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*utils.Cfg.ServiceSettings.PostEditTimeLimit*1000) {
-				err := model.NewLocAppError("updatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}, "")
-				err.StatusCode = http.StatusBadRequest
+				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 				return nil, err
 			}
 		}
@@ -299,12 +293,15 @@ func UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	*newPost = *oldPost
 
 	newPost.Message = post.Message
-	newPost.Props = post.Props
 	newPost.EditAt = model.GetMillis()
 	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
-	newPost.IsPinned = post.IsPinned
-	newPost.HasReactions = post.HasReactions
-	newPost.FileIds = post.FileIds
+
+	if !safeUpdate {
+		newPost.IsPinned = post.IsPinned
+		newPost.HasReactions = post.HasReactions
+		newPost.FileIds = post.FileIds
+		newPost.Props = post.Props
+	}
 
 	if result := <-Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 		return nil, result.Err
@@ -327,7 +324,7 @@ func PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppEr
 
 	post.Patch(patch)
 
-	updatedPost, err := UpdatePost(post)
+	updatedPost, err := UpdatePost(post, false)
 	if err != nil {
 		return nil, err
 	}

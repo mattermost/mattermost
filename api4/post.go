@@ -238,9 +238,14 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post.UserId = c.Session.UserId
+	if !app.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
+		return
+	}
 
-	rpost, err := app.UpdatePost(post)
+	post.Id = c.Params.PostId
+
+	rpost, err := app.UpdatePost(post, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -259,6 +264,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post == nil {
 		c.SetInvalidParam("post")
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
+		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
 
