@@ -3704,6 +3704,14 @@
     "translation": "Unable to write request"
   },
   {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Missing channel parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Missing team parameter"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "Authentication tokens didn't match"
   },

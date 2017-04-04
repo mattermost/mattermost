@@ -22,6 +22,7 @@ func InitPost() {
 	BaseRoutes.Post.Handle("/thread", ApiSessionRequired(getPostThread)).Methods("GET")
 	BaseRoutes.Post.Handle("/files/info", ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
+	BaseRoutes.PostsForUser.Handle("/flagged", ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
 
 	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(updatePost)).Methods("PUT")
@@ -125,6 +126,39 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 	w.Write([]byte(list.ToJson()))
+}
+
+func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.UserId != c.Session.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_ROLES) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_ROLES)
+		return
+	}
+
+	channelId := r.URL.Query().Get("in_channel")
+	teamId := r.URL.Query().Get("in_team")
+
+	var posts *model.PostList
+	var err *model.AppError
+
+	if len(channelId) > 0 {
+		posts, err = app.GetFlaggedPostsForChannel(c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
+	} else if len(teamId) > 0 {
+		posts, err = app.GetFlaggedPostsForTeam(c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
+	} else {
+		posts, err = app.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(posts.ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
