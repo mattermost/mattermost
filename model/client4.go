@@ -1057,6 +1057,16 @@ func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, te
 	return c.DoUploadImportTeam(c.GetTeamImportRoute(teamId), body.Bytes(), writer.FormDataContentType())
 }
 
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email", ArrayToJson(userEmails)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.
