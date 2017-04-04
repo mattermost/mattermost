@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 )
 
 func TestSendNotifications(t *testing.T) {
@@ -19,13 +18,13 @@ func TestSendNotifications(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
-	}, th.BasicTeam.Id, true, utils.GetSiteURL())
+	}, th.BasicTeam.Id, true)
 
 	if postErr != nil {
 		t.Fatal(postErr)
 	}
 
-	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, utils.GetSiteURL())
+	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser)
 	if err != nil {
 		t.Fatal(err)
 	} else if mentions == nil {

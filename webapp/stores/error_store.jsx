@@ -62,11 +62,11 @@ class ErrorStoreClass extends EventEmitter {
         BrowserStore.setGlobalItem('last_error_conn', count);
     }
 
-    clearLastError() {
+    clearLastError(force) {
         var lastError = this.getLastError();
 
         // preview message can only be cleared by clearNotificationError
-        if (lastError && lastError.notification) {
+        if (!force && lastError && lastError.notification) {
             return;
         }
 

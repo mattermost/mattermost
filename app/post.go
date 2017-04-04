@@ -49,7 +49,7 @@ func init() {
 	}
 }
 
-func CreatePostAsUser(post *model.Post, siteURL string) (*model.Post, *model.AppError) {
+func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
@@ -66,7 +66,7 @@ func CreatePostAsUser(post *model.Post, siteURL string) (*model.Post, *model.App
 		return nil, err
 	}
 
-	if rp, err := CreatePost(post, channel.TeamId, true, siteURL); err != nil {
+	if rp, err := CreatePost(post, channel.TeamId, true); err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
 			err.Id == "api.post.create_post.parent_id.app_error" {
@@ -87,7 +87,7 @@ func CreatePostAsUser(post *model.Post, siteURL string) (*model.Post, *model.App
 
 }
 
-func CreatePost(post *model.Post, teamId string, triggerWebhooks bool, siteURL string) (*model.Post, *model.AppError) {
+func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
@@ -144,14 +144,14 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool, siteURL s
 		}
 	}
 
-	if err := handlePostEvents(rpost, teamId, triggerWebhooks, siteURL); err != nil {
+	if err := handlePostEvents(rpost, teamId, triggerWebhooks); err != nil {
 		return nil, err
 	}
 
 	return rpost, nil
 }
 
-func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool, siteURL string) *model.AppError {
+func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
 	var tchan store.StoreChannel
 	if len(teamId) > 0 {
 		tchan = Srv.Store.Team().Get(teamId)
@@ -188,13 +188,13 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool, sit
 		user = result.Data.(*model.User)
 	}
 
-	if _, err := SendNotifications(post, team, channel, user, siteURL); err != nil {
+	if _, err := SendNotifications(post, team, channel, user); err != nil {
 		return err
 	}
 
 	if triggerWebhooks {
 		go func() {
-			if err := handleWebhookEvents(post, team, channel, user, siteURL); err != nil {
+			if err := handleWebhookEvents(post, team, channel, user); err != nil {
 				l4g.Error(err.Error())
 			}
 		}()
@@ -405,7 +405,7 @@ func GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*mode
 	}
 }
 
-func GetPermalinkPost(postId string, userId string, siteURL string) (*model.PostList, *model.AppError) {
+func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -422,7 +422,7 @@ func GetPermalinkPost(postId string, userId string, siteURL string) (*model.Post
 			return nil, err
 		}
 
-		if err = JoinChannel(channel, userId, siteURL); err != nil {
+		if err = JoinChannel(channel, userId); err != nil {
 			return nil, err
 		}
 

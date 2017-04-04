@@ -271,7 +271,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	state := r.URL.Query().Get("state")
 
-	uri := c.GetSiteURL() + "/signup/" + service + "/complete"
+	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
 	if body, teamId, props, err := AuthorizeOAuthUser(service, code, state, uri); err != nil {
 		c.Err = err
@@ -285,7 +285,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		action := props["action"]
 		switch action {
 		case model.OAUTH_ACTION_SIGNUP:
-			if user, err := app.CreateOAuthUser(service, body, teamId, c.GetSiteURL()); err != nil {
+			if user, err := app.CreateOAuthUser(service, body, teamId); err != nil {
 				c.Err = err
 			} else {
 				doLogin(c, w, r, user, "")
@@ -297,11 +297,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_LOGIN:
 			user := LoginByOAuth(c, w, r, service, body)
 			if len(teamId) > 0 {
-				c.Err = app.AddUserToTeamByTeamId(teamId, user, c.GetSiteURL())
+				c.Err = app.AddUserToTeamByTeamId(teamId, user)
 			}
 			if c.Err == nil {
 				if val, ok := props["redirect_to"]; ok {
-					http.Redirect(w, r, c.GetSiteURL()+val, http.StatusTemporaryRedirect)
+					http.Redirect(w, r, c.GetSiteURLHeader()+val, http.StatusTemporaryRedirect)
 					return
 				}
 				http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusTemporaryRedirect)
@@ -361,7 +361,7 @@ func authorizeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// here we should check if the user is logged in
 	if len(c.Session.UserId) == 0 {
-		http.Redirect(w, r, c.GetSiteURL()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
 		return
 	}
 
@@ -382,7 +382,7 @@ func authorizeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		doAllow := func() (*http.Response, *model.AppError) {
 			HttpClient := &http.Client{}
-			url := c.GetSiteURL() + "/api/v3/oauth/allow?response_type=" + model.AUTHCODE_RESPONSE_TYPE + "&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirect) + "&scope=" + scope + "&state=" + url.QueryEscape(state)
+			url := c.GetSiteURLHeader() + "/api/v3/oauth/allow?response_type=" + model.AUTHCODE_RESPONSE_TYPE + "&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirect) + "&scope=" + scope + "&state=" + url.QueryEscape(state)
 			rq, _ := http.NewRequest("GET", url, strings.NewReader(""))
 
 			rq.Header.Set(model.HEADER_AUTH, model.HEADER_BEARER+" "+c.Session.Token)
@@ -702,7 +702,7 @@ func GetAuthorizationCode(c *Context, service string, props map[string]string, l
 	props["hash"] = model.HashPassword(clientId)
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
-	redirectUri := c.GetSiteURL() + "/signup/" + service + "/complete"
+	redirectUri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
@@ -842,7 +842,7 @@ func CompleteSwitchWithOAuth(c *Context, w http.ResponseWriter, r *http.Request,
 	}
 
 	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, c.GetSiteURL()); err != nil {
+		if err := app.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	}()

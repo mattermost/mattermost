@@ -138,7 +138,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
-			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelDisplayName, channel.DisplayName, c.GetSiteURL()); err != nil {
+			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
 				l4g.Error(err.Error())
 			}
 		}
@@ -459,7 +459,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DeleteChannel(channel, c.Session.UserId, c.GetSiteURL())
+	err = app.DeleteChannel(channel, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -733,7 +733,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId, c.GetSiteURL()); err != nil {
+	if cm, err := app.AddChannelMember(member.UserId, channel, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -768,7 +768,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel, c.GetSiteURL()); err != nil {
+	if err = app.RemoveUserFromChannel(c.Params.UserId, c.Session.UserId, channel); err != nil {
 		c.Err = err
 		return
 	}
