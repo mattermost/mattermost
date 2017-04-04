@@ -9,6 +9,7 @@ import {removeUserFromChannel, makeUserChannelAdmin, makeUserChannelMember} from
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {canManageMembers} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -91,8 +92,7 @@ export default class ChannelMembersDropdown extends React.Component {
 
     // Checks if the current user has the power to remove this member from the channel.
     canRemoveMember() {
-        // TODO: This will be implemented as part of PLT-5047.
-        return true;
+        return canManageMembers(this.props.channel, UserStore.isSystemAdminForCurrentUser(), TeamStore.isTeamAdminForCurrentTeam(), ChannelStore.isChannelAdminForCurrentChannel());
     }
 
     render() {

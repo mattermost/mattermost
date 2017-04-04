@@ -208,6 +208,26 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin
     return true;
 }
 
+export function canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin) {
+    if (global.window.mm_license.IsLicensed !== 'true') {
+        return true;
+    }
+
+    if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (global.window.mm_config.RestrictPrivateChannelManageMembers === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+            return false;
+        }
+        if (global.window.mm_config.RestrictPrivateChannelManageMembers === Constants.PERMISSIONS_TEAM_ADMIN && !isTeamAdmin && !isSystemAdmin) {
+            return false;
+        }
+        if (global.window.mm_config.RestrictPrivateChannelManageMembers === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isTeamAdmin && !isSystemAdmin) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export function buildGroupChannelName(channelId) {
     const profiles = UserStore.getProfileListInChannel(channelId, true);
     let displayName = '';

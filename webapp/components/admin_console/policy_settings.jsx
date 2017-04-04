@@ -34,6 +34,7 @@ export default class PolicySettings extends AdminSettings {
         config.TeamSettings.RestrictPrivateChannelManagement = this.state.restrictPrivateChannelManagement;
         config.TeamSettings.RestrictPublicChannelDeletion = this.state.restrictPublicChannelDeletion;
         config.TeamSettings.RestrictPrivateChannelDeletion = this.state.restrictPrivateChannelDeletion;
+        config.TeamSettings.RestrictPrivateChannelManageMembers = this.state.restrictPrivateChannelManageMembers;
 
         return config;
     }
@@ -49,7 +50,8 @@ export default class PolicySettings extends AdminSettings {
             restrictPublicChannelManagement: config.TeamSettings.RestrictPublicChannelManagement,
             restrictPrivateChannelManagement: config.TeamSettings.RestrictPrivateChannelManagement,
             restrictPublicChannelDeletion: config.TeamSettings.RestrictPublicChannelDeletion,
-            restrictPrivateChannelDeletion: config.TeamSettings.RestrictPrivateChannelDeletion
+            restrictPrivateChannelDeletion: config.TeamSettings.RestrictPrivateChannelDeletion,
+            restrictPrivateChannelManageMembers: config.TeamSettings.RestrictPrivateChannelManageMembers
         };
     }
 
@@ -211,6 +213,29 @@ export default class PolicySettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelManagementDescription'
                             defaultMessage='Set policy on who can rename and set the header or purpose for private channels.'
+                        />
+                    }
+                />
+                <DropdownSetting
+                    id='restrictPrivateChannelManageMembers'
+                    values={[
+                        {value: Constants.PERMISSIONS_ALL, text: Utils.localizeMessage('admin.general.policy.permissionsAllChannel', 'All channel members')},
+                        {value: Constants.PERMISSIONS_CHANNEL_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsChannelAdmin', 'Channel, Team and System Admins')},
+                        {value: Constants.PERMISSIONS_TEAM_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsAdmin', 'Team and System Admins')},
+                        {value: Constants.PERMISSIONS_SYSTEM_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsSystemAdmin', 'System Admins')}
+                    ]}
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.restrictPrivateChannelManageMembersTitle'
+                            defaultMessage='Enable managing of private group members for:'
+                        />
+                    }
+                    value={this.state.restrictPrivateChannelManageMembers}
+                    onChange={this.handleChange}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.general.policy.restrictPrivateChannelManageMembersDescription'
+                            defaultMessage='Set policy on who can add and remove members from private groups.'
                         />
                     }
                 />

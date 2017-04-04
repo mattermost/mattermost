@@ -269,6 +269,7 @@ export default class ChannelHeader extends React.Component {
         );
         let channelTitle = channel.display_name;
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
         const isDirect = (this.state.channel.type === Constants.DM_CHANNEL);
@@ -492,44 +493,65 @@ export default class ChannelHeader extends React.Component {
                     />
                 );
 
-                dropdownContents.push(
-                    <li
-                        id='channelAddMembers'
-                        key='add_members'
-                        role='presentation'
-                    >
-                        <ToggleModalButton
-                            ref='channelInviteModalButton'
-                            role='menuitem'
-                            dialogType={ChannelInviteModal}
-                            dialogProps={{channel, currentUser: this.state.currentUser}}
+                if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+                    dropdownContents.push(
+                        <li
+                            id='channelAddMembers'
+                            key='add_members'
+                            role='presentation'
                         >
-                            <FormattedMessage
-                                id='channel_header.addMembers'
-                                defaultMessage='Add Members'
-                            />
-                        </ToggleModalButton>
-                    </li>
-                );
+                            <ToggleModalButton
+                                ref='channelInviteModalButton'
+                                role='menuitem'
+                                dialogType={ChannelInviteModal}
+                                dialogProps={{channel, currentUser: this.state.currentUser}}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.addMembers'
+                                    defaultMessage='Add Members'
+                                />
+                            </ToggleModalButton>
+                        </li>
+                    );
 
-                dropdownContents.push(
-                    <li
-                        id='channelManageMembers'
-                        key='manage_members'
-                        role='presentation'
-                    >
-                        <a
-                            role='menuitem'
-                            href='#'
-                            onClick={() => this.setState({showMembersModal: true})}
+                    dropdownContents.push(
+                        <li
+                            id='channelManageMembers'
+                            key='manage_members'
+                            role='presentation'
                         >
-                            <FormattedMessage
-                                id='channel_header.manageMembers'
-                                defaultMessage='Manage Members'
-                            />
-                        </a>
-                    </li>
-                );
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={() => this.setState({showMembersModal: true})}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.manageMembers'
+                                    defaultMessage='Manage Members'
+                                />
+                            </a>
+                        </li>
+                    );
+                } else {
+                    dropdownContents.push(
+                        <li
+                            id='channelViewMembers'
+                            key='view_members'
+                            role='presentation'
+                        >
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={() => this.setState({showMembersModal: true})}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.viewMembers'
+                                    defaultMessage='View Members'
+                                />
+                            </a>
+                        </li>
+                    );
+                }
             }
 
             const deleteOption = (
