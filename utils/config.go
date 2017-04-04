@@ -27,6 +27,7 @@ const (
 	MODE_BETA       = "beta"
 	MODE_PROD       = "prod"
 	LOG_ROTATE_SIZE = 10000
+	LOG_FILENAME    = "mattermost.log"
 )
 
 var cfgMutex = &sync.Mutex{}
@@ -136,9 +137,9 @@ func configureLog(s *model.LogSettings) {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		return FindDir("logs") + "mattermost.log"
+		return FindDir("logs") + LOG_FILENAME
 	} else {
-		return fileLocation
+		return fileLocation + LOG_FILENAME
 	}
 }
 
