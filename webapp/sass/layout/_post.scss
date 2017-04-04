@@ -1287,10 +1287,6 @@ form {
 
         .post-reaction-list {
             min-height: 30px;
-
-            &:empty {
-                display: none;
-            }
         }
 
         .post-reaction {
