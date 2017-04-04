@@ -211,20 +211,20 @@ class FileUpload extends React.Component {
         // jquery-dragster doesn't provide a function to unregister itself so do it manually
         target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
     }
+
     emojiClick() {
         this.props.onEmojiClick();
     }
+
     pasteUpload(e) {
-        var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         const {formatMessage} = this.props.intl;
 
         if (!e.clipboardData || !e.clipboardData.items) {
             return;
         }
 
-        var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
-
-        if (textarea !== e.target && !$.contains(textarea, e.target)) {
+        const textarea = ReactDOM.findDOMNode(this.props.getTarget());
+        if (!textarea || !textarea.contains(e.target)) {
             return;
         }
 
@@ -386,6 +386,7 @@ FileUpload.propTypes = {
     intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
+    getTarget: React.PropTypes.func.isRequired,
     onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,

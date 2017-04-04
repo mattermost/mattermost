@@ -56,6 +56,7 @@ export default class CreatePost extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
+        this.getFileUploadTarget = this.getFileUploadTarget.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
@@ -456,6 +457,10 @@ export default class CreatePost extends React.Component {
         return draft.fileInfos.length + draft.uploadsInProgress.length;
     }
 
+    getFileUploadTarget() {
+        return this.refs.textbox;
+    }
+
     handleKeyDown(e) {
         if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.postMsgKeyPress(e);
@@ -652,6 +657,7 @@ export default class CreatePost extends React.Component {
                             <FileUpload
                                 ref='fileUpload'
                                 getFileCount={this.getFileCount}
+                                getTarget={this.getFileUploadTarget}
                                 onFileUploadChange={this.handleFileUploadChange}
                                 onUploadStart={this.handleUploadStart}
                                 onFileUpload={this.handleFileUploadComplete}
