@@ -68,8 +68,6 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		app.ReloadConfig()
-		app.InvalidateAllCaches()
 		c.LogAudit("success")
 		w.Write([]byte(license.ToJson()))
 	}

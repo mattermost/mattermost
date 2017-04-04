@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
@@ -28,6 +29,8 @@ const (
 	LOG_ROTATE_SIZE = 10000
 )
 
+var cfgMutex = &sync.Mutex{}
+var watcher *fsnotify.Watcher
 var Cfg *model.Config = &model.Config{}
 var CfgDiagnosticId = ""
 var CfgHash = ""
@@ -140,6 +143,9 @@ func GetLogFileLocation(fileLocation string) string {
 }
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
 		return model.NewLocAppError("SaveConfig", "utils.config.save_config.saving.app_error",
@@ -161,18 +167,72 @@ func EnableConfigFromEnviromentVars() {
 	viper.AutomaticEnv()
 }
 
+func InitializeConfigWatch() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	if watcher == nil {
+		var err error
+		watcher, err = fsnotify.NewWatcher()
+		if err != nil {
+			l4g.Error(fmt.Sprintf("Failed to watch config file at %v with err=%v", CfgFileName, err.Error()))
+		}
+
+		go func() {
+			configFile := filepath.Clean(CfgFileName)
+
+			for {
+				select {
+				case event := <-watcher.Events:
+					// we only care about the config file
+					if filepath.Clean(event.Name) == configFile {
+						if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
+							l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
+
+							if configReadErr := viper.ReadInConfig(); configReadErr == nil {
+								LoadConfig(CfgFileName)
+							} else {
+								l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", CfgFileName, configReadErr.Error()))
+							}
+						}
+					}
+				case err := <-watcher.Errors:
+					l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", CfgFileName, err.Error()))
+				}
+			}
+		}()
+	}
+}
+
 func EnableConfigWatch() {
-	viper.WatchConfig()
-	viper.OnConfigChange(func(e fsnotify.Event) {
-		l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
-		LoadConfig(CfgFileName)
-	})
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	configFile := filepath.Clean(CfgFileName)
+	configDir, _ := filepath.Split(configFile)
+
+	if watcher != nil {
+		watcher.Add(configDir)
+	}
+}
+
+func DisableConfigWatch() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	if watcher != nil {
+		configFile := filepath.Clean(CfgFileName)
+		configDir, _ := filepath.Split(configFile)
+		watcher.Remove(configDir)
+	}
 }
 
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
 func LoadConfig(fileName string) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 
 	fileNameWithExtension := filepath.Base(fileName)
 	fileExtension := filepath.Ext(fileNameWithExtension)
@@ -221,9 +281,11 @@ func LoadConfig(fileName string) {
 	}
 
 	if needSave {
+		cfgMutex.Unlock()
 		if err := SaveConfig(CfgFileName, &config); err != nil {
 			l4g.Warn(T(err.Id))
 		}
+		cfgMutex.Lock()
 	}
 
 	if err := ValidateLocales(&config); err != nil {
