@@ -181,7 +181,6 @@ export function doFocusPost(channelId, postId, data) {
         post_list: data
     });
     loadChannelsForCurrentUser();
-    AsyncClient.getMoreChannels(true);
     AsyncClient.getChannelStats(channelId);
     loadPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
     loadPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);

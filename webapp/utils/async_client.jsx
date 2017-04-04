@@ -208,30 +208,6 @@ export function viewChannel(channelId = ChannelStore.getCurrentId(), prevChannel
     );
 }
 
-export function getMoreChannels(force) {
-    if (isCallInProgress('getMoreChannels')) {
-        return;
-    }
-
-    if (ChannelStore.getMoreAll().loading || force) {
-        callTracker.getMoreChannels = utils.getTimestamp();
-        Client.getMoreChannels(
-            (data) => {
-                callTracker.getMoreChannels = 0;
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_MORE_CHANNELS,
-                    channels: data
-                });
-            },
-            (err) => {
-                callTracker.getMoreChannels = 0;
-                dispatchError(err, 'getMoreChannels');
-            }
-        );
-    }
-}
-
 export function getMoreChannelsPage(offset, limit) {
     if (isCallInProgress('getMoreChannelsPage')) {
         return;

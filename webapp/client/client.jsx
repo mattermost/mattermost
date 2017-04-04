@@ -1493,18 +1493,6 @@ export default class Client {
         this.trackEvent('api', 'api_channel_get', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
-    // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
-    getMoreChannels(success, error) {
-        request.
-            get(`${this.getChannelsRoute()}/more`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
-
-        this.trackEvent('api', 'api_channels_more', {team_id: this.getTeamId()});
-    }
-
     getMoreChannelsPage(offset, limit, success, error) {
         request.
             get(`${this.getChannelsRoute()}/more/${offset}/${limit}`).
