@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -18,17 +19,24 @@ type ScheduledTask struct {
 	timer     *time.Timer
 }
 
+var taskMutex = sync.Mutex{}
 var tasks = make(map[string]*ScheduledTask)
 
 func addTask(task *ScheduledTask) {
+	taskMutex.Lock()
+	defer taskMutex.Unlock()
 	tasks[task.Name] = task
 }
 
 func removeTaskByName(name string) {
+	taskMutex.Lock()
+	defer taskMutex.Unlock()
 	delete(tasks, name)
 }
 
 func GetTaskByName(name string) *ScheduledTask {
+	taskMutex.Lock()
+	defer taskMutex.Unlock()
 	if task, ok := tasks[name]; ok {
 		return task
 	}
@@ -36,6 +44,8 @@ func GetTaskByName(name string) *ScheduledTask {
 }
 
 func GetAllTasks() *map[string]*ScheduledTask {
+	taskMutex.Lock()
+	defer taskMutex.Unlock()
 	return &tasks
 }
 
