@@ -403,6 +403,36 @@ export function getProfilesInTeam(teamId = TeamStore.getCurrentId(), offset = Us
     );
 }
 
+export function getProfilesNotInTeam(teamId = TeamStore.getCurrentId(), offset = UserStore.getInTeamPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
+    const callName = `getProfilesNotInTeam${teamId}${offset}${limit}`;
+
+    if (isCallInProgress(callName)) {
+        return;
+    }
+
+    callTracker[callName] = utils.getTimestamp();
+    Client.getProfilesNotInTeam(
+        teamId,
+        offset,
+        limit,
+        (data) => {
+            callTracker[callName] = 0;
+
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILES_NOT_IN_TEAM,
+                profiles: data,
+                team_id: teamId,
+                offset,
+                count: Object.keys(data).length
+            });
+        },
+        (err) => {
+            callTracker[callName] = 0;
+            dispatchError(err, 'getProfilesNotInTeam');
+        }
+    );
+}
+
 export function getProfilesInChannel(channelId = ChannelStore.getCurrentId(), offset = UserStore.getInChannelPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE) {
     const callName = `getProfilesInChannel${channelId}${offset}${limit}`;
 
@@ -826,34 +856,6 @@ export function getTeamMember(teamId, userId) {
         (err) => {
             callTracker[callName] = 0;
             dispatchError(err, 'getTeamMember');
-        }
-    );
-}
-
-export function getMyTeamMembers() {
-    const callName = 'getMyTeamMembers';
-    if (isCallInProgress(callName)) {
-        return;
-    }
-
-    callTracker[callName] = utils.getTimestamp();
-    Client.getMyTeamMembers(
-        (data) => {
-            callTracker[callName] = 0;
-
-            const members = {};
-            for (const member of data) {
-                members[member.team_id] = member;
-            }
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS_UNREAD,
-                team_members: members
-            });
-        },
-        (err) => {
-            callTracker[callName] = 0;
-            dispatchError(err, 'getMyTeamMembers');
         }
     );
 }

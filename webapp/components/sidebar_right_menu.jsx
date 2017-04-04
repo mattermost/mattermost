@@ -6,6 +6,7 @@ import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
+import AddUsersToTeam from './add_users_to_team.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -36,6 +37,8 @@ export default class SidebarRightMenu extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.handleClick = this.handleClick.bind(this);
         this.handleAboutModal = this.handleAboutModal.bind(this);
+        this.showAddUsersToTeamModal = this.showAddUsersToTeamModal.bind(this);
+        this.hideAddUsersToTeamModal = this.hideAddUsersToTeamModal.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
@@ -43,6 +46,7 @@ export default class SidebarRightMenu extends React.Component {
         const state = this.getStateFromStores();
         state.showUserSettingsModal = false;
         state.showAboutModal = false;
+        state.showAddUsersToTeamModal = false;
 
         this.state = state;
     }
@@ -60,6 +64,21 @@ export default class SidebarRightMenu extends React.Component {
 
     aboutModalDismissed() {
         this.setState({showAboutModal: false});
+    }
+
+    showAddUsersToTeamModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showAddUsersToTeamModal: true,
+            showDropdown: false
+        });
+    }
+
+    hideAddUsersToTeamModal() {
+        this.setState({
+            showAddUsersToTeamModal: false
+        });
     }
 
     getFlagged(e) {
@@ -145,6 +164,7 @@ export default class SidebarRightMenu extends React.Component {
         const currentUser = UserStore.getCurrentUser();
         let teamLink;
         let inviteLink;
+        let addUserToTeamLink;
         let teamSettingsLink;
         let manageLink;
         let consoleLink;
@@ -165,7 +185,23 @@ export default class SidebarRightMenu extends React.Component {
                         <i className='icon fa fa-user-plus'/>
                         <FormattedMessage
                             id='sidebar_right_menu.inviteNew'
-                            defaultMessage='Invite New Member'
+                            defaultMessage='Send Email Invite'
+                        />
+                    </a>
+                </li>
+            );
+
+            addUserToTeamLink = (
+                <li>
+                    <a
+                        id='addUsersToTeam'
+                        href='#'
+                        onClick={this.showAddUsersToTeamModal}
+                    >
+                        <i className='icon fa fa-user-plus'/>
+                        <FormattedMessage
+                            id='sidebar_right_menu.addMemberToTeam'
+                            defaultMessage='Add Members to Team'
                         />
                     </a>
                 </li>
@@ -192,9 +228,11 @@ export default class SidebarRightMenu extends React.Component {
                 if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                     teamLink = null;
                     inviteLink = null;
+                    addUserToTeamLink = null;
                 } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                     teamLink = null;
                     inviteLink = null;
+                    addUserToTeamLink = null;
                 }
             }
 
@@ -360,6 +398,25 @@ export default class SidebarRightMenu extends React.Component {
             );
         }
 
+        let addUsersToTeamModal;
+        if (this.state.showAddUsersToTeamModal) {
+            addUsersToTeamModal = (
+                <AddUsersToTeam
+                    onModalDismissed={this.hideAddUsersToTeamModal}
+                />
+            );
+        }
+
+        let teamDivider = null;
+        if (teamSettingsLink || manageLink || joinAnotherTeamLink) {
+            teamDivider = <li className='divider'/>;
+        }
+
+        let consoleDivider = null;
+        if (consoleLink) {
+            consoleDivider = <li className='divider'/>;
+        }
+
         return (
             <div
                 className='sidebar--menu'
@@ -414,16 +471,20 @@ export default class SidebarRightMenu extends React.Component {
                                 />
                             </a>
                         </li>
+                        <li className='divider'/>
                         {inviteLink}
                         {teamLink}
-                        {joinAnotherTeamLink}
-                        <li className='divider'/>
+                        {addUserToTeamLink}
+                        {teamDivider}
                         {teamSettingsLink}
                         {manageLink}
+                        {joinAnotherTeamLink}
+                        {consoleDivider}
                         {consoleLink}
                         <li className='divider'/>
                         {helpLink}
                         {reportLink}
+                        {nativeAppLink}
                         <li>
                             <a
                                 href='#'
@@ -436,8 +497,6 @@ export default class SidebarRightMenu extends React.Component {
                                 />
                             </a>
                         </li>
-                        <li className='divider'/>
-                        {nativeAppLink}
                         <li className='divider'/>
                         <li>
                             <a
@@ -461,6 +520,7 @@ export default class SidebarRightMenu extends React.Component {
                     show={this.state.showAboutModal}
                     onModalDismissed={this.aboutModalDismissed}
                 />
+                {addUsersToTeamModal}
             </div>
         );
     }

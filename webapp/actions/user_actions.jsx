@@ -492,6 +492,28 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
     );
 }
 
+export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), options = {}, success, error) {
+    Client.searchUsersNotInTeam(
+        term,
+        teamId,
+        options,
+        (data) => {
+            loadStatusesForProfilesList(data);
+
+            if (success) {
+                success(data);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'searchUsersNotInTeam');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function autocompleteUsersInChannel(username, channelId, success, error) {
     Client.autocompleteUsersInChannel(
         username,

@@ -15,6 +15,7 @@ const UserStatuses = Constants.UserStatuses;
 
 const CHANGE_EVENT_NOT_IN_CHANNEL = 'change_not_in_channel';
 const CHANGE_EVENT_IN_CHANNEL = 'change_in_channel';
+const CHANGE_EVENT_NOT_IN_TEAM = 'change_not_in_team';
 const CHANGE_EVENT_IN_TEAM = 'change_in_team';
 const CHANGE_EVENT_WITHOUT_TEAM = 'change_without_team';
 const CHANGE_EVENT = 'change';
@@ -35,6 +36,11 @@ class UserStoreClass extends EventEmitter {
         this.profiles = {};
         this.paging_offset = 0;
         this.paging_count = 0;
+
+        // Lists of sorted IDs for users in a team
+        this.profiles_not_in_team = {};
+        this.not_in_team_offset = 0;
+        this.not_in_team_count = 0;
 
         // Lists of sorted IDs for users in a team
         this.profiles_in_team = {};
@@ -83,6 +89,18 @@ class UserStoreClass extends EventEmitter {
 
     removeInTeamChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_IN_TEAM, callback);
+    }
+
+    emitNotInTeamChange() {
+        this.emit(CHANGE_EVENT_NOT_IN_TEAM);
+    }
+
+    addNotInTeamChangeListener(callback) {
+        this.on(CHANGE_EVENT_NOT_IN_TEAM, callback);
+    }
+
+    removeNotInTeamChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_NOT_IN_TEAM, callback);
     }
 
     emitInChannelChange() {
@@ -373,6 +391,75 @@ class UserStoreClass extends EventEmitter {
         userIds.splice(index, 1);
     }
 
+    // Not In Team Profiles
+
+    saveProfilesNotInTeam(teamId, profiles) {
+        const oldProfileList = this.profiles_not_in_team[teamId] || [];
+        const oldProfileMap = {};
+        for (let i = 0; i < oldProfileList.length; i++) {
+            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
+        }
+
+        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
+        const newProfileList = Object.keys(newProfileMap);
+
+        newProfileList.sort((a, b) => {
+            const aProfile = newProfileMap[a];
+            const bProfile = newProfileMap[b];
+
+            if (aProfile.username < bProfile.username) {
+                return -1;
+            }
+            if (aProfile.username > bProfile.username) {
+                return 1;
+            }
+            return 0;
+        });
+
+        this.profiles_not_in_team[teamId] = newProfileList;
+        this.saveProfiles(profiles);
+    }
+
+    removeProfileNotInTeam(teamId, userId) {
+        const userIds = this.profiles_not_in_team[teamId];
+        if (!userIds) {
+            return;
+        }
+
+        const index = userIds.indexOf(userId);
+        if (index === -1) {
+            return;
+        }
+
+        userIds.splice(index, 1);
+    }
+
+    getProfileListNotInTeam(teamId = TeamStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
+        const userIds = this.profiles_not_in_team[teamId] || [];
+        const profiles = [];
+        const currentId = this.getCurrentId();
+
+        for (let i = 0; i < userIds.length; i++) {
+            const profile = this.getProfile(userIds[i]);
+
+            if (!profile) {
+                continue;
+            }
+
+            if (skipCurrent && profile.id === currentId) {
+                continue;
+            }
+
+            if (skipInactive && profile.delete_at > 0) {
+                continue;
+            }
+
+            profiles.push(profile);
+        }
+
+        return profiles;
+    }
+
     // Channel-Wide Profiles
 
     saveProfilesInChannel(channelId = ChannelStore.getCurrentId(), profiles) {
@@ -646,6 +733,19 @@ class UserStoreClass extends EventEmitter {
         return this.in_team_count;
     }
 
+    setNotInTeamPage(offset, count) {
+        this.not_in_team_offset = offset + count;
+        this.not_in_team_count = this.not_in_team_count + count;
+    }
+
+    getNotInTeamPagingOffset() {
+        return this.not_in_team_offset;
+    }
+
+    getNotInTeamPagingCount() {
+        return this.not_in_team_count;
+    }
+
     setInChannelPage(channelId, offset, count) {
         this.in_channel_offset[channelId] = offset + count;
         this.in_channel_count[channelId] = this.dm_paging_count + count;
@@ -693,6 +793,13 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
             UserStore.setInTeamPage(action.offset, action.count);
         }
         UserStore.emitInTeamChange();
+        break;
+    case ActionTypes.RECEIVED_PROFILES_NOT_IN_TEAM:
+        UserStore.saveProfilesNotInTeam(action.team_id, action.profiles);
+        if (action.offset != null && action.count != null) {
+            UserStore.setNotInTeamPage(action.offset, action.count);
+        }
+        UserStore.emitNotInTeamChange();
         break;
     case ActionTypes.RECEIVED_PROFILES_IN_CHANNEL:
         UserStore.saveProfilesInChannel(action.channel_id, action.profiles);
