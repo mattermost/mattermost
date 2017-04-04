@@ -95,7 +95,7 @@ func TestAddUserToTeam(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := CreateUser(&user)
 
-	if _, err := AddUserToTeam(th.BasicTeam.Id, ruser.Id); err != nil {
+	if _, err := AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err != nil {
 		t.Log(err)
 		t.Fatal("Should add user to the team")
 	}

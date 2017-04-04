@@ -63,7 +63,7 @@ func CreateUserWithHash(user *model.User, hash string, data string) (*model.User
 		return nil, err
 	}
 
-	if err := JoinUserToTeam(team, ruser); err != nil {
+	if err := JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +92,7 @@ func CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *mo
 		return nil, err
 	}
 
-	if err := JoinUserToTeam(team, ruser); err != nil {
+	if err := JoinUserToTeam(team, ruser, ""); err != nil {
 		return nil, err
 	}
 
