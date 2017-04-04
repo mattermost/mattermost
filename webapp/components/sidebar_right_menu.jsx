@@ -201,7 +201,7 @@ export default class SidebarRightMenu extends React.Component {
                         <i className='icon fa fa-user-plus'/>
                         <FormattedMessage
                             id='sidebar_right_menu.addMemberToTeam'
-                            defaultMessage='Add Member to Team'
+                            defaultMessage='Add Members to Team'
                         />
                     </a>
                 </li>

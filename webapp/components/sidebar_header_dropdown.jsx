@@ -239,7 +239,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     >
                         <FormattedMessage
                             id='navbar_dropdown.addMemberToTeam'
-                            defaultMessage='Add Member to Team'
+                            defaultMessage='Add Members to Team'
                         />
                     </a>
                 </li>
