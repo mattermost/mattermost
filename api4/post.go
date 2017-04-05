@@ -134,8 +134,8 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if c.Params.UserId != c.Session.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_ROLES) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_ROLES)
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
