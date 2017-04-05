@@ -79,6 +79,8 @@ func doLegacyCommands() {
 		api.LoadLicense()
 	}
 
+	utils.SetDefaultRolesBasedOnConfig()
+
 	runCmds()
 }
 
