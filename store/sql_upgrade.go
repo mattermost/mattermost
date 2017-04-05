@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	VERSION_3_4_0p = "3.4.0p"
-	VERSION_3_4_0  = "3.4.0"
-	VERSION_3_3_0  = "3.3.0"
-	VERSION_3_2_0  = "3.2.0"
-	VERSION_3_1_0  = "3.1.0"
-	VERSION_3_0_0  = "3.0.0"
+	VERSION_3_4_0p2 = "3.4.0p2"
+	VERSION_3_4_0p  = "3.4.0p"
+	VERSION_3_4_0   = "3.4.0"
+	VERSION_3_3_0   = "3.3.0"
+	VERSION_3_2_0   = "3.2.0"
+	VERSION_3_1_0   = "3.1.0"
+	VERSION_3_0_0   = "3.0.0"
 )
 
 const (
@@ -37,6 +38,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion33(sqlStore)
 	UpgradeDatabaseToVersion34(sqlStore)
 	UpgradeDatabaseToVersion34p(sqlStore)
+	UpgradeDatabaseToVersion34p2(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -194,6 +196,15 @@ func UpgradeDatabaseToVersion34p(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_4_0p) {
 
 		sqlStore.CreateColumnIfNotExists("Channels", "Props", "varchar(4000)", "varchar(4000)", "{}")
+
+		saveSchemaVersion(sqlStore, VERSION_3_4_0p)
+	}
+}
+
+func UpgradeDatabaseToVersion34p2(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_4_0p, VERSION_3_4_0p2) {
+
+		sqlStore.AlterColumnTypeIfExists("Sessions", "token", "varchar(4000)", "varchar(4000)")
 
 		saveSchemaVersion(sqlStore, VERSION_3_4_0p)
 	}
