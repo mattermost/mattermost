@@ -459,6 +459,187 @@ func TestGetPostsForChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetFlaggedPostsForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	team1 := th.BasicTeam
+	channel1 := th.BasicChannel
+	post1 := th.CreatePost()
+	channel2 := th.CreatePublicChannel()
+	post2 := th.CreatePostWithClient(Client, channel2)
+
+	preference := model.Preference{
+		UserId:   user.Id,
+		Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+		Name:     post1.Id,
+		Value:    "true",
+	}
+	Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	preference.Name = post2.Id
+	Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+
+	opl := model.NewPostList()
+	opl.AddPost(post1)
+	opl.AddOrder(post1.Id)
+
+	rpl, resp := Client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 1 {
+		t.Fatal("should have returned 1 post")
+	}
+
+	if !reflect.DeepEqual(rpl.Posts, opl.Posts) {
+		t.Fatal("posts should have matched")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 1)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 1 {
+		t.Fatal("should have returned 1 post")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 1, 1)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 0 {
+		t.Fatal("should be empty")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, GenerateTestId(), 0, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 0 {
+		t.Fatal("should be empty")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, "junk", 0, 10)
+	CheckBadRequestStatus(t, resp)
+
+	if rpl != nil {
+		t.Fatal("should be nil")
+	}
+
+	opl.AddPost(post2)
+	opl.AddOrder(post2.Id)
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 2 {
+		t.Fatal("should have returned 2 posts")
+	}
+
+	if !reflect.DeepEqual(rpl.Posts, opl.Posts) {
+		t.Fatal("posts should have matched")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 1)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 1 {
+		t.Fatal("should have returned 1 post")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 1, 1)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 1 {
+		t.Fatal("should have returned 1 post")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 1000, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 0 {
+		t.Fatal("should be empty")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, GenerateTestId(), 0, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 0 {
+		t.Fatal("should be empty")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, "junk", 0, 10)
+	CheckBadRequestStatus(t, resp)
+
+	if rpl != nil {
+		t.Fatal("should be nil")
+	}
+
+	channel3 := th.CreatePrivateChannel()
+	post4 := th.CreatePostWithClient(Client, channel3)
+
+	preference.Name = post4.Id
+	Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+
+	opl.AddPost(post4)
+	opl.AddOrder(post4.Id)
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 3 {
+		t.Fatal("should have returned 3 posts")
+	}
+
+	if !reflect.DeepEqual(rpl.Posts, opl.Posts) {
+		t.Fatal("posts should have matched")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 2)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 2 {
+		t.Fatal("should have returned 2 posts")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 2, 2)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 1 {
+		t.Fatal("should have returned 1 post")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 1000, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 0 {
+		t.Fatal("should be empty")
+	}
+
+	_, resp = Client.GetFlaggedPostsForUser("junk", 0, 10)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFlaggedPostsForUser(GenerateTestId(), 0, 10)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	rpl, resp = Client.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	CheckUnauthorizedStatus(t, resp)
+
+	rpl, resp = Client.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	CheckUnauthorizedStatus(t, resp)
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckUnauthorizedStatus(t, resp)
+
+	rpl, resp = th.SystemAdminClient.GetFlaggedPostsForUserInChannel(user.Id, channel1.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	rpl, resp = th.SystemAdminClient.GetFlaggedPostsForUserInTeam(user.Id, team1.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	rpl, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckNoError(t, resp)
+}
+
 func TestGetPostsAfterAndBefore(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()

@@ -402,6 +402,14 @@ func GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*mode
 	}
 }
 
+func GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	if result := <-Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.PostList), nil
+	}
+}
+
 func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Post().Get(postId); result.Err != nil {
 		return nil, result.Err
