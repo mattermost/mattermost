@@ -40,7 +40,7 @@ var userCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a user",
 	Long:  "Create a user",
-	Example: `  user create --email user@example.com --username userexample --password Password1 
+	Example: `  user create --email user@example.com --username userexample --password Password1
   user create --firstname Joe --system_admin --email joe@example.com --username joe --password Password1`,
 	RunE: userCreateCmdF,
 }
@@ -67,7 +67,7 @@ var resetUserPasswordCmd = &cobra.Command{
 var resetUserMfaCmd = &cobra.Command{
 	Use:   "resetmfa [users]",
 	Short: "Turn off MFA",
-	Long: `Turn off multi-factor authentication for a user. 
+	Long: `Turn off multi-factor authentication for a user.
 If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they login.`,
 	Example: "  user resetmfa user@example.com",
 	RunE:    resetUserMfaCmdF,
@@ -94,13 +94,13 @@ var migrateAuthCmd = &cobra.Command{
 	Short: "Mass migrate user accounts authentication type",
 	Long: `Migrates accounts from one authentication provider to another. For example, you can upgrade your authentication provider from email to ldap.
 
-from_auth: 
+from_auth:
 	The authentication service to migrate users accounts from.
-	Supported options: email, gitlab, saml. 
+	Supported options: email, gitlab, saml.
 
 to_auth:
 	The authentication service to migrate users to.
-	Supported options: ldap. 
+	Supported options: ldap.
 
 match_field:
 	The field that is guaranteed to be the same in both authentication services. For example, if the users emails are consistent set to email.
@@ -117,6 +117,14 @@ var verifyUserCmd = &cobra.Command{
 	Long:    "Verify the emails of some users.",
 	Example: "  user verify user1",
 	RunE:    verifyUserCmdF,
+}
+
+var searchUserCmd = &cobra.Command{
+	Use:     "search [users]",
+	Short:   "Search for users",
+	Long:    "Search for users based on username, email, or user ID.",
+	Example: "  user search user1@mail.com user2@mail.com",
+	RunE:    searchUserCmdF,
 }
 
 func init() {
@@ -144,6 +152,7 @@ func init() {
 		deleteAllUsersCmd,
 		migrateAuthCmd,
 		verifyUserCmd,
+		searchUserCmd,
 	)
 }
 
@@ -427,6 +436,36 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 		if cresult := <-app.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
 		}
+	}
+
+	return nil
+}
+
+func searchUserCmdF(cmd *cobra.Command, args []string) error {
+	initDBCommandContextCobra(cmd)
+	if len(args) < 1 {
+		return errors.New("Enter at least one query.")
+	}
+
+	users := getUsersFromUserArgs(args)
+
+	for i, user := range users {
+		if i > 0 {
+			CommandPrettyPrintln("------------------------------")
+		}
+		if user == nil {
+			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
+			continue
+		}
+
+		CommandPrettyPrintln("id: " + user.Id)
+		CommandPrettyPrintln("username: " + user.Username)
+		CommandPrettyPrintln("nickname: " + user.Nickname)
+		CommandPrettyPrintln("position: " + user.Position)
+		CommandPrettyPrintln("first_name: " + user.FirstName)
+		CommandPrettyPrintln("last_name: " + user.LastName)
+		CommandPrettyPrintln("email: " + user.Email)
+		CommandPrettyPrintln("auth_service: " + user.AuthService)
 	}
 
 	return nil
