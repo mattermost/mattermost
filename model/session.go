@@ -57,7 +57,9 @@ func (me *Session) PreSave() {
 		me.Id = NewId()
 	}
 
-	me.Token = NewId()
+	if me.Token == "" {
+		me.Token = NewId()
+	}
 
 	me.CreateAt = GetMillis()
 	me.LastActivityAt = me.CreateAt

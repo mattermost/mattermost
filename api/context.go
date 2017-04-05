@@ -542,10 +542,10 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 
 func GetSession(token string) *model.Session {
 	var session *model.Session
+	l4g.Debug("GetSession: token %v", token)
 	if ts, ok := sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 	}
-
 	if session == nil {
 		if sessionResult := <-Srv.Store.Session().Get(token); sessionResult.Err != nil {
 
