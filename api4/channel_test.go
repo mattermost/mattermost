@@ -715,6 +715,30 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal("should have failed")
 	}
 
+	// check system admin can delete a channel without any appropriate team or channel membership.
+	sdTeam := th.CreateTeamWithClient(Client)
+	sdPublicChannel := &model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestChannelName(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      sdTeam.Id,
+	}
+	sdPublicChannel, resp = Client.CreateChannel(sdPublicChannel)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.DeleteChannel(sdPublicChannel.Id)
+	CheckNoError(t, resp)
+
+	sdPrivateChannel := &model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestChannelName(),
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      sdTeam.Id,
+	}
+	sdPrivateChannel, resp = Client.CreateChannel(sdPrivateChannel)
+	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.DeleteChannel(sdPrivateChannel.Id)
+	CheckNoError(t, resp)
+
 	th.LoginBasic()
 	publicChannel5 := th.CreatePublicChannel()
 	Client.Logout()
