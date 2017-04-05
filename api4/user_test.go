@@ -1651,3 +1651,94 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSwitchAccount(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableGitLab := utils.Cfg.GitLabSettings.Enable
+	defer func() {
+		utils.Cfg.GitLabSettings.Enable = enableGitLab
+	}()
+	utils.Cfg.GitLabSettings.Enable = true
+
+	Client.Logout()
+
+	sr := &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		Email:          th.BasicUser.Email,
+		Password:       th.BasicUser.Password,
+	}
+
+	link, resp := Client.SwitchAccountType(sr)
+	CheckNoError(t, resp)
+
+	if link == "" {
+		t.Fatal("bad link")
+	}
+
+	th.LoginBasic()
+
+	fakeAuthData := "1"
+	if result := <-app.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.USER_AUTH_SERVICE_EMAIL,
+		Email:          th.BasicUser.Email,
+		NewPassword:    th.BasicUser.Password,
+	}
+
+	link, resp = Client.SwitchAccountType(sr)
+	CheckNoError(t, resp)
+
+	if link != "/login?extra=signin_change" {
+		t.Log(link)
+		t.Fatal("bad link")
+	}
+
+	Client.Logout()
+	_, resp = Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	CheckNoError(t, resp)
+	Client.Logout()
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.SERVICE_GOOGLE,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckBadRequestStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		Password:       th.BasicUser.Password,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckNotFoundStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		Email:          th.BasicUser.Email,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckUnauthorizedStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.USER_AUTH_SERVICE_EMAIL,
+		Email:          th.BasicUser.Email,
+		NewPassword:    th.BasicUser.Password,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckUnauthorizedStatus(t, resp)
+}
