@@ -226,6 +226,10 @@ func (c *Client4) GetCommandsRoute() string {
 	return fmt.Sprintf("/commands")
 }
 
+func (c *Client4) GetCommandRoute(commandId string) string {
+	return fmt.Sprintf(c.GetCommandsRoute()+"/%v", commandId)
+}
+
 func (c *Client4) GetEmojisRoute() string {
 	return fmt.Sprintf("/emoji")
 }
@@ -2181,6 +2185,16 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
 // CreateCommand will create a new command if the user have the right permissions.
 func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 	if r, err := c.DoApiPost(c.GetCommandsRoute(), cmd.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateCommand updates a command based on the provided command id string and Command struct
+func (c *Client4) UpdateCommand(commandId string, cmd *Command) (*Command, *Response) {
+	if r, err := c.DoApiPut(c.GetCommandRoute(commandId), cmd.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
