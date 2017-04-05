@@ -197,7 +197,7 @@ test-te-race: start-docker prepare-enterprise
 
 	@for package in $(TE_PACKAGES); do \
 		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=3000s $$package || exit 1; \
+		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
 test-ee-race: start-docker prepare-enterprise
