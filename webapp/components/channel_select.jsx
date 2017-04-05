@@ -7,7 +7,6 @@ import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 
 export default class ChannelSelect extends React.Component {
     static get propTypes() {
@@ -34,8 +33,6 @@ export default class ChannelSelect extends React.Component {
         this.handleChannelChange = this.handleChannelChange.bind(this);
         this.filterChannels = this.filterChannels.bind(this);
 
-        AsyncClient.getMoreChannels(true);
-
         this.state = {
             channels: ChannelStore.getAll().filter(this.filterChannels).sort(sortChannelsByDisplayName)
         };
@@ -51,7 +48,7 @@ export default class ChannelSelect extends React.Component {
 
     handleChannelChange() {
         this.setState({
-            channels: ChannelStore.getAll().concat(ChannelStore.getMoreAll()).
+            channels: ChannelStore.getAll().
                 filter(this.filterChannels).sort(sortChannelsByDisplayName)
         });
     }
