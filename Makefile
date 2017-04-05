@@ -197,7 +197,7 @@ test-te-race: start-docker prepare-enterprise
 
 	@for package in $(TE_PACKAGES); do \
 		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.v -test.timeout=3000s $$package || exit 1; \
+		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=3000s $$package || exit 1; \
 	done
 
 test-ee-race: start-docker prepare-enterprise
@@ -211,7 +211,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c $$package; \
 		if [ -f $$(basename $$package).test ]; then \
 			echo "Testing "$$package; \
-			./$$(basename $$package).test -test.v -test.timeout=2000s || exit 1; \
+			./$$(basename $$package).test -test.timeout=2000s || exit 1; \
 			rm -r $$(basename $$package).test; \
 		fi; \
 	done
