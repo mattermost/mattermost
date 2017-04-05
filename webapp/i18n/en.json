@@ -283,6 +283,8 @@
   "admin.email.requireVerificationDescription": "Typically set to true in production. When true, Mattermost requires email verification after account creation prior to allowing login. Developers may set this field to false so skip sending verification emails for faster development.",
   "admin.email.requireVerificationTitle": "Require Email Verification: ",
   "admin.email.selfPush": "Manually enter Push Notification Service location",
+  "admin.email.skipServerCertificateVerification.description": "When true, Mattermost will not verify the email server certificate.",
+  "admin.email.skipServerCertificateVerification.title": "Skip Server Certificate Verification: ",
   "admin.email.smtpPasswordDescription": " Obtain this credential from administrator setting up your email server.",
   "admin.email.smtpPasswordExample": "E.g.: \"yourpassword\", \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
   "admin.email.smtpPasswordTitle": "SMTP Server Password:",
