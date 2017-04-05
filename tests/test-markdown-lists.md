@@ -71,23 +71,22 @@ Verify that all list types render as expected.
 - Two
 + Three
 
-### Multi-Item Unordered List with Line Break
+### Multi-Item Unordered List with Line Break (Break should not render)
 
 **Expected:**
 ```
 • Item A
 • Item B
-
 • Item C
 • Item D
 ```
 
 **Actual:**
-• Item A
-• Item B
+* Item A
++ Item B
 
-• Item C
-• Item D
+- Item C
+- Item D
 
 ### Nested Unordered List
 
