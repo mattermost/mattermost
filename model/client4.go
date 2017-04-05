@@ -1415,6 +1415,47 @@ func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag s
 	}
 }
 
+// GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
+func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (*PostList, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/posts/flagged"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
+func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, page int, perPage int) (*PostList, *Response) {
+	if len(teamId) == 0 || len(teamId) != 26 {
+		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
+	}
+
+	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/posts/flagged"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
+func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId string, page int, perPage int) (*PostList, *Response) {
+	if len(channelId) == 0 || len(channelId) != 26 {
+		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
+	}
+
+	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/posts/flagged"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return PostListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
 func (c *Client4) GetPostsSince(channelId string, time int64) (*PostList, *Response) {
 	query := fmt.Sprintf("?since=%v", time)

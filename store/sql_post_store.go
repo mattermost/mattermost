@@ -5,6 +5,7 @@ package store
 
 import (
 	"fmt"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 type SqlPostStore struct {
@@ -237,7 +237,7 @@ func (s SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, 
                         Preferences
                     WHERE
                         UserId = :UserId
-                        AND Category = 'flagged_post')
+                        AND Category = :Category)
                         AND DeleteAt = 0
                 ) as A
             INNER JOIN Channels as B
@@ -247,7 +247,43 @@ func (s SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, 
             LIMIT :Limit OFFSET :Offset`
 
 		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
+		} else {
+			for _, post := range posts {
+				pl.AddPost(post)
+				pl.AddOrder(post.Id)
+			}
+		}
+
+		result.Data = pl
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+	go func() {
+		result := StoreResult{}
+		pl := model.NewPostList()
+
+		var posts []*model.Post
+		query := `
+			SELECT 
+				* 
+			FROM Posts 
+			WHERE 
+				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) 
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0 
+			ORDER BY CreateAt DESC 
+			LIMIT :Limit OFFSET :Offset`
+
+		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
 		} else {
 			for _, post := range posts {
 				pl.AddPost(post)
