@@ -146,6 +146,69 @@ func TestUpdateCommand(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestDeleteCommand(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.SystemAdminClient
+	user := th.SystemAdminUser
+	team := th.BasicTeam
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	cmd1 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger1",
+	}
+
+	rcmd1, _ := app.CreateCommand(cmd1)
+
+	ok, resp := Client.DeleteCommand(rcmd1.Id)
+	CheckNoError(t, resp)
+
+	if !ok {
+		t.Fatal("should have returned true")
+	}
+
+	rcmd1, _ = app.GetCommand(rcmd1.Id)
+	if rcmd1 != nil {
+		t.Fatal("should be nil")
+	}
+
+	ok, resp = Client.DeleteCommand("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if ok {
+		t.Fatal("should have returned false")
+	}
+
+	_, resp = Client.DeleteCommand(GenerateTestId())
+	CheckNotFoundStatus(t, resp)
+
+	cmd2 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger2",
+	}
+
+	rcmd2, _ := app.CreateCommand(cmd2)
+
+	_, resp = th.Client.DeleteCommand(rcmd2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.DeleteCommand(rcmd2.Id)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestListCommands(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
