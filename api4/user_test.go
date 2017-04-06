@@ -1297,7 +1297,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	// Should fail because account is locked out
 	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, "newpwd")
 	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
-	CheckForbiddenStatus(t, resp)
+	CheckUnauthorizedStatus(t, resp)
 
 	// System admin can update another user's password
 	adminSetPassword := "pwdsetbyadmin"
