@@ -295,57 +295,59 @@ export default class RhsRootPost extends React.Component {
             }
         }
 
-        dropdownContents.push(
-            <li
-                key='rhs-root-permalink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={this.handlePermalink}
+        if (!isSystemMessage) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-permalink'
+                    role='presentation'
                 >
-                    <FormattedMessage
-                        id='rhs_root.permalink'
-                        defaultMessage='Permalink'
-                    />
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='rhs_root.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
 
-        if (post.is_pinned) {
-            dropdownContents.push(
-                <li
-                    key='rhs-root-unpin'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.unpinPost}
+            if (post.is_pinned) {
+                dropdownContents.push(
+                    <li
+                        key='rhs-root-unpin'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='rhs_root.unpin'
-                            defaultMessage='Un-pin from channel'
-                        />
-                    </a>
-                </li>
-            );
-        } else {
-            dropdownContents.push(
-                <li
-                    key='rhs-root-pin'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.pinPost}
+                        <a
+                            href='#'
+                            onClick={this.unpinPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.unpin'
+                                defaultMessage='Un-pin from channel'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='rhs-root-pin'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='rhs_root.pin'
-                            defaultMessage='Pin to channel'
-                        />
-                    </a>
-                </li>
-            );
+                        <a
+                            href='#'
+                            onClick={this.pinPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.pin'
+                                defaultMessage='Pin to channel'
+                            />
+                        </a>
+                    </li>
+                );
+            }
         }
 
         if (this.canDelete) {

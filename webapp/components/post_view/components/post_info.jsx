@@ -152,42 +152,42 @@ export default class PostInfo extends React.Component {
                     </a>
                 </li>
             );
-        }
 
-        if (this.props.post.is_pinned) {
-            dropdownContents.push(
-                <li
-                    key='unpinLink'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.unpinPost}
+            if (this.props.post.is_pinned) {
+                dropdownContents.push(
+                    <li
+                        key='unpinLink'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='post_info.unpin'
-                            defaultMessage='Un-pin from channel'
-                        />
-                    </a>
-                </li>
-            );
-        } else {
-            dropdownContents.push(
-                <li
-                    key='pinLink'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.pinPost}
+                        <a
+                            href='#'
+                            onClick={this.unpinPost}
+                        >
+                            <FormattedMessage
+                                id='post_info.unpin'
+                                defaultMessage='Un-pin from channel'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='pinLink'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='post_info.pin'
-                            defaultMessage='Pin to channel'
-                        />
-                    </a>
-                </li>
-            );
+                        <a
+                            href='#'
+                            onClick={this.pinPost}
+                        >
+                            <FormattedMessage
+                                id='post_info.pin'
+                                defaultMessage='Pin to channel'
+                            />
+                        </a>
+                    </li>
+                );
+            }
         }
 
         if (this.canDelete) {
