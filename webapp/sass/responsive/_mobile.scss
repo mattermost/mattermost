@@ -33,14 +33,9 @@
         .msg-typing {
             display: none;
         }
-    }
 
-    .post-create__container{
-        .post-create-body {
-            .icon__postcontent_picker {
-                display:none;
-                top: -7px;
-            }
+        .icon--emoji-picker {
+            display: none;
         }
     }
 
