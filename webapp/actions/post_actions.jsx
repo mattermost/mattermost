@@ -20,23 +20,23 @@ const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 
 export function handleNewPost(post, msg) {
-    let websocketMessageProps = null;
+    let websocketMessageProps = {};
     if (msg) {
         websocketMessageProps = msg.data;
-    }
-
-    if (msg && msg.data) {
-        if (msg.data.channel_type === Constants.DM_CHANNEL) {
-            loadNewDMIfNeeded(post.user_id);
-        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
-            loadNewGMIfNeeded(post.channel_id, post.user_id);
-        }
     }
 
     if (ChannelStore.getMyMember(post.channel_id)) {
         completePostReceive(post, websocketMessageProps);
     } else {
         AsyncClient.getChannelMember(post.channel_id, UserStore.getCurrentId()).then(() => completePostReceive(post, websocketMessageProps));
+    }
+
+    if (msg && msg.data) {
+        if (msg.data.channel_type === Constants.DM_CHANNEL) {
+            loadNewDMIfNeeded(post.channel_id);
+        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
+            loadNewGMIfNeeded(post.channel_id);
+        }
     }
 }
 
