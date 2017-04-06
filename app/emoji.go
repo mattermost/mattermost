@@ -59,6 +59,14 @@ func CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *m
 	}
 }
 
+func GetEmojiList() ([]*model.Emoji, *model.AppError) {
+	if result := <-Srv.Store.Emoji().GetAll(); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Emoji), nil
+	}
+}
+
 func UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {

@@ -2267,3 +2267,13 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 
 	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())
 }
+
+// GetEmojiList returns a list of custom emoji in the system.
+func (c *Client4) GetEmojiList() ([]*Emoji, *Response) {
+	if r, err := c.DoApiGet(c.GetEmojisRoute(), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}

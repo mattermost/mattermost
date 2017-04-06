@@ -19,37 +19,33 @@ func InitEmoji() {
 	l4g.Debug(utils.T("api.emoji.init.debug"))
 
 	BaseRoutes.Emojis.Handle("", ApiSessionRequired(createEmoji)).Methods("POST")
+	BaseRoutes.Emojis.Handle("", ApiSessionRequired(getEmojiList)).Methods("GET")
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
-		c.Err = model.NewLocAppError("createEmoji", "api.emoji.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+		c.Err = model.NewAppError("createEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if emojiInterface := einterfaces.GetEmojiInterface(); emojiInterface != nil &&
 		!emojiInterface.CanUserCreateEmoji(c.Session.Roles, c.Session.TeamMembers) {
-		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.permissions.app_error", nil, "user_id="+c.Session.UserId)
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "user_id="+c.Session.UserId, http.StatusUnauthorized)
 		return
 	}
 
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewLocAppError("createEmoji", "api.emoji.storage.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+		c.Err = model.NewAppError("createEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if r.ContentLength > app.MaxEmojiFileSize {
-		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "")
-		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		c.Err = model.NewAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
 	if err := r.ParseMultipartForm(app.MaxEmojiFileSize); err != nil {
-		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.parse.app_error", nil, err.Error())
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -68,5 +64,20 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Write([]byte(newEmoji.ToJson()))
+	}
+}
+
+func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
+		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	listEmoji, err := app.GetEmojiList()
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.EmojiListToJson(listEmoji)))
 	}
 }
