@@ -86,6 +86,8 @@ func runServer(configFileLocation string) {
 		utils.Cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 	}
 
+	app.ReloadConfig()
+
 	resetStatuses()
 
 	app.StartServer()
