@@ -226,6 +226,10 @@ func (c *Client4) GetCommandsRoute() string {
 	return fmt.Sprintf("/commands")
 }
 
+func (c *Client4) GetEmojisRoute() string {
+	return fmt.Sprintf("/emoji")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -282,6 +286,25 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 	} else {
 		defer closeBody(rp)
 		return FileUploadResponseFromJson(rp.Body), BuildResponse(rp)
+	}
+}
+
+func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
+	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq.Header.Set("Content-Type", contentType)
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
+	} else if rp.StatusCode >= 300 {
+		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return EmojiFromJson(rp.Body), BuildResponse(rp)
 	}
 }
 
@@ -2217,4 +2240,30 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 		return StatusFromJson(r.Body), BuildResponse(r)
 
 	}
+}
+
+// Emoji Section
+
+// CreateEmoji will save an emoji to the server if the current user has permission
+// to do so. If successful, the provided emoji will be returned with its Id field
+// filled in. Otherwise, an error will be returned.
+func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emoji, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("image", filename); err != nil {
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+	}
+
+	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error())}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error())}
+	}
+
+	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())
 }

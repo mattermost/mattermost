@@ -444,6 +444,10 @@
     "translation": "Initializing command API routes"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Initializing emoji API routes"
+  },
+  {
     "id": "api.command.invite_people.desc",
     "translation": "Send an email invite to your Mattermost team"
   },

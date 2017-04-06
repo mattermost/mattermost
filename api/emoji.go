@@ -8,10 +8,6 @@ import (
 	"image"
 	"image/draw"
 	"image/gif"
-	_ "image/jpeg"
-	"image/png"
-	"io"
-	"mime/multipart"
 	"net/http"
 	"strings"
 
@@ -23,12 +19,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"image/color/palette"
-)
-
-const (
-	MaxEmojiFileSize = 1000 * 1024 // 1 MB
-	MaxEmojiWidth    = 128
-	MaxEmojiHeight   = 128
 )
 
 func InitEmoji() {
@@ -76,13 +66,13 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.ContentLength > MaxEmojiFileSize {
+	if r.ContentLength > app.MaxEmojiFileSize {
 		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
 		return
 	}
 
-	if err := r.ParseMultipartForm(MaxEmojiFileSize); err != nil {
+	if err := r.ParseMultipartForm(app.MaxEmojiFileSize); err != nil {
 		c.Err = model.NewLocAppError("createEmoji", "api.emoji.create.parse.app_error", nil, err.Error())
 		c.Err.StatusCode = http.StatusBadRequest
 		return
@@ -124,7 +114,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	if imageData := m.File["image"]; len(imageData) == 0 {
 		c.SetInvalidParam("createEmoji", "image")
 		return
-	} else if err := uploadEmojiImage(emoji.Id, imageData[0]); err != nil {
+	} else if err := app.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		c.Err = err
 		return
 	}
@@ -135,58 +125,6 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(result.Data.(*model.Emoji).ToJson()))
 	}
-}
-
-func uploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
-	file, err := imageData.Open()
-	if err != nil {
-		return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, "")
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-
-	// make sure the file is an image and is within the required dimensions
-	if config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes())); err != nil {
-		return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, err.Error())
-	} else if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
-		data := buf.Bytes()
-		newbuf := bytes.NewBuffer(nil)
-		if info, err := model.GetInfoForBytes(imageData.Filename, data); err != nil {
-			return err
-		} else if info.MimeType == "image/gif" {
-			if gif_data, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
-				return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "")
-			} else {
-				resized_gif := resizeEmojiGif(gif_data)
-				if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
-					return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "")
-				}
-				if err := app.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
-					return err
-				}
-			}
-		} else {
-			if img, _, err := image.Decode(bytes.NewReader(data)); err != nil {
-				return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "")
-			} else {
-				resized_image := resizeEmoji(img, config.Width, config.Height)
-				if err := png.Encode(newbuf, resized_image); err != nil {
-					return model.NewLocAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "")
-				}
-				if err := app.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
-					return err
-				}
-			}
-		}
-	} else {
-		if err := app.WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -302,10 +240,10 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 	emojiHeight := float64(height)
 
 	var emoji image.Image
-	if emojiHeight <= MaxEmojiHeight && emojiWidth <= MaxEmojiWidth {
+	if emojiHeight <= app.MaxEmojiHeight && emojiWidth <= app.MaxEmojiWidth {
 		emoji = img
 	} else {
-		emoji = imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight, imaging.Lanczos)
+		emoji = imaging.Fit(img, app.MaxEmojiWidth, app.MaxEmojiHeight, imaging.Lanczos)
 	}
 	return emoji
 }
