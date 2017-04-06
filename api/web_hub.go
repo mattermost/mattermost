@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	DEADLOCK_TICKER = 15 * time.Second // check every 10 seconds
-	DEADLOCK_WARN   = 4096             // number of buffer messages before gathering stack trace
+	DEADLOCK_TICKER = 15 * time.Second // check every 15 seconds
+	DEADLOCK_WARN   = 4096             // number of buffered messages before printing stack trace
 )
 
 type Hub struct {
