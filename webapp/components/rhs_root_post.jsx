@@ -182,17 +182,14 @@ export default class RhsRootPost extends React.Component {
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
         var timestamp = user ? user.last_picture_update : 0;
         var channel = ChannelStore.get(post.channel_id);
-        let canReact = false;
         const flagIcon = Constants.FLAG_ICON_SVG;
-        if (post.state !== Constants.POST_FAILED &&
-            post.state !== Constants.POST_LOADING &&
-            !Utils.isPostEphemeral(post) &&
-            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
-            canReact = true;
-        }
 
         this.canDelete = PostUtils.canDeletePost(post);
         this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
+
+        const isEphemeral = Utils.isPostEphemeral(post);
+        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var type = 'Post';
         if (post.root_id.length > 0) {
@@ -205,7 +202,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         var systemMessageClass = '';
-        if (PostUtils.isSystemMessage(post)) {
+        if (isSystemMessage) {
             systemMessageClass = 'post--system';
         }
 
@@ -226,7 +223,7 @@ export default class RhsRootPost extends React.Component {
         let react;
         let reactOverlay;
 
-        if (canReact) {
+        if (!isEphemeral && !isPending && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
             react = (
                 <span>
                     <a
@@ -443,7 +440,7 @@ export default class RhsRootPost extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
-        } else if (PostUtils.isSystemMessage(post)) {
+        } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -485,7 +482,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        if (PostUtils.isSystemMessage(post)) {
+        if (isSystemMessage) {
             profilePic = (
                 <span
                     className='icon'
