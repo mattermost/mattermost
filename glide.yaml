@@ -13,7 +13,7 @@ import:
 - package: github.com/go-ldap/ldap
   version: v2.4.1
 - package: github.com/go-sql-driver/mysql
-  version: v1.2
+  version: v1.3
 - package: github.com/goamz/goamz
   version: fb002ae75f50beb93874fa6ce2c861e488ce08a0
   subpackages:
