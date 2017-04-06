@@ -138,7 +138,7 @@
   "add_outgoing_webhook.triggerWordsTriggerWhenFullWord": "First word matches a trigger word exactly",
   "add_outgoing_webhook.triggerWordsTriggerWhenStartsWith": "First word starts with a trigger word",
   "add_users_to_team.title": "Add New Members To {teamName} Team",
-  "admin.advance.cluster": "High Availability (Beta)",
+  "admin.advance.cluster": "High Availability",
   "admin.advance.metrics": "Performance Monitoring",
   "admin.audits.reload": "Reload User Activity Logs",
   "admin.audits.title": "User Activity Logs",
