@@ -2192,9 +2192,9 @@ func (c *Client4) CreateCommand(cmd *Command) (*Command, *Response) {
 	}
 }
 
-// UpdateCommand updates a command based on the provided command id string and Command struct
-func (c *Client4) UpdateCommand(commandId string, cmd *Command) (*Command, *Response) {
-	if r, err := c.DoApiPut(c.GetCommandRoute(commandId), cmd.ToJson()); err != nil {
+// UpdateCommand updates a command based on the provided Command struct
+func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
+	if r, err := c.DoApiPut(c.GetCommandRoute(cmd.Id), cmd.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)

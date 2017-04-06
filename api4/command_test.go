@@ -93,7 +93,7 @@ func TestUpdateCommand(t *testing.T) {
 		Token:     "tokenchange",
 	}
 
-	rcmd, resp := Client.UpdateCommand(cmd1.Id, cmd2)
+	rcmd, resp := Client.UpdateCommand(cmd2)
 	CheckNoError(t, resp)
 
 	if rcmd.Trigger != cmd2.Trigger {
@@ -118,32 +118,31 @@ func TestUpdateCommand(t *testing.T) {
 
 	cmd2.Id = GenerateTestId()
 
-	rcmd, resp = Client.UpdateCommand(cmd1.Id, cmd2)
-	CheckBadRequestStatus(t, resp)
+	rcmd, resp = Client.UpdateCommand(cmd2)
+	CheckNotFoundStatus(t, resp)
 
 	if rcmd != nil {
 		t.Fatal("should be empty")
 	}
 
+	cmd2.Id = "junk"
+
+	_, resp = Client.UpdateCommand(cmd2)
+	CheckBadRequestStatus(t, resp)
+
 	cmd2.Id = cmd1.Id
 	cmd2.TeamId = GenerateTestId()
 
-	_, resp = Client.UpdateCommand(cmd1.Id, cmd2)
+	_, resp = Client.UpdateCommand(cmd2)
 	CheckBadRequestStatus(t, resp)
 
 	cmd2.TeamId = team.Id
 
-	_, resp = Client.UpdateCommand("junk", cmd2)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.UpdateCommand(GenerateTestId(), cmd2)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = th.Client.UpdateCommand(cmd1.Id, cmd2)
+	_, resp = th.Client.UpdateCommand(cmd2)
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.UpdateCommand(cmd1.Id, cmd2)
+	_, resp = Client.UpdateCommand(cmd2)
 	CheckUnauthorizedStatus(t, resp)
 }
 
