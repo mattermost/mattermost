@@ -37,12 +37,12 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Emoji().GetAll(); result.Err != nil {
-		c.Err = result.Err
+	listEmoji, err := app.GetEmojiList()
+	if err != nil {
+		c.Err = err
 		return
 	} else {
-		emoji := result.Data.([]*model.Emoji)
-		w.Write([]byte(model.EmojiListToJson(emoji)))
+		w.Write([]byte(model.EmojiListToJson(listEmoji)))
 	}
 }
 
