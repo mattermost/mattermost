@@ -15,8 +15,11 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	l4g "github.com/alecthomas/log4go"
+
 	"github.com/disintegration/imaging"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 const (
@@ -119,6 +122,32 @@ func UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppErro
 	return nil
 }
 
+func DeleteEmoji(emoji *model.Emoji) *model.AppError {
+	if err := (<-Srv.Store.Emoji().Delete(emoji.Id, model.GetMillis())).Err; err != nil {
+		return err
+	}
+
+	go deleteEmojiImage(emoji.Id)
+	go deleteReactionsForEmoji(emoji.Name)
+	return nil
+}
+
+func GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
+		return nil, model.NewAppError("deleteEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("deleteImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-Srv.Store.Emoji().Get(emojiId, false); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Emoji), nil
+	}
+}
+
 func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {
 	// Create a new RGBA image to hold the incremental frames.
 	firstFrame := gifImg.Image[0].Bounds()
@@ -161,4 +190,17 @@ func imageToPaletted(img image.Image) *image.Paletted {
 	pm := image.NewPaletted(b, palette.Plan9)
 	draw.FloydSteinberg.Draw(pm, b, img, image.ZP)
 	return pm
+}
+
+func deleteEmojiImage(id string) {
+	if err := MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
+		l4g.Error("Failed to rename image when deleting emoji %v", id)
+	}
+}
+
+func deleteReactionsForEmoji(emojiName string) {
+	if result := <-Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
+		l4g.Warn(utils.T("api.emoji.delete.delete_reactions.app_error"), emojiName)
+		l4g.Warn(result.Err)
+	}
 }

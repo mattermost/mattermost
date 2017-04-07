@@ -405,6 +405,17 @@ func (c *Context) RequireReportId() *Context {
 	return c
 }
 
+func (c *Context) RequireEmojiId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.EmojiId) != 26 {
+		c.SetInvalidUrlParam("emoji_id")
+	}
+	return c
+}
+
 func (c *Context) RequireTeamName() *Context {
 	if c.Err != nil {
 		return c

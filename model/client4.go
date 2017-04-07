@@ -234,6 +234,10 @@ func (c *Client4) GetEmojisRoute() string {
 	return fmt.Sprintf("/emoji")
 }
 
+func (c *Client4) GetEmojiRoute(emojiId string) string {
+	return fmt.Sprintf(c.GetEmojisRoute()+"/%v", emojiId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, url, "", etag)
 }
@@ -2309,6 +2313,26 @@ func (c *Client4) GetEmojiList() ([]*Emoji, *Response) {
 	} else {
 		defer closeBody(r)
 		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteEmoji delete an custom emoji on the provided emoji id string.
+func (c *Client4) DeleteEmoji(emojiId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetEmojiRoute(emojiId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetEmoji returns a custom emoji in the system on the provided emoji id string.
+func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response) {
+	if r, err := c.DoApiGet(c.GetEmojiRoute(emojiId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return EmojiFromJson(r.Body), BuildResponse(r)
 	}
 }
 
