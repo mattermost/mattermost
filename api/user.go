@@ -4,10 +4,8 @@
 package api
 
 import (
-	"bytes"
 	b64 "encoding/base64"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -130,52 +128,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(map[string]bool{})
 
 	w.Write([]byte(user.ToJson()))
-}
-
-func LoginByOAuth(c *Context, w http.ResponseWriter, r *http.Request, service string, userData io.Reader) *model.User {
-	buf := bytes.Buffer{}
-	buf.ReadFrom(userData)
-
-	authData := ""
-	provider := einterfaces.GetOauthProvider(service)
-	if provider == nil {
-		c.Err = model.NewLocAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
-			map[string]interface{}{"Service": strings.Title(service)}, "")
-		return nil
-	} else {
-		authData = provider.GetAuthDataFromJson(bytes.NewReader(buf.Bytes()))
-	}
-
-	if len(authData) == 0 {
-		c.Err = model.NewLocAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
-			map[string]interface{}{"Service": service}, "")
-		return nil
-	}
-
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUserByAuth(&authData, service); err != nil {
-		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			if user, err = app.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), ""); err != nil {
-				c.Err = err
-				return nil
-			}
-		}
-		c.Err = err
-		return nil
-	}
-
-	if err = app.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
-		c.Err = err
-		return nil
-	}
-
-	doLogin(c, w, r, user, "")
-	if c.Err != nil {
-		return nil
-	}
-
-	return user
 }
 
 // User MUST be authenticated completely before calling Login
@@ -1188,7 +1140,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := getTeamIdFromQuery(r.URL.Query())
+	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return

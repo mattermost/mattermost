@@ -56,7 +56,7 @@ func TestOAuthStoreGetApp(t *testing.T) {
 	}
 
 	// Lets try and get the app from a user that hasn't created any apps
-	if result := (<-store.OAuth().GetAppByUser("fake0123456789abcderfgret1")); result.Err == nil {
+	if result := (<-store.OAuth().GetAppByUser("fake0123456789abcderfgret1", 0, 1000)); result.Err == nil {
 		if len(result.Data.([]*model.OAuthApp)) > 0 {
 			t.Fatal("Should have failed. Fake user hasn't created any apps")
 		}
@@ -64,11 +64,11 @@ func TestOAuthStoreGetApp(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 
-	if err := (<-store.OAuth().GetAppByUser(a1.CreatorId)).Err; err != nil {
+	if err := (<-store.OAuth().GetAppByUser(a1.CreatorId, 0, 1000)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-store.OAuth().GetApps()).Err; err != nil {
+	if err := (<-store.OAuth().GetApps(0, 1000)).Err; err != nil {
 		t.Fatal(err)
 	}
 }
@@ -324,7 +324,7 @@ func TestOAuthGetAuthorizedApps(t *testing.T) {
 	Must(store.OAuth().SaveApp(&a1))
 
 	// Lets try and get an Authorized app for a user who hasn't authorized it
-	if result := <-store.OAuth().GetAuthorizedApps("fake0123456789abcderfgret1"); result.Err == nil {
+	if result := <-store.OAuth().GetAuthorizedApps("fake0123456789abcderfgret1", 0, 1000); result.Err == nil {
 		if len(result.Data.([]*model.OAuthApp)) > 0 {
 			t.Fatal("Should have failed. Fake user hasn't authorized the app")
 		}
@@ -340,7 +340,7 @@ func TestOAuthGetAuthorizedApps(t *testing.T) {
 	p.Value = "true"
 	Must(store.Preference().Save(&model.Preferences{p}))
 
-	if result := <-store.OAuth().GetAuthorizedApps(a1.CreatorId); result.Err != nil {
+	if result := <-store.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		apps := result.Data.([]*model.OAuthApp)
@@ -368,7 +368,7 @@ func TestOAuthGetAccessDataByUserForApp(t *testing.T) {
 	p.Value = "true"
 	Must(store.Preference().Save(&model.Preferences{p}))
 
-	if result := <-store.OAuth().GetAuthorizedApps(a1.CreatorId); result.Err != nil {
+	if result := <-store.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		apps := result.Data.([]*model.OAuthApp)

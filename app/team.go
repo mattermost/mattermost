@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -746,4 +747,34 @@ func GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	}
 
 	return stats, nil
+}
+
+func GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
+	hash := query.Get("h")
+	inviteId := query.Get("id")
+
+	if len(hash) > 0 {
+		data := query.Get("d")
+		props := model.MapFromJson(strings.NewReader(data))
+
+		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		t, err := strconv.ParseInt(props["time"], 10, 64)
+		if err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
+			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		return props["id"], nil
+	} else if len(inviteId) > 0 {
+		if result := <-Srv.Store.Team().GetByInviteId(inviteId); result.Err != nil {
+			// soft fail, so we still create user but don't auto-join team
+			l4g.Error("%v", result.Err)
+		} else {
+			return result.Data.(*model.Team).Id, nil
+		}
+	}
+
+	return "", nil
 }

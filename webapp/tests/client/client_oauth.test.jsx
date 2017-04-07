@@ -12,7 +12,7 @@ describe('Client.OAuth', function() {
             app.name = 'test';
             app.homepage = 'homepage';
             app.description = 'desc';
-            app.callback_urls = '';
+            app.callback_urls = [''];
 
             TestHelper.basicClient().registerOAuthApp(
                 app,
@@ -33,7 +33,7 @@ describe('Client.OAuth', function() {
 
             TestHelper.basicClient().allowOAuth2(
                 'GET',
-                '123456',
+                '12345678901234567890123456',
                 'http://nowhere.com',
                 'state',
                 'scope',

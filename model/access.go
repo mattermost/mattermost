@@ -21,6 +21,7 @@ type AccessData struct {
 	RefreshToken string `json:"refresh_token"`
 	RedirectUri  string `json:"redirect_uri"`
 	ExpiresAt    int64  `json:"expires_at"`
+	Scope        string `json:"scope"`
 }
 
 type AccessResponse struct {
