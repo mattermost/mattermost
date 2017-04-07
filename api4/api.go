@@ -180,6 +180,7 @@ func InitApi(full bool) {
 	InitStatus()
 	InitWebSocket()
 	InitEmoji()
+	InitOAuth()
 	InitReaction()
 	InitWebrtc()
 
