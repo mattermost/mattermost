@@ -117,6 +117,20 @@ class SearchStoreClass extends EventEmitter {
             });
         }
     }
+
+    togglePinPost(postId, isPinned) {
+        const results = this.getSearchResults();
+        if (results == null) {
+            return;
+        }
+
+        if (postId in results.posts) {
+            const post = results.posts[postId];
+            results.posts[postId] = Object.assign({}, post, {
+                is_pinned: isPinned
+            });
+        }
+    }
 }
 
 var SearchStore = new SearchStoreClass();
@@ -138,6 +152,14 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.POST_DELETED:
         SearchStore.deletePost(action.post);
+        SearchStore.emitSearchChange();
+        break;
+    case ActionTypes.RECEIVED_POST_PINNED:
+        SearchStore.togglePinPost(action.reaction, true);
+        SearchStore.emitSearchChange();
+        break;
+    case ActionTypes.RECEIVED_POST_UNPINNED:
+        SearchStore.togglePinPost(action.reaction, false);
         SearchStore.emitSearchChange();
         break;
     default:
