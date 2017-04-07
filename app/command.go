@@ -312,6 +312,7 @@ func GetCommand(commandId string) (*model.Command, *model.AppError) {
 	}
 
 	if result := <-Srv.Store.Command().Get(commandId); result.Err != nil {
+		result.Err.StatusCode = http.StatusNotFound
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Command), nil

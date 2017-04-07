@@ -5,8 +5,8 @@ package api4
 
 import (
 	"testing"
-	// "time"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -58,6 +58,92 @@ func TestCreateCommand(t *testing.T) {
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.command.disabled.app_error")
+}
+
+func TestUpdateCommand(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.SystemAdminClient
+	user := th.SystemAdminUser
+	team := th.BasicTeam
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	cmd1 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger1",
+	}
+
+	cmd1, _ = app.CreateCommand(cmd1)
+
+	cmd2 := &model.Command{
+		CreatorId: GenerateTestId(),
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com/change",
+		Method:    model.COMMAND_METHOD_GET,
+		Trigger:   "trigger2",
+		Id:        cmd1.Id,
+		Token:     "tokenchange",
+	}
+
+	rcmd, resp := Client.UpdateCommand(cmd2)
+	CheckNoError(t, resp)
+
+	if rcmd.Trigger != cmd2.Trigger {
+		t.Fatal("Trigger should have updated")
+	}
+
+	if rcmd.Method != cmd2.Method {
+		t.Fatal("Method should have updated")
+	}
+
+	if rcmd.URL != cmd2.URL {
+		t.Fatal("URL should have updated")
+	}
+
+	if rcmd.CreatorId != cmd1.CreatorId {
+		t.Fatal("CreatorId should have not updated")
+	}
+
+	if rcmd.Token != cmd1.Token {
+		t.Fatal("Token should have not updated")
+	}
+
+	cmd2.Id = GenerateTestId()
+
+	rcmd, resp = Client.UpdateCommand(cmd2)
+	CheckNotFoundStatus(t, resp)
+
+	if rcmd != nil {
+		t.Fatal("should be empty")
+	}
+
+	cmd2.Id = "junk"
+
+	_, resp = Client.UpdateCommand(cmd2)
+	CheckBadRequestStatus(t, resp)
+
+	cmd2.Id = cmd1.Id
+	cmd2.TeamId = GenerateTestId()
+
+	_, resp = Client.UpdateCommand(cmd2)
+	CheckBadRequestStatus(t, resp)
+
+	cmd2.TeamId = team.Id
+
+	_, resp = th.Client.UpdateCommand(cmd2)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdateCommand(cmd2)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestListCommands(t *testing.T) {

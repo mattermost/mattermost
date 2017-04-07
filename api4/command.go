@@ -19,6 +19,8 @@ func InitCommand() {
 	BaseRoutes.Commands.Handle("", ApiSessionRequired(createCommand)).Methods("POST")
 	BaseRoutes.Commands.Handle("", ApiSessionRequired(listCommands)).Methods("GET")
 
+	BaseRoutes.Command.Handle("", ApiSessionRequired(updateCommand)).Methods("PUT")
+
 	BaseRoutes.Team.Handle("/commands/autocomplete", ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
 }
 
@@ -46,6 +48,54 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(rcmd.ToJson()))
+}
+
+func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	cmd := model.CommandFromJson(r.Body)
+	if cmd == nil || cmd.Id != c.Params.CommandId {
+		c.SetInvalidParam("command")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	oldCmd, err := app.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if cmd.TeamId != oldCmd.TeamId {
+		c.Err = model.NewAppError("updateCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.Session.UserId, http.StatusBadRequest)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	if c.Session.UserId != oldCmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
+		return
+	}
+
+	rcmd, err := app.UpdateCommand(oldCmd, cmd)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+
 	w.Write([]byte(rcmd.ToJson()))
 }
 
