@@ -149,7 +149,7 @@
   },
   {
     "id": "api.brand.init.debug",
-    "translation": "正在初始化命令 API 路徑"
+    "translation": "正在初始化品牌 API 路徑"
   },
   {
     "id": "api.channel.add_member.added",
@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系統管理員能建立與管理公開頻道。"
+    "translation": "只有系統管理員能建立與管理私人頻道。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有團隊和系統管理員能建立與管理公開頻道。"
+    "translation": "只有團隊和系統管理員能建立與管理私人頻道。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
+    "translation": "頻道已被刪除"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "您是最後一位成員，請移除私人群組而不是退出。"
+    "translation": "您是最後一位成員，請移除私人頻道而不是退出。"
   },
   {
     "id": "api.channel.leave.left",
@@ -389,11 +389,11 @@
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
-    "translation": "無法計算未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
+    "translation": "無法取得未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
   },
   {
     "id": "api.cluster.init.debug",
-    "translation": "正在初始化使用者 API 路徑"
+    "translation": "正在初始化叢集 API 路徑"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -813,11 +813,11 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "正在初始化命令 API 路徑"
+    "translation": "正在初始化規範 API 路徑"
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "尚未支援新格式的用戶端設定。請在查詢字串中指定 format=old 。"
   },
   {
     "id": "api.context.404.app_error",
@@ -889,7 +889,7 @@
   },
   {
     "id": "api.deprecated.init.debug",
-    "translation": "正在初始化命令 API 路徑"
+    "translation": "正在初始化已被取代的 API 路徑"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1255,7 +1255,7 @@
   },
   {
     "id": "api.ldap.init.debug",
-    "translation": "正在初始化檔案 API 路徑"
+    "translation": "正在初始化 LDAP API 路徑"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1295,7 +1295,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "尚未支援新格式的用戶端授權。請在查詢字串中指定 format=old 。"
   },
   {
     "id": "api.license.init.debug",
@@ -1953,19 +1953,19 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "User not found"
+    "translation": "找不到使用者"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
+    "translation": "無效的資料。"
   },
   {
     "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
+    "translation": "無效的邀請ID。沒有團隊符合此ID。"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "需要參數以新增團隊成員。"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2281,7 +2281,7 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帳號已更新</h3> Mattermost 伺服器已升級到版本3.0，從此可以在多個團隊中使用同一帳號。<br/><br/>升級程式發現伺服器上有您的帳號所以寄信給您。<br/><br/>更新如下：<br/><br/>{{if .EmailChanged }}- `/{{.TeamName}}`帳號中重覆的電子郵件已變更為`{{.Email}}`。您必須使用電子郵件與密碼登入，可用此新的電子郵件進行登入。<br/><br/>{{end}}{{if .UsernameChanged }}- `/{{.TeamName}}`站台重覆的使用者名稱變更為`{{.Username}}`以避免與其它的帳號混淆。<br/><br/>{{end}} 建議動作：<br/><br/>建議您用重覆的帳號登入並把主要帳號加到要繼續使用的團隊、公開頻道與私有群組。<br/><br/>這樣方可使用主要帳號存取所有公開頻道與私有群組的歷史。可以用其它重覆的帳號登入存取之前的直接傳送訊息。<br/><br/>詳細訊息：<br/><br/>如需關於升到到 Mattermost 3.0 的詳細資訊，請參閱：<a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帳號已更新</h3> Mattermost 伺服器已升級到版本3.0，從此可以在多個團隊中使用同一帳號。<br/><br/>升級程式發現伺服器上有其他帳號與您的帳號使用同樣的電子郵件或使用者名稱所以寄信給您。<br/><br/>更新如下：<br/><br/>{{if .EmailChanged }}- `/{{.TeamName}}`團隊裡重覆電子郵件帳號的電子郵件已變更為`{{.Email}}`。您必須使用電子郵件與密碼登入，可用此新的電子郵件進行登入。<br/><br/>{{end}}{{if .UsernameChanged }}- `/{{.TeamName}}`團隊站台重覆使用者名稱帳號的使用者名稱已變更為`{{.Username}}`以避免與其它的帳號混淆。<br/><br/>{{end}} 建議動作：<br/><br/>建議您用重覆的帳號登入並把主要帳號加到要繼續使用的團隊、公開頻道與私有群組。<br/><br/>這樣方可使用主要帳號存取所有公開頻道與私有群組的歷史。可以用其它重覆的帳號登入存取之前的直接傳送訊息。<br/><br/>詳細訊息：<br/><br/>如需關於升到到 Mattermost 3.0 的詳細資訊，請參閱：<a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -3161,11 +3161,11 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
+    "translation": "讀取公開頻道的權限"
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
+    "translation": "讀取公開頻道"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3721,27 +3721,27 @@
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
+    "translation": "寫入 channel id 至 multipart 表單時遇到錯誤"
   },
   {
     "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Error writing file to multipart form"
+    "translation": "寫入 file 至 multipart 表單時遇到錯誤"
   },
   {
     "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
+    "translation": "寫入 fileSize 至 multipart 表單時遇到錯誤"
   },
   {
     "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Error writing importFrom to multipart form"
+    "translation": "寫入 importFrom 至 multipart 表單時遇到錯誤"
   },
   {
     "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
+    "translation": "關閉 multipart writer 時遇到錯誤"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
+    "translation": "建立 SAML 憑證 multipart 表單要求時遇到錯誤"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4725,11 +4725,11 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "無法取得這些頻道"
+    "translation": "無法取得頻道"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found"
+    "translation": "找不到頻道"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -4777,11 +4777,11 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "無法取得這些頻道"
+    "translation": "無法取得公開頻道"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "無法取得團隊未讀訊息"
+    "translation": "無法取得頻道未讀訊息"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -4801,7 +4801,7 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "We couldn't find the pinned posts"
+    "translation": "無法找尋被釘選的訊息"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5497,11 +5497,11 @@
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
-    "translation": "搜尋頻道時遇到錯誤"
+    "translation": "搜尋團隊時遇到錯誤"
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
-    "translation": "搜尋頻道時遇到錯誤"
+    "translation": "搜尋開放團隊時遇到錯誤"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6077,18 +6077,18 @@
   },
   {
     "id": "wsapi.status.init.debug",
-    "translation": "正在初始化狀態 API 路徑"
+    "translation": "正在初始化狀態 WebSocket API 路徑"
   },
   {
     "id": "wsapi.system.init.debug",
-    "translation": "正在初始化 web socket API 路徑"
+    "translation": "正在初始化系統 WebSocket API 路徑"
   },
   {
     "id": "wsapi.user.init.debug",
-    "translation": "正在初始化 web socket API 路徑"
+    "translation": "正在初始化使用者 WebSocket API 路徑"
   },
   {
     "id": "wsapi.webrtc.init.debug",
-    "translation": "正在初始化 web socket API 路徑"
+    "translation": "正在初始化 WebRTC WebSocket API 路徑"
   }
 ]
