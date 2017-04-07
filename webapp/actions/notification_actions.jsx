@@ -66,7 +66,11 @@ export function sendDesktopNotification(post, msgProps) {
     }
 
     if (title === '') {
-        title = msgProps.channel_display_name;
+        if (msgProps.channel_type === Constants.DM_CHANNEL) {
+            title = Utils.localizeMessage('notification.dm', 'Direct Message');
+        } else {
+            title = msgProps.channel_display_name;
+        }
     }
 
     let notifyText = post.message.replace(/\n+/g, ' ');
