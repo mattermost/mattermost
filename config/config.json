@@ -40,6 +40,7 @@
         "AllowEditPost": "always",
         "PostEditTimeLimit": 300,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
+        "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
