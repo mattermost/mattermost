@@ -137,3 +137,54 @@ func TestCreateEmoji(t *testing.T) {
 	_, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckForbiddenStatus(t, resp)
 }
+
+func TestGetEmojiList(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	emojis := []*model.Emoji{
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      model.NewId(),
+		},
+	}
+
+	for idx, emoji := range emojis {
+		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		CheckNoError(t, resp)
+		emojis[idx] = emoji
+	}
+
+	listEmoji, resp := Client.GetEmojiList()
+	CheckNoError(t, resp)
+	for _, emoji := range emojis {
+		found := false
+		for _, savedEmoji := range listEmoji {
+			if emoji.Id == savedEmoji.Id {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("failed to get emoji with id %v", emoji.Id)
+		}
+	}
+
+	// ADD delete test when create the delete endpoint
+
+}
