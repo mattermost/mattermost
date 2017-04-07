@@ -1053,10 +1053,10 @@ func TestEmailMention(t *testing.T) {
 		t.Log("No email was received, maybe due load on the server. Disabling this verification")
 	}
 	if err == nil && len(resultsMailbox) > 0 {
-		if !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
+		if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], th.BasicUser2.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
+			if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
 				if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
 					t.Log(resultsEmail.Body.Text)
 					t.Fatal("Received wrong Message")
