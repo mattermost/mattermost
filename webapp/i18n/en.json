@@ -1287,8 +1287,6 @@
   "error.not_found.link_message": "Back to Mattermost",
   "error.not_found.message": "The page you were trying to reach does not exist",
   "error.not_found.title": "Page not found",
-  "error.not_supported.message": "Private browsing is not supported",
-  "error.not_supported.title": "Browser not supported",
   "error_bar.expired": "Enterprise license is expired and some features may be disabled. <a href='{link}' target='_blank'>Please renew.</a>",
   "error_bar.expiring": "Enterprise license expires on {date}. <a href='{link}' target='_blank'>Please renew.</a>",
   "error_bar.past_grace": "Enterprise license is expired and some features may be disabled. Please contact your System Administrator for details.",
