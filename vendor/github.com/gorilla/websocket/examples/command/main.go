@@ -36,6 +36,9 @@ const (
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
+
+	// Time to wait before force close on connection.
+	closeGracePeriod = 10 * time.Second
 )
 
 func pumpStdin(ws *websocket.Conn, w io.Writer) {
@@ -57,19 +60,24 @@ func pumpStdin(ws *websocket.Conn, w io.Writer) {
 
 func pumpStdout(ws *websocket.Conn, r io.Reader, done chan struct{}) {
 	defer func() {
-		ws.Close()
-		close(done)
 	}()
 	s := bufio.NewScanner(r)
 	for s.Scan() {
 		ws.SetWriteDeadline(time.Now().Add(writeWait))
 		if err := ws.WriteMessage(websocket.TextMessage, s.Bytes()); err != nil {
+			ws.Close()
 			break
 		}
 	}
 	if s.Err() != nil {
 		log.Println("scan:", s.Err())
 	}
+	close(done)
+
+	ws.SetWriteDeadline(time.Now().Add(writeWait))
+	ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	time.Sleep(closeGracePeriod)
+	ws.Close()
 }
 
 func ping(ws *websocket.Conn, done chan struct{}) {

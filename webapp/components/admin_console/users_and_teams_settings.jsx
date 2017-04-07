@@ -30,8 +30,9 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.EnableTeamCreation = this.state.enableTeamCreation;
         config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam, Constants.DEFAULT_MAX_USERS_PER_TEAM);
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
-        config.TeamSettings.RestrictTeamNames = this.state.restrictTeamNames;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
+        config.TeamSettings.MaxChannelsPerTeam = this.parseIntNonZero(this.state.maxChannelsPerTeam, Constants.DEFAULT_MAX_CHANNELS_PER_TEAM);
+        config.TeamSettings.MaxNotificationsPerChannel = this.parseIntNonZero(this.state.maxNotificationsPerChannel, Constants.DEFAULT_MAX_NOTIFICATIONS_PER_CHANNEL);
 
         return config;
     }
@@ -42,19 +43,18 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             enableTeamCreation: config.TeamSettings.EnableTeamCreation,
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
-            restrictTeamNames: config.TeamSettings.RestrictTeamNames,
-            restrictDirectMessage: config.TeamSettings.RestrictDirectMessage
+            restrictDirectMessage: config.TeamSettings.RestrictDirectMessage,
+            maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam,
+            maxNotificationsPerChannel: config.TeamSettings.MaxNotificationsPerChannel
         };
     }
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.usersAndTeams'
-                    defaultMessage='Users and Teams'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.usersAndTeams'
+                defaultMessage='Users and Teams'
+            />
         );
     }
 
@@ -114,6 +114,42 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     onChange={this.handleChange}
                 />
                 <TextSetting
+                    id='maxChannelsPerTeam'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.maxChannelsTitle'
+                            defaultMessage='Max Channels Per Team:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.team.maxChannelsExample', 'Ex "100"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.maxChannelsDescription'
+                            defaultMessage='Maximum total number of channels per team, including both active and deleted channels.'
+                        />
+                    }
+                    value={this.state.maxChannelsPerTeam}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='maxNotificationsPerChannel'
+                    label={
+                        <FormattedMessage
+                            id='admin.team.maxNotificationsPerChannelTitle'
+                            defaultMessage='Max Notifications Per Channel:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.team.maxNotificationsPerChannelExample', 'Ex "1000"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.team.maxNotificationsPerChannelDescription'
+                            defaultMessage='Maximum total number of users in a channel before users typing messages, @all, @here, and @channel no longer send notifications because of performance.'
+                        />
+                    }
+                    value={this.state.maxNotificationsPerChannel}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
                     id='restrictCreationToDomains'
                     label={
                         <FormattedMessage
@@ -129,23 +165,6 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                         />
                     }
                     value={this.state.restrictCreationToDomains}
-                    onChange={this.handleChange}
-                />
-                <BooleanSetting
-                    id='restrictTeamNames'
-                    label={
-                        <FormattedMessage
-                            id='admin.team.restrictNameTitle'
-                            defaultMessage='Restrict Team Names: '
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.team.restrictNameDesc'
-                            defaultMessage='When true, You cannot create a team name with reserved words like www, admin, support, test, channel, etc'
-                        />
-                    }
-                    value={this.state.restrictTeamNames}
                     onChange={this.handleChange}
                 />
                 <DropdownSetting

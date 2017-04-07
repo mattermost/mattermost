@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build go1.5
+// +build go1.9
 
 package draw
 
 // This file contains tests that depend on the exact behavior of the
 // image/color package in the standard library. The color conversion formula
-// from YCbCr to RGBA changed between Go 1.4 and Go 1.5, so this file's tests
-// are only enabled for Go 1.5 and above.
+// from YCbCr to RGBA changed between Go 1.4 and Go 1.5, and between Go 1.8 and
+// Go 1.9, so this file's tests are only enabled for Go 1.9 and above.
 
 import (
 	"bytes"

@@ -4,7 +4,8 @@
 import React from 'react';
 
 import EmojiStore from 'stores/emoji_store.jsx';
-import UserStore from 'stores/user_store.jsx';
+import DeleteEmoji from './delete_emoji_modal.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -14,7 +15,8 @@ export default class EmojiListItem extends React.Component {
         return {
             emoji: React.PropTypes.object.isRequired,
             onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string
+            filter: React.PropTypes.string,
+            creator: React.PropTypes.object.isRequired
         };
     }
 
@@ -22,10 +24,6 @@ export default class EmojiListItem extends React.Component {
         super(props);
 
         this.handleDelete = this.handleDelete.bind(this);
-
-        this.state = {
-            creator: UserStore.getProfile(this.props.emoji.creator_id)
-        };
     }
 
     handleDelete(e) {
@@ -57,7 +55,7 @@ export default class EmojiListItem extends React.Component {
 
     render() {
         const emoji = this.props.emoji;
-        const creator = this.state.creator;
+        const creator = this.props.creator;
         const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
 
         if (!this.matchesFilter(emoji, creator, filter)) {
@@ -83,15 +81,7 @@ export default class EmojiListItem extends React.Component {
         let deleteButton = null;
         if (this.props.onDelete) {
             deleteButton = (
-                <a
-                    href='#'
-                    onClick={this.handleDelete}
-                >
-                    <FormattedMessage
-                        id='emoji_list.delete'
-                        defaultMessage='Delete'
-                    />
-                </a>
+                <DeleteEmoji onDelete={this.handleDelete}/>
             );
         }
 
@@ -101,9 +91,9 @@ export default class EmojiListItem extends React.Component {
                     {':' + emoji.name + ':'}
                 </td>
                 <td className='emoji-list__image'>
-                    <img
+                    <span
                         className='emoticon'
-                        src={EmojiStore.getEmojiImageUrl(emoji)}
+                        style={{backgroundImage: 'url(' + EmojiStore.getEmojiImageUrl(emoji) + ')'}}
                     />
                 </td>
                 <td className='emoji-list__creator'>

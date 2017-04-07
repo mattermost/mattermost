@@ -2,23 +2,28 @@
 // See License.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import ErrorStore from 'stores/error_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import BooleanSetting from './boolean_setting.jsx';
+import {ConnectionSecurityDropdownSettingWebserver} from './connection_security_dropdown_setting.jsx';
+import PurgeCachesButton from './purge_caches.jsx';
+import ReloadConfigButton from './reload_config.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
-import ReloadConfigButton from './reload_config.jsx';
 import WebserverModeDropdownSetting from './webserver_mode_dropdown_setting.jsx';
-import {ConnectionSecurityDropdownSettingWebserver} from './connection_security_dropdown_setting.jsx';
-import BooleanSetting from './boolean_setting.jsx';
 
 export default class ConfigurationSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
+
+        this.handleSaved = this.handleSaved.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
     }
@@ -61,14 +66,20 @@ export default class ConfigurationSettings extends AdminSettings {
         };
     }
 
+    handleSaved(newConfig) {
+        const lastError = ErrorStore.getLastError();
+
+        if (lastError && lastError.message === 'error_bar.site_url' && newConfig.ServiceSettings.SiteURL) {
+            ErrorStore.clearLastError(true);
+        }
+    }
+
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.configuration'
-                    defaultMessage='Configuration'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.configuration'
+                defaultMessage='Configuration'
+            />
         );
     }
 
@@ -93,9 +104,9 @@ export default class ConfigurationSettings extends AdminSettings {
                     }
                     placeholder={Utils.localizeMessage('admin.service.siteURLExample', 'Ex "https://mattermost.example.com:1234"')}
                     helpText={
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This field can be left blank unless you are configuring email batching in <b>Notifications > Email</b>. When blank, the URL is automatically configured based on incoming traffic.'
+                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This setting is required.'
                         />
                     }
                     value={this.state.siteURL}
@@ -113,7 +124,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.listenDescription'
-                            defaultMessage='The address to which to bind and listen. Entering ":8065" will bind to all interfaces or you can choose one like "127.0.0.1:8065". If you choose a low number port, you must have permissions to bind to that port. On Linux you can use: "sudo setcap cap_net_bind_service=+ep ./bin/platform" to allow Mattermost to bind to low ports.'
+                            defaultMessage='The address and port to which to bind and listen. Specifying ":8065" will bind to all network interfaces. Specifying "127.0.0.1:8065" will only bind to the network interface having that IP address. If you choose a port of a lower level (called "system ports" or "well-known ports", in the range of 0-1023), you must have permissions to bind to that port. On Linux you can use: "sudo setcap cap_net_bind_service=+ep ./bin/platform" to allow Mattermost to bind to well-known ports.'
                         />
                     }
                     value={this.state.listenAddress}
@@ -252,6 +263,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     disabled={false}
                 />
                 <ReloadConfigButton/>
+                <PurgeCachesButton/>
             </SettingsGroup>
         );
     }

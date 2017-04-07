@@ -70,6 +70,20 @@ func TestLiveGoogleCloudPresent(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestLiveGoogleCloudPresentMultiple(t *testing.T) {
+	if !gcloudLiveTest {
+		t.Skip("skipping live test")
+	}
+
+	provider, err := NewDNSProviderCredentials(gcloudProject)
+	assert.NoError(t, err)
+
+	// Check that we're able to create multiple entries
+	err = provider.Present(gcloudDomain, "1", "123d==")
+	err = provider.Present(gcloudDomain, "2", "123d==")
+	assert.NoError(t, err)
+}
+
 func TestLiveGoogleCloudCleanUp(t *testing.T) {
 	if !gcloudLiveTest {
 		t.Skip("skipping live test")

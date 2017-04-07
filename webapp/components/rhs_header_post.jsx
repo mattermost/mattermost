@@ -190,6 +190,6 @@ RhsHeaderPost.propTypes = {
     isWebrtc: React.PropTypes.bool,
     fromSearch: React.PropTypes.string,
     fromFlaggedPosts: React.PropTypes.bool,
-    toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function
+    toggleSize: React.PropTypes.func,
+    shrink: React.PropTypes.func
 };

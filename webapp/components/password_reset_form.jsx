@@ -2,12 +2,12 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {browserHistory} from 'react-router/es6';
+
+import {resetPassword} from 'actions/user_actions.jsx';
 
 import React from 'react';
 
@@ -42,12 +42,11 @@ class PasswordResetForm extends React.Component {
             error: null
         });
 
-        Client.resetPassword(
+        resetPassword(
             this.props.location.query.code,
             password,
             () => {
                 this.setState({error: null});
-                browserHistory.push('/login?extra=' + Constants.PASSWORD_CHANGE);
             },
             (err) => {
                 this.setState({error: err.message});

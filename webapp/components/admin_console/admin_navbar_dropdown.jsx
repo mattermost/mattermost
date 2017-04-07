@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
+import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -13,6 +14,8 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
 import React from 'react';
+
+import * as Utils from 'utils/utils.jsx';
 
 export default class AdminNavbarDropdown extends React.Component {
     constructor(props) {
@@ -22,7 +25,7 @@ export default class AdminNavbarDropdown extends React.Component {
 
         this.state = {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         };
     }
 
@@ -45,32 +48,42 @@ export default class AdminNavbarDropdown extends React.Component {
     onTeamChange() {
         this.setState({
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers()
         });
     }
 
     render() {
-        var teams = [];
+        var teamsArray = [];  // Array of team objects
+        var teams = [];  // Array of team components
+        let switchTeams;
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
-            for (var index in this.state.teamMembers) {
+            for (const index in this.state.teamMembers) {
                 if (this.state.teamMembers.hasOwnProperty(index)) {
-                    var teamMember = this.state.teamMembers[index];
-                    var team = this.state.teams[teamMember.team_id];
-                    teams.push(
-                        <li key={'team_' + team.name}>
-                            <Link
-                                to={'/' + team.name + '/channels/town-square'}
-                            >
-                                <FormattedMessage
-                                    id='navbar_dropdown.switchTo'
-                                    defaultMessage='Switch to '
-                                />
-                                {team.display_name}
-                            </Link>
-                        </li>
-                    );
+                    const teamMember = this.state.teamMembers[index];
+                    const team = this.state.teams[teamMember.team_id];
+                    teamsArray.push(team);
                 }
+            }
+
+            // Sort teams alphabetically with display_name
+            teamsArray = teamsArray.sort(sortTeamsByDisplayName);
+
+            for (const team of teamsArray) {
+                teams.push(
+                    <li key={'team_' + team.name}>
+                        <Link
+                            id={'swithTo' + Utils.createSafeId(team.name)}
+                            to={'/' + team.name + '/channels/town-square'}
+                        >
+                            <FormattedMessage
+                                id='navbar_dropdown.switchTo'
+                                defaultMessage='Switch to '
+                            />
+                            {team.display_name}
+                        </Link>
+                    </li>
+                );
             }
 
             teams.push(
@@ -78,6 +91,20 @@ export default class AdminNavbarDropdown extends React.Component {
                     key='teamDiv'
                     className='divider'
                 />
+            );
+        } else {
+            switchTeams = (
+                <li>
+                    <Link
+                        to={'/select_team'}
+                    >
+                        <i className='fa fa-exchange'/>
+                        <FormattedMessage
+                            id='admin.nav.switch'
+                            defaultMessage='Team Selection'
+                        />
+                    </Link>
+                </li>
             );
         }
 
@@ -89,6 +116,7 @@ export default class AdminNavbarDropdown extends React.Component {
                 >
                     <a
                         href='#'
+                        id='adminNavbarDropdownButton'
                         className='dropdown-toggle admin-navbar-dropdown__toggle'
                         data-toggle='dropdown'
                         role='button'
@@ -104,17 +132,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         role='menu'
                     >
                         {teams}
-                        <li>
-                            <Link
-                                to={'/select_team'}
-                            >
-                                <i className='fa fa-exchange'/>
-                                <FormattedMessage
-                                    id='admin.nav.switch'
-                                    defaultMessage='Team Selection'
-                                />
-                            </Link>
-                        </li>
+                        {switchTeams}
                         <li
                             key='teamDiv'
                             className='divider'
@@ -122,7 +140,8 @@ export default class AdminNavbarDropdown extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={GlobalActions.emitUserLoggedOutEvent}
+                                id='logout'
+                                onClick={() => GlobalActions.emitUserLoggedOutEvent()}
                             >
                                 <FormattedMessage
                                     id='admin.nav.logout'

@@ -7,12 +7,13 @@ import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
-import WebrtcSession from 'client/webrtc_session.jsx';
+import Janus from 'janus';
 
 import SearchBox from '../search_bar.jsx';
 import WebrtcHeader from './components/webrtc_header.jsx';
 import ConnectingScreen from 'components/loading_screen.jsx';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -44,6 +45,8 @@ export default class WebrtcController extends React.Component {
         this.close = this.close.bind(this);
         this.clearError = this.clearError.bind(this);
 
+        this.getLocalMedia = this.getLocalMedia.bind(this);
+        this.stopMediaStream = this.stopMediaStream.bind(this);
         this.previewVideo = this.previewVideo.bind(this);
         this.stopRinging = this.stopRinging.bind(this);
 
@@ -79,14 +82,14 @@ export default class WebrtcController extends React.Component {
 
         const currentUser = UserStore.getCurrentUser();
         const remoteUser = UserStore.getProfile(props.userId);
-        const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.update_at;
+        const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.last_picture_update;
 
         this.state = {
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight(),
             channelId: ChannelStore.getCurrentId(),
             currentUser,
-            currentUserImage: Client.getUsersRoute() + '/' + currentUser.id + '/image?time=' + currentUser.update_at,
+            currentUserImage: Client.getUsersRoute() + '/' + currentUser.id + '/image?time=' + currentUser.last_picture_update,
             remoteUserImage,
             localMediaLoaded: false,
             isPaused: false,
@@ -97,6 +100,7 @@ export default class WebrtcController extends React.Component {
             isAnswering: false,
             callInProgress: false,
             error: null,
+            errorType: '',
             ended: null
         };
     }
@@ -127,7 +131,7 @@ export default class WebrtcController extends React.Component {
             (nextProps.userId !== this.props.userId) ||
             (nextProps.isCaller !== this.props.isCaller)) {
             const remoteUser = UserStore.getProfile(nextProps.userId);
-            const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.update_at;
+            const remoteUserImage = Client.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.last_picture_update;
             this.setState({
                 error: null,
                 remoteUserImage
@@ -155,8 +159,32 @@ export default class WebrtcController extends React.Component {
 
     clearError() {
         setTimeout(() => {
-            this.setState({error: null, ended: null});
+            this.setState({error: null, ended: null, errorType: ''});
         }, Constants.WEBRTC_CLEAR_ERROR_DELAY);
+    }
+
+    getLocalMedia(constraints, element, callback) {
+        const media = constraints || {audio: true, video: true};
+        navigator.mediaDevices.getUserMedia(media).
+        then((stream) => {
+            if (element) {
+                element.srcObject = stream;
+            }
+
+            if (callback && typeof callback === 'function') {
+                callback(null, stream);
+            }
+        }).
+        catch((error) => {
+            callback(error);
+        });
+    }
+
+    stopMediaStream(stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => {
+            track.stop();
+        });
     }
 
     previewVideo() {
@@ -168,7 +196,7 @@ export default class WebrtcController extends React.Component {
                 });
                 this.localMedia.enabled = true;
             } else {
-                WebrtcSession.getLocalMedia(
+                this.getLocalMedia(
                     {
                         audio: true,
                         video: {
@@ -294,9 +322,10 @@ export default class WebrtcController extends React.Component {
                 error: (
                     <FormattedMessage
                         id='webrtc.inProgress'
-                        defaultMessage='You have a call in progress. Please hangup first.'
+                        defaultMessage='You have a call in progress. Please hang up first.'
                     />
-                )
+                ),
+                errorType: ' warning'
             });
             this.clearError();
             break;
@@ -379,9 +408,10 @@ export default class WebrtcController extends React.Component {
                 error: (
                     <FormattedMessage
                         id='webrtc.inProgress'
-                        defaultMessage='You have a call in progress. Please hangup first.'
+                        defaultMessage='You have a call in progress. Please hang up first.'
                     />
-                )
+                ),
+                errorType: ' warning'
             });
         } else if (this.state.isCalling) {
             this.handleCancelOffer();
@@ -396,12 +426,11 @@ export default class WebrtcController extends React.Component {
 
         if (this.session) {
             this.session.destroy();
-            this.session.disconnect();
             this.session = null;
         }
 
         if (this.localMedia) {
-            WebrtcSession.stopMediaStream(this.localMedia);
+            this.stopMediaStream(this.localMedia);
             this.localMedia = null;
         }
 
@@ -572,6 +601,8 @@ export default class WebrtcController extends React.Component {
     }
 
     onFailed() {
+        trackEvent('api', 'api_users_webrtc_failed');
+
         this.setState({
             isCalling: false,
             isAnswering: false,
@@ -616,7 +647,7 @@ export default class WebrtcController extends React.Component {
     }
 
     onConnectCall() {
-        Client.webrtcToken(
+        WebrtcActions.webrtcToken(
             (info) => {
                 const connectingMsg = (
                     <FormattedMessage
@@ -645,8 +676,8 @@ export default class WebrtcController extends React.Component {
                         });
                     }
 
-                    this.session = new WebrtcSession({
-                        debug: global.mm_config.EnableDeveloper === 'true',
+                    Janus.init({debug: global.mm_config.EnableDeveloper === 'true'});
+                    this.session = new Janus({
                         server: info.gateway_url,
                         iceServers,
                         token: info.token,
@@ -705,6 +736,7 @@ export default class WebrtcController extends React.Component {
     }
 
     doAnswer(jsep) {
+        trackEvent('api', 'api_users_webrtc_start');
         this.videocall.createAnswer({
             jsep,
             stream: this.localMedia,
@@ -719,6 +751,7 @@ export default class WebrtcController extends React.Component {
     }
 
     doHangup(error, manual) {
+        trackEvent('api', 'api_users_webrtc_end');
         if (this.videocall && this.state.callInProgress) {
             this.videocall.send({message: {request: 'hangup'}});
             this.videocall.hangup();
@@ -1030,7 +1063,7 @@ export default class WebrtcController extends React.Component {
                             <title>
                                 <FormattedMessage
                                     id='webrtc.hangup'
-                                    defaultMessage='Hangup'
+                                    defaultMessage='Hang up'
                                 />
                             </title>
                         </circle>
@@ -1052,11 +1085,10 @@ export default class WebrtcController extends React.Component {
         const currentId = UserStore.getCurrentId();
         const remoteImage = (<img src={this.state.remoteUserImage}/>);
         let localImage;
-        let localVideoHidden;
+        let localVideoHidden = '';
         let remoteVideoHidden = 'hidden';
         let error;
         let remoteMute;
-        let videoClass = '';
         let localImageHidden = 'webrtc__local-image hidden';
         let remoteImageHidden = 'webrtc__remote-image';
 
@@ -1064,7 +1096,7 @@ export default class WebrtcController extends React.Component {
             error = (
                 <div className='webrtc__error'>
                     <div className='form-group has-error'>
-                        <label className='control-label'>{this.state.error}</label>
+                        <label className={'control-label' + this.state.errorType}>{this.state.error}</label>
                     </div>
                 </div>
             );
@@ -1149,8 +1181,6 @@ export default class WebrtcController extends React.Component {
                 remoteVideoHidden = '';
                 remoteImageHidden = 'webrtc__remote-image hidden';
             }
-        } else {
-            videoClass = 'small';
         }
 
         return (
@@ -1163,10 +1193,7 @@ export default class WebrtcController extends React.Component {
                         toggleSize={this.props.toggleSize}
                     />
                     <div className='post-right__scroll'>
-                        <div
-                            id='videos'
-                            className={videoClass}
-                        >
+                        <div id='videos'>
                             {remoteMute}
                             <div
                                 id='main-video'
@@ -1212,5 +1239,5 @@ WebrtcController.propTypes = {
     userId: React.PropTypes.string.isRequired,
     isCaller: React.PropTypes.bool.isRequired,
     expanded: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.function
+    toggleSize: React.PropTypes.func
 };

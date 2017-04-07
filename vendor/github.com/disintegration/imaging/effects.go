@@ -67,15 +67,16 @@ func blurHorizontal(src *image.NRGBA, kernel []float64) *image.NRGBA {
 				for ix := start; ix <= end; ix++ {
 					weight := kernel[absint(x-ix)]
 					i := y*src.Stride + ix*4
-					r += float64(src.Pix[i+0]) * weight
-					g += float64(src.Pix[i+1]) * weight
-					b += float64(src.Pix[i+2]) * weight
-					a += float64(src.Pix[i+3]) * weight
+					wa := float64(src.Pix[i+3]) * weight
+					r += float64(src.Pix[i+0]) * wa
+					g += float64(src.Pix[i+1]) * wa
+					b += float64(src.Pix[i+2]) * wa
+					a += wa
 				}
 
-				r = math.Min(math.Max(r/weightSum, 0.0), 255.0)
-				g = math.Min(math.Max(g/weightSum, 0.0), 255.0)
-				b = math.Min(math.Max(b/weightSum, 0.0), 255.0)
+				r = math.Min(math.Max(r/a, 0.0), 255.0)
+				g = math.Min(math.Max(g/a, 0.0), 255.0)
+				b = math.Min(math.Max(b/a, 0.0), 255.0)
 				a = math.Min(math.Max(a/weightSum, 0.0), 255.0)
 
 				j := y*dst.Stride + x*4
@@ -121,15 +122,16 @@ func blurVertical(src *image.NRGBA, kernel []float64) *image.NRGBA {
 				for iy := start; iy <= end; iy++ {
 					weight := kernel[absint(y-iy)]
 					i := iy*src.Stride + x*4
-					r += float64(src.Pix[i+0]) * weight
-					g += float64(src.Pix[i+1]) * weight
-					b += float64(src.Pix[i+2]) * weight
-					a += float64(src.Pix[i+3]) * weight
+					wa := float64(src.Pix[i+3]) * weight
+					r += float64(src.Pix[i+0]) * wa
+					g += float64(src.Pix[i+1]) * wa
+					b += float64(src.Pix[i+2]) * wa
+					a += wa
 				}
 
-				r = math.Min(math.Max(r/weightSum, 0.0), 255.0)
-				g = math.Min(math.Max(g/weightSum, 0.0), 255.0)
-				b = math.Min(math.Max(b/weightSum, 0.0), 255.0)
+				r = math.Min(math.Max(r/a, 0.0), 255.0)
+				g = math.Min(math.Max(g/a, 0.0), 255.0)
+				b = math.Min(math.Max(b/a, 0.0), 255.0)
 				a = math.Min(math.Max(a/weightSum, 0.0), 255.0)
 
 				j := y*dst.Stride + x*4

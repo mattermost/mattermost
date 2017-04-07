@@ -3,17 +3,23 @@
 
 import React from 'react';
 
+import DeleteIntegration from './delete_integration.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router';
 
 export default class InstalledIncomingWebhook extends React.Component {
     static get propTypes() {
         return {
             incomingWebhook: React.PropTypes.object.isRequired,
             onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string
+            filter: React.PropTypes.string,
+            creator: React.PropTypes.object.isRequired,
+            canChange: React.PropTypes.bool.isRequired,
+            team: React.PropTypes.object.isRequired
         };
     }
 
@@ -23,9 +29,7 @@ export default class InstalledIncomingWebhook extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.incomingWebhook);
     }
 
@@ -82,6 +86,25 @@ export default class InstalledIncomingWebhook extends React.Component {
             );
         }
 
+        let actions = null;
+        if (this.props.canChange) {
+            actions = (
+                <div className='item-actions'>
+                    <Link to={`/${this.props.team.name}/integrations/incoming_webhooks/edit?id=${incomingWebhook.id}`}>
+                        <FormattedMessage
+                            id='installed_integrations.edit'
+                            defaultMessage='Edit'
+                        />
+                    </Link>
+                    {' - '}
+                    <DeleteIntegration
+                        messageId='installed_incoming_webhooks.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -97,7 +120,7 @@ export default class InstalledIncomingWebhook extends React.Component {
                                 id='installed_integrations.url'
                                 defaultMessage='URL: {url}'
                                 values={{
-                                    url: Utils.getSiteURL() + '/hooks/' + incomingWebhook.id
+                                    url: getSiteURL() + '/hooks/' + incomingWebhook.id
                                 }}
                             />
                         </span>
@@ -108,24 +131,14 @@ export default class InstalledIncomingWebhook extends React.Component {
                                 id='installed_integrations.creation'
                                 defaultMessage='Created by {creator} on {createAt, date, full}'
                                 values={{
-                                    creator: Utils.displayUsername(incomingWebhook.user_id),
+                                    creator: this.props.creator.username,
                                     createAt: incomingWebhook.create_at
                                 }}
                             />
                         </span>
                     </div>
                 </div>
-                <div className='item-actions'>
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
-                </div>
+                {actions}
             </div>
         );
     }

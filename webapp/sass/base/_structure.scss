@@ -32,6 +32,10 @@ body {
 .inner-wrap {
     height: 100%;
 
+    &.sticky {
+        overflow: auto;
+    }
+
     > .row {
         &.main {
             height: 100%;

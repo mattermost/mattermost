@@ -5,18 +5,21 @@ import $ from 'jquery';
 
 import SearchResults from './search_results.jsx';
 import RhsThread from './rhs_thread.jsx';
+import SearchBox from './search_bar.jsx';
+import FileUploadOverlay from './file_upload_overlay.jsx';
 import SearchStore from 'stores/search_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import {getFlaggedPosts} from 'actions/post_actions.jsx';
+import {getFlaggedPosts, getPinnedPosts} from 'actions/post_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import React from 'react';
+import React, {PropTypes} from 'react';
 
 export default class SidebarRight extends React.Component {
     constructor(props) {
@@ -26,6 +29,7 @@ export default class SidebarRight extends React.Component {
 
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onSelectedChange = this.onSelectedChange.bind(this);
+        this.onPostPinnedChange = this.onPostPinnedChange.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onShowSearch = this.onShowSearch.bind(this);
@@ -37,6 +41,8 @@ export default class SidebarRight extends React.Component {
         this.state = {
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
+            isPinnedPosts: SearchStore.getIsPinnedPosts(),
             postRightVisible: Boolean(PostStore.getSelectedPost()),
             expanded: false,
             fromSearch: false,
@@ -48,6 +54,7 @@ export default class SidebarRight extends React.Component {
     componentDidMount() {
         SearchStore.addSearchChangeListener(this.onSearchChange);
         PostStore.addSelectedPostChangeListener(this.onSelectedChange);
+        PostStore.addPostPinnedChangeListener(this.onPostPinnedChange);
         SearchStore.addShowSearchListener(this.onShowSearch);
         UserStore.addChangeListener(this.onUserChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
@@ -57,6 +64,7 @@ export default class SidebarRight extends React.Component {
     componentWillUnmount() {
         SearchStore.removeSearchChangeListener(this.onSearchChange);
         PostStore.removeSelectedPostChangeListener(this.onSelectedChange);
+        PostStore.removePostPinnedChangeListener(this.onPostPinnedChange);
         SearchStore.removeShowSearchListener(this.onShowSearch);
         UserStore.removeChangeListener(this.onUserChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -70,8 +78,18 @@ export default class SidebarRight extends React.Component {
         const isOpen = this.state.searchVisible || this.state.postRightVisible;
         const willOpen = nextState.searchVisible || nextState.postRightVisible;
 
+        if (!isOpen && willOpen) {
+            trackEvent('ui', 'ui_rhs_opened');
+        }
+
         if (isOpen !== willOpen) {
             PostStore.jumpPostsViewSidebarOpen();
+        }
+
+        if (!isOpen && willOpen) {
+            this.setState({
+                expanded: false
+            });
         }
     }
 
@@ -81,6 +99,7 @@ export default class SidebarRight extends React.Component {
         $('.app__body .inner-wrap').removeClass('.move--right');
         $('.app__body .inner-wrap').addClass('move--left');
         $('.app__body .sidebar--left').removeClass('move--right');
+        $('.multi-teams .team-sidebar').removeClass('move--right');
         $('.app__body .sidebar--right').addClass('move--left');
 
         //$('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');
@@ -124,15 +143,24 @@ export default class SidebarRight extends React.Component {
         });
     }
 
+    onPostPinnedChange() {
+        if (this.props.channel && this.state.isPinnedPosts) {
+            getPinnedPosts(this.props.channel.id);
+        }
+    }
+
     onShrink() {
-        this.setState({expanded: false});
+        this.setState({
+            expanded: false
+        });
     }
 
     onSearchChange() {
         this.setState({
             searchVisible: SearchStore.getSearchResults() !== null,
             isMentionSearch: SearchStore.getIsMentionSearch(),
-            isFlaggedPosts: SearchStore.getIsFlaggedPosts()
+            isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
+            isPinnedPosts: SearchStore.getIsPinnedPosts()
         });
     }
 
@@ -162,29 +190,59 @@ export default class SidebarRight extends React.Component {
             expandedClass = 'sidebar--right--expanded';
         }
 
+        var currentId = UserStore.getCurrentId();
+        var searchForm = null;
+        if (currentId) {
+            searchForm = <SearchBox isFocus={this.state.searchVisible && Utils.isMobile()}/>;
+        }
+
+        const channel = this.props.channel;
+
+        let channelDisplayName = '';
+        if (channel) {
+            if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+                channelDisplayName = Utils.localizeMessage('rhs_root.direct', 'Direct Message');
+            } else {
+                channelDisplayName = channel.display_name;
+            }
+        }
+
         if (this.state.searchVisible) {
             content = (
-                <SearchResults
-                    isMentionSearch={this.state.isMentionSearch}
-                    isFlaggedPosts={this.state.isFlaggedPosts}
-                    useMilitaryTime={this.state.useMilitaryTime}
-                    toggleSize={this.toggleSize}
-                    shrink={this.onShrink}
-                />
+                <div className='sidebar--right__content'>
+                    <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                    <SearchResults
+                        isMentionSearch={this.state.isMentionSearch}
+                        isFlaggedPosts={this.state.isFlaggedPosts}
+                        isPinnedPosts={this.state.isPinnedPosts}
+                        useMilitaryTime={this.state.useMilitaryTime}
+                        toggleSize={this.toggleSize}
+                        shrink={this.onShrink}
+                        channelDisplayName={channelDisplayName}
+                    />
+                </div>
             );
         } else if (this.state.postRightVisible) {
             content = (
-                <RhsThread
-                    fromFlaggedPosts={this.state.fromFlaggedPosts}
-                    fromSearch={this.state.fromSearch}
-                    isWebrtc={WebrtcStore.isBusy()}
-                    isMentionSearch={this.state.isMentionSearch}
-                    currentUser={this.state.currentUser}
-                    useMilitaryTime={this.state.useMilitaryTime}
-                    toggleSize={this.toggleSize}
-                    shrink={this.onShrink}
-                />
+                <div className='post-right__container'>
+                    <FileUploadOverlay overlayType='right'/>
+                    <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                    <RhsThread
+                        fromFlaggedPosts={this.state.fromFlaggedPosts}
+                        fromSearch={this.state.fromSearch}
+                        isWebrtc={WebrtcStore.isBusy()}
+                        isMentionSearch={this.state.isMentionSearch}
+                        currentUser={this.state.currentUser}
+                        useMilitaryTime={this.state.useMilitaryTime}
+                        toggleSize={this.toggleSize}
+                        shrink={this.onShrink}
+                    />
+                </div>
             );
+        }
+
+        if (!content) {
+            expandedClass = '';
         }
 
         return (
@@ -203,3 +261,7 @@ export default class SidebarRight extends React.Component {
         );
     }
 }
+
+SidebarRight.propTypes = {
+    channel: PropTypes.object
+};

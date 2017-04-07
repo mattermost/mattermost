@@ -9,6 +9,7 @@ import UserStore from '../../stores/user_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from '../../utils/async_client.jsx';
+import {saveComplianceReports} from 'actions/admin_actions.jsx';
 
 import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
 
@@ -72,7 +73,7 @@ export default class ComplianceReports extends React.Component {
         job.start_at = Date.parse(ReactDOM.findDOMNode(this.refs.from).value);
         job.end_at = Date.parse(ReactDOM.findDOMNode(this.refs.to).value);
 
-        Client.saveComplianceReports(
+        saveComplianceReports(
             job,
             () => {
                 ReactDOM.findDOMNode(this.refs.emails).value = '';

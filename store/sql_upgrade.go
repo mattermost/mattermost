@@ -15,6 +15,9 @@ import (
 )
 
 const (
+	VERSION_3_8_0 = "3.8.0"
+	VERSION_3_7_0 = "3.7.0"
+	VERSION_3_6_0 = "3.6.0"
 	VERSION_3_5_0 = "3.5.0"
 	VERSION_3_4_0 = "3.4.0"
 	VERSION_3_3_0 = "3.3.0"
@@ -37,11 +40,14 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion33(sqlStore)
 	UpgradeDatabaseToVersion34(sqlStore)
 	UpgradeDatabaseToVersion35(sqlStore)
+	UpgradeDatabaseToVersion36(sqlStore)
+	UpgradeDatabaseToVersion37(sqlStore)
+	UpgradeDatabaseToVersion38(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
 	if sqlStore.SchemaVersion == "" {
-		if result := <-sqlStore.system.Save(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
+		if result := <-sqlStore.system.SaveOrUpdate(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
 			l4g.Critical(result.Err.Error())
 			time.Sleep(time.Second)
 			os.Exit(EXIT_VERSION_SAVE_MISSING)
@@ -60,7 +66,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 }
 
 func saveSchemaVersion(sqlStore *SqlStore, version string) {
-	if result := <-sqlStore.system.Update(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
+	if result := <-sqlStore.system.Update(&model.System{Name: "Version", Value: version}); result.Err != nil {
 		l4g.Critical(result.Err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_VERSION_SAVE)
@@ -189,23 +195,59 @@ func UpgradeDatabaseToVersion34(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion35(sqlStore *SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_4_0, VERSION_3_5_0) {
+		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
+		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
+		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
+		sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
 
-	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE Users SET Roles = 'system_user system_admin' WHERE Roles = 'system_admin'")
-	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE TeamMembers SET Roles = 'team_user team_admin' WHERE Roles = 'admin'")
-	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user' WHERE Roles = ''")
-	sqlStore.GetMaster().Exec("UPDATE ChannelMembers SET Roles = 'channel_user channel_admin' WHERE Roles = 'admin'")
+		// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
+		sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
 
-	// The rest of the migration from Filenames -> FileIds is done lazily in api.GetFileInfosForPost
-	sqlStore.CreateColumnIfNotExists("Posts", "FileIds", "varchar(150)", "varchar(150)", "[]")
+		// Increase maximum length of the Channel table Purpose column.
+		if sqlStore.GetMaxLengthOfColumnIfExists("Channels", "Purpose") != "250" {
+			sqlStore.AlterColumnTypeIfExists("Channels", "Purpose", "varchar(250)", "varchar(250)")
+		}
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// UNCOMMENT WHEN WE DO RELEASE
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//sqlStore.Session().RemoveAllSessions()
+		sqlStore.Session().RemoveAllSessions()
 
-	//saveSchemaVersion(sqlStore, VERSION_3_5_0)
-	//}
+		saveSchemaVersion(sqlStore, VERSION_3_5_0)
+	}
+}
+
+func UpgradeDatabaseToVersion36(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_5_0, VERSION_3_6_0) {
+		sqlStore.CreateColumnIfNotExists("Posts", "HasReactions", "tinyint", "boolean", "0")
+
+		// Create Team Description column
+		sqlStore.CreateColumnIfNotExists("Teams", "Description", "varchar(255)", "varchar(255)", "")
+
+		// Add a Position column to users.
+		sqlStore.CreateColumnIfNotExists("Users", "Position", "varchar(64)", "varchar(64)", "")
+
+		// Remove ActiveChannel column from Status
+		sqlStore.RemoveColumnIfExists("Status", "ActiveChannel")
+
+		saveSchemaVersion(sqlStore, VERSION_3_6_0)
+	}
+}
+
+func UpgradeDatabaseToVersion37(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_6_0, VERSION_3_7_0) {
+		// Add EditAt column to Posts
+		sqlStore.CreateColumnIfNotExists("Posts", "EditAt", " bigint", " bigint", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_3_7_0)
+	}
+}
+
+func UpgradeDatabaseToVersion38(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_3_7_0, VERSION_3_8_0) {
+		// Add the IsPinned column to posts.
+		sqlStore.CreateColumnIfNotExists("Posts", "IsPinned", "boolean", "boolean", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_3_8_0)
+	}
 }

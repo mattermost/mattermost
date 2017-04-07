@@ -197,7 +197,7 @@ func main() {
 			case st.Tag(i) == "":
 				switch st.Field(i).Type().(*types.Basic).Kind() {
 				case types.Uint8:
-					o("l += 1 // %s\n")
+					o("l++ // %s\n")
 				case types.Uint16:
 					o("l += 2 // %s\n")
 				case types.Uint32:

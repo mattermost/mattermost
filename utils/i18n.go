@@ -94,6 +94,10 @@ func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.Tran
 	return translations, model.DEFAULT_LOCALE
 }
 
+func GetSupportedLocales() map[string]string {
+	return locales
+}
+
 func TfuncWithFallback(pref string) i18n.TranslateFunc {
 	t, _ := i18n.Tfunc(pref)
 	return func(translationID string, args ...interface{}) string {

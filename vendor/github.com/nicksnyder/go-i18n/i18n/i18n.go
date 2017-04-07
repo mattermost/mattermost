@@ -69,9 +69,15 @@ import (
 // If translationID is a non-plural form, then the first variadic argument may be a map[string]interface{}
 // or struct that contains template data.
 //
-// If translationID is a plural form, then the first variadic argument must be an integer type
+// If translationID is a plural form, the function accepts two parameter signatures
+// 1. T(count int, data struct{})
+// The first variadic argument must be an integer type
 // (int, int8, int16, int32, int64) or a float formatted as a string (e.g. "123.45").
-// The second variadic argument may be a map[string]interface{} or struct that contains template data.
+// The second variadic argument may be a map[string]interface{} or struct{} that contains template data.
+// 2. T(data struct{})
+// data must be a struct{} or map[string]interface{} that contains a Count field and the template data,
+// Count field must be an integer type (int, int8, int16, int32, int64)
+// or a float formatted as a string (e.g. "123.45").
 type TranslateFunc func(translationID string, args ...interface{}) string
 
 // IdentityTfunc returns a TranslateFunc that always returns the translationID passed to it.

@@ -21,16 +21,37 @@ const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import React from 'react';
 
 export default class Textbox extends React.Component {
+    static propTypes = {
+        id: React.PropTypes.string.isRequired,
+        channelId: React.PropTypes.string,
+        value: React.PropTypes.string.isRequired,
+        onChange: React.PropTypes.func.isRequired,
+        onKeyPress: React.PropTypes.func.isRequired,
+        createMessage: React.PropTypes.string.isRequired,
+        onKeyDown: React.PropTypes.func,
+        onBlur: React.PropTypes.func,
+        supportsCommands: React.PropTypes.bool.isRequired,
+        handlePostError: React.PropTypes.func,
+        suggestionListStyle: React.PropTypes.string,
+        emojiEnabled: React.PropTypes.bool
+    };
+
+    static defaultProps = {
+        supportsCommands: true
+    };
+
     constructor(props) {
         super(props);
 
         this.focus = this.focus.bind(this);
-        this.getStateFromStores = this.getStateFromStores.bind(this);
-        this.onRecievedError = this.onRecievedError.bind(this);
+        this.recalculateSize = this.recalculateSize.bind(this);
+        this.onReceivedError = this.onReceivedError.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
         this.handleHeightChange = this.handleHeightChange.bind(this);
         this.showPreview = this.showPreview.bind(this);
+        this.handleChange = this.handleChange.bind(this);
 
         this.state = {
             connection: ''
@@ -46,31 +67,49 @@ export default class Textbox extends React.Component {
         }
     }
 
-    getStateFromStores() {
-        const error = ErrorStore.getLastError();
-
-        if (error) {
-            return {message: error.message};
-        }
-
-        return {message: null};
+    componentDidMount() {
+        ErrorStore.addChangeListener(this.onReceivedError);
     }
 
-    componentDidMount() {
-        ErrorStore.addChangeListener(this.onRecievedError);
+    componentWillMount() {
+        this.checkMessageLength(this.props.value);
     }
 
     componentWillUnmount() {
-        ErrorStore.removeChangeListener(this.onRecievedError);
+        ErrorStore.removeChangeListener(this.onReceivedError);
     }
 
-    onRecievedError() {
+    onReceivedError() {
         const errorCount = ErrorStore.getConnectionErrorCount();
 
         if (errorCount > 1) {
             this.setState({connection: 'bad-connection'});
         } else {
             this.setState({connection: ''});
+        }
+    }
+
+    handleChange(e) {
+        this.checkMessageLength(e.target.value);
+        this.props.onChange(e);
+    }
+
+    checkMessageLength(message) {
+        if (this.props.handlePostError) {
+            if (message.length > Constants.CHARACTER_LIMIT) {
+                const errorMessage = (
+                    <FormattedMessage
+                        id='create_post.error_message'
+                        defaultMessage='Your message is too long. Character count: {length}/{limit}'
+                        values={{
+                            length: message.length,
+                            limit: Constants.CHARACTER_LIMIT
+                        }}
+                    />);
+                this.props.handlePostError(errorMessage);
+            } else {
+                this.props.handlePostError(null);
+            }
         }
     }
 
@@ -84,22 +123,32 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleHeightChange(height) {
-        const textbox = $(this.refs.message.getTextbox());
+    handleBlur(e) {
+        if (this.props.onBlur) {
+            this.props.onBlur(e);
+        }
+    }
+
+    handleHeightChange(height, maxHeight) {
         const wrapper = $(this.refs.wrapper);
 
-        const maxHeight = parseInt(textbox.css('max-height'), 10);
-
-        // move over attachment icon to compensate for the scrollbar
+        // Move over attachment icon to compensate for the scrollbar
         if (height > maxHeight) {
-            wrapper.closest('.post-body__cell').addClass('scroll');
+            wrapper.closest('.post-create').addClass('scroll');
         } else {
-            wrapper.closest('.post-body__cell').removeClass('scroll');
+            wrapper.closest('.post-create').removeClass('scroll');
         }
     }
 
     focus() {
-        this.refs.message.getTextbox().focus();
+        const textbox = this.refs.message.getTextbox();
+
+        textbox.focus();
+        Utils.placeCaretAtEnd(textbox);
+    }
+
+    recalculateSize() {
+        this.refs.message.recalculateSize();
     }
 
     showPreview(e) {
@@ -108,8 +157,12 @@ export default class Textbox extends React.Component {
         this.setState({preview: !this.state.preview});
     }
 
+    hidePreview() {
+        this.setState({preview: false});
+    }
+
     componentWillReceiveProps(nextProps) {
-        if (nextProps.channelId !== this.channelId) {
+        if (nextProps.channelId !== this.props.channelId) {
             // Update channel id for AtMentionProvider.
             const providers = this.suggestionProviders;
             for (let i = 0; i < providers.length; i++) {
@@ -121,7 +174,7 @@ export default class Textbox extends React.Component {
     }
 
     render() {
-        const hasText = this.props.messageText.length > 0;
+        const hasText = this.props.value && this.props.value.length > 0;
 
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
@@ -193,6 +246,14 @@ export default class Textbox extends React.Component {
             </div>
         );
 
+        let textboxClassName = 'form-control custom-textarea';
+        if (this.props.emojiEnabled) {
+            textboxClassName += ' custom-textarea--emoji-picker';
+        }
+        if (this.state.connection) {
+            textboxClassName += ' ' + this.state.connection;
+        }
+
         return (
             <div
                 ref='wrapper'
@@ -201,27 +262,28 @@ export default class Textbox extends React.Component {
                 <SuggestionBox
                     id={this.props.id}
                     ref='message'
-                    className={`form-control custom-textarea ${this.state.connection}`}
+                    className={textboxClassName}
                     type='textarea'
                     spellCheck='true'
-                    maxLength={Constants.MAX_POST_LEN}
                     placeholder={this.props.createMessage}
-                    onInput={this.props.onInput}
+                    onChange={this.handleChange}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
+                    onBlur={this.handleBlur}
                     onHeightChange={this.handleHeightChange}
                     style={{visibility: this.state.preview ? 'hidden' : 'visible'}}
                     listComponent={SuggestionList}
+                    listStyle={this.props.suggestionListStyle}
                     providers={this.suggestionProviders}
                     channelId={this.props.channelId}
-                    value={this.props.messageText}
+                    value={this.props.value}
                     renderDividers={true}
                 />
                 <div
                     ref='preview'
                     className='form-control custom-textarea textbox-preview-area'
                     style={{display: this.state.preview ? 'block' : 'none'}}
-                    dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.messageText) : ''}}
+                    dangerouslySetInnerHTML={{__html: this.state.preview ? TextFormatting.formatText(this.props.value) : ''}}
                 />
                 <div className='help__text'>
                     {helpText}
@@ -242,18 +304,3 @@ export default class Textbox extends React.Component {
         );
     }
 }
-
-Textbox.defaultProps = {
-    supportsCommands: true
-};
-
-Textbox.propTypes = {
-    id: React.PropTypes.string.isRequired,
-    channelId: React.PropTypes.string,
-    messageText: React.PropTypes.string.isRequired,
-    onInput: React.PropTypes.func.isRequired,
-    onKeyPress: React.PropTypes.func.isRequired,
-    createMessage: React.PropTypes.string.isRequired,
-    onKeyDown: React.PropTypes.func,
-    supportsCommands: React.PropTypes.bool.isRequired
-};

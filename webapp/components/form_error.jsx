@@ -9,7 +9,7 @@ export default class FormError extends React.Component {
         return {
             type: React.PropTypes.node,
             error: React.PropTypes.node,
-            margin: React.PropTypes.node,
+            margin: React.PropTypes.bool,
             errors: React.PropTypes.arrayOf(React.PropTypes.node)
         };
     }

@@ -11,7 +11,10 @@ import PDFJS from 'pdfjs-dist';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Websockets from 'actions/websocket_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
+import * as AsyncClient from 'utils/async_client.jsx';
 
 // Import our styles
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
@@ -41,7 +44,7 @@ function preRenderSetup(callwhendone) {
         });
 
         if (window.mm_config && window.mm_config.EnableDeveloper === 'true') {
-            window.ErrorStore.storeLastError({type: 'developer', message: 'DEVELOPER MODE: A javascript error has occured.  Please use the javascript console to capture and report the error (row: ' + line + ' col: ' + column + ').'});
+            window.ErrorStore.storeLastError({type: 'developer', message: 'DEVELOPER MODE: A JavaScript error has occurred.  Please use the JavaScript console to capture and report the error (row: ' + line + ' col: ' + column + ').'});
             window.ErrorStore.emitChange();
         }
     };
@@ -58,6 +61,9 @@ function preRenderSetup(callwhendone) {
     $(window).on('beforeunload',
          () => {
              BrowserStore.setLastServerVersion('');
+             if (UserStore.getCurrentUser()) {
+                 AsyncClient.viewChannel('', ChannelStore.getCurrentId() || '');
+             }
              Websockets.close();
          }
     );

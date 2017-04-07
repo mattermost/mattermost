@@ -140,6 +140,9 @@ class PreferenceStore extends EventEmitter {
             }
             this.emitChange();
             break;
+        case ActionTypes.CLICK_CHANNEL:
+            this.setPreference(action.team_id, 'channel', action.id);
+            break;
         }
     }
 }

@@ -1,22 +1,40 @@
 @charset 'UTF-8';
 
 .channel-header {
-    @include flex(0 0 56px);
+    @include flex(0 0 57px);
     border-left: none;
     font-size: 14px;
     line-height: 56px;
     width: 100%;
 
-    .member-popover__trigger {
+    .member-popover__trigger,
+    .pinned-posts-button {
         cursor: pointer;
-        padding-right: 10px;
-        text-align: right;
-        width: 60px;
+        display: inline-block;
+        margin-left: 7px;
+        min-width: 30px;
+        text-align: center;
+        white-space: nowrap;
 
         .fa {
             font-size: 16px;
+        }
+    }
+
+    .member-popover__container,
+    .member-popover__trigger {
+        display: inline;
+    }
+
+    .member-popover__trigger {
+        .fa {
             margin-left: 4px;
         }
+    }
+
+    .pinned-posts-button svg {
+        position: relative;
+        top: 2px;
     }
 
     &.alt {
@@ -24,6 +42,11 @@
 
         th {
             font-weight: normal !important;
+
+            &.header-list__right {
+                white-space: nowrap;
+                padding-right: 4px;
+            }
         }
 
         td {
@@ -43,7 +66,7 @@
         }
 
         &:last-child {
-            padding-right: 8px;
+            padding-right: 6px;
             width: 8.9%;
         }
     }
@@ -116,7 +139,7 @@
 
         &.dropdown {
             float: left;
-            max-width: 100%;
+            max-width: 90%;
             padding-right: 1em;
 
             .header-dropdown__icon {
@@ -177,7 +200,6 @@
     }
 
     .channel-intro-profile {
-        margin-left: 63px;
         margin-top: 5px;
 
         .user-popover {
@@ -188,7 +210,10 @@
     }
 
     .channel-intro-img {
-        float: left;
+        .status-wrapper {
+            height: 50px;
+            margin: 0 10px 10px 0;
+        }
 
         img {
             @include border-radius(100px);
@@ -206,11 +231,6 @@
         background: $bg--gray;
         padding: 10px 15px;
     }
-
-    .channel-intro-text {
-        margin-top: 35px;
-        word-break: break-all;
-    }
 }
 
 // Team Header in Sidebar
@@ -221,6 +241,10 @@
     .divider {
         border-top: 1px solid transparent;
         margin: 0.5em 0;
+
+        & + .divider {
+            display: none;
+        }
     }
 
     .team__header {
@@ -268,11 +292,16 @@
         .sidebar-header-dropdown,
         .admin-navbar-dropdown {
             font-size: .85em;
-            position: absolute;
+            left: 0;
             margin-right: -15px;
+            position: absolute;
             right: 22px;
             top: 10px;
             z-index: 5;
+
+            li {
+                width: 100%;
+            }
 
             .sidebar-header-dropdown__toggle,
             .admin-navbar-dropdown__toggle {
@@ -280,16 +309,19 @@
                 @include single-transition(all, .1s, linear);
                 background: none;
                 color: $white;
-                float: right;
+                display: block;
                 font-size: 1em;
+                height: 40px;
+                left: 0;
                 line-height: 1.8;
                 padding: 10px;
+                width: 100%;
             }
 
             .dropdown-menu {
-                width: 199px;
-                margin-top: 4px;
                 margin-right: 3px;
+                margin-top: 4px;
+                width: 199px;
 
                 a {
                     overflow: hidden;
@@ -301,10 +333,7 @@
             .sidebar-header-dropdown__icon,
             .admin-navbar-dropdown__icon {
                 fill: $white;
-            }
-
-            .divider + .divider {
-                display: none;
+                float: right;
             }
         }
 
@@ -376,6 +405,11 @@
     .header-dropdown__icon {
         top: 1px;
     }
+}
+
+.channel-header__favorites {
+    float: left;
+    margin: 1px 10px 0 0;
 }
 
 .app__body {

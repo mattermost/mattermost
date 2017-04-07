@@ -17,6 +17,7 @@ export default class LoginMfa extends React.Component {
             serverError: ''
         };
     }
+
     handleSubmit(e) {
         e.preventDefault();
         const state = {};
@@ -33,6 +34,7 @@ export default class LoginMfa extends React.Component {
 
         this.props.submit(this.props.loginId, this.props.password, token);
     }
+
     render() {
         let serverError;
         let errorClass = '';

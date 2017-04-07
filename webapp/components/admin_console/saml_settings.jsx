@@ -12,8 +12,9 @@ import RemoveFileSetting from './remove_file_setting.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+
+import {samlCertificateStatus, uploadCertificateFile, removeCertificateFile} from 'actions/admin_actions.jsx';
 
 export default class SamlSettings extends AdminSettings {
     constructor(props) {
@@ -41,6 +42,7 @@ export default class SamlSettings extends AdminSettings {
         config.SamlSettings.EmailAttribute = this.state.emailAttribute;
         config.SamlSettings.UsernameAttribute = this.state.usernameAttribute;
         config.SamlSettings.NicknameAttribute = this.state.nicknameAttribute;
+        config.SamlSettings.PositionAttribute = this.state.positionAttribute;
         config.SamlSettings.LocaleAttribute = this.state.localeAttribute;
         config.SamlSettings.LoginButtonText = this.state.loginButtonText;
 
@@ -65,13 +67,14 @@ export default class SamlSettings extends AdminSettings {
             emailAttribute: settings.EmailAttribute,
             usernameAttribute: settings.UsernameAttribute,
             nicknameAttribute: settings.NicknameAttribute,
+            positionAttribute: settings.PositionAttribute,
             localeAttribute: settings.LocaleAttribute,
             loginButtonText: settings.LoginButtonText
         };
     }
 
     componentWillMount() {
-        Client.samlCertificateStatus(
+        samlCertificateStatus(
             (data) => {
                 const files = {};
                 if (!data.IdpCertificateFile) {
@@ -91,7 +94,7 @@ export default class SamlSettings extends AdminSettings {
     }
 
     uploadCertificate(id, file, callback) {
-        Client.uploadCertificateFile(
+        uploadCertificateFile(
             file,
             () => {
                 const fileName = file.name;
@@ -110,7 +113,7 @@ export default class SamlSettings extends AdminSettings {
     }
 
     removeCertificate(id, callback) {
-        Client.removeCertificateFile(
+        removeCertificateFile(
             this.state[id],
             () => {
                 this.handleChange(id, '');
@@ -127,12 +130,10 @@ export default class SamlSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.authentication.saml'
-                    defaultMessage='SAML'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.authentication.saml'
+                defaultMessage='SAML'
+            />
         );
     }
 
@@ -292,6 +293,14 @@ export default class SamlSettings extends AdminSettings {
 
         return (
             <SettingsGroup>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedHTMLMessage
+                            id='admin.saml.bannerDesc'
+                            defaultMessage='User attributes in SAML server, including user deactivation or removal, are updated in Mattermost during user login. Learn more at: <a href=\"https://docs.mattermost.com/deployment/sso-saml.html\">https://docs.mattermost.com/deployment/sso-saml.html</a>'
+                        />
+                    </div>
+                </div>
                 <BooleanSetting
                     id='enable'
                     label={
@@ -497,6 +506,25 @@ export default class SamlSettings extends AdminSettings {
                         />
                     }
                     value={this.state.nicknameAttribute}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enable}
+                />
+                <TextSetting
+                    id='positionAttribute'
+                    label={
+                        <FormattedMessage
+                            id='admin.saml.positionAttrTitle'
+                            defaultMessage='Position Attribute:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.saml.positionAttrEx', 'E.g.: "Role"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.saml.positionAttrDesc'
+                            defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the position of users in Mattermost.'
+                        />
+                    }
+                    value={this.state.positionAttribute}
                     onChange={this.handleChange}
                     disabled={!this.state.enable}
                 />

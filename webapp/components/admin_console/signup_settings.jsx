@@ -36,12 +36,10 @@ export default class SignupSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.security.signup'
-                    defaultMessage='Signup'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.security.signup'
+                defaultMessage='Signup'
+            />
         );
     }
 

@@ -5,11 +5,22 @@
 //
 // Help documentation:
 //
-//     goi18n formats and merges translation files.
+//     goi18n manages translation files.
 //
 //     Usage:
 //
-//         goi18n [options] [files...]
+//         goi18n merge     Merge translation files
+//         goi18n constants Generate constant file from translation file
+//
+//     For more details execute:
+//
+//         goi18n [command] -help
+//
+//     Merge translation files.
+//
+//     Usage:
+//
+//         goi18n merge [options] [files...]
 //
 //     Translation files:
 //
@@ -55,5 +66,28 @@
 //             goi18n encodes the output translation files in this format.
 //             Supported formats: json, yaml
 //             Default: json
+//
+//     Generate constant file from translation file.
+//
+//     Usage:
+//
+//         goi18n constants [options] [file]
+//
+//     Translation files:
+//
+//         A translation file contains the strings and translations for a single language.
+//
+//         Translation file names must have a suffix of a supported format (e.g. .json) and
+//         contain a valid language tag as defined by RFC 5646 (e.g. en-us, fr, zh-hant, etc.).
+//
+//     Options:
+//
+//         -package name
+//             goi18n generates the constant file under the package name.
+//             Default: R
+//
+//         -outdir directory
+//             goi18n writes the constant file to this directory.
+//             Default: .
 //
 package main

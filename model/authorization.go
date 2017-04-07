@@ -27,7 +27,10 @@ var PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS *Permission
 var PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE *Permission
 var PERMISSION_MANAGE_ROLES *Permission
+var PERMISSION_MANAGE_TEAM_ROLES *Permission
+var PERMISSION_MANAGE_CHANNEL_ROLES *Permission
 var PERMISSION_CREATE_DIRECT_CHANNEL *Permission
+var PERMISSION_CREATE_GROUP_CHANNEL *Permission
 var PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES *Permission
 var PERMISSION_LIST_TEAM_CHANNELS *Permission
@@ -36,6 +39,7 @@ var PERMISSION_DELETE_PUBLIC_CHANNEL *Permission
 var PERMISSION_DELETE_PRIVATE_CHANNEL *Permission
 var PERMISSION_EDIT_OTHER_USERS *Permission
 var PERMISSION_READ_CHANNEL *Permission
+var PERMISSION_READ_PUBLIC_CHANNEL *Permission
 var PERMISSION_PERMANENT_DELETE_USER *Permission
 var PERMISSION_UPLOAD_FILE *Permission
 var PERMISSION_GET_PUBLIC_LINK *Permission
@@ -46,9 +50,14 @@ var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_EDIT_POST *Permission
 var PERMISSION_EDIT_OTHERS_POSTS *Permission
+var PERMISSION_DELETE_POST *Permission
+var PERMISSION_DELETE_OTHERS_POSTS *Permission
 var PERMISSION_REMOVE_USER_FROM_TEAM *Permission
+var PERMISSION_CREATE_TEAM *Permission
 var PERMISSION_MANAGE_TEAM *Permission
 var PERMISSION_IMPORT_TEAM *Permission
+var PERMISSION_VIEW_TEAM *Permission
+var PERMISSION_LIST_USERS_WITHOUT_TEAM *Permission
 
 // General permission that encompases all system admin functions
 // in the future this could be broken up to allow access to some
@@ -123,6 +132,16 @@ func InitalizePermissions() {
 		"authentication.permissions.manage_roles.name",
 		"authentication.permissions.manage_roles.description",
 	}
+	PERMISSION_MANAGE_TEAM_ROLES = &Permission{
+		"manage_team_roles",
+		"authentication.permissions.manage_team_roles.name",
+		"authentication.permissions.manage_team_roles.description",
+	}
+	PERMISSION_MANAGE_CHANNEL_ROLES = &Permission{
+		"manage_channel_roles",
+		"authentication.permissions.manage_channel_roles.name",
+		"authentication.permissions.manage_channel_roles.description",
+	}
 	PERMISSION_MANAGE_SYSTEM = &Permission{
 		"manage_system",
 		"authentication.permissions.manage_system.name",
@@ -132,6 +151,11 @@ func InitalizePermissions() {
 		"create_direct_channel",
 		"authentication.permissions.create_direct_channel.name",
 		"authentication.permissions.create_direct_channel.description",
+	}
+	PERMISSION_CREATE_GROUP_CHANNEL = &Permission{
+		"create_group_channel",
+		"authentication.permissions.create_group_channel.name",
+		"authentication.permissions.create_group_channel.description",
 	}
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES = &Permission{
 		"manage__publicchannel_properties",
@@ -172,6 +196,11 @@ func InitalizePermissions() {
 		"read_channel",
 		"authentication.permissions.read_channel.name",
 		"authentication.permissions.read_channel.description",
+	}
+	PERMISSION_READ_PUBLIC_CHANNEL = &Permission{
+		"read_public_channel",
+		"authentication.permissions.read_public_channel.name",
+		"authentication.permissions.read_public_channel.description",
 	}
 	PERMISSION_PERMANENT_DELETE_USER = &Permission{
 		"permanent_delete_user",
@@ -223,10 +252,25 @@ func InitalizePermissions() {
 		"authentication.permissions.edit_others_posts.name",
 		"authentication.permissions.edit_others_posts.description",
 	}
+	PERMISSION_DELETE_POST = &Permission{
+		"delete_post",
+		"authentication.permissions.delete_post.name",
+		"authentication.permissions.delete_post.description",
+	}
+	PERMISSION_DELETE_OTHERS_POSTS = &Permission{
+		"delete_others_posts",
+		"authentication.permissions.delete_others_posts.name",
+		"authentication.permissions.delete_others_posts.description",
+	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{
 		"remove_user_from_team",
 		"authentication.permissions.remove_user_from_team.name",
 		"authentication.permissions.remove_user_from_team.description",
+	}
+	PERMISSION_CREATE_TEAM = &Permission{
+		"create_team",
+		"authentication.permissions.create_team.name",
+		"authentication.permissions.create_team.description",
 	}
 	PERMISSION_MANAGE_TEAM = &Permission{
 		"manage_team",
@@ -237,6 +281,16 @@ func InitalizePermissions() {
 		"import_team",
 		"authentication.permissions.import_team.name",
 		"authentication.permissions.import_team.description",
+	}
+	PERMISSION_VIEW_TEAM = &Permission{
+		"view_team",
+		"authentication.permissions.view_team.name",
+		"authentication.permissions.view_team.description",
+	}
+	PERMISSION_LIST_USERS_WITHOUT_TEAM = &Permission{
+		"list_users_without_team",
+		"authentication.permisssions.list_users_without_team.name",
+		"authentication.permisssions.list_users_without_team.description",
 	}
 }
 
@@ -251,7 +305,6 @@ func InitalizeRoles() {
 		[]string{
 			PERMISSION_READ_CHANNEL.Id,
 			PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
-			PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_GET_PUBLIC_LINK.Id,
 			PERMISSION_CREATE_POST.Id,
@@ -264,7 +317,9 @@ func InitalizeRoles() {
 		"channel_admin",
 		"authentication.roles.channel_admin.name",
 		"authentication.roles.channel_admin.description",
-		[]string{},
+		[]string{
+			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+		},
 	}
 	BuiltInRoles[ROLE_CHANNEL_ADMIN.Id] = ROLE_CHANNEL_ADMIN
 	ROLE_CHANNEL_GUEST = &Role{
@@ -282,6 +337,8 @@ func InitalizeRoles() {
 		[]string{
 			PERMISSION_LIST_TEAM_CHANNELS.Id,
 			PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
+			PERMISSION_READ_PUBLIC_CHANNEL.Id,
+			PERMISSION_VIEW_TEAM.Id,
 		},
 	}
 	BuiltInRoles[ROLE_TEAM_USER.Id] = ROLE_TEAM_USER
@@ -291,11 +348,11 @@ func InitalizeRoles() {
 		"authentication.roles.team_admin.description",
 		[]string{
 			PERMISSION_EDIT_OTHERS_POSTS.Id,
-			PERMISSION_ADD_USER_TO_TEAM.Id,
 			PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			PERMISSION_MANAGE_TEAM.Id,
 			PERMISSION_IMPORT_TEAM.Id,
-			PERMISSION_MANAGE_ROLES.Id,
+			PERMISSION_MANAGE_TEAM_ROLES.Id,
+			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 			PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
 			PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
@@ -310,6 +367,7 @@ func InitalizeRoles() {
 		"authentication.roles.global_user.description",
 		[]string{
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
+			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 			PERMISSION_MANAGE_OAUTH.Id,
 		},
@@ -329,7 +387,10 @@ func InitalizeRoles() {
 						[]string{
 							PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
 							PERMISSION_MANAGE_SYSTEM.Id,
+							PERMISSION_MANAGE_ROLES.Id,
 							PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+							PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
+							PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 							PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 							PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
 							PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
@@ -340,6 +401,11 @@ func InitalizeRoles() {
 							PERMISSION_EDIT_OTHER_USERS.Id,
 							PERMISSION_MANAGE_OAUTH.Id,
 							PERMISSION_INVITE_USER.Id,
+							PERMISSION_DELETE_POST.Id,
+							PERMISSION_DELETE_OTHERS_POSTS.Id,
+							PERMISSION_CREATE_TEAM.Id,
+							PERMISSION_ADD_USER_TO_TEAM.Id,
+							PERMISSION_LIST_USERS_WITHOUT_TEAM.Id,
 						},
 						ROLE_TEAM_USER.Permissions...,
 					),

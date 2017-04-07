@@ -141,6 +141,12 @@ type Manager struct {
 	// If the Client's account key is already registered, Email is not used.
 	Email string
 
+	// ForceRSA makes the Manager generate certificates with 2048-bit RSA keys.
+	//
+	// If false, a default is used. Currently the default
+	// is EC-based keys using the P-256 curve.
+	ForceRSA bool
+
 	clientMu sync.Mutex
 	client   *acme.Client // initialized by acmeClient method
 
@@ -187,6 +193,7 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 	}
 
 	// regular domain
+	name = strings.TrimSuffix(name, ".") // golang.org/issue/18114
 	cert, err := m.cert(name)
 	if err == nil {
 		return cert, nil
@@ -384,11 +391,21 @@ func (m *Manager) certState(domain string) (*certState, error) {
 	if state, ok := m.state[domain]; ok {
 		return state, nil
 	}
+
 	// new locked state
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	var (
+		err error
+		key crypto.Signer
+	)
+	if m.ForceRSA {
+		key, err = rsa.GenerateKey(rand.Reader, 2048)
+	} else {
+		key, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	state := &certState{
 		key:    key,
 		locked: true,

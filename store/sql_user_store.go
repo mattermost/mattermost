@@ -4,23 +4,48 @@
 package store
 
 import (
-	"crypto/md5"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
 
 const (
-	MISSING_ACCOUNT_ERROR      = "store.sql_user.missing_account.const"
-	MISSING_AUTH_ACCOUNT_ERROR = "store.sql_user.get_by_auth.missing_account.app_error"
+	MISSING_ACCOUNT_ERROR                      = "store.sql_user.missing_account.const"
+	MISSING_AUTH_ACCOUNT_ERROR                 = "store.sql_user.get_by_auth.missing_account.app_error"
+	PROFILES_IN_CHANNEL_CACHE_SIZE             = model.CHANNEL_CACHE_SIZE
+	PROFILES_IN_CHANNEL_CACHE_SEC              = 900 // 15 mins
+	PROFILE_BY_IDS_CACHE_SIZE                  = model.SESSION_CACHE_SIZE
+	PROFILE_BY_IDS_CACHE_SEC                   = 900 // 15 mins
+	USER_SEARCH_OPTION_NAMES_ONLY              = "names_only"
+	USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME = "names_only_no_full_name"
+	USER_SEARCH_OPTION_ALL_NO_FULL_NAME        = "all_no_full_name"
+	USER_SEARCH_OPTION_ALLOW_INACTIVE          = "allow_inactive"
+	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME        = "Username, Nickname"
+	USER_SEARCH_TYPE_NAMES                     = "Username, FirstName, LastName, Nickname"
+	USER_SEARCH_TYPE_ALL_NO_FULL_NAME          = "Username, Nickname, Email"
+	USER_SEARCH_TYPE_ALL                       = "Username, FirstName, LastName, Nickname, Email"
 )
 
 type SqlUserStore struct {
 	*SqlStore
+}
+
+var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
+var profileByIdsCache *utils.Cache = utils.NewLru(PROFILE_BY_IDS_CACHE_SIZE)
+
+func ClearUserCaches() {
+	profilesInChannelCache.Purge()
+	profileByIdsCache.Purge()
+}
+
+func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
+	profileByIdsCache.Remove(userId)
 }
 
 func NewSqlUserStore(sqlStore *SqlStore) UserStore {
@@ -42,6 +67,7 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 		table.ColMap("NotifyProps").SetMaxSize(2000)
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
+		table.ColMap("Position").SetMaxSize(64)
 	}
 
 	return us
@@ -49,6 +75,14 @@ func NewSqlUserStore(sqlStore *SqlStore) UserStore {
 
 func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
+	us.CreateIndexIfNotExists("idx_users_update_at", "Users", "UpdateAt")
+	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
+	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
+
+	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", USER_SEARCH_TYPE_ALL)
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", USER_SEARCH_TYPE_ALL_NO_FULL_NAME)
+	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", USER_SEARCH_TYPE_NAMES)
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", USER_SEARCH_TYPE_NAMES_NO_FULL_NAME)
 }
 
 func (us SqlUserStore) Save(user *model.User) StoreChannel {
@@ -74,9 +108,9 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 
 		if err := us.GetMaster().Insert(user); err != nil {
 			if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique"}) {
-				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.email_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlUserStore.Save", "store.sql_user.save.email_exists.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
 			} else if IsUniqueConstraintError(err.Error(), []string{"Username", "users_username_key", "idx_users_username_unique"}) {
-				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.username_exists.app_error", nil, "user_id="+user.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlUserStore.Save", "store.sql_user.save.username_exists.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
 			} else {
 				result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.app_error", nil, "user_id="+user.Id+", "+err.Error())
 			}
@@ -92,7 +126,6 @@ func (us SqlUserStore) Save(user *model.User) StoreChannel {
 }
 
 func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreChannel {
-
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -129,7 +162,9 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			}
 
 			if user.IsOAuthUser() {
-				user.Email = oldUser.Email
+				if !trustedUpdateData {
+					user.Email = oldUser.Email
+				}
 			} else if user.IsLDAPUser() && !trustedUpdateData {
 				if user.Username != oldUser.Username ||
 					user.Email != oldUser.Email {
@@ -251,7 +286,7 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return storeChannel
 }
 
-func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string) StoreChannel {
+func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -275,6 +310,10 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 
 		if len(email) != 0 {
 			query += ", Email = :Email"
+		}
+
+		if resetMfa {
+			query += ", MfaActive = false, MfaSecret = ''"
 		}
 
 		query += " WHERE Id = :UserId"
@@ -351,6 +390,7 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error())
 		} else if obj == nil {
 			result.Err = model.NewLocAppError("SqlUserStore.Get", MISSING_ACCOUNT_ERROR, nil, "user_id="+id)
+			result.Err.StatusCode = http.StatusNotFound
 		} else {
 			result.Data = obj.(*model.User)
 		}
@@ -385,58 +425,6 @@ func (us SqlUserStore) GetAll() StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserStore) GetEtagForDirectProfiles(userId string) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-
-	go func() {
-		result := StoreResult{}
-
-		var ids []string
-		_, err := s.GetReplica().Select(ids, `
-			SELECT
-			    Id
-			FROM
-			    Users
-			WHERE
-			    Id IN (SELECT DISTINCT
-			            UserId
-			        FROM
-			            ChannelMembers
-			        WHERE
-			            ChannelMembers.UserId != :UserId
-			                AND ChannelMembers.ChannelId IN (SELECT 
-			                    Channels.Id
-			                FROM
-			                    Channels,
-			                    ChannelMembers
-			                WHERE
-			                    Channels.Type = 'D'
-			                        AND Channels.Id = ChannelMembers.ChannelId
-			                        AND ChannelMembers.UserId = :UserId))
-			        OR Id IN (SELECT
-			            Name
-			        FROM
-			            Preferences
-			        WHERE
-			            UserId = :UserId
-			                AND Category = 'direct_channel_show')
-			ORDER BY UpdateAt DESC
-        `, map[string]interface{}{"UserId": userId})
-
-		if err != nil || len(ids) == 0 {
-			result.Data = fmt.Sprintf("%v.%v.0.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
-		} else {
-			allIds := strings.Join(ids, "")
-			result.Data = fmt.Sprintf("%v.%x.%v.%v.%v", model.CurrentVersion, md5.Sum([]byte(allIds)), len(ids), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
-
 func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -457,7 +445,7 @@ func (s SqlUserStore) GetEtagForAllProfiles() StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetAllProfiles() StoreChannel {
+func (us SqlUserStore) GetAllProfiles(offset int, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -466,20 +454,17 @@ func (us SqlUserStore) GetAllProfiles() StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users"); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
-
-			userMap := make(map[string]*model.User)
 
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -509,7 +494,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
+func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -518,8 +503,108 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
+	keys := profilesInChannelCache.Keys()
+
+	for _, key := range keys {
+		if cacheItem, ok := profilesInChannelCache.Get(key); ok {
+			userMap := cacheItem.(map[string]*model.User)
+			if _, userInCache := userMap[userId]; userInCache {
+				profilesInChannelCache.Remove(key)
+			}
+		}
+	}
+}
+
+func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
+	profilesInChannelCache.Remove(channelId)
+}
+
+func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
+
+		if allowFromCache {
+			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Profiles in Channel")
+				}
+				result.Data = cacheItem.(map[string]*model.User)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Profiles in Channel")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Profiles in Channel")
+			}
+		}
+
+		var users []*model.User
+
+		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0"
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
 			userMap := make(map[string]*model.User)
@@ -532,6 +617,10 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 			}
 
 			result.Data = userMap
+
+			if allowFromCache {
+				profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
+			}
 		}
 
 		storeChannel <- result
@@ -541,9 +630,9 @@ func (us SqlUserStore) GetProfiles(teamId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
+func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel {
 
-	storeChannel := make(StoreChannel, 1)
+	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
@@ -551,47 +640,30 @@ func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 		var users []*model.User
 
 		if _, err := us.GetReplica().Select(&users, `
-			SELECT 
-			    Users.*
-			FROM
-			    Users
-			WHERE
-			    Id IN (SELECT DISTINCT
-			            UserId
-			        FROM
-			            ChannelMembers
-			        WHERE
-			            ChannelMembers.UserId != :UserId
-			                AND ChannelMembers.ChannelId IN (SELECT 
-			                    Channels.Id
-			                FROM
-			                    Channels,
-			                    ChannelMembers
-			                WHERE
-			                    Channels.Type = 'D'
-			                        AND Channels.Id = ChannelMembers.ChannelId
-			                        AND ChannelMembers.UserId = :UserId))
-			        OR Id IN (SELECT 
-			            Name
-			        FROM
-			            Preferences
-			        WHERE
-			            UserId = :UserId
-			                AND Category = 'direct_channel_show')
-            `, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetDirectProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error())
+            SELECT
+                u.*
+            FROM Users u
+            INNER JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
+            LEFT JOIN ChannelMembers cm
+                ON cm.UserId = u.Id
+                AND cm.ChannelId = :ChannelId
+            WHERE cm.UserId IS NULL
+            ORDER BY u.Username ASC
+            LIMIT :Limit OFFSET :Offset
+            `, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesNotInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
-
-			userMap := make(map[string]*model.User)
 
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -601,9 +673,56 @@ func (us SqlUserStore) GetDirectProfiles(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
+func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel)
 
-	storeChannel := make(StoreChannel, 1)
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		query := `
+		SELECT
+			*
+		FROM
+			Users
+		WHERE
+			(SELECT
+				COUNT(0)
+			FROM
+				TeamMembers
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.DeleteAt = 0) = 0
+		ORDER BY
+			Username ASC
+		LIMIT
+			:Limit
+		OFFSET
+			:Offset`
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesWithoutTeam", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string) StoreChannel {
+	storeChannel := make(StoreChannel)
 
 	go func() {
 		result := StoreResult{}
@@ -612,7 +731,131 @@ func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 		props := make(map[string]interface{})
 		idQuery := ""
 
-		for index, userId := range userIds {
+		for index, usernames := range usernames {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["username"+strconv.Itoa(index)] = usernames
+			idQuery += ":username" + strconv.Itoa(index)
+		}
+
+		props["TeamId"] = teamId
+
+		if _, err := us.GetReplica().Select(&users, `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
+			Users.Id = TeamMembers.UserId AND Users.Username IN (`+idQuery+`) AND TeamMembers.TeamId = :TeamId `, props); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByUsernames", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+			userMap := make(map[string]*model.User)
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				userMap[u.Id] = u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+type UserWithLastActivityAt struct {
+	model.User
+	LastActivityAt int64
+}
+
+func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*UserWithLastActivityAt
+
+		if _, err := us.GetReplica().Select(&users, `
+            SELECT
+                u.*,
+                s.LastActivityAt
+            FROM Users AS u
+                INNER JOIN TeamMembers AS t ON u.Id = t.UserId
+                INNER JOIN Status AS s ON s.UserId = t.UserId
+            WHERE t.TeamId = :TeamId
+            ORDER BY s.LastActivityAt DESC
+            LIMIT 100
+            `, map[string]interface{}{"TeamId": teamId}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.get_recently_active_users.app_error", nil, err.Error())
+		} else {
+
+			userMap := make(map[string]*model.User)
+
+			for _, userWithLastActivityAt := range users {
+				u := userWithLastActivityAt.User
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+				u.LastActivityAt = userWithLastActivityAt.LastActivityAt
+				userMap[u.Id] = &u
+			}
+
+			result.Data = userMap
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
+
+		users := []*model.User{}
+		props := make(map[string]interface{})
+		idQuery := ""
+		remainingUserIds := make([]string, 0)
+
+		if allowFromCache {
+			for _, userId := range userIds {
+				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
+					u := cacheItem.(*model.User)
+					users = append(users, u)
+				} else {
+					remainingUserIds = append(remainingUserIds, userId)
+				}
+			}
+			if metrics != nil {
+				metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
+				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			}
+		} else {
+			remainingUserIds = userIds
+			if metrics != nil {
+				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			}
+		}
+
+		// If everything came from the cache then just return
+		if len(remainingUserIds) == 0 {
+			result.Data = users
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		for index, userId := range remainingUserIds {
 			if len(idQuery) > 0 {
 				idQuery += ", "
 			}
@@ -625,16 +868,14 @@ func (us SqlUserStore) GetProfileByIds(userIds []string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
-			userMap := make(map[string]*model.User)
-
 			for _, u := range users {
 				u.Password = ""
 				u.AuthData = new(string)
 				*u.AuthData = ""
-				userMap[u.Id] = u
+				profileByIdsCache.AddWithExpiresInSecs(u.Id, u, PROFILE_BY_IDS_CACHE_SEC)
 			}
 
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -881,15 +1122,41 @@ func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT COUNT(DISTINCT Email) FROM Users"
-
+		query := ""
 		if len(teamId) > 0 {
-			query += ", TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId"
+			query = "SELECT COUNT(DISTINCT Users.Email) From Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 AND Users.DeleteAt = 0"
+		} else {
+			query = "SELECT COUNT(DISTINCT Email) FROM Users WHERE DeleteAt = 0"
 		}
 
 		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsUniqueUserCount", "store.sql_user.analytics_unique_user_count.app_error", nil, err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64) StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		time := model.GetMillis() - timePeriod
+
+		query := "SELECT COUNT(*) FROM Status WHERE LastActivityAt > :Time"
+
+		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"Time": time})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error())
 		} else {
 			result.Data = v
 		}
@@ -907,7 +1174,13 @@ func (us SqlUserStore) GetUnreadCount(userId string) StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON cm.ChannelId = c.Id AND cm.UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		if count, err := us.GetReplica().SelectInt(`
+		SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		FROM Channels c
+		INNER JOIN ChannelMembers cm
+		      ON cm.ChannelId = c.Id
+		      AND cm.UserId = :UserId
+		      AND c.DeleteAt = 0`, map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetMentionCount", "store.sql_user.get_unread_count.app_error", nil, err.Error())
 		} else {
 			result.Data = count
@@ -930,6 +1203,403 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 			result.Err = model.NewLocAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error())
 		} else {
 			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) Search(teamId string, term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := ""
+
+		if teamId == "" {
+
+			// Id != '' is added because both SEARCH_CLAUSE and INACTIVE_CLAUSE start with an AND
+			searchQuery = `
+			SELECT
+				*
+			FROM
+				Users
+			WHERE
+				Id != ''
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+				ORDER BY Username ASC
+			LIMIT 100`
+		} else {
+			searchQuery = `
+			SELECT
+				Users.*
+			FROM
+				Users, TeamMembers
+			WHERE
+				TeamMembers.TeamId = :TeamId
+				AND Users.Id = TeamMembers.UserId
+				AND TeamMembers.DeleteAt = 0
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+				ORDER BY Users.Username ASC
+			LIMIT 100`
+		}
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) SearchWithoutTeam(term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+		SELECT
+			*
+		FROM
+			Users
+		WHERE
+			(SELECT
+				COUNT(0)
+			FROM
+				TeamMembers
+			WHERE
+				TeamMembers.UserId = Users.Id
+				AND TeamMembers.DeleteAt = 0) = 0
+			SEARCH_CLAUSE
+			INACTIVE_CLAUSE
+			ORDER BY Username ASC
+		LIMIT 100`
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+			SELECT
+				Users.*
+			FROM Users
+			LEFT JOIN TeamMembers tm
+				ON tm.UserId = Users.Id
+				AND tm.TeamId = :NotInTeamId
+			WHERE
+				tm.UserId IS NULL
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+			ORDER BY Users.Username ASC
+			LIMIT 100`
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"NotInTeamId": notInTeamId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := ""
+		if teamId == "" {
+			searchQuery = `
+			SELECT
+				Users.*
+			FROM Users
+			LEFT JOIN ChannelMembers cm
+				ON cm.UserId = Users.Id
+				AND cm.ChannelId = :ChannelId
+			WHERE
+				cm.UserId IS NULL
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+			ORDER BY Users.Username ASC
+			LIMIT 100`
+		} else {
+			searchQuery = `
+			SELECT
+				Users.*
+			FROM Users
+			INNER JOIN TeamMembers tm
+				ON tm.UserId = Users.Id
+				AND tm.TeamId = :TeamId
+				AND tm.DeleteAt = 0
+			LEFT JOIN ChannelMembers cm
+				ON cm.UserId = Users.Id
+				AND cm.ChannelId = :ChannelId
+			WHERE
+				cm.UserId IS NULL
+				SEARCH_CLAUSE
+				INACTIVE_CLAUSE
+			ORDER BY Users.Username ASC
+			LIMIT 100`
+		}
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"TeamId": teamId, "ChannelId": channelId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		searchQuery := `
+        SELECT
+            Users.*
+        FROM
+            Users, ChannelMembers
+        WHERE
+            ChannelMembers.ChannelId = :ChannelId
+            AND ChannelMembers.UserId = Users.Id
+            SEARCH_CLAUSE
+            INACTIVE_CLAUSE
+            ORDER BY Users.Username ASC
+        LIMIT 100`
+
+		storeChannel <- us.performSearch(searchQuery, term, options, map[string]interface{}{"ChannelId": channelId})
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
+
+var specialUserSearchChar = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	":",
+	"*",
+	"\"",
+	"!",
+	"@",
+}
+
+var postgresSearchChar = []string{
+	"(",
+	")",
+	":",
+	"!",
+}
+
+func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
+	result := StoreResult{}
+
+	// Special handling for emails
+	originalTerm := term
+	postgresUseOriginalTerm := false
+	if strings.Contains(term, "@") && strings.Contains(term, ".") {
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			postgresUseOriginalTerm = true
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			lastIndex := strings.LastIndex(term, ".")
+			term = term[0:lastIndex]
+		}
+	}
+
+	// these chars have special meaning and can be treated as spaces
+	for _, c := range specialUserSearchChar {
+		term = strings.Replace(term, c, " ", -1)
+	}
+
+	searchType := USER_SEARCH_TYPE_ALL
+	if ok := options[USER_SEARCH_OPTION_NAMES_ONLY]; ok {
+		searchType = USER_SEARCH_TYPE_NAMES
+	} else if ok = options[USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME]; ok {
+		searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+	} else if ok = options[USER_SEARCH_OPTION_ALL_NO_FULL_NAME]; ok {
+		searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+	}
+
+	if ok := options[USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
+		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)
+	}
+
+	if term == "" {
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if postgresUseOriginalTerm {
+			term = originalTerm
+			// these chars will break the query and must be removed
+			for _, c := range postgresSearchChar {
+				term = strings.Replace(term, c, "", -1)
+			}
+		} else {
+			splitTerm := strings.Fields(term)
+			for i, t := range strings.Fields(term) {
+				if i == len(splitTerm)-1 {
+					splitTerm[i] = t + ":*"
+				} else {
+					splitTerm[i] = t + ":* &"
+				}
+			}
+
+			term = strings.Join(splitTerm, " ")
+		}
+
+		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
+		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		splitTerm := strings.Fields(term)
+		for i, t := range strings.Fields(term) {
+			splitTerm[i] = "+" + t + "*"
+		}
+
+		term = strings.Join(splitTerm, " ")
+
+		searchClause := fmt.Sprintf("AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	}
+
+	var users []*model.User
+
+	parameters["Term"] = term
+
+	if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
+		result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+"search_type="+searchType+", "+err.Error())
+	} else {
+		for _, u := range users {
+			u.Password = ""
+			u.AuthData = new(string)
+			*u.AuthData = ""
+		}
+
+		result.Data = users
+	}
+
+	return result
+}
+
+func (us SqlUserStore) AnalyticsGetInactiveUsersCount() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0"); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) AnalyticsGetSystemAdminCount() StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT count(*) FROM Users WHERE Roles LIKE :Roles and DeleteAt = 0", map[string]interface{}{"Roles": "%system_admin%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsGetSystemAdminCount", "store.sql_user.analytics_get_system_admin_count.app_error", nil, err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, `
+            SELECT
+                u.*
+            FROM Users u
+            LEFT JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
+            WHERE tm.UserId IS NULL
+            ORDER BY u.Username ASC
+            LIMIT :Limit OFFSET :Offset
+            `, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.get_profiles.app_error", nil, err.Error())
+		} else {
+
+			for _, u := range users {
+				u.Password = ""
+				u.AuthData = new(string)
+				*u.AuthData = ""
+			}
+
+			result.Data = users
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		updateAt, err := us.GetReplica().SelectInt(`
+            SELECT
+                u.UpdateAt
+            FROM Users u
+            LEFT JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
+            WHERE tm.UserId IS NULL
+            ORDER BY u.UpdateAt DESC
+            LIMIT 1
+            `, map[string]interface{}{"TeamId": teamId})
+
+		if err != nil {
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+		} else {
+			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 		}
 
 		storeChannel <- result

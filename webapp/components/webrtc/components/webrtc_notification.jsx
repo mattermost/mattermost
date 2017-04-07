@@ -197,7 +197,7 @@ export default class WebrtcNotification extends React.Component {
         const user = this.state.userCalling;
         if (user) {
             const username = Utils.displayUsername(user.id);
-            const profileImgSrc = Client.getUsersRoute() + '/' + user.id + '/image?time=' + (user.update_at || new Date().getTime());
+            const profileImgSrc = Client.getUsersRoute() + '/' + user.id + '/image?time=' + (user.last_picture_update || new Date().getTime());
             const profileImg = (
                 <img
                     className='user-popover__image'

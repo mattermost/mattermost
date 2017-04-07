@@ -15,7 +15,8 @@ import PostMessageView from './post_message_view.jsx';
 export default class PostMessageContainer extends React.Component {
     static propTypes = {
         post: React.PropTypes.object.isRequired,
-        options: React.PropTypes.object
+        options: React.PropTypes.object,
+        isLastPost: React.PropTypes.bool
     };
 
     static defaultProps = {
@@ -48,7 +49,6 @@ export default class PostMessageContainer extends React.Component {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
         ChannelStore.addChangeListener(this.onChannelChange);
-        ChannelStore.addMoreChangeListener(this.onChannelChange);
     }
 
     componentWillUnmount() {
@@ -56,7 +56,6 @@ export default class PostMessageContainer extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
         ChannelStore.removeChangeListener(this.onChannelChange);
-        ChannelStore.removeMoreChangeListener(this.onChannelChange);
     }
 
     onEmojiChange() {
@@ -91,7 +90,8 @@ export default class PostMessageContainer extends React.Component {
         return (
             <PostMessageView
                 options={this.props.options}
-                message={this.props.post.message}
+                post={this.props.post}
+                isLastPost={this.props.isLastPost}
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}

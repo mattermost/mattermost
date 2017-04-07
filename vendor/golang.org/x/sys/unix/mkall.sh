@@ -89,6 +89,8 @@ case "$1" in
 -syscalls)
 	for i in zsyscall*go
 	do
+		# Run the command line that appears in the first line
+		# of the generated file to regenerate it.
 		sed 1q $i | sed 's;^// ;;' | sh > _$i && gofmt < _$i > $i
 		rm _$i
 	done
@@ -223,6 +225,13 @@ linux_s390x)
 	# package generates its version of the types file.
 	mktypes="GOARCH=$GOARCH go tool cgo -godefs -- -fsigned-char"
 	;;
+linux_sparc64)
+	GOOSARCH_in=syscall_linux_sparc64.go
+	unistd_h=/usr/include/sparc64-linux-gnu/asm/unistd.h
+	mkerrors="$mkerrors -m64"
+	mksysnum="./mksysnum_linux.pl $unistd_h"
+	mktypes="GOARCH=$GOARCH go tool cgo -godefs"
+	;;
 netbsd_386)
 	mkerrors="$mkerrors -m32"
 	mksyscall="./mksyscall.pl -l32 -netbsd"
@@ -273,7 +282,7 @@ esac
 			syscall_goos="syscall_bsd.go $syscall_goos"
 			;;
 		esac
-		if [ -n "$mksyscall" ]; then echo "$mksyscall $syscall_goos $GOOSARCH_in |gofmt >zsyscall_$GOOSARCH.go"; fi
+		if [ -n "$mksyscall" ]; then echo "$mksyscall -tags $GOOS,$GOARCH $syscall_goos $GOOSARCH_in |gofmt >zsyscall_$GOOSARCH.go"; fi
 		;;
 	esac
 	if [ -n "$mksysctl" ]; then echo "$mksysctl |gofmt >$zsysctl"; fi

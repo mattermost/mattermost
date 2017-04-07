@@ -27,7 +27,7 @@ type Cache interface {
 	Get(ctx context.Context, key string) ([]byte, error)
 
 	// Put stores the data in the cache under the specified key.
-	// Inderlying implementations may use any data storage format,
+	// Underlying implementations may use any data storage format,
 	// as long as the reverse operation, Get, results in the original data.
 	Put(ctx context.Context, key string, data []byte) error
 

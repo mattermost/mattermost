@@ -96,5 +96,5 @@ export default class WebrtcHeader extends React.Component {
 WebrtcHeader.propTypes = {
     username: React.PropTypes.string.isRequired,
     onClose: React.PropTypes.func.isRequired,
-    toggleSize: React.PropTypes.function
+    toggleSize: React.PropTypes.func
 };

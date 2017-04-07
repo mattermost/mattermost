@@ -5,10 +5,12 @@ import React from 'react';
 
 import FormError from 'components/form_error.jsx';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {regenerateOAuthAppSecret} from 'actions/admin_actions.jsx';
+
+import DeleteIntegration from './delete_integration.jsx';
 
 const FAKE_SECRET = '***************';
 
@@ -49,7 +51,7 @@ export default class InstalledOAuthApp extends React.Component {
     handleRegenerate(e) {
         e.preventDefault();
 
-        Client.regenerateOAuthAppSecret(
+        regenerateOAuthAppSecret(
             this.props.oauthApp.id,
             (data) => {
                 this.props.oauthApp.client_secret = data.client_secret;
@@ -61,9 +63,7 @@ export default class InstalledOAuthApp extends React.Component {
         );
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.oauthApp);
     }
 
@@ -246,15 +246,10 @@ export default class InstalledOAuthApp extends React.Component {
                     {' - '}
                     {regen}
                     {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
+                    <DeleteIntegration
+                        messageId='installed_oauth_apps.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
                 </div>
             </div>
         );

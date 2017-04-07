@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import React from 'react';
 
-import * as SyntaxHighlighting from 'utils/syntax_hightlighting.jsx';
+import * as SyntaxHighlighting from 'utils/syntax_highlighting.jsx';
 import Constants from 'utils/constants.jsx';
 
 import FileInfoPreview from './file_info_preview.jsx';
@@ -51,13 +51,22 @@ export default class CodePreview extends React.Component {
             async: true,
             url: props.fileUrl,
             type: 'GET',
+            dataType: 'text',
             error: this.handleReceivedError,
             success: this.handleReceivedCode
         });
     }
 
     handleReceivedCode(data) {
-        this.setState({code: data, loading: false, success: true});
+        let code = data;
+        if (data.nodeName === '#document') {
+            code = new XMLSerializer().serializeToString(data);
+        }
+        this.setState({
+            code,
+            loading: false,
+            success: true
+        });
     }
 
     handleReceivedError() {

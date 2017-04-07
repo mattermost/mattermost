@@ -1,17 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
-import Constants from 'utils/constants.jsx';
-import {FormattedMessage} from 'react-intl';
 import PreferenceStore from 'stores/preference_store.jsx';
-import {Modal} from 'react-bootstrap';
+
+import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
+import {Modal} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
+import {updateChannelPurpose} from 'actions/channel_actions.jsx';
 
 export default class EditChannelPurposeModal extends React.Component {
     constructor(props) {
@@ -26,30 +24,22 @@ export default class EditChannelPurposeModal extends React.Component {
 
         this.state = {
             serverError: '',
+            show: true,
             submitted: false
         };
     }
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        Utils.placeCaretAtEnd(this.refs.purpose);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
 
-    componentDidUpdate() {
-        if (this.props.show) {
-            $(ReactDOM.findDOMNode(this.refs.purpose)).focus();
-        }
-    }
-
     handleHide() {
-        this.setState({serverError: ''});
-
-        if (this.props.onModalDismissed) {
-            this.props.onModalDismissed();
-        }
+        this.setState({show: false});
     }
 
     onPreferenceChange() {
@@ -73,17 +63,15 @@ export default class EditChannelPurposeModal extends React.Component {
 
         this.setState({submitted: true});
 
-        Client.updateChannelPurpose(
+        updateChannelPurpose(
             this.props.channel.id,
-            ReactDOM.findDOMNode(this.refs.purpose).value.trim(),
+            this.refs.purpose.value.trim(),
             () => {
-                AsyncClient.getChannel(this.props.channel.id);
-
                 this.handleHide();
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {
-                    this.setState({serverError: Utils.localizeMessage('edit_channel_puropse_modal.error', 'This channel purpose is too long, please enter a shorter one')});
+                    this.setState({serverError: Utils.localizeMessage('edit_channel_purpose_modal.error', 'This channel purpose is too long, please enter a shorter one')});
                 } else {
                     this.setState({serverError: err.message});
                 }
@@ -92,10 +80,6 @@ export default class EditChannelPurposeModal extends React.Component {
     }
 
     render() {
-        if (!this.props.show) {
-            return null;
-        }
-
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -126,27 +110,13 @@ export default class EditChannelPurposeModal extends React.Component {
             );
         }
 
-        let channelType = (
-            <FormattedMessage
-                id='edit_channel_purpose_modal.channel'
-                defaultMessage='Channel'
-            />
-        );
-        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
-            channelType = (
-                <FormattedMessage
-                    id='edit_channel_purpose_modal.group'
-                    defaultMessage='Group'
-                />
-            );
-        }
-
         return (
             <Modal
                 className='modal-edit-channel-purpose'
                 ref='modal'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.handleHide}
+                onExited={this.props.onModalDismissed}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -157,17 +127,14 @@ export default class EditChannelPurposeModal extends React.Component {
                     <p>
                         <FormattedMessage
                             id='edit_channel_purpose_modal.body'
-                            defaultMessage='Describe how this {type} should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
-                            values={{
-                                type: (channelType)
-                            }}
+                            defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
                         />
                     </p>
                     <textarea
                         ref='purpose'
                         className='form-control no-resize'
                         rows='6'
-                        maxLength='128'
+                        maxLength='250'
                         defaultValue={this.props.channel.purpose}
                         onKeyDown={this.handleKeyDown}
                     />
@@ -202,7 +169,6 @@ export default class EditChannelPurposeModal extends React.Component {
 }
 
 EditChannelPurposeModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     channel: React.PropTypes.object,
     onModalDismissed: React.PropTypes.func.isRequired
 };

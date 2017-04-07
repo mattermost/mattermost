@@ -7,20 +7,37 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	USER_NOTIFY_ALL            = "all"
-	USER_NOTIFY_MENTION        = "mention"
-	USER_NOTIFY_NONE           = "none"
+	ME                      = "me"
+	USER_NOTIFY_ALL         = "all"
+	USER_NOTIFY_MENTION     = "mention"
+	USER_NOTIFY_NONE        = "none"
+	DESKTOP_NOTIFY_PROP     = "desktop"
+	MARK_UNREAD_NOTIFY_PROP = "mark_unread"
+	PUSH_NOTIFY_PROP        = "push"
+	EMAIL_NOTIFY_PROP       = "email"
+
 	DEFAULT_LOCALE             = "en"
 	USER_AUTH_SERVICE_EMAIL    = "email"
 	USER_AUTH_SERVICE_USERNAME = "username"
+
+	USER_EMAIL_MAX_LENGTH     = 128
+	USER_NICKNAME_MAX_RUNES   = 64
+	USER_POSITION_MAX_RUNES   = 35
+	USER_FIRST_NAME_MAX_RUNES = 64
+	USER_LAST_NAME_MAX_RUNES  = 64
+	USER_AUTH_DATA_MAX_LENGTH = 128
+	USER_NAME_MAX_LENGTH      = 64
+	USER_NAME_MIN_LENGTH      = 1
 )
 
 type User struct {
@@ -37,6 +54,7 @@ type User struct {
 	Nickname           string    `json:"nickname"`
 	FirstName          string    `json:"first_name"`
 	LastName           string    `json:"last_name"`
+	Position           string    `json:"position"`
 	Roles              string    `json:"roles"`
 	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
 	Props              StringMap `json:"props,omitempty"`
@@ -50,52 +68,68 @@ type User struct {
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
+type UserPatch struct {
+	Username    *string    `json:"username"`
+	Nickname    *string    `json:"nickname"`
+	FirstName   *string    `json:"first_name"`
+	LastName    *string    `json:"last_name"`
+	Position    *string    `json:"position"`
+	Email       *string    `json:"email"`
+	Props       *StringMap `json:"props,omitempty"`
+	NotifyProps *StringMap `json:"notify_props,omitempty"`
+	Locale      *string    `json:"locale"`
+}
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
 
 	if len(u.Id) != 26 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.id.app_error", nil, "")
+		return NewAppError("User.IsValid", "model.user.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if u.CreateAt == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.create_at.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.create_at.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if u.UpdateAt == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidUsername(u.Username) {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if len(u.Email) > 128 || len(u.Email) == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id)
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 {
+		return NewAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.Nickname) > 64 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id)
+	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
+		return NewAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.FirstName) > 64 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id)
+	if utf8.RuneCountInString(u.Position) > USER_POSITION_MAX_RUNES {
+		return NewAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(u.LastName) > 64 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id)
+	if utf8.RuneCountInString(u.FirstName) > USER_FIRST_NAME_MAX_RUNES {
+		return NewAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 128 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id)
+	if utf8.RuneCountInString(u.LastName) > USER_LAST_NAME_MAX_RUNES {
+		return NewAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+	}
+
+	if u.AuthData != nil && len(*u.AuthData) > USER_AUTH_DATA_MAX_LENGTH {
+		return NewAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
-		return NewLocAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id)
+		return NewAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -110,7 +144,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = NewId()
+		u.Username = "n" + NewId()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -200,8 +234,55 @@ func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	}
 }
 
+func (u *User) Patch(patch *UserPatch) {
+	if patch.Username != nil {
+		u.Username = *patch.Username
+	}
+
+	if patch.Nickname != nil {
+		u.Nickname = *patch.Nickname
+	}
+
+	if patch.FirstName != nil {
+		u.FirstName = *patch.FirstName
+	}
+
+	if patch.LastName != nil {
+		u.LastName = *patch.LastName
+	}
+
+	if patch.Position != nil {
+		u.Position = *patch.Position
+	}
+
+	if patch.Email != nil {
+		u.Email = *patch.Email
+	}
+
+	if patch.Props != nil {
+		u.Props = *patch.Props
+	}
+
+	if patch.NotifyProps != nil {
+		u.NotifyProps = *patch.NotifyProps
+	}
+
+	if patch.Locale != nil {
+		u.Locale = *patch.Locale
+	}
+}
+
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (u *UserPatch) ToJson() string {
 	b, err := json.Marshal(u)
 	if err != nil {
 		return ""
@@ -241,7 +322,6 @@ func (u *User) ClearNonProfileFields() {
 	u.Password = ""
 	u.AuthData = new(string)
 	*u.AuthData = ""
-	u.MfaActive = false
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false
@@ -338,6 +418,11 @@ func IsValidUserRoles(userRoles string) bool {
 		}
 	}
 
+	// Exclude just the system_admin role explicitly to prevent mistakes
+	if len(roles) == 1 && roles[0] == "system_admin" {
+		return false
+	}
+
 	return true
 }
 
@@ -367,6 +452,13 @@ func IsInRole(userRoles string, inRole string) bool {
 	return false
 }
 
+func (u *User) IsSSOUser() bool {
+	if u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL {
+		return true
+	}
+	return false
+}
+
 func (u *User) IsOAuthUser() bool {
 	if u.AuthService == USER_AUTH_SERVICE_GITLAB {
 		return true
@@ -393,6 +485,17 @@ func UserFromJson(data io.Reader) *User {
 	}
 }
 
+func UserPatchFromJson(data io.Reader) *UserPatch {
+	decoder := json.NewDecoder(data)
+	var user UserPatch
+	err := decoder.Decode(&user)
+	if err == nil {
+		return &user
+	} else {
+		return nil
+	}
+}
+
 func UserMapToJson(u map[string]*User) string {
 	b, err := json.Marshal(u)
 	if err != nil {
@@ -405,6 +508,26 @@ func UserMapToJson(u map[string]*User) string {
 func UserMapFromJson(data io.Reader) map[string]*User {
 	decoder := json.NewDecoder(data)
 	var users map[string]*User
+	err := decoder.Decode(&users)
+	if err == nil {
+		return users
+	} else {
+		return nil
+	}
+}
+
+func UserListToJson(u []*User) string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func UserListFromJson(data io.Reader) []*User {
+	decoder := json.NewDecoder(data)
+	var users []*User
 	err := decoder.Decode(&users)
 	if err == nil {
 		return users
@@ -443,11 +566,15 @@ var restrictedUsernames = []string{
 }
 
 func IsValidUsername(s string) bool {
-	if len(s) == 0 || len(s) > 64 {
+	if len(s) < USER_NAME_MIN_LENGTH || len(s) > USER_NAME_MAX_LENGTH {
 		return false
 	}
 
 	if !validUsernameChars.MatchString(s) {
+		return false
+	}
+
+	if !unicode.IsLetter(rune(s[0])) {
 		return false
 	}
 

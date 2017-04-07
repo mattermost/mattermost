@@ -2,15 +2,10 @@
 // See License.txt for license information.
 
 import PostStore from 'stores/post_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+import {queuePost} from 'actions/post_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
 import {FormattedMessage} from 'react-intl';
 
@@ -27,25 +22,17 @@ export default class PendingPostOptions extends React.Component {
         e.preventDefault();
 
         var post = this.props.post;
-        Client.createPost(post,
-            (data) => {
-                AsyncClient.getPosts(post.channel_id);
+        queuePost(post, true, null,
+            (err) => {
+                if (err.id === 'api.post.create_post.root_id.app_error') {
+                    this.showPostDeletedModal();
+                } else {
+                    this.forceUpdate();
+                }
 
-                var channel = ChannelStore.get(post.channel_id);
-                var member = ChannelStore.getMember(post.channel_id);
-                member.msg_count = channel.total_msg_count;
-                member.last_viewed_at = (new Date()).getTime();
-                ChannelStore.setChannelMember(member);
-
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post: data
+                this.setState({
+                    submitting: false
                 });
-            },
-            () => {
-                post.state = Constants.POST_FAILED;
-                PostStore.updatePendingPost(post);
-                this.forceUpdate();
             }
         );
 

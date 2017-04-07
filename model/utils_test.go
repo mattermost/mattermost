@@ -34,7 +34,14 @@ func TestAppError(t *testing.T) {
 		t.Fatal()
 	}
 
-	err.Error()
+	t.Log(err.Error())
+}
+
+func TestAppErrorJunk(t *testing.T) {
+	rerr := AppErrorFromJson(strings.NewReader("<html><body>This is a broken test</body></html>"))
+	if "body: <html><body>This is a broken test</body></html>" != rerr.DetailedError {
+		t.Fatal()
+	}
 }
 
 func TestMapJson(t *testing.T) {

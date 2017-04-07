@@ -77,14 +77,22 @@ class UserSettingsModal extends React.Component {
         };
 
         this.requireConfirm = false;
+        this.mounted = false;
     }
 
     onUserChanged() {
-        this.setState({currentUser: UserStore.getCurrentUser()});
+        if (this.mounted) {
+            this.setState({currentUser: UserStore.getCurrentUser()});
+        }
     }
 
     componentDidMount() {
+        this.mounted = true;
         UserStore.addChangeListener(this.onUserChanged);
+    }
+
+    componentWillUnmount() {
+        this.mounted = false;
     }
 
     componentDidUpdate() {
@@ -104,7 +112,6 @@ class UserSettingsModal extends React.Component {
         }
 
         this.props.onModalDismissed();
-        return;
     }
 
     // called after the dialog is fully hidden and faded out
@@ -251,7 +258,6 @@ class UserSettingsModal extends React.Component {
                                 setRequireConfirm={
                                     (requireConfirm) => {
                                         this.requireConfirm = requireConfirm;
-                                        return;
                                     }
                                 }
                             />

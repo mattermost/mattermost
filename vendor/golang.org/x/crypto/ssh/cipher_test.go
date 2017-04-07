@@ -26,39 +26,41 @@ func TestPacketCiphers(t *testing.T) {
 	defer delete(cipherModes, aes128cbcID)
 
 	for cipher := range cipherModes {
-		kr := &kexResult{Hash: crypto.SHA1}
-		algs := directionAlgorithms{
-			Cipher:      cipher,
-			MAC:         "hmac-sha1",
-			Compression: "none",
-		}
-		client, err := newPacketCipher(clientKeys, algs, kr)
-		if err != nil {
-			t.Errorf("newPacketCipher(client, %q): %v", cipher, err)
-			continue
-		}
-		server, err := newPacketCipher(clientKeys, algs, kr)
-		if err != nil {
-			t.Errorf("newPacketCipher(client, %q): %v", cipher, err)
-			continue
-		}
+		for mac := range macModes {
+			kr := &kexResult{Hash: crypto.SHA1}
+			algs := directionAlgorithms{
+				Cipher:      cipher,
+				MAC:         mac,
+				Compression: "none",
+			}
+			client, err := newPacketCipher(clientKeys, algs, kr)
+			if err != nil {
+				t.Errorf("newPacketCipher(client, %q, %q): %v", cipher, mac, err)
+				continue
+			}
+			server, err := newPacketCipher(clientKeys, algs, kr)
+			if err != nil {
+				t.Errorf("newPacketCipher(client, %q, %q): %v", cipher, mac, err)
+				continue
+			}
 
-		want := "bla bla"
-		input := []byte(want)
-		buf := &bytes.Buffer{}
-		if err := client.writePacket(0, buf, rand.Reader, input); err != nil {
-			t.Errorf("writePacket(%q): %v", cipher, err)
-			continue
-		}
+			want := "bla bla"
+			input := []byte(want)
+			buf := &bytes.Buffer{}
+			if err := client.writePacket(0, buf, rand.Reader, input); err != nil {
+				t.Errorf("writePacket(%q, %q): %v", cipher, mac, err)
+				continue
+			}
 
-		packet, err := server.readPacket(0, buf)
-		if err != nil {
-			t.Errorf("readPacket(%q): %v", cipher, err)
-			continue
-		}
+			packet, err := server.readPacket(0, buf)
+			if err != nil {
+				t.Errorf("readPacket(%q, %q): %v", cipher, mac, err)
+				continue
+			}
 
-		if string(packet) != want {
-			t.Errorf("roundtrip(%q): got %q, want %q", cipher, packet, want)
+			if string(packet) != want {
+				t.Errorf("roundtrip(%q, %q): got %q, want %q", cipher, mac, packet, want)
+			}
 		}
 	}
 }

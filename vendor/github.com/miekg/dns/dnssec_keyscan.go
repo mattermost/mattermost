@@ -14,7 +14,7 @@ import (
 // NewPrivateKey returns a PrivateKey by parsing the string s.
 // s should be in the same form of the BIND private key files.
 func (k *DNSKEY) NewPrivateKey(s string) (crypto.PrivateKey, error) {
-	if s[len(s)-1] != '\n' { // We need a closing newline
+	if s == "" || s[len(s)-1] != '\n' { // We need a closing newline
 		return k.ReadPrivateKey(strings.NewReader(s+"\n"), "")
 	}
 	return k.ReadPrivateKey(strings.NewReader(s), "")
@@ -36,7 +36,7 @@ func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (crypto.PrivateKey, er
 		return nil, ErrPrivKey
 	}
 	// TODO(mg): check if the pubkey matches the private key
-	algo, err := strconv.Atoi(strings.SplitN(m["algorithm"], " ", 2)[0])
+	algo, err := strconv.ParseUint(strings.SplitN(m["algorithm"], " ", 2)[0], 10, 8)
 	if err != nil {
 		return nil, ErrPrivKey
 	}

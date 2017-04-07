@@ -13,7 +13,7 @@
 
 .signup-team__container {
     margin: 0 auto;
-    max-width: 380px;
+    max-width: 400px;
     padding: 100px 0 50px;
     position: relative;
 
@@ -450,9 +450,22 @@
     .signup-team-dir {
         background: #fafafa;
         border-top: 1px solid #d5d5d5;
+        overflow: hidden;
 
         &:first-child {
             border: none;
+        }
+
+        .icon {
+            cursor: pointer;
+            float: left;
+            margin: 16px 7px 0 15px;
+            opacity: .45;
+
+            svg {
+                height: 20px;
+                width: 20px;
+            }
         }
 
         a {
@@ -460,7 +473,7 @@
             display: block;
             font-size: 1.1em;
             height: 3.5em;
-            line-height: 3.5em;
+            line-height: 3.6em;
             padding: 0 15px;
         }
     }
@@ -481,7 +494,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        width: 90%;
+        width: calc(100% - 50px);
+
     }
 
     .signup-team__icon {
@@ -496,6 +510,15 @@
             font-size: .9em;
             right: -2px;
             top: 16px;
+        }
+
+        &.fa-info-circle {
+            float: left;
+            line-height: 1.5em;
+            margin-right: .3em;
+            padding-left: .5em;
+            font-size: 1.5em;
+            top: 11px;
         }
     }
 }

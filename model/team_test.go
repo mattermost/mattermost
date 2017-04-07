@@ -21,45 +21,45 @@ func TestTeamJson(t *testing.T) {
 func TestTeamIsValid(t *testing.T) {
 	o := Team{}
 
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Id = NewId()
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.CreateAt = GetMillis()
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.UpdateAt = GetMillis()
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Email = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Email = "corey+test@hulen.com"
 	o.DisplayName = strings.Repeat("01234567890", 20)
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.DisplayName = "1234"
 	o.Name = "ZZZZZZZ"
-	if err := o.IsValid(true); err == nil {
+	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
 	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
-	if err := o.IsValid(true); err != nil {
+	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -84,11 +84,11 @@ var domains = []struct {
 	{"spin-punch-", false},
 	{"spin_punch", false},
 	{"a", false},
-	{"aa", false},
-	{"aaa", false},
+	{"aa", true},
+	{"aaa", true},
 	{"aaa-999b", true},
 	{"b00b", true},
-	{"b))b", false},
+	{"b)", false},
 	{"test", true},
 }
 
@@ -104,8 +104,6 @@ var tReservedDomains = []struct {
 	value    string
 	expected bool
 }{
-	{"test-hello", true},
-	{"test", true},
 	{"admin", true},
 	{"Admin-punch", true},
 	{"spin-punch-admin", false},
@@ -120,15 +118,14 @@ func TestReservedTeamName(t *testing.T) {
 }
 
 func TestCleanTeamName(t *testing.T) {
-	if CleanTeamName("Jimbo's Team") != "jimbos-team" {
+	if CleanTeamName("Jimbo's Admin") != "jimbos-admin" {
 		t.Fatal("didn't clean name properly")
 	}
-	if len(CleanTeamName("Test")) != 26 {
+
+	if CleanTeamName("Admin Really cool") != "really-cool" {
 		t.Fatal("didn't clean name properly")
 	}
-	if CleanTeamName("Team Really cool") != "really-cool" {
-		t.Fatal("didn't clean name properly")
-	}
+
 	if CleanTeamName("super-duper-guys") != "super-duper-guys" {
 		t.Fatal("didn't clean name properly")
 	}

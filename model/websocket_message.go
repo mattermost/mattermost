@@ -14,10 +14,13 @@ const (
 	WEBSOCKET_EVENT_POST_EDITED        = "post_edited"
 	WEBSOCKET_EVENT_POST_DELETED       = "post_deleted"
 	WEBSOCKET_EVENT_CHANNEL_DELETED    = "channel_deleted"
-	WEBSOCKET_EVENT_CHANNEL_VIEWED     = "channel_viewed"
+	WEBSOCKET_EVENT_CHANNEL_CREATED    = "channel_created"
 	WEBSOCKET_EVENT_DIRECT_ADDED       = "direct_added"
+	WEBSOCKET_EVENT_GROUP_ADDED        = "group_added"
 	WEBSOCKET_EVENT_NEW_USER           = "new_user"
+	WEBSOCKET_EVENT_ADDED_TO_TEAM      = "added_to_team"
 	WEBSOCKET_EVENT_LEAVE_TEAM         = "leave_team"
+	WEBSOCKET_EVENT_UPDATE_TEAM        = "update_team"
 	WEBSOCKET_EVENT_USER_ADDED         = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED       = "user_updated"
 	WEBSOCKET_EVENT_USER_REMOVED       = "user_removed"
@@ -26,15 +29,19 @@ const (
 	WEBSOCKET_EVENT_STATUS_CHANGE      = "status_change"
 	WEBSOCKET_EVENT_HELLO              = "hello"
 	WEBSOCKET_EVENT_WEBRTC             = "webrtc"
+	WEBSOCKET_AUTHENTICATION_CHALLENGE = "authentication_challenge"
+	WEBSOCKET_EVENT_REACTION_ADDED     = "reaction_added"
+	WEBSOCKET_EVENT_REACTION_REMOVED   = "reaction_removed"
 )
 
 type WebSocketMessage interface {
 	ToJson() string
 	IsValid() bool
+	EventType() string
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers map[string]bool `json:"-"`          // broadcast is omitted for users listed here
+	OmitUsers map[string]bool `json:"omit_users"` // broadcast is omitted for users listed here
 	UserId    string          `json:"user_id"`    // broadcast only occurs for this user
 	ChannelId string          `json:"channel_id"` // broadcast only occurs for users in this channel
 	TeamId    string          `json:"team_id"`    // broadcast only occurs for users in this team
@@ -44,6 +51,7 @@ type WebSocketEvent struct {
 	Event     string                 `json:"event"`
 	Data      map[string]interface{} `json:"data"`
 	Broadcast *WebsocketBroadcast    `json:"broadcast"`
+	Sequence  int64                  `json:"seq"`
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
@@ -57,6 +65,10 @@ func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[st
 
 func (o *WebSocketEvent) IsValid() bool {
 	return o.Event != ""
+}
+
+func (o *WebSocketEvent) EventType() string {
+	return o.Event
 }
 
 func (o *WebSocketEvent) ToJson() string {
@@ -100,6 +112,10 @@ func NewWebSocketError(seqReply int64, err *AppError) *WebSocketResponse {
 
 func (o *WebSocketResponse) IsValid() bool {
 	return o.Status != ""
+}
+
+func (o *WebSocketResponse) EventType() string {
+	return ""
 }
 
 func (o *WebSocketResponse) ToJson() string {

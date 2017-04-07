@@ -4,7 +4,7 @@
 import * as utils from 'utils/utils.jsx';
 import SettingUpload from './setting_upload.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 
 const holders = defineMessages({
     importSlack: {
@@ -44,12 +44,68 @@ class TeamImportTab extends React.Component {
 
     render() {
         const {formatMessage} = this.props.intl;
+        var uploadDocsLink = (
+            <a
+                href='https://docs.mattermost.com/administration/migrating.html#migrating-from-slack'
+                target='_blank'
+                rel='noopener noreferrer'
+            >
+                <FormattedMessage
+                    id='team_import_tab.importHelpDocsLink'
+                    defaultMessage='documentation'
+                />
+            </a>
+        );
+
+        var uploadExportInstructions = (
+            <strong>
+                <FormattedMessage
+                    id='team_import_tab.importHelpExportInstructions'
+                    defaultMessage='Slack > Team Settings > Import/Export Data > Export > Start Export'
+                />
+            </strong>
+        );
+
+        var uploadExporterLink = (
+            <a
+                href='https://github.com/grundleborg/slack-advanced-exporter'
+                target='_blank'
+                rel='noopener noreferrer'
+            >
+                <FormattedMessage
+                    id='team_import_tab.importHelpExporterLink'
+                    defaultMessage='Slack Advanced Exporter'
+                />
+            </a>
+        );
+
         var uploadHelpText = (
             <div>
-                <FormattedHTMLMessage
-                    id='team_import_tab.importHelp'
-                    defaultMessage="<p>To import a team from Slack go to Slack > Team Settings > Import/Export Data > Export > Start Export. Slack does not allow you to export files, images, private groups or direct messages stored in Slack. Therefore, Slack import to Mattermost only supports importing of text messages in your Slack team's public channels.</p><p>The Slack import to Mattermost is in 'Beta'. Slack bot posts do not yet import.</p>"
-                />
+                <p>
+                    <FormattedMessage
+                        id='team_import_tab.importHelpLine1'
+                        defaultMessage="Slack import to Mattermost supports importing of messages in your Slack team's public channels."
+                    />
+                </p>
+                <p>
+                    <FormattedMessage
+                        id='team_import_tab.importHelpLine2'
+                        defaultMessage='To import a team from Slack, go to {exportInstructions}. See {uploadDocsLink} to learn more.'
+                        values={{
+                            exportInstructions: uploadExportInstructions,
+                            uploadDocsLink
+                        }}
+                    />
+                </p>
+                <p>
+                    <FormattedMessage
+                        id='team_import_tab.importHelpLine3'
+                        defaultMessage='To import posts with attached files, see {slackAdvancedExporterLink} for details.'
+                        values={{
+                            slackAdvancedExporterLink: uploadExporterLink
+                        }}
+                    />
+                </p>
             </div>
         );
 

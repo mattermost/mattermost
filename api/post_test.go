@@ -5,6 +5,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -45,6 +47,10 @@ func TestCreatePost(t *testing.T) {
 
 	if len(rpost1.Data.(*model.Post).FileIds) != 0 {
 		t.Fatal("shouldn't have files")
+	}
+
+	if rpost1.Data.(*model.Post).EditAt != 0 {
+		t.Fatal("Newly craeted post shouldn't have EditAt set")
 	}
 
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
@@ -130,11 +136,42 @@ func TestCreatePost(t *testing.T) {
 	} else if rpost9 := resp.Data.(*model.Post); len(rpost9.FileIds) != 3 {
 		t.Fatal("post should have 3 files")
 	} else {
-		infos := store.Must(Srv.Store.FileInfo().GetForPost(rpost9.Id)).([]*model.FileInfo)
+		infos := store.Must(app.Srv.Store.FileInfo().GetForPost(rpost9.Id, true, true)).([]*model.FileInfo)
 
 		if len(infos) != 3 {
 			t.Fatal("should've attached all 3 files to post")
 		}
+	}
+}
+
+func TestCreatePostWithCreateAt(t *testing.T) {
+
+	// An ordinary user cannot use CreateAt
+
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+
+	post := &model.Post{
+		ChannelId: channel1.Id,
+		Message:   "PLT-4349",
+		CreateAt:  1234,
+	}
+	if resp, err := Client.CreatePost(post); err != nil {
+		t.Fatal(err)
+	} else if rpost := resp.Data.(*model.Post); rpost.CreateAt == post.CreateAt {
+		t.Fatal("post should be created with default CreateAt timestamp for ordinary user")
+	}
+
+	// But a System Admin user can
+
+	th2 := Setup().InitSystemAdmin()
+	SysClient := th2.SystemAdminClient
+
+	if resp, err := SysClient.CreatePost(post); err != nil {
+		t.Fatal(err)
+	} else if rpost := resp.Data.(*model.Post); rpost.CreateAt != post.CreateAt {
+		t.Fatal("post should be created with provided CreateAt timestamp for System Admin user")
 	}
 }
 
@@ -279,6 +316,15 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
+	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	postEditTimeLimit := *utils.Cfg.ServiceSettings.PostEditTimeLimit
+	defer func() {
+		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		*utils.Cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit
+	}()
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
@@ -295,6 +341,10 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if rpost2.Data.(*model.Post).EditAt != 0 {
+		t.Fatal("Newly craeted post shouldn't have EditAt set")
+	}
+
 	msg2 := "a" + model.NewId() + " update post 1"
 	rpost2.Data.(*model.Post).Message = msg2
 	if rupost2, err := Client.UpdatePost(rpost2.Data.(*model.Post)); err != nil {
@@ -302,6 +352,9 @@ func TestUpdatePost(t *testing.T) {
 	} else {
 		if rupost2.Data.(*model.Post).Message != msg2 {
 			t.Fatal("failed to updates")
+		}
+		if rupost2.Data.(*model.Post).EditAt == 0 {
+			t.Fatal("EditAt not updated for post")
 		}
 	}
 
@@ -333,6 +386,56 @@ func TestUpdatePost(t *testing.T) {
 	up3 := &model.Post{Id: rpost3.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " update post 3"}
 	if _, err := Client.UpdatePost(up3); err == nil {
 		t.Fatal("shouldn't have been able to update system message")
+	}
+
+	// Test licensed policy controls for edit post
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
+
+	post4 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+	rpost4, err := Client.CreatePost(post4)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	up4 := &model.Post{Id: rpost4.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " update post 4"}
+	if _, err := Client.UpdatePost(up4); err == nil {
+		t.Fatal("shouldn't have been able to update a message when not allowed")
+	}
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT
+	*utils.Cfg.ServiceSettings.PostEditTimeLimit = 1 //seconds
+
+	post5 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+	rpost5, err := Client.CreatePost(post5)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg5 := "a" + model.NewId() + " update post 5"
+	up5 := &model.Post{Id: rpost5.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: msg5}
+	if rup5, err := Client.UpdatePost(up5); err != nil {
+		t.Fatal(err)
+	} else {
+		if rup5.Data.(*model.Post).Message != up5.Message {
+			t.Fatal("failed to updates")
+		}
+	}
+
+	time.Sleep(1000 * time.Millisecond)
+
+	up6 := &model.Post{Id: rpost5.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " update post 5"}
+	if _, err := Client.UpdatePost(up6); err == nil {
+		t.Fatal("shouldn't have been able to update a message after time limit")
 	}
 }
 
@@ -762,10 +865,18 @@ func TestGetPostsCache(t *testing.T) {
 }
 
 func TestDeletePosts(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
-	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+	team1 := th.BasicTeam
+
+	restrictPostDelete := *utils.Cfg.ServiceSettings.RestrictPostDelete
+	defer func() {
+		*utils.Cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL
+	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
@@ -797,28 +908,162 @@ func TestDeletePosts(t *testing.T) {
 	r2 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
 
 	if len(r2.Posts) != 5 {
-		t.Fatal("should have returned 4 items")
+		t.Fatal("should have returned 5 items")
 	}
 
 	time.Sleep(10 * time.Millisecond)
-	post4 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
-	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
+	post4a := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post4a = Client.Must(Client.CreatePost(post4a)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post4b := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post4b = Client.Must(Client.CreatePost(post4b)).Data.(*model.Post)
+
+	SystemAdminClient := th.SystemAdminClient
+	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	SystemAdminClient.Must(SystemAdminClient.JoinChannel(channel1.Id))
 
 	th.LoginBasic2()
 	Client.Must(Client.JoinChannel(channel1.Id))
 
-	Client.Must(Client.DeletePost(channel1.Id, post4.Id))
+	if _, err := Client.DeletePost(channel1.Id, post4a.Id); err == nil {
+		t.Fatal(err)
+	}
+
+	// Test licensed policy controls for delete post
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+
+	Client.Logout()
+	th.LoginBasic2()
+	Client.SetTeamId(team1.Id)
+
+	Client.Must(Client.DeletePost(channel1.Id, post4a.Id))
+
+	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post4b.Id))
+
+	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	th.LoginBasic()
+
+	time.Sleep(10 * time.Millisecond)
+	post5a := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post5a = Client.Must(Client.CreatePost(post5a)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post5b := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post5b = Client.Must(Client.CreatePost(post5b)).Data.(*model.Post)
+
+	if _, err := Client.DeletePost(channel1.Id, post5a.Id); err == nil {
+		t.Fatal(err)
+	}
+
+	th.LoginBasic2()
+
+	Client.Must(Client.DeletePost(channel1.Id, post5a.Id))
+
+	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post5b.Id))
+
+	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
+	utils.SetDefaultRolesBasedOnConfig()
+
+	th.LoginBasic()
+
+	time.Sleep(10 * time.Millisecond)
+	post6a := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post6a = Client.Must(Client.CreatePost(post6a)).Data.(*model.Post)
+
+	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
+		t.Fatal(err)
+	}
+
+	th.LoginBasic2()
+
+	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
+		t.Fatal(err)
+	}
+
+	// Check that if unlicensed the policy restriction is not enforced.
+	utils.IsLicensed = false
+	utils.License = nil
+	utils.SetDefaultRolesBasedOnConfig()
+
+	time.Sleep(10 * time.Millisecond)
+	post7 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post7 = Client.Must(Client.CreatePost(post7)).Data.(*model.Post)
+
+	if _, err := Client.DeletePost(channel1.Id, post7.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post6a.Id))
+
 }
 
 func TestEmailMention(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
+	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: th.BasicUser.Username}
+	th.LoginBasic2()
+	//Set the notification properties
+	data := make(map[string]string)
+	data["user_id"] = th.BasicUser2.Id
+	data["email"] = "true"
+	data["desktop"] = "all"
+	data["desktop_sound"] = "false"
+	data["comments"] = "any"
+	Client.Must(Client.UpdateUserNotify(data))
+
+	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
+		UserId:   th.BasicUser2.Id,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "0",
+	}}))
+
+	//Delete all the messages before create a mention post
+	utils.DeleteMailBox(th.BasicUser2.Email)
+
+	//Send a mention message from user1 to user2
+	th.LoginBasic()
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "@" + th.BasicUser2.Username + " this is a test"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
-	// No easy way to verify the email was sent, but this will at least cause the server to throw errors if the code is broken
+	var resultsMailbox utils.JSONMessageHeaderInbucket
+	err := utils.RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = utils.GetMailBox(th.BasicUser2.Email)
+		return err
+	})
+	if err != nil {
+		t.Log(err)
+		t.Log("No email was received, maybe due load on the server. Disabling this verification")
+	}
+	if err == nil && len(resultsMailbox) > 0 {
+		if !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
+			t.Fatal("Wrong To recipient")
+		} else {
+			if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
+				if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
+					t.Log(resultsEmail.Body.Text)
+					t.Fatal("Received wrong Message")
+				}
+			}
+		}
+	}
 
 }
 
@@ -834,308 +1079,6 @@ func TestFuzzyPosts(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-	}
-}
-
-func TestMakeDirectChannelVisible(t *testing.T) {
-	th := Setup().InitBasic()
-	Client := th.BasicClient
-	team := th.BasicTeam
-	user1 := th.BasicUser
-	user2 := th.BasicUser2
-
-	th.LoginBasic2()
-
-	preferences := &model.Preferences{
-		{
-			UserId:   user2.Id,
-			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-			Name:     user1.Id,
-			Value:    "false",
-		},
-	}
-	Client.Must(Client.SetPreferences(preferences))
-
-	Client.Must(Client.Logout())
-	th.LoginBasic()
-	th.BasicClient.SetTeamId(team.Id)
-
-	channel := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
-
-	makeDirectChannelVisible(channel.Id)
-
-	if result, err := Client.GetPreference(model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, user2.Id); err != nil {
-		t.Fatal("Errored trying to set direct channel to be visible for user1")
-	} else if pref := result.Data.(*model.Preference); pref.Value != "true" {
-		t.Fatal("Failed to set direct channel to be visible for user1")
-	}
-}
-
-func TestGetMentionKeywords(t *testing.T) {
-	// user with username or custom mentions enabled
-	user1 := &model.User{
-		Id:        model.NewId(),
-		FirstName: "First",
-		Username:  "User",
-		NotifyProps: map[string]string{
-			"mention_keys": "User,@User,MENTION",
-		},
-	}
-
-	profiles := map[string]*model.User{user1.Id: user1}
-	members := map[string]string{user1.Id: user1.Id}
-	mentions := getMentionKeywords(profiles, members)
-	if len(mentions) != 3 {
-		t.Fatal("should've returned two mention keywords")
-	} else if ids, ok := mentions["user"]; !ok || ids[0] != user1.Id {
-		t.Fatal("should've returned mention key of user")
-	} else if ids, ok := mentions["@user"]; !ok || ids[0] != user1.Id {
-		t.Fatal("should've returned mention key of @user")
-	} else if ids, ok := mentions["mention"]; !ok || ids[0] != user1.Id {
-		t.Fatal("should've returned mention key of mention")
-	}
-
-	// user with first name mention enabled
-	user2 := &model.User{
-		Id:        model.NewId(),
-		FirstName: "First",
-		Username:  "User",
-		NotifyProps: map[string]string{
-			"first_name": "true",
-		},
-	}
-
-	profiles = map[string]*model.User{user2.Id: user2}
-	members = map[string]string{user2.Id: user2.Id}
-	mentions = getMentionKeywords(profiles, members)
-	if len(mentions) != 1 {
-		t.Fatal("should've returned one mention keyword")
-	} else if ids, ok := mentions["First"]; !ok || ids[0] != user2.Id {
-		t.Fatal("should've returned mention key of First")
-	}
-
-	// user with @channel/@all mentions enabled
-	user3 := &model.User{
-		Id:        model.NewId(),
-		FirstName: "First",
-		Username:  "User",
-		NotifyProps: map[string]string{
-			"channel": "true",
-		},
-	}
-
-	profiles = map[string]*model.User{user3.Id: user3}
-	members = map[string]string{user3.Id: user3.Id}
-	mentions = getMentionKeywords(profiles, members)
-	if len(mentions) != 2 {
-		t.Fatal("should've returned two mention keywords")
-	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
-		t.Fatal("should've returned mention key of @channel")
-	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user3.Id {
-		t.Fatal("should've returned mention key of @all")
-	}
-
-	// user with all types of mentions enabled
-	user4 := &model.User{
-		Id:        model.NewId(),
-		FirstName: "First",
-		Username:  "User",
-		NotifyProps: map[string]string{
-			"mention_keys": "User,@User,MENTION",
-			"first_name":   "true",
-			"channel":      "true",
-		},
-	}
-
-	profiles = map[string]*model.User{user4.Id: user4}
-	members = map[string]string{user4.Id: user4.Id}
-	mentions = getMentionKeywords(profiles, members)
-	if len(mentions) != 6 {
-		t.Fatal("should've returned six mention keywords")
-	} else if ids, ok := mentions["user"]; !ok || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of user")
-	} else if ids, ok := mentions["@user"]; !ok || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of @user")
-	} else if ids, ok := mentions["mention"]; !ok || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of mention")
-	} else if ids, ok := mentions["First"]; !ok || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of First")
-	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of @channel")
-	} else if ids, ok := mentions["@all"]; !ok || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of @all")
-	}
-
-	// multiple users
-	profiles = map[string]*model.User{
-		user1.Id: user1,
-		user2.Id: user2,
-		user3.Id: user3,
-		user4.Id: user4,
-	}
-	members = map[string]string{
-		user1.Id: user1.Id,
-		user2.Id: user2.Id,
-		user3.Id: user3.Id,
-		user4.Id: user4.Id,
-	}
-	mentions = getMentionKeywords(profiles, members)
-	if len(mentions) != 6 {
-		t.Fatal("should've returned six mention keywords")
-	} else if ids, ok := mentions["user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
-		t.Fatal("should've mentioned user1 and user4 with user")
-	} else if ids, ok := mentions["@user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
-		t.Fatal("should've mentioned user1 and user4 with @user")
-	} else if ids, ok := mentions["mention"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
-		t.Fatal("should've mentioned user1 and user4 with mention")
-	} else if ids, ok := mentions["First"]; !ok || len(ids) != 2 || (ids[0] != user2.Id && ids[1] != user2.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
-		t.Fatal("should've mentioned user2 and user4 with mention")
-	} else if ids, ok := mentions["@channel"]; !ok || len(ids) != 2 || (ids[0] != user3.Id && ids[1] != user3.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
-		t.Fatal("should've mentioned user3 and user4 with @channel")
-	} else if ids, ok := mentions["@all"]; !ok || len(ids) != 2 || (ids[0] != user3.Id && ids[1] != user3.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
-		t.Fatal("should've mentioned user3 and user4 with @all")
-	}
-
-	// a user that's not in the channel
-	profiles = map[string]*model.User{user4.Id: user4}
-	members = map[string]string{}
-	mentions = getMentionKeywords(profiles, members)
-	if len(mentions) != 1 {
-		t.Fatal("should've returned one mention keyword")
-	} else if ids, ok := mentions["@user"]; !ok || len(ids) != 1 || ids[0] != user4.Id {
-		t.Fatal("should've returned mention key of @user")
-	}
-}
-
-func TestGetExplicitMentionsAtHere(t *testing.T) {
-	// test all the boundary cases that we know can break up terms (and those that we know won't)
-	cases := map[string]bool{
-		"":          false,
-		"here":      false,
-		"@here":     true,
-		" @here ":   true,
-		"\t@here\t": true,
-		"\n@here\n": true,
-		// "!@here!": true,
-		// "@@here@": true,
-		// "#@here#": true,
-		// "$@here$": true,
-		// "%@here%": true,
-		// "^@here^": true,
-		// "&@here&": true,
-		// "*@here*": true,
-		"(@here(": true,
-		")@here)": true,
-		// "-@here-": true,
-		// "_@here_": true,
-		// "=@here=": true,
-		"+@here+":   true,
-		"[@here[":   true,
-		"{@here{":   true,
-		"]@here]":   true,
-		"}@here}":   true,
-		"\\@here\\": true,
-		// "|@here|": true,
-		";@here;": true,
-		":@here:": true,
-		// "'@here'": true,
-		// "\"@here\"": true,
-		",@here,": true,
-		"<@here<": true,
-		".@here.": true,
-		">@here>": true,
-		"/@here/": true,
-		"?@here?": true,
-		// "`@here`": true,
-		// "~@here~": true,
-	}
-
-	for message, shouldMention := range cases {
-		if _, hereMentioned := getExplicitMentions(message, nil); hereMentioned && !shouldMention {
-			t.Fatalf("shouldn't have mentioned @here with \"%v\"", message)
-		} else if !hereMentioned && shouldMention {
-			t.Fatalf("should've have mentioned @here with \"%v\"", message)
-		}
-	}
-
-	// mentioning @here and someone
-	id := model.NewId()
-	if mentions, hereMentioned := getExplicitMentions("@here @user", map[string][]string{"@user": {id}}); !hereMentioned {
-		t.Fatal("should've mentioned @here with \"@here @user\"")
-	} else if len(mentions) != 1 || !mentions[id] {
-		t.Fatal("should've mentioned @user with \"@here @user\"")
-	}
-}
-
-func TestGetExplicitMentions(t *testing.T) {
-	id1 := model.NewId()
-	id2 := model.NewId()
-
-	// not mentioning anybody
-	message := "this is a message"
-	keywords := map[string][]string{}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
-		t.Fatal("shouldn't have mentioned anybody")
-	}
-
-	// mentioning a user that doesn't exist
-	message = "this is a message for @user"
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 0 {
-		t.Fatal("shouldn't have mentioned user that doesn't exist")
-	}
-
-	// mentioning one person
-	keywords = map[string][]string{"@user": {id1}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
-		t.Fatal("should've mentioned @user")
-	}
-
-	// mentioning one person without an @mention
-	message = "this is a message for @user"
-	keywords = map[string][]string{"this": {id1}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
-		t.Fatal("should've mentioned this")
-	}
-
-	// mentioning multiple people with one word
-	message = "this is a message for @user"
-	keywords = map[string][]string{"@user": {id1, id2}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @user")
-	}
-
-	// mentioning only one of multiple people
-	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
-		t.Fatal("should've mentioned @user and not @mention")
-	}
-
-	// mentioning multiple people with multiple words
-	message = "this is an @mention for @user"
-	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @user and @mention")
-	}
-
-	// mentioning @channel (not a special case, but it's good to double check)
-	message = "this is an message for @channel"
-	keywords = map[string][]string{"@channel": {id1, id2}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @channel")
-	}
-
-	// mentioning @all (not a special case, but it's good to double check)
-	message = "this is an message for @all"
-	keywords = map[string][]string{"@all": {id1, id2}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @all")
-	}
-
-	// mentioning user.period without mentioning user (PLT-3222)
-	message = "user.period doesn't complicate things at all by including periods in their username"
-	keywords = map[string][]string{"user.period": {id1}, "user": {id2}}
-	if mentions, _ := getExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
-		t.Fatal("should've mentioned user.period and not user")
 	}
 }
 
@@ -1172,33 +1115,38 @@ func TestGetFlaggedPosts(t *testing.T) {
 	if len(r2.Order) != 0 {
 		t.Fatal("should not have gotten a flagged post")
 	}
+
+	Client.SetTeamId(model.NewId())
+	if _, err := Client.GetFlaggedPosts(0, 2); err == nil {
+		t.Fatal("should have failed - bad team id")
+	}
 }
 
 func TestGetMessageForNotification(t *testing.T) {
 	Setup().InitBasic()
 
-	testPng := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+	testPng := store.Must(app.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test1.png",
 		Name:      "test1.png",
 		MimeType:  "image/png",
 	})).(*model.FileInfo)
 
-	testJpg1 := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+	testJpg1 := store.Must(app.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test2.jpg",
 		Name:      "test2.jpg",
 		MimeType:  "image/jpeg",
 	})).(*model.FileInfo)
 
-	testFile := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+	testFile := store.Must(app.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test1.go",
 		Name:      "test1.go",
 		MimeType:  "text/plain",
 	})).(*model.FileInfo)
 
-	testJpg2 := store.Must(Srv.Store.FileInfo().Save(&model.FileInfo{
+	testJpg2 := store.Must(app.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test3.jpg",
 		Name:      "test3.jpg",
@@ -1212,37 +1160,39 @@ func TestGetMessageForNotification(t *testing.T) {
 		Message: "test",
 	}
 
-	if getMessageForNotification(post, translateFunc) != "test" {
+	if app.GetMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text")
 	}
 
 	post.FileIds = model.StringArray{testPng.Id}
-	store.Must(Srv.Store.FileInfo().AttachToPost(testPng.Id, post.Id))
-	if getMessageForNotification(post, translateFunc) != "test" {
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(testPng.Id, post.Id))
+	if app.GetMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text, even with attachments")
 	}
 
 	post.Message = ""
-	if message := getMessageForNotification(post, translateFunc); message != "1 image sent: test1.png" {
+	if message := app.GetMessageForNotification(post, translateFunc); message != "1 image sent: test1.png" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
 	post.FileIds = model.StringArray{testPng.Id, testJpg1.Id}
-	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
-	if message := getMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" {
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
+	app.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
+	if message := app.GetMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" && message != "2 images sent: test2.jpg, test1.png" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
 	post.Id = model.NewId()
 	post.FileIds = model.StringArray{testFile.Id}
-	store.Must(Srv.Store.FileInfo().AttachToPost(testFile.Id, post.Id))
-	if message := getMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(testFile.Id, post.Id))
+	if message := app.GetMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
 		t.Fatal("should've returned number of files:", message)
 	}
 
-	store.Must(Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
+	app.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
 	post.FileIds = model.StringArray{testFile.Id, testJpg2.Id}
-	if message := getMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" {
+	if message := app.GetMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" && message != "2 files sent: test3.jpg, test1.go" {
 		t.Fatal("should've returned number of mixed files:", message)
 	}
 }
@@ -1282,5 +1232,213 @@ func TestGetFileInfosForPost(t *testing.T) {
 		t.Fatal(err)
 	} else if len(infos) != 0 {
 		t.Fatal("should've returned nothing because of etag")
+	}
+}
+
+func TestGetPostById(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "yommamma" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	if post, respMetadata := Client.GetPostById(post1.Id, ""); respMetadata.Error != nil {
+		t.Fatal(respMetadata.Error)
+	} else {
+		if len(post.Order) != 1 {
+			t.Fatal("should be just one post")
+		}
+
+		if post.Order[0] != post1.Id {
+			t.Fatal("wrong order")
+		}
+
+		if post.Posts[post.Order[0]].Message != post1.Message {
+			t.Fatal("wrong message from post")
+		}
+	}
+
+	if _, respMetadata := Client.GetPostById("45345435345345", ""); respMetadata.Error == nil {
+		t.Fatal(respMetadata.Error)
+	}
+}
+
+func TestGetPermalinkTmp(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+	team := th.BasicTeam
+
+	th.LoginBasic()
+
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+
+	time.Sleep(10 * time.Millisecond)
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
+
+	etag := Client.Must(Client.GetPost(channel1.Id, post1.Id, "")).Etag
+
+	// test etag caching
+	if cache_result, respMetadata := Client.GetPermalink(channel1.Id, post1.Id, etag); respMetadata.Error != nil {
+		t.Fatal(respMetadata.Error)
+	} else if cache_result != nil {
+		t.Log(cache_result)
+		t.Fatal("cache should be empty")
+	}
+
+	if results, respMetadata := Client.GetPermalink(channel1.Id, post1.Id, ""); respMetadata.Error != nil {
+		t.Fatal(respMetadata.Error)
+	} else if results == nil {
+		t.Fatal("should not be empty")
+	}
+
+	// Test permalink to private channels.
+	channel2 := &model.Channel{DisplayName: "TestGetPermalinkPriv", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
+	time.Sleep(10 * time.Millisecond)
+	post3 := &model.Post{ChannelId: channel2.Id, Message: "a" + model.NewId() + "a"}
+	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
+
+	if _, md := Client.GetPermalink(channel2.Id, post3.Id, ""); md.Error != nil {
+		t.Fatal(md.Error)
+	}
+
+	th.LoginBasic2()
+
+	if _, md := Client.GetPermalink(channel2.Id, post3.Id, ""); md.Error == nil {
+		t.Fatal("Expected 403 error")
+	}
+
+	// Test direct channels.
+	th.LoginBasic()
+	channel3 := Client.Must(Client.CreateDirectChannel(th.SystemAdminUser.Id)).Data.(*model.Channel)
+	time.Sleep(10 * time.Millisecond)
+	post4 := &model.Post{ChannelId: channel3.Id, Message: "a" + model.NewId() + "a"}
+	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
+
+	if _, md := Client.GetPermalink(channel3.Id, post4.Id, ""); md.Error != nil {
+		t.Fatal(md.Error)
+	}
+
+	th.LoginBasic2()
+
+	if _, md := Client.GetPermalink(channel3.Id, post4.Id, ""); md.Error == nil {
+		t.Fatal("Expected 403 error")
+	}
+}
+
+func TestGetOpenGraphMetadata(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
+	}()
+	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
+
+	ogDataCacheMissCount := 0
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ogDataCacheMissCount++
+
+		if r.URL.Path == "/og-data/" {
+			fmt.Fprintln(w, `
+				<html><head><meta property="og:type" content="article" />
+		  		<meta property="og:title" content="Test Title" />
+		  		<meta property="og:url" content="http://example.com/" />
+				</head><body></body></html>
+			`)
+		} else if r.URL.Path == "/no-og-data/" {
+			fmt.Fprintln(w, `<html><head></head><body></body></html>`)
+		}
+	}))
+
+	for _, data := range [](map[string]interface{}){
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 1},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+
+		// Data should be cached for following
+		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 2},
+		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
+	} {
+		res, err := Client.DoApiPost(
+			"/get_opengraph_metadata",
+			fmt.Sprintf("{\"url\":\"%s\"}", ts.URL+data["path"].(string)),
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		ogData := model.StringInterfaceFromJson(res.Body)
+		if strings.Compare(ogData["title"].(string), data["title"].(string)) != 0 {
+			t.Fatal(fmt.Sprintf(
+				"OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"",
+				data["path"].(string), data["title"].(string), ogData["title"].(string),
+			))
+		}
+
+		if ogDataCacheMissCount != data["cacheMissCount"].(int) {
+			t.Fatal(fmt.Sprintf(
+				"Cache miss count didn't match. Expected value %d. Actual value %d.",
+				data["cacheMissCount"].(int), ogDataCacheMissCount,
+			))
+		}
+	}
+
+	*utils.Cfg.ServiceSettings.EnableLinkPreviews = false
+	if _, err := Client.DoApiPost("/get_opengraph_metadata", "{\"url\":\"/og-data/\"}"); err == nil || err.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should have failed with 501 - disabled link previews")
+	}
+}
+
+func TestPinPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	post := th.BasicPost
+	if rupost1, err := Client.PinPost(post.ChannelId, post.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost1.Data.(*model.Post).IsPinned != true {
+			t.Fatal("failed to pin post")
+		}
+	}
+
+	pinnedPost := th.PinnedPost
+	if rupost2, err := Client.PinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost2.Data.(*model.Post).IsPinned != true {
+			t.Fatal("pinning a post should be idempotent")
+		}
+	}
+}
+
+func TestUnpinPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	pinnedPost := th.PinnedPost
+	if rupost1, err := Client.UnpinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost1.Data.(*model.Post).IsPinned != false {
+			t.Fatal("failed to unpin post")
+		}
+	}
+
+	post := th.BasicPost
+	if rupost2, err := Client.UnpinPost(post.ChannelId, post.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost2.Data.(*model.Post).IsPinned != false {
+			t.Fatal("unpinning a post should be idempotent")
+		}
 	}
 }

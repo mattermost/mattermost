@@ -52,14 +52,14 @@ class PasswordResetSendLink extends React.Component {
                         <div className='reset-form alert alert-success'>
                             <FormattedHTMLMessage
                                 id='password_send.link'
-                                defaultMessage='<p>A password reset link has been sent to <b>{email}</b></p>'
+                                defaultMessage='If the account exists, a password reset email will be sent to: <br/><b>{email}</b><br/><br/>'
                                 values={{
                                     email
                                 }}
                             />
                             <FormattedMessage
-                                id={'password_send.checkInbox'}
-                                defaultMessage={'Please check your inbox.'}
+                                id='password_send.checkInbox'
+                                defaultMessage='Please check your inbox.'
                             />
                         </div>
                     )

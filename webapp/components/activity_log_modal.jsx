@@ -1,17 +1,19 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import UserStore from 'stores/user_store.jsx';
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import {Modal} from 'react-bootstrap';
 import LoadingScreen from './loading_screen.jsx';
+
+import UserStore from 'stores/user_store.jsx';
+
+import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import $ from 'jquery';
+import React from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
 
-import React from 'react';
+import {revokeSession} from 'actions/admin_actions.jsx';
 
 export default class ActivityLogModal extends React.Component {
     constructor(props) {
@@ -25,9 +27,11 @@ export default class ActivityLogModal extends React.Component {
 
         const state = this.getStateFromStores();
         state.moreInfo = [];
+        state.show = true;
 
         this.state = state;
     }
+
     getStateFromStores() {
         return {
             sessions: UserStore.getSessions(),
@@ -35,6 +39,7 @@ export default class ActivityLogModal extends React.Component {
             clientError: null
         };
     }
+
     submitRevoke(altId, e) {
         e.preventDefault();
         var modalContent = $(e.target).closest('.modal-content');
@@ -42,10 +47,8 @@ export default class ActivityLogModal extends React.Component {
         setTimeout(() => {
             modalContent.removeClass('animation--highlight');
         }, 1500);
-        Client.revokeSession(altId,
-            () => {
-                AsyncClient.getSessions();
-            },
+        revokeSession(altId,
+            null,
             (err) => {
                 const state = this.getStateFromStores();
                 state.serverError = err;
@@ -53,42 +56,40 @@ export default class ActivityLogModal extends React.Component {
             }
         );
     }
+
     onShow() {
         AsyncClient.getSessions();
         if (!Utils.isMobile()) {
             $('.modal-body').perfectScrollbar();
         }
     }
+
     onHide() {
-        this.setState({moreInfo: []});
-        this.props.onHide();
+        this.setState({show: false});
     }
+
     componentDidMount() {
         UserStore.addSessionsChangeListener(this.onListenerChange);
+        this.onShow();
+    }
 
-        if (this.props.show) {
-            this.onShow();
-        }
-    }
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
-    }
     componentWillUnmount() {
         UserStore.removeSessionsChangeListener(this.onListenerChange);
     }
+
     onListenerChange() {
         const newState = this.getStateFromStores();
         if (!Utils.areObjectsEqual(newState.sessions, this.state.sessions)) {
             this.setState(newState);
         }
     }
+
     handleMoreInfo(index) {
         const newMoreInfo = this.state.moreInfo;
         newMoreInfo[index] = true;
         this.setState({moreInfo: newMoreInfo});
     }
+
     render() {
         const activityList = [];
 
@@ -101,7 +102,7 @@ export default class ActivityLogModal extends React.Component {
 
             if (currentSession.props.platform === 'Windows') {
                 devicePicture = 'fa fa-windows';
-            } else if (currentSession.device_id && currentSession.device_id.indexOf('apple:') === 0) {
+            } else if (currentSession.device_id && currentSession.device_id.indexOf('apple') === 0) {
                 devicePicture = 'fa fa-apple';
                 devicePlatform = (
                     <FormattedMessage
@@ -109,7 +110,7 @@ export default class ActivityLogModal extends React.Component {
                         defaultMessage='iPhone Native App'
                     />
                 );
-            } else if (currentSession.device_id && currentSession.device_id.indexOf('android:') === 0) {
+            } else if (currentSession.device_id && currentSession.device_id.indexOf('android') === 0) {
                 devicePlatform = (
                     <FormattedMessage
                         id='activity_log_modal.androidNativeApp'
@@ -132,6 +133,17 @@ export default class ActivityLogModal extends React.Component {
                 } else {
                     devicePicture = 'fa fa-linux';
                 }
+            } else if (currentSession.props.os.indexOf('Linux') !== -1) {
+                devicePicture = 'fa fa-linux';
+            }
+
+            if (currentSession.props.browser.indexOf('Desktop App') !== -1) {
+                devicePlatform = (
+                    <FormattedMessage
+                        id='activity_log_modal.desktop'
+                        defaultMessage='Native Desktop App'
+                    />
+                );
             }
 
             let moreInfo;
@@ -263,8 +275,10 @@ export default class ActivityLogModal extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
+                dialogClassName='modal--scroll'
+                show={this.state.show}
                 onHide={this.onHide}
+                onExited={this.props.onHide}
                 bsSize='large'
             >
                 <Modal.Header closeButton={true}>
@@ -290,6 +304,5 @@ export default class ActivityLogModal extends React.Component {
 }
 
 ActivityLogModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired
 };

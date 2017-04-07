@@ -3,6 +3,7 @@
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {getSiteURL} from 'utils/url.jsx';
 
 import React from 'react';
 
@@ -15,7 +16,7 @@ export default class MessageWrapper extends React.Component {
     render() {
         if (this.props.message) {
             const options = Object.assign({}, this.props.options, {
-                siteURL: Utils.getSiteURL()
+                siteURL: getSiteURL()
             });
 
             return (

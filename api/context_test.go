@@ -4,28 +4,26 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
 )
 
-func TestCache(t *testing.T) {
-	session := &model.Session{
-		Id:     model.NewId(),
-		Token:  model.NewId(),
-		UserId: model.NewId(),
+func TestSiteURLHeader(t *testing.T) {
+	c := &Context{}
+
+	testCases := []struct {
+		url  string
+		want string
+	}{
+		{"http://mattermost.com/", "http://mattermost.com"},
+		{"http://mattermost.com", "http://mattermost.com"},
 	}
 
-	sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
+	for _, tc := range testCases {
+		c.SetSiteURLHeader(tc.url)
 
-	keys := sessionCache.Keys()
-	if len(keys) <= 0 {
-		t.Fatal("should have items")
+		if c.siteURLHeader != tc.want {
+			t.Fatalf("expected %s, got %s", tc.want, c.siteURLHeader)
+		}
 	}
 
-	RemoveAllSessionsForUserId(session.UserId)
-
-	rkeys := sessionCache.Keys()
-	if len(rkeys) != len(keys)-1 {
-		t.Fatal("should have one less")
-	}
 }

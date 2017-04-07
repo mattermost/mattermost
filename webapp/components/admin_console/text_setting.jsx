@@ -18,7 +18,7 @@ export default class TextSetting extends React.Component {
                 React.PropTypes.number
             ]).isRequired,
             maxLength: React.PropTypes.number,
-            onChange: React.PropTypes.func.isRequired,
+            onChange: React.PropTypes.func,
             disabled: React.PropTypes.bool,
             type: React.PropTypes.oneOf([
                 'input',

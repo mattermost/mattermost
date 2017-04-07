@@ -6,6 +6,8 @@ package ipv4
 
 import (
 	"net"
+	"strconv"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -36,61 +38,60 @@ var (
 func init() {
 	// Seems like kern.osreldate is veiled on latest OS X. We use
 	// kern.osrelease instead.
-	osver, err := syscall.Sysctl("kern.osrelease")
+	s, err := syscall.Sysctl("kern.osrelease")
 	if err != nil {
 		return
 	}
-	var i int
-	for i = range osver {
-		if osver[i] == '.' {
-			break
-		}
+	ss := strings.Split(s, ".")
+	if len(ss) == 0 {
+		return
 	}
 	// The IP_PKTINFO and protocol-independent multicast API were
-	// introduced in OS X 10.7 (Darwin 11.0.0). But it looks like
-	// those features require OS X 10.8 (Darwin 12.0.0) and above.
+	// introduced in OS X 10.7 (Darwin 11). But it looks like
+	// those features require OS X 10.8 (Darwin 12) or above.
 	// See http://support.apple.com/kb/HT1633.
-	if i > 2 || i == 2 && osver[0] >= '1' && osver[1] >= '2' {
-		ctlOpts[ctlPacketInfo].name = sysIP_PKTINFO
-		ctlOpts[ctlPacketInfo].length = sysSizeofInetPktinfo
-		ctlOpts[ctlPacketInfo].marshal = marshalPacketInfo
-		ctlOpts[ctlPacketInfo].parse = parsePacketInfo
-		sockOpts[ssoPacketInfo].name = sysIP_RECVPKTINFO
-		sockOpts[ssoPacketInfo].typ = ssoTypeInt
-		sockOpts[ssoMulticastInterface].typ = ssoTypeIPMreqn
-		sockOpts[ssoJoinGroup].name = sysMCAST_JOIN_GROUP
-		sockOpts[ssoJoinGroup].typ = ssoTypeGroupReq
-		sockOpts[ssoLeaveGroup].name = sysMCAST_LEAVE_GROUP
-		sockOpts[ssoLeaveGroup].typ = ssoTypeGroupReq
-		sockOpts[ssoJoinSourceGroup].name = sysMCAST_JOIN_SOURCE_GROUP
-		sockOpts[ssoJoinSourceGroup].typ = ssoTypeGroupSourceReq
-		sockOpts[ssoLeaveSourceGroup].name = sysMCAST_LEAVE_SOURCE_GROUP
-		sockOpts[ssoLeaveSourceGroup].typ = ssoTypeGroupSourceReq
-		sockOpts[ssoBlockSourceGroup].name = sysMCAST_BLOCK_SOURCE
-		sockOpts[ssoBlockSourceGroup].typ = ssoTypeGroupSourceReq
-		sockOpts[ssoUnblockSourceGroup].name = sysMCAST_UNBLOCK_SOURCE
-		sockOpts[ssoUnblockSourceGroup].typ = ssoTypeGroupSourceReq
+	if mjver, err := strconv.Atoi(ss[0]); err != nil || mjver < 12 {
+		return
 	}
+	ctlOpts[ctlPacketInfo].name = sysIP_PKTINFO
+	ctlOpts[ctlPacketInfo].length = sizeofInetPktinfo
+	ctlOpts[ctlPacketInfo].marshal = marshalPacketInfo
+	ctlOpts[ctlPacketInfo].parse = parsePacketInfo
+	sockOpts[ssoPacketInfo].name = sysIP_RECVPKTINFO
+	sockOpts[ssoPacketInfo].typ = ssoTypeInt
+	sockOpts[ssoMulticastInterface].typ = ssoTypeIPMreqn
+	sockOpts[ssoJoinGroup].name = sysMCAST_JOIN_GROUP
+	sockOpts[ssoJoinGroup].typ = ssoTypeGroupReq
+	sockOpts[ssoLeaveGroup].name = sysMCAST_LEAVE_GROUP
+	sockOpts[ssoLeaveGroup].typ = ssoTypeGroupReq
+	sockOpts[ssoJoinSourceGroup].name = sysMCAST_JOIN_SOURCE_GROUP
+	sockOpts[ssoJoinSourceGroup].typ = ssoTypeGroupSourceReq
+	sockOpts[ssoLeaveSourceGroup].name = sysMCAST_LEAVE_SOURCE_GROUP
+	sockOpts[ssoLeaveSourceGroup].typ = ssoTypeGroupSourceReq
+	sockOpts[ssoBlockSourceGroup].name = sysMCAST_BLOCK_SOURCE
+	sockOpts[ssoBlockSourceGroup].typ = ssoTypeGroupSourceReq
+	sockOpts[ssoUnblockSourceGroup].name = sysMCAST_UNBLOCK_SOURCE
+	sockOpts[ssoUnblockSourceGroup].typ = ssoTypeGroupSourceReq
 }
 
-func (pi *sysInetPktinfo) setIfindex(i int) {
+func (pi *inetPktinfo) setIfindex(i int) {
 	pi.Ifindex = uint32(i)
 }
 
-func (gr *sysGroupReq) setGroup(grp net.IP) {
-	sa := (*sysSockaddrInet)(unsafe.Pointer(&gr.Pad_cgo_0[0]))
-	sa.Len = sysSizeofSockaddrInet
+func (gr *groupReq) setGroup(grp net.IP) {
+	sa := (*sockaddrInet)(unsafe.Pointer(uintptr(unsafe.Pointer(gr)) + 4))
+	sa.Len = sizeofSockaddrInet
 	sa.Family = syscall.AF_INET
 	copy(sa.Addr[:], grp)
 }
 
-func (gsr *sysGroupSourceReq) setSourceGroup(grp, src net.IP) {
-	sa := (*sysSockaddrInet)(unsafe.Pointer(&gsr.Pad_cgo_0[0]))
-	sa.Len = sysSizeofSockaddrInet
+func (gsr *groupSourceReq) setSourceGroup(grp, src net.IP) {
+	sa := (*sockaddrInet)(unsafe.Pointer(uintptr(unsafe.Pointer(gsr)) + 4))
+	sa.Len = sizeofSockaddrInet
 	sa.Family = syscall.AF_INET
 	copy(sa.Addr[:], grp)
-	sa = (*sysSockaddrInet)(unsafe.Pointer(&gsr.Pad_cgo_1[0]))
-	sa.Len = sysSizeofSockaddrInet
+	sa = (*sockaddrInet)(unsafe.Pointer(uintptr(unsafe.Pointer(gsr)) + 132))
+	sa.Len = sizeofSockaddrInet
 	sa.Family = syscall.AF_INET
 	copy(sa.Addr[:], src)
 }

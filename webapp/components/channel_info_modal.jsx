@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
@@ -11,16 +12,16 @@ import * as TextFormatting from 'utils/text_formatting.jsx';
 import React from 'react';
 
 export default class ChannelInfoModal extends React.Component {
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.show !== this.props.show) {
-            return true;
-        }
+    constructor(props) {
+        super(props);
 
-        if (!Utils.areObjectsEqual(nextProps.channel, this.props.channel)) {
-            return true;
-        }
+        this.onHide = this.onHide.bind(this);
 
-        return false;
+        this.state = {show: true};
+    }
+
+    onHide() {
+        this.setState({show: false});
     }
 
     render() {
@@ -47,9 +48,21 @@ export default class ChannelInfoModal extends React.Component {
 
         const channelURL = TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name;
 
-        let channelPurpose = null;
+        let channelPurpose;
         if (channel.purpose) {
+            channelPurpose = channel.purpose;
+        } else if (channel.name === Constants.DEFAULT_CHANNEL) {
             channelPurpose = (
+                <FormattedMessage
+                    id='default_channel.purpose'
+                    defaultMessage='Post messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                />
+            );
+        }
+
+        let channelPurposeElement;
+        if (channelPurpose) {
+            channelPurposeElement = (
                 <div className='form-group'>
                     <div className='info__label'>
                         <FormattedMessage
@@ -57,7 +70,7 @@ export default class ChannelInfoModal extends React.Component {
                             defaultMessage='Purpose:'
                         />
                     </div>
-                    <div className='info__value'>{channel.purpose}</div>
+                    <div className='info__value'>{channelPurpose}</div>
                 </div>
             );
         }
@@ -83,8 +96,9 @@ export default class ChannelInfoModal extends React.Component {
         return (
             <Modal
                 dialogClassName='about-modal'
-                show={this.props.show}
-                onHide={this.props.onHide}
+                show={this.state.show}
+                onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -96,7 +110,7 @@ export default class ChannelInfoModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body ref='modalBody'>
-                    {channelPurpose}
+                    {channelPurposeElement}
                     {channelHeader}
                     <div className='form-group'>
                         <div className='info__label'>
@@ -123,7 +137,6 @@ export default class ChannelInfoModal extends React.Component {
 }
 
 ChannelInfoModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };

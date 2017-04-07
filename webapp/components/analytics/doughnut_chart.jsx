@@ -83,6 +83,6 @@ DoughnutChart.propTypes = {
     title: React.PropTypes.node,
     width: React.PropTypes.string,
     height: React.PropTypes.string,
-    data: React.PropTypes.array,
+    data: React.PropTypes.object,
     options: React.PropTypes.object
 };

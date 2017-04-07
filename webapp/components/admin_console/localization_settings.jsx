@@ -52,12 +52,10 @@ export default class LocalizationSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.localization'
-                    defaultMessage='Localization'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.localization'
+                defaultMessage='Localization'
+            />
         );
     }
 

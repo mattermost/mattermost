@@ -4,6 +4,9 @@
 package store
 
 import (
+	"database/sql"
+	"net/http"
+
 	"github.com/mattermost/platform/model"
 )
 
@@ -108,7 +111,11 @@ func (s SqlPasswordRecoveryStore) GetByCode(code string) StoreChannel {
 		recovery := model.PasswordRecovery{}
 
 		if err := s.GetReplica().SelectOne(&recovery, "SELECT * FROM PasswordRecovery WHERE Code = :Code", map[string]interface{}{"Code": code}); err != nil {
-			result.Err = model.NewLocAppError("SqlPasswordRecoveryStore.GetByCode", "store.sql_recover.get_by_code.app_error", nil, "")
+			if err == sql.ErrNoRows {
+				result.Err = model.NewAppError("SqlPasswordRecoveryStore.GetByCode", "store.sql_recover.get_by_code.app_error", nil, "", http.StatusBadRequest)
+			} else {
+				result.Err = model.NewAppError("SqlPasswordRecoveryStore.GetByCode", "store.sql_recover.get_by_code.app_error", nil, "", http.StatusInternalServerError)
+			}
 		}
 
 		result.Data = &recovery

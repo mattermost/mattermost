@@ -6,5 +6,7 @@ echo "//     goi18n -help" >> doc.go
 echo "//" >> doc.go
 echo "// Help documentation:" >> doc.go
 echo "//" >> doc.go
-goi18n -help | sed -e 's/^/\/\/     /' >> doc.go
+goi18n | sed -e 's/^/\/\/     /' >> doc.go
+goi18n merge -help | sed -e 's/^/\/\/     /' >> doc.go
+goi18n constants -help | sed -e 's/^/\/\/     /' >> doc.go
 echo "package main" >> doc.go

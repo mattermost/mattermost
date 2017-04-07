@@ -19,6 +19,8 @@ class SearchStoreClass extends EventEmitter {
         this.searchResults = null;
         this.isMentionSearch = false;
         this.isFlaggedPosts = false;
+        this.isPinnedPosts = false;
+        this.isVisible = false;
         this.searchTerm = '';
     }
 
@@ -82,6 +84,10 @@ class SearchStoreClass extends EventEmitter {
         return this.isFlaggedPosts;
     }
 
+    getIsPinnedPosts() {
+        return this.isPinnedPosts;
+    }
+
     storeSearchTerm(term) {
         this.searchTerm = term;
     }
@@ -90,10 +96,26 @@ class SearchStoreClass extends EventEmitter {
         return this.searchTerm;
     }
 
-    storeSearchResults(results, isMentionSearch, isFlaggedPosts) {
+    storeSearchResults(results, isMentionSearch, isFlaggedPosts, isPinnedPosts) {
         this.searchResults = results;
         this.isMentionSearch = isMentionSearch;
         this.isFlaggedPosts = isFlaggedPosts;
+        this.isPinnedPosts = isPinnedPosts;
+    }
+
+    deletePost(post) {
+        const results = this.getSearchResults();
+        if (results == null) {
+            return;
+        }
+
+        if (post.id in results.posts) {
+            // make sure to copy the post so that component state changes work properly
+            results.posts[post.id] = Object.assign({}, post, {
+                state: Constants.POST_DELETED,
+                file_ids: []
+            });
+        }
     }
 }
 
@@ -104,7 +126,7 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_SEARCH:
-        SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts);
+        SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts, action.is_pinned_posts);
         SearchStore.emitSearchChange();
         break;
     case ActionTypes.RECEIVED_SEARCH_TERM:
@@ -113,6 +135,10 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.SHOW_SEARCH:
         SearchStore.emitShowSearch();
+        break;
+    case ActionTypes.POST_DELETED:
+        SearchStore.deletePost(action.post);
+        SearchStore.emitSearchChange();
         break;
     default:
     }

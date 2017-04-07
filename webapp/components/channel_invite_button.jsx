@@ -1,13 +1,12 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
-
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
-
-import {FormattedMessage} from 'react-intl';
 import SpinnerButton from 'components/spinner_button.jsx';
+
+import {addUserToChannel} from 'actions/channel_actions.jsx';
+
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 export default class ChannelInviteButton extends React.Component {
     static get propTypes() {
@@ -37,16 +36,11 @@ export default class ChannelInviteButton extends React.Component {
             addingUser: true
         });
 
-        Client.addChannelMember(
+        addUserToChannel(
             this.props.channel.id,
             this.props.user.id,
             () => {
-                this.setState({
-                    addingUser: false
-                });
-
                 this.props.onInviteError(null);
-                AsyncClient.getChannelExtraInfo();
             },
             (err) => {
                 this.setState({
@@ -61,6 +55,7 @@ export default class ChannelInviteButton extends React.Component {
     render() {
         return (
             <SpinnerButton
+                id='addMembers'
                 className='btn btn-sm btn-primary'
                 onClick={this.handleClick}
                 spinning={this.state.addingUser}

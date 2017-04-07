@@ -16,10 +16,10 @@ func bigFromBase10(s string) *big.Int {
 // u is the BN parameter that determines the prime: 1868033³.
 var u = bigFromBase10("6518589491078791937")
 
-// p is a prime over which we form a basic field: 36u⁴+36u³+24u³+6u+1.
+// p is a prime over which we form a basic field: 36u⁴+36u³+24u²+6u+1.
 var p = bigFromBase10("65000549695646603732796438742359905742825358107623003571877145026864184071783")
 
-// Order is the number of elements in both G₁ and G₂: 36u⁴+36u³+18u³+6u+1.
+// Order is the number of elements in both G₁ and G₂: 36u⁴+36u³+18u²+6u+1.
 var Order = bigFromBase10("65000549695646603732796438742359905742570406053903786389881062969044166799969")
 
 // xiToPMinus1Over6 is ξ^((p-1)/6) where ξ = i+3.

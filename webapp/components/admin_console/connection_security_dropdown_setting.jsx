@@ -18,7 +18,7 @@ const SECTION_NONE = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityNoneDescription'
-                defaultMessage='Mattermost will connect over an unsecure connection.'
+                defaultMessage='Mattermost will connect over an insecure connection.'
             />
         </td>
     </tr>
@@ -35,7 +35,7 @@ const SECTION_PLAIN = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityPlainDescription'
-                defaultMessage='Mattermost will connect and authenticate over an unsecure connection.'
+                defaultMessage='Mattermost will connect and authenticate over an insecure connection.'
             />
         </td>
     </tr>

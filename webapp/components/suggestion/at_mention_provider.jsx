@@ -1,19 +1,22 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import Suggestion from './suggestion.jsx';
+import Provider from './provider.jsx';
 
-import SuggestionStore from 'stores/suggestion_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+
+import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
+
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
-import Constants from 'utils/constants.jsx';
+import {Constants, ActionTypes} from 'utils/constants.jsx';
 
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import Suggestion from './suggestion.jsx';
-
-const MaxUserSuggestions = 40;
+import XRegExp from 'xregexp';
 
 class AtMentionSuggestion extends Suggestion {
     render() {
@@ -67,7 +70,7 @@ class AtMentionSuggestion extends Suggestion {
             icon = (
                 <img
                     className='mention__image'
-                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.update_at}
+                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
                 />
             );
         }
@@ -99,92 +102,69 @@ class AtMentionSuggestion extends Suggestion {
     }
 }
 
-function filterUsersByPrefix(users, prefix, limit, type) {
-    const filtered = [];
-
-    for (const id of Object.keys(users)) {
-        if (filtered.length >= limit) {
-            break;
-        }
-
-        const user = users[id];
-
-        if (user.delete_at > 0) {
-            continue;
-        }
-
-        if (user.username.startsWith(prefix) ||
-            (user.first_name && user.first_name.toLowerCase().startsWith(prefix)) ||
-            (user.last_name && user.last_name.toLowerCase().startsWith(prefix)) ||
-            (user.nickname && user.nickname.toLowerCase().startsWith(prefix))) {
-            // create a new object here since we're mutating it by adding the type field
-            filtered.push(Object.assign({}, user, {type}));
-        }
-    }
-
-    return filtered;
-}
-
-export default class AtMentionProvider {
+export default class AtMentionProvider extends Provider {
     constructor(channelId) {
+        super();
+
         this.channelId = channelId;
     }
 
     handlePretextChanged(suggestionId, pretext) {
-        const captured = (/@([a-z0-9\-\._]*)$/i).exec(pretext.toLowerCase());
-        if (captured) {
-            const prefix = captured[1];
-
-            // Group users into members and nonmembers of the channel.
-            const users = UserStore.getActiveOnlyProfiles(true);
-            const channelMembers = {};
-            const channelNonmembers = users;
-            if (this.channelId != null) {
-                const extraInfo = ChannelStore.getExtraInfo(this.channelId);
-                for (let i = 0; i < extraInfo.members.length; i++) {
-                    const id = extraInfo.members[i].id;
-                    if (users[id]) {
-                        channelMembers[id] = users[id];
-                        Reflect.deleteProperty(channelNonmembers, id);
-                    }
-                }
-            }
-
-            // Filter users by prefix.
-            const filteredMembers = filterUsersByPrefix(
-                    channelMembers, prefix, MaxUserSuggestions, Constants.MENTION_MEMBERS);
-            const filteredNonmembers = filterUsersByPrefix(
-                    channelNonmembers, prefix, MaxUserSuggestions - filteredMembers.length, Constants.MENTION_NONMEMBERS);
-            let filteredSpecialMentions = [];
-            if (!pretext.startsWith('/msg')) {
-                filteredSpecialMentions = ['here', 'channel', 'all'].filter((item) => {
-                    return item.startsWith(prefix);
-                }).map((name) => {
-                    return {username: name, type: Constants.MENTION_SPECIAL};
-                });
-            }
-
-            // Sort users by username.
-            [filteredMembers, filteredNonmembers].forEach((items) => {
-                items.sort((a, b) => {
-                    const aPrefix = a.username.startsWith(prefix);
-                    const bPrefix = b.username.startsWith(prefix);
-
-                    if (aPrefix === bPrefix) {
-                        return a.username.localeCompare(b.username);
-                    } else if (aPrefix) {
-                        return -1;
-                    }
-
-                    return 1;
-                });
-            });
-
-            const filtered = filteredMembers.concat(filteredSpecialMentions).concat(filteredNonmembers);
-
-            const mentions = filtered.map((user) => '@' + user.username);
-
-            SuggestionStore.addSuggestions(suggestionId, mentions, filtered, AtMentionSuggestion, captured[0]);
+        const captured = XRegExp.cache('(?:^|\\W)@([\\pL\\d\\-_.]*)$', 'i').exec(pretext.toLowerCase());
+        if (!captured) {
+            return false;
         }
+
+        const prefix = captured[1];
+
+        this.startNewRequest(prefix);
+
+        autocompleteUsersInChannel(
+            prefix,
+            this.channelId,
+            (data) => {
+                if (this.shouldCancelDispatch(prefix)) {
+                    return;
+                }
+
+                const members = data.in_channel;
+                for (const id of Object.keys(members)) {
+                    members[id].type = Constants.MENTION_MEMBERS;
+                }
+
+                const nonmembers = data.out_of_channel;
+                for (const id of Object.keys(nonmembers)) {
+                    nonmembers[id].type = Constants.MENTION_NONMEMBERS;
+                }
+
+                let specialMentions = [];
+                if (!pretext.startsWith('/msg')) {
+                    specialMentions = ['here', 'channel', 'all'].filter((item) => {
+                        return item.startsWith(prefix);
+                    }).map((name) => {
+                        return {username: name, type: Constants.MENTION_SPECIAL};
+                    });
+                }
+
+                let users = members.concat(specialMentions).concat(nonmembers);
+                const me = UserStore.getCurrentUser();
+                users = users.filter((user) => {
+                    return user.id !== me.id;
+                });
+
+                const mentions = users.map((user) => '@' + user.username);
+
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                    id: suggestionId,
+                    matchedPretext: `@${captured[1]}`,
+                    terms: mentions,
+                    items: users,
+                    component: AtMentionSuggestion
+                });
+            }
+        );
+
+        return true;
     }
 }

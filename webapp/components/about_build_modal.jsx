@@ -96,7 +96,7 @@ export default class AboutBuildModal extends React.Component {
                     <div className='form-group'>
                         <FormattedMessage
                             id='about.licensed'
-                            defaultMessage='Licensed by:'
+                            defaultMessage='Licensed to:'
                         />
                         &nbsp;{license.Company}
                     </div>
@@ -140,7 +140,7 @@ export default class AboutBuildModal extends React.Component {
                                         id='about.version'
                                         defaultMessage='Version:'
                                     />
-                                    {version}
+                                    <span id='versionString'>{version}</span>
                                 </div>
                                 <div>
                                     <FormattedMessage

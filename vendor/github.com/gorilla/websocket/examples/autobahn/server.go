@@ -8,17 +8,19 @@ package main
 import (
 	"errors"
 	"flag"
-	"github.com/gorilla/websocket"
 	"io"
 	"log"
 	"net/http"
 	"time"
 	"unicode/utf8"
+
+	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
+	ReadBufferSize:    4096,
+	WriteBufferSize:   4096,
+	EnableCompression: true,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},

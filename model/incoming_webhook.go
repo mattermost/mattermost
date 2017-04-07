@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -28,13 +29,13 @@ type IncomingWebhook struct {
 }
 
 type IncomingWebhookRequest struct {
-	Text        string          `json:"text"`
-	Username    string          `json:"username"`
-	IconURL     string          `json:"icon_url"`
-	ChannelName string          `json:"channel"`
-	Props       StringInterface `json:"props"`
-	Attachments interface{}     `json:"attachments"`
-	Type        string          `json:"type"`
+	Text        string             `json:"text"`
+	Username    string             `json:"username"`
+	IconURL     string             `json:"icon_url"`
+	ChannelName string             `json:"channel"`
+	Props       StringInterface    `json:"props"`
+	Attachments []*SlackAttachment `json:"attachments"`
+	Type        string             `json:"type"`
 }
 
 func (o *IncomingWebhook) ToJson() string {
@@ -211,31 +212,15 @@ func expandAnnouncement(text string) string {
 func expandAnnouncements(i *IncomingWebhookRequest) {
 	i.Text = expandAnnouncement(i.Text)
 
-	if i.Attachments != nil {
-		attachments := i.Attachments.([]interface{})
-		for _, attachment := range attachments {
-			a := attachment.(map[string]interface{})
+	for _, attachment := range i.Attachments {
+		attachment.Pretext = expandAnnouncement(attachment.Pretext)
+		attachment.Text = expandAnnouncement(attachment.Text)
+		attachment.Title = expandAnnouncement(attachment.Title)
 
-			if a["pretext"] != nil {
-				a["pretext"] = expandAnnouncement(a["pretext"].(string))
-			}
-
-			if a["text"] != nil {
-				a["text"] = expandAnnouncement(a["text"].(string))
-			}
-
-			if a["title"] != nil {
-				a["title"] = expandAnnouncement(a["title"].(string))
-			}
-
-			if a["fields"] != nil {
-				fields := a["fields"].([]interface{})
-				for _, field := range fields {
-					f := field.(map[string]interface{})
-					if f["value"] != nil {
-						f["value"] = expandAnnouncement(f["value"].(string))
-					}
-				}
+		for _, field := range attachment.Fields {
+			if field.Value != nil {
+				// Ensure the value is set to a string if it is set
+				field.Value = expandAnnouncement(fmt.Sprintf("%v", field.Value))
 			}
 		}
 	}

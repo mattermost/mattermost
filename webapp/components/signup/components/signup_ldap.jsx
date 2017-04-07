@@ -4,10 +4,11 @@
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
+import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
+import {webLoginByLdap} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
 
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -38,6 +39,10 @@ export default class SignupLdap extends React.Component {
         });
     }
 
+    componentDidMount() {
+        trackEvent('signup', 'signup_user_01_welcome');
+    }
+
     handleLdapIdChange(e) {
         this.setState({
             ldapId: e.target.value
@@ -55,7 +60,7 @@ export default class SignupLdap extends React.Component {
 
         this.setState({ldapError: ''});
 
-        Client.webLoginByLdap(
+        webLoginByLdap(
             this.state.ldapId,
             this.state.ldapPassword,
             null,
@@ -69,11 +74,15 @@ export default class SignupLdap extends React.Component {
     }
 
     handleLdapSignupSuccess() {
-        if (this.props.location.query.id || this.props.location.query.h) {
-            Client.addUserToTeamFromInvite(
-                this.props.location.query.d,
-                this.props.location.query.h,
-                this.props.location.query.id,
+        const hash = this.props.location.query.h;
+        const data = this.props.location.query.d;
+        const inviteId = this.props.location.query.id;
+
+        if (inviteId || hash) {
+            addUserToTeamFromInvite(
+                data,
+                hash,
+                inviteId,
                 () => {
                     this.finishSignup();
                 },
@@ -90,20 +99,23 @@ export default class SignupLdap extends React.Component {
     finishSignup() {
         GlobalActions.emitInitialLoad(
             () => {
+                const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
-                browserHistory.push('/select_team');
+                if (query.redirect_to) {
+                    browserHistory.push(query.redirect_to);
+                } else {
+                    GlobalActions.redirectUserToDefaultTeam();
+                }
             }
         );
     }
 
     render() {
-        track('signup', 'signup_user_01_welcome');
-
         let ldapIdPlaceholder;
         if (global.window.mm_config.LdapLoginFieldName) {
             ldapIdPlaceholder = global.window.mm_config.LdapLoginFieldName;
         } else {
-            ldapIdPlaceholder = Utils.localizeMessage('login.ldap_username', 'AD/LDAP Username');
+            ldapIdPlaceholder = Utils.localizeMessage('login.ldapUsername', 'AD/LDAP Username');
         }
 
         let errorClass = '';
@@ -179,9 +191,11 @@ export default class SignupLdap extends React.Component {
                 <p>
                     <FormattedHTMLMessage
                         id='create_team.agreement'
-                        defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='/static/help/terms.html'>Terms of Service</a> and <a href='/static/help/privacy.html'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
+                        defaultMessage="By proceeding to create your account and use {siteName}, you agree to our <a href='{TermsOfServiceLink}'>Terms of Service</a> and <a href='{PrivacyPolicyLink}'>Privacy Policy</a>. If you do not agree, you cannot use {siteName}."
                         values={{
-                            siteName: global.window.mm_config.SiteName
+                            siteName: global.window.mm_config.SiteName,
+                            TermsOfServiceLink: global.window.mm_config.TermsOfServiceLink,
+                            PrivacyPolicyLink: global.window.mm_config.PrivacyPolicyLink
                         }}
                     />
                 </p>
@@ -203,7 +217,7 @@ export default class SignupLdap extends React.Component {
         return (
             <div>
                 <div className='signup-header'>
-                    <Link to='/signup_user_complete'>
+                    <Link to='/'>
                         <span className='fa fa-chevron-left'/>
                         <FormattedMessage
                             id='web.header.back'

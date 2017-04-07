@@ -142,6 +142,11 @@ func truncateMsgFromRdlength(msg []byte, off int, rdlength uint16) (truncmsg []b
 }
 
 func fromBase32(s []byte) (buf []byte, err error) {
+	for i, b := range s {
+		if b >= 'a' && b <= 'z' {
+			s[i] = b - 32
+		}
+	}
 	buflen := base32.HexEncoding.DecodedLen(len(s))
 	buf = make([]byte, buflen)
 	n, err := base32.HexEncoding.Decode(buf, s)
@@ -263,8 +268,6 @@ func unpackString(msg []byte, off int) (string, int, error) {
 		switch b {
 		case '"', '\\':
 			s = append(s, '\\', b)
-		case '\t', '\r', '\n':
-			s = append(s, b)
 		default:
 			if b < 32 || b > 127 { // unprintable
 				var buf [3]byte

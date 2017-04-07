@@ -4,7 +4,11 @@
 package utils
 
 import (
+	"net"
+	"net/http"
 	"os"
+
+	"github.com/mattermost/platform/model"
 )
 
 func StringArrayIntersection(arr1, arr2 []string) []string {
@@ -47,4 +51,18 @@ func RemoveDuplicatesFromStringArray(arr []string) []string {
 	}
 
 	return result
+}
+
+func GetIpAddress(r *http.Request) string {
+	address := r.Header.Get(model.HEADER_FORWARDED)
+
+	if len(address) == 0 {
+		address = r.Header.Get(model.HEADER_REAL_IP)
+	}
+
+	if len(address) == 0 {
+		address, _, _ = net.SplitHostPort(r.RemoteAddr)
+	}
+
+	return address
 }

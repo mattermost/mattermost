@@ -10,5 +10,5 @@ import (
 func TestLogoutTestCommand(t *testing.T) {
 	th := Setup().InitBasic()
 
-	th.BasicClient.Must(th.BasicClient.Command(th.BasicChannel.Id, "/logout", false))
+	th.BasicClient.Must(th.BasicClient.Command(th.BasicChannel.Id, "/logout"))
 }

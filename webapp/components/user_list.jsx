@@ -1,32 +1,41 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {FormattedMessage} from 'react-intl';
 import UserListRow from './user_list_row.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 export default class UserList extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.scrollToTop = this.scrollToTop.bind(this);
+    }
+
+    scrollToTop() {
+        if (this.refs.container) {
+            this.refs.container.scrollTop = 0;
+        }
+    }
+
     render() {
         const users = this.props.users;
 
         let content;
-        if (users.length > 0) {
+        if (users == null) {
+            return <LoadingScreen/>;
+        } else if (users.length > 0) {
             content = users.map((user) => {
-                var teamMember;
-                for (var index in this.props.teamMembers) {
-                    if (this.props.teamMembers[index].user_id === user.id) {
-                        teamMember = this.props.teamMembers[index];
-                    }
-                }
-
                 return (
                     <UserListRow
                         key={user.id}
                         user={user}
-                        teamMember={teamMember}
+                        extraInfo={this.props.extraInfo[user.id]}
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
+                        actionUserProps={this.props.actionUserProps[user.id]}
                     />
                 );
             });
@@ -34,12 +43,12 @@ export default class UserList extends React.Component {
             content = (
                 <div
                     key='no-users-found'
-                    className='no-channel-message'
+                    className='more-modal__placeholder-row'
                 >
-                    <p className='primary-message'>
+                    <p>
                         <FormattedMessage
                             id='user_list.notFound'
-                            defaultMessage='No users found :('
+                            defaultMessage='No users found'
                         />
                     </p>
                 </div>
@@ -47,7 +56,7 @@ export default class UserList extends React.Component {
         }
 
         return (
-            <div>
+            <div ref='container'>
                 {content}
             </div>
         );
@@ -56,14 +65,15 @@ export default class UserList extends React.Component {
 
 UserList.defaultProps = {
     users: [],
-    teamMembers: [],
+    extraInfo: {},
     actions: [],
     actionProps: {}
 };
 
 UserList.propTypes = {
     users: React.PropTypes.arrayOf(React.PropTypes.object),
-    teamMembers: React.PropTypes.arrayOf(React.PropTypes.object),
+    extraInfo: React.PropTypes.object,
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object
+    actionProps: React.PropTypes.object,
+    actionUserProps: React.PropTypes.object
 };

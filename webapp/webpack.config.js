@@ -34,7 +34,7 @@ var config = {
         loaders: [
             {
                 test: /\.jsx?$/,
-                loader: 'babel',
+                loader: 'babel-loader',
                 exclude: /(node_modules|non_npm_dependencies)/,
                 query: {
                     presets: [
@@ -49,15 +49,15 @@ var config = {
             {
                 test: /\.json$/,
                 exclude: /manifest\.json$/,
-                loader: 'json'
+                loader: 'json-loader'
             },
             {
                 test: /manifest\.json$/,
-                loader: 'file?name=files/[hash].[ext]'
+                loader: 'file-loader?name=files/[hash].[ext]'
             },
             {
-                test: /(node_modules|non_npm_dependencies)\/.+\.(js|jsx)$/,
-                loader: 'imports',
+                test: /(node_modules|non_npm_dependencies)(\\|\/).+\.(js|jsx)$/,
+                loader: 'imports-loader',
                 query: {
                     $: 'jquery',
                     jQuery: 'jquery'
@@ -65,22 +65,31 @@ var config = {
             },
             {
                 test: /\.scss$/,
-                loaders: ['style', 'css', 'sass']
+                use: [{
+                    loader: 'style-loader'
+                }, {
+                    loader: 'css-loader'
+                }, {
+                    loader: 'sass-loader',
+                    options: {
+                        includePaths: ['node_modules/compass-mixins/lib']
+                    }
+                }]
             },
             {
                 test: /\.css$/,
-                loaders: ['style', 'css']
+                loaders: ['style-loader', 'css-loader']
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 loaders: [
-                    'file?name=files/[hash].[ext]',
-                    'image-webpack'
+                    'file-loader?name=files/[hash].[ext]',
+                    'image-webpack-loader'
                 ]
             },
             {
                 test: /\.html$/,
-                loader: 'html?attrs=link:href'
+                loader: 'html-loader?attrs=link:href'
             }
         ]
     },
@@ -88,28 +97,9 @@ var config = {
         new webpack.ProvidePlugin({
             'window.jQuery': 'jquery'
         }),
-        new CopyWebpackPlugin([
-            {from: 'images/emoji', to: 'emoji'},
-            {from: 'images/logo-email.png', to: 'images'},
-            {from: 'images/circles.png', to: 'images'},
-            {from: 'images/favicon', to: 'images/favicon'},
-            {from: 'images/appIcons.png', to: 'images'}
-        ]),
         new webpack.LoaderOptionsPlugin({
             minimize: !DEV,
             debug: false
-        }),
-        new webpack.LoaderOptionsPlugin({
-            options: {
-                sassLoader: {
-                    includePaths: ['node_modules/compass-mixins/lib']
-                }
-            }
-        }),
-        new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: JSON.stringify('production')
-            }
         }),
         new webpack.optimize.CommonsChunkPlugin({
             minChunks: 2,
@@ -150,14 +140,19 @@ if (!DEV) {
             compress: {
                 warnings: false
             },
-            comments: false
+            comments: false,
+            sourceMap: true
         })
     );
     config.plugins.push(
         new webpack.optimize.OccurrenceOrderPlugin(true)
     );
     config.plugins.push(
-        new webpack.optimize.DedupePlugin()
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: JSON.stringify('production')
+            }
+        })
     );
 }
 
@@ -167,13 +162,22 @@ if (TEST) {
     config.target = 'node';
     config.externals = [nodeExternals()];
 } else {
-    // For some reason this breaks mocha. So it goes here.
+    // For some reason these break mocha. So they go here.
     config.plugins.push(
         new HtmlWebpackPlugin({
             filename: 'root.html',
             inject: 'head',
             template: 'root.html'
         })
+    );
+    config.plugins.push(
+        new CopyWebpackPlugin([
+            {from: 'images/emoji', to: 'emoji'},
+            {from: 'images/logo-email.png', to: 'images'},
+            {from: 'images/circles.png', to: 'images'},
+            {from: 'images/favicon', to: 'images/favicon'},
+            {from: 'images/appIcons.png', to: 'images'}
+        ])
     );
 }
 

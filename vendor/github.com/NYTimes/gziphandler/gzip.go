@@ -1,8 +1,10 @@
 package gziphandler
 
 import (
+	"bufio"
 	"compress/gzip"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -115,6 +117,7 @@ func (w *GzipResponseWriter) Close() error {
 
 	err := w.gw.Close()
 	gzipWriterPools[w.index].Put(w.gw)
+	w.gw = nil
 	return err
 }
 
@@ -130,6 +133,18 @@ func (w *GzipResponseWriter) Flush() {
 		fw.Flush()
 	}
 }
+
+// Hijack implements http.Hijacker. If the underlying ResponseWriter is a
+// Hijacker, its Hijack method is returned. Otherwise an error is returned.
+func (w *GzipResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hj, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return hj.Hijack()
+	}
+	return nil, nil, fmt.Errorf("http.Hijacker interface is not supported")
+}
+
+// verify Hijacker interface implementation
+var _ http.Hijacker = &GzipResponseWriter{}
 
 // MustNewGzipLevelHandler behaves just like NewGzipLevelHandler except that in
 // an error case it panics rather than returning an error.
@@ -181,7 +196,7 @@ func GzipHandler(h http.Handler) http.Handler {
 }
 
 // acceptsGzip returns true if the given HTTP request indicates that it will
-// accept a gzippped response.
+// accept a gzipped response.
 func acceptsGzip(r *http.Request) bool {
 	acceptedEncodings, _ := parseEncodings(r.Header.Get(acceptEncoding))
 	return acceptedEncodings["gzip"] > 0.0

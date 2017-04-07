@@ -51,16 +51,14 @@ export default class ClusterSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.advance.cluster'
-                    defaultMessage='High Availability (Beta)'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.advance.cluster'
+                defaultMessage='High Availability (Beta)'
+            />
         );
     }
 
-    overrideHandleChange = (id, value) => {
+    overrideHandleChange(id, value) {
         this.setState({
             showWarning: true
         });

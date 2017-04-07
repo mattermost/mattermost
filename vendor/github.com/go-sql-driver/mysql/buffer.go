@@ -8,7 +8,11 @@
 
 package mysql
 
-import "io"
+import (
+	"io"
+	"net"
+	"time"
+)
 
 const defaultBufSize = 4096
 
@@ -18,25 +22,28 @@ const defaultBufSize = 4096
 // The buffer is similar to bufio.Reader / Writer but zero-copy-ish
 // Also highly optimized for this particular use case.
 type buffer struct {
-	buf    []byte
-	rd     io.Reader
-	idx    int
-	length int
+	buf     []byte
+	nc      net.Conn
+	idx     int
+	length  int
+	timeout time.Duration
 }
 
-func newBuffer(rd io.Reader) buffer {
+func newBuffer(nc net.Conn) buffer {
 	var b [defaultBufSize]byte
 	return buffer{
 		buf: b[:],
-		rd:  rd,
+		nc:  nc,
 	}
 }
 
 // fill reads into the buffer until at least _need_ bytes are in it
 func (b *buffer) fill(need int) error {
+	n := b.length
+
 	// move existing data to the beginning
-	if b.length > 0 && b.idx > 0 {
-		copy(b.buf[0:b.length], b.buf[b.idx:])
+	if n > 0 && b.idx > 0 {
+		copy(b.buf[0:n], b.buf[b.idx:])
 	}
 
 	// grow buffer if necessary
@@ -52,19 +59,33 @@ func (b *buffer) fill(need int) error {
 	b.idx = 0
 
 	for {
-		n, err := b.rd.Read(b.buf[b.length:])
-		b.length += n
+		if b.timeout > 0 {
+			if err := b.nc.SetReadDeadline(time.Now().Add(b.timeout)); err != nil {
+				return err
+			}
+		}
 
-		if err == nil {
-			if b.length < need {
+		nn, err := b.nc.Read(b.buf[n:])
+		n += nn
+
+		switch err {
+		case nil:
+			if n < need {
 				continue
 			}
+			b.length = n
 			return nil
+
+		case io.EOF:
+			if n >= need {
+				b.length = n
+				return nil
+			}
+			return io.ErrUnexpectedEOF
+
+		default:
+			return err
 		}
-		if b.length >= need && err == io.EOF {
-			return nil
-		}
-		return err
 	}
 }
 

@@ -3,10 +3,11 @@
 
 import React from 'react';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
+import {ldapTest} from 'actions/admin_actions.jsx';
 
 export default class LdapTestButton extends React.Component {
     static get propTypes() {
@@ -38,7 +39,7 @@ export default class LdapTestButton extends React.Component {
         });
 
         const doRequest = () => { //eslint-disable-line func-style
-            Client.ldapTest(
+            ldapTest(
                 () => {
                     this.setState({
                         buisy: false,

@@ -29,7 +29,7 @@ Get Involved:
 
 - [Contribute Code](http://docs.mattermost.com/developer/contribution-guide.html)
 - [Find "Help Wanted" projects](https://mattermost.atlassian.net/issues/?filter=10101)
-- [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=b8230f359369ed80c46ecb8696901b3e)
+- [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [File Bugs](http://www.mattermost.org/filing-issues/)
 - [Share Feature Ideas](http://www.mattermost.org/feature-requests/)
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)

@@ -53,6 +53,9 @@ export default class PostImageEmbed extends React.Component {
             errored: true,
             loaded: true
         });
+        if (this.props.onLinkLoadError) {
+            this.props.onLinkLoadError();
+        }
     }
 
     render() {
@@ -79,5 +82,6 @@ export default class PostImageEmbed extends React.Component {
 }
 
 PostImageEmbed.propTypes = {
-    link: React.PropTypes.string.isRequired
+    link: React.PropTypes.string.isRequired,
+    onLinkLoadError: React.PropTypes.func
 };

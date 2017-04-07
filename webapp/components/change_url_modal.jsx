@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
-import * as Utils from 'utils/utils.jsx';
+import * as URL from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -25,6 +25,7 @@ export default class ChangeUrlModal extends React.Component {
             userEdit: false
         };
     }
+
     componentWillReceiveProps(nextProps) {
         // This check prevents the url being deleted when we re-render
         // because of user status check
@@ -34,15 +35,18 @@ export default class ChangeUrlModal extends React.Component {
             });
         }
     }
+
     componentDidUpdate(prevProps) {
         if (this.props.show === true && prevProps.show === false) {
             ReactDOM.findDOMNode(this.refs.urlinput).select();
         }
     }
+
     onURLChanged(e) {
         const url = e.target.value.trim();
         this.setState({currentURL: url.replace(/[^A-Za-z0-9-_]/g, '').toLowerCase(), userEdit: true});
     }
+
     getURLError(url) {
         let error = []; //eslint-disable-line prefer-const
         if (url.length < 2) {
@@ -50,7 +54,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error1'>
                     <FormattedMessage
                         id='change_url.longer'
-                        defaultMessage='Must be longer than two characters'
+                        defaultMessage='URL must be two or more characters.'
                     />
                     <br/>
                 </span>
@@ -61,7 +65,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error2'>
                     <FormattedMessage
                         id='change_url.startWithLetter'
-                        defaultMessage='Must start with a letter or number'
+                        defaultMessage='URL must start with a letter or number.'
                     />
                     <br/>
                 </span>
@@ -72,7 +76,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error3'>
                     <FormattedMessage
                         id='change_url.endWithLetter'
-                        defaultMessage='Must end with a letter or number'
+                        defaultMessage='URL must end with a letter or number.'
                     />
                     <br/>
                 </span>);
@@ -82,7 +86,7 @@ export default class ChangeUrlModal extends React.Component {
                 <span key='error4'>
                     <FormattedMessage
                         id='change_url.noUnderscore'
-                        defaultMessage='Can not contain two underscores in a row.'
+                        defaultMessage='URL can not contain two underscores in a row.'
                     />
                     <br/>
                 </span>);
@@ -101,11 +105,12 @@ export default class ChangeUrlModal extends React.Component {
         }
         return error;
     }
+
     doSubmit(e) {
         e.preventDefault();
 
         const url = ReactDOM.findDOMNode(this.refs.urlinput).value;
-        const cleanedURL = Utils.cleanUpUrlable(url);
+        const cleanedURL = URL.cleanUpUrlable(url);
         if (cleanedURL !== url || url.length < 2 || url.indexOf('__') > -1) {
             this.setState({urlError: this.getURLError(url)});
             return;
@@ -113,10 +118,12 @@ export default class ChangeUrlModal extends React.Component {
         this.setState({urlError: '', userEdit: false});
         this.props.onModalSubmit(url);
     }
+
     doCancel() {
         this.setState({urlError: '', userEdit: false});
         this.props.onModalDismissed();
     }
+
     render() {
         let urlClass = 'input-group input-group--limit';
         let error = null;
@@ -135,16 +142,17 @@ export default class ChangeUrlModal extends React.Component {
             );
         }
 
-        const fullTeamUrl = TeamStore.getCurrentTeamUrl();
-        const teamURL = Utils.getShortenedTeamURL(TeamStore.getCurrentTeamUrl());
+        const fullUrl = TeamStore.getCurrentTeamUrl() + '/channels';
+        const shortURL = URL.getShortenedURL(fullUrl);
         const urlTooltip = (
-            <Tooltip id='urlTooltip'>{fullTeamUrl}</Tooltip>
+            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
         );
 
         return (
             <Modal
                 show={this.props.show}
                 onHide={this.doCancel}
+                onExited={this.props.onModalExited}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>{this.props.title}</Modal.Title>
@@ -154,9 +162,19 @@ export default class ChangeUrlModal extends React.Component {
                     className='form-horizontal'
                 >
                     <Modal.Body>
-                        <div className='modal-intro'>{this.props.description}</div>
+                        <div className='modal-intro'>
+                            <FormattedMessage
+                                id='channel_flow.changeUrlDescription'
+                                defaultMessage='Some characters are now allowed in URLs and may be removed.'
+                            />
+                        </div>
                         <div className='form-group'>
-                            <label className='col-sm-2 form__label control-label'>{this.props.urlLabel}</label>
+                            <label className='col-sm-2 form__label control-label'>
+                                <FormattedMessage
+                                    id='change_url.urlLabel'
+                                    defaultMessage='Channel URL'
+                                />
+                            </label>
                             <div className='col-sm-10'>
                                 <div className={urlClass}>
                                     <OverlayTrigger
@@ -164,7 +182,7 @@ export default class ChangeUrlModal extends React.Component {
                                         placement='top'
                                         overlay={urlTooltip}
                                     >
-                                        <span className='input-group-addon'>{teamURL}</span>
+                                        <span className='input-group-addon'>{shortURL}</span>
                                     </OverlayTrigger>
                                     <input
                                         type='text'
@@ -210,8 +228,6 @@ export default class ChangeUrlModal extends React.Component {
 ChangeUrlModal.defaultProps = {
     show: false,
     title: 'Change URL',
-    desciption: '',
-    urlLabel: 'URL',
     submitButtonText: 'Save',
     currentURL: '',
     serverError: null
@@ -219,12 +235,11 @@ ChangeUrlModal.defaultProps = {
 
 ChangeUrlModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
-    title: React.PropTypes.string,
-    description: React.PropTypes.string,
-    urlLabel: React.PropTypes.string,
-    submitButtonText: React.PropTypes.string,
+    title: React.PropTypes.node,
+    submitButtonText: React.PropTypes.node,
     currentURL: React.PropTypes.string,
     serverError: React.PropTypes.node,
     onModalSubmit: React.PropTypes.func.isRequired,
+    onModalExited: React.PropTypes.func,
     onModalDismissed: React.PropTypes.func.isRequired
 };

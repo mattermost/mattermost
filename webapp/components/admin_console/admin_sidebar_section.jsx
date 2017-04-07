@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {Link} from 'react-router/es6';
+import * as Utils from 'utils/utils.jsx';
 
 export default class AdminSidebarSection extends React.Component {
     static get propTypes() {
@@ -62,6 +63,7 @@ export default class AdminSidebarSection extends React.Component {
 
         let sidebarItem = (
             <Link
+                id={Utils.createSafeId(this.props.name)}
                 className={`${className}-title`}
                 activeClassName={`${className}-title ${className}-title--active`}
                 onlyActiveOnIndex={this.props.onlyActiveOnIndex}
@@ -79,8 +81,6 @@ export default class AdminSidebarSection extends React.Component {
             sidebarItem = (
                 <div
                     className={`${className}-title`}
-                    activeClassName={`${className}-title ${className}-title--active`}
-                    onlyActiveOnIndex={this.props.onlyActiveOnIndex}
                 >
                     <span className={`${className}-title__text`}>
                         {this.props.title}

@@ -32,6 +32,9 @@ func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
 func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
 	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
+	me.CreateIndexIfNotExists("idx_sessions_expires_at", "Sessions", "ExpiresAt")
+	me.CreateIndexIfNotExists("idx_sessions_create_at", "Sessions", "CreateAt")
+	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
 }
 
 func (me SqlSessionStore) Save(session *model.Session) StoreChannel {
@@ -156,6 +159,28 @@ func (me SqlSessionStore) GetSessions(userId string) StoreChannel {
 					}
 				}
 			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+
+		result := StoreResult{}
+		var sessions []*model.Session
+
+		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt AND DeviceId != ''", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
+			result.Err = model.NewLocAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error())
+		} else {
+
+			result.Data = sessions
 		}
 
 		storeChannel <- result

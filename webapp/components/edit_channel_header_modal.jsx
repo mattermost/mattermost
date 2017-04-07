@@ -2,13 +2,12 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {updateChannelHeader} from 'actions/channel_actions.jsx';
 
 import {Modal} from 'react-bootstrap';
 
@@ -36,36 +35,19 @@ class EditChannelHeaderModal extends React.Component {
 
         this.state = {
             header: props.channel.header,
+            show: true,
             serverError: '',
             submitted: false
         };
     }
 
     componentDidMount() {
-        if (this.props.show) {
-            this.onShow();
-        }
-
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        this.onShow();
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (this.props.channel.header !== nextProps.channel.header && !this.props.show) {
-            this.setState({
-                header: nextProps.channel.header,
-                submitted: false
-            });
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.show && !prevProps.show) {
-            this.onShow();
-        }
     }
 
     handleChange(e) {
@@ -81,17 +63,12 @@ class EditChannelHeaderModal extends React.Component {
     handleSubmit() {
         this.setState({submitted: true});
 
-        Client.updateChannelHeader(
+        updateChannelHeader(
             this.props.channel.id,
             this.state.header,
-            (channel) => {
+            () => {
                 this.setState({serverError: ''});
                 this.onHide();
-
-                AppDispatcher.handleServerAction({
-                    type: Constants.ActionTypes.RECEIVED_CHANNEL,
-                    channel
-                });
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {
@@ -110,12 +87,7 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     onHide() {
-        this.setState({
-            serverError: '',
-            header: this.props.channel.header
-        });
-
-        this.props.onHide();
+        this.setState({show: false});
     }
 
     handleKeyDown(e) {
@@ -156,8 +128,9 @@ class EditChannelHeaderModal extends React.Component {
 
         return (
             <Modal
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.onHide}
+                onExited={this.props.onHide}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
@@ -213,7 +186,6 @@ class EditChannelHeaderModal extends React.Component {
 
 EditChannelHeaderModal.propTypes = {
     intl: intlShape.isRequired,
-    show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired,
     channel: React.PropTypes.object.isRequired
 };

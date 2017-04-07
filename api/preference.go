@@ -6,6 +6,7 @@ package api
 import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"net/http"
@@ -22,7 +23,7 @@ func InitPreference() {
 }
 
 func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preferences)
@@ -49,7 +50,7 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().Save(&preferences); result.Err != nil {
 		c.Err = result.Err
 		return
 	}
@@ -61,7 +62,7 @@ func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	category := params["category"]
 
-	if result := <-Srv.Store.Preference().GetCategory(c.Session.UserId, category); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().GetCategory(c.Session.UserId, category); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preferences)
@@ -75,7 +76,7 @@ func getPreference(c *Context, w http.ResponseWriter, r *http.Request) {
 	category := params["category"]
 	name := params["name"]
 
-	if result := <-Srv.Store.Preference().Get(c.Session.UserId, category, name); result.Err != nil {
+	if result := <-app.Srv.Store.Preference().Get(c.Session.UserId, category, name); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preference)
@@ -101,7 +102,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, preference := range preferences {
-		if result := <-Srv.Store.Preference().Delete(c.Session.UserId, preference.Category, preference.Name); result.Err != nil {
+		if result := <-app.Srv.Store.Preference().Delete(c.Session.UserId, preference.Category, preference.Name); result.Err != nil {
 			c.Err = result.Err
 			return
 		}

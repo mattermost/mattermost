@@ -142,21 +142,20 @@ func TestIncomingWebhookRequestFromJson_Announcements(t *testing.T) {
 		t.Fatal("IncomingWebhookRequest should not be nil")
 	}
 
-	attachments := iwr.Attachments.([]interface{})
-	attachment := attachments[0].(map[string]interface{})
-	if attachment["pretext"] != expected {
-		t.Fatalf("Sample attachment pretext should be: %s, got: %s", expected, attachment["pretext"])
+	attachment := iwr.Attachments[0]
+	if attachment.Pretext != expected {
+		t.Fatalf("Sample attachment pretext should be:%s, got: %s", expected, attachment.Pretext)
 	}
-	if attachment["text"] != expected {
-		t.Fatalf("Sample attachment text should be: %s, got: %s", expected, attachment["text"])
+	if attachment.Text != expected {
+		t.Fatalf("Sample attachment text should be: %s, got: %s", expected, attachment.Text)
 	}
-	if attachment["title"] != expected {
-		t.Fatalf("Sample attachment title should be: %s, got: %s", expected, attachment["title"])
+	if attachment.Title != expected {
+		t.Fatalf("Sample attachment title should be: %s, got: %s", expected, attachment.Title)
 	}
-	fields := attachment["fields"].([]interface{})
-	field := fields[0].(map[string]interface{})
-	if field["value"] != expected {
-		t.Fatalf("Sample attachment field value should be: %s, got: %s", expected, field["value"])
+
+	field := attachment.Fields[0]
+	if field.Value != expected {
+		t.Fatalf("Sample attachment field value should be: %s, got: %s", expected, field.Value)
 	}
 }
 
@@ -224,10 +223,10 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 		if iwr.Text != expected {
 			t.Fatalf("Sample %d text should be: %s, got: %s", i, expected, iwr.Text)
 		}
-		attachments := iwr.Attachments.([]interface{})
-		attachment := attachments[0].(map[string]interface{})
-		if attachment["text"] != expected {
-			t.Fatalf("Sample %d attachment text should be: %s, got: %s", i, expected, attachment["text"])
+
+		attachment := iwr.Attachments[0]
+		if attachment.Text != expected {
+			t.Fatalf("Sample %d attachment text should be: %s, got: %s", i, expected, attachment.Text)
 		}
 	}
 }

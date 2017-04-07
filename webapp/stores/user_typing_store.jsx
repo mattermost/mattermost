@@ -64,7 +64,7 @@ class UserTypingStoreClass extends EventEmitter {
                 Reflect.deleteProperty(this.typingUsers, loc);
             }
             this.emitChange();
-        }, Constants.UPDATE_TYPING_MS);
+        }, parseInt(window.mm_config.TimeBetweenUserTypingUpdatesMilliseconds, 10));
         this.emitChange();
     }
 

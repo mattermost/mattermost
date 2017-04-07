@@ -8,6 +8,10 @@ import (
 	"io"
 )
 
+const (
+	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+)
+
 var (
 	IMAGE_EXTENSIONS = [5]string{".jpg", ".jpeg", ".gif", ".bmp", ".png"}
 	IMAGE_MIME_TYPES = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff"}

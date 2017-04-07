@@ -8,25 +8,30 @@ import SwitchChannelProvider from './suggestion/switch_channel_provider.jsx';
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 
+import {goToChannel, openDirectChannelToUser} from 'actions/channel_actions.jsx';
+
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import React from 'react';
 import $ from 'jquery';
+
 export default class SwitchChannelModal extends React.Component {
     constructor() {
         super();
 
-        this.onInput = this.onInput.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.onItemSelected = this.onItemSelected.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onExited = this.onExited.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.switchToChannel = this.switchToChannel.bind(this);
+
         this.suggestionProviders = [new SwitchChannelProvider()];
 
         this.state = {
@@ -59,13 +64,19 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     onExited() {
+        this.selected = null;
         setTimeout(() => {
             $('#post_textbox').get(0).focus();
         });
     }
 
-    onInput(e) {
+    onChange(e) {
         this.setState({text: e.target.value});
+        this.selected = null;
+    }
+
+    onItemSelected(item) {
+        this.selected = item;
     }
 
     handleKeyDown(e) {
@@ -78,22 +89,46 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleSubmit() {
-        const name = this.state.text.trim();
         let channel = null;
 
-        if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
-            const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
-            channel = ChannelStore.getByName(Utils.getDirectChannelNameByUsername(dmUsername, UserStore.getCurrentUser().username).trim());
-        } else {
-            channel = ChannelStore.getByName(this.state.text.trim());
+        if (!this.selected) {
+            if (this.state.text !== '') {
+                this.setState({
+                    error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+                });
+            }
+            return;
         }
 
+        if (this.selected.type === Constants.DM_CHANNEL) {
+            const user = UserStore.getProfileByUsername(this.selected.name);
+
+            if (user) {
+                openDirectChannelToUser(
+                    user.id,
+                    (ch) => {
+                        channel = ch;
+                        this.switchToChannel(channel);
+                    },
+                    () => {
+                        channel = null;
+                        this.switchToChannel(channel);
+                    }
+                );
+            }
+        } else {
+            channel = ChannelStore.get(this.selected.id);
+            this.switchToChannel(channel);
+        }
+    }
+
+    switchToChannel(channel) {
         if (channel !== null) {
-            ChannelActions.goToChannel(channel);
+            goToChannel(channel);
             this.onHide();
         } else if (this.state.text !== '') {
             this.setState({
-                error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+                error: Utils.localizeMessage('channel_switch_modal.failed_to_open', 'Failed to open channel.')
             });
         }
     }
@@ -102,7 +137,7 @@ export default class SwitchChannelModal extends React.Component {
         const message = this.state.error;
         return (
             <Modal
-                className='modal-browse-channel'
+                dialogClassName='channel-switch-modal'
                 ref='modal'
                 show={this.props.show}
                 onHide={this.onHide}
@@ -130,13 +165,13 @@ export default class SwitchChannelModal extends React.Component {
                         ref='search'
                         className='form-control focused'
                         type='input'
-                        onInput={this.onInput}
+                        onChange={this.onChange}
                         value={this.state.text}
                         onKeyDown={this.handleKeyDown}
+                        onItemSelected={this.onItemSelected}
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
-                        preventDefaultSubmit={false}
                         listStyle='bottom'
                     />
                 </Modal.Body>

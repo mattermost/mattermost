@@ -12,8 +12,11 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/fsnotify/fsnotify"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -24,14 +27,26 @@ const (
 	MODE_BETA       = "beta"
 	MODE_PROD       = "prod"
 	LOG_ROTATE_SIZE = 10000
+	LOG_FILENAME    = "mattermost.log"
 )
 
+var cfgMutex = &sync.Mutex{}
+var watcher *fsnotify.Watcher
 var Cfg *model.Config = &model.Config{}
 var CfgDiagnosticId = ""
 var CfgHash = ""
 var CfgFileName string = ""
 var ClientCfg map[string]string = map[string]string{}
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
+var siteURL = ""
+
+func GetSiteURL() string {
+	return siteURL
+}
+
+func SetSiteURL(url string) {
+	siteURL = strings.TrimRight(url, "/")
+}
 
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("./config/" + fileName); err == nil {
@@ -57,13 +72,17 @@ func FindDir(dir string) string {
 }
 
 func DisableDebugLogForTest() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 	if l4g.Global["stdout"] != nil {
 		originalDisableDebugLvl = l4g.Global["stdout"].Level
-		l4g.Global["stdout"].Level = l4g.WARNING
+		l4g.Global["stdout"].Level = l4g.ERROR
 	}
 }
 
 func EnableDebugLogForTest() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 	if l4g.Global["stdout"] != nil {
 		l4g.Global["stdout"].Level = originalDisableDebugLvl
 	}
@@ -122,13 +141,16 @@ func configureLog(s *model.LogSettings) {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		return FindDir("logs") + "mattermost.log"
+		return FindDir("logs") + LOG_FILENAME
 	} else {
-		return fileLocation
+		return fileLocation + LOG_FILENAME
 	}
 }
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
 		return model.NewLocAppError("SaveConfig", "utils.config.save_config.saving.app_error",
@@ -144,33 +166,115 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	return nil
 }
 
+func EnableConfigFromEnviromentVars() {
+	viper.SetEnvPrefix("mm")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+}
+
+func InitializeConfigWatch() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	if watcher == nil {
+		var err error
+		watcher, err = fsnotify.NewWatcher()
+		if err != nil {
+			l4g.Error(fmt.Sprintf("Failed to watch config file at %v with err=%v", CfgFileName, err.Error()))
+		}
+
+		go func() {
+			configFile := filepath.Clean(CfgFileName)
+
+			for {
+				select {
+				case event := <-watcher.Events:
+					// we only care about the config file
+					if filepath.Clean(event.Name) == configFile {
+						if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
+							l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
+
+							if configReadErr := viper.ReadInConfig(); configReadErr == nil {
+								LoadConfig(CfgFileName)
+							} else {
+								l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", CfgFileName, configReadErr.Error()))
+							}
+						}
+					}
+				case err := <-watcher.Errors:
+					l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", CfgFileName, err.Error()))
+				}
+			}
+		}()
+	}
+}
+
+func EnableConfigWatch() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	configFile := filepath.Clean(CfgFileName)
+	configDir, _ := filepath.Split(configFile)
+
+	if watcher != nil {
+		watcher.Add(configDir)
+	}
+}
+
+func DisableConfigWatch() {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	if watcher != nil {
+		configFile := filepath.Clean(CfgFileName)
+		configDir, _ := filepath.Split(configFile)
+		watcher.Remove(configDir)
+	}
+}
+
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
 func LoadConfig(fileName string) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 
-	fileName = FindConfigFile(fileName)
+	fileNameWithExtension := filepath.Base(fileName)
+	fileExtension := filepath.Ext(fileNameWithExtension)
+	fileDir := filepath.Dir(fileName)
 
-	file, err := os.Open(fileName)
-	if err != nil {
-		panic(T("utils.config.load_config.opening.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
-	}
-
-	decoder := json.NewDecoder(file)
-	config := model.Config{}
-	err = decoder.Decode(&config)
-	if err != nil {
-		panic(T("utils.config.load_config.decoding.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
-	}
-
-	if _, err := file.Stat(); err != nil {
-		panic(T("utils.config.load_config.getting.panic",
-			map[string]interface{}{"Filename": fileName, "Error": err.Error()}))
+	if len(fileNameWithExtension) > 0 {
+		fileNameOnly := fileNameWithExtension[:len(fileNameWithExtension)-len(fileExtension)]
+		viper.SetConfigName(fileNameOnly)
 	} else {
-		CfgFileName = fileName
+		viper.SetConfigName("config")
 	}
+
+	if len(fileDir) > 0 {
+		viper.AddConfigPath(fileDir)
+	}
+
+	viper.SetConfigType("json")
+	viper.AddConfigPath("./config")
+	viper.AddConfigPath("../config")
+	viper.AddConfigPath(".")
+
+	configReadErr := viper.ReadInConfig()
+	if configReadErr != nil {
+		errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": configReadErr.Error()})
+		fmt.Fprintln(os.Stderr, errMsg)
+		os.Exit(1)
+	}
+
+	var config model.Config
+	unmarshalErr := viper.Unmarshal(&config)
+	if unmarshalErr != nil {
+		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": unmarshalErr.Error()})
+		fmt.Fprintln(os.Stderr, errMsg)
+		os.Exit(1)
+	}
+
+	CfgFileName = viper.ConfigFileUsed()
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
 		len(config.EmailSettings.InviteSalt) == 0 || len(config.EmailSettings.PasswordResetSalt) == 0
@@ -182,9 +286,15 @@ func LoadConfig(fileName string) {
 	}
 
 	if needSave {
-		if err := SaveConfig(fileName, &config); err != nil {
+		cfgMutex.Unlock()
+		if err := SaveConfig(CfgFileName, &config); err != nil {
 			l4g.Warn(T(err.Id))
 		}
+		cfgMutex.Lock()
+	}
+
+	if err := ValidateLocales(&config); err != nil {
+		panic(T(err.Id))
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
@@ -215,6 +325,7 @@ func LoadConfig(fileName string) {
 	}
 
 	SetDefaultRolesBasedOnConfig()
+	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 }
 
 func RegenerateClientConfig() {
@@ -236,14 +347,17 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
-	props["RestrictTeamNames"] = strconv.FormatBool(*c.TeamSettings.RestrictTeamNames)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["RestrictTeamInvite"] = *c.TeamSettings.RestrictTeamInvite
+	props["RestrictPublicChannelCreation"] = *c.TeamSettings.RestrictPublicChannelCreation
+	props["RestrictPrivateChannelCreation"] = *c.TeamSettings.RestrictPrivateChannelCreation
 	props["RestrictPublicChannelManagement"] = *c.TeamSettings.RestrictPublicChannelManagement
 	props["RestrictPrivateChannelManagement"] = *c.TeamSettings.RestrictPrivateChannelManagement
+	props["RestrictPublicChannelDeletion"] = *c.TeamSettings.RestrictPublicChannelDeletion
+	props["RestrictPrivateChannelDeletion"] = *c.TeamSettings.RestrictPrivateChannelDeletion
+	props["RestrictPrivateChannelManageMembers"] = *c.TeamSettings.RestrictPrivateChannelManageMembers
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
-	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)
@@ -251,9 +365,13 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOnlyAdminIntegrations"] = strconv.FormatBool(*c.ServiceSettings.EnableOnlyAdminIntegrations)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
+	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
 	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
+	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
+	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
@@ -293,6 +411,15 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
+	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
+
+	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
+	props["TimeBetweenUserTypingUpdatesMilliseconds"] = strconv.FormatInt(*c.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds, 10)
+	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
+
+	props["DiagnosticId"] = CfgDiagnosticId
+	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+
 	if IsLicensed {
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
@@ -310,6 +437,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 		if *License.Features.MFA {
 			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 
 		if *License.Features.Compliance {
@@ -328,6 +456,10 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}
 
+		if *License.Features.Cluster {
+			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
+		}
+
 		if *License.Features.GoogleOAuth {
 			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
 		}
@@ -343,10 +475,6 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
-
-		if *License.Features.Webrtc {
-			props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
-		}
 	}
 
 	return props
@@ -359,6 +487,29 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 			return err
 		}
 	}
+	return nil
+}
+
+func ValidateLocales(cfg *model.Config) *model.AppError {
+	locales := GetSupportedLocales()
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+	}
+
+	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
+		return model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+	}
+
+	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
+		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+			if word == *cfg.LocalizationSettings.DefaultClientLocale {
+				return nil
+			}
+		}
+
+		return model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+	}
+
 	return nil
 }
 

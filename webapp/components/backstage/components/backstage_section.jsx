@@ -65,7 +65,6 @@ export default class BackstageSection extends React.Component {
                 <Link
                     className={`${className}-title`}
                     activeClassName={`${className}-title--active`}
-                    onClick={this.handleClick}
                     to={link}
                 >
                     <span className={`${className}-title__text`}>

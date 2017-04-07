@@ -4,8 +4,17 @@
 package store
 
 import (
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
+
+const (
+	EMOJI_CACHE_SIZE = 5000
+	EMOJI_CACHE_SEC  = 1800 // 30 mins
+)
+
+var emojiCache *utils.Cache = utils.NewLru(EMOJI_CACHE_SIZE)
 
 type SqlEmojiStore struct {
 	*SqlStore
@@ -27,6 +36,9 @@ func NewSqlEmojiStore(sqlStore *SqlStore) EmojiStore {
 }
 
 func (es SqlEmojiStore) CreateIndexesIfNotExists() {
+	es.CreateIndexIfNotExists("idx_emoji_update_at", "Emoji", "UpdateAt")
+	es.CreateIndexIfNotExists("idx_emoji_create_at", "Emoji", "CreateAt")
+	es.CreateIndexIfNotExists("idx_emoji_delete_at", "Emoji", "DeleteAt")
 }
 
 func (es SqlEmojiStore) Save(emoji *model.Emoji) StoreChannel {
@@ -55,11 +67,32 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) StoreChannel {
 	return storeChannel
 }
 
-func (es SqlEmojiStore) Get(id string) StoreChannel {
+func (es SqlEmojiStore) Get(id string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
+		metrics := einterfaces.GetMetricsInterface()
+
+		if allowFromCache {
+			if cacheItem, ok := emojiCache.Get(id); ok {
+				if metrics != nil {
+					metrics.IncrementMemCacheHitCounter("Emoji")
+				}
+				result.Data = cacheItem.(*model.Emoji)
+				storeChannel <- result
+				close(storeChannel)
+				return
+			} else {
+				if metrics != nil {
+					metrics.IncrementMemCacheMissCounter("Emoji")
+				}
+			}
+		} else {
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Emoji")
+			}
+		}
 
 		var emoji *model.Emoji
 
@@ -74,6 +107,10 @@ func (es SqlEmojiStore) Get(id string) StoreChannel {
 			result.Err = model.NewLocAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error())
 		} else {
 			result.Data = emoji
+
+			if allowFromCache {
+				emojiCache.AddWithExpiresInSecs(id, emoji, EMOJI_CACHE_SEC)
+			}
 		}
 
 		storeChannel <- result

@@ -43,12 +43,10 @@ export default class ImageSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.files.images'
-                    defaultMessage='Images'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.files.images'
+                defaultMessage='Images'
+            />
         );
     }
 

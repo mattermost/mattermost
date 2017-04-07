@@ -17,8 +17,11 @@ func TestEchoCommand(t *testing.T) {
 
 	echoTestString := "/echo test"
 
-	r1 := Client.Must(Client.Command(channel1.Id, echoTestString, false)).Data.(*model.CommandResponse)
-	if r1 == nil {
+	if r1 := Client.Must(Client.Command(channel1.Id, echoTestString)).Data.(*model.CommandResponse); r1 == nil {
+		t.Fatal("Echo command failed to execute")
+	}
+
+	if r1 := Client.Must(Client.Command(channel1.Id, "/echo ")).Data.(*model.CommandResponse); r1 == nil {
 		t.Fatal("Echo command failed to execute")
 	}
 

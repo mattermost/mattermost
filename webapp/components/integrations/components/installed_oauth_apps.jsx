@@ -15,7 +15,7 @@ import InstalledOAuthApp from './installed_oauth_app.jsx';
 export default class InstalledOAuthApps extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object
         };
     }
 
@@ -60,8 +60,22 @@ export default class InstalledOAuthApps extends React.Component {
         OAuthActions.deleteOAuthApp(app.id, userId);
     }
 
+    oauthAppCompare(a, b) {
+        let nameA = a.name;
+        if (!nameA) {
+            nameA = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+        }
+
+        let nameB = b.name;
+        if (!nameB) {
+            nameB = localizeMessage('installed_integrations.unnamed_oauth_app', 'Unnamed OAuth 2.0 Application');
+        }
+
+        return nameA.localeCompare(nameB);
+    }
+
     render() {
-        const oauthApps = this.state.oauthApps.map((app) => {
+        const oauthApps = this.state.oauthApps.sort(this.oauthAppCompare).map((app) => {
             return (
                 <InstalledOAuthApp
                     key={app.id}

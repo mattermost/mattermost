@@ -17,6 +17,7 @@
     }
 
     .popover-title {
+        @include border-radius(0);
         background: alpha-color($black, .05);
         max-width: 100%;
         overflow: hidden;
@@ -25,9 +26,27 @@
     }
 
     .popover-content {
+        word-break: break-word;
+
         p {
             &:last-child {
                 margin-bottom: 5px;
+            }
+        }
+    }
+
+    .popover__row {
+        border-top: 1px solid transparent;
+        margin: 9px -15px 0;
+        padding: 9px 15px 0;
+
+        > a {
+            > i {
+                margin-right: 5px;
+            }
+
+            > span {
+                text-transform: capitalize;
             }
         }
     }
@@ -77,6 +96,7 @@
         .popover-content {
             padding: 10px;
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
     }
 
@@ -124,6 +144,10 @@
 
         &.selected {
             background: alpha-color($black, .2);
+        }
+
+        .mention--align {
+            display: inline-block;
         }
 
         .fa {
@@ -180,6 +204,21 @@
 
 .member-list__popover {
     max-width: initial;
+
+    .more-modal__list {
+        .more-modal__row {
+            min-height: inherit;
+        }
+
+        .more-modal__details {
+            line-height: 32px;
+        }
+
+        .more-modal__actions {
+            line-height: 31px;
+            margin: 0;
+        }
+    }
 
     .popover-content {
         max-height: 350px;

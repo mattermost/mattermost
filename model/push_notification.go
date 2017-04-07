@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	PUSH_NOTIFY_APPLE   = "apple"
-	PUSH_NOTIFY_ANDROID = "android"
+	PUSH_NOTIFY_APPLE                = "apple"
+	PUSH_NOTIFY_ANDROID              = "android"
+	PUSH_NOTIFY_APPLE_REACT_NATIVE   = "apple_rn"
+	PUSH_NOTIFY_ANDROID_REACT_NATIVE = "android_rn"
 
 	PUSH_TYPE_MESSAGE = "message"
 	PUSH_TYPE_CLEAR   = "clear"
@@ -30,6 +32,7 @@ type PushNotification struct {
 	Message          string `json:"message"`
 	Badge            int    `json:"badge"`
 	ContentAvailable int    `json:"cont_ava"`
+	TeamId           string `json:"team_id"`
 	ChannelId        string `json:"channel_id"`
 	ChannelName      string `json:"channel_name"`
 	Type             string `json:"type"`
@@ -45,12 +48,12 @@ func (me *PushNotification) ToJson() string {
 }
 
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-	if strings.HasPrefix(deviceId, PUSH_NOTIFY_APPLE+":") {
-		me.Platform = PUSH_NOTIFY_APPLE
-		me.DeviceId = strings.TrimPrefix(deviceId, PUSH_NOTIFY_APPLE+":")
-	} else if strings.HasPrefix(deviceId, PUSH_NOTIFY_ANDROID+":") {
-		me.Platform = PUSH_NOTIFY_ANDROID
-		me.DeviceId = strings.TrimPrefix(deviceId, PUSH_NOTIFY_ANDROID+":")
+
+	index := strings.Index(deviceId, ":")
+
+	if index > -1 {
+		me.Platform = deviceId[:index]
+		me.DeviceId = deviceId[index+1:]
 	}
 }
 

@@ -35,10 +35,7 @@ export default class PostFocusView extends React.Component {
         const focusedPostId = PostStore.getFocusedPostId();
 
         const channel = ChannelStore.getCurrent();
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
+        const profiles = UserStore.getProfiles();
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
@@ -115,12 +112,7 @@ export default class PostFocusView extends React.Component {
     }
 
     onUserChange() {
-        const channel = ChannelStore.getCurrent();
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
 
     onStatusChange() {

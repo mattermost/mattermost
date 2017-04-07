@@ -11,10 +11,10 @@ import XRegExp from 'xregexp';
 
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
 // http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
-const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
+const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3]/;
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
-// @mentions and !channels to links by taking a user's message and returning a string of formatted html. Also takes
+// @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
 // a number of options as part of the second parameter:
 // - searchTerm - If specified, this word is highlighted in the resulting html. Defaults to nothing.
 // - mentionHighlight - Specifies whether or not to highlight mentions of the current user. Defaults to true.
@@ -26,10 +26,14 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //     links that can be handled by a special click handler.
 // - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
 //      be handled by a special click handler (Utils.handleFormattedTextClick)
-// - channelNamesMap - An object mapping channel display names to channels. If provided, !channel mentions will be replaced with
+// - channelNamesMap - An object mapping channel display names to channels. If provided, ~channel mentions will be replaced with
 //      links to the relevant channel.
 // - team - The current team.
 export function formatText(text, inputOptions) {
+    if (!text || typeof text !== 'string') {
+        return '';
+    }
+
     let output = text;
 
     const options = Object.assign({}, inputOptions);
@@ -127,7 +131,7 @@ function autolinkEmails(text, tokens) {
         }
 
         const index = tokens.size;
-        const alias = `MM_EMAIL${index}`;
+        const alias = `$MM_EMAIL${index}`;
 
         tokens.set(alias, {
             value: `<a class="theme" href="${url}">${linkText}</a>`,
@@ -152,7 +156,7 @@ function autolinkEmails(text, tokens) {
 
 const punctuation = XRegExp.cache('[^\\pL\\d]');
 
-function autolinkAtMentions(text, tokens, usernameMap) {
+export function autolinkAtMentions(text, tokens, usernameMap) {
     // Test if provided text needs to be highlighted, special mention or current user
     function mentionExists(u) {
         return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || Boolean(usernameMap[u]));
@@ -160,7 +164,7 @@ function autolinkAtMentions(text, tokens, usernameMap) {
 
     function addToken(username, mention) {
         const index = tokens.size;
-        const alias = `MM_ATMENTION${index}`;
+        const alias = `$MM_ATMENTION${index}`;
 
         tokens.set(alias, {
             value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
@@ -169,30 +173,18 @@ function autolinkAtMentions(text, tokens, usernameMap) {
         return alias;
     }
 
-    function replaceAtMentionWithToken(fullMatch, mention, username) {
-        let usernameLower = username.toLowerCase();
+    function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
+        const usernameLower = username.toLowerCase();
 
-        if (mentionExists(usernameLower)) {
-            // Exact match
-            const alias = addToken(usernameLower, mention, '');
-            return alias;
-        }
-
-        // Not an exact match, attempt to truncate any punctuation to see if we can find a user
-        const originalUsername = usernameLower;
-
+        // Check if the text makes up an explicit mention, possible trimming extra punctuation from the end of the name if necessary
         for (let c = usernameLower.length; c > 0; c--) {
-            if (punctuation.test(usernameLower[c - 1])) {
-                usernameLower = usernameLower.substring(0, c - 1);
+            const truncated = usernameLower.substring(0, c);
+            const suffix = usernameLower.substring(c);
 
-                if (mentionExists(usernameLower)) {
-                    const suffix = originalUsername.substr(c - 1);
-                    const alias = addToken(usernameLower, '@' + usernameLower);
-                    return alias + suffix;
-                }
-            } else {
-                // If the last character is not punctuation, no point in going any further
-                break;
+            // If we've found a username or run out of punctuation to trim off, render it as an at mention
+            if (mentionExists(truncated) || !punctuation.test(truncated[truncated.length - 1])) {
+                const alias = addToken(truncated, '@' + truncated);
+                return prefix + alias + suffix;
             }
         }
 
@@ -200,7 +192,7 @@ function autolinkAtMentions(text, tokens, usernameMap) {
     }
 
     let output = text;
-    output = output.replace(/(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/(^|\W)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
 
     return output;
 }
@@ -211,7 +203,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
     function addToken(channelName, mention, displayName) {
         const index = tokens.size;
-        const alias = `MM_CHANNELMENTION${index}`;
+        const alias = `$MM_CHANNELMENTION${index}`;
         let href = '#';
         if (team) {
             href = '/' + team.name + '/channels/' + channelName;
@@ -229,7 +221,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, '!' + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, '~' + channelNamesMap[channelNameLower].display_name);
             return spacer + alias;
         }
 
@@ -242,7 +234,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
                 if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '!' + channelNameLower, '!' + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '~' + channelNameLower, '~' + channelNamesMap[channelNameLower].display_name);
                     return spacer + alias + suffix;
                 }
             } else {
@@ -255,13 +247,13 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
 
     let output = text;
-    output = output.replace(/(^|\s)(!([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
+    output = output.replace(/(^|\s)(~([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
 
     return output;
 }
 
 export function escapeRegex(text) {
-    return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 function highlightCurrentMentions(text, tokens, mentionKeys = []) {
@@ -272,7 +264,7 @@ function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     for (const [alias, token] of tokens) {
         if (mentionKeys.indexOf(token.originalText) !== -1) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `MM_SELFMENTION${index}`;
+            const newAlias = `$MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
                 value: `<span class='mention--highlight'>${alias}</span>`,
@@ -290,7 +282,7 @@ function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     // look for self mentions in the text
     function replaceCurrentMentionWithToken(fullMatch, prefix, mention) {
         const index = tokens.size;
-        const alias = `MM_SELFMENTION${index}`;
+        const alias = `$MM_SELFMENTION${index}`;
 
         tokens.set(alias, {
             value: `<span class='mention--highlight'>${mention}</span>`,
@@ -318,7 +310,7 @@ function autolinkHashtags(text, tokens) {
     for (const [alias, token] of tokens) {
         if (token.originalText.lastIndexOf('#', 0) === 0) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `MM_HASHTAG${index}`;
+            const newAlias = `$MM_HASHTAG${index}`;
 
             newTokens.set(newAlias, {
                 value: `<a class='mention-link' href='#' data-hashtag='${token.originalText}'>${token.originalText}</a>`,
@@ -338,7 +330,7 @@ function autolinkHashtags(text, tokens) {
     // look for hashtags in the text
     function replaceHashtagWithToken(fullMatch, prefix, originalText) {
         const index = tokens.size;
-        const alias = `MM_HASHTAG${index}`;
+        const alias = `$MM_HASHTAG${index}`;
 
         if (text.length < Constants.MIN_HASHTAG_LINK_LENGTH + 1) {
             // too short to be a hashtag
@@ -354,7 +346,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
+    return output.replace(XRegExp.cache('(^|\\W)(#\\pL[\\pL\\d\\-_.]*[\\pL\\d])', 'g'), replaceHashtagWithToken);
 }
 
 const puncStart = XRegExp.cache('^[^\\pL\\d\\s#]+');
@@ -398,7 +390,7 @@ function parseSearchTerms(searchTerm) {
             termString = termString.substring(captured[0].length);
 
             // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
-            terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => Boolean(term)));
+            terms.push(...captured[0].split(/[ <>+()~@]/).filter((term) => Boolean(term)));
             continue;
         }
 
@@ -407,7 +399,13 @@ function parseSearchTerms(searchTerm) {
     }
 
     // remove punctuation from each term
-    terms = terms.map((term) => term.replace(puncStart, '').replace(puncEnd, ''));
+    terms = terms.map((term) => {
+        term.replace(puncStart, '');
+        if (term.charAt(term.length - 1) !== '*') {
+            term.replace(puncEnd, '');
+        }
+        return term;
+    });
 
     return terms;
 }
@@ -439,7 +437,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
 
     function replaceSearchTermWithToken(match, prefix, word) {
         const index = tokens.size;
-        const alias = `MM_SEARCHTERM${index}`;
+        const alias = `$MM_SEARCHTERM${index}`;
 
         tokens.set(alias, {
             value: `<span class='search-highlight'>${word}</span>`,
@@ -455,7 +453,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
         for (const [alias, token] of tokens) {
             if (pattern.test(token.originalText)) {
                 const index = tokens.size + newTokens.size;
-                const newAlias = `MM_SEARCHTERM${index}`;
+                const newAlias = `$MM_SEARCHTERM${index}`;
 
                 newTokens.set(newAlias, {
                     value: `<span class='search-highlight'>${alias}</span>`,
@@ -464,6 +462,11 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
 
                 output = output.replace(alias, newAlias);
             }
+
+            // The pattern regexes are global, so calling pattern.test() above alters their
+            // state. Reset lastIndex to 0 between calls to test() to ensure it returns the
+            // same result every time it is called with the same value of token.originalText.
+            pattern.lastIndex = 0;
         }
 
         // the new tokens are stashed in a separate map since we can't add objects to a map during iteration

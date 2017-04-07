@@ -4,7 +4,7 @@
     border-right: $border-gray;
     height: 100%;
     left: 0;
-    position: absolute;
+    position: fixed;
     width: 220px;
     z-index: 5;
 
@@ -69,16 +69,13 @@
 
     .nav-pills__unread-indicator {
         @include border-radius(50px);
-        background: #2389d7;
-        color: #ffffff;
         font-size: 13.5px;
-        left: 0;
+        left: 15px;
         margin: 0 auto;
         padding: 3px 0 4px;
-        position: absolute;
-        right: 0;
+        position: fixed;
         text-align: center;
-        width: 72%;
+        width: 190px;
         z-index: 1;
     }
 
@@ -117,6 +114,7 @@
             > a {
                 border-radius: 0;
                 line-height: 1.5;
+                outline: none;
                 overflow: hidden;
                 padding: 3px 10px 3px 25px;
                 text-overflow: ellipsis;

@@ -8,6 +8,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -25,6 +26,7 @@ export default class PostViewController extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onPostsChange = this.onPostsChange.bind(this);
+        this.onTeamChange = this.onTeamChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
         this.onPostsViewJumpRequest = this.onPostsViewJumpRequest.bind(this);
         this.onSetNewMessageIndicator = this.onSetNewMessageIndicator.bind(this);
@@ -34,15 +36,14 @@ export default class PostViewController extends React.Component {
         this.onBusy = this.onBusy.bind(this);
 
         const channel = props.channel;
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
+        const profiles = UserStore.getProfiles();
 
         let lastViewed = Number.MAX_VALUE;
-        const member = ChannelStore.getMember(channel.id);
+        let lastViewedBottom = Number.MAX_VALUE;
+        const member = ChannelStore.getMyMember(channel.id);
         if (member != null) {
             lastViewed = member.last_viewed_at;
+            lastViewedBottom = member.last_viewed_at;
         }
 
         const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
@@ -56,11 +57,13 @@ export default class PostViewController extends React.Component {
             channel,
             postList: PostStore.filterPosts(channel.id, joinLeaveEnabled),
             currentUser: UserStore.getCurrentUser(),
+            currentTeamId: TeamStore.getCurrentId(),
             isBusy: WebrtcStore.isBusy(),
             profiles,
             statuses,
             atTop: PostStore.getVisibilityAtTop(channel.id),
             lastViewed,
+            lastViewedBottom,
             ownNewMessage: false,
             loading,
             scrollType: ScrollTypes.NEW_MESSAGE,
@@ -107,12 +110,7 @@ export default class PostViewController extends React.Component {
     }
 
     onUserChange() {
-        const channel = this.state.channel;
-        let profiles = UserStore.getProfiles();
-        if (channel && channel.type === Constants.DM_CHANNEL) {
-            profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-        }
-        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(profiles))});
+        this.setState({currentUser: UserStore.getCurrentUser(), profiles: JSON.parse(JSON.stringify(UserStore.getProfiles()))});
     }
 
     onPostsChange() {
@@ -136,9 +134,20 @@ export default class PostViewController extends React.Component {
         this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
     }
 
+    onTeamChange() {
+        const currentTeamId = TeamStore.getCurrentId();
+        if ((this.state.channel.type === Constants.OPEN_CHANNEL || this.state.channel.type === Constants.PRIVATE_CHANNEL) && this.state.channel.team_id !== currentTeamId) {
+            this.setState({
+                currentTeamId,
+                loading: true
+            });
+        }
+    }
+
     onActivate() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addChangeListener(this.onUserChange);
+        TeamStore.addChangeListener(this.onTeamChange);
         UserStore.addStatusesChangeListener(this.onStatusChange);
         PostStore.addChangeListener(this.onPostsChange);
         PostStore.addPostsViewJumpListener(this.onPostsViewJumpRequest);
@@ -149,6 +158,7 @@ export default class PostViewController extends React.Component {
     onDeactivate() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeChangeListener(this.onUserChange);
+        TeamStore.removeChangeListener(this.onTeamChange);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
         PostStore.removeChangeListener(this.onPostsChange);
         PostStore.removePostsViewJumpListener(this.onPostsViewJumpRequest);
@@ -165,15 +175,12 @@ export default class PostViewController extends React.Component {
             const channel = nextProps.channel;
 
             let lastViewed = Number.MAX_VALUE;
-            const member = ChannelStore.getMember(channel.id);
+            const member = ChannelStore.getMyMember(channel.id);
             if (member != null) {
                 lastViewed = member.last_viewed_at;
             }
 
-            let profiles = UserStore.getProfiles();
-            if (channel && channel.type === Constants.DM_CHANNEL) {
-                profiles = Object.assign({}, profiles, UserStore.getDirectProfiles());
-            }
+            const profiles = UserStore.getProfiles();
 
             const joinLeaveEnabled = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'join_leave', true);
 
@@ -198,9 +205,22 @@ export default class PostViewController extends React.Component {
 
     onPostsViewJumpRequest(type, postId) {
         switch (type) {
-        case Constants.PostsViewJumpTypes.BOTTOM:
-            this.setState({scrollType: ScrollTypes.BOTTOM});
+        case Constants.PostsViewJumpTypes.BOTTOM: {
+            let lastViewedBottom;
+            const lastPost = PostStore.getLatestPost(this.state.channel.id);
+
+            if (lastPost && lastPost.create_at) {
+                lastViewedBottom = lastPost.create_at;
+            } else {
+                lastViewedBottom = new Date().getTime();
+            }
+
+            this.setState({
+                scrollType: ScrollTypes.BOTTOM,
+                lastViewedBottom
+            });
             break;
+        }
         case Constants.PostsViewJumpTypes.POST:
             this.setState({
                 scrollType: ScrollTypes.POST,
@@ -213,13 +233,27 @@ export default class PostViewController extends React.Component {
         }
     }
 
-    onSetNewMessageIndicator(lastViewed, ownNewMessage) {
-        this.setState({lastViewed, ownNewMessage});
+    onSetNewMessageIndicator() {
+        let lastViewed = Number.MAX_VALUE;
+        const member = ChannelStore.getMyMember(this.props.channel.id);
+        if (member != null) {
+            lastViewed = member.last_viewed_at;
+        }
+        this.setState({lastViewed});
     }
 
     onPostListScroll(atBottom) {
         if (atBottom) {
-            this.setState({scrollType: ScrollTypes.BOTTOM});
+            let lastViewedBottom;
+            const lastPost = PostStore.getLatestPost(this.state.channel.id);
+
+            if (lastPost && lastPost.create_at) {
+                lastViewedBottom = lastPost.create_at;
+            } else {
+                lastViewedBottom = new Date().getTime();
+            }
+
+            this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom});
         } else {
             this.setState({scrollType: ScrollTypes.FREE});
         }
@@ -340,6 +374,7 @@ export default class PostViewController extends React.Component {
                     useMilitaryTime={this.state.useMilitaryTime}
                     flaggedPosts={this.state.flaggedPosts}
                     lastViewed={this.state.lastViewed}
+                    lastViewedBottom={this.state.lastViewedBottom}
                     ownNewMessage={this.state.ownNewMessage}
                     statuses={this.state.statuses}
                     isBusy={this.state.isBusy}

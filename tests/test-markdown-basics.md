@@ -4,12 +4,13 @@ Tests for text style, code blocks, in-line code and images, lines, block quotes,
 ### Text Style
 
 **The following text should render as:**  
-_Italics_  
-*Italics*  
-**Bold**  
-***Bold-italics***  
-**_Bold-italics_**  
-~~Strikethrough~~  
+_Italics_
+_Ita_lics_
+*Italics*
+**Bold**
+***Bold-italics***
+**_Bold-italics_**
+~~Strikethrough~~
 
 This sentence contains **bold**, _italic_, ***bold-italic***, and ~~stikethrough~~ text.  
 
@@ -20,14 +21,12 @@ _Normal Text*
 
 ### Carriage Return  
 
-**The following text should render as:**  
-Line #1 followed by Line #2  
+Line #1 followed by one blank line 
+
 Line #2 followed by one blank line
 
-Line #3 followed by one blank line
-
-
-Line #4 following one blank line  
+Line #3 followed by Line #4
+Line #4 
 
 
 ### Code Blocks
@@ -107,6 +106,11 @@ Panorama Image:
 Tall Portrait Image:  
 ![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg)
 
+Tall Portrait Image (resized):  
+![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =x200)
+
+Tall Portrait Image (resized to a square):  
+![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =200x200)
 
 ### Lines
 

@@ -4,28 +4,23 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
+import {getShortenedURL} from 'utils/url.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as ChannelUtils from 'utils/channel_utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
 
-const holders = defineMessages({
-    nameEx: {
-        id: 'channel_modal.nameEx',
-        defaultMessage: 'E.g.: "Bugs", "Marketing", "客户支持"'
-    }
-});
-
 import React from 'react';
 
-class NewChannelModal extends React.Component {
+export default class NewChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -82,7 +77,7 @@ class NewChannelModal extends React.Component {
         e.preventDefault();
 
         const displayName = ReactDOM.findDOMNode(this.refs.display_name).value.trim();
-        if (displayName.length < 1) {
+        if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
             this.setState({displayNameError: true});
             return;
         }
@@ -109,7 +104,7 @@ class NewChannelModal extends React.Component {
                 <p className='input__help error'>
                     <FormattedMessage
                         id='channel_modal.displayNameError'
-                        defaultMessage='This field is required'
+                        defaultMessage='Channel name must be 2 or more characters'
                     />
                     {this.state.displayNameError}
                 </p>
@@ -140,7 +135,7 @@ class NewChannelModal extends React.Component {
             >
                 <FormattedMessage
                     id='channel_modal.privateGroup2'
-                    defaultMessage='Create a private group'
+                    defaultMessage='Create a private channel'
                 />
             </a>
         );
@@ -148,47 +143,28 @@ class NewChannelModal extends React.Component {
         const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
-        if (global.window.mm_license.IsLicensed === 'true') {
-            if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                createPublicChannelLink = null;
-            } else if (global.window.mm_config.RestrictPublicChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                createPublicChannelLink = null;
-            }
-
-            if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
-                createPrivateChannelLink = null;
-            } else if (global.window.mm_config.RestrictPrivateChannelManagement === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
-                createPrivateChannelLink = null;
-            }
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+            createPublicChannelLink = null;
         }
 
-        var channelTerm = '';
+        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, isSystemAdmin)) {
+            createPrivateChannelLink = null;
+        }
+
         var channelSwitchText = '';
         switch (this.props.channelType) {
         case 'P':
-            channelTerm = (
-                <FormattedMessage
-                    id='channel_modal.group'
-                    defaultMessage='Group'
-                />
-            );
             channelSwitchText = (
                 <div className='modal-intro'>
                     <FormattedMessage
                         id='channel_modal.privateGroup1'
-                        defaultMessage='Create a new private group with restricted membership. '
+                        defaultMessage='Create a new private channel with restricted membership. '
                     />
                     {createPublicChannelLink}
                 </div>
             );
             break;
         case 'O':
-            channelTerm = (
-                <FormattedMessage
-                    id='channel_modal.channel'
-                    defaultMessage='Channel'
-                />
-            );
             channelSwitchText = (
                 <div className='modal-intro'>
                     <FormattedMessage
@@ -201,22 +177,23 @@ class NewChannelModal extends React.Component {
             break;
         }
 
-        const prettyTeamURL = Utils.getShortenedTeamURL();
+        const prettyTeamURL = getShortenedURL();
 
         return (
             <span>
                 <Modal
+                    dialogClassName='new-channel__modal'
                     show={this.props.show}
                     bsSize='large'
                     onHide={this.props.onModalDismissed}
+                    onExited={this.props.onModalExited}
                 >
                     <Modal.Header closeButton={true}>
                         <Modal.Title>
                             <FormattedMessage
                                 id='channel_modal.modalTitle'
-                                defaultMessage='New '
+                                defaultMessage='New Channel'
                             />
-                            {channelTerm}
                         </Modal.Title>
                     </Modal.Header>
                     <form
@@ -240,8 +217,8 @@ class NewChannelModal extends React.Component {
                                         type='text'
                                         ref='display_name'
                                         className='form-control'
-                                        placeholder={this.props.intl.formatMessage(holders.nameEx)}
-                                        maxLength='22'
+                                        placeholder={Utils.localizeMessage('channel_modal.nameEx', 'E.g.: "Bugs", "Marketing", "客户支持"')}
+                                        maxLength={Constants.MAX_CHANNELNAME_LENGTH}
                                         value={this.props.channelData.displayName}
                                         autoFocus={true}
                                         tabIndex='1'
@@ -282,8 +259,8 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
-                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.purpose'})}
-                                        maxLength='128'
+                                        placeholder={Utils.localizeMessage('channel_modal.purposeEx', 'E.g.: "A channel to file bugs and improvements"')}
+                                        maxLength='250'
                                         value={this.props.channelData.purpose}
                                         onChange={this.handleChange}
                                         tabIndex='2'
@@ -291,10 +268,7 @@ class NewChannelModal extends React.Component {
                                     <p className='input__help'>
                                         <FormattedMessage
                                             id='channel_modal.descriptionHelp'
-                                            defaultMessage='Describe how this {term} should be used.'
-                                            values={{
-                                                term: (channelTerm)
-                                            }}
+                                            defaultMessage='Describe how this channel should be used.'
                                         />
                                     </p>
                                 </div>
@@ -319,8 +293,8 @@ class NewChannelModal extends React.Component {
                                         className='form-control no-resize'
                                         ref='channel_header'
                                         rows='4'
-                                        placeholder={this.props.intl.formatMessage({id: 'channel_modal.header'})}
-                                        maxLength='128'
+                                        placeholder={Utils.localizeMessage('channel_modal.headerEx', 'E.g.: "[Link Title](http://example.com)"')}
+                                        maxLength='1024'
                                         value={this.props.channelData.header}
                                         onChange={this.handleChange}
                                         tabIndex='2'
@@ -328,10 +302,7 @@ class NewChannelModal extends React.Component {
                                     <p className='input__help'>
                                         <FormattedMessage
                                             id='channel_modal.headerHelp'
-                                            defaultMessage='Set text that will appear in the header of the {term} beside the {term} name. For example, include frequently used links by typing [Link Title](http://example.com).'
-                                            values={{
-                                                term: (channelTerm)
-                                            }}
+                                            defaultMessage='Set text that will appear in the header of the channel beside the channel name. For example, include frequently used links by typing [Link Title](http://example.com).'
                                         />
                                     </p>
                                     {serverError}
@@ -357,9 +328,8 @@ class NewChannelModal extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_modal.createNew'
-                                    defaultMessage='Create New '
+                                    defaultMessage='Create New Channel'
                                 />
-                                {channelTerm}
                             </button>
                         </Modal.Footer>
                     </form>
@@ -375,16 +345,15 @@ NewChannelModal.defaultProps = {
     serverError: null
 };
 NewChannelModal.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     channelData: React.PropTypes.object.isRequired,
     serverError: React.PropTypes.node,
     onSubmitChannel: React.PropTypes.func.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired,
+    onModalExited: React.PropTypes.func,
     onTypeSwitched: React.PropTypes.func.isRequired,
     onChangeURLPressed: React.PropTypes.func.isRequired,
     onDataChanged: React.PropTypes.func.isRequired
 };
 
-export default injectIntl(NewChannelModal);

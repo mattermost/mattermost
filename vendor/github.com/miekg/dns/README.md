@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/miekg/dns.svg?branch=master)](https://travis-ci.org/miekg/dns)
+[![](https://godoc.org/github.com/miekg/dns?status.svg)](https://godoc.org/github.com/miekg/dns)
 
 # Alternative (more granular) approach to a DNS library
 
@@ -12,7 +13,7 @@ can build servers and resolvers with it.
 
 We try to keep the "master" branch as sane as possible and at the bleeding edge
 of standards, avoiding breaking changes wherever reasonable. We support the last
-two versions of Go, currently: 1.5 and 1.6.
+two versions of Go, currently: 1.6 and 1.7.
 
 # Goals
 
@@ -24,6 +25,7 @@ two versions of Go, currently: 1.5 and 1.6.
 
 A not-so-up-to-date-list-that-may-be-actually-current:
 
+* https://github.com/coredns/coredns
 * https://cloudflare.com
 * https://github.com/abh/geodns
 * http://www.statdns.com/
@@ -50,6 +52,12 @@ A not-so-up-to-date-list-that-may-be-actually-current:
 * https://dnslookup.org
 * https://github.com/looterz/grimd
 * https://github.com/phamhongviet/serf-dns
+* https://github.com/mehrdadrad/mylg
+* https://github.com/bamarni/dockness
+* https://github.com/fffaraz/microdns
+* http://quilt.io
+* https://github.com/ipdcode/hades (JD.COM)
+* https://github.com/StackExchange/dnscontrol/
 
 Send pull request if you want to be listed here.
 
@@ -138,6 +146,7 @@ Example programs can be found in the `github.com/miekg/exdns` repository.
 * 6975 - Algorithm Understanding in DNSSEC
 * 7043 - EUI48/EUI64 records
 * 7314 - DNS (EDNS) EXPIRE Option
+* 7828 - edns-tcp-keepalive EDNS0 Option
 * 7553 - URI record
 * 7858 - DNS over TLS: Initiation and Performance Considerations (draft)
 * 7873 - Domain Name System (DNS) Cookies (draft-ietf-dnsop-cookies)

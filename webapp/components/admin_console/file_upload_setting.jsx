@@ -51,7 +51,6 @@ export default class FileUploadSetting extends Setting {
             if (error) {
                 Utils.clearFileInput(this.refs.fileInput);
             }
-            this.setState({fileSelected: false, fileName: null, serverError: error});
         });
     }
 
@@ -61,7 +60,7 @@ export default class FileUploadSetting extends Setting {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
         }
 
-        var btnClass = 'btn';
+        let btnClass = 'btn';
         if (this.state.fileSelected) {
             btnClass = 'btn btn-primary';
         }
@@ -108,7 +107,7 @@ export default class FileUploadSetting extends Setting {
                         disabled={!this.state.fileSelected}
                         onClick={this.handleSubmit}
                         ref='upload_button'
-                        data-loading-text={`<span class=\'glyphicon glyphicon-refresh glyphicon-refresh-animate\'></span> ${this.props.uploadingText}`}
+                        data-loading-text={`<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span> ${this.props.uploadingText}`}
                     >
                         <FormattedMessage
                             id='admin.file_upload.uploadFile'

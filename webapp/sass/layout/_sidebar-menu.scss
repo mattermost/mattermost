@@ -1,10 +1,12 @@
 @charset 'UTF-8';
 
 .sidebar--menu {
+    -webkit-overflow-scrolling: touch;
     background: #fafafa;
     border-right: $border-gray;
     display: none;
     height: 100%;
+    overflow: auto;
     padding: 0 0 2em;
     position: absolute;
     right: 0;

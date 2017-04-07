@@ -11,6 +11,11 @@
     bottom: 100%;
 }
 
+.suggestion-list--bottom {
+    position: relative;
+    height: 0;
+}
+
 .suggestion-list__content {
     background-color: $white;
     border: $border-gray;
@@ -19,6 +24,7 @@
     overflow-y: scroll;
     padding-bottom: 5px;
     width: 100%;
+    -webkit-overflow-scrolling: touch;
 
     .command {
         border-bottom: 1px solid $light-gray;
@@ -56,7 +62,6 @@
     }
 
     > span {
-        @include opacity(.7);
         display: inline-block;
         font-size: .9em;
         padding: 0 10px 0 5px;

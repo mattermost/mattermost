@@ -1,16 +1,15 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {track} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {cleanUpUrlable} from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class TeamSignupDisplayNamePage extends React.Component {
@@ -22,21 +21,39 @@ export default class TeamSignupDisplayNamePage extends React.Component {
         this.state = {};
     }
 
+    componentDidMount() {
+        trackEvent('signup', 'signup_team_01_name');
+    }
+
     submitNext(e) {
         e.preventDefault();
 
         var displayName = ReactDOM.findDOMNode(this.refs.name).value.trim();
         if (!displayName) {
-            this.setState({nameError: Utils.localizeMessage('create_team.display_name.required', 'This field is required')});
+            this.setState({nameError: (
+                <FormattedMessage
+                    id='create_team.display_name.required'
+                    defaultMessage='This field is required'
+                />)
+            });
             return;
         } else if (displayName.length < Constants.MIN_TEAMNAME_LENGTH || displayName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            this.setState({nameError: Utils.localizeMessage('create_team.display_name.charLength', 'Name must be 4 or more characters up to a maximum of 15')});
+            this.setState({nameError: (
+                <FormattedMessage
+                    id='create_team.display_name.charLength'
+                    defaultMessage='Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description later.'
+                    values={{
+                        min: Constants.MIN_TEAMNAME_LENGTH,
+                        max: Constants.MAX_TEAMNAME_LENGTH
+                    }}
+                />)
+            });
             return;
         }
 
         this.props.state.wizard = 'team_url';
         this.props.state.team.display_name = displayName;
-        this.props.state.team.name = Utils.cleanUpUrlable(displayName);
+        this.props.state.team.name = cleanUpUrlable(displayName);
         this.props.updateParent(this.props.state);
     }
 
@@ -46,8 +63,6 @@ export default class TeamSignupDisplayNamePage extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_team_02_name');
-
         var nameError = null;
         var nameDivClass = 'form-group';
         if (this.state.nameError) {
@@ -102,14 +117,6 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                             defaultMessage='Next'
                         /><i className='fa fa-chevron-right'/>
                     </button>
-                    <div className='margin--extra'>
-                        <Link to='/select_team'>
-                            <FormattedMessage
-                                id='create_team.display_name.back'
-                                defaultMessage='Back to previous step'
-                            />
-                        </Link>
-                    </div>
                 </form>
             </div>
         );

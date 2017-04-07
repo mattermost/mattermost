@@ -9,7 +9,7 @@ import {Link} from 'react-router/es6';
 export default class BackstageNavbar extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object.isRequired
         };
     }
 

@@ -8,6 +8,11 @@ import (
 	"io"
 )
 
+const (
+	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
+	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
+)
+
 type LicenseRecord struct {
 	Id       string `json:"id"`
 	CreateAt int64  `json:"create_at"`
@@ -39,12 +44,12 @@ type Features struct {
 	Office365OAuth       *bool `json:"office365_oauth"`
 	Compliance           *bool `json:"compliance"`
 	Cluster              *bool `json:"cluster"`
+	Metrics              *bool `json:"metrics"`
 	CustomBrand          *bool `json:"custom_brand"`
 	MHPNS                *bool `json:"mhpns"`
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
 	// after we enabled more features for webrtc we'll need to control them with this
-	Webrtc         *bool `json:"webrtc"`
 	FutureFeatures *bool `json:"future_features"`
 }
 
@@ -56,6 +61,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"office365":    *f.Office365OAuth,
 		"compliance":   *f.Compliance,
 		"cluster":      *f.Cluster,
+		"metrics":      *f.Metrics,
 		"custom_brand": *f.CustomBrand,
 		"mhpns":        *f.MHPNS,
 		"saml":         *f.SAML,
@@ -105,6 +111,11 @@ func (f *Features) SetDefaults() {
 		*f.Cluster = *f.FutureFeatures
 	}
 
+	if f.Metrics == nil {
+		f.Metrics = new(bool)
+		*f.Metrics = *f.FutureFeatures
+	}
+
 	if f.CustomBrand == nil {
 		f.CustomBrand = new(bool)
 		*f.CustomBrand = *f.FutureFeatures
@@ -123,11 +134,6 @@ func (f *Features) SetDefaults() {
 	if f.PasswordRequirements == nil {
 		f.PasswordRequirements = new(bool)
 		*f.PasswordRequirements = *f.FutureFeatures
-	}
-
-	if f.Webrtc == nil {
-		f.Webrtc = new(bool)
-		*f.Webrtc = *f.FutureFeatures
 	}
 }
 

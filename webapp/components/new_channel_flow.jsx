@@ -2,57 +2,29 @@
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import {cleanUpUrlable} from 'utils/url.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
+import {createChannel} from 'actions/channel_actions.jsx';
 import {browserHistory} from 'react-router/es6';
-
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
-const messages = defineMessages({
-    channel: {
-        id: 'channel_flow.channel',
-        defaultMessage: 'Channel'
-    },
-    group: {
-        id: 'channel_flow.group',
-        defaultMessage: 'Group'
-    },
-    change: {
-        id: 'channel_flow.changeUrlTitle',
-        defaultMessage: 'Change {term} URL'
-    },
-    set: {
-        id: 'channel_flow.set_url_title',
-        defaultMessage: 'Set {term} URL'
-    },
-    create: {
-        id: 'channel_flow.create',
-        defaultMessage: 'Create {term}'
-    },
-    changeUrlDescription: {
-        id: 'channel_flow.changeUrlDescription',
-        defaultMessage: 'Some characters are not allowed in URLs and may be removed.'
-    }
-});
 
 import React from 'react';
 
-class NewChannelFlow extends React.Component {
+export default class NewChannelFlow extends React.Component {
     constructor(props) {
         super(props);
 
         this.doSubmit = this.doSubmit.bind(this);
+        this.onModalExited = this.onModalExited.bind(this);
         this.typeSwitched = this.typeSwitched.bind(this);
         this.urlChangeRequested = this.urlChangeRequested.bind(this);
         this.urlChangeSubmitted = this.urlChangeSubmitted.bind(this);
@@ -105,22 +77,15 @@ class NewChannelFlow extends React.Component {
             header: this.state.channelHeader,
             type: this.state.channelType
         };
-        Client.createChannel(
+
+        createChannel(
             channel,
             (data) => {
-                Client.getChannel(
-                    data.id,
-                    (data2) => {
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECEIVED_CHANNEL,
-                            channel: data2.channel,
-                            member: data2.member
-                        });
+                this.doOnModalExited = () => {
+                    browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + data.channel.name);
+                };
 
-                        this.props.onModalDismissed();
-                        browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + data2.channel.name);
-                    }
-                );
+                this.props.onModalDismissed();
             },
             (err) => {
                 if (err.id === 'model.channel.is_valid.2_or_more.app_error') {
@@ -142,6 +107,11 @@ class NewChannelFlow extends React.Component {
                 this.setState({serverError: err.message});
             }
         );
+    }
+    onModalExited() {
+        if (this.doOnModalExited) {
+            this.doOnModalExited();
+        }
     }
     typeSwitched() {
         if (this.state.channelType === 'P') {
@@ -170,7 +140,7 @@ class NewChannelFlow extends React.Component {
             channelHeader: data.header
         });
         if (!this.state.nameModified) {
-            this.setState({channelName: Utils.cleanUpUrlable(data.displayName.trim())});
+            this.setState({channelName: cleanUpUrlable(data.displayName.trim())});
         }
     }
     render() {
@@ -186,9 +156,6 @@ class NewChannelFlow extends React.Component {
 
         let changeURLTitle = '';
         let changeURLSubmitButtonText = '';
-        let channelTerm = '';
-
-        const {formatMessage} = this.props.intl;
 
         // Only listen to flow state if we are being shown
         if (this.props.show) {
@@ -196,21 +163,34 @@ class NewChannelFlow extends React.Component {
             case SHOW_NEW_CHANNEL:
                 if (this.state.channelType === 'O') {
                     showChannelModal = true;
-                    channelTerm = formatMessage(messages.channel);
                 } else {
                     showGroupModal = true;
-                    channelTerm = formatMessage(messages.group);
                 }
                 break;
             case SHOW_EDIT_URL:
                 showChangeURLModal = true;
-                changeURLTitle = formatMessage(messages.change, {term: channelTerm});
-                changeURLSubmitButtonText = formatMessage(messages.change, {term: channelTerm});
+                changeURLTitle = (
+                    <FormattedMessage
+                        id='channel_flow.changeUrlTitle'
+                        defaultMessage='Change Channel URL'
+                    />
+                );
+                changeURLSubmitButtonText = changeURLTitle;
                 break;
             case SHOW_EDIT_URL_THEN_COMPLETE:
                 showChangeURLModal = true;
-                changeURLTitle = formatMessage(messages.set, {term: channelTerm});
-                changeURLSubmitButtonText = formatMessage(messages.create, {term: channelTerm});
+                changeURLTitle = (
+                    <FormattedMessage
+                        id='channel_flow.set_url_title'
+                        defaultMessage='Set Channel URL'
+                    />
+                );
+                changeURLSubmitButtonText = (
+                    <FormattedMessage
+                        id='channel_flow.create'
+                        defaultMessage='Create Channel'
+                    />
+                );
                 break;
             }
         }
@@ -223,6 +203,7 @@ class NewChannelFlow extends React.Component {
                     serverError={this.state.serverError}
                     onSubmitChannel={this.doSubmit}
                     onModalDismissed={this.props.onModalDismissed}
+                    onModalExited={this.onModalExited}
                     onTypeSwitched={this.typeSwitched}
                     onChangeURLPressed={this.urlChangeRequested}
                     onDataChanged={this.channelDataChanged}
@@ -233,6 +214,7 @@ class NewChannelFlow extends React.Component {
                     channelData={channelData}
                     serverError={this.state.serverError}
                     onSubmitChannel={this.doSubmit}
+                    onModalExited={this.onModalExited}
                     onModalDismissed={this.props.onModalDismissed}
                     onTypeSwitched={this.typeSwitched}
                     onChangeURLPressed={this.urlChangeRequested}
@@ -241,13 +223,12 @@ class NewChannelFlow extends React.Component {
                 <ChangeURLModal
                     show={showChangeURLModal}
                     title={changeURLTitle}
-                    description={formatMessage(messages.changeUrlDescription)}
-                    urlLabel={channelTerm + ' URL'}
                     submitButtonText={changeURLSubmitButtonText}
                     currentURL={this.state.channelName}
                     serverError={this.state.serverError}
                     onModalSubmit={this.urlChangeSubmitted}
                     onModalDismissed={this.urlChangeDismissed}
+                    onModalExited={this.onModalExited}
                 />
             </span>
         );
@@ -260,10 +241,7 @@ NewChannelFlow.defaultProps = {
 };
 
 NewChannelFlow.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(NewChannelFlow);

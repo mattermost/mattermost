@@ -1,13 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
-
-var ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
 
@@ -22,22 +20,7 @@ export default class SearchResultsHeader extends React.Component {
     handleClose(e) {
         e.preventDefault();
 
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH,
-            results: null
-        });
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_SEARCH_TERM,
-            term: null,
-            do_search: false,
-            is_mention_search: false
-        });
-
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_POST_SELECTED,
-            postId: null
-        });
+        GlobalActions.toggleSideBarAction(false);
 
         this.props.shrink();
     }
@@ -96,6 +79,16 @@ export default class SearchResultsHeader extends React.Component {
                     defaultMessage='Flagged Posts'
                 />
             );
+        } else if (this.props.isPinnedPosts) {
+            title = (
+                <FormattedMessage
+                    id='search_header.title4'
+                    defaultMessage='Pinned posts in {channelDisplayName}'
+                    values={{
+                        channelDisplayName: this.props.channelDisplayName
+                    }}
+                />
+            );
         }
 
         return (
@@ -146,7 +139,9 @@ export default class SearchResultsHeader extends React.Component {
 
 SearchResultsHeader.propTypes = {
     isMentionSearch: React.PropTypes.bool,
-    toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function,
-    isFlaggedPosts: React.PropTypes.bool
+    toggleSize: React.PropTypes.func,
+    shrink: React.PropTypes.func,
+    isFlaggedPosts: React.PropTypes.bool,
+    isPinnedPosts: React.PropTypes.bool,
+    channelDisplayName: React.PropTypes.string.isRequired
 };

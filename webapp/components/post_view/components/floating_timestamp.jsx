@@ -37,6 +37,10 @@ export default class FloatingTimestamp extends React.Component {
             className += ' scrolling';
         }
 
+        if (this.props.isRhsPost) {
+            className += ' rhs';
+        }
+
         return (
             <div className={className}>
                 <div>
@@ -50,5 +54,6 @@ export default class FloatingTimestamp extends React.Component {
 FloatingTimestamp.propTypes = {
     isScrolling: React.PropTypes.bool.isRequired,
     isMobile: React.PropTypes.bool,
-    createAt: React.PropTypes.number
+    createAt: React.PropTypes.number,
+    isRhsPost: React.PropTypes.bool
 };

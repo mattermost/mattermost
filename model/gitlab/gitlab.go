@@ -65,6 +65,15 @@ func gitLabUserFromJson(data io.Reader) *GitLabUser {
 	}
 }
 
+func (glu *GitLabUser) ToJson() string {
+	b, err := json.Marshal(glu)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 func (glu *GitLabUser) IsValid() bool {
 	if glu.Id == 0 {
 		return false
