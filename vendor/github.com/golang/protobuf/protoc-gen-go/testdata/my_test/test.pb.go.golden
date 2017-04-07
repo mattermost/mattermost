@@ -319,7 +319,7 @@ func (m *Reply) GetCompactKeys() []int32 {
 type Reply_Entry struct {
 	KeyThatNeeds_1234Camel_CasIng *int64 `protobuf:"varint,1,req,name=key_that_needs_1234camel_CasIng,json=keyThatNeeds1234camelCasIng" json:"key_that_needs_1234camel_CasIng,omitempty"`
 	Value                         *int64 `protobuf:"varint,2,opt,name=value,def=7" json:"value,omitempty"`
-	XMyFieldName_2                *int64 `protobuf:"varint,3,opt,name=_my_field_name_2,json=myFieldName2" json:"_my_field_name_2,omitempty"`
+	XMyFieldName_2                *int64 `protobuf:"varint,3,opt,name=_my_field_name_2,json=MyFieldName2" json:"_my_field_name_2,omitempty"`
 	XXX_unrecognized              []byte `json:"-"`
 }
 
@@ -389,6 +389,7 @@ var E_ReplyExtensions_Time = &proto.ExtensionDesc{
 	Field:         101,
 	Name:          "my.test.ReplyExtensions.time",
 	Tag:           "fixed64,101,opt,name=time",
+	Filename:      "my_test/test.proto",
 }
 
 var E_ReplyExtensions_Carrot = &proto.ExtensionDesc{
@@ -397,6 +398,7 @@ var E_ReplyExtensions_Carrot = &proto.ExtensionDesc{
 	Field:         105,
 	Name:          "my.test.ReplyExtensions.carrot",
 	Tag:           "bytes,105,opt,name=carrot",
+	Filename:      "my_test/test.proto",
 }
 
 var E_ReplyExtensions_Donut = &proto.ExtensionDesc{
@@ -405,6 +407,7 @@ var E_ReplyExtensions_Donut = &proto.ExtensionDesc{
 	Field:         101,
 	Name:          "my.test.ReplyExtensions.donut",
 	Tag:           "bytes,101,opt,name=donut",
+	Filename:      "my_test/test.proto",
 }
 
 type OtherReplyExtensions struct {
@@ -832,6 +835,7 @@ var E_Tag = &proto.ExtensionDesc{
 	Field:         103,
 	Name:          "my.test.tag",
 	Tag:           "bytes,103,opt,name=tag",
+	Filename:      "my_test/test.proto",
 }
 
 var E_Donut = &proto.ExtensionDesc{
@@ -840,6 +844,7 @@ var E_Donut = &proto.ExtensionDesc{
 	Field:         106,
 	Name:          "my.test.donut",
 	Tag:           "bytes,106,opt,name=donut",
+	Filename:      "my_test/test.proto",
 }
 
 func init() {

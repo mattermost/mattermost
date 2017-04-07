@@ -61,7 +61,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId, c.GetSiteURL())
+	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -131,7 +131,7 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.InviteNewUsersToTeam(invites.ToEmailList(), c.TeamId, c.Session.UserId, c.GetSiteURL()); err != nil {
+	if err := app.InviteNewUsersToTeam(invites.ToEmailList(), c.TeamId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -153,7 +153,7 @@ func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := app.AddUserToTeam(c.TeamId, userId, c.GetSiteURL()); err != nil {
+	if _, err := app.AddUserToTeam(c.TeamId, userId, ""); err != nil {
 		c.Err = err
 		return
 	}
@@ -195,9 +195,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	var err *model.AppError
 
 	if len(hash) > 0 {
-		team, err = app.AddUserToTeamByHash(c.Session.UserId, hash, data, c.GetSiteURL())
+		team, err = app.AddUserToTeamByHash(c.Session.UserId, hash, data)
 	} else if len(inviteId) > 0 {
-		team, err = app.AddUserToTeamByInviteId(inviteId, c.Session.UserId, c.GetSiteURL())
+		team, err = app.AddUserToTeamByInviteId(inviteId, c.Session.UserId)
 	} else {
 		c.Err = model.NewLocAppError("addUserToTeamFromInvite", "api.user.create_user.signup_link_invalid.app_error", nil, "")
 		return

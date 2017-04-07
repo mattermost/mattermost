@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -22,6 +23,7 @@ func TestCreatePost(t *testing.T) {
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rpost.Message != post.Message {
 		t.Fatal("message didn't match")
@@ -165,6 +167,190 @@ func TestUpdatePost(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.UpdatePost(rpost.Id, rpost)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = th.SystemAdminClient.UpdatePost(rpost.Id, rpost)
+	CheckNoError(t, resp)
+}
+
+func TestPatchPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	isLicensed := utils.IsLicensed
+	license := utils.License
+	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	defer func() {
+		utils.IsLicensed = isLicensed
+		utils.License = license
+		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
+
+	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	utils.SetDefaultRolesBasedOnConfig()
+
+	post := &model.Post{
+		ChannelId:    channel.Id,
+		IsPinned:     true,
+		Message:      "#hashtag a message",
+		Props:        model.StringInterface{"channel_header": "old_header"},
+		FileIds:      model.StringArray{"file1", "file2"},
+		HasReactions: true,
+	}
+	post, _ = Client.CreatePost(post)
+
+	patch := &model.PostPatch{}
+
+	patch.IsPinned = new(bool)
+	*patch.IsPinned = false
+	patch.Message = new(string)
+	*patch.Message = "#otherhashtag other message"
+	patch.Props = new(model.StringInterface)
+	*patch.Props = model.StringInterface{"channel_header": "new_header"}
+	patch.FileIds = new(model.StringArray)
+	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
+	patch.HasReactions = new(bool)
+	*patch.HasReactions = false
+
+	rpost, resp := Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+
+	if rpost.IsPinned != false {
+		t.Fatal("IsPinned did not update properly")
+	}
+	if rpost.Message != "#otherhashtag other message" {
+		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.Props) != 1 {
+		t.Fatal("Props did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.Props, *patch.Props) {
+		t.Fatal("Props did not update properly")
+	}
+	if rpost.Hashtags != "#otherhashtag" {
+		t.Fatal("Message did not update properly")
+	}
+	if len(rpost.FileIds) != 3 {
+		t.Fatal("FileIds did not update properly")
+	}
+	if !reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
+		t.Fatal("FileIds did not update properly")
+	}
+	if rpost.HasReactions != false {
+		t.Fatal("HasReactions did not update properly")
+	}
+
+	if r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage"); err == nil {
+		t.Fatal("should have errored")
+	} else {
+		if r.StatusCode != http.StatusBadRequest {
+			t.Log("actual: " + strconv.Itoa(r.StatusCode))
+			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
+			t.Fatal("wrong status code")
+		}
+	}
+
+	_, resp = Client.PatchPost("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.PatchPost(GenerateTestId(), patch)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic2()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginTeamAdmin()
+	_, resp = Client.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.PatchPost(post.Id, patch)
+	CheckNoError(t, resp)
+}
+
+func TestPinPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post := th.BasicPost
+	pass, resp := Client.PinPost(post.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if rpost, err := app.GetSinglePost(post.Id); err != nil && rpost.IsPinned != true {
+		t.Fatal("failed to pin post")
+	}
+
+	pass, resp = Client.PinPost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	_, resp = Client.PinPost(GenerateTestId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.PinPost(post.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PinPost(post.Id)
+	CheckNoError(t, resp)
+}
+
+func TestUnpinPost(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	pinnedPost := th.CreatePinnedPost()
+	pass, resp := Client.UnpinPost(pinnedPost.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	if rpost, err := app.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned != false {
+		t.Fatal("failed to pin post")
+	}
+
+	pass, resp = Client.UnpinPost("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have failed")
+	}
+
+	_, resp = Client.UnpinPost(GenerateTestId())
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UnpinPost(pinnedPost.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UnpinPost(pinnedPost.Id)
+	CheckNoError(t, resp)
 }
 
 func TestGetPostsForChannel(t *testing.T) {
@@ -174,9 +360,12 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post1 := th.CreatePost()
 	post2 := th.CreatePost()
-	post3 := th.CreatePost()
-	post4 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
-	post4, _ = Client.CreatePost(post4)
+	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post3, _ = Client.CreatePost(post3)
+
+	time := model.GetMillis()
+
+	post4 := th.CreatePost()
 
 	posts, resp := Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
@@ -207,7 +396,7 @@ func TestGetPostsForChannel(t *testing.T) {
 		t.Fatal("wrong number returned")
 	}
 
-	if _, ok := posts.Posts[post4.Id]; !ok {
+	if _, ok := posts.Posts[post3.Id]; !ok {
 		t.Fatal("missing comment")
 	}
 
@@ -229,6 +418,30 @@ func TestGetPostsForChannel(t *testing.T) {
 		t.Fatal("should be no posts")
 	}
 
+	post5 := th.CreatePost()
+
+	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, time)
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.CreateAt < time {
+			t.Fatal("bad create at for post returned")
+		}
+
+		if p.Id == post4.Id {
+			found[0] = true
+		} else if p.Id == post5.Id {
+			found[1] = true
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
+	}
+
 	_, resp = Client.GetPostsForChannel("", 0, 60, "")
 	CheckBadRequestStatus(t, resp)
 
@@ -244,6 +457,90 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
 	CheckNoError(t, resp)
+}
+
+func TestGetPostsAfterAndBefore(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	post1 := th.CreatePost()
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := th.CreatePost()
+	post5 := th.CreatePost()
+
+	posts, resp := Client.GetPostsBefore(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	found := make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.Id == post1.Id {
+			found[0] = true
+		} else if p.Id == post2.Id {
+			found[1] = true
+		}
+
+		if p.Id == post4.Id || p.Id == post5.Id {
+			t.Fatal("returned posts after")
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
+	}
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 1 {
+		t.Fatal("too many posts returned")
+	}
+
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, "junk", 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 0 {
+		t.Fatal("should have no posts")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 0, 100, "")
+	CheckNoError(t, resp)
+
+	found = make([]bool, 2)
+	for _, p := range posts.Posts {
+		if p.Id == post4.Id {
+			found[0] = true
+		} else if p.Id == post5.Id {
+			found[1] = true
+		}
+
+		if p.Id == post1.Id || p.Id == post2.Id {
+			t.Fatal("returned posts before")
+		}
+	}
+
+	for _, f := range found {
+		if !f {
+			t.Fatal("missing post")
+		}
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, post3.Id, 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 1 {
+		t.Fatal("too many posts returned")
+	}
+
+	posts, resp = Client.GetPostsAfter(th.BasicChannel.Id, "junk", 1, 1, "")
+	CheckNoError(t, resp)
+
+	if len(posts.Posts) != 0 {
+		t.Fatal("should have no posts")
+	}
 }
 
 func TestGetPost(t *testing.T) {

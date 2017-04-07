@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/SpinnerButton should match snapshot with children 1`] = `
+<button
+  className="btn btn-primary"
+>
+  <span
+    id="child1"
+  />
+  <span
+    id="child2"
+  />
+</button>
+`;
+
+exports[`components/SpinnerButton should match snapshot with required props 1`] = `
+<button
+  className="btn btn-primary"
+/>
+`;
+
+exports[`components/SpinnerButton should match snapshot with spinning 1`] = `
+<img
+  className="spinner-button__gif"
+  src={Object {}}
+/>
+`;

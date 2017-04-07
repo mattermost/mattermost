@@ -1010,51 +1010,62 @@ func TestDeletePosts(t *testing.T) {
 
 }
 
-// func TestEmailMention(t *testing.T) {
-// 	th := Setup().InitBasic()
-// 	Client := th.BasicClient
-// 	channel1 := th.BasicChannel
-// 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
+func TestEmailMention(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	channel1 := th.BasicChannel
+	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
 
-// 	th.LoginBasic2()
-// 	//Set the notification properties
-// 	data := make(map[string]string)
-// 	data["user_id"] = th.BasicUser2.Id
-// 	data["email"] = "true"
-// 	data["desktop"] = "all"
-// 	data["desktop_sound"] = "false"
-// 	data["comments"] = "any"
-// 	Client.Must(Client.UpdateUserNotify(data))
+	th.LoginBasic2()
+	//Set the notification properties
+	data := make(map[string]string)
+	data["user_id"] = th.BasicUser2.Id
+	data["email"] = "true"
+	data["desktop"] = "all"
+	data["desktop_sound"] = "false"
+	data["comments"] = "any"
+	Client.Must(Client.UpdateUserNotify(data))
 
-// 	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
-// 		UserId:   th.BasicUser2.Id,
-// 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
-// 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
-// 		Value:    "0",
-// 	}}))
+	store.Must(app.Srv.Store.Preference().Save(&model.Preferences{{
+		UserId:   th.BasicUser2.Id,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "0",
+	}}))
 
-// 	//Delete all the messages before create a mention post
-// 	utils.DeleteMailBox(th.BasicUser2.Email)
+	//Delete all the messages before create a mention post
+	utils.DeleteMailBox(th.BasicUser2.Email)
 
-// 	//Send a mention message from user1 to user2
-// 	th.LoginBasic()
-// 	time.Sleep(10 * time.Millisecond)
-// 	post1 := &model.Post{ChannelId: channel1.Id, Message: "@" + th.BasicUser2.Username + " this is a test"}
-// 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
+	//Send a mention message from user1 to user2
+	th.LoginBasic()
+	time.Sleep(10 * time.Millisecond)
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "@" + th.BasicUser2.Username + " this is a test"}
+	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
-// 	//Check if the email was send to the rigth email address and the mention
-// 	if resultsMailbox, err := utils.GetMailBox(th.BasicUser2.Email); err != nil && !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
-// 		t.Fatal("Wrong To recipient")
-// 	} else {
-// 		if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
-// 			if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
-// 				t.Log(resultsEmail.Body.Text)
-// 				t.Fatal("Received wrong Message")
-// 			}
-// 		}
-// 	}
+	var resultsMailbox utils.JSONMessageHeaderInbucket
+	err := utils.RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = utils.GetMailBox(th.BasicUser2.Email)
+		return err
+	})
+	if err != nil {
+		t.Log(err)
+		t.Log("No email was received, maybe due load on the server. Disabling this verification")
+	}
+	if err == nil && len(resultsMailbox) > 0 {
+		if !strings.ContainsAny(resultsMailbox[0].To[0], th.BasicUser2.Email) {
+			t.Fatal("Wrong To recipient")
+		} else {
+			if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[0].ID); err == nil {
+				if !strings.Contains(resultsEmail.Body.Text, post1.Message) {
+					t.Log(resultsEmail.Body.Text)
+					t.Fatal("Received wrong Message")
+				}
+			}
+		}
+	}
 
-// }
+}
 
 func TestFuzzyPosts(t *testing.T) {
 	th := Setup().InitBasic()
@@ -1103,6 +1114,11 @@ func TestGetFlaggedPosts(t *testing.T) {
 
 	if len(r2.Order) != 0 {
 		t.Fatal("should not have gotten a flagged post")
+	}
+
+	Client.SetTeamId(model.NewId())
+	if _, err := Client.GetFlaggedPosts(0, 2); err == nil {
+		t.Fatal("should have failed - bad team id")
 	}
 }
 
@@ -1378,5 +1394,51 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	*utils.Cfg.ServiceSettings.EnableLinkPreviews = false
 	if _, err := Client.DoApiPost("/get_opengraph_metadata", "{\"url\":\"/og-data/\"}"); err == nil || err.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should have failed with 501 - disabled link previews")
+	}
+}
+
+func TestPinPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	post := th.BasicPost
+	if rupost1, err := Client.PinPost(post.ChannelId, post.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost1.Data.(*model.Post).IsPinned != true {
+			t.Fatal("failed to pin post")
+		}
+	}
+
+	pinnedPost := th.PinnedPost
+	if rupost2, err := Client.PinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost2.Data.(*model.Post).IsPinned != true {
+			t.Fatal("pinning a post should be idempotent")
+		}
+	}
+}
+
+func TestUnpinPost(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+
+	pinnedPost := th.PinnedPost
+	if rupost1, err := Client.UnpinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost1.Data.(*model.Post).IsPinned != false {
+			t.Fatal("failed to unpin post")
+		}
+	}
+
+	post := th.BasicPost
+	if rupost2, err := Client.UnpinPost(post.ChannelId, post.Id); err != nil {
+		t.Fatal(err)
+	} else {
+		if rupost2.Data.(*model.Post).IsPinned != false {
+			t.Fatal("unpinning a post should be idempotent")
+		}
 	}
 }

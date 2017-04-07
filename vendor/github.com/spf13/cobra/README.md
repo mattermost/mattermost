@@ -8,6 +8,7 @@ Many of the most widely used Go projects are built using Cobra including:
 * [Hugo](http://gohugo.io)
 * [rkt](https://github.com/coreos/rkt)
 * [etcd](https://github.com/coreos/etcd)
+* [Docker](https://github.com/docker/docker)
 * [Docker (distribution)](https://github.com/docker/distribution)
 * [OpenShift](https://www.openshift.com/)
 * [Delve](https://github.com/derekparker/delve)
@@ -755,7 +756,7 @@ providing a way to handle the errors in one location. The current list of functi
 * PersistentPostRunE
 
 If you would like to silence the default `error` and `usage` output in favor of your own, you can set `SilenceUsage`
-and `SilenceErrors` to `false` on the command. A child command respects these flags if they are set on the parent
+and `SilenceErrors` to `true` on the command. A child command respects these flags if they are set on the parent
 command.
 
 **Example Usage using RunE:**

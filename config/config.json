@@ -1,6 +1,6 @@
 {
     "ServiceSettings": {
-        "SiteURL": "",
+        "SiteURL": "http://localhost:8065",
         "ListenAddress": ":8065",
         "ConnectionSecurity": "",
         "TLSCertFile": "",
@@ -55,12 +55,13 @@
         "CustomDescriptionText": "",
         "RestrictDirectMessage": "any",
         "RestrictTeamInvite": "all",
-        "RestrictPublicChannelCreation": "all",
-        "RestrictPrivateChannelCreation": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
+        "RestrictPublicChannelCreation": "all",
+        "RestrictPrivateChannelCreation": "all",
         "RestrictPublicChannelDeletion": "all",
         "RestrictPrivateChannelDeletion": "all",
+        "RestrictPrivateChannelManageMembers": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000
@@ -132,7 +133,8 @@
         "PushNotificationContents": "generic",
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
-        "EmailBatchingInterval": 30
+        "EmailBatchingInterval": 30,
+        "SkipServerCertificateVerification": false
     },
     "RateLimitSettings": {
         "Enable": false,

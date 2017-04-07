@@ -218,6 +218,7 @@ export default class ThemeSetting extends React.Component {
                 >
                     <label>
                         <input
+                            id='standardThemes'
                             type='radio'
                             name='theme'
                             checked={!displayCustom}
@@ -241,6 +242,7 @@ export default class ThemeSetting extends React.Component {
                 >
                     <label>
                         <input
+                            id='customThemes'
                             type='radio'
                             name='theme'
                             checked={displayCustom}
@@ -260,6 +262,7 @@ export default class ThemeSetting extends React.Component {
                 <div key='otherThemes'>
                     <br/>
                     <a
+                        id='otherThemes'
                         href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
                         target='_blank'
                         rel='noopener noreferrer'
@@ -278,6 +281,7 @@ export default class ThemeSetting extends React.Component {
                     className='padding-top'
                 >
                     <a
+                        id='slackImportTheme'
                         className='theme'
                         onClick={this.handleImportModal}
                     >
@@ -295,6 +299,7 @@ export default class ThemeSetting extends React.Component {
                     <div className='checkbox user-settings__submit-checkbox'>
                         <label>
                             <input
+                                id='applyThemeToAllTeams'
                                 type='checkbox'
                                 checked={this.state.applyToAllTeams}
                                 onChange={(e) => this.setState({applyToAllTeams: e.target.checked})}

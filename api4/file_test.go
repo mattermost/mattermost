@@ -5,11 +5,14 @@ package api4
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -200,4 +203,270 @@ func TestGetFileThumbnail(t *testing.T) {
 	Client.Logout()
 	_, resp = th.SystemAdminClient.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
+}
+
+func TestGetFileLink(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+
+	fileId := ""
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	link, resp := Client.GetFileLink(fileId)
+	CheckBadRequestStatus(t, resp)
+
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
+	_, resp = Client.GetFileLink(fileId)
+	CheckNotImplementedStatus(t, resp)
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	link, resp = Client.GetFileLink(fileId)
+	CheckNoError(t, resp)
+	if link == "" {
+		t.Fatal("should've received public link")
+	}
+
+	_, resp = Client.GetFileLink("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFileLink(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFileLink(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+	_, resp = Client.GetFileLink(fileId)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetFileLink(fileId)
+	CheckNoError(t, resp)
+
+	if result := <-app.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		cleanupTestFile(result.Data.(*model.FileInfo))
+	}
+}
+
+func TestGetFilePreview(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	fileId := ""
+	var sent []byte
+	var err error
+	if sent, err = readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	data, resp := Client.GetFilePreview(fileId)
+	CheckNoError(t, resp)
+
+	if data == nil || len(data) == 0 {
+		t.Fatal("should not be empty")
+	}
+
+	_, resp = Client.GetFilePreview("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFilePreview(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFilePreview(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+	_, resp = Client.GetFilePreview(fileId)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetFilePreview(fileId)
+	CheckNoError(t, resp)
+}
+
+func TestGetFileInfo(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	fileId := ""
+	var sent []byte
+	var err error
+	if sent, err = readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	info, resp := Client.GetFileInfo(fileId)
+	CheckNoError(t, resp)
+
+	if err != nil {
+		t.Fatal(err)
+	} else if info.Id != fileId {
+		t.Fatal("got incorrect file")
+	} else if info.CreatorId != user.Id {
+		t.Fatal("file should be assigned to user")
+	} else if info.PostId != "" {
+		t.Fatal("file shouldn't have a post")
+	} else if info.Path != "" {
+		t.Fatal("file path shouldn't have been returned to client")
+	} else if info.ThumbnailPath != "" {
+		t.Fatal("file thumbnail path shouldn't have been returned to client")
+	} else if info.PreviewPath != "" {
+		t.Fatal("file preview path shouldn't have been returned to client")
+	} else if info.MimeType != "image/png" {
+		t.Fatal("mime type should've been image/png")
+	}
+
+	_, resp = Client.GetFileInfo("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetFileInfo(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetFileInfo(fileId)
+	CheckUnauthorizedStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+	_, resp = Client.GetFileInfo(fileId)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = th.SystemAdminClient.GetFileInfo(fileId)
+	CheckNoError(t, resp)
+}
+
+func TestGetPublicFile(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	defer func() {
+		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+	}()
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = GenerateTestId()
+
+	fileId := ""
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else {
+		fileResp, resp := Client.UploadFile(data, channel.Id, "test.png")
+		CheckNoError(t, resp)
+
+		fileId = fileResp.FileInfos[0].Id
+	}
+
+	// Hacky way to assign file to a post (usually would be done by CreatePost call)
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+
+	result := <-app.Srv.Store.FileInfo().Get(fileId)
+	info := result.Data.(*model.FileInfo)
+	link := app.GeneratePublicLink(Client.Url, info)
+
+	// Wait a bit for files to ready
+	time.Sleep(2 * time.Second)
+
+	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
+		t.Log(link)
+		t.Fatal("failed to get image with public link", err)
+	}
+
+	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link without hash", resp.Status)
+	}
+
+	utils.Cfg.FileSettings.EnablePublicLink = false
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
+		t.Fatal("should've failed to get image with disabled public link")
+	}
+
+	// test after the salt has changed
+	utils.Cfg.FileSettings.EnablePublicLink = true
+	*utils.Cfg.FileSettings.PublicLinkSalt = GenerateTestId()
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("should've failed to get image with public link after salt changed")
+	}
+
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+		t.Fatal(err)
+	}
+
+	cleanupTestFile(info)
 }

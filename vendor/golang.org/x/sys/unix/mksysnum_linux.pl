@@ -38,14 +38,21 @@ sub fmt {
 }
 
 my $prev;
-open(GCC, "gcc -E -dD $ARGV[0] |") || die "can't run gcc";
+open(GCC, "gcc -E -dD @ARGV |") || die "can't run gcc";
 while(<GCC>){
 	if(/^#define __NR_Linux\s+([0-9]+)/){
 		# mips/mips64: extract offset
 		$offset = $1;
 	}
+	elsif(/^#define __NR(\w*)_SYSCALL_BASE\s+([0-9]+)/){
+		# arm: extract offset
+		$offset = $1;
+	}
 	elsif(/^#define __NR_syscalls\s+/) {
 		# ignore redefinitions of __NR_syscalls
+	}
+	elsif(/^#define __NR_(\w*)Linux_syscalls\s+/) {
+		# mips/mips64: ignore definitions about the number of syscalls
 	}
 	elsif(/^#define __NR_(\w+)\s+([0-9]+)/){
 		$prev = $2;
@@ -59,6 +66,9 @@ while(<GCC>){
 		fmt($1, $prev+$2)
 	}
 	elsif(/^#define __NR_(\w+)\s+\(__NR_Linux \+ ([0-9]+)/){
+		fmt($1, $2);
+	}
+	elsif(/^#define __NR_(\w+)\s+\(__NR_SYSCALL_BASE \+ ([0-9]+)/){
 		fmt($1, $2);
 	}
 }

@@ -62,12 +62,12 @@ export default class ChannelMentionProvider extends Provider {
 
         if (!captured) {
             // Not a channel mention
-            return;
+            return false;
         }
 
         if (this.lastCompletedWord && captured[0].startsWith(this.lastCompletedWord)) {
             // It appears we're still matching a channel handle that we already completed
-            return;
+            return false;
         }
 
         // Clear the last completed word since we've started to match new text
@@ -125,6 +125,8 @@ export default class ChannelMentionProvider extends Provider {
                 });
             }
         );
+
+        return true;
     }
 
     handleCompleteWord(term) {

@@ -90,12 +90,16 @@ export const ActionTypes = keyMirror({
     RECEIVED_POST_SELECTED: null,
     RECEIVED_MENTION_DATA: null,
     RECEIVED_ADD_MENTION: null,
+    RECEIVED_POST_PINNED: null,
+    RECEIVED_POST_UNPINNED: null,
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
+    RECEIVED_PROFILES_NOT_IN_TEAM: null,
     RECEIVED_PROFILE: null,
     RECEIVED_PROFILES_IN_CHANNEL: null,
     RECEIVED_PROFILES_NOT_IN_CHANNEL: null,
+    RECEIVED_PROFILES_WITHOUT_TEAM: null,
     RECEIVED_ME: null,
     RECEIVED_SESSIONS: null,
     RECEIVED_AUDITS: null,
@@ -134,6 +138,7 @@ export const ActionTypes = keyMirror({
 
     RECEIVED_MSG: null,
 
+    RECEIVED_TEAM: null,
     RECEIVED_MY_TEAM: null,
     CREATED_TEAM: null,
     UPDATE_TEAM: null,
@@ -174,7 +179,9 @@ export const ActionTypes = keyMirror({
     SUGGESTION_SELECT_NEXT: null,
     SUGGESTION_SELECT_PREVIOUS: null,
 
-    BROWSER_CHANGE_FOCUS: null
+    BROWSER_CHANGE_FOCUS: null,
+
+    EMOJI_POSTED: null
 });
 
 export const WebrtcActionTypes = keyMirror({
@@ -201,7 +208,8 @@ export const UserStatuses = {
 };
 
 export const UserSearchOptions = {
-    ALLOW_INACTIVE: 'allow_inactive'
+    ALLOW_INACTIVE: 'allow_inactive',
+    WITHOUT_TEAM: 'without_team'
 };
 
 export const SocketEvents = {
@@ -213,6 +221,7 @@ export const SocketEvents = {
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',
     NEW_USER: 'new_user',
+    ADDED_TO_TEAM: 'added_to_team',
     LEAVE_TEAM: 'leave_team',
     UPDATE_TEAM: 'update_team',
     USER_ADDED: 'user_added',
@@ -249,6 +258,33 @@ export const PostTypes = {
     EPHEMERAL: 'system_ephemeral'
 };
 
+export const StatTypes = keyMirror({
+    TOTAL_USERS: null,
+    TOTAL_PUBLIC_CHANNELS: null,
+    TOTAL_PRIVATE_GROUPS: null,
+    TOTAL_POSTS: null,
+    TOTAL_TEAMS: null,
+    TOTAL_FILE_POSTS: null,
+    TOTAL_HASHTAG_POSTS: null,
+    TOTAL_IHOOKS: null,
+    TOTAL_OHOOKS: null,
+    TOTAL_COMMANDS: null,
+    TOTAL_SESSIONS: null,
+    POST_PER_DAY: null,
+    USERS_WITH_POSTS_PER_DAY: null,
+    RECENTLY_ACTIVE_USERS: null,
+    NEWLY_CREATED_USERS: null,
+    TOTAL_WEBSOCKET_CONNECTIONS: null,
+    TOTAL_MASTER_DB_CONNECTIONS: null,
+    TOTAL_READ_DB_CONNECTIONS: null,
+    DAILY_ACTIVE_USERS: null,
+    MONTHLY_ACTIVE_USERS: null
+});
+
+export const ErrorPageTypes = {
+    LOCAL_STORAGE: 'local_storage'
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
@@ -258,6 +294,8 @@ export const Constants = {
     UserSearchOptions,
     TutorialSteps,
     PostTypes,
+    ErrorPageTypes,
+
     IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_TO_CHANNEL, PostTypes.ADD_REMOVE],
 
     PayloadSources: keyMirror({
@@ -265,28 +303,7 @@ export const Constants = {
         VIEW_ACTION: null
     }),
 
-    StatTypes: keyMirror({
-        TOTAL_USERS: null,
-        TOTAL_PUBLIC_CHANNELS: null,
-        TOTAL_PRIVATE_GROUPS: null,
-        TOTAL_POSTS: null,
-        TOTAL_TEAMS: null,
-        TOTAL_FILE_POSTS: null,
-        TOTAL_HASHTAG_POSTS: null,
-        TOTAL_IHOOKS: null,
-        TOTAL_OHOOKS: null,
-        TOTAL_COMMANDS: null,
-        TOTAL_SESSIONS: null,
-        POST_PER_DAY: null,
-        USERS_WITH_POSTS_PER_DAY: null,
-        RECENTLY_ACTIVE_USERS: null,
-        NEWLY_CREATED_USERS: null,
-        TOTAL_WEBSOCKET_CONNECTIONS: null,
-        TOTAL_MASTER_DB_CONNECTIONS: null,
-        TOTAL_READ_DB_CONNECTIONS: null,
-        DAILY_ACTIVE_USERS: null,
-        MONTHLY_ACTIVE_USERS: null
-    }),
+    StatTypes,
     STAT_MAX_ACTIVE_USERS: 20,
     STAT_MAX_NEW_USERS: 20,
 
@@ -419,6 +436,7 @@ export const Constants = {
     REPLY_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='-158 242 18 18' style='enable-background:new -158 242 18 18;' xml:space='preserve'> <path d='M-142.2,252.6c-2-3-4.8-4.7-8.3-4.8v-3.3c0-0.2-0.1-0.3-0.2-0.3s-0.3,0-0.4,0.1l-6.9,6.2c-0.1,0.1-0.1,0.2-0.1,0.3 c0,0.1,0,0.2,0.1,0.3l6.9,6.4c0.1,0.1,0.3,0.1,0.4,0.1c0.1-0.1,0.2-0.2,0.2-0.4v-3.8c4.2,0,7.4,0.4,9.6,4.4c0.1,0.1,0.2,0.2,0.3,0.2 c0,0,0.1,0,0.1,0c0.2-0.1,0.3-0.3,0.2-0.4C-140.2,257.3-140.6,255-142.2,252.6z M-150.8,252.5c-0.2,0-0.4,0.2-0.4,0.4v3.3l-6-5.5 l6-5.3v2.8c0,0.2,0.2,0.4,0.4,0.4c3.3,0,6,1.5,8,4.5c0.5,0.8,0.9,1.6,1.2,2.3C-144,252.8-147.1,252.5-150.8,252.5z'/> </svg>",
     SCROLL_BOTTOM_ICON: "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='-239 239 21 23' style='enable-background:new -239 239 21 23;' xml:space='preserve'> <path d='M-239,241.4l2.4-2.4l8.1,8.2l8.1-8.2l2.4,2.4l-10.5,10.6L-239,241.4z M-228.5,257.2l8.1-8.2l2.4,2.4l-10.5,10.6l-10.5-10.6 l2.4-2.4L-228.5,257.2z'/> </svg>",
     VIDEO_ICON: "<svg width='55%'height='100%'viewBox='0 0 13 8'> <g transform='matrix(1,0,0,1,-507,-146)'> <g transform='matrix(0.0133892,0,0,0.014499,500.635,142.838)'> <path d='M1158,547.286L1158,644.276C1158,684.245 1125.55,716.694 1085.58,716.694L579.341,716.694C539.372,716.694 506.922,684.245 506.922,644.276L506.922,306.322C506.922,266.353 539.371,233.904 579.341,233.903L1085.58,233.903C1125.55,233.904 1158,266.353 1158,306.322L1158,402.939L1359.75,253.14C1365.83,248.362 1373.43,245.973 1382.56,245.973C1386.61,245.973 1390.83,246.602 1395.22,247.859C1408.4,252.134 1414.99,259.552 1414.99,270.113L1414.99,680.485C1414.99,691.046 1408.4,698.464 1395.22,702.739C1390.83,703.996 1386.61,704.624 1382.56,704.624C1373.43,704.624 1365.83,702.236 1359.75,697.458L1158,547.286Z'/> </g> </g> </svg>",
+    PIN_ICON: "<svg width='16px' height='16px'  viewBox='0 0 25 25' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' clip-rule='evenodd' stroke-linejoin='round' stroke-miterlimit='1.414'><path d='M24.78 9.236L15.863.316l-1.487 4.46-4.46 4.46L8.43 7.75 3.972 9.235l4.458 4.458L.776 24.388l10.627-7.72 4.46 4.46 1.485-4.46-1.486-1.485 4.46-4.46 4.46-1.487z' fill-rule='nonzero'/></svg>",
     THEMES: {
         default: {
             type: 'Organization',
@@ -440,6 +458,7 @@ export const Constants = {
             linkColor: '#2f81b7',
             buttonBg: '#1dacfc',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#a94442',
             mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
@@ -465,6 +484,7 @@ export const Constants = {
             linkColor: '#2389d7',
             buttonBg: '#23A2FF',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#a94442',
             mentionHighlightBg: '#f3e197',
             mentionHighlightLink: '#2f81b7',
             codeTheme: 'github',
@@ -490,6 +510,7 @@ export const Constants = {
             linkColor: '#A4FFEB',
             buttonBg: '#4CBBA4',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#ff6461',
             mentionHighlightBg: '#984063',
             mentionHighlightLink: '#A4FFEB',
             codeTheme: 'solarized-dark',
@@ -515,6 +536,7 @@ export const Constants = {
             linkColor: '#0D93FF',
             buttonBg: '#0177e7',
             buttonColor: '#FFFFFF',
+            errorTextColor: '#ff6461',
             mentionHighlightBg: '#784098',
             mentionHighlightLink: '#A4FFEB',
             codeTheme: 'monokai',
@@ -596,6 +618,11 @@ export const Constants = {
             group: 'centerChannelElements',
             id: 'newMessageSeparator',
             uiName: 'New Message Separator'
+        },
+        {
+            group: 'centerChannelElements',
+            id: 'errorTextColor',
+            uiName: 'Error Text Color'
         },
         {
             group: 'centerChannelElements',
@@ -853,6 +880,10 @@ export const Constants = {
         WEBRTC_PREVIEW: {
             label: 'webrtc_preview',
             description: 'Enable WebRTC one on one calls'
+        },
+        EMOJI_PICKER_PREVIEW: {
+            label: 'emojipicker',
+            description: 'Enable emoji picker'
         }
     },
     OVERLAY_TIME_DELAY_SMALL: 100,
@@ -865,6 +896,8 @@ export const Constants = {
     DEFAULT_MAX_NOTIFICATIONS_PER_CHANNEL: 1000,
     MAX_TEAMNAME_LENGTH: 15,
     MAX_TEAMDESCRIPTION_LENGTH: 50,
+    MIN_CHANNELNAME_LENGTH: 2,
+    MAX_CHANNELNAME_LENGTH: 22,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 22,
     MAX_NICKNAME_LENGTH: 22,
@@ -879,6 +912,7 @@ export const Constants = {
     MIN_HASHTAG_LINK_LENGTH: 3,
     CHANNEL_SCROLL_ADJUSTMENT: 100,
     EMOJI_PATH: '/static/emoji',
+    RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
     MTPNS: 'http://push-test.mattermost.com',

@@ -12,34 +12,11 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
 
-import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-
-const holders = defineMessages({
-    analyticsPublicChannels: {
-        id: 'analytics.system.publicChannels',
-        defaultMessage: 'Public Channels'
-    },
-    analyticsPrivateGroups: {
-        id: 'analytics.system.privateGroups',
-        defaultMessage: 'Private Groups'
-    },
-    analyticsFilePosts: {
-        id: 'analytics.system.totalFilePosts',
-        defaultMessage: 'Posts with Files'
-    },
-    analyticsHashtagPosts: {
-        id: 'analytics.system.totalHashtagPosts',
-        defaultMessage: 'Posts with Hashtags'
-    },
-    analyticsTextPosts: {
-        id: 'analytics.system.textPosts',
-        defaultMessage: 'Posts with Text-only'
-    }
-});
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import React from 'react';
 
-class SystemAnalytics extends React.Component {
+export default class SystemAnalytics extends React.Component {
     constructor(props) {
         super(props);
 
@@ -249,8 +226,8 @@ class SystemAnalytics extends React.Component {
                 </div>
             );
 
-            const channelTypeData = formatChannelDoughtnutData(stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS], this.props.intl);
-            const postTypeData = formatPostDoughtnutData(stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS], this.props.intl);
+            const channelTypeData = formatChannelDoughtnutData(stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS]);
+            const postTypeData = formatPostDoughtnutData(stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS]);
 
             let postTypeGraph;
             if (stats[StatTypes.TOTAL_POSTS] !== -1) {
@@ -409,7 +386,7 @@ class SystemAnalytics extends React.Component {
 
         return (
             <div className='wrapper--fixed team_statistics'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='analytics.system.title'
                         defaultMessage='System Statistics'
@@ -430,16 +407,12 @@ class SystemAnalytics extends React.Component {
     }
 }
 
-SystemAnalytics.propTypes = {
-    intl: intlShape.isRequired
-};
-
-export default injectIntl(SystemAnalytics);
-
-export function formatChannelDoughtnutData(totalPublic, totalPrivate, intl) {
-    const {formatMessage} = intl;
+export function formatChannelDoughtnutData(totalPublic, totalPrivate) {
     const channelTypeData = {
-        labels: [formatMessage(holders.analyticsPublicChannels), formatMessage(holders.analyticsPrivateGroups)],
+        labels: [
+            Utils.localizeMessage('analytics.system.publicChannels', 'Public Channels'),
+            Utils.localizeMessage('analytics.system.privateGroups', 'Private Channels')
+        ],
         datasets: [{
             data: [totalPublic, totalPrivate],
             backgroundColor: ['#46BFBD', '#FDB45C'],
@@ -450,10 +423,13 @@ export function formatChannelDoughtnutData(totalPublic, totalPrivate, intl) {
     return channelTypeData;
 }
 
-export function formatPostDoughtnutData(filePosts, hashtagPosts, totalPosts, intl) {
-    const {formatMessage} = intl;
+export function formatPostDoughtnutData(filePosts, hashtagPosts, totalPosts) {
     const postTypeData = {
-        labels: [formatMessage(holders.analyticsFilePosts), formatMessage(holders.analyticsHashtagPosts), formatMessage(holders.analyticsTextPosts)],
+        labels: [
+            Utils.localizeMessage('analytics.system.totalFilePosts', 'Posts with Files'),
+            Utils.localizeMessage('analytics.system.totalHashtagPosts', 'Posts with Hashtags'),
+            Utils.localizeMessage('analytics.system.textPosts', 'Posts with Text-only')
+        ],
         datasets: [{
             data: [filePosts, hashtagPosts, (totalPosts - filePosts - hashtagPosts)],
             backgroundColor: ['#46BFBD', '#F7464A', '#FDB45C'],

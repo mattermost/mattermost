@@ -21,7 +21,7 @@ export default class BackstageList extends React.Component {
     }
 
     static defaultProps = {
-        searchPlaceholder: Utils.localizeMessage('backstage.search', 'Search')
+        searchPlaceholder: Utils.localizeMessage('backstage_list.search', 'Search')
     }
 
     constructor(props) {

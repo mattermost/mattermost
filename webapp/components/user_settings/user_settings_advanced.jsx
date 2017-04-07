@@ -185,6 +185,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='postFormattingOn'
                                         type='radio'
                                         name='formatting'
                                         checked={this.state.settings.formatting !== 'false'}
@@ -200,6 +201,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='postFormattingOff'
                                         type='radio'
                                         name='formatting'
                                         checked={this.state.settings.formatting === 'false'}
@@ -261,6 +263,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 <div className='radio'>
                                     <label>
                                         <input
+                                            id='joinLeaveOn'
                                             type='radio'
                                             name='join_leave'
                                             checked={this.state.settings.join_leave !== 'false'}
@@ -276,6 +279,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 <div className='radio'>
                                     <label>
                                         <input
+                                            id='joinLeaveOff'
                                             type='radio'
                                             name='join_leave'
                                             checked={this.state.settings.join_leave === 'false'}
@@ -347,6 +351,13 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     defaultMessage='Enable the ability to make and receive one-on-one WebRTC calls'
                 />
             );
+        case 'EMOJI_PICKER_PREVIEW':
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.emojipicker'
+                    defaultMessage='Enable emoji picker for reactions and message input box'
+                />
+            );
         default:
             return null;
         }
@@ -367,6 +378,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='ctrlSendOn'
                                 type='radio'
                                 name='sendOnCtrlEnter'
                                 checked={ctrlSendActive[0]}
@@ -382,6 +394,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='ctrlSendOff'
                                 type='radio'
                                 name='sendOnCtrlEnter'
                                 checked={ctrlSendActive[1]}
@@ -464,6 +477,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             <div className='checkbox'>
                                 <label>
                                     <input
+                                        id={'advancedPreviewFeatures' + feature.label}
                                         type='checkbox'
                                         checked={this.state.settings[Constants.FeatureTogglePrefix + feature.label] === 'true'}
                                         onChange={(e) => {
@@ -524,6 +538,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeButton'
                         type='button'
                         className='close'
                         data-dismiss='modal'

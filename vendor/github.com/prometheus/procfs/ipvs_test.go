@@ -14,7 +14,7 @@ var (
 		OutgoingBytes:   0,
 	}
 	expectedIPVSBackendStatuses = []IPVSBackendStatus{
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.22"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.82.22"),
@@ -24,7 +24,7 @@ var (
 			ActiveConn:    248,
 			InactConn:     2,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.22"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.83.24"),
@@ -34,7 +34,7 @@ var (
 			ActiveConn:    248,
 			InactConn:     2,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.22"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.83.21"),
@@ -44,7 +44,7 @@ var (
 			ActiveConn:    248,
 			InactConn:     1,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.57"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.84.22"),
@@ -54,7 +54,7 @@ var (
 			ActiveConn:    0,
 			InactConn:     0,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.57"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.82.21"),
@@ -64,7 +64,7 @@ var (
 			ActiveConn:    1499,
 			InactConn:     0,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.57"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.50.21"),
@@ -74,7 +74,7 @@ var (
 			ActiveConn:    1498,
 			InactConn:     0,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.55"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.50.26"),
@@ -84,7 +84,7 @@ var (
 			ActiveConn:    0,
 			InactConn:     0,
 		},
-		IPVSBackendStatus{
+		{
 			LocalAddress:  net.ParseIP("192.168.0.55"),
 			LocalPort:     3306,
 			RemoteAddress: net.ParseIP("192.168.49.32"),

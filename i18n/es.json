@@ -148,6 +148,10 @@
     "translation": "No se puede obtener el usuario para comprobar los permisos."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Inicializando rutas del API para las marcas"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v agregado al canal por %v"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "La gestión y creación de Grupos Privados está restringido a los Administradores del Sistema."
+    "translation": "La gestión y creación de Canales Privados está restringido a los Administradores del Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "La gestión y creación de Grupos Privados está restringido a los Administradores de Equipo y Sistema."
+    "translation": "La gestión y creación de Canales Privados está restringido a los Administradores de Equipo y Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -284,6 +288,10 @@
     "translation": "Inicializando rutas del API para los canales"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "El canal ya está eliminado"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "No tienes los permisos apropiados"
   },
@@ -301,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Eres el último miembro que queda, intenta remover el Grupo Privado en vez de salirte."
+    "translation": "Eres el último miembro que queda, intenta remover el Canal Privado en vez de salirte."
   },
   {
     "id": "api.channel.leave.left",
@@ -380,8 +388,12 @@
     "translation": "Intento de realizar una actualización inválida al canal predeterminado {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "No se puede obtener el número de mensajes no leídos para user_id=%v y channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Inicializando rutas del API para el agrupamiento de servidores"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "npi"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Inicializando rutas del API de cumplimiento"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ocurrió un error inesperado. Por favor contacta a soporte."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Inicializando rutas del API marcadas como obsoletas"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,7 +1034,7 @@
     "translation": "El enlace público parece ser inválido"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "Archivo no tiene una imagen de vista previa"
   },
   {
@@ -1230,6 +1254,10 @@
     "translation": "Webhooks entrantes han sido deshabilitados por el administrador del sistema."
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "Inicializando rutas del API para LDAP"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "Arreglo vacío bajo 'license' en la solicitud"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "Esta licencia sólo soporta {{.Users}} usuarios, cuando tu sistema tiene {{.Count}} usuarios únicos. Los usuarios únicos se cuentan por direcciónes de correo electrónico distintas. Puedes ver el totoal de usuarios en REPORTES DEL SITIO -> Ver Estadísticas."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "Nuevo formato de la licencia de cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "Inicializando rutas del API para los estatus"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Inicializando rutas del API para los estatus"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "Falla al actualizar LastActivityAt para user_id=%v and session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Falla al guardar el estado del user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Usuario no encontrado"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "datos inválidos."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "ID de invitación no válido. No hay un equipo que coincida con el id de invitación."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parámetro requerido para agregar un usuario al equipo."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2229,7 +2281,7 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>TUS CUENTAS DUPLICADAS HAN SIDO ACTUALIZADAS</h3>Tu servidor de Mattermost ha sido actualizado a la Versión 3.0, la cual permite que utilices una sólo cuenta de usuario en múltiples equipos.<br/><br/>Estás recibiendo este correo electrónico debido a que el proceso de actualización ha detectado que tu cuenta tiene la misma dirección de correo electrónico o nombre de usuario que otras cuentas en el servidor.<br/><br/>Los siguiente cambios han sido realizados: <br/><br/>{{if .EmailChanged }}- La dirección de correo electrónico duplicada para la cuenta en el equipo `/{{.TeamName}}` fue cambiada a `{{.Email}}`. En el caso de que utilices el correo electrónico y la contraseña para iniciar sesión, puedes utilizar esta nueva dirección de correo para iniciar tu sesión.<br/><br/>{{end}}{{if .UsernameChanged }}- El nombre de usuario duplicado para la cuenta en el equipo `/{{.TeamName}}` ha sido cambiado por `{{.Username}}` para evitar confusión con otras cuentas.<br/><br/>{{end}} ACCIÓN RECOMENDADA: <br/><br/>Se recomienda que inicies sesión en tus equipos donde se encontraron duplicados y agregues tu cuenta principal al equipo y a cualquier canal público y grupo privado que quieras continuar utilizando. <br/><br/>Esto hará que tu cuenta principal tenga acceso al historial de todos tus canales públicos y grupos privados. Podrás continuar teniendo acceso al historial de todos los mensajes directos de cada cuenta duplicada al iniciar sesión con las credenciales de de cada una de las cuentas. <br/><br/>PARA MÁS INFORMACIÓN: <br/><br/>Para obtener más información referente a la actualización a Mattermost 3.0 por favor revisa: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>TUS CUENTAS DUPLICADAS HAN SIDO ACTUALIZADAS</h3>Tu servidor de Mattermost ha sido actualizado a la Versión 3.0, la cual permite que utilices una sólo cuenta de usuario en múltiples equipos.<br/><br/>Estás recibiendo este correo electrónico debido a que el proceso de actualización ha detectado que tu cuenta tiene la misma dirección de correo electrónico o nombre de usuario que otras cuentas en el servidor.<br/><br/>Los siguiente cambios han sido realizados: <br/><br/>{{if .EmailChanged }}- La dirección de correo electrónico duplicada para la cuenta en el equipo `/{{.TeamName}}` fue cambiada a `{{.Email}}`. En el caso de que utilices el correo electrónico y la contraseña para iniciar sesión, puedes utilizar esta nueva dirección de correo para iniciar tu sesión.<br/><br/>{{end}}{{if .UsernameChanged }}- El nombre de usuario duplicado para la cuenta en el equipo `/{{.TeamName}}` ha sido cambiado por `{{.Username}}` para evitar confusión con otras cuentas.<br/><br/>{{end}} ACCIÓN RECOMENDADA: <br/><br/>Se recomienda que inicies sesión en tus equipos donde se encontraron duplicados y agregues tu cuenta principal al equipo y a cualquier canal que quieras continuar utilizando. <br/><br/>Esto hará que tu cuenta principal tenga acceso al historial de todos tus canales. Podrás continuar teniendo acceso al historial de todos los mensajes directos de cada cuenta duplicada al iniciar sesión con las credenciales de de cada una de las cuentas. <br/><br/>PARA MÁS INFORMACIÓN: <br/><br/>Para obtener más información referente a la actualización a Mattermost 3.0 por favor revisa: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -3108,6 +3160,14 @@
     "translation": "Administrar los roles del Equipo"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Capacidad para leer los canales públicos"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Leer Canales Públicos"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "Capacidad para invitar usuarios a un equipo"
   },
@@ -3428,22 +3488,6 @@
     "translation": "Página no encontrada"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "Serás removido de todos los canales públicos y privados.  Si el equipo es privado no serás capaz de regresar al equipo.  ¿Estás seguro?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "No"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "¿Abandonar el equipo?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Sí"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "No pudimos encontrar el canal: %v, búsqueda realizada con estas posibilidades %v"
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "No se puede escribir la solicitud"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error al crear la solicitud multiparte del certificado SAML"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "No se encontró ningún canal"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "No pudimos obtener los canales"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No se encontró el canal"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "No pudimos encontrar el canal eliminado"
   },
@@ -4700,6 +4776,14 @@
     "translation": "No pudimos obtener los canales"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "No pudimos obtener los canales públicos"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "No pudimos obtener los mensajes sin leer del canal"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "No pudimos incrementar la cantidad de menciones"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "No pudimos remover al miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "No hemos podido encontrar los mensajes anclados"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "No pudimos guardar el miembro del equipo"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Encontramos un error buscando los equipos"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Encontramos un error buscando los equipos abiertos"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "No pudimos actualizar el equipo"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Falla al agregar el directorio a ser vigilado %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Inicializando rutas de los estatus en el API de WebSocket"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Inicializando rutas del sistema en el API de WebSocket"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Inicializando rutas de usuario en el API de WebSocket"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Inicializando rutas de webrtc en el API de WebSocket"
   }
 ]

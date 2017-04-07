@@ -6,6 +6,8 @@ package store
 import (
 	"net/http"
 
+	"database/sql"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -155,6 +157,9 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) StoreChanne
 
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
 		}
 
 		if result.Err == nil {
@@ -324,7 +329,7 @@ func (s SqlWebhookStore) GetOutgoing(id string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingList(offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -332,7 +337,35 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
 
 		var webhooks []*model.OutgoingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.GetOutgoingList", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "err="+err.Error())
+		}
+
+		result.Data = webhooks
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var webhooks []*model.OutgoingWebhook
+
+		query := ""
+		if limit < 0 || offset < 0 {
+			query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0"
+		} else {
+			query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+		}
+
+		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error())
 		}
 
@@ -345,7 +378,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -353,7 +386,14 @@ func (s SqlWebhookStore) GetOutgoingByTeam(teamId string) StoreChannel {
 
 		var webhooks []*model.OutgoingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
+		query := ""
+		if limit < 0 || offset < 0 {
+			query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
+		} else {
+			query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+		}
+
+		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error())
 		}
 

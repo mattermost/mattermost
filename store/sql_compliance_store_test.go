@@ -20,7 +20,7 @@ func TestSqlComplianceStore(t *testing.T) {
 	Must(store.Compliance().Save(compliance2))
 	time.Sleep(100 * time.Millisecond)
 
-	c := store.Compliance().GetAll()
+	c := store.Compliance().GetAll(0, 1000)
 	result := <-c
 	compliances := result.Data.(model.Compliances)
 
@@ -31,12 +31,28 @@ func TestSqlComplianceStore(t *testing.T) {
 	compliance2.Status = model.COMPLIANCE_STATUS_FAILED
 	Must(store.Compliance().Update(compliance2))
 
-	c = store.Compliance().GetAll()
+	c = store.Compliance().GetAll(0, 1000)
 	result = <-c
 	compliances = result.Data.(model.Compliances)
 
 	if compliances[0].Status != model.COMPLIANCE_STATUS_FAILED && compliance2.Id != compliances[0].Id {
 		t.Fatal()
+	}
+
+	c = store.Compliance().GetAll(0, 1)
+	result = <-c
+	compliances = result.Data.(model.Compliances)
+
+	if len(compliances) != 1 {
+		t.Fatal("should only have returned 1")
+	}
+
+	c = store.Compliance().GetAll(1, 1)
+	result = <-c
+	compliances = result.Data.(model.Compliances)
+
+	if len(compliances) != 1 {
+		t.Fatal("should only have returned 1")
 	}
 
 	rc2 := (<-store.Compliance().Get(compliance2.Id)).Data.(*model.Compliance)

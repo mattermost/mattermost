@@ -490,7 +490,7 @@ class InviteMemberModal extends React.Component {
                             <Modal.Title>
                                 <FormattedMessage
                                     id='invite_member.newMember'
-                                    defaultMessage='Invite New Member'
+                                    defaultMessage='Send Email Invite'
                                 />
                             </Modal.Title>
                         </Modal.Header>

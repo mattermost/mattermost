@@ -50,7 +50,7 @@ func TestSqlAuditStore(t *testing.T) {
 	result = <-c
 	audits = result.Data.(model.Audits)
 
-	if len(audits) <= 4 {
+	if len(audits) < 4 {
 		t.Fatal("Failed to save and retrieve 4 audit logs")
 	}
 

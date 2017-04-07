@@ -8,6 +8,7 @@ import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
+import EmojiPicker from './emoji_picker/emoji_picker.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -36,6 +37,7 @@ const KeyCodes = Constants.KeyCodes;
 import React from 'react';
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
+export const EMOJI_PATTERN = /:[A-Za-z-_0-9]*:/g;
 
 export default class CreatePost extends React.Component {
     constructor(props) {
@@ -54,6 +56,7 @@ export default class CreatePost extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
+        this.getFileUploadTarget = this.getFileUploadTarget.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
@@ -61,7 +64,10 @@ export default class CreatePost extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
+        this.handleEmojiClick = this.handleEmojiClick.bind(this);
+        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
+        this.closeEmoji = this.closeEmoji.bind(this);
 
         PostStore.clearDraftUploads();
 
@@ -77,7 +83,9 @@ export default class CreatePost extends React.Component {
             fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             showTutorialTip: false,
             showPostDeletedModal: false,
-            enableSendButton: false
+            enableSendButton: false,
+            showEmojiPicker: false,
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         };
 
         this.lastBlurAt = 0;
@@ -85,6 +93,18 @@ export default class CreatePost extends React.Component {
 
     handlePostError(postError) {
         this.setState({postError});
+    }
+
+    closeEmoji(clickEvent) {
+        /*
+         if the user clicked something outside the component, except the main emojipicker icon
+         and the picker is open, then close it
+         */
+        if (clickEvent && clickEvent.srcElement &&
+            clickEvent.srcElement.className.indexOf('emoji-main') === -1 &&
+            this.state.showEmojiPicker) {
+            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        }
     }
 
     handleSubmit(e) {
@@ -184,6 +204,14 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
+
+        // parse message and emit emoji event
+        const emojiResult = post.message.match(EMOJI_PATTERN);
+        if (emojiResult) {
+            emojiResult.forEach((emoji) => {
+                PostActions.emitEmojiPosted(emoji);
+            });
+        }
 
         PostActions.queuePost(post, false, null,
             (err) => {
@@ -379,6 +407,10 @@ export default class CreatePost extends React.Component {
     }
 
     showShortcuts(e) {
+        if (e.which === Constants.KeyCodes.ESCAPE && this.state.showEmojiPicker === true) {
+            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        }
+
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
             const args = {};
@@ -411,7 +443,8 @@ export default class CreatePost extends React.Component {
         this.setState({
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
             ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN
+            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         });
     }
 
@@ -422,6 +455,10 @@ export default class CreatePost extends React.Component {
 
         const draft = PostStore.getDraft(channelId);
         return draft.fileInfos.length + draft.uploadsInProgress.length;
+    }
+
+    getFileUploadTarget() {
+        return this.refs.textbox;
     }
 
     handleKeyDown(e) {
@@ -482,6 +519,31 @@ export default class CreatePost extends React.Component {
         this.setState({
             showPostDeletedModal: false
         });
+    }
+
+    handleEmojiClick(emoji) {
+        const emojiAlias = emoji.name || emoji.aliases[0];
+
+        if (!emojiAlias) {
+            //Oops.. There went something wrong
+            return;
+        }
+
+        if (this.state.message === '') {
+            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+        } else {
+            //check whether there is already a blank at the end of the current message
+            const newMessage = (/\s+$/.test(this.state.message)) ?
+                this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
+
+            this.setState({message: newMessage, showEmojiPicker: false});
+        }
+
+        this.focusTextbox();
+    }
+
+    handleEmojiPickerClick() {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
     }
 
     createTutorialTip() {
@@ -556,6 +618,17 @@ export default class CreatePost extends React.Component {
         if (!this.state.enableSendButton) {
             sendButtonClass += ' disabled';
         }
+        let emojiPicker = null;
+        if (this.state.showEmojiPicker) {
+            emojiPicker = (
+                <EmojiPicker
+                    onEmojiClick={this.handleEmojiClick}
+                    pickerLocation='top'
+                    outsideClick={this.closeEmoji}
+
+                />
+            );
+        }
 
         return (
             <form
@@ -575,22 +648,29 @@ export default class CreatePost extends React.Component {
                                 handlePostError={this.handlePostError}
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
+                                emojiEnabled={this.state.emojiPickerEnabled}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
                                 ref='textbox'
                             />
+                            <FileUpload
+                                ref='fileUpload'
+                                getFileCount={this.getFileCount}
+                                getTarget={this.getFileUploadTarget}
+                                onFileUploadChange={this.handleFileUploadChange}
+                                onUploadStart={this.handleUploadStart}
+                                onFileUpload={this.handleFileUploadComplete}
+                                onUploadError={this.handleUploadError}
+                                postType='post'
+                                channelId=''
+                                onEmojiClick={this.handleEmojiPickerClick}
+                                emojiEnabled={this.state.emojiPickerEnabled}
+                                navBarName='main'
+                            />
+
+                            {emojiPicker}
                         </div>
-                        <FileUpload
-                            ref='fileUpload'
-                            getFileCount={this.getFileCount}
-                            onFileUploadChange={this.handleFileUploadChange}
-                            onUploadStart={this.handleUploadStart}
-                            onFileUpload={this.handleFileUploadComplete}
-                            onUploadError={this.handleUploadError}
-                            postType='post'
-                            channelId=''
-                        />
                         <a
                             className={sendButtonClass}
                             onClick={this.handleSubmit}

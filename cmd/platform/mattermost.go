@@ -5,7 +5,6 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"os"
 
@@ -36,20 +35,8 @@ func main() {
 
 	rootCmd.AddCommand(serverCmd, versionCmd, userCmd, teamCmd, licenseCmd, importCmd, resetCmd, channelCmd, rolesCmd, testCmd, ldapCmd)
 
-	flag.Usage = func() {
-		rootCmd.Usage()
-	}
-	parseCmds()
-
-	if flagRunCmds {
-		CommandPrintErrorln("---------------------------------------------------------------------------------------------")
-		CommandPrintErrorln("DEPRECATED! All previous commands are now deprecated. Run: platform help to see the new ones.")
-		CommandPrintErrorln("---------------------------------------------------------------------------------------------")
-		doLegacyCommands()
-	} else {
-		if err := rootCmd.Execute(); err != nil {
-			os.Exit(1)
-		}
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
 	}
 }
 

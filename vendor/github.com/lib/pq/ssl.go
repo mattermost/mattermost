@@ -15,7 +15,7 @@ import (
 func ssl(o values) func(net.Conn) net.Conn {
 	verifyCaOnly := false
 	tlsConf := tls.Config{}
-	switch mode := o.Get("sslmode"); mode {
+	switch mode := o["sslmode"]; mode {
 	// "require" is the default.
 	case "", "require":
 		// We must skip TLS's own verification since it requires full
@@ -23,15 +23,19 @@ func ssl(o values) func(net.Conn) net.Conn {
 		tlsConf.InsecureSkipVerify = true
 
 		// From http://www.postgresql.org/docs/current/static/libpq-ssl.html:
-		// Note: For backwards compatibility with earlier versions of PostgreSQL, if a
-		// root CA file exists, the behavior of sslmode=require will be the same as
-		// that of verify-ca, meaning the server certificate is validated against the
-		// CA. Relying on this behavior is discouraged, and applications that need
-		// certificate validation should always use verify-ca or verify-full.
-		if _, err := os.Stat(o.Get("sslrootcert")); err == nil {
-			verifyCaOnly = true
-		} else {
-			o.Set("sslrootcert", "")
+		//
+		// Note: For backwards compatibility with earlier versions of
+		// PostgreSQL, if a root CA file exists, the behavior of
+		// sslmode=require will be the same as that of verify-ca, meaning the
+		// server certificate is validated against the CA. Relying on this
+		// behavior is discouraged, and applications that need certificate
+		// validation should always use verify-ca or verify-full.
+		if sslrootcert, ok := o["sslrootcert"]; ok {
+			if _, err := os.Stat(sslrootcert); err == nil {
+				verifyCaOnly = true
+			} else {
+				delete(o, "sslrootcert")
+			}
 		}
 	case "verify-ca":
 		// We must skip TLS's own verification since it requires full
@@ -39,7 +43,7 @@ func ssl(o values) func(net.Conn) net.Conn {
 		tlsConf.InsecureSkipVerify = true
 		verifyCaOnly = true
 	case "verify-full":
-		tlsConf.ServerName = o.Get("host")
+		tlsConf.ServerName = o["host"]
 	case "disable":
 		return nil
 	default:
@@ -64,37 +68,42 @@ func ssl(o values) func(net.Conn) net.Conn {
 // in the user's home directory. The configured files must exist and have
 // the correct permissions.
 func sslClientCertificates(tlsConf *tls.Config, o values) {
-	sslkey := o.Get("sslkey")
-	sslcert := o.Get("sslcert")
+	// user.Current() might fail when cross-compiling. We have to ignore the
+	// error and continue without home directory defaults, since we wouldn't
+	// know from where to load them.
+	user, _ := user.Current()
 
-	var cinfo, kinfo os.FileInfo
-	var err error
-
-	if sslcert != "" && sslkey != "" {
-		// Check that both files exist. Note that we don't do any more extensive
-		// checks than this (such as checking that the paths aren't directories);
-		// LoadX509KeyPair() will take care of the rest.
-		cinfo, err = os.Stat(sslcert)
-		if err != nil {
-			panic(err)
-		}
-
-		kinfo, err = os.Stat(sslkey)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		// Automatically find certificates from ~/.postgresql
-		sslcert, sslkey, cinfo, kinfo = sslHomeCertificates()
-
-		if cinfo == nil || kinfo == nil {
-			// No certificates to load
-			return
-		}
+	// In libpq, the client certificate is only loaded if the setting is not blank.
+	//
+	// https://github.com/postgres/postgres/blob/REL9_6_2/src/interfaces/libpq/fe-secure-openssl.c#L1036-L1037
+	sslcert := o["sslcert"]
+	if len(sslcert) == 0 && user != nil {
+		sslcert = filepath.Join(user.HomeDir, ".postgresql", "postgresql.crt")
+	}
+	// https://github.com/postgres/postgres/blob/REL9_6_2/src/interfaces/libpq/fe-secure-openssl.c#L1045
+	if len(sslcert) == 0 {
+		return
+	}
+	// https://github.com/postgres/postgres/blob/REL9_6_2/src/interfaces/libpq/fe-secure-openssl.c#L1050:L1054
+	if _, err := os.Stat(sslcert); os.IsNotExist(err) {
+		return
+	} else if err != nil {
+		panic(err)
 	}
 
-	// The files must also have the correct permissions
-	sslCertificatePermissions(cinfo, kinfo)
+	// In libpq, the ssl key is only loaded if the setting is not blank.
+	//
+	// https://github.com/postgres/postgres/blob/REL9_6_2/src/interfaces/libpq/fe-secure-openssl.c#L1123-L1222
+	sslkey := o["sslkey"]
+	if len(sslkey) == 0 && user != nil {
+		sslkey = filepath.Join(user.HomeDir, ".postgresql", "postgresql.key")
+	}
+
+	if len(sslkey) > 0 {
+		if err := sslKeyPermissions(sslkey); err != nil {
+			panic(err)
+		}
+	}
 
 	cert, err := tls.LoadX509KeyPair(sslcert, sslkey)
 	if err != nil {
@@ -105,7 +114,10 @@ func sslClientCertificates(tlsConf *tls.Config, o values) {
 
 // sslCertificateAuthority adds the RootCA specified in the "sslrootcert" setting.
 func sslCertificateAuthority(tlsConf *tls.Config, o values) {
-	if sslrootcert := o.Get("sslrootcert"); sslrootcert != "" {
+	// In libpq, the root certificate is only loaded if the setting is not blank.
+	//
+	// https://github.com/postgres/postgres/blob/REL9_6_2/src/interfaces/libpq/fe-secure-openssl.c#L950-L951
+	if sslrootcert := o["sslrootcert"]; len(sslrootcert) > 0 {
 		tlsConf.RootCAs = x509.NewCertPool()
 
 		cert, err := ioutil.ReadFile(sslrootcert)
@@ -113,39 +125,10 @@ func sslCertificateAuthority(tlsConf *tls.Config, o values) {
 			panic(err)
 		}
 
-		ok := tlsConf.RootCAs.AppendCertsFromPEM(cert)
-		if !ok {
+		if !tlsConf.RootCAs.AppendCertsFromPEM(cert) {
 			errorf("couldn't parse pem in sslrootcert")
 		}
 	}
-}
-
-// sslHomeCertificates returns the path and stats of certificates in the current
-// user's home directory.
-func sslHomeCertificates() (cert, key string, cinfo, kinfo os.FileInfo) {
-	user, err := user.Current()
-
-	if err != nil {
-		// user.Current() might fail when cross-compiling. We have to ignore the
-		// error and continue without client certificates, since we wouldn't know
-		// from where to load them.
-		return
-	}
-
-	cert = filepath.Join(user.HomeDir, ".postgresql", "postgresql.crt")
-	key = filepath.Join(user.HomeDir, ".postgresql", "postgresql.key")
-
-	cinfo, err = os.Stat(cert)
-	if err != nil {
-		cinfo = nil
-	}
-
-	kinfo, err = os.Stat(key)
-	if err != nil {
-		kinfo = nil
-	}
-
-	return
 }
 
 // sslVerifyCertificateAuthority carries out a TLS handshake to the server and

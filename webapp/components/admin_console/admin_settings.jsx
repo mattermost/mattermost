@@ -69,6 +69,10 @@ export default class AdminSettings extends React.Component {
                 if (callback) {
                     callback();
                 }
+
+                if (this.handleSaved) {
+                    this.handleSaved(config);
+                }
             },
             (err) => {
                 this.setState({
@@ -78,6 +82,10 @@ export default class AdminSettings extends React.Component {
 
                 if (callback) {
                     callback();
+                }
+
+                if (this.handleSaved) {
+                    this.handleSaved(config);
                 }
             }
         );
@@ -112,7 +120,9 @@ export default class AdminSettings extends React.Component {
     render() {
         return (
             <div className='wrapper--fixed'>
-                {this.renderTitle()}
+                <h3 className='admin-console-header'>
+                    {this.renderTitle()}
+                </h3>
                 <form
                     className='form-horizontal'
                     role='form'

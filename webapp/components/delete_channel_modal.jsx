@@ -3,7 +3,6 @@
 
 import {Modal} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
-import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -37,21 +36,6 @@ export default class DeleteChannelModal extends React.Component {
     }
 
     render() {
-        let channelTerm = (
-            <FormattedMessage
-                id='delete_channel.channel'
-                defaultMessage='channel'
-            />
-        );
-        if (this.props.channel.type === Constants.PRIVATE_CHANNEL) {
-            channelTerm = (
-                <FormattedMessage
-                    id='delete_channel.group'
-                    defaultMessage='group'
-                />
-            );
-        }
-
         return (
             <Modal
                 show={this.state.show}
@@ -70,10 +54,9 @@ export default class DeleteChannelModal extends React.Component {
                     <div className='alert alert-danger'>
                         <FormattedMessage
                             id='delete_channel.question'
-                            defaultMessage='This will delete the channel from the team and make its contents inaccessible for all users. Are you sure you wish to delete the {display_name} {term}?'
+                            defaultMessage='This will delete the channel from the team and make its contents inaccessible for all users. Are you sure you wish to delete the {display_name} channel?'
                             values={{
-                                display_name: this.props.channel.display_name,
-                                term: (channelTerm)
+                                display_name: this.props.channel.display_name
                             }}
                         />
                     </div>

@@ -1,40 +1,43 @@
 // Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import React from 'react';
+import {FormattedDate, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+
 import Banner from 'components/admin_console/banner.jsx';
-import LineChart from './line_chart.jsx';
-import StatisticCount from './statistic_count.jsx';
-import TableChart from './table_chart.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import AdminStore from 'stores/admin_store.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
-import Constants from 'utils/constants.jsx';
-const StatTypes = Constants.StatTypes;
+import {StatTypes} from 'utils/constants.jsx';
+import {convertTeamMapToList} from 'utils/team_utils.jsx';
 
+import LineChart from './line_chart.jsx';
+import StatisticCount from './statistic_count.jsx';
+import TableChart from './table_chart.jsx';
 import {formatPostsPerDayData, formatUsersWithPostsPerDayData} from './system_analytics.jsx';
-import {FormattedMessage, FormattedDate, FormattedHTMLMessage} from 'react-intl';
 
-import React from 'react';
+const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 
 export default class TeamAnalytics extends React.Component {
-    static get propTypes() {
-        return {
-            params: React.PropTypes.object.isRequired
-        };
-    }
-
     constructor(props) {
         super(props);
 
         this.onChange = this.onChange.bind(this);
         this.onAllTeamsChange = this.onAllTeamsChange.bind(this);
+        this.handleTeamChange = this.handleTeamChange.bind(this);
+
+        const teams = convertTeamMapToList(AdminStore.getAllTeams());
+        const teamId = BrowserStore.getGlobalItem(LAST_ANALYTICS_TEAM, teams.length > 0 ? teams[0].id : '');
 
         this.state = {
-            team: AdminStore.getTeam(this.props.params.team),
-            stats: AnalyticsStore.getAllTeam(this.props.params.team)
+            teams,
+            teamId,
+            team: AdminStore.getTeam(teamId),
+            stats: AnalyticsStore.getAllTeam(teamId)
         };
     }
 
@@ -42,7 +45,19 @@ export default class TeamAnalytics extends React.Component {
         AnalyticsStore.addChangeListener(this.onChange);
         AdminStore.addAllTeamsChangeListener(this.onAllTeamsChange);
 
-        this.getData(this.props.params.team);
+        if (this.state.teamId !== '') {
+            this.getData(this.state.teamId);
+        }
+
+        if (this.state.teams.length === 0) {
+            AsyncClient.getAllTeams();
+        }
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        if (nextState.teamId !== this.state.teamId) {
+            this.getData(nextState.teamId);
+        }
     }
 
     getData(id) {
@@ -57,40 +72,60 @@ export default class TeamAnalytics extends React.Component {
         AdminStore.removeAllTeamsChangeListener(this.onAllTeamsChange);
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.getData(nextProps.params.team);
-        this.setState({
-            stats: AnalyticsStore.getAllTeam(nextProps.params.team)
-        });
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!Utils.areObjectsEqual(nextState.stats, this.state.stats)) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(nextProps.params.team, this.props.params.team)) {
-            return true;
-        }
-
-        return false;
-    }
-
     onChange() {
         this.setState({
-            stats: AnalyticsStore.getAllTeam(this.props.params.team)
+            stats: AnalyticsStore.getAllTeam(this.state.teamId)
         });
     }
 
     onAllTeamsChange() {
+        const teams = convertTeamMapToList(AdminStore.getAllTeams());
+
+        if (teams.length > 0) {
+            if (this.state.teamId) {
+                this.setState({
+                    team: AdminStore.getTeam(this.state.teamId)
+                });
+            } else {
+                this.setState({
+                    teamId: teams[0].id,
+                    team: teams[0]
+                });
+            }
+        }
+
         this.setState({
-            team: AdminStore.getTeam(this.props.params.team)
+            teams
         });
     }
 
+    handleTeamChange(e) {
+        const teamId = e.target.value;
+
+        this.setState({
+            teamId,
+            team: AdminStore.getTeam(teamId)
+        });
+
+        BrowserStore.setGlobalItem(LAST_ANALYTICS_TEAM, teamId);
+    }
+
     render() {
-        if (!this.state.team || !this.state.stats) {
-            return null;
+        if (this.state.teams.length === 0 || !this.state.team || !this.state.stats) {
+            return <LoadingScreen/>;
+        }
+
+        if (this.state.teamId === '') {
+            return (
+                <Banner
+                    description={
+                        <FormattedMessage
+                            id='analytics.team.noTeams'
+                            defaultMessage='There are no teams on this server for which to view statistics.'
+                        />
+                    }
+                />
+            );
         }
 
         const stats = this.state.stats;
@@ -129,6 +164,7 @@ export default class TeamAnalytics extends React.Component {
             postTotalGraph = (
                 <div className='row'>
                     <LineChart
+                        key={this.state.team.id}
                         title={
                             <FormattedMessage
                                 id='analytics.team.totalPosts'
@@ -150,6 +186,7 @@ export default class TeamAnalytics extends React.Component {
             userActiveGraph = (
                 <div className='row'>
                     <LineChart
+                        key={this.state.team.id}
                         title={
                             <FormattedMessage
                                 id='analytics.team.activeUsers'
@@ -172,17 +209,41 @@ export default class TeamAnalytics extends React.Component {
         const recentActiveUsers = formatRecentUsersData(stats[StatTypes.RECENTLY_ACTIVE_USERS]);
         const newlyCreatedUsers = formatNewUsersData(stats[StatTypes.NEWLY_CREATED_USERS]);
 
+        const teams = this.state.teams.map((team) => {
+            return (
+                <option
+                    key={team.id}
+                    value={team.id}
+                >
+                    {team.display_name}
+                </option>
+            );
+        });
+
         return (
             <div className='wrapper--fixed team_statistics'>
-                <h3>
-                    <FormattedMessage
-                        id='analytics.team.title'
-                        defaultMessage='Team Statistics for {team}'
-                        values={{
-                            team: this.state.team.name
-                        }}
-                    />
-                </h3>
+                <div className='admin-console-header team-statistics__header-row'>
+                    <div className='team-statistics__header'>
+                        <h3>
+                            <FormattedMessage
+                                id='analytics.team.title'
+                                defaultMessage='Team Statistics for {team}'
+                                values={{
+                                    team: this.state.team.display_name
+                                }}
+                            />
+                        </h3>
+                    </div>
+                    <div className='team-statistics__team-filter'>
+                        <select
+                            className='form-control team-statistics__team-filter__dropdown'
+                            onChange={this.handleTeamChange}
+                            value={this.state.teamId}
+                        >
+                            {teams}
+                        </select>
+                    </div>
+                </div>
                 {banner}
                 <div className='row'>
                     <StatisticCount
@@ -209,7 +270,7 @@ export default class TeamAnalytics extends React.Component {
                         title={
                             <FormattedMessage
                                 id='analytics.team.privateGroups'
-                                defaultMessage='Private Groups'
+                                defaultMessage='Private Channels'
                             />
                         }
                         icon='fa-globe'

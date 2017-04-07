@@ -3,7 +3,6 @@
 
 import SearchResultsHeader from './search_results_header.jsx';
 import SearchResultsItem from './search_results_item.jsx';
-import SearchBox from './search_bar.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
@@ -168,11 +167,6 @@ export default class SearchResults extends React.Component {
 
     render() {
         var results = this.state.results;
-        var currentId = UserStore.getCurrentId();
-        var searchForm = null;
-        if (currentId) {
-            searchForm = <SearchBox isFocus={Utils.isMobile()}/>;
-        }
         var noResults = (!results || !results.order || !results.order.length);
         const searchTerm = this.state.searchTerm;
         const profiles = this.state.profiles || {};
@@ -208,6 +202,37 @@ export default class SearchResults extends React.Component {
                             <FormattedHTMLMessage
                                 id='search_results.usageFlag4'
                                 defaultMessage='Flags are a way to mark messages for follow up. Your flags are personal, and cannot be seen by other users.'
+                            />
+                        </li>
+                    </ul>
+                </div>
+            );
+        } else if (this.props.isPinnedPosts && noResults) {
+            ctls = (
+                <div className='sidebar--right__subheader'>
+                    <ul>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin1'
+                                defaultMessage='There are no pinned messages yet.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin2'
+                                defaultMessage='All members of this channel can pin important or useful messages.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin3'
+                                defaultMessage='Pinned messages are visible to all channel members.'
+                            />
+                        </li>
+                        <li>
+                            <FormattedHTMLMessage
+                                id='search_results.usagePin4'
+                                defaultMessage={'To pin a message: Go to the message that you want to pin and click [...] > "Pin to channel".'}
                             />
                         </li>
                     </ul>
@@ -281,21 +306,20 @@ export default class SearchResults extends React.Component {
         }
 
         return (
-            <div className='sidebar--right__content'>
-                <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
-                <div className='sidebar-right__body'>
-                    <SearchResultsHeader
-                        isMentionSearch={this.props.isMentionSearch}
-                        toggleSize={this.props.toggleSize}
-                        shrink={this.props.shrink}
-                        isFlaggedPosts={this.props.isFlaggedPosts}
-                    />
-                    <div
-                        id='search-items-container'
-                        className='search-items-container'
-                    >
-                        {ctls}
-                    </div>
+            <div className='sidebar-right__body'>
+                <SearchResultsHeader
+                    isMentionSearch={this.props.isMentionSearch}
+                    toggleSize={this.props.toggleSize}
+                    shrink={this.props.shrink}
+                    isFlaggedPosts={this.props.isFlaggedPosts}
+                    isPinnedPosts={this.props.isPinnedPosts}
+                    channelDisplayName={this.props.channelDisplayName}
+                />
+                <div
+                    id='search-items-container'
+                    className='search-items-container'
+                >
+                    {ctls}
                 </div>
             </div>
         );
@@ -307,5 +331,7 @@ SearchResults.propTypes = {
     useMilitaryTime: React.PropTypes.bool.isRequired,
     toggleSize: React.PropTypes.func,
     shrink: React.PropTypes.func,
-    isFlaggedPosts: React.PropTypes.bool
+    isFlaggedPosts: React.PropTypes.bool,
+    isPinnedPosts: React.PropTypes.bool,
+    channelDisplayName: React.PropTypes.string.isRequired
 };

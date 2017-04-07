@@ -114,6 +114,31 @@ export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
     );
 }
 
+export function addUsersToTeam(teamId, userIds, success, error) {
+    Client.addUsersToTeam(
+        teamId,
+        userIds,
+        (teamMembers) => {
+            teamMembers.forEach((member) => {
+                TeamStore.removeMemberNotInTeam(teamId, member.user_id);
+                UserStore.removeProfileNotInTeam(teamId, member.user_id);
+            });
+            UserStore.emitNotInTeamChange();
+
+            if (success) {
+                success(teamMembers);
+            }
+        },
+        (err) => {
+            AsyncClient.dispatchError(err, 'addUsersToTeam');
+
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
 export function getInviteInfo(inviteId, success, error) {
     Client.getInviteInfo(
         inviteId,
@@ -149,4 +174,12 @@ export function inviteMembers(data, success, error) {
 export function switchTeams(url) {
     AsyncClient.viewChannel();
     browserHistory.push(url);
+}
+
+export function getTeamsForUser(userId, success, error) {
+    Client.getTeamsForUser(userId, success, error);
+}
+
+export function getTeamMembersForUser(userId, success, error) {
+    Client.getTeamMembersForUser(userId, success, error);
 }

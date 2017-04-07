@@ -148,6 +148,10 @@
     "translation": "Não foi possível obter o usuário para verificar as permissões."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Inicializando as rotas da API de brand"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v adicionado ao canal por %v"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Gerenciamento de Canais Privados e criação é restrito apenas para Administradores do Sistema."
+    "translation": "Gerenciamento de Canais Públicos e criação é restrito apenas para Administradores do Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Gerenciamento de Canais Privados e criação é restrito apenas para o Time e Administradores do Sistema."
+    "translation": "Gerenciamento de Canais Públicos e criação é restrito apenas para o Time e Administradores do Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -284,6 +288,10 @@
     "translation": "Inicializando as rotas da API channel"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "O canal já foi apagado"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "Você não tem a permissão apropriada"
   },
@@ -380,8 +388,12 @@
     "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Não foi possível obter o número de não lidos para o user_id=%v e channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Inicializando as rotas de API de cluster"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Inicializando as rotas da API de compliance"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "O novo formato para a configuração do cliente não é suportado ainda. Por favor, especifique na query string format=old."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Desculpe, não conseguimos encontrar a página."
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ocorreu um erro desconhecido. Por favor contato com o suporte."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Inicializando as rotas da API que serão descontinuadas"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,8 +1034,8 @@
     "translation": "O link público não parece ser válido"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "Arquivo não tem uma imagem de visualização"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "Arquivo não tem uma imagem de pré-visualização"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1230,6 +1254,10 @@
     "translation": "Webhooks de entrada foram desabilitados pelo administrador do sistema."
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "Inicializando as rotas de API de LDAP"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "Matriz vazia sobre a 'licença' na requisição"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "Está licença somente suporta usuários {{.Users}}, quando seu sistema tem {{.Count}} usuários únicos. Usuários únicos são contados por endereço de email distinto. Você pode ver o total de usuários em Relatórios Site -> Ver Estatísticas."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "O novo formato para a licença do cliente não é suportado ainda. Por favor, especifique na query string format=old."
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "Inicializando as rotas de API status"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Inicializando as rotas de API status"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "Não foi possível atualizar LastActivityAt para user_id=%v e session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Falha ao salvar o status para user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Usuário não localizado"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Dado inválido."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Id do convite inválido. Nenhum time possui este id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parâmetro requerido para adicionar o usuário ao time."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3108,6 +3160,14 @@
     "translation": "Gerenciar Funções da Equipe"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Capacidade de ler canais públicos."
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Ler Canais Públicos"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "Permissão para convidar usuários para uma equipe"
   },
@@ -3428,22 +3488,6 @@
     "translation": "Página não encontrada"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "Você será removido de todos os canais públicos e grupos privados.  Se a equipe é privada você não será capaz de se juntar à equipe.  Você tem certeza?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "Não"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Deixar a equipe?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Sim"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Não foi possível encontrar o canal %v, procurado %v possibilidades"
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Não foi possível escrever o pedido"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error em criar o formulário de requisição com o certificado multipart SAML"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "Nenhum canal foi encontrado"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "Não foi possível obter os canais"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Nenhum canal encontrado"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "Não foi possível encontrar o canal excluído existente"
   },
@@ -4700,6 +4776,14 @@
     "translation": "Não foi possível obter os canais"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "Não foi possível obter os canais públicos"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "Não foi possível obter as mensagens não lidas do canal"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "Não foi possível incrementar o número de menções"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Não foi possível remover o membro do canal"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "Não conseguimos achar as postagens fixadas"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "Não foi possível salvar o membro da equipe"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Encontramos um erro ao procurar pelos canais"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Encontramos um erro ao procurar pelos canais"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Não foi possível atualizar a equipe"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Falha ao adicionar diretório observador %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Inicializando as rotas de API web socket de status"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Inicializando as rotas de API web socket do sistema"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Inicializando as rotas de API web socket de usuários"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Inicializando as rotas de API web socket de webrtc"
   }
 ]

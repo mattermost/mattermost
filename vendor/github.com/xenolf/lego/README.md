@@ -23,7 +23,11 @@ To build lego inside a Docker container, just run
 ```
 docker build -t lego .
 ```
-
+##### From the package manager
+- [ArchLinux (AUR)](https://aur.archlinux.org/packages/lego-git):
+```
+yaourt -S lego-git
+```
 #### Features
 
 - Register with CA

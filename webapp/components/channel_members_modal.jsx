@@ -3,6 +3,12 @@
 
 import MemberListChannel from './member_list_channel.jsx';
 
+import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
+
+import {canManageMembers} from 'utils/channel_utils.jsx';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -24,6 +30,30 @@ export default class ChannelMembersModal extends React.Component {
     }
 
     render() {
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+
+        let addMembersButton = null;
+        if (canManageMembers(this.state.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+            addMembersButton = (
+                <a
+                    id='showInviteModal'
+                    className='btn btn-md btn-primary'
+                    href='#'
+                    onClick={() => {
+                        this.props.showInviteModal();
+                        this.onHide();
+                    }}
+                >
+                    <FormattedMessage
+                        id='channel_members_modal.addNew'
+                        defaultMessage=' Add New Members'
+                    />
+                </a>
+            );
+        }
+
         return (
             <div>
                 <Modal
@@ -40,19 +70,7 @@ export default class ChannelMembersModal extends React.Component {
                                 defaultMessage=' Members'
                             />
                         </Modal.Title>
-                        <a
-                            className='btn btn-md btn-primary'
-                            href='#'
-                            onClick={() => {
-                                this.props.showInviteModal();
-                                this.onHide();
-                            }}
-                        >
-                            <FormattedMessage
-                                id='channel_members_modal.addNew'
-                                defaultMessage=' Add New Members'
-                            />
-                        </a>
+                        {addMembersButton}
                     </Modal.Header>
                     <Modal.Body
                         ref='modalBody'

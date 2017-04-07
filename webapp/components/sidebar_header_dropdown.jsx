@@ -11,8 +11,10 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
+import SidebarHeaderDropdownButton from './sidebar_header_dropdown_button.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
+import AddUsersToTeam from './add_users_to_team.jsx';
 
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
 
@@ -42,6 +44,8 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
         this.toggleAccountSettingsModal = this.toggleAccountSettingsModal.bind(this);
+        this.showAddUsersToTeamModal = this.showAddUsersToTeamModal.bind(this);
+        this.hideAddUsersToTeamModal = this.hideAddUsersToTeamModal.bind(this);
         this.showInviteMemberModal = this.showInviteMemberModal.bind(this);
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
         this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
@@ -60,7 +64,8 @@ export default class SidebarHeaderDropdown extends React.Component {
             showAboutModal: false,
             showDropdown: false,
             showTeamMembersModal: false,
-            showUserSettingsModal: false
+            showUserSettingsModal: false,
+            showAddUsersToTeamModal: false
         };
     }
 
@@ -98,6 +103,21 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({
             showUserSettingsModal: !this.state.showUserSettingsModal,
             showDropdown: false
+        });
+    }
+
+    showAddUsersToTeamModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showAddUsersToTeamModal: true,
+            showDropdown: false
+        });
+    }
+
+    hideAddUsersToTeamModal() {
+        this.setState({
+            showAddUsersToTeamModal: false
         });
     }
 
@@ -180,6 +200,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         const currentUser = this.props.currentUser;
         let teamLink = '';
         let inviteLink = '';
+        let addMemberToTeam = '';
         let manageLink = '';
         let sysAdminLink = '';
         let isAdmin = false;
@@ -203,7 +224,22 @@ export default class SidebarHeaderDropdown extends React.Component {
                     >
                         <FormattedMessage
                             id='navbar_dropdown.inviteMember'
-                            defaultMessage='Invite New Member'
+                            defaultMessage='Send Email Invite'
+                        />
+                    </a>
+                </li>
+            );
+
+            addMemberToTeam = (
+                <li>
+                    <a
+                        id='addUsersToTeam'
+                        href='#'
+                        onClick={this.showAddUsersToTeamModal}
+                    >
+                        <FormattedMessage
+                            id='navbar_dropdown.addMemberToTeam'
+                            defaultMessage='Add Members to Team'
                         />
                     </a>
                 </li>
@@ -229,9 +265,11 @@ export default class SidebarHeaderDropdown extends React.Component {
                 if (config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
                     teamLink = null;
                     inviteLink = null;
+                    addMemberToTeam = null;
                 } else if (config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
                     teamLink = null;
                     inviteLink = null;
+                    addMemberToTeam = null;
                 }
             }
         }
@@ -304,6 +342,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             sysAdminLink = (
                 <li>
                     <Link
+                        id='systemConsole'
                         to={'/admin_console'}
                         onClick={this.handleClick}
                     >
@@ -414,10 +453,8 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
-        let nativeAppDivider = null;
         let nativeAppLink = null;
         if (global.window.mm_config.AppDownloadLink && !UserAgent.isMobileApp()) {
-            nativeAppDivider = <li className='divider'/>;
             nativeAppLink = (
                 <li>
                     <Link
@@ -445,6 +482,92 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
+        let addUsersToTeamModal;
+        if (this.state.showAddUsersToTeamModal) {
+            addUsersToTeamModal = (
+                <AddUsersToTeam
+                    onModalDismissed={this.hideAddUsersToTeamModal}
+                />
+            );
+        }
+
+        const accountSettings = (
+            <li>
+                <a
+                    id='accountSettings'
+                    href='#'
+                    onClick={this.toggleAccountSettingsModal}
+                >
+                    <FormattedMessage
+                        id='navbar_dropdown.accountSettings'
+                        defaultMessage='Account Settings'
+                    />
+                </a>
+            </li>
+        );
+
+        const about = (
+            <li>
+                <a
+                    href='#'
+                    onClick={this.handleAboutModal}
+                >
+                    <FormattedMessage
+                        id='navbar_dropdown.about'
+                        defaultMessage='About Mattermost'
+                    />
+                </a>
+            </li>
+        );
+
+        const logout = (
+            <li>
+                <a
+                    id='logout'
+                    href='#'
+                    onClick={() => GlobalActions.emitUserLoggedOutEvent()}
+                >
+                    <FormattedMessage
+                        id='navbar_dropdown.logout'
+                        defaultMessage='Logout'
+                    />
+                </a>
+            </li>
+        );
+
+        const customEmoji = this.renderCustomEmojiLink();
+
+        // Dividers.
+        let inviteDivider = null;
+        if (inviteLink || teamLink || addMemberToTeam) {
+            inviteDivider = <li className='divider'/>;
+        }
+
+        let teamDivider = null;
+        if (teamSettings || manageLink || teams) {
+            teamDivider = <li className='divider'/>;
+        }
+
+        let backstageDivider = null;
+        if (integrationsLink || customEmoji) {
+            backstageDivider = <li className='divider'/>;
+        }
+
+        let sysAdminDivider = null;
+        if (sysAdminLink) {
+            sysAdminDivider = <li className='divider'/>;
+        }
+
+        let helpDivider = null;
+        if (helpLink || reportLink || nativeAppLink || about) {
+            helpDivider = <li className='divider'/>;
+        }
+
+        let logoutDivider = null;
+        if (logout) {
+            logoutDivider = <li className='divider'/>;
+        }
+
         return (
             <Dropdown
                 id='sidebar-header-dropdown'
@@ -453,66 +576,32 @@ export default class SidebarHeaderDropdown extends React.Component {
                 className='sidebar-header-dropdown'
                 pullRight={true}
             >
-                <a
-                    href='#'
-                    className='sidebar-header-dropdown__toggle'
+                <SidebarHeaderDropdownButton
                     bsRole='toggle'
                     onClick={this.toggleDropdown}
-                >
-                    <span
-                        className='sidebar-header-dropdown__icon'
-                        dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
-                    />
-                </a>
+                />
                 <Dropdown.Menu>
-                    <li>
-                        <a
-                            href='#'
-                            onClick={this.toggleAccountSettingsModal}
-                        >
-                            <FormattedMessage
-                                id='navbar_dropdown.accountSettings'
-                                defaultMessage='Account Settings'
-                            />
-                        </a>
-                    </li>
+                    {accountSettings}
+                    {inviteDivider}
                     {inviteLink}
                     {teamLink}
-                    <li>
-                        <a
-                            href='#'
-                            onClick={() => GlobalActions.emitUserLoggedOutEvent()}
-                        >
-                            <FormattedMessage
-                                id='navbar_dropdown.logout'
-                                defaultMessage='Logout'
-                            />
-                        </a>
-                    </li>
-                    <li className='divider'/>
-                    {integrationsLink}
-                    {this.renderCustomEmojiLink()}
-                    <li className='divider'/>
+                    {addMemberToTeam}
+                    {teamDivider}
                     {teamSettings}
                     {manageLink}
-                    {sysAdminLink}
                     {teams}
-                    <li className='divider'/>
+                    {backstageDivider}
+                    {integrationsLink}
+                    {customEmoji}
+                    {sysAdminDivider}
+                    {sysAdminLink}
+                    {helpDivider}
                     {helpLink}
                     {reportLink}
-                    <li>
-                        <a
-                            href='#'
-                            onClick={this.handleAboutModal}
-                        >
-                            <FormattedMessage
-                                id='navbar_dropdown.about'
-                                defaultMessage='About Mattermost'
-                            />
-                        </a>
-                    </li>
-                    {nativeAppDivider}
                     {nativeAppLink}
+                    {about}
+                    {logoutDivider}
+                    {logout}
                     <UserSettingsModal
                         show={this.state.showUserSettingsModal}
                         onModalDismissed={() => this.setState({showUserSettingsModal: false})}
@@ -522,6 +611,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                         show={this.state.showAboutModal}
                         onModalDismissed={this.aboutModalDismissed}
                     />
+                    {addUsersToTeamModal}
                 </Dropdown.Menu>
             </Dropdown>
         );

@@ -15,7 +15,9 @@ const UserStatuses = Constants.UserStatuses;
 
 const CHANGE_EVENT_NOT_IN_CHANNEL = 'change_not_in_channel';
 const CHANGE_EVENT_IN_CHANNEL = 'change_in_channel';
+const CHANGE_EVENT_NOT_IN_TEAM = 'change_not_in_team';
 const CHANGE_EVENT_IN_TEAM = 'change_in_team';
+const CHANGE_EVENT_WITHOUT_TEAM = 'change_without_team';
 const CHANGE_EVENT = 'change';
 const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
@@ -36,6 +38,11 @@ class UserStoreClass extends EventEmitter {
         this.paging_count = 0;
 
         // Lists of sorted IDs for users in a team
+        this.profiles_not_in_team = {};
+        this.not_in_team_offset = 0;
+        this.not_in_team_count = 0;
+
+        // Lists of sorted IDs for users in a team
         this.profiles_in_team = {};
         this.in_team_offset = 0;
         this.in_team_count = 0;
@@ -49,6 +56,9 @@ class UserStoreClass extends EventEmitter {
         this.profiles_not_in_channel = {};
         this.not_in_channel_offset = {};
         this.not_in_channel_count = {};
+
+        // Lists of sorted IDs for users without a team
+        this.profiles_without_team = {};
 
         this.statuses = {};
         this.sessions = {};
@@ -81,6 +91,18 @@ class UserStoreClass extends EventEmitter {
         this.removeListener(CHANGE_EVENT_IN_TEAM, callback);
     }
 
+    emitNotInTeamChange() {
+        this.emit(CHANGE_EVENT_NOT_IN_TEAM);
+    }
+
+    addNotInTeamChangeListener(callback) {
+        this.on(CHANGE_EVENT_NOT_IN_TEAM, callback);
+    }
+
+    removeNotInTeamChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_NOT_IN_TEAM, callback);
+    }
+
     emitInChannelChange() {
         this.emit(CHANGE_EVENT_IN_CHANNEL);
     }
@@ -103,6 +125,18 @@ class UserStoreClass extends EventEmitter {
 
     removeNotInChannelChangeListener(callback) {
         this.removeListener(CHANGE_EVENT_NOT_IN_CHANNEL, callback);
+    }
+
+    emitWithoutTeamChange() {
+        this.emit(CHANGE_EVENT_WITHOUT_TEAM);
+    }
+
+    addWithoutTeamChangeListener(callback) {
+        this.on(CHANGE_EVENT_WITHOUT_TEAM, callback);
+    }
+
+    removeWithoutTeamChangeListener(callback) {
+        this.removeListener(CHANGE_EVENT_WITHOUT_TEAM, callback);
     }
 
     emitSessionsChange() {
@@ -189,8 +223,33 @@ class UserStoreClass extends EventEmitter {
         return null;
     }
 
+    getProfileListForIds(userIds, skipCurrent = false, skipInactive = false) {
+        const profiles = [];
+        const currentId = this.getCurrentId();
+
+        for (let i = 0; i < userIds.length; i++) {
+            const profile = this.getProfile(userIds[i]);
+
+            if (!profile) {
+                continue;
+            }
+
+            if (skipCurrent && profile.id === currentId) {
+                continue;
+            }
+
+            if (skipInactive && profile.delete_at > 0) {
+                continue;
+            }
+
+            profiles.push(profile);
+        }
+
+        return profiles;
+    }
+
     hasProfile(userId) {
-        return this.getProfile(userId) != null;
+        return this.getProfiles().hasOwnProperty(userId);
     }
 
     getProfileByUsername(username) {
@@ -248,7 +307,7 @@ class UserStoreClass extends EventEmitter {
         return profiles;
     }
 
-    getProfileList(skipCurrent) {
+    getProfileList(skipCurrent = false, allowInactive = false) {
         const profiles = [];
         const currentId = this.getCurrentId();
 
@@ -260,7 +319,7 @@ class UserStoreClass extends EventEmitter {
                     continue;
                 }
 
-                if (profile.delete_at === 0) {
+                if (allowInactive || profile.delete_at === 0) {
                     profiles.push(profile);
                 }
             }
@@ -314,6 +373,69 @@ class UserStoreClass extends EventEmitter {
 
     getProfileListInTeam(teamId = TeamStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
         const userIds = this.profiles_in_team[teamId] || [];
+
+        return this.getProfileListForIds(userIds, skipCurrent, skipInactive);
+    }
+
+    removeProfileFromTeam(teamId, userId) {
+        const userIds = this.profiles_in_team[teamId];
+        if (!userIds) {
+            return;
+        }
+
+        const index = userIds.indexOf(userId);
+        if (index === -1) {
+            return;
+        }
+
+        userIds.splice(index, 1);
+    }
+
+    // Not In Team Profiles
+
+    saveProfilesNotInTeam(teamId, profiles) {
+        const oldProfileList = this.profiles_not_in_team[teamId] || [];
+        const oldProfileMap = {};
+        for (let i = 0; i < oldProfileList.length; i++) {
+            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
+        }
+
+        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
+        const newProfileList = Object.keys(newProfileMap);
+
+        newProfileList.sort((a, b) => {
+            const aProfile = newProfileMap[a];
+            const bProfile = newProfileMap[b];
+
+            if (aProfile.username < bProfile.username) {
+                return -1;
+            }
+            if (aProfile.username > bProfile.username) {
+                return 1;
+            }
+            return 0;
+        });
+
+        this.profiles_not_in_team[teamId] = newProfileList;
+        this.saveProfiles(profiles);
+    }
+
+    removeProfileNotInTeam(teamId, userId) {
+        const userIds = this.profiles_not_in_team[teamId];
+        if (!userIds) {
+            return;
+        }
+
+        const index = userIds.indexOf(userId);
+        if (index === -1) {
+            return;
+        }
+
+        userIds.splice(index, 1);
+    }
+
+    getProfileListNotInTeam(teamId = TeamStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
+        const userIds = this.profiles_not_in_team[teamId] || [];
         const profiles = [];
         const currentId = this.getCurrentId();
 
@@ -336,20 +458,6 @@ class UserStoreClass extends EventEmitter {
         }
 
         return profiles;
-    }
-
-    removeProfileFromTeam(teamId, userId) {
-        const userIds = this.profiles_in_team[teamId];
-        if (!userIds) {
-            return;
-        }
-
-        const index = userIds.indexOf(userId);
-        if (index === -1) {
-            return;
-        }
-
-        userIds.splice(index, 1);
     }
 
     // Channel-Wide Profiles
@@ -416,21 +524,8 @@ class UserStoreClass extends EventEmitter {
 
     getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false) {
         const userIds = this.profiles_in_channel[channelId] || [];
-        const currentId = this.getCurrentId();
-        const profiles = [];
 
-        for (let i = 0; i < userIds.length; i++) {
-            const profile = this.getProfile(userIds[i]);
-            if (profile) {
-                if (skipCurrent && profile.id === currentId) {
-                    continue;
-                }
-
-                profiles.push(profile);
-            }
-        }
-
-        return profiles;
+        return this.getProfileListForIds(userIds, skipCurrent, false);
     }
 
     saveProfilesNotInChannel(channelId = ChannelStore.getCurrentId(), profiles) {
@@ -482,23 +577,43 @@ class UserStoreClass extends EventEmitter {
 
     getProfileListNotInChannel(channelId = ChannelStore.getCurrentId(), skipInactive = false) {
         const userIds = this.profiles_not_in_channel[channelId] || [];
-        const profiles = [];
 
-        for (let i = 0; i < userIds.length; i++) {
-            const profile = this.getProfile(userIds[i]);
+        return this.getProfileListForIds(userIds, false, skipInactive);
+    }
 
-            if (!profile) {
-                continue;
-            }
+    // Profiles without any teams
 
-            if (skipInactive && profile.delete_at > 0) {
-                continue;
-            }
-
-            profiles.push(profile);
+    saveProfilesWithoutTeam(profiles) {
+        const oldProfileList = this.profiles_without_team;
+        const oldProfileMap = {};
+        for (let i = 0; i < oldProfileList.length; i++) {
+            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
         }
 
-        return profiles;
+        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
+        const newProfileList = Object.keys(newProfileMap);
+
+        newProfileList.sort((a, b) => {
+            const aProfile = newProfileMap[a];
+            const bProfile = newProfileMap[b];
+
+            if (aProfile.username < bProfile.username) {
+                return -1;
+            }
+            if (aProfile.username > bProfile.username) {
+                return 1;
+            }
+            return 0;
+        });
+
+        this.profiles_without_team = newProfileList;
+        this.saveProfiles(profiles);
+    }
+
+    getProfileListWithoutTeam(skipCurrent = false, skipInactive = false) {
+        const userIds = this.profiles_without_team || [];
+
+        return this.getProfileListForIds(userIds, skipCurrent, skipInactive);
     }
 
     // Other
@@ -618,6 +733,19 @@ class UserStoreClass extends EventEmitter {
         return this.in_team_count;
     }
 
+    setNotInTeamPage(offset, count) {
+        this.not_in_team_offset = offset + count;
+        this.not_in_team_count = this.not_in_team_count + count;
+    }
+
+    getNotInTeamPagingOffset() {
+        return this.not_in_team_offset;
+    }
+
+    getNotInTeamPagingCount() {
+        return this.not_in_team_count;
+    }
+
     setInChannelPage(channelId, offset, count) {
         this.in_channel_offset[channelId] = offset + count;
         this.in_channel_count[channelId] = this.dm_paging_count + count;
@@ -666,6 +794,13 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
         }
         UserStore.emitInTeamChange();
         break;
+    case ActionTypes.RECEIVED_PROFILES_NOT_IN_TEAM:
+        UserStore.saveProfilesNotInTeam(action.team_id, action.profiles);
+        if (action.offset != null && action.count != null) {
+            UserStore.setNotInTeamPage(action.offset, action.count);
+        }
+        UserStore.emitNotInTeamChange();
+        break;
     case ActionTypes.RECEIVED_PROFILES_IN_CHANNEL:
         UserStore.saveProfilesInChannel(action.channel_id, action.profiles);
         if (action.offset != null && action.count != null) {
@@ -679,6 +814,10 @@ UserStore.dispatchToken = AppDispatcher.register((payload) => {
             UserStore.setNotInChannelPage(action.offset, action.count);
         }
         UserStore.emitNotInChannelChange();
+        break;
+    case ActionTypes.RECEIVED_PROFILES_WITHOUT_TEAM:
+        UserStore.saveProfilesWithoutTeam(action.profiles);
+        UserStore.emitWithoutTeamChange();
         break;
     case ActionTypes.RECEIVED_PROFILE:
         UserStore.saveProfile(action.profile);

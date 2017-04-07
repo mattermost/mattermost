@@ -43,12 +43,10 @@ export default class WebhookSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.integrations.custom'
-                    defaultMessage='Custom Integrations'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.integrations.custom'
+                defaultMessage='Custom Integrations'
+            />
         );
     }
 

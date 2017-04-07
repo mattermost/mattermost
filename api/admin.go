@@ -46,7 +46,7 @@ func InitAdmin() {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	lines, err := app.GetLogs()
+	lines, err := app.GetLogs(0, 100000)
 	if err != nil {
 		c.Err = err
 		return
@@ -142,7 +142,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	crs, err := app.GetComplianceReports()
+	crs, err := app.GetComplianceReports(0, 10000)
 	if err != nil {
 		c.Err = err
 		return
@@ -230,12 +230,6 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
 		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
@@ -317,7 +311,7 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePasswordByUserIdSendEmail(userId, newPassword, c.T("api.user.reset_password.method"), c.GetSiteURL()); err != nil {
+	if err := app.UpdatePasswordByUserIdSendEmail(userId, newPassword, c.T("api.user.reset_password.method")); err != nil {
 		c.Err = err
 		return
 	}
@@ -383,7 +377,7 @@ func addCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileData := fileArray[0]
 
-	if err := app.AddSamlCertificate(fileData); err != nil {
+	if err := app.WriteSamlFile(fileData); err != nil {
 		c.Err = err
 		return
 	}
@@ -393,7 +387,7 @@ func addCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	if err := app.RemoveSamlCertificate(props["filename"]); err != nil {
+	if err := app.RemoveSamlFile(props["filename"]); err != nil {
 		c.Err = err
 		return
 	}
@@ -403,7 +397,13 @@ func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	status := app.GetSamlCertificateStatus()
-	w.Write([]byte(model.StringInterfaceToJson(status)))
+
+	statusMap := map[string]interface{}{}
+	statusMap["IdpCertificateFile"] = status.IdpCertificateFile
+	statusMap["PrivateKeyFile"] = status.PrivateKeyFile
+	statusMap["PublicCertificateFile"] = status.PublicCertificateFile
+
+	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
 }
 
 func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {

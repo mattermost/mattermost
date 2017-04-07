@@ -17,6 +17,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
+import {canManageMembers} from 'utils/channel_utils.jsx';
 
 import $ from 'jquery';
 import React from 'react';
@@ -86,10 +87,11 @@ export default class PopoverListMembers extends React.Component {
         const popoverHtml = [];
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
-        let isAdmin = false;
         const currentUserId = UserStore.getCurrentId();
 
-        isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
 
         if (members && teamMembers) {
             members.sort((a, b) => {
@@ -156,7 +158,7 @@ export default class PopoverListMembers extends React.Component {
                         defaultMessage='Manage Members'
                     />
                 );
-                if (!isAdmin && ChannelStore.isDefault(this.props.channel)) {
+                if (!canManageMembers(this.props.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin) && !ChannelStore.isDefault(this.props.channel)) {
                     membersName = (
                         <FormattedMessage
                             id='members_popover.viewMembers'
@@ -217,7 +219,7 @@ export default class PopoverListMembers extends React.Component {
             teamMembersModal = (
                 <TeamMembersModal
                     onHide={() => this.setState({showTeamMembersModal: false})}
-                    isAdmin={isAdmin}
+                    isAdmin={isTeamAdmin || isSystemAdmin}
                 />
             );
         }
@@ -233,7 +235,7 @@ export default class PopoverListMembers extends React.Component {
         }
 
         return (
-            <div>
+            <div className='member-popover__container'>
                 <div
                     id='member_popover'
                     className='member-popover__trigger'
@@ -243,13 +245,11 @@ export default class PopoverListMembers extends React.Component {
                         AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
                     }}
                 >
-                    <div>
-                        {countText}
-                        <span
-                            className='fa fa-user'
-                            aria-hidden='true'
-                        />
-                    </div>
+                    {countText}
+                    <span
+                        className='fa fa-user'
+                        aria-hidden='true'
+                    />
                 </div>
                 <Overlay
                     rootClose={true}

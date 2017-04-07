@@ -2,18 +2,16 @@ package: github.com/mattermost/platform
 import:
 - package: github.com/NYTimes/gziphandler
 - package: github.com/alecthomas/log4go
+  repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
+  version: v1.0.0
 - package: github.com/go-gorp/gorp
   version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
   version: v2.5.0
 - package: github.com/go-sql-driver/mysql
   version: v1.3
-- package: github.com/goamz/goamz
-  subpackages:
-  - aws
-  - s3
 - package: github.com/golang/freetype
 - package: github.com/gorilla/handlers
   version: v1.2
@@ -42,8 +40,6 @@ import:
 - package: golang.org/x/image
   subpackages:
   - bmp
-- package: gopkg.in/fsnotify.v1
-  version: v1.4.2
 - package: gopkg.in/throttled/throttled.v2
   version: v2.0.3
   subpackages:
@@ -79,3 +75,9 @@ import:
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
+- package: github.com/jaytaylor/html2text
+- package: gopkg.in/gomail.v2
+  version: 2.0.0
+- package: github.com/spf13/viper
+- package: github.com/fsnotify/fsnotify
+  version: v1.4.2

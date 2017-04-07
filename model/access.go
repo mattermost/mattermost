@@ -51,7 +51,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "")
 	}
 
-	if len(ad.RedirectUri) > 256 {
+	if len(ad.RedirectUri) == 0 || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
 		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "")
 	}
 

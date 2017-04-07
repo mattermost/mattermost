@@ -123,7 +123,7 @@ type NFSEventsStats struct {
 	VFSFlush uint64
 	// Number of times fsync() has been called on directories and files.
 	VFSFsync uint64
-	// Number of times locking has been attemped on a file.
+	// Number of times locking has been attempted on a file.
 	VFSLock uint64
 	// Number of times files have been closed and released.
 	VFSFileRelease uint64
@@ -356,7 +356,7 @@ func parseMountStatsNFS(s *bufio.Scanner, statVersion string) (*MountStatsNFS, e
 		}
 
 		// When encountering "per-operation statistics", we must break this
-		// loop and parse them seperately to ensure we can terminate parsing
+		// loop and parse them separately to ensure we can terminate parsing
 		// before reaching another device entry; hence why this 'if' statement
 		// is not just another switch case
 		if ss[0] == fieldPerOpStats {

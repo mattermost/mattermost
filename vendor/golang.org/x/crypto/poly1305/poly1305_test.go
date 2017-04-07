@@ -6,9 +6,13 @@ package poly1305
 
 import (
 	"bytes"
+	"encoding/hex"
+	"flag"
 	"testing"
 	"unsafe"
 )
+
+var stressFlag = flag.Bool("stress", false, "run slow stress tests")
 
 var testData = []struct {
 	in, k, correct []byte
@@ -85,6 +89,39 @@ func testSum(t *testing.T, unaligned bool) {
 		if !bytes.Equal(out[:], v.correct) {
 			t.Errorf("%d: expected %x, got %x", i, v.correct, out[:])
 		}
+	}
+}
+
+func TestBurnin(t *testing.T) {
+	// This test can be used to sanity-check significant changes. It can
+	// take about many minutes to run, even on fast machines. It's disabled
+	// by default.
+	if !*stressFlag {
+		t.Skip("skipping without -stress")
+	}
+
+	var key [32]byte
+	var input [25]byte
+	var output [16]byte
+
+	for i := range key {
+		key[i] = 1
+	}
+	for i := range input {
+		input[i] = 2
+	}
+
+	for i := uint64(0); i < 1e10; i++ {
+		Sum(&output, input[:], &key)
+		copy(key[0:], output[:])
+		copy(key[16:], output[:])
+		copy(input[:], output[:])
+		copy(input[16:], output[:])
+	}
+
+	const expected = "5e3b866aea0b636d240c83c428f84bfa"
+	if got := hex.EncodeToString(output[:]); got != expected {
+		t.Errorf("expected %s, got %s", expected, got)
 	}
 }
 

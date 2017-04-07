@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-client vet
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
 
 # For golang 1.5.x compatibility (remove when we don't want to support it anymore)
 export GO15VENDOREXPERIMENT=1
@@ -52,6 +52,19 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 # Tests
 TESTS=.
 
+# Packages lists
+TE_PACKAGES=$(shell go list ./... | grep -v vendor)
+TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
+
+EE_PACKAGES=$(shell go list ./enterprise/... | grep -v vendor | tail -n +2)
+EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
+else
+ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
+endif
+
 all: dist
 
 dist: | check-style test package
@@ -76,14 +89,6 @@ start-docker:
 		echo restarting mattermost-postgres; \
 		docker start mattermost-postgres > /dev/null; \
 	fi
-
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    	echo starting mattermost-webrtc; \
-        docker run --name mattermost-webrtc -p 7088:7088 -p 7089:7089 -p 8188:8188 -p 8189:8189 -d mattermost/webrtc:latest > /dev/null; \
-    elif [ $(shell docker ps | grep -ci mattermost-webrtc) -eq 0 ]; then \
-    	echo restarting mattermost-webrtc; \
-        docker start mattermost-webrtc > /dev/null; \
-    fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
 		echo starting mattermost-inbucket; \
@@ -135,11 +140,6 @@ stop-docker:
 		docker stop mattermost-openldap > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-		echo stopping mattermost-webrtc; \
-		docker stop mattermost-webrtc > /dev/null; \
-	fi
-
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
 		echo stopping mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
@@ -166,12 +166,6 @@ clean-docker:
 		docker rm -v mattermost-openldap > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-webrtc) -eq 1 ]; then \
-		echo removing mattermost-webrtc; \
-		docker stop mattermost-webrtc > /dev/null; \
-		docker rm -v mattermost-webrtc > /dev/null; \
-	fi
-
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
 		echo removing mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
@@ -188,7 +182,7 @@ check-server-style: govet
 	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
 	@echo "$(GOFMT_OUTPUT)"
 	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt sucess"; \
+		echo "gofmt success"; \
 	else \
 		echo "gofmt failure"; \
 		exit 1; \
@@ -196,67 +190,103 @@ check-server-style: govet
 
 check-style: check-client-style check-server-style
 
-test-server: start-docker prepare-enterprise
-	@echo Running server tests
+test-te-race: start-docker prepare-enterprise
+	@echo Testing TE race conditions
 
-	rm -f cover.out
-	echo "mode: count" > cover.out
+	@echo "Packages to test: "$(TE_PACKAGES)
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=1050s -covermode=count -coverprofile=capi.out ./api || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s -covermode=count -coverprofile=capi4.out ./api4 || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=capp.out ./app || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=60s -covermode=count -coverprofile=cmodel.out ./model || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=180s -covermode=count -coverprofile=cstore.out ./store || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cutils.out ./utils || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=120s -covermode=count -coverprofile=cweb.out ./web || exit 1
+	@for package in $(TE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.v -test.timeout=3000s $$package || exit 1; \
+	done
 
-	tail -n +2 capi.out >> cover.out
-	tail -n +2 capi4.out >> cover.out
-	tail -n +2 capp.out >> cover.out
-	tail -n +2 cmodel.out >> cover.out
-	tail -n +2 cstore.out >> cover.out
-	tail -n +2 cutils.out >> cover.out
-	tail -n +2 cweb.out >> cover.out
-	rm -f capi.out capi4.out capp.out cmodel.out cstore.out cutils.out cweb.out
+test-ee-race: start-docker prepare-enterprise
+	@echo Testing EE race conditions
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Running Enterprise tests
+	@echo "Packages to test: "$(EE_PACKAGES)
 
-	rm -f ecover.out
-	echo "mode: count" > ecover.out
+	for package in $(EE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c $$package; \
+		if [ -f $$(basename $$package).test ]; then \
+			echo "Testing "$$package; \
+			./$$(basename $$package).test -test.v -test.timeout=2000s || exit 1; \
+			rm -r $$(basename $$package).test; \
+		fi; \
+	done
 
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/ldap && ./ldap.test -test.v -test.timeout=120s -test.coverprofile=cldap.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/compliance && ./compliance.test -test.v -test.timeout=120s -test.coverprofile=ccompliance.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/mfa && ./mfa.test -test.v -test.timeout=120s -test.coverprofile=cmfa.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/emoji && ./emoji.test -test.v -test.timeout=120s -test.coverprofile=cemoji.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/saml && ./saml.test -test.v -test.timeout=60s -test.coverprofile=csaml.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/cluster && ./cluster.test -test.v -test.timeout=60s -test.coverprofile=ccluster.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/metrics && ./metrics.test -test.v -test.timeout=60s -test.coverprofile=cmetrics.out || exit 1
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -c ./enterprise/account_migration && ./account_migration.test -test.v -test.timeout=60s -test.coverprofile=caccount_migration.out || exit 1
-
-	tail -n +2 cldap.out >> ecover.out
-	tail -n +2 ccompliance.out >> ecover.out
-	tail -n +2 cmfa.out >> ecover.out
-	tail -n +2 cemoji.out >> ecover.out
-	tail -n +2 csaml.out >> ecover.out
-	tail -n +2 ccluster.out >> ecover.out
-	tail -n +2 cmetrics.out >> ecover.out
-	tail -n +2 caccount_migration.out >> ecover.out
-	rm -f cldap.out ccompliance.out cmfa.out cemoji.out csaml.out ccluster.out cmetrics.out caccount_migration.out
-	rm -r ldap.test
-	rm -r compliance.test
-	rm -r mfa.test
-	rm -r emoji.test
-	rm -r saml.test
-	rm -r cluster.test
-	rm -r metrics.test
-	rm -r account_migration.test
 	rm -f config/*.crt
 	rm -f config/*.key
 endif
 
+test-server-race: test-te-race test-ee-race
+
+do-cover-file:
+	@echo "mode: count" > cover.out
+
+test-te: start-docker prepare-enterprise do-cover-file
+	@echo Testing TE
+
+
+	@echo "Packages to test: "$(TE_PACKAGES)
+
+	@for package in $(TE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
+		if [ -f cprofile.out ]; then \
+			tail -n +2 cprofile.out >> cover.out; \
+			rm cprofile.out; \
+		fi; \
+	done
+
+test-postgres: start-docker prepare-enterprise
+	@echo Testing Postgres
+
+	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
+	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) github.com/mattermost/platform/store || exit 1; \
+	if [ -f cprofile.out ]; then \
+		tail -n +2 cprofile.out >> cover.out; \
+		rm cprofile.out; \
+	fi; \
+
+	@sed -i'' -e 's|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|g' config/config.json
+	@sed -i'' -e 's|"DriverName": "postgres"|"DriverName": "mysql"|g' config/config.json
+	@rm config/config.json-e
+
+test-ee: start-docker prepare-enterprise do-cover-file
+	@echo Testing EE
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo "Packages to test: "$(EE_PACKAGES)
+
+	for package in $(EE_PACKAGES); do \
+		echo "Testing "$$package; \
+		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package; \
+		if [ -f $$(basename $$package).test ]; then \
+			echo "Testing "$$package; \
+			./$$(basename $$package).test -test.v -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
+			if [ -f cprofile.out ]; then \
+				tail -n +2 cprofile.out >> cover.out; \
+				rm cprofile.out; \
+			fi; \
+			rm -r $$(basename $$package).test; \
+		fi; \
+	done
+
+	rm -f config/*.crt
+	rm -f config/*.key
+endif
+
+test-server: test-te test-ee
+
 internal-test-web-client: start-docker prepare-enterprise
 	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
+
+run-server-for-web-client-tests:
+	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests_server
 
 test-client: start-docker prepare-enterprise
 	@echo Running client tests
@@ -323,6 +353,7 @@ package: build build-client
 
 	@# Disable developer settings
 	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"SiteURL": "http://localhost:8065"|"SiteURL": ""|g' $(DIST_PATH)/config/config.json
 
 	@# Reset email sending to original configuration
 	sed -i'' -e 's|"SendEmailNotifications": true,|"SendEmailNotifications": false,|g' $(DIST_PATH)/config/config.json
@@ -458,6 +489,7 @@ clean: stop-docker
 	rm -f ecover.out
 	rm -f *.out
 	rm -f *.test
+	rm -f imports.go
 
 nuke: clean clean-docker
 	@echo BOOM
@@ -498,13 +530,13 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 todo:
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ XXX
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ FIXME
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ "FIX ME"
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ XXX
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ FIXME
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ "FIX ME"
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO enterprise/ || true
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ XXX enterprise/ || true
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ FIXME enterprise/ || true
-	@ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ "FIX ME" enterprise/ || true
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ XXX enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ FIXME enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ "FIX ME" enterprise/
 endif

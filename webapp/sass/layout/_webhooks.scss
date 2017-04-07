@@ -41,11 +41,12 @@
         &.attachment--opengraph {
             max-width: 800px;
         }
+
         .attachment__content {
             border-radius: 4px;
             border-style: solid;
             border-width: 1px;
-            margin: 0 0 5px 0;
+            margin-top: 5px;
             padding: 2px 5px;
         }
 
@@ -71,16 +72,22 @@
             &.attachment__container--danger {
                 border-left-color: #e40303;
             }
+
             &.attachment__container--opengraph {
+                border-left-color: transparent;
+                border-left-style: none;
                 display: table;
-                table-layout: fixed;
-                width: 100%;
                 margin: 0;
                 padding-bottom: 13px;
+                padding-left: 5px;
+                table-layout: fixed;
+                width: 100%;
+
                 div {
                     margin: 0;
                 }
             }
+
             .sitename {
                 color: #A3A3A3;
             }
@@ -89,8 +96,8 @@
         .attachment__body__wrap {
             &.attachment__body__wrap--opengraph {
                 display: table-cell;
-                width: 100%;
                 vertical-align: top;
+                width: 100%;
             }
         }
 
@@ -104,6 +111,7 @@
             &.attachment__body--no_thumb {
                 width: 100%;
             }
+
             &.attachment__body--opengraph {
                 float: none;
                 padding-right: 0;
@@ -118,9 +126,10 @@
 
         .attachment__image__container--openraph {
             display: table-cell;
-            vertical-align: top;
-            padding-top: 3px;
             padding-left: 15px;
+            padding-top: 3px;
+            vertical-align: top;
+            width: 95px;
         }
 
         .attachment__image {
@@ -131,7 +140,7 @@
             &.attachment__image--openraph {
                 margin-bottom: 0;
                 max-height: 80px;
-                max-width: 200px;
+                max-width: 100%;
 
                 &.loading {
                     height: 80px;
@@ -142,6 +151,7 @@
                     margin-top: 10px;
                     max-height: 200px;
                     max-width: 400px;
+                    width: 100%;
 
                     &.loading {
                         height: 150px;
@@ -164,16 +174,17 @@
 
             &.has-link {
                 color: #2f81b7;
-                text-overflow: ellipsis;
                 overflow: hidden;
+                text-overflow: ellipsis;
                 white-space: nowrap;
             }
 
             &.attachment__title--opengraph {
                 height: auto;
                 word-wrap: break-word;
+
                 &.is-url {
-                    word-break: break-all
+                    word-break: break-all;
                 }
             }
         }

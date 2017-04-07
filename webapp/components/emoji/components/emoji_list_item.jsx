@@ -4,6 +4,7 @@
 import React from 'react';
 
 import EmojiStore from 'stores/emoji_store.jsx';
+import DeleteEmoji from './delete_emoji_modal.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -80,15 +81,7 @@ export default class EmojiListItem extends React.Component {
         let deleteButton = null;
         if (this.props.onDelete) {
             deleteButton = (
-                <a
-                    href='#'
-                    onClick={this.handleDelete}
-                >
-                    <FormattedMessage
-                        id='emoji_list.delete'
-                        defaultMessage='Delete'
-                    />
-                </a>
+                <DeleteEmoji onDelete={this.handleDelete}/>
             );
         }
 

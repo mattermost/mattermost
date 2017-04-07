@@ -12,9 +12,11 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import PostStore from 'stores/post_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx';
+import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
@@ -39,7 +41,6 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal.jsx';
 import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
-import SelectTeamModal from 'components/admin_console/select_team_modal.jsx';
 
 import iNoBounce from 'inobounce';
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -107,7 +108,7 @@ export default class NeedsTeam extends React.Component {
 
             window.isActive = true;
             if (new Date().getTime() - this.blurTime > UNREAD_CHECK_TIME_MILLISECONDS) {
-                AsyncClient.getMyChannelMembers();
+                AsyncClient.getMyChannelMembers().then(loadProfilesForSidebar);
             }
         });
 
@@ -177,12 +178,25 @@ export default class NeedsTeam extends React.Component {
                 </div>
             );
         }
+
+        let channel = ChannelStore.getByName(this.props.params.channel);
+        if (channel == null) {
+            // the permalink view is not really tied to a particular channel but still needs it
+            const postId = PostStore.getFocusedPostId();
+            const post = PostStore.getEarliestPostFromPage(postId);
+
+            // the post take some time before being available on page load
+            if (post != null) {
+                channel = ChannelStore.get(post.channel_id);
+            }
+        }
+
         return (
             <div className='channel-view'>
                 <ErrorBar/>
                 <WebrtcNotification/>
                 <div className='container-fluid'>
-                    <SidebarRight/>
+                    <SidebarRight channel={channel}/>
                     <SidebarRightMenu teamType={this.state.team.type}/>
                     <WebrtcSidebar/>
                     {content}
@@ -197,7 +211,6 @@ export default class NeedsTeam extends React.Component {
                     <EditPostModal/>
                     <DeletePostModal/>
                     <RemovedFromChannelModal/>
-                    <SelectTeamModal/>
                 </div>
             </div>
         );

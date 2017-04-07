@@ -148,6 +148,10 @@
     "translation": "Unable to get user to check permissions."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Initializing brand API routes"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Private Group management and creation is restricted to System Administrators."
+    "translation": "Private Channel management and creation is restricted to System Administrators."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Private Group management and creation is restricted to Team and System Administrators."
+    "translation": "Private Channel management and creation is restricted to Team and System Administrators."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -284,6 +288,10 @@
     "translation": "Initializing channel API routes"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
   },
@@ -301,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "You're the only member left, try removing the Private Group instead of leaving."
+    "translation": "You're the only member left, try removing the Private Channel instead of leaving."
   },
   {
     "id": "api.channel.leave.left",
@@ -380,8 +388,12 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Unable to get the unread count for user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Initializing cluster API routes"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Initializing compliance API routes"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "An unknown error has occurred. Please contact support."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Initializing deprecated API routes"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,7 +1034,7 @@
     "translation": "The public link does not appear to be valid"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "File doesn't have a preview image"
   },
   {
@@ -1230,6 +1254,10 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "Initializing LDAP API routes"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "Empty array under 'license' in request"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "Initializing status API routes"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Initializing status API routes"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Failed to save status for user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "User not found"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Invalid data."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Invalid invite id. No team matches with this invite id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parameter required to add user to team."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2229,7 +2281,7 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED</h3>Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.<br/><br/>You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.<br/><br/>The following updates have been made: <br/><br/>{{if .EmailChanged }}- The duplicate email of an account on the `/{{.TeamName}}` team was changed to `{{.Email}}`. You will need to use email and password to login, you can use this new email address for login.<br/><br/>{{end}}{{if .UsernameChanged }}- The duplicate username of an account on the team site `/{{.TeamName}}` has been changed to `{{.Username}}` to avoid confusion with other accounts.<br/><br/>{{end}} RECOMMENDED ACTION: <br/><br/>It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any public channels and private groups which you wish to continue using. <br/><br/>This gives your primary account access to all public channel and private group history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. <br/><br/>FOR MORE INFORMATION: <br/><br/>For more information on the upgrade to Mattermost 3.0 please see: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>YOUR DUPLICATE ACCOUNTS HAVE BEEN UPDATED</h3>Your Mattermost server is being upgraded to Version 3.0, which lets you use a single account across multiple teams.<br/><br/>You are receiving this email because the upgrade process has detected your account had the same email or username as other accounts on the server.<br/><br/>The following updates have been made: <br/><br/>{{if .EmailChanged }}- The duplicate email of an account on the `/{{.TeamName}}` team was changed to `{{.Email}}`. You will need to use email and password to login, you can use this new email address for login.<br/><br/>{{end}}{{if .UsernameChanged }}- The duplicate username of an account on the team site `/{{.TeamName}}` has been changed to `{{.Username}}` to avoid confusion with other accounts.<br/><br/>{{end}} RECOMMENDED ACTION: <br/><br/>It is recommended that you login to your teams used by your duplicate accounts and add your primary account to the team and any channels which you wish to continue using. <br/><br/>This gives your primary account access to all channel history. You can continue to access the direct message history of your duplicate accounts by logging in with their credentials. <br/><br/>FOR MORE INFORMATION: <br/><br/>For more information on the upgrade to Mattermost 3.0 please see: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -3108,6 +3160,14 @@
     "translation": "Manage Team Roles"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "Ability to invite users to a team"
   },
@@ -3428,22 +3488,6 @@
     "translation": "Page not found"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "You will be removed from all public channels and private groups.  If the team is private you will not be able to rejoin the team.  Are you sure?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "No"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Leave the team?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Yes"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilities searched"
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Unable to write request"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "No channels were found"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "We couldn't get the channels"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "We couldn't find the existing deleted channel"
   },
@@ -4700,6 +4776,14 @@
     "translation": "We couldn't get the channels"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "We couldn't get public channels"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "We couldn't get the channel unread messages"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "We couldn't increment the mention count"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "We couldn't remove the channel member"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "We couldn't save the team member"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "We encountered an error searching teams"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "We encountered an error searching open teams"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "We couldn't update the team"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Failed to add directory to watcher %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Initializing status WebSocket API routes"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Initializing system WebSocket API routes"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Initializing user WebSocket API routes"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Initializing webrtc WebSocket API routes"
   }
 ]

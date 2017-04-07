@@ -157,7 +157,7 @@ type EDNS0 interface {
 	String() string
 }
 
-// The nsid EDNS0 option is used to retrieve a nameserver
+// EDNS0_NSID option is used to retrieve a nameserver
 // identifier. When sending a request Nsid must be set to the empty string
 // The identifier is an opaque string encoded as hex.
 // Basic use pattern for creating an nsid option:
@@ -197,7 +197,7 @@ func (e *EDNS0_NSID) String() string        { return string(e.Nsid) }
 //	e := new(dns.EDNS0_SUBNET)
 //	e.Code = dns.EDNS0SUBNET
 //	e.Family = 1	// 1 for IPv4 source address, 2 for IPv6
-//	e.SourceNetMask = 32	// 32 for IPV4, 128 for IPv6
+//	e.SourceNetmask = 32	// 32 for IPV4, 128 for IPv6
 //	e.SourceScope = 0
 //	e.Address = net.ParseIP("127.0.0.1").To4()	// for IPv4
 //	// e.Address = net.ParseIP("2001:7b8:32a::2")	// for IPV6
@@ -301,7 +301,7 @@ func (e *EDNS0_SUBNET) String() (s string) {
 	return
 }
 
-// The Cookie EDNS0 option
+// The EDNS0_COOKIE option is used to add a DNS Cookie to a message.
 //
 //	o := new(dns.OPT)
 //	o.Hdr.Name = "."
@@ -543,15 +543,15 @@ func (e *EDNS0_LOCAL) unpack(b []byte) error {
 	return nil
 }
 
+// EDNS0_TCP_KEEPALIVE is an EDNS0 option that instructs the server to keep
+// the TCP connection alive. See RFC 7828.
 type EDNS0_TCP_KEEPALIVE struct {
 	Code    uint16 // Always EDNSTCPKEEPALIVE
 	Length  uint16 // the value 0 if the TIMEOUT is omitted, the value 2 if it is present;
 	Timeout uint16 // an idle timeout value for the TCP connection, specified in units of 100 milliseconds, encoded in network byte order.
 }
 
-func (e *EDNS0_TCP_KEEPALIVE) Option() uint16 {
-	return EDNS0TCPKEEPALIVE
-}
+func (e *EDNS0_TCP_KEEPALIVE) Option() uint16 { return EDNS0TCPKEEPALIVE }
 
 func (e *EDNS0_TCP_KEEPALIVE) pack() ([]byte, error) {
 	if e.Timeout != 0 && e.Length != 2 {

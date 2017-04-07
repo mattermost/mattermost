@@ -20,8 +20,6 @@ const (
 	SECURITY_UPDATE_PERIOD = 86400000 // 24 hours in milliseconds.
 
 	PROP_SECURITY_ID                = "id"
-	PROP_SECURITY_CATEGORY          = "c"
-	VAL_SECURITY_CATEGORY_DEFAULT   = "d"
 	PROP_SECURITY_BUILD             = "b"
 	PROP_SECURITY_ENTERPRISE_READY  = "be"
 	PROP_SECURITY_DATABASE          = "db"
@@ -49,7 +47,6 @@ func DoSecurityUpdateCheck() {
 				v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
 				v.Set(PROP_SECURITY_DATABASE, utils.Cfg.SqlSettings.DriverName)
 				v.Set(PROP_SECURITY_OS, runtime.GOOS)
-				v.Set(PROP_SECURITY_CATEGORY, VAL_SECURITY_CATEGORY_DEFAULT)
 
 				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
 					v.Set(PROP_SECURITY_UNIT_TESTS, "1")

@@ -39,6 +39,7 @@ func InitChannel() {
 	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/members/ids", ApiUserRequired(getChannelMembersByIds)).Methods("POST")
+	BaseRoutes.NeedChannel.Handle("/pinned", ApiUserRequired(getPinnedPosts)).Methods("GET")
 	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
 	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
@@ -206,7 +207,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
-			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName, c.GetSiteURL()); err != nil {
+			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
 				l4g.Error(err.Error())
 			}
 		}
@@ -254,7 +255,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader, c.GetSiteURL()); err != nil {
+		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -300,7 +301,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose, c.GetSiteURL()); err != nil {
+		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -411,7 +412,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err = app.JoinChannel(channel, c.Session.UserId, c.GetSiteURL()); err != nil {
+	if err = app.JoinChannel(channel, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -424,7 +425,7 @@ func leave(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
 
-	err := app.LeaveChannel(id, c.Session.UserId, c.GetSiteURL())
+	err := app.LeaveChannel(id, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -466,7 +467,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = app.DeleteChannel(channel, c.Session.UserId, c.GetSiteURL())
+	err = app.DeleteChannel(channel, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -598,6 +599,21 @@ func getMyChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	channelId := params["channel_id"]
+	posts := &model.PostList{}
+
+	if result := <-app.Srv.Store.Channel().GetPinnedPosts(channelId); result.Err != nil {
+		c.Err = result.Err
+		return
+	} else {
+		posts = result.Data.(*model.PostList)
+	}
+
+	w.Write([]byte(posts.ToJson()))
+}
+
 func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["channel_id"]
@@ -647,7 +663,7 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go app.PostAddToChannelMessage(oUser, nUser, channel, c.GetSiteURL())
+	go app.PostAddToChannelMessage(oUser, nUser, channel)
 
 	app.UpdateChannelLastViewedAt([]string{id}, oUser.Id)
 	w.Write([]byte(cm.ToJson()))
@@ -682,7 +698,7 @@ func removeMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel, c.GetSiteURL()); err != nil {
+	if err = app.RemoveUserFromChannel(userIdToRemove, c.Session.UserId, channel); err != nil {
 		c.Err = err
 		return
 	}

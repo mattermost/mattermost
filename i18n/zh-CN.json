@@ -148,6 +148,10 @@
     "translation": "可以让用户查看权限。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "正在初始化商标 API 路由"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v 由 %v 邀请加入频道"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系统管理能创建与管理私有群组。"
+    "translation": "只有系统管理员能创建公开频道。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有团体和系统管理员能管理与创建私有群组。"
+    "translation": "只有团队和系统管理员能创建与管理公开频道。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -284,6 +288,10 @@
     "translation": "正在初始化频道 API 路由"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "频道已被删除"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "您没有对应的权限"
   },
@@ -380,8 +388,12 @@
     "translation": "对默认频道试图执行一个无效的更新 {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "无法获取 user_id=%v 以及 channel_id=%v 的未读数量，err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "正在初始化机群 API 路由"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "正在初始化合规 API 路由"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "对不起，我们找不到该页面。"
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "发生未知错误。请联系我们。"
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "正在初始化已弃用 API 路由"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,7 +1034,7 @@
     "translation": "公共链接不显示是有效的"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "文件没有预览图"
   },
   {
@@ -1230,6 +1254,10 @@
     "translation": "传入的 webhooks 已被系统管理员禁用。"
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "正在初始化LDAP API 路由"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "请求中‘许可证’空数组"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "该许可证只支持 {{.Users}} 用户，当你的系统有 {{.Count}} 唯一用户。唯一用户通过邮件地址计算。你可以从站点报告 -> 查看统计查看总数量。"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "正在初始化状态 API 路由"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "正在初始化状态 API 路由"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "更新 user_id=%v 和 session_id=%v 的 LastActivityAt 失败，err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "保存 user_id=%v 状态时失败，err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "未找到用户"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "无效数据。"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "无效邀请 id。没有匹配此邀请 id 的团队。"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "添加用户到团队所需的参数。"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3108,6 +3160,14 @@
     "translation": "管理团队角色"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "允许读取公共频道"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "读取公共频道"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "可以邀请用户到团队"
   },
@@ -3428,22 +3488,6 @@
     "translation": "未找到该页面"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "您将会从所有公开频道和私有组中移除。如果团队是私有的你将无法再加入。您确定吗？"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "不"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "退出团队？"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "是"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "找不到频道：%v，已搜索 %v 可能性"
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "无法写入请求"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "创建 SAML 证书多部分表格请求失败"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "没有找到频道"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "我们无法获取频道"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "未找到频道"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "我们找不到存在的已删除频道"
   },
@@ -4700,6 +4776,14 @@
     "translation": "我们无法获得该频道"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "我们无法获取公共频道"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "我们无法获取频道未读消息"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "我们不能增加提及数"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "我们无法删除频道成员"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "我们无法找到置顶消息"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "我们无法保存该频道成员"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "我们搜索频道时遇到错误"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "我们搜索频道时遇到错误"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "我们无法更新该团队"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "无法添加目录给观察者 %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "正在初始化状态 WebSocket API 路由"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "正在初始化系统 Websocket API 路由"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "正在初始化用户 Websocket API 路由"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "正在初始化 webrtc Websocket API 路由"
   }
 ]

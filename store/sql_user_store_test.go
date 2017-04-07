@@ -130,6 +130,10 @@ func TestUserStoreUpdate(t *testing.T) {
 			t.Fatal("Email should have been updated as the update is trusted")
 		}
 	}
+
+	if result := <-store.User().UpdateLastPictureUpdate(u1.Id); result.Err != nil {
+		t.Fatal("Update should not have failed")
+	}
 }
 
 func TestUserStoreUpdateUpdateAt(t *testing.T) {
@@ -217,20 +221,39 @@ func TestUserCount(t *testing.T) {
 	}
 }
 
-func TestUserStoreGetAllProfiles(t *testing.T) {
+func TestGetAllUsingAuthService(t *testing.T) {
 	Setup()
 
-	teamId := model.NewId()
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.AuthService = "someservice"
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.AuthService = "someservice"
+	Must(store.User().Save(u2))
+
+	if r1 := <-store.User().GetAllUsingAuthService(u1.AuthService); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) < 2 {
+			t.Fatal("invalid returned users")
+		}
+	}
+}
+
+func TestUserStoreGetAllProfiles(t *testing.T) {
+	Setup()
 
 	u1 := &model.User{}
 	u1.Email = model.NewId()
 	Must(store.User().Save(u1))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
 	u2 := &model.User{}
 	u2.Email = model.NewId()
 	Must(store.User().Save(u2))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
 	if r1 := <-store.User().GetAllProfiles(0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -247,6 +270,34 @@ func TestUserStoreGetAllProfiles(t *testing.T) {
 		users := r2.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users, limit did not work")
+		}
+	}
+
+	if r2 := <-store.User().GetAll(); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) < 2 {
+			t.Fatal("invalid returned users")
+		}
+	}
+
+	etag := ""
+	if r2 := <-store.User().GetEtagForAllProfiles(); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		etag = r2.Data.(string)
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	Must(store.User().Save(u3))
+
+	if r2 := <-store.User().GetEtagForAllProfiles(); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if etag == r2.Data.(string) {
+			t.Fatal("etags should not match")
 		}
 	}
 }
@@ -291,6 +342,26 @@ func TestUserStoreGetProfiles(t *testing.T) {
 	} else {
 		if len(r2.Data.([]*model.User)) != 0 {
 			t.Fatal("should have returned empty map")
+		}
+	}
+
+	etag := ""
+	if r2 := <-store.User().GetEtagForProfiles(teamId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		etag = r2.Data.(string)
+	}
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}))
+
+	if r2 := <-store.User().GetEtagForProfiles(teamId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		if etag == r2.Data.(string) {
+			t.Fatal("etags should not match")
 		}
 	}
 }
@@ -369,6 +440,49 @@ func TestUserStoreGetProfilesInChannel(t *testing.T) {
 	} else {
 		if len(r2.Data.([]*model.User)) != 1 {
 			t.Fatal("should have returned only 1 user")
+		}
+	}
+}
+
+func TestUserStoreGetProfilesWithoutTeam(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	// These usernames need to appear in the first 100 users for this to work
+
+	u1 := &model.User{}
+	u1.Username = "a000000000" + model.NewId()
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+	defer store.User().PermanentDelete(u1.Id)
+
+	u2 := &model.User{}
+	u2.Username = "a000000001" + model.NewId()
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	defer store.User().PermanentDelete(u2.Id)
+
+	if r1 := <-store.User().GetProfilesWithoutTeam(0, 100); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+
+		found1 := false
+		found2 := false
+		for _, u := range users {
+			if u.Id == u1.Id {
+				found1 = true
+			} else if u.Id == u2.Id {
+				found2 = true
+			}
+		}
+
+		if found1 {
+			t.Fatal("shouldn't have returned user on team")
+		} else if !found2 {
+			t.Fatal("should've returned user without any teams")
 		}
 	}
 }
@@ -459,6 +573,7 @@ func TestUserStoreGetAllProfilesInChannel(t *testing.T) {
 		}
 	}
 
+	store.User().InvalidateProfilesInChannelCacheByUser(u1.Id)
 	store.User().InvalidateProfilesInChannelCache(c2.Id)
 }
 
@@ -1503,6 +1618,108 @@ func TestUserStoreSearch(t *testing.T) {
 			t.Fatal("should have found user")
 		}
 	}
+
+	// Search Users not in Team.
+	u4 := &model.User{}
+	u4.Username = "simon" + model.NewId()
+	u4.Email = model.NewId()
+	u4.DeleteAt = 0
+	Must(store.User().Save(u4))
+
+	if r1 := <-store.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u4.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
+
+	if r1 := <-store.User().SearchNotInTeam(tid, "jimb", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user")
+		}
+	}
+}
+
+func TestUserStoreSearchWithoutTeam(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Username = "jimbo" + model.NewId()
+	u1.FirstName = "Tim"
+	u1.LastName = "Bill"
+	u1.Nickname = "Rob"
+	u1.Email = "harold" + model.NewId() + "@simulator.amazonses.com"
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Username = "jim-bobby" + model.NewId()
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+
+	u3 := &model.User{}
+	u3.Username = "jimbo" + model.NewId()
+	u3.Email = model.NewId()
+	u3.DeleteAt = 1
+	Must(store.User().Save(u3))
+
+	tid := model.NewId()
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
+
+	searchOptions := map[string]bool{}
+	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
+
+	if r1 := <-store.User().SearchWithoutTeam("", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+
+	if r1 := <-store.User().SearchWithoutTeam("jim", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+
+		found1 := false
+		found2 := false
+		found3 := false
+
+		for _, profile := range profiles {
+			if profile.Id == u1.Id {
+				found1 = true
+			} else if profile.Id == u2.Id {
+				found2 = true
+			} else if profile.Id == u3.Id {
+				found3 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user1")
+		} else if !found2 {
+			t.Fatal("should have found user2")
+		} else if found3 {
+			t.Fatal("should not have found user3")
+		}
+	}
 }
 
 func TestUserStoreAnalyticsGetInactiveUsersCount(t *testing.T) {
@@ -1568,6 +1785,140 @@ func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
 		// We expect to find 1 more system admin than there was at the start of this test function.
 		if count := result.Data.(int64); count != countBefore+1 {
 			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
+		}
+	}
+}
+
+func TestUserStoreGetProfilesNotInTeam(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
+	Must(store.User().UpdateUpdateAt(u1.Id))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	Must(store.User().Save(u2))
+	Must(store.User().UpdateUpdateAt(u2.Id))
+
+	var initialUsersNotInTeam int
+	var etag1, etag2, etag3 string
+
+	if er1 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er1.Err != nil {
+		t.Fatal(er1.Err)
+	} else {
+		etag1 = er1.Data.(string)
+	}
+
+	if r1 := <-store.User().GetProfilesNotInTeam(teamId, 0, 100000); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		initialUsersNotInTeam = len(users)
+		if initialUsersNotInTeam < 1 {
+			t.Fatalf("Should be at least 1 user not in the team")
+		}
+
+		found := false
+		for _, u := range users {
+			if u.Id == u2.Id {
+				found = true
+			}
+			if u.Id == u1.Id {
+				t.Fatalf("Should not have found user1")
+			}
+		}
+
+		if !found {
+			t.Fatal("missing user2")
+		}
+	}
+
+	time.Sleep(time.Millisecond * 10)
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
+	Must(store.User().UpdateUpdateAt(u2.Id))
+
+	if er2 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er2.Err != nil {
+		t.Fatal(er2.Err)
+	} else {
+		etag2 = er2.Data.(string)
+		if etag1 == etag2 {
+			t.Fatalf("etag should have changed")
+		}
+	}
+
+	if r2 := <-store.User().GetProfilesNotInTeam(teamId, 0, 100000); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+
+		if len(users) != initialUsersNotInTeam-1 {
+			t.Fatalf("Should be one less user not in team")
+		}
+
+		for _, u := range users {
+			if u.Id == u2.Id {
+				t.Fatalf("Should not have found user2")
+			}
+			if u.Id == u1.Id {
+				t.Fatalf("Should not have found user1")
+			}
+		}
+	}
+
+	time.Sleep(time.Millisecond * 10)
+	Must(store.Team().RemoveMember(teamId, u1.Id))
+	Must(store.Team().RemoveMember(teamId, u2.Id))
+	Must(store.User().UpdateUpdateAt(u1.Id))
+	Must(store.User().UpdateUpdateAt(u2.Id))
+
+	if er3 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er3.Err != nil {
+		t.Fatal(er3.Err)
+	} else {
+		etag3 = er3.Data.(string)
+		t.Log(etag3)
+		if etag1 == etag3 || etag3 == etag2 {
+			t.Fatalf("etag should have changed")
+		}
+	}
+
+	if r3 := <-store.User().GetProfilesNotInTeam(teamId, 0, 100000); r3.Err != nil {
+		t.Fatal(r3.Err)
+	} else {
+		users := r3.Data.([]*model.User)
+		found1, found2 := false, false
+		for _, u := range users {
+			if u.Id == u2.Id {
+				found2 = true
+			}
+			if u.Id == u1.Id {
+				found1 = true
+			}
+		}
+
+		if !found1 || !found2 {
+			t.Fatal("missing user1 or user2")
+		}
+	}
+
+	time.Sleep(time.Millisecond * 10)
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}))
+	Must(store.User().UpdateUpdateAt(u3.Id))
+
+	if er4 := <-store.User().GetEtagForProfilesNotInTeam(teamId); er4.Err != nil {
+		t.Fatal(er4.Err)
+	} else {
+		etag4 := er4.Data.(string)
+		t.Log(etag4)
+		if etag4 != etag3 {
+			t.Fatalf("etag should be the same")
 		}
 	}
 }

@@ -19,6 +19,7 @@ func TestGo17Context(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "ok")
 	}))
+	defer ts.Close()
 	ctx := context.Background()
 	resp, err := Get(ctx, http.DefaultClient, ts.URL)
 	if resp == nil || err != nil {

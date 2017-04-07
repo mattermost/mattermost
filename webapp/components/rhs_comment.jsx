@@ -10,7 +10,7 @@ import ReactionListContainer from 'components/post_view/components/reaction_list
 import RhsDropdown from 'components/rhs_dropdown.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {flagPost, unflagPost} from 'actions/post_actions.jsx';
+import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 
@@ -19,9 +19,12 @@ import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
+
+import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
+import ReactDOM from 'react-dom';
 
 import loadingGif from 'images/load.gif';
 
@@ -36,6 +39,10 @@ export default class RhsComment extends React.Component {
         this.removePost = this.removePost.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
+        this.pinPost = this.pinPost.bind(this);
+        this.unpinPost = this.unpinPost.bind(this);
+        this.reactEmojiClick = this.reactEmojiClick.bind(this);
+        this.emojiPickerClick = this.emojiPickerClick.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -44,7 +51,9 @@ export default class RhsComment extends React.Component {
         this.state = {
             currentTeamDisplayName: TeamStore.getCurrent().name,
             width: '',
-            height: ''
+            height: '',
+            showReactEmojiPicker: false,
+            reactPickerOffset: 15
         };
     }
 
@@ -86,7 +95,7 @@ export default class RhsComment extends React.Component {
         );
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.status !== this.props.status) {
             return true;
         }
@@ -115,6 +124,10 @@ export default class RhsComment extends React.Component {
             return true;
         }
 
+        if (this.state.showReactEmojiPicker !== nextState.showReactEmojiPicker) {
+            return true;
+        }
+
         return false;
     }
 
@@ -126,6 +139,16 @@ export default class RhsComment extends React.Component {
     unflagPost(e) {
         e.preventDefault();
         unflagPost(this.props.post.id);
+    }
+
+    pinPost(e) {
+        e.preventDefault();
+        pinPost(this.props.post.channel_id, this.props.post.id);
+    }
+
+    unpinPost(e) {
+        e.preventDefault();
+        unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
     createDropdown() {
@@ -194,6 +217,42 @@ export default class RhsComment extends React.Component {
                 </a>
             </li>
         );
+
+        if (post.is_pinned) {
+            dropdownContents.push(
+                <li
+                    key='rhs-comment-unpin'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.unpinPost}
+                    >
+                        <FormattedMessage
+                            id='rhs_root.unpin'
+                            defaultMessage='Un-pin from channel'
+                        />
+                    </a>
+                </li>
+            );
+        } else {
+            dropdownContents.push(
+                <li
+                    key='rhs-comment-pin'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.pinPost}
+                    >
+                        <FormattedMessage
+                            id='rhs_root.pin'
+                            defaultMessage='Pin to channel'
+                        />
+                    </a>
+                </li>
+            );
+        }
 
         if (this.canDelete) {
             dropdownContents.push(
@@ -279,11 +338,39 @@ export default class RhsComment extends React.Component {
             );
     }
 
+    emojiPickerClick() {
+        // set default offset
+        let reactOffset = 15;
+        const reactSelectorHeight = 360;
+        const reactionIconY = ReactDOM.findDOMNode(this).getBoundingClientRect().top;
+        const rhsMinHeight = 700;
+
+        const spaceAvail = rhsMinHeight - reactionIconY;
+        if (spaceAvail < reactSelectorHeight) {
+            reactOffset = (spaceAvail - reactSelectorHeight);
+        }
+        this.setState({showReactEmojiPicker: !this.state.showReactEmojiPicker, reactPickerOffset: reactOffset});
+    }
+
+    reactEmojiClick(emoji) {
+        this.setState({showReactEmojiPicker: false});
+        const emojiName = emoji.name || emoji.aliases[0];
+        addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+    }
+
     render() {
         const post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
         const isSystemMessage = PostUtils.isSystemMessage(post);
+        let canReact = false;
+
+        if (post.state !== Constants.POST_FAILED &&
+            post.state !== Constants.POST_LOADING &&
+            !Utils.isPostEphemeral(post) &&
+            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            canReact = true;
+        }
 
         var currentUserCss = '';
         if (this.props.currentUser.id === post.user_id) {
@@ -488,6 +575,42 @@ export default class RhsComment extends React.Component {
             );
         }
 
+        let react;
+        let reactOverlay;
+
+        if (canReact) {
+            react = (
+                <span>
+                    <a
+                        href='#'
+                        className='reacticon__container reaction'
+                        onClick={this.emojiPickerClick}
+                        ref={'rhs_reacticon_' + post.id}
+                    ><i className='fa fa-smile-o'/>
+                    </a>
+                </span>
+
+            );
+            reactOverlay = (
+                <Overlay
+                    id={'rhs_react_overlay_' + post.id}
+                    show={this.state.showReactEmojiPicker}
+                    placement='top'
+                    rootClose={true}
+                    container={this.refs['post_body_' + post.id]}
+                    onHide={() => this.setState({showReactEmojiPicker: false})}
+                    target={() => ReactDOM.findDOMNode(this.refs['rhs_reacticon_' + post.id])}
+
+                >
+                    <EmojiPicker
+                        onEmojiClick={this.reactEmojiClick}
+                        pickerLocation='react-rhs-comment'
+                        emojiOffset={this.state.reactPickerOffset}
+                    />
+                </Overlay>
+            );
+        }
+
         let options;
         if (Utils.isPostEphemeral(post)) {
             options = (
@@ -498,22 +621,36 @@ export default class RhsComment extends React.Component {
         } else if (!PostUtils.isSystemMessage(post)) {
             options = (
                 <li className='col col__reply'>
+                    {reactOverlay}
                     {this.createDropdown()}
+                    {react}
                 </li>
             );
         }
 
+        let pinnedBadge;
+        if (post.is_pinned) {
+            pinnedBadge = (
+                <span className='post__pinned-badge'>
+                    <FormattedMessage
+                        id='post_info.pinned'
+                        defaultMessage='Pinned'
+                    />
+                </span>
+            );
+        }
+
         const timeOptions = {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
             hour12: !this.props.useMilitaryTime
         };
 
         return (
-            <div className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}>
+            <div
+                ref={'post_body_' + post.id}
+                className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}
+            >
                 <div className='post__content'>
                     {profilePicContainer}
                     <div>
@@ -524,20 +661,18 @@ export default class RhsComment extends React.Component {
                             {botIndicator}
                             <li className='col'>
                                 {this.renderTimeTag(post, timeOptions)}
+                                {pinnedBadge}
                                 {flagTrigger}
                             </li>
                             {options}
                         </ul>
-                        <div className='post__body'>
+                        <div className='post__body' >
                             <div className={postClass}>
                                 {loading}
                                 <PostMessageContainer post={post}/>
                             </div>
                             {fileAttachment}
-                            <ReactionListContainer
-                                post={post}
-                                currentUserId={this.props.currentUser.id}
-                            />
+                            <ReactionListContainer post={post}/>
                         </div>
                     </div>
                 </div>

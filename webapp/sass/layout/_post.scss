@@ -15,15 +15,15 @@
         border-color: #cccccc;
         box-shadow: none;
     }
-}
 
-.bad-connection {
-    background: #ffffac !important;
-    color: #d04444 !important;
+    &.bad-connection {
+        background: #ffffac !important;
+        color: #d04444 !important;
+    }
 }
 
 .textarea-wrapper {
-    min-height: 36px;
+    min-height: 37px;
     position: relative;
 
     .textbox-preview-area {
@@ -359,8 +359,8 @@
 }
 
 .post-create__container {
-    .custom-textarea {
-        overflow: hidden;
+    label {
+        font-weight: normal;
     }
 
     form {
@@ -373,16 +373,37 @@
         max-width: 1028px;
     }
 
-    .post-create {
-        &.scroll {
-            .btn-file {
-                right: 10px;
+    .custom-textarea {
+        bottom: 0;
+        max-height: 162px;
+        padding-top: 8px;
+        overflow: hidden;
+        resize: none;
+
+        &:not(.custom-textarea--emoji-picker) {
+            padding-right: 35px;
+        }
+
+        &.custom-textarea--emoji-picker {
+            padding-right: 60px;
+        }
+    }
+
+    .post-create.scroll {
+        .btn-file {
+            right: 10px;
+        }
+
+        .custom-textarea {
+            -ms-overflow-style: auto;
+            overflow: auto;
+
+            &:not(.custom-textarea--emoji-picker) {
+                padding-right: 43px;
             }
 
-            .custom-textarea {
-                -ms-overflow-style: auto;
-                overflow: auto;
-                padding-right: 43px;
+            &.custom-textarea--emoji-picker {
+                padding-right: 60px;
             }
         }
     }
@@ -417,29 +438,13 @@
             }
         }
 
-        .custom-textarea {
-            bottom: 0;
-            max-height: 162px !important;
-            padding-right: 35px;
-            padding-top: 8px;
-        }
-
-        .textarea-div {
-            line-height: 1.5;
-            max-height: 163px !important;
-            overflow: auto;
-            padding-right: 30px;
-            padding-top: 8px;
-        }
-
         .btn-file {
-            @include opacity(.5);
             @include single-transition(all, .15s);
             font-size: 16px;
-            padding: 7px 9px 6px;
+            padding: 8px 9px 4px;
             position: absolute;
             right: 0;
-            top: 1px;
+            top: 0;
             z-index: 5;
 
             svg {
@@ -449,7 +454,6 @@
 
             &:hover,
             &:active {
-                @include opacity(.9);
                 box-shadow: none;
             }
 
@@ -460,6 +464,90 @@
                 &:active {
                     @include opacity(.1);
                 }
+            }
+
+            .icon--attachment {
+                @include opacity(.5);
+                display: inline-block;
+                position: relative;
+                vertical-align: top;
+
+                input {
+                    cursor: pointer;
+                    direction: ltr;
+                    filter: alpha(opacity=0);
+                    font-size: 23px;
+                    height: 100%;
+                    margin: 0;
+                    opacity: 0;
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    width: 100%;
+                }
+
+                &:hover {
+                    @include opacity(.9);
+                }
+            }
+        }
+
+
+        .icon--emoji-picker {
+            @include opacity(.5);
+            @include single-transition(all, .15s);
+            cursor: pointer;
+            font-size: 19px;
+            margin-left: 7px;
+            position: relative;
+            vertical-align: top;
+
+            &:hover,
+            &:active {
+                @include opacity(.9);
+                box-shadow: none;
+            }
+
+            .icon--attachment {
+                @include opacity(.5);
+                display: inline-block;
+                position: relative;
+                vertical-align: top;
+
+                input {
+                    cursor: pointer;
+                    direction: ltr;
+                    filter: alpha(opacity=0);
+                    font-size: 23px;
+                    height: 100%;
+                    margin: 0;
+                    opacity: 0;
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                    width: 100%;
+                }
+
+                &:hover {
+                    @include opacity(.9);
+                }
+            }
+        }
+
+
+        .icon--emoji-picker {
+            @include opacity(.5);
+            @include single-transition(all, .15s);
+            cursor: pointer;
+            font-size: 19px;
+            margin-left: 7px;
+            position: relative;
+            vertical-align: top;
+
+            &:hover,
+            &:active {
+                @include opacity(.9);
+                box-shadow: none;
             }
         }
 
@@ -529,16 +617,14 @@
             .col__reply {
                 min-width: 0;
             }
-
-            .dropdown {
-                margin-right: 0;
-            }
         }
     }
 
     &:hover {
         .dropdown,
         .comment-icon__container,
+        .reacticon,
+        .reacticon__container,
         .flag-icon__container,
         .post__reply,
         .post__remove {
@@ -586,6 +672,18 @@
         &.post--system {
             .status {
                 visibility: hidden;
+            }
+
+            > div {
+                margin-bottom: 0;
+            }
+        }
+
+        &.same--root {
+            &.same--user {
+                .post__header {
+                    height: 0;
+                }
             }
         }
 
@@ -638,19 +736,20 @@
         }
 
         .markdown__heading {
-            clear: both;
-            margin: 7px 0;
+            font-size: 1em;
+            margin: 0;
         }
 
         .post__header {
             height: 22px;
+            margin-bottom: 0;
         }
 
         .post__body {
             background: transparent !important;
-            line-height: 1.6;
+            line-height: 1.5;
             margin-top: -1px;
-            padding: 3px 0;
+            padding: 3px 0 0;
 
             .img-div {
                 max-height: 150px;
@@ -670,6 +769,14 @@
             ul {
                 clear: both;
                 padding-left: 20px;
+            }
+
+            div {
+                margin-bottom: 0;
+            }
+
+            .post-image__column {
+                margin: 3px 0;
             }
         }
 
@@ -763,6 +870,8 @@
         line-height: 1.6em;
         margin: 0;
         white-space: pre-wrap;
+        width: 100%;
+        word-break: break-word;
     }
 
     .post__header--info {
@@ -800,7 +909,7 @@
 
             .flag-icon__container {
                 left: 36px;
-                margin-left: 5px;
+                margin-left: 7px;
                 position: absolute;
                 top: 8px;
             }
@@ -987,8 +1096,8 @@
 
     .dropdown {
         display: inline-block;
-        margin-right: 5px;
         top: -1px;
+        vertical-align: middle;
         visibility: hidden;
 
         .dropdown-menu {
@@ -1009,6 +1118,8 @@
     }
 
     .post__dropdown {
+        vertical-align: middle;
+
         &:after {
             content: '[...]';
             position: relative;
@@ -1268,6 +1379,8 @@
     .comment-icon__container {
         display: inline-block;
         fill: $primary-color;
+        position: relative;
+        top: 1px;
         visibility: hidden;
 
         &:focus {
@@ -1283,17 +1396,31 @@
             width: 17px;
         }
 
+        .comment-count {
+            margin-left: 2px;
+        }
+
         .comment-icon {
             display: inline-block;
             fill: inherit;
-            margin-right: 3px;
+            margin: 0 1px 0 5px;
             position: relative;
-            top: 2px;
+            top: 1px;
+            vertical-align: top;
         }
 
         path {
             fill: inherit;
         }
+    }
+
+    .reacticon__container {
+        display: inline-block;
+        fill: $primary-color;
+        font-size: 16px;
+        margin-left: 5px;
+        vertical-align: top;
+        visibility: hidden;
     }
 
     .flag-icon__container {
@@ -1357,13 +1484,23 @@
     }
 }
 
-.bot-indicator {
+.bot-indicator,
+.post__pinned-badge {
     border-radius: 2px;
     font-family: inherit;
     font-size: 10px;
     font-weight: 600;
-    margin: 2px 10px 0 -4px;
     padding: 1px 4px;
+}
+
+.bot-indicator {
+    margin: 2px 10px 0 -4px;
+}
+
+.post__pinned-badge {
+    margin-left: 7px;
+    position: relative;
+    top: -1px;
 }
 
 .permalink-text {

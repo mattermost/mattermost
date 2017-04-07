@@ -26,7 +26,7 @@ type Context struct {
 	IpAddress     string
 	Path          string
 	Err           *model.AppError
-	siteURL       string
+	siteURLHeader string
 	teamURLValid  bool
 	teamURL       string
 	T             goi18n.TranslateFunc
@@ -102,6 +102,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	l4g.Debug("%v", r.URL.Path)
 
+	if metrics := einterfaces.GetMetricsInterface(); metrics != nil && h.isApi {
+		metrics.IncrementHttpRequest()
+	}
+
 	c := &Context{}
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
@@ -142,15 +146,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	if utils.GetSiteURL() == "" {
-		protocol := app.GetProtocol(r)
-		c.SetSiteURL(protocol + "://" + r.Host)
-	} else {
-		c.SetSiteURL(utils.GetSiteURL())
-	}
+	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash, utils.IsLicensed))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
 	if einterfaces.GetClusterInterface() != nil {
 		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
 	}
@@ -187,11 +186,11 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.isApi || h.isTeamIndependent {
-		c.setTeamURL(c.GetSiteURL(), false)
+		c.setTeamURL(c.GetSiteURLHeader(), false)
 		c.Path = r.URL.Path
 	} else {
 		splitURL := strings.Split(r.URL.Path, "/")
-		c.setTeamURL(c.GetSiteURL()+"/"+splitURL[1], true)
+		c.setTeamURL(c.GetSiteURLHeader()+"/"+splitURL[1], true)
 		c.Path = "/" + strings.Join(splitURL[2:], "/")
 	}
 
@@ -250,8 +249,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.isApi && einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementHttpRequest()
-
 		if r.URL.Path != model.API_URL_SUFFIX_V3+"/users/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
@@ -389,16 +386,17 @@ func (c *Context) setTeamURL(url string, valid bool) {
 
 func (c *Context) SetTeamURLFromSession() {
 	if result := <-app.Srv.Store.Team().Get(c.TeamId); result.Err == nil {
-		c.setTeamURL(c.GetSiteURL()+"/"+result.Data.(*model.Team).Name, true)
+		c.setTeamURL(c.GetSiteURLHeader()+"/"+result.Data.(*model.Team).Name, true)
 	}
 }
 
-func (c *Context) SetSiteURL(url string) {
-	c.siteURL = strings.TrimRight(url, "/")
+func (c *Context) SetSiteURLHeader(url string) {
+	c.siteURLHeader = strings.TrimRight(url, "/")
 }
 
+// TODO see where these are used
 func (c *Context) GetTeamURLFromTeam(team *model.Team) string {
-	return c.GetSiteURL() + "/" + team.Name
+	return c.GetSiteURLHeader() + "/" + team.Name
 }
 
 func (c *Context) GetTeamURL() string {
@@ -411,8 +409,8 @@ func (c *Context) GetTeamURL() string {
 	return c.teamURL
 }
 
-func (c *Context) GetSiteURL() string {
-	return c.siteURL
+func (c *Context) GetSiteURLHeader() string {
+	return c.siteURLHeader
 }
 
 func (c *Context) GetCurrentTeamMember() *model.TeamMember {

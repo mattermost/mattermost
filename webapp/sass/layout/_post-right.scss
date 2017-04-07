@@ -53,16 +53,18 @@
         border: none;
     }
 
+    .date-separator {
+        hr {
+            border-top: 1px solid #eee;
+        }
+    }
+
     .post-create__container {
         width: 100%;
 
-        .textarea-wrapper {
-            min-height: 100px;
-        }
-
         .btn {
             margin-bottom: 10px;
-            
+
             &.disabled {
                 background: grey !important;
                 border-color: transparent !important;
@@ -147,6 +149,8 @@
     @include flex(1 1 auto);
     overflow: auto;
     position: relative;
+    padding-top: 10px;
+    min-height: 700px;
 
     .file-preview__container {
         margin-top: 5px;

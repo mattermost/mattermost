@@ -85,7 +85,7 @@ export default class Logs extends React.Component {
 
         return (
             <div className='panel'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='admin.logs.title'
                         defaultMessage='Server Logs'

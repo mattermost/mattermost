@@ -160,6 +160,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='collapseFormat'
                                 type='radio'
                                 name='collapseFormat'
                                 checked={collapseFormat[0]}
@@ -175,6 +176,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='collapseFormatOff'
                                 type='radio'
                                 name='collapseFormat'
                                 checked={collapseFormat[1]}
@@ -277,6 +279,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='clockFormat12h'
                                 type='radio'
                                 name='clockFormat'
                                 checked={clockFormat[0]}
@@ -292,6 +295,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='clockFormat24h'
                                 type='radio'
                                 name='clockFormat'
                                 checked={clockFormat[1]}
@@ -397,6 +401,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='nameFormatUsername'
                                 type='radio'
                                 name='nameFormat'
                                 checked={nameFormat[1]}
@@ -409,6 +414,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='nameFormatNickname'
                                 type='radio'
                                 name='nameFormat'
                                 checked={nameFormat[0]}
@@ -421,6 +427,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='nameFormatFullName'
                                 type='radio'
                                 name='nameFormat'
                                 checked={nameFormat[2]}
@@ -511,6 +518,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='messageFormatStandard'
                                 type='radio'
                                 name='messageDisplay'
                                 checked={messageDisplay[0]}
@@ -533,6 +541,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='messageFormatCompact'
                                 type='radio'
                                 name='messageDisplay'
                                 checked={messageDisplay[1]}
@@ -626,6 +635,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelDisplayFormatFullScreen'
                                 type='radio'
                                 name='channelDisplayMode'
                                 checked={channelDisplayMode[0]}
@@ -641,6 +651,7 @@ export default class UserSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelDisplayFormatCentered'
                                 type='radio'
                                 name='channelDisplayMode'
                                 checked={channelDisplayMode[1]}
@@ -735,6 +746,7 @@ export default class UserSettingsDisplay extends React.Component {
                         className='dropdown'
                     >
                         <select
+                            id='displayFontSelect'
                             className='form-control'
                             type='text'
                             value={this.state.selectedFont}
@@ -830,6 +842,7 @@ export default class UserSettingsDisplay extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeButton'
                         type='button'
                         className='close'
                         data-dismiss='modal'

@@ -40,12 +40,15 @@ export default class PostTime extends React.Component {
     }
 
     renderTimeTag() {
+        const date = getDateForUnixTicks(this.props.eventTime);
+
         return (
             <time
                 className='post__time'
-                dateTime={getDateForUnixTicks(this.props.eventTime).toISOString()}
+                dateTime={date.toISOString()}
+                title={date}
             >
-                {getDateForUnixTicks(this.props.eventTime).toLocaleString('en', {hour: '2-digit', minute: '2-digit', hour12: !this.props.useMilitaryTime})}
+                {date.toLocaleString('en', {hour: '2-digit', minute: '2-digit', hour12: !this.props.useMilitaryTime})}
             </time>
         );
     }

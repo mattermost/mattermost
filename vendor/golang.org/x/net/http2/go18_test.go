@@ -7,6 +7,7 @@
 package http2
 
 import (
+	"crypto/tls"
 	"net/http"
 	"testing"
 	"time"
@@ -62,5 +63,17 @@ func TestConfigureServerIdleTimeout_Go18(t *testing.T) {
 		if s2.IdleTimeout != timeout {
 			t.Errorf("s2.IdleTimeout = %v; want %v", s2.IdleTimeout, timeout)
 		}
+	}
+}
+
+func TestCertClone(t *testing.T) {
+	c := &tls.Config{
+		GetClientCertificate: func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
+			panic("shouldn't be called")
+		},
+	}
+	c2 := cloneTLSConfig(c)
+	if c2.GetClientCertificate == nil {
+		t.Error("GetClientCertificate is nil")
 	}
 }

@@ -1,6 +1,14 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .post-code {
+        word-wrap: normal;
+    }
+
+    .table-responsive {
+        border: none;
+    }
+
     .multi-select__container {
         .btn {
             display: block;
@@ -24,6 +32,15 @@
 
         .msg-typing {
             display: none;
+        }
+    }
+
+    .post-create__container{
+        .post-create-body {
+            .icon__postcontent_picker {
+                display:none;
+                top: -7px;
+            }
         }
     }
 
@@ -223,6 +240,10 @@
             }
         }
 
+        .reacticon__container {
+            display: none;
+        }
+
         .post__dropdown {
             display: inline-block;
             height: 28px;
@@ -244,6 +265,18 @@
         }
 
         &.post--compact {
+            .post__img {
+                padding-top: 0;
+            }
+
+            &.same--root {
+                &.same--user {
+                    .post__header {
+                        height: auto;
+                    }
+                }
+            }
+
             .status-wrapper {
                 &:after {
                     bottom: 3px;
@@ -253,6 +286,7 @@
                     }
                 }
             }
+
             blockquote {
                 margin-top: 0;
             }
@@ -274,6 +308,7 @@
 
         .post__header {
             margin-bottom: 0;
+            padding-right: 70px;
 
             .col__reply {
                 top: -3px;
@@ -1092,6 +1127,13 @@
                 padding: .5em 1em;
             }
 
+            .emoji-rhs {
+                position: relative;
+                display: none;
+                top: 1px;
+                right: -1px;
+            }
+
             .msg-typing:empty {
                 display: none;
             }
@@ -1342,7 +1384,7 @@
 
                 a {
                     border-bottom: 1px solid;
-                    line-height: 50px;
+                    line-height: 45px;
                     position: relative;
                     text-align: center;
                 }
@@ -1705,10 +1747,16 @@
     }
 }
 
-// on iOS, allow clicks within an input's label to actually propagate through to the input itself
+// on iOS, allow clicks within an input's label to actually propagate through to the input itself,
+// but still allow clicks to a elements to go trough
 // http://stackoverflow.com/a/34810294/6325807
-label span {
+label {
+  span {
     pointer-events: none;
+  }
+  span a {
+    pointer-events: all;
+  }
 }
 
 @media screen and (-webkit-min-device-pixel-ratio: 0) {

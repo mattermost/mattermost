@@ -28,7 +28,6 @@
     }
 
     h3 {
-        border-bottom: 1px solid alpha-color($black, .1);
         font-weight: 600;
         margin: 1em 0;
         padding-bottom: .5em;
@@ -276,6 +275,10 @@
         @include opacity(.7);
         margin-top: 8px;
     }
+
+    .admin-console-header {
+        border-bottom: 1px solid alpha-color($black, .1);
+    }
 }
 
 .brand-img {
@@ -477,4 +480,94 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 130px;
+}
+
+.system-users__filter-row {
+    display: flex;
+    margin-left: 15px;
+    margin-right: 15px;
+
+    .system-users__filter {
+        flex: 1;
+        margin-right: 15px;
+    }
+
+    .system-users__team-filter-label {
+        margin-right: 15px;
+    }
+
+    .system-users__team-filter {
+        display: inline-block;
+        width: 200px
+    }
+}
+
+.manage-teams {
+    .manage-teams__user {
+        align-items: center;
+        border-bottom-color: lightgray;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        display: flex;
+        padding-bottom: 15px;
+    }
+
+    .manage-teams__profile-picture {
+        border-radius: 20px;
+        height: 40px;
+        width: 40px;
+    }
+
+    .manage-teams__info {
+        flex: 1;
+        margin-left: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+
+        .manage-teams__name {
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .manage-teams__email {
+            opacity: 0.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .manage-teams__system-admin {
+        margin-left: 10px;
+        opacity: 0.5;
+        padding-right: 10px;
+    }
+
+    .manage-teams__team {
+        align-items: center;
+        display: flex;
+        padding: 10px;
+    }
+
+    .manage-teams__team + .manage-teams__team {
+        border-top-color: lightgray;
+        border-top-style: solid;
+        border-top-width: 1px;
+    }
+
+    .manage-teams__team-name {
+        flex: 1;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .manage-teams__team-actions {
+        margin-left: 10px;
+
+        // Override default react-bootstrap style
+        .dropdown-toggle {
+            @include box-shadow(none);
+        }
+    }
 }

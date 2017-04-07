@@ -16,14 +16,15 @@ import (
 func InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
 	BaseRoutes.Users.Handle("/websocket", ApiAppHandlerTrustRequester(connect)).Methods("GET")
-	app.HubStart()
 }
 
 func connect(c *Context, w http.ResponseWriter, r *http.Request) {
+	originChecker := utils.GetOriginChecker(r)
+
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
 		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,
-		CheckOrigin:     nil,
+		CheckOrigin:     originChecker,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)

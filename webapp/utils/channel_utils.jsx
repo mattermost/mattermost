@@ -102,11 +102,28 @@ export function sortChannelsByDisplayName(a, b) {
         return (typeToPrefixMap[a.type] || defaultPrefix).localeCompare((typeToPrefixMap[b.type] || defaultPrefix), locale);
     }
 
-    if (a.display_name !== b.display_name) {
-        return a.display_name.localeCompare(b.display_name, locale, {numeric: true});
+    const aDisplayName = getChannelDisplayName(a);
+    const bDisplayName = getChannelDisplayName(b);
+
+    if (aDisplayName !== bDisplayName) {
+        return aDisplayName.localeCompare(bDisplayName, locale, {numeric: true});
     }
 
     return a.name.localeCompare(b.name, locale, {numeric: true});
+}
+
+function getChannelDisplayName(channel) {
+    if (channel.type !== Constants.GM_CHANNEL) {
+        return channel.display_name;
+    }
+
+    const currentUser = UserStore.getCurrentUser();
+
+    if (currentUser) {
+        return channel.display_name.replace(currentUser.username + ', ', '');
+    }
+
+    return channel.display_name;
 }
 
 export function showCreateOption(channelType, isAdmin, isSystemAdmin) {
@@ -184,6 +201,26 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin
             return false;
         }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+export function canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin) {
+    if (global.window.mm_license.IsLicensed !== 'true') {
+        return true;
+    }
+
+    if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (global.window.mm_config.RestrictPrivateChannelManageMembers === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+            return false;
+        }
+        if (global.window.mm_config.RestrictPrivateChannelManageMembers === Constants.PERMISSIONS_TEAM_ADMIN && !isTeamAdmin && !isSystemAdmin) {
+            return false;
+        }
+        if (global.window.mm_config.RestrictPrivateChannelManageMembers === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isTeamAdmin && !isSystemAdmin) {
             return false;
         }
     }

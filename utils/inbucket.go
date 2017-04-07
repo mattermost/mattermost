@@ -3,8 +3,10 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -58,11 +60,22 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	}
 	defer resp.Body.Close()
 
-	var record JSONMessageHeaderInbucket
-	if err := json.NewDecoder(resp.Body).Decode(&record); err != nil {
-		fmt.Println(err)
-		return nil, err
+	if resp.Body == nil {
+		return nil, fmt.Errorf("No Mailbox")
 	}
+
+	var record JSONMessageHeaderInbucket
+	err = json.NewDecoder(resp.Body).Decode(&record)
+	switch {
+	case err == io.EOF:
+		return nil, fmt.Errorf("Error: %s", err)
+	case err != nil:
+		return nil, fmt.Errorf("Error: %s", err)
+	}
+	if len(record) == 0 {
+		return nil, fmt.Errorf("No mailbox")
+	}
+
 	return record, nil
 }
 
@@ -87,7 +100,6 @@ func GetMessageFromMailbox(email, id string) (results JSONMessageInbucket, err e
 	defer resp.Body.Close()
 
 	if err := json.NewDecoder(resp.Body).Decode(&record); err != nil {
-		fmt.Println(err)
 		return record, err
 	}
 	return record, nil
@@ -112,4 +124,22 @@ func DeleteMailBox(email string) (err error) {
 	defer resp.Body.Close()
 
 	return nil
+}
+
+func RetryInbucket(attempts int, callback func() error) (err error) {
+	for i := 0; ; i++ {
+		err = callback()
+		if err == nil {
+			return nil
+		}
+
+		if i >= (attempts - 1) {
+			break
+		}
+
+		time.Sleep(5 * time.Second)
+
+		fmt.Println("retrying...")
+	}
+	return fmt.Errorf("After %d attempts, last error: %s", attempts, err)
 }

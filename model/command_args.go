@@ -6,13 +6,20 @@ package model
 import (
 	"encoding/json"
 	"io"
+
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type CommandArgs struct {
-	ChannelId string `json:"channel_id"`
-	RootId    string `json:"root_id"`
-	ParentId  string `json:"parent_id"`
-	Command   string `json:"command"`
+	UserId    string               `json:"user_id"`
+	ChannelId string               `json:"channel_id"`
+	TeamId    string               `json:"team_id"`
+	RootId    string               `json:"root_id"`
+	ParentId  string               `json:"parent_id"`
+	Command   string               `json:"command"`
+	SiteURL   string               `json:"-"`
+	T         goi18n.TranslateFunc `json:"-"`
+	Session   Session              `json:"-"`
 }
 
 func (o *CommandArgs) ToJson() string {

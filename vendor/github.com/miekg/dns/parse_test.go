@@ -836,11 +836,7 @@ func TestSRVPacking(t *testing.T) {
 		if err != nil {
 			continue
 		}
-		port := 8484
-		tmp, err := strconv.Atoi(p)
-		if err == nil {
-			port = tmp
-		}
+		port, _ := strconv.ParseUint(p, 10, 16)
 
 		rr := &SRV{
 			Hdr: RR_Header{Name: "somename.",

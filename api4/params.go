@@ -24,6 +24,7 @@ type ApiParams struct {
 	FileId         string
 	CommandId      string
 	HookId         string
+	ReportId       string
 	EmojiId        string
 	Email          string
 	Username       string
@@ -68,6 +69,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 		params.HookId = val
 	}
 
+	if val, ok := props["report_id"]; ok {
+		params.ReportId = val
+	}
+
 	if val, ok := props["emoji_id"]; ok {
 		params.EmojiId = val
 	}
@@ -96,13 +101,13 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 		params.PreferenceName = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil {
+	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {
 		params.Page = PAGE_DEFAULT
 	} else {
 		params.Page = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("per_page")); err != nil {
+	if val, err := strconv.Atoi(r.URL.Query().Get("per_page")); err != nil || val < 0 {
 		params.PerPage = PER_PAGE_DEFAULT
 	} else if val > PER_PAGE_MAXIMUM {
 		params.PerPage = PER_PAGE_MAXIMUM

@@ -120,8 +120,6 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to find team: " + teamArg)
 	}
 
-	c := getMockContext()
-
 	channel := &model.Channel{
 		TeamId:      team.Id,
 		Name:        name,
@@ -129,7 +127,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		Header:      header,
 		Purpose:     purpose,
 		Type:        channelType,
-		CreatorId:   c.Session.UserId,
+		CreatorId:   "",
 	}
 
 	if _, err := app.CreateChannel(channel, false); err != nil {
@@ -168,7 +166,7 @@ func removeUserFromChannel(channel *model.Channel, user *model.User, userArg str
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.RemoveUserFromChannel(user.Id, "", channel, utils.GetSiteURL()); err != nil {
+	if err := app.RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }

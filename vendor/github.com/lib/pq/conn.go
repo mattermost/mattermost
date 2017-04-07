@@ -98,7 +98,7 @@ type conn struct {
 	namei     int
 	scratch   [512]byte
 	txnStatus transactionStatus
-	txnClosed chan<- struct{}
+	txnFinish func()
 
 	// Save connection arguments to use during CancelRequest.
 	dialer Dialer
@@ -133,7 +133,7 @@ type conn struct {
 // Handle driver-side settings in parsed connection string.
 func (c *conn) handleDriverSettings(o values) (err error) {
 	boolSetting := func(key string, val *bool) error {
-		if value := o.Get(key); value != "" {
+		if value, ok := o[key]; ok {
 			if value == "yes" {
 				*val = true
 			} else if value == "no" {
@@ -158,8 +158,7 @@ func (c *conn) handleDriverSettings(o values) (err error) {
 
 func (c *conn) handlePgpass(o values) {
 	// if a password was supplied, do not process .pgpass
-	_, ok := o["password"]
-	if ok {
+	if _, ok := o["password"]; ok {
 		return
 	}
 	filename := os.Getenv("PGPASSFILE")
@@ -187,11 +186,11 @@ func (c *conn) handlePgpass(o values) {
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(io.Reader(file))
-	hostname := o.Get("host")
+	hostname := o["host"]
 	ntw, _ := network(o)
-	port := o.Get("port")
-	db := o.Get("dbname")
-	username := o.Get("user")
+	port := o["port"]
+	db := o["dbname"]
+	username := o["user"]
 	// From: https://github.com/tg/pgpass/blob/master/reader.go
 	getFields := func(s string) []string {
 		fs := make([]string, 0, 5)
@@ -256,13 +255,13 @@ func DialOpen(d Dialer, name string) (_ driver.Conn, err error) {
 	// * Very low precedence defaults applied in every situation
 	// * Environment variables
 	// * Explicitly passed connection information
-	o.Set("host", "localhost")
-	o.Set("port", "5432")
+	o["host"] = "localhost"
+	o["port"] = "5432"
 	// N.B.: Extra float digits should be set to 3, but that breaks
 	// Postgres 8.4 and older, where the max is 2.
-	o.Set("extra_float_digits", "2")
+	o["extra_float_digits"] = "2"
 	for k, v := range parseEnviron(os.Environ()) {
-		o.Set(k, v)
+		o[k] = v
 	}
 
 	if strings.HasPrefix(name, "postgres://") || strings.HasPrefix(name, "postgresql://") {
@@ -277,9 +276,9 @@ func DialOpen(d Dialer, name string) (_ driver.Conn, err error) {
 	}
 
 	// Use the "fallback" application name if necessary
-	if fallback := o.Get("fallback_application_name"); fallback != "" {
-		if !o.Isset("application_name") {
-			o.Set("application_name", fallback)
+	if fallback, ok := o["fallback_application_name"]; ok {
+		if _, ok := o["application_name"]; !ok {
+			o["application_name"] = fallback
 		}
 	}
 
@@ -290,29 +289,29 @@ func DialOpen(d Dialer, name string) (_ driver.Conn, err error) {
 	// parsing its value is not worth it.  Instead, we always explicitly send
 	// client_encoding as a separate run-time parameter, which should override
 	// anything set in options.
-	if enc := o.Get("client_encoding"); enc != "" && !isUTF8(enc) {
+	if enc, ok := o["client_encoding"]; ok && !isUTF8(enc) {
 		return nil, errors.New("client_encoding must be absent or 'UTF8'")
 	}
-	o.Set("client_encoding", "UTF8")
+	o["client_encoding"] = "UTF8"
 	// DateStyle needs a similar treatment.
-	if datestyle := o.Get("datestyle"); datestyle != "" {
+	if datestyle, ok := o["datestyle"]; ok {
 		if datestyle != "ISO, MDY" {
 			panic(fmt.Sprintf("setting datestyle must be absent or %v; got %v",
 				"ISO, MDY", datestyle))
 		}
 	} else {
-		o.Set("datestyle", "ISO, MDY")
+		o["datestyle"] = "ISO, MDY"
 	}
 
 	// If a user is not provided by any other means, the last
 	// resort is to use the current operating system provided user
 	// name.
-	if o.Get("user") == "" {
+	if _, ok := o["user"]; !ok {
 		u, err := userCurrent()
 		if err != nil {
 			return nil, err
 		} else {
-			o.Set("user", u)
+			o["user"] = u
 		}
 	}
 
@@ -335,7 +334,7 @@ func DialOpen(d Dialer, name string) (_ driver.Conn, err error) {
 	cn.startup(o)
 
 	// reset the deadline, in case one was set (see dial)
-	if timeout := o.Get("connect_timeout"); timeout != "" && timeout != "0" {
+	if timeout, ok := o["connect_timeout"]; ok && timeout != "0" {
 		err = cn.c.SetDeadline(time.Time{})
 	}
 	return cn, err
@@ -349,7 +348,7 @@ func dial(d Dialer, o values) (net.Conn, error) {
 	}
 
 	// Zero or not specified means wait indefinitely.
-	if timeout := o.Get("connect_timeout"); timeout != "" && timeout != "0" {
+	if timeout, ok := o["connect_timeout"]; ok && timeout != "0" {
 		seconds, err := strconv.ParseInt(timeout, 10, 0)
 		if err != nil {
 			return nil, fmt.Errorf("invalid value for parameter connect_timeout: %s", err)
@@ -371,30 +370,17 @@ func dial(d Dialer, o values) (net.Conn, error) {
 }
 
 func network(o values) (string, string) {
-	host := o.Get("host")
+	host := o["host"]
 
 	if strings.HasPrefix(host, "/") {
-		sockPath := path.Join(host, ".s.PGSQL."+o.Get("port"))
+		sockPath := path.Join(host, ".s.PGSQL."+o["port"])
 		return "unix", sockPath
 	}
 
-	return "tcp", net.JoinHostPort(host, o.Get("port"))
+	return "tcp", net.JoinHostPort(host, o["port"])
 }
 
 type values map[string]string
-
-func (vs values) Set(k, v string) {
-	vs[k] = v
-}
-
-func (vs values) Get(k string) (v string) {
-	return vs[k]
-}
-
-func (vs values) Isset(k string) bool {
-	_, ok := vs[k]
-	return ok
-}
 
 // scanner implements a tokenizer for libpq-style option strings.
 type scanner struct {
@@ -466,7 +452,7 @@ func parseOpts(name string, o values) error {
 		// Skip any whitespace after the =
 		if r, ok = s.SkipSpaces(); !ok {
 			// If we reach the end here, the last value is just an empty string as per libpq.
-			o.Set(string(keyRunes), "")
+			o[string(keyRunes)] = ""
 			break
 		}
 
@@ -501,7 +487,7 @@ func parseOpts(name string, o values) error {
 			}
 		}
 
-		o.Set(string(keyRunes), string(valRunes))
+		o[string(keyRunes)] = string(valRunes)
 	}
 
 	return nil
@@ -542,9 +528,8 @@ func (cn *conn) Begin() (_ driver.Tx, err error) {
 }
 
 func (cn *conn) closeTxn() {
-	if cn.txnClosed != nil {
-		close(cn.txnClosed)
-		cn.txnClosed = nil
+	if finish := cn.txnFinish; finish != nil {
+		finish()
 	}
 }
 
@@ -664,6 +649,12 @@ func (cn *conn) simpleQuery(q string) (res *rows, err error) {
 				res = &rows{
 					cn: cn,
 				}
+			}
+			// Set the result and tag to the last command complete if there wasn't a
+			// query already run. Although queries usually return from here and cede
+			// control to Next, a query with zero results does not.
+			if t == 'C' && res.colNames == nil {
+				res.result, res.tag = cn.parseComplete(r.string())
 			}
 			res.done = true
 		case 'Z':
@@ -901,16 +892,9 @@ func (cn *conn) send(m *writeBuf) {
 	}
 }
 
-func (cn *conn) sendStartupPacket(m *writeBuf) {
-	// sanity check
-	if m.buf[0] != 0 {
-		panic("oops")
-	}
-
+func (cn *conn) sendStartupPacket(m *writeBuf) error {
 	_, err := cn.c.Write((m.wrap())[1:])
-	if err != nil {
-		panic(err)
-	}
+	return err
 }
 
 // Send a message of type typ to the server on the other end of cn.  The
@@ -1032,7 +1016,9 @@ func (cn *conn) ssl(o values) {
 
 	w := cn.writeBuf(0)
 	w.int32(80877103)
-	cn.sendStartupPacket(w)
+	if err := cn.sendStartupPacket(w); err != nil {
+		panic(err)
+	}
 
 	b := cn.scratch[:1]
 	_, err := io.ReadFull(cn.c, b)
@@ -1093,7 +1079,9 @@ func (cn *conn) startup(o values) {
 		w.string(v)
 	}
 	w.string("")
-	cn.sendStartupPacket(w)
+	if err := cn.sendStartupPacket(w); err != nil {
+		panic(err)
+	}
 
 	for {
 		t, r := cn.recv()
@@ -1119,7 +1107,7 @@ func (cn *conn) auth(r *readBuf, o values) {
 		// OK
 	case 3:
 		w := cn.writeBuf('p')
-		w.string(o.Get("password"))
+		w.string(o["password"])
 		cn.send(w)
 
 		t, r := cn.recv()
@@ -1133,7 +1121,7 @@ func (cn *conn) auth(r *readBuf, o values) {
 	case 5:
 		s := string(r.next(4))
 		w := cn.writeBuf('p')
-		w.string("md5" + md5s(md5s(o.Get("password")+o.Get("user"))+s))
+		w.string("md5" + md5s(md5s(o["password"]+o["user"])+s))
 		cn.send(w)
 
 		t, r := cn.recv()
@@ -1327,17 +1315,19 @@ func (cn *conn) parseComplete(commandTag string) (driver.Result, string) {
 
 type rows struct {
 	cn       *conn
-	closed   chan<- struct{}
+	finish   func()
 	colNames []string
 	colTyps  []oid.Oid
 	colFmts  []format
 	done     bool
 	rb       readBuf
+	result   driver.Result
+	tag      string
 }
 
 func (rs *rows) Close() error {
-	if rs.closed != nil {
-		defer close(rs.closed)
+	if finish := rs.finish; finish != nil {
+		defer finish()
 	}
 	// no need to look at cn.bad as Next() will
 	for {
@@ -1354,6 +1344,17 @@ func (rs *rows) Close() error {
 
 func (rs *rows) Columns() []string {
 	return rs.colNames
+}
+
+func (rs *rows) Result() driver.Result {
+	if rs.result == nil {
+		return emptyRows
+	}
+	return rs.result
+}
+
+func (rs *rows) Tag() string {
+	return rs.tag
 }
 
 func (rs *rows) Next(dest []driver.Value) (err error) {
@@ -1373,6 +1374,9 @@ func (rs *rows) Next(dest []driver.Value) (err error) {
 		case 'E':
 			err = parseError(&rs.rb)
 		case 'C', 'I':
+			if t == 'C' {
+				rs.result, rs.tag = conn.parseComplete(rs.rb.string())
+			}
 			continue
 		case 'Z':
 			conn.processReadyForQuery(&rs.rb)

@@ -11,7 +11,7 @@ import (
 )
 
 // Note that RFC 3542 obsoletes RFC 2292 but OS X Snow Leopard and the
-// former still support RFC 2292 only.  Please be aware that almost
+// former still support RFC 2292 only. Please be aware that almost
 // all protocol implementations prohibit using a combination of RFC
 // 2292 and RFC 3542 for some practical reasons.
 

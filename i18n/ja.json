@@ -148,6 +148,10 @@
     "translation": "権限を確認するユーザーを取得できません。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "ブランドAPIルートを初期化しています"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%vは、%vによってチャンネルに追加されました"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "非公開グループの作成と管理は、システム管理者しかできません。"
+    "translation": "公開チャンネルの作成と管理は、システム管理者しかできません。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "非公開グループの作成と管理は、チーム管理者かシステム管理者しかできません。"
+    "translation": "公開チャンネルの作成と管理は、チーム管理者かシステム管理者しかできません。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -284,6 +288,10 @@
     "translation": "チャンネルAPIルートを初期化しています"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "チャンネルは既に削除されています"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "あなたには必要な権限が付与されていません"
   },
@@ -380,8 +388,12 @@
     "translation": "デフォルトのチャンネル{{.Channel}}に不正な更新をしようとしました"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "未読数を取得できませんでした user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "クラスターAPIルートを初期化しています"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "コンプライアンスAPIルートを初期化しています"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "詳細不明なエラーが発生しました。サポートに問い合わせしてください。"
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "非推奨APIルートを初期化しています"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,8 +1034,8 @@
     "translation": "公開リンクが不正です"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "このファイルにはプレビュー画像がありません"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "ファイルにプレビュー画像がありません"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -1230,6 +1254,10 @@
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "LDAP APIルートを初期化しています"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "リクエストの'license'配列が空です"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "あなたのシステムは{{.Count}}の重複のないユーザーが使ってます。このライセンスは{{.Users}}ユーザーのみサポートしています。重複のないユーザー数は、電子メールアドレスによって決められます。全ユーザー数は、サイトリポート->統計を見るを参照してください。"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "クライアントのライセンスで新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "状態APIルートを初期化しています"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "状態APIルートを初期化しています"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "LastActivityAtを更新できませんでした user_id=%v、session_id=%v、err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "状態を保存できませんでした user_id=%v、err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "ユーザーが見付かりません"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "不正なデータです。"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "不正な招待IDです。この招待IDに一致するチームはありません。"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "チームにユーザーを追加するにはパラメーターが必要です。"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3108,6 +3160,14 @@
     "translation": "チームの役割を管理する"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "公開チャンネルを読めるようにする"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "公開チャンネルを読む"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "チームにユーザーを招待できるようにする"
   },
@@ -3428,22 +3488,6 @@
     "translation": "ページが見付かりません"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "全ての公開チャンネルと非公開グループから脱退します。  チームが非公開な場合、再度参加することはできません。  実行してよろしいですか?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "いいえ"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "チームから脱退しますか?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "はい"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "チャンネルが見付かりません: %v、%vではありませんか"
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "リクエストを書き込めません"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "リクエストからSAML証明書のマルチパートを作成する際にエラーになりました"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "チャンネルが見付かりませんでした"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "チャンネルが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "チャンネルが見付かりませんでした"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "削除されたチャンネルが見付かりませんでした"
   },
@@ -4700,6 +4776,14 @@
     "translation": "チャンネルが見付かりませんでした"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "公開チャンネルが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "チャンネルの未読メッセージを取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "あなたについての投稿数を集計できませんでした"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "チャンネルのメンバーを削除できません"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "ピン止めされた投稿が見付かりません"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "チャンネルのメンバーを保存できませんでした"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "チャンネルを検索する際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "チャンネルを検索する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "チームが更新できませんでした"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "ウォッチャーにディレクトリーを追加できませんでした %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "状態ウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "システムウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "ユーザーウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "WebRTCウェブソケットAPIルートを初期化しています"
   }
 ]

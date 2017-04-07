@@ -7,17 +7,34 @@
     line-height: 56px;
     width: 100%;
 
-    .member-popover__trigger {
+    .member-popover__trigger,
+    .pinned-posts-button {
         cursor: pointer;
-        min-width: 60px;
-        padding-right: 10px;
-        text-align: right;
+        display: inline-block;
+        margin-left: 7px;
+        min-width: 30px;
+        text-align: center;
         white-space: nowrap;
 
         .fa {
             font-size: 16px;
+        }
+    }
+
+    .member-popover__container,
+    .member-popover__trigger {
+        display: inline;
+    }
+
+    .member-popover__trigger {
+        .fa {
             margin-left: 4px;
         }
+    }
+
+    .pinned-posts-button svg {
+        position: relative;
+        top: 2px;
     }
 
     &.alt {
@@ -26,7 +43,8 @@
         th {
             font-weight: normal !important;
 
-            &.header-list__members {
+            &.header-list__right {
+                white-space: nowrap;
                 padding-right: 4px;
             }
         }
@@ -48,7 +66,7 @@
         }
 
         &:last-child {
-            padding-right: 8px;
+            padding-right: 6px;
             width: 8.9%;
         }
     }

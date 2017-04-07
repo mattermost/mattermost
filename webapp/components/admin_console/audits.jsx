@@ -76,7 +76,7 @@ export default class Audits extends React.Component {
                 <ComplianceReports/>
 
                 <div className='panel audit-panel'>
-                    <h3>
+                    <h3 className='admin-console-header'>
                         <FormattedMessage
                             id='admin.audits.title'
                             defaultMessage='User Activity Logs'

@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/web"
+	"github.com/mattermost/platform/wsapi"
 	"github.com/spf13/cobra"
 )
 
@@ -33,11 +34,6 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 	config, err := cmd.Flags().GetString("config")
 	if err != nil {
 		return err
-	}
-
-	// Backwards compatibility with -config flag
-	if flagConfigFile != "" {
-		config = flagConfigFile
 	}
 
 	runServer(config)
@@ -64,13 +60,13 @@ func runServer(configFileLocation string) {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true
 	}
 
-	cmdUpdateDb30()
-
 	app.NewServer()
 	app.InitStores()
 	api.InitRouter()
+	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
+	wsapi.InitApi()
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {

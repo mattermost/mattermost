@@ -1,8 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
 import loadingGif from 'images/load.gif';
@@ -14,17 +12,35 @@ export default class SettingPicture extends React.Component {
         super(props);
 
         this.setPicture = this.setPicture.bind(this);
+        this.confirmImage = this.confirmImage.bind(this);
     }
 
     setPicture(file) {
         if (file) {
             var reader = new FileReader();
 
-            var img = ReactDOM.findDOMNode(this.refs.image);
-            reader.onload = function load(e) {
-                $(img).attr('src', e.target.result);
-            };
+            reader.onload = (e) => {
+                const canvas = this.refs.profileImageCanvas;
+                const context = canvas.getContext('2d');
+                const imageObj = new Image();
 
+                imageObj.onload = () => {
+                    if (imageObj.width > imageObj.height) {
+                        const side = imageObj.height;
+                        const rem = imageObj.width - side;
+                        const startX = parseInt(rem / 2, 10);
+                        context.drawImage(imageObj, startX, 0, side, side,
+                            0, 0, canvas.width, canvas.height);
+                    } else {
+                        const side = imageObj.width;
+                        const rem = imageObj.height - side;
+                        const startY = parseInt(rem / 2, 10);
+                        context.drawImage(imageObj, 0, startY, side, side,
+                            0, 0, canvas.width, canvas.height);
+                    }
+                };
+                imageObj.src = e.target.result;
+            };
             reader.readAsDataURL(file);
         }
     }
@@ -48,10 +64,11 @@ export default class SettingPicture extends React.Component {
         var img = null;
         if (this.props.picture) {
             img = (
-                <img
-                    ref='image'
-                    className='profile-img rounded'
-                    src=''
+                <canvas
+                    ref='profileImageCanvas'
+                    className='profile-img'
+                    width='256px'
+                    height='256px'
                 />
             );
         } else {
@@ -83,7 +100,7 @@ export default class SettingPicture extends React.Component {
             confirmButton = (
                 <a
                     className={confirmButtonClass}
-                    onClick={this.props.submit}
+                    onClick={this.confirmImage}
                 >
                     <FormattedMessage
                         id='setting_picture.save'
@@ -147,6 +164,16 @@ export default class SettingPicture extends React.Component {
             </ul>
         );
     }
+
+    confirmImage(e) {
+        e.persist();
+        this.refs.profileImageCanvas.toBlob((blob) => {
+            blob.lastModifiedDate = new Date();
+            blob.name = 'image.jpg';
+            this.props.imageCropChange(blob);
+            this.props.submit(e);
+        }, 'image/jpeg', 0.95);
+    }
 }
 
 SettingPicture.propTypes = {
@@ -158,5 +185,6 @@ SettingPicture.propTypes = {
     submitActive: React.PropTypes.bool,
     submit: React.PropTypes.func,
     title: React.PropTypes.string,
-    pictureChange: React.PropTypes.func
+    pictureChange: React.PropTypes.func,
+    imageCropChange: React.PropTypes.func
 };

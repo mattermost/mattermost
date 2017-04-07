@@ -61,6 +61,13 @@ export function initialize() {
 
     WebSocketClient.setEventCallback(handleEvent);
     WebSocketClient.setFirstConnectCallback(handleFirstConnect);
+    WebSocketClient.setReconnectCallback(() => reconnect(false));
+    WebSocketClient.setMissedEventCallback(() => {
+        if (global.window.mm_config.EnableDeveloper === 'true') {
+            Client.logClientError('missed websocket event seq=' + WebSocketClient.eventSequence);
+        }
+        reconnect(false);
+    });
     WebSocketClient.setCloseCallback(handleClose);
     WebSocketClient.initialize(connUrl);
 }
@@ -144,6 +151,10 @@ function handleEvent(msg) {
 
     case SocketEvents.UPDATE_TEAM:
         handleUpdateTeamEvent(msg);
+        break;
+
+    case SocketEvents.ADDED_TO_TEAM:
+        handleTeamAddedEvent(msg);
         break;
 
     case SocketEvents.USER_ADDED:
@@ -234,6 +245,27 @@ function handlePostDeleteEvent(msg) {
     GlobalActions.emitPostDeletedEvent(post);
 }
 
+function handleTeamAddedEvent(msg) {
+    Client.getTeam(msg.data.team_id, (team) => {
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_TEAM,
+            team
+        });
+
+        Client.getMyTeamMembers((data) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
+                team_members: data
+            });
+            AsyncClient.getMyTeamsUnread();
+        }, (err) => {
+            AsyncClient.dispatchError(err, 'getMyTeamMembers');
+        });
+    }, (err) => {
+        AsyncClient.dispatchError(err, 'getTeam');
+    });
+}
+
 function handleLeaveTeamEvent(msg) {
     if (UserStore.getCurrentId() === msg.data.user_id) {
         TeamStore.removeMyTeamMember(msg.data.team_id);
@@ -244,7 +276,10 @@ function handleLeaveTeamEvent(msg) {
             Client.setTeamId('');
             BrowserStore.removeGlobalItem('team');
             BrowserStore.removeGlobalItem(msg.data.team_id);
-            GlobalActions.redirectUserToDefaultTeam();
+
+            if (!global.location.pathname.startsWith('/admin_console')) {
+                GlobalActions.redirectUserToDefaultTeam();
+            }
         }
     } else {
         UserStore.removeProfileFromTeam(msg.data.team_id, msg.data.user_id);

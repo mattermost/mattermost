@@ -72,6 +72,8 @@ func TestMultipleSimpleQuery(t *testing.T) {
 	}
 }
 
+const contextRaceIterations = 100
+
 func TestContextCancelExec(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()
@@ -79,10 +81,7 @@ func TestContextCancelExec(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Delay execution for just a bit until db.ExecContext has begun.
-	go func() {
-		time.Sleep(time.Millisecond * 10)
-		cancel()
-	}()
+	defer time.AfterFunc(time.Millisecond*10, cancel).Stop()
 
 	// Not canceled until after the exec has started.
 	if _, err := db.ExecContext(ctx, "select pg_sleep(1)"); err == nil {
@@ -96,6 +95,20 @@ func TestContextCancelExec(t *testing.T) {
 		t.Fatal("expected error")
 	} else if err.Error() != "context canceled" {
 		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for i := 0; i < contextRaceIterations; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			if _, err := db.ExecContext(ctx, "select 1"); err != nil {
+				t.Fatal(err)
+			}
+		}()
+
+		if _, err := db.Exec("select 1"); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -106,10 +119,7 @@ func TestContextCancelQuery(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Delay execution for just a bit until db.QueryContext has begun.
-	go func() {
-		time.Sleep(time.Millisecond * 10)
-		cancel()
-	}()
+	defer time.AfterFunc(time.Millisecond*10, cancel).Stop()
 
 	// Not canceled until after the exec has started.
 	if _, err := db.QueryContext(ctx, "select pg_sleep(1)"); err == nil {
@@ -123,6 +133,25 @@ func TestContextCancelQuery(t *testing.T) {
 		t.Fatal("expected error")
 	} else if err.Error() != "context canceled" {
 		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for i := 0; i < contextRaceIterations; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			rows, err := db.QueryContext(ctx, "select 1")
+			cancel()
+			if err != nil {
+				t.Fatal(err)
+			} else if err := rows.Close(); err != nil {
+				t.Fatal(err)
+			}
+		}()
+
+		if rows, err := db.Query("select 1"); err != nil {
+			t.Fatal(err)
+		} else if err := rows.Close(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -137,10 +166,7 @@ func TestContextCancelBegin(t *testing.T) {
 	}
 
 	// Delay execution for just a bit until tx.Exec has begun.
-	go func() {
-		time.Sleep(time.Millisecond * 10)
-		cancel()
-	}()
+	defer time.AfterFunc(time.Millisecond*10, cancel).Stop()
 
 	// Not canceled until after the exec has started.
 	if _, err := tx.Exec("select pg_sleep(1)"); err == nil {
@@ -161,5 +187,24 @@ func TestContextCancelBegin(t *testing.T) {
 		t.Fatal("expected error")
 	} else if err.Error() != "context canceled" {
 		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for i := 0; i < contextRaceIterations; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			tx, err := db.BeginTx(ctx, nil)
+			cancel()
+			if err != nil {
+				t.Fatal(err)
+			} else if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+				t.Fatal(err)
+			}
+		}()
+
+		if tx, err := db.Begin(); err != nil {
+			t.Fatal(err)
+		} else if err := tx.Rollback(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }

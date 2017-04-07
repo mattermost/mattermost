@@ -19,14 +19,14 @@ import (
 )
 
 type Context struct {
-	Session   model.Session
-	Params    *ApiParams
-	Err       *model.AppError
-	T         goi18n.TranslateFunc
-	RequestId string
-	IpAddress string
-	Path      string
-	siteURL   string
+	Session       model.Session
+	Params        *ApiParams
+	Err           *model.AppError
+	T             goi18n.TranslateFunc
+	RequestId     string
+	IpAddress     string
+	Path          string
+	siteURLHeader string
 }
 
 func ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -125,15 +125,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	if utils.GetSiteURL() == "" {
-		protocol := app.GetProtocol(r)
-		c.SetSiteURL(protocol + "://" + r.Host)
-	} else {
-		c.SetSiteURL(utils.GetSiteURL())
-	}
+	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.CfgHash, utils.IsLicensed))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
 	if einterfaces.GetClusterInterface() != nil {
 		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
 	}
@@ -320,17 +315,21 @@ func (c *Context) SetPermissionError(permission *model.Permission) {
 	c.Err.StatusCode = http.StatusForbidden
 }
 
-func (c *Context) SetSiteURL(url string) {
-	c.siteURL = strings.TrimRight(url, "/")
+func (c *Context) SetSiteURLHeader(url string) {
+	c.siteURLHeader = strings.TrimRight(url, "/")
 }
 
-func (c *Context) GetSiteURL() string {
-	return c.siteURL
+func (c *Context) GetSiteURLHeader() string {
+	return c.siteURLHeader
 }
 
 func (c *Context) RequireUserId() *Context {
 	if c.Err != nil {
 		return c
+	}
+
+	if c.Params.UserId == model.ME {
+		c.Params.UserId = c.Session.UserId
 	}
 
 	if len(c.Params.UserId) != 26 {
@@ -396,6 +395,17 @@ func (c *Context) RequireFileId() *Context {
 	return c
 }
 
+func (c *Context) RequireReportId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.ReportId) != 26 {
+		c.SetInvalidUrlParam("report_id")
+	}
+	return c
+}
+
 func (c *Context) RequireTeamName() *Context {
 	if c.Err != nil {
 		return c
@@ -451,6 +461,18 @@ func (c *Context) RequirePreferenceName() *Context {
 
 	if !model.IsValidAlphaNum(c.Params.PreferenceName, true) {
 		c.SetInvalidUrlParam("preference_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireHookId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.HookId) != 26 {
+		c.SetInvalidUrlParam("hook_id")
 	}
 
 	return c

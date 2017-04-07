@@ -2,24 +2,28 @@
 // See License.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import ErrorStore from 'stores/error_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import BooleanSetting from './boolean_setting.jsx';
+import {ConnectionSecurityDropdownSettingWebserver} from './connection_security_dropdown_setting.jsx';
+import PurgeCachesButton from './purge_caches.jsx';
+import ReloadConfigButton from './reload_config.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
-import ReloadConfigButton from './reload_config.jsx';
-import PurgeCachesButton from './purge_caches.jsx';
 import WebserverModeDropdownSetting from './webserver_mode_dropdown_setting.jsx';
-import {ConnectionSecurityDropdownSettingWebserver} from './connection_security_dropdown_setting.jsx';
-import BooleanSetting from './boolean_setting.jsx';
 
 export default class ConfigurationSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
+
+        this.handleSaved = this.handleSaved.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
     }
@@ -62,14 +66,20 @@ export default class ConfigurationSettings extends AdminSettings {
         };
     }
 
+    handleSaved(newConfig) {
+        const lastError = ErrorStore.getLastError();
+
+        if (lastError && lastError.message === 'error_bar.site_url' && newConfig.ServiceSettings.SiteURL) {
+            ErrorStore.clearLastError(true);
+        }
+    }
+
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.configuration'
-                    defaultMessage='Configuration'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.configuration'
+                defaultMessage='Configuration'
+            />
         );
     }
 
@@ -94,9 +104,9 @@ export default class ConfigurationSettings extends AdminSettings {
                     }
                     placeholder={Utils.localizeMessage('admin.service.siteURLExample', 'Ex "https://mattermost.example.com:1234"')}
                     helpText={
-                        <FormattedHTMLMessage
+                        <FormattedMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This field can be left blank unless you are configuring email batching in <b>Notifications > Email</b>. When blank, the URL is automatically configured based on incoming traffic.'
+                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This setting is required.'
                         />
                     }
                     value={this.state.siteURL}

@@ -33,12 +33,10 @@ export default class DeveloperSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.developer.title'
-                    defaultMessage='Developer Settings'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.developer.title'
+                defaultMessage='Developer Settings'
+            />
         );
     }
 

@@ -6,6 +6,7 @@ package sfnt
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -14,50 +15,56 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
-func moveTo(xa, ya int) Segment {
+func moveTo(xa, ya fixed.Int26_6) Segment {
 	return Segment{
-		Op: SegmentOpMoveTo,
-		Args: [6]fixed.Int26_6{
-			0: fixed.I(xa),
-			1: fixed.I(ya),
-		},
+		Op:   SegmentOpMoveTo,
+		Args: [6]fixed.Int26_6{xa, ya},
 	}
 }
 
-func lineTo(xa, ya int) Segment {
+func lineTo(xa, ya fixed.Int26_6) Segment {
 	return Segment{
-		Op: SegmentOpLineTo,
-		Args: [6]fixed.Int26_6{
-			0: fixed.I(xa),
-			1: fixed.I(ya),
-		},
+		Op:   SegmentOpLineTo,
+		Args: [6]fixed.Int26_6{xa, ya},
 	}
 }
 
-func quadTo(xa, ya, xb, yb int) Segment {
+func quadTo(xa, ya, xb, yb fixed.Int26_6) Segment {
 	return Segment{
-		Op: SegmentOpQuadTo,
-		Args: [6]fixed.Int26_6{
-			0: fixed.I(xa),
-			1: fixed.I(ya),
-			2: fixed.I(xb),
-			3: fixed.I(yb),
-		},
+		Op:   SegmentOpQuadTo,
+		Args: [6]fixed.Int26_6{xa, ya, xb, yb},
 	}
 }
 
-func cubeTo(xa, ya, xb, yb, xc, yc int) Segment {
+func cubeTo(xa, ya, xb, yb, xc, yc fixed.Int26_6) Segment {
 	return Segment{
-		Op: SegmentOpCubeTo,
-		Args: [6]fixed.Int26_6{
-			0: fixed.I(xa),
-			1: fixed.I(ya),
-			2: fixed.I(xb),
-			3: fixed.I(yb),
-			4: fixed.I(xc),
-			5: fixed.I(yc),
-		},
+		Op:   SegmentOpCubeTo,
+		Args: [6]fixed.Int26_6{xa, ya, xb, yb, xc, yc},
 	}
+}
+
+func translate(dx, dy fixed.Int26_6, s Segment) Segment {
+	translateArgs(&s.Args, dx, dy)
+	return s
+}
+
+func transform(txx, txy, tyx, tyy int16, dx, dy fixed.Int26_6, s Segment) Segment {
+	transformArgs(&s.Args, txx, txy, tyx, tyy, dx, dy)
+	return s
+}
+
+func checkSegmentsEqual(got, want []Segment) error {
+	if len(got) != len(want) {
+		return fmt.Errorf("got %d elements, want %d\noverall:\ngot  %v\nwant %v",
+			len(got), len(want), got, want)
+	}
+	for i, g := range got {
+		if w := want[i]; g != w {
+			return fmt.Errorf("element %d:\ngot  %v\nwant %v\noverall:\ngot  %v\nwant %v",
+				i, g, w, got, want)
+		}
+	}
+	return nil
 }
 
 func TestTrueTypeParse(t *testing.T) {
@@ -85,6 +92,167 @@ func testTrueType(t *testing.T, f *Font) {
 	// that "The WGL4 character set... [has] more than 650 characters in all.
 	if got, want := f.NumGlyphs(), 650; got <= want {
 		t.Errorf("NumGlyphs: got %d, want > %d", got, want)
+	}
+}
+
+func TestGoRegularGlyphIndex(t *testing.T) {
+	f, err := Parse(goregular.TTF)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	testCases := []struct {
+		r    rune
+		want GlyphIndex
+	}{
+		// Glyphs that aren't present in Go Regular.
+		{'\u001f', 0}, // U+001F <control>
+		{'\u0200', 0}, // U+0200 LATIN CAPITAL LETTER A WITH DOUBLE GRAVE
+		{'\u2000', 0}, // U+2000 EN QUAD
+
+		// The want values below can be verified by running the ttx tool on
+		// Go-Regular.ttf.
+		//
+		// The actual values are ad hoc, and result from whatever tools the
+		// Bigelow & Holmes type foundry used and the order in which they
+		// crafted the glyphs. They may change over time as newer versions of
+		// the font are released. In practice, though, running this test with
+		// coverage analysis suggests that it covers both the zero and non-zero
+		// cmapEntry16.offset cases for a format-4 cmap table.
+
+		{'\u0020', 3},   // U+0020 SPACE
+		{'\u0021', 4},   // U+0021 EXCLAMATION MARK
+		{'\u0022', 5},   // U+0022 QUOTATION MARK
+		{'\u0023', 6},   // U+0023 NUMBER SIGN
+		{'\u0024', 223}, // U+0024 DOLLAR SIGN
+		{'\u0025', 7},   // U+0025 PERCENT SIGN
+		{'\u0026', 8},   // U+0026 AMPERSAND
+		{'\u0027', 9},   // U+0027 APOSTROPHE
+
+		{'\u03bd', 423}, // U+03BD GREEK SMALL LETTER NU
+		{'\u03be', 424}, // U+03BE GREEK SMALL LETTER XI
+		{'\u03bf', 438}, // U+03BF GREEK SMALL LETTER OMICRON
+		{'\u03c0', 208}, // U+03C0 GREEK SMALL LETTER PI
+		{'\u03c1', 425}, // U+03C1 GREEK SMALL LETTER RHO
+		{'\u03c2', 426}, // U+03C2 GREEK SMALL LETTER FINAL SIGMA
+	}
+
+	var b Buffer
+	for _, tc := range testCases {
+		got, err := f.GlyphIndex(&b, tc.r)
+		if err != nil {
+			t.Errorf("r=%q: %v", tc.r, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("r=%q: got %d, want %d", tc.r, got, tc.want)
+			continue
+		}
+	}
+}
+
+func TestGlyphIndex(t *testing.T) {
+	data, err := ioutil.ReadFile(filepath.FromSlash("../testdata/cmapTest.ttf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, format := range []int{-1, 0, 4, 12} {
+		testGlyphIndex(t, data, format)
+	}
+}
+
+func testGlyphIndex(t *testing.T, data []byte, cmapFormat int) {
+	if cmapFormat >= 0 {
+		originalSupportedCmapFormat := supportedCmapFormat
+		defer func() {
+			supportedCmapFormat = originalSupportedCmapFormat
+		}()
+		supportedCmapFormat = func(format, pid, psid uint16) bool {
+			return int(format) == cmapFormat && originalSupportedCmapFormat(format, pid, psid)
+		}
+	}
+
+	f, err := Parse(data)
+	if err != nil {
+		t.Errorf("cmapFormat=%d: %v", cmapFormat, err)
+		return
+	}
+
+	testCases := []struct {
+		r    rune
+		want GlyphIndex
+	}{
+		// Glyphs that aren't present in cmapTest.ttf.
+		{'?', 0},
+		{'\ufffd', 0},
+		{'\U0001f4a9', 0},
+
+		// For a .TTF file, FontForge maps:
+		//	- ".notdef"          to glyph index 0.
+		//	- ".null"            to glyph index 1.
+		//	- "nonmarkingreturn" to glyph index 2.
+
+		{'/', 0},
+		{'0', 3},
+		{'1', 4},
+		{'2', 5},
+		{'3', 0},
+
+		{'@', 0},
+		{'A', 6},
+		{'B', 7},
+		{'C', 0},
+
+		{'`', 0},
+		{'a', 8},
+		{'b', 0},
+
+		// Of the remaining runes, only U+00FF LATIN SMALL LETTER Y WITH
+		// DIAERESIS is in both the Mac Roman encoding and the cmapTest.ttf
+		// font file.
+		{'\u00fe', 0},
+		{'\u00ff', 9},
+		{'\u0100', 10},
+		{'\u0101', 11},
+		{'\u0102', 0},
+
+		{'\u4e2c', 0},
+		{'\u4e2d', 12},
+		{'\u4e2e', 0},
+
+		{'\U0001f0a0', 0},
+		{'\U0001f0a1', 13},
+		{'\U0001f0a2', 0},
+
+		{'\U0001f0b0', 0},
+		{'\U0001f0b1', 14},
+		{'\U0001f0b2', 15},
+		{'\U0001f0b3', 0},
+	}
+
+	var b Buffer
+	for _, tc := range testCases {
+		want := tc.want
+		switch {
+		case cmapFormat == 0 && tc.r > '\u007f' && tc.r != '\u00ff':
+			// cmap format 0, with the Macintosh Roman encoding, can only
+			// represent a limited set of non-ASCII runes, e.g. U+00FF.
+			want = 0
+		case cmapFormat == 4 && tc.r > '\uffff':
+			// cmap format 4 only supports the Basic Multilingual Plane (BMP).
+			want = 0
+		}
+
+		got, err := f.GlyphIndex(&b, tc.r)
+		if err != nil {
+			t.Errorf("cmapFormat=%d, r=%q: %v", cmapFormat, tc.r, err)
+			continue
+		}
+		if got != want {
+			t.Errorf("cmapFormat=%d, r=%q: got %d, want %d", cmapFormat, tc.r, got, want)
+			continue
+		}
 	}
 }
 
@@ -220,46 +388,102 @@ func TestTrueTypeSegments(t *testing.T) {
 		lineTo(614, 1638),
 		lineTo(614, 0),
 		lineTo(205, 0),
+	}, {
+		// five
+		// - contour #0
+		moveTo(0, 0),
+		lineTo(0, 100),
+		lineTo(400, 100),
+		lineTo(400, 0),
+		lineTo(0, 0),
+	}, {
+		// six
+		// - contour #0
+		moveTo(0, 0),
+		lineTo(0, 100),
+		lineTo(400, 100),
+		lineTo(400, 0),
+		lineTo(0, 0),
+		// - contour #1
+		translate(111, 234, moveTo(205, 0)),
+		translate(111, 234, lineTo(205, 1638)),
+		translate(111, 234, lineTo(614, 1638)),
+		translate(111, 234, lineTo(614, 0)),
+		translate(111, 234, lineTo(205, 0)),
+	}, {
+		// seven
+		// - contour #0
+		moveTo(0, 0),
+		lineTo(0, 100),
+		lineTo(400, 100),
+		lineTo(400, 0),
+		lineTo(0, 0),
+		// - contour #1
+		transform(1<<13, 0, 0, 1<<13, 56, 117, moveTo(205, 0)),
+		transform(1<<13, 0, 0, 1<<13, 56, 117, lineTo(205, 1638)),
+		transform(1<<13, 0, 0, 1<<13, 56, 117, lineTo(614, 1638)),
+		transform(1<<13, 0, 0, 1<<13, 56, 117, lineTo(614, 0)),
+		transform(1<<13, 0, 0, 1<<13, 56, 117, lineTo(205, 0)),
+	}, {
+		// eight
+		// - contour #0
+		moveTo(0, 0),
+		lineTo(0, 100),
+		lineTo(400, 100),
+		lineTo(400, 0),
+		lineTo(0, 0),
+		// - contour #1
+		transform(3<<13, 0, 0, 1<<13, 56, 117, moveTo(205, 0)),
+		transform(3<<13, 0, 0, 1<<13, 56, 117, lineTo(205, 1638)),
+		transform(3<<13, 0, 0, 1<<13, 56, 117, lineTo(614, 1638)),
+		transform(3<<13, 0, 0, 1<<13, 56, 117, lineTo(614, 0)),
+		transform(3<<13, 0, 0, 1<<13, 56, 117, lineTo(205, 0)),
+	}, {
+		// nine
+		// - contour #0
+		moveTo(0, 0),
+		lineTo(0, 100),
+		lineTo(400, 100),
+		lineTo(400, 0),
+		lineTo(0, 0),
+		// - contour #1
+		transform(22381, 8192, 5996, 14188, 237, 258, moveTo(205, 0)),
+		transform(22381, 8192, 5996, 14188, 237, 258, lineTo(205, 1638)),
+		transform(22381, 8192, 5996, 14188, 237, 258, lineTo(614, 1638)),
+		transform(22381, 8192, 5996, 14188, 237, 258, lineTo(614, 0)),
+		transform(22381, 8192, 5996, 14188, 237, 258, lineTo(205, 0)),
 	}}
 
 	testSegments(t, "glyfTest.ttf", wants)
 }
 
 func testSegments(t *testing.T, filename string, wants [][]Segment) {
-	data, err := ioutil.ReadFile(filepath.Join("..", "testdata", filename))
+	data, err := ioutil.ReadFile(filepath.FromSlash("../testdata/" + filename))
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("ReadFile: %v", err)
 	}
 	f, err := Parse(data)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Parse: %v", err)
 	}
+	ppem := fixed.Int26_6(f.UnitsPerEm())
 
 	if ng := f.NumGlyphs(); ng != len(wants) {
 		t.Fatalf("NumGlyphs: got %d, want %d", ng, len(wants))
 	}
 	var b Buffer
-loop:
 	for i, want := range wants {
-		got, err := f.LoadGlyph(&b, GlyphIndex(i), nil)
+		got, err := f.LoadGlyph(&b, GlyphIndex(i), ppem, nil)
 		if err != nil {
 			t.Errorf("i=%d: LoadGlyph: %v", i, err)
 			continue
 		}
-		if len(got) != len(want) {
-			t.Errorf("i=%d: got %d elements, want %d\noverall:\ngot  %v\nwant %v",
-				i, len(got), len(want), got, want)
+		if err := checkSegmentsEqual(got, want); err != nil {
+			t.Errorf("i=%d: %v", i, err)
 			continue
 		}
-		for j, g := range got {
-			if w := want[j]; g != w {
-				t.Errorf("i=%d: element %d:\ngot  %v\nwant %v\noverall:\ngot  %v\nwant %v",
-					i, j, g, w, got, want)
-				continue loop
-			}
-		}
 	}
-	if _, err := f.LoadGlyph(nil, 0xffff, nil); err != ErrNotFound {
+	if _, err := f.LoadGlyph(nil, 0xffff, ppem, nil); err != ErrNotFound {
 		t.Errorf("LoadGlyph(..., 0xffff, ...):\ngot  %v\nwant %v", err, ErrNotFound)
 	}
 
@@ -268,5 +492,133 @@ loop:
 		t.Errorf("Name: %v", err)
 	} else if want := filename[:len(filename)-len(".ttf")]; name != want {
 		t.Errorf("Name:\ngot  %q\nwant %q", name, want)
+	}
+}
+
+func TestPPEM(t *testing.T) {
+	data, err := ioutil.ReadFile(filepath.FromSlash("../testdata/glyfTest.ttf"))
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	f, err := Parse(data)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	var b Buffer
+	x, err := f.GlyphIndex(&b, '1')
+	if err != nil {
+		t.Fatalf("GlyphIndex: %v", err)
+	}
+	if x == 0 {
+		t.Fatalf("GlyphIndex: no glyph index found for the rune '1'")
+	}
+
+	testCases := []struct {
+		ppem fixed.Int26_6
+		want []Segment
+	}{{
+		ppem: fixed.Int26_6(12 << 6),
+		want: []Segment{
+			moveTo(77, 0),
+			lineTo(77, 614),
+			lineTo(230, 614),
+			lineTo(230, 0),
+			lineTo(77, 0),
+		},
+	}, {
+		ppem: fixed.Int26_6(2048),
+		want: []Segment{
+			moveTo(205, 0),
+			lineTo(205, 1638),
+			lineTo(614, 1638),
+			lineTo(614, 0),
+			lineTo(205, 0),
+		},
+	}}
+
+	for i, tc := range testCases {
+		got, err := f.LoadGlyph(&b, x, tc.ppem, nil)
+		if err != nil {
+			t.Errorf("i=%d: LoadGlyph: %v", i, err)
+			continue
+		}
+		if err := checkSegmentsEqual(got, tc.want); err != nil {
+			t.Errorf("i=%d: %v", i, err)
+			continue
+		}
+	}
+}
+
+func TestGlyphName(t *testing.T) {
+	f, err := Parse(goregular.TTF)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	testCases := []struct {
+		r    rune
+		want string
+	}{
+		{'\x00', "NULL"},
+		{'!', "exclam"},
+		{'A', "A"},
+		{'{', "braceleft"},
+		{'\u00c4', "Adieresis"}, // U+00C4 LATIN CAPITAL LETTER A WITH DIAERESIS
+		{'\u2020', "dagger"},    // U+2020 DAGGER
+		{'\u2660', "spade"},     // U+2660 BLACK SPADE SUIT
+		{'\uf800', "gopher"},    // U+F800 <Private Use>
+		{'\ufffe', ".notdef"},   // Not in the Go Regular font, so GlyphIndex returns (0, nil).
+	}
+
+	var b Buffer
+	for _, tc := range testCases {
+		x, err := f.GlyphIndex(&b, tc.r)
+		if err != nil {
+			t.Errorf("r=%q: GlyphIndex: %v", tc.r, err)
+			continue
+		}
+		got, err := f.GlyphName(&b, x)
+		if err != nil {
+			t.Errorf("r=%q: GlyphName: %v", tc.r, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("r=%q: got %q, want %q", tc.r, got, tc.want)
+			continue
+		}
+	}
+}
+
+func TestBuiltInPostNames(t *testing.T) {
+	testCases := []struct {
+		x    GlyphIndex
+		want string
+	}{
+		{0, ".notdef"},
+		{1, ".null"},
+		{2, "nonmarkingreturn"},
+		{13, "asterisk"},
+		{36, "A"},
+		{93, "z"},
+		{123, "ocircumflex"},
+		{202, "Edieresis"},
+		{255, "Ccaron"},
+		{256, "ccaron"},
+		{257, "dcroat"},
+		{258, ""},
+		{999, ""},
+		{0xffff, ""},
+	}
+
+	for _, tc := range testCases {
+		if tc.x >= numBuiltInPostNames {
+			continue
+		}
+		i := builtInPostNamesOffsets[tc.x+0]
+		j := builtInPostNamesOffsets[tc.x+1]
+		got := builtInPostNamesData[i:j]
+		if got != tc.want {
+			t.Errorf("x=%d: got %q, want %q", tc.x, got, tc.want)
+		}
 	}
 }

@@ -135,6 +135,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelNotificationGlobalDefault'
                                 type='radio'
                                 name='desktopNotificationLevel'
                                 checked={notifyActive[0]}
@@ -153,6 +154,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelNotificationAllActivity'
                                 type='radio'
                                 name='desktopNotificationLevel'
                                 checked={notifyActive[1]}
@@ -165,6 +167,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelNotificationMentions'
                                 type='radio'
                                 name='desktopNotificationLevel'
                                 checked={notifyActive[2]}
@@ -177,6 +180,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelNotificationNever'
                                 type='radio'
                                 name='desktopNotificationLevel'
                                 checked={notifyActive[3]}
@@ -287,6 +291,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelUnreadAll'
                                 type='radio'
                                 name='markUnreadLevel'
                                 checked={this.state.unreadLevel === 'all'}
@@ -302,6 +307,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelUnreadMentions'
                                 type='radio'
                                 name='markUnreadLevel'
                                 checked={this.state.unreadLevel === 'mention'}
@@ -459,6 +465,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelPushNotificationGlobalDefault'
                                 type='radio'
                                 name='pushNotificationLevel'
                                 checked={notifyActive[0]}
@@ -477,6 +484,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelPushNotificationAllActivity'
                                 type='radio'
                                 name='pushNotificationLevel'
                                 checked={notifyActive[1]}
@@ -489,6 +497,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelPushNotificationMentions'
                                 type='radio'
                                 name='pushNotificationLevel'
                                 checked={notifyActive[2]}
@@ -501,6 +510,7 @@ export default class ChannelNotificationsModal extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='channelPushNotificationNever'
                                 type='radio'
                                 name='pushNotificationLevel'
                                 checked={notifyActive[3]}

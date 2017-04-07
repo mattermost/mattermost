@@ -148,6 +148,10 @@
     "translation": "Невозможно получить пользователя для проверки разрешений."
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "Инициализация маршрутов brand API"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v добавлен(а) в канал %v"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Создание и управление Приватными Группами возможно только Системными Администраторами."
+    "translation": "Создание и управление Публичными Каналами возможно только Системными Администраторами."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Создание и управление Приватными Группами возможно Командой и Системными Администраторами."
+    "translation": "Создание и управление Публичными Каналами возможно Командой и Системными Администраторами."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -221,11 +225,11 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+    "translation": "Канал группы должен иметь не менее трёх и не более восьми пользователей"
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
-    "translation": "One of the provided users does not exist"
+    "translation": "Один из предложенных пользователей не существует"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -282,6 +286,10 @@
   {
     "id": "api.channel.init.debug",
     "translation": "Инициализация API каналов"
+  },
+  {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Канал уже удалён"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -380,8 +388,12 @@
     "translation": "Попытка выполнения недопустимого обновления канала по умолчанию {{.Channel}}"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "Невозможно получить количество непрочитанных сообщений для пользователя user_id=%v и канала channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "Инициализация маршрутов кластерного API"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "пожимание плечами"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "Инициализация маршрутов compliance API"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Извините, мы не смогли найти страницу."
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Произошла неизвестная ошибка. Пожалуйста, свяжитесь с поддержкой."
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "Инициализация устаревших маршрутов API"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,7 +1034,7 @@
     "translation": "Неправильная публичная ссылка"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "Файл не содержит изображения предварительного просмотра"
   },
   {
@@ -1230,6 +1254,10 @@
     "translation": "Входящие вебхуки были отключены системным администратором."
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "Инициализация маршрутов LDAP API"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "Пустой массив 'license' в запросе"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "Эта лицензия поддерживает {{.Users}} пользователей, в то время как в вашей системе {{.Count}} уникальных пользователей. Уникальные пользователи подсчитываются явно по адресу электронной почты. Вы можете увидеть общее количество пользователей в пункте Отчеты сайта -> Просмотр статистики."
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "Инициализация API статусов"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "Инициализация API статусов"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "Сбой при обновлении LastActivityAt для user_id=%v и session_id=%v, err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "Не удалось сохранить статус для user_id=%v, err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "Пользователь не найден"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Invalid data."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Invalid invite id. No team matches with this invite id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parameter required to add user to team."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2125,7 +2177,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас в команду {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2137,7 +2189,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Your MFA has been updated"
+    "translation": "[{{ .SiteName }}] Ваша MFA была обновлена"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2157,7 +2209,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{ .SiteName }}] Your password has been updated"
+    "translation": "[{{ .SiteName }}] Ваш пароль обновлён"
   },
   {
     "id": "api.templates.post_body.button",
@@ -3108,6 +3160,14 @@
     "translation": "Управление ролями команды"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "Возможность приглашать пользователей в команду"
   },
@@ -3428,22 +3488,6 @@
     "translation": "Страница не найдена"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "Вы будете удалены из всех общедоступных каналов и частных групп. Если команда является закрытой, то Вы не сможете вернуться в неё. Вы уверены?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "Нет"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "Уйти из команды?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "Да"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Невозможно найти канал: %v, найдено похожих %v "
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "Не удалось записать запрос"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "Каналы не найдены"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "Не удалось получить каналы"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "Не удалось найти существующий удалённый канал"
   },
@@ -4700,6 +4776,14 @@
     "translation": "Не удалось получить каналы"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "Не удалось получить каналы"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "Не удалось получить список непрочтённых сообщений для команды"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "Не удалось увеличить счетчик упоминаний"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Безуспешная попытка удалить участника канала"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "Не удалось сохранить участника команды"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "Возникла проблема при поиске канала"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Возникла проблема при поиске канала"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Не удалось обновить команду"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "Не удалось добавить каталог к наблюдателю %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "Инициализация маршрутов статусного WebSocket API"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "Инициализация маршрутов системного WebSocket API"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "Инициализация маршрутов пользовательского WebSocket API"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "Инициализация маршрутов webrtc WebSocket API"
   }
 ]

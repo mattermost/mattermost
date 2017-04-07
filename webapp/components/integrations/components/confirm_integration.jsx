@@ -5,7 +5,7 @@ import React from 'react';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {Link} from 'react-router/es6';
+import {Link, browserHistory} from 'react-router/es6';
 
 import UserStore from 'stores/user_store.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
@@ -25,6 +25,7 @@ export default class ConfirmIntegration extends React.Component {
         super(props);
 
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
 
         const userId = UserStore.getCurrentId();
 
@@ -38,10 +39,12 @@ export default class ConfirmIntegration extends React.Component {
 
     componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
+        window.addEventListener('keypress', this.handleKeyPress);
     }
 
     componentWillUnmount() {
         IntegrationStore.removeChangeListener(this.handleIntegrationChange);
+        window.removeEventListener('keypress', this.handleKeyPress);
     }
 
     handleIntegrationChange() {
@@ -51,6 +54,12 @@ export default class ConfirmIntegration extends React.Component {
             oauthApps: IntegrationStore.getOAuthApps(userId),
             loading: !IntegrationStore.hasReceivedOAuthApps(userId)
         });
+    }
+
+    handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            browserHistory.push('/' + this.props.team.name + '/integrations/' + this.state.type);
+        }
     }
 
     render() {

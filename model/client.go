@@ -1191,17 +1191,6 @@ func (c *Client) GetChannel(id, etag string) (*Result, *AppError) {
 	}
 }
 
-// SCHEDULED FOR DEPRECATION IN 3.7 - use GetMoreChannelsPage instead
-func (c *Client) GetMoreChannels(etag string) (*Result, *AppError) {
-	if r, err := c.DoApiGet(c.GetTeamRoute()+"/channels/more", "", etag); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), ChannelListFromJson(r.Body)}, nil
-	}
-}
-
 // GetMoreChannelsPage will return a page of open channels the user is not in based on
 // the provided offset and limit. Must be authenticated.
 func (c *Client) GetMoreChannelsPage(offset int, limit int) (*Result, *AppError) {
@@ -1325,22 +1314,6 @@ func (c *Client) RemoveChannelMember(id, user_id string) (*Result, *AppError) {
 	data := make(map[string]string)
 	data["user_id"] = user_id
 	if r, err := c.DoApiPost(c.GetChannelRoute(id)+"/remove", MapToJson(data)); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), nil}, nil
-	}
-}
-
-// UpdateLastViewedAt will mark a channel as read.
-// The channelId indicates the channel to mark as read. If active is true, push notifications
-// will be cleared if there are unread messages. The default for active is true.
-// SCHEDULED FOR DEPRECATION IN 3.8 - use ViewChannel instead
-func (c *Client) UpdateLastViewedAt(channelId string, active bool) (*Result, *AppError) {
-	data := make(map[string]interface{})
-	data["active"] = active
-	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/update_last_viewed_at", StringInterfaceToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1525,6 +1498,16 @@ func (c *Client) SearchPosts(terms string, isOrSearch bool) (*Result, *AppError)
 // The page is set by the integer parameters offset and limit.
 func (c *Client) GetFlaggedPosts(offset int, limit int) (*Result, *AppError) {
 	if r, err := c.DoApiGet(c.GetTeamRoute()+fmt.Sprintf("/posts/flagged/%v/%v", offset, limit), "", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostListFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) GetPinnedPosts(channelId string) (*Result, *AppError) {
+	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/pinned", "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -1774,22 +1757,6 @@ func (c *Client) GetStatuses() (*Result, *AppError) {
 // based on the provided user ids
 func (c *Client) GetStatusesByIds(userIds []string) (*Result, *AppError) {
 	if r, err := c.DoApiPost("/users/status/ids", ArrayToJson(userIds)); err != nil {
-		return nil, err
-	} else {
-		defer closeBody(r)
-		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
-	}
-}
-
-// SetActiveChannel sets the the channel id the user is currently viewing.
-// The channelId key is required but the value can be blank. Returns standard
-// response.
-// SCHEDULED FOR DEPRECATION IN 3.8 - use ViewChannel instead
-func (c *Client) SetActiveChannel(channelId string) (*Result, *AppError) {
-	data := map[string]string{}
-	data["channel_id"] = channelId
-	if r, err := c.DoApiPost("/users/status/set_active_channel", MapToJson(data)); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
@@ -2387,5 +2354,25 @@ func (c *Client) UpdateChannelRoles(channelId string, userId string, roles strin
 				RequestId:  r.Header.Get(HEADER_REQUEST_ID),
 				Etag:       r.Header.Get(HEADER_ETAG_SERVER),
 			}
+	}
+}
+
+func (c *Client) PinPost(channelId string, postId string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/posts/"+postId+"/pin", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
+	}
+}
+
+func (c *Client) UnpinPost(channelId string, postId string) (*Result, *AppError) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/posts/"+postId+"/unpin", ""); err != nil {
+		return nil, err
+	} else {
+		defer closeBody(r)
+		return &Result{r.Header.Get(HEADER_REQUEST_ID),
+			r.Header.Get(HEADER_ETAG_SERVER), PostFromJson(r.Body)}, nil
 	}
 }

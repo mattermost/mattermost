@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import ReactDOM from 'react-dom';
 
 import PostTime from './post_time.jsx';
 
@@ -12,7 +13,8 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
+import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -26,10 +28,19 @@ export default class PostInfo extends React.Component {
         this.removePost = this.removePost.bind(this);
         this.flagPost = this.flagPost.bind(this);
         this.unflagPost = this.unflagPost.bind(this);
+        this.pinPost = this.pinPost.bind(this);
+        this.unpinPost = this.unpinPost.bind(this);
+        this.reactEmojiClick = this.reactEmojiClick.bind(this);
+        this.emojiPickerClick = this.emojiPickerClick.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
+
+        this.state = {
+            showEmojiPicker: false,
+            reactionPickerOffset: 21
+        };
     }
 
     handleDropdownOpened() {
@@ -148,6 +159,42 @@ export default class PostInfo extends React.Component {
             );
         }
 
+        if (this.props.post.is_pinned) {
+            dropdownContents.push(
+                <li
+                    key='unpinLink'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.unpinPost}
+                    >
+                        <FormattedMessage
+                            id='post_info.unpin'
+                            defaultMessage='Un-pin from channel'
+                        />
+                    </a>
+                </li>
+            );
+        } else {
+            dropdownContents.push(
+                <li
+                    key='pinLink'
+                    role='presentation'
+                >
+                    <a
+                        href='#'
+                        onClick={this.pinPost}
+                    >
+                        <FormattedMessage
+                            id='post_info.pin'
+                            defaultMessage='Pin to channel'
+                        />
+                    </a>
+                </li>
+            );
+        }
+
         if (this.canDelete) {
             dropdownContents.push(
                 <li
@@ -233,6 +280,10 @@ export default class PostInfo extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
+    emojiPickerClick() {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
     removePost() {
         GlobalActions.emitRemovePost(this.props.post);
     }
@@ -250,6 +301,16 @@ export default class PostInfo extends React.Component {
         );
     }
 
+    pinPost(e) {
+        e.preventDefault();
+        PostActions.pinPost(this.props.post.channel_id, this.props.post.id);
+    }
+
+    unpinPost(e) {
+        e.preventDefault();
+        PostActions.unpinPost(this.props.post.channel_id, this.props.post.id);
+    }
+
     flagPost(e) {
         e.preventDefault();
         PostActions.flagPost(this.props.post.id);
@@ -258,6 +319,14 @@ export default class PostInfo extends React.Component {
     unflagPost(e) {
         e.preventDefault();
         PostActions.unflagPost(this.props.post.id);
+    }
+
+    reactEmojiClick(emoji) {
+        const pickerOffset = 21;
+
+        const emojiName = emoji.name || emoji.aliases[0];
+        PostActions.addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+        this.setState({showEmojiPicker: false, reactionPickerOffset: pickerOffset});
     }
 
     render() {
@@ -287,8 +356,44 @@ export default class PostInfo extends React.Component {
                         className='comment-icon'
                         dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
                     />
-                    {commentCountText}
+                    <span className='comment-count'>
+                        {commentCountText}
+                    </span>
                 </a>
+            );
+        }
+
+        let react;
+        if (post.state !== Constants.POST_FAILED &&
+            post.state !== Constants.POST_LOADING &&
+            !Utils.isPostEphemeral(post) &&
+            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            react = (
+                <span>
+                    <Overlay
+                        show={this.state.showEmojiPicker}
+                        placement='top'
+                        rootClose={true}
+                        container={this}
+                        onHide={() => this.setState({showEmojiPicker: false})}
+                        target={() => ReactDOM.findDOMNode(this.refs['reactIcon_' + post.id])}
+
+                    >
+                        <EmojiPicker
+                            onEmojiClick={this.reactEmojiClick}
+                            pickerLocation='top'
+
+                        />
+                    </Overlay>
+                    <a
+                        href='#'
+                        className='reacticon__container'
+                        onClick={this.emojiPickerClick}
+                        ref={'reactIcon_' + post.id}
+                    ><i className='fa fa-smile-o'/>
+                    </a>
+                </span>
+
             );
         }
 
@@ -310,6 +415,7 @@ export default class PostInfo extends React.Component {
                         >
                             {dropdown}
                         </div>
+                        {react}
                         {comments}
                     </li>
                 );
@@ -374,6 +480,18 @@ export default class PostInfo extends React.Component {
             );
         }
 
+        let pinnedBadge;
+        if (post.is_pinned) {
+            pinnedBadge = (
+                <span className='post__pinned-badge'>
+                    <FormattedMessage
+                        id='post_info.pinned'
+                        defaultMessage='Pinned'
+                    />
+                </span>
+            );
+        }
+
         return (
             <ul className='post__header--info'>
                 <li className='col'>
@@ -384,6 +502,8 @@ export default class PostInfo extends React.Component {
                         useMilitaryTime={this.props.useMilitaryTime}
                         postId={post.id}
                     />
+                    {pinnedBadge}
+                    {this.state.showEmojiPicker}
                     {flagTrigger}
                 </li>
                 {options}

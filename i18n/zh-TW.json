@@ -148,6 +148,10 @@
     "translation": "無法取得使用者以檢查權限。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "正在初始化命令 API 路徑"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v 由 %v 邀請加入頻道"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系統管理員能建立與管理私人群組。"
+    "translation": "只有系統管理員能建立與管理公開頻道。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有團隊和系統管理員能建立與管理私人群組。"
+    "translation": "只有團隊和系統管理員能建立與管理公開頻道。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -284,6 +288,10 @@
     "translation": "正在初始化頻道 API 路徑"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "Channel is already deleted"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "您沒有適當的權限"
   },
@@ -380,8 +388,12 @@
     "translation": "已對預設頻道 {{.Channel}} 嘗試執行無效的更新"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "無法計算未讀訊息數量：user_id=%v, channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "正在初始化使用者 API 路徑"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -800,6 +812,14 @@
     "translation": "聳肩"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "正在初始化命令 API 路徑"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "抱歉，無法找到頁面。"
   },
@@ -866,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "發生未知的錯誤。請聯繫支援單位。"
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "正在初始化命令 API 路徑"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1010,7 +1034,7 @@
     "translation": "此公開連結不是有效連結"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
+    "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "檔案沒有預覽圖像"
   },
   {
@@ -1230,6 +1254,10 @@
     "translation": "傳入的 Webhook 已被系統管理員停用。"
   },
   {
+    "id": "api.ldap.init.debug",
+    "translation": "正在初始化檔案 API 路徑"
+  },
+  {
     "id": "api.license.add_license.array.app_error",
     "translation": "要求中的 'license' 欄位為空陣列"
   },
@@ -1264,6 +1292,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "此授權只支援 {{.Users}} 位使用者，而您的系統有 {{.Count}} 位使用者。使用者人數是根據電子郵件位址計算。使用者總數量在 站台報告 -> 顯示統計。"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.init.debug",
@@ -1908,12 +1940,32 @@
     "translation": "正在初始化狀態 API 路徑"
   },
   {
+    "id": "api.status.init.debug",
+    "translation": "正在初始化狀態 API 路徑"
+  },
+  {
     "id": "api.status.last_activity.error",
     "translation": "更新 user_id=%v 與 session_id=%v 的 LastActivityAt 失敗 err=%v"
   },
   {
     "id": "api.status.save_status.error",
     "translation": "儲存使用者狀態失敗 user_id=%v err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "User not found"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "Invalid data."
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "Invalid invite id. No team matches with this invite id."
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "Parameter required to add user to team."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -3108,6 +3160,14 @@
     "translation": "管理團隊角色"
   },
   {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "Ability to read public channels"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "Read Public Channels"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "允許邀請使用者至團隊"
   },
@@ -3428,22 +3488,6 @@
     "translation": "找不到頁面"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "將離開所有的公開頻道與私人群組。如果團隊是私人團隊，將無法重新加入。您確定嘛？"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "不"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "退出團隊？"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "是"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "找不到: %v 頻道，已搜尋 %v 的可能性"
   },
@@ -3674,6 +3718,30 @@
   {
     "id": "model.client.set_profile_user.writer.app_error",
     "translation": "無法寫入要求"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "Error writing channel id to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "Error writing file to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "Error writing fileSize to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "Error writing importFrom to multipart form"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "Error closing multipart writer"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "Error creating SAML certificate multipart form request"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4656,6 +4724,14 @@
     "translation": "找不到頻道"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "無法取得這些頻道"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found"
+  },
+  {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
     "translation": "找不到現有的已刪除頻道"
   },
@@ -4700,6 +4776,14 @@
     "translation": "無法取得這些頻道"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "無法取得這些頻道"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "無法取得團隊未讀訊息"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "無法遞增提及計數"
   },
@@ -4714,6 +4798,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "無法移除頻道成員"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "We couldn't find the pinned posts"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5408,6 +5496,14 @@
     "translation": "無法儲存該團隊成員"
   },
   {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "搜尋頻道時遇到錯誤"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "搜尋頻道時遇到錯誤"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "無法更新團隊"
   },
@@ -5978,5 +6074,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "新增目錄至監控 %v 失敗"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "正在初始化狀態 API 路徑"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "正在初始化 web socket API 路徑"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "正在初始化 web socket API 路徑"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "正在初始化 web socket API 路徑"
   }
 ]

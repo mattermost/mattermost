@@ -90,6 +90,60 @@ func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError
 	return statusMap, nil
 }
 
+//GetUserStatusesByIds used by apiV4
+func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+	var statusMap []*model.Status
+	metrics := einterfaces.GetMetricsInterface()
+
+	missingUserIds := []string{}
+	for _, userId := range userIds {
+		if result, ok := statusCache.Get(userId); ok {
+			statusMap = append(statusMap, result.(*model.Status))
+			if metrics != nil {
+				metrics.IncrementMemCacheHitCounter("Status")
+			}
+		} else {
+			missingUserIds = append(missingUserIds, userId)
+			if metrics != nil {
+				metrics.IncrementMemCacheMissCounter("Status")
+			}
+		}
+	}
+
+	if len(missingUserIds) > 0 {
+		if result := <-Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
+			return nil, result.Err
+		} else {
+			statuses := result.Data.([]*model.Status)
+
+			for _, s := range statuses {
+				AddStatusCache(s)
+			}
+
+			statusMap = append(statusMap, statuses...)
+		}
+	}
+
+	// For the case where the user does not have a row in the Status table and cache
+	// remove the existing ids from missingUserIds and then create a offline state for the missing ones
+	// This also return the status offline for the non-existing Ids in the system
+	for i := 0; i < len(missingUserIds); i++ {
+		missingUserId := missingUserIds[i]
+		for _, userMap := range statusMap {
+			if missingUserId == userMap.UserId {
+				missingUserIds = append(missingUserIds[:i], missingUserIds[i+1:]...)
+				i--
+				break
+			}
+		}
+	}
+	for _, userId := range missingUserIds {
+		statusMap = append(statusMap, &model.Status{UserId: userId, Status: "offline"})
+	}
+
+	return statusMap, nil
+}
+
 func SetStatusOnline(userId string, sessionId string, manual bool) {
 	broadcast := false
 

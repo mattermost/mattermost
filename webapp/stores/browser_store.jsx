@@ -3,11 +3,7 @@
 
 import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
-
-const notSupportedParams = {
-    title: Utils.localizeMessage('error.not_supported.title', 'Browser not supported'),
-    message: Utils.localizeMessage('error.not_supported.message', 'Private browsing is not supported')
-};
+import {Constants, ErrorPageTypes} from 'utils/constants.jsx';
 
 function getPrefix() {
     if (global.window.mm_current_user_id) {
@@ -151,9 +147,14 @@ class BrowserStoreClass {
         const serverVersion = this.getLastServerVersion();
         const landingPageSeen = this.hasSeenLandingPage();
         const selectedTeams = this.getItem('selected_teams');
+        const recentEmojis = localStorage.getItem(Constants.RECENT_EMOJI_KEY);
 
         sessionStorage.clear();
         localStorage.clear();
+
+        if (recentEmojis) {
+            localStorage.setItem(Constants.RECENT_EMOJI_KEY, recentEmojis);
+        }
 
         if (logoutId) {
             sessionStorage.setItem('__logout__', logoutId);
@@ -194,7 +195,7 @@ class BrowserStoreClass {
             sessionStorage.removeItem('__testSession__');
         } catch (e) {
             // Session storage not usable, website is unusable
-            browserHistory.push(window.location.origin + '/error?title=' + notSupportedParams.title + '&message=' + notSupportedParams.message);
+            browserHistory.push('/error?type=' + ErrorPageTypes.LOCAL_STORAGE);
         }
 
         this.hasCheckedLocalStorage = true;

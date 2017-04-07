@@ -92,28 +92,28 @@ func TestPreReqAndRemovals(t *testing.T) {
 	m.Id = 1234
 
 	// Use a full set of RRs each time, so we are sure the rdata is stripped.
-	rr_name1, _ := NewRR("name_used. 3600 IN A 127.0.0.1")
-	rr_name2, _ := NewRR("name_not_used. 3600 IN A 127.0.0.1")
-	rr_remove1, _ := NewRR("remove1. 3600 IN A 127.0.0.1")
-	rr_remove2, _ := NewRR("remove2. 3600 IN A 127.0.0.1")
-	rr_remove3, _ := NewRR("remove3. 3600 IN A 127.0.0.1")
-	rr_insert, _ := NewRR("insert. 3600 IN A 127.0.0.1")
-	rr_rrset1, _ := NewRR("rrset_used1. 3600 IN A 127.0.0.1")
-	rr_rrset2, _ := NewRR("rrset_used2. 3600 IN A 127.0.0.1")
-	rr_rrset3, _ := NewRR("rrset_not_used. 3600 IN A 127.0.0.1")
+	rrName1, _ := NewRR("name_used. 3600 IN A 127.0.0.1")
+	rrName2, _ := NewRR("name_not_used. 3600 IN A 127.0.0.1")
+	rrRemove1, _ := NewRR("remove1. 3600 IN A 127.0.0.1")
+	rrRemove2, _ := NewRR("remove2. 3600 IN A 127.0.0.1")
+	rrRemove3, _ := NewRR("remove3. 3600 IN A 127.0.0.1")
+	rrInsert, _ := NewRR("insert. 3600 IN A 127.0.0.1")
+	rrRrset1, _ := NewRR("rrset_used1. 3600 IN A 127.0.0.1")
+	rrRrset2, _ := NewRR("rrset_used2. 3600 IN A 127.0.0.1")
+	rrRrset3, _ := NewRR("rrset_not_used. 3600 IN A 127.0.0.1")
 
 	// Handle the prereqs.
-	m.NameUsed([]RR{rr_name1})
-	m.NameNotUsed([]RR{rr_name2})
-	m.RRsetUsed([]RR{rr_rrset1})
-	m.Used([]RR{rr_rrset2})
-	m.RRsetNotUsed([]RR{rr_rrset3})
+	m.NameUsed([]RR{rrName1})
+	m.NameNotUsed([]RR{rrName2})
+	m.RRsetUsed([]RR{rrRrset1})
+	m.Used([]RR{rrRrset2})
+	m.RRsetNotUsed([]RR{rrRrset3})
 
 	// and now the updates.
-	m.RemoveName([]RR{rr_remove1})
-	m.RemoveRRset([]RR{rr_remove2})
-	m.Remove([]RR{rr_remove3})
-	m.Insert([]RR{rr_insert})
+	m.RemoveName([]RR{rrRemove1})
+	m.RemoveRRset([]RR{rrRemove2})
+	m.Remove([]RR{rrRemove3})
+	m.Insert([]RR{rrInsert})
 
 	// This test function isn't a Example function because we print these RR with tabs at the
 	// end and the Example function trim these, thus they never match.

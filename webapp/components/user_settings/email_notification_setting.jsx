@@ -57,10 +57,42 @@ export default class EmailNotificationSetting extends React.Component {
     }
 
     render() {
+        if (global.window.mm_config.SendEmailNotifications !== 'true' && this.props.activeSection === 'email') {
+            const inputs = [];
+
+            inputs.push(
+                <div
+                    key='oauthEmailInfo'
+                    className='padding-top'
+                >
+                    <FormattedMessage
+                        id='user.settings.notifications.email.disabled_long'
+                        defaultMessage='Email notifications have been disabled by your System Administrator.'
+                    />
+                </div>
+            );
+
+            return (
+                <SettingItemMax
+                    title={localizeMessage('user.settings.notifications.emailNotifications', 'Email notifications')}
+                    inputs={inputs}
+                    server_error={this.state.serverError}
+                    updateSection={this.collapse}
+                />
+            );
+        }
+
         if (this.props.activeSection !== 'email') {
             let description;
 
-            if (this.props.enableEmail) {
+            if (global.window.mm_config.SendEmailNotifications !== 'true') {
+                description = (
+                    <FormattedMessage
+                        id='user.settings.notifications.email.disabled'
+                        defaultMessage='Disabled by System Administrator'
+                    />
+                );
+            } else if (this.props.enableEmail) {
                 switch (this.state.emailInterval) {
                 case Preferences.INTERVAL_IMMEDIATE:
                     description = (
@@ -113,6 +145,7 @@ export default class EmailNotificationSetting extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='emailNotificationMinutes'
                                 type='radio'
                                 name='emailNotifications'
                                 checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
@@ -128,6 +161,7 @@ export default class EmailNotificationSetting extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='emailNotificationHour'
                                 type='radio'
                                 name='emailNotifications'
                                 checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_HOUR}
@@ -164,6 +198,7 @@ export default class EmailNotificationSetting extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='emailNotificationImmediately'
                                     type='radio'
                                     name='emailNotifications'
                                     checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_IMMEDIATE}
@@ -179,6 +214,7 @@ export default class EmailNotificationSetting extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='emailNotificationNever'
                                     type='radio'
                                     name='emailNotifications'
                                     checked={!this.props.enableEmail}

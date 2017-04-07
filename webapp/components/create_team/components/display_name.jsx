@@ -10,7 +10,6 @@ import logoImage from 'images/logo.png';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class TeamSignupDisplayNamePage extends React.Component {
@@ -118,14 +117,6 @@ export default class TeamSignupDisplayNamePage extends React.Component {
                             defaultMessage='Next'
                         /><i className='fa fa-chevron-right'/>
                     </button>
-                    <div className='margin--extra'>
-                        <Link to='/select_team'>
-                            <FormattedMessage
-                                id='create_team.display_name.back'
-                                defaultMessage='Back to previous step'
-                            />
-                        </Link>
-                    </div>
                 </form>
             </div>
         );

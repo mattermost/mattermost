@@ -49,6 +49,7 @@ class FileUpload extends React.Component {
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
         this.handleMaxUploadReached = this.handleMaxUploadReached.bind(this);
+        this.emojiClick = this.emojiClick.bind(this);
 
         this.state = {
             requests: {}
@@ -211,17 +212,19 @@ class FileUpload extends React.Component {
         target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
     }
 
+    emojiClick() {
+        this.props.onEmojiClick();
+    }
+
     pasteUpload(e) {
-        var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         const {formatMessage} = this.props.intl;
 
         if (!e.clipboardData || !e.clipboardData.items) {
             return;
         }
 
-        var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
-
-        if (textarea !== e.target && !$.contains(textarea, e.target)) {
+        const textarea = ReactDOM.findDOMNode(this.props.getTarget());
+        if (!textarea || !textarea.contains(e.target)) {
             return;
         }
 
@@ -347,24 +350,33 @@ class FileUpload extends React.Component {
         const channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
+        const emojiSpan = (<span
+            className={'fa fa-smile-o icon--emoji-picker emoji-' + this.props.navBarName}
+            onClick={this.emojiClick}
+                           />);
+        const filestyle = {visibility: 'hidden'};
 
         return (
             <span
                 ref='input'
                 className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
-                />
-                <input
-                    ref='fileInput'
-                    type='file'
-                    onChange={this.handleChange}
-                    onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
-                    multiple={multiple}
-                    accept={accept}
-                />
+                <div className='icon--attachment'>
+                    <span
+                        dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                        onClick={() => this.refs.fileInput.click()}
+                    />
+                    <input
+                        ref='fileInput'
+                        type='file'
+                        style={filestyle}
+                        onChange={this.handleChange}
+                        onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
+                        multiple={multiple}
+                        accept={accept}
+                    />
+                </div>
+                {this.props.emojiEnabled ? emojiSpan : ''}
             </span>
         );
     }
@@ -374,13 +386,17 @@ FileUpload.propTypes = {
     intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
+    getTarget: React.PropTypes.func.isRequired,
     onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
     onFileUploadChange: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
-    postType: React.PropTypes.string
+    postType: React.PropTypes.string,
+    onEmojiClick: React.PropTypes.func,
+    navBarName: React.PropTypes.string,
+    emojiEnabled: React.PropTypes.bool
 };
 
 export default injectIntl(FileUpload, {withRef: true});

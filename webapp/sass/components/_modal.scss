@@ -345,7 +345,7 @@
                 }
 
                 img {
-                    max-height: 100%;
+                    max-height: calc(100vh - 200px);
                     max-width: 100%;
                 }
 
@@ -600,6 +600,10 @@
                 opacity: .5;
             }
         }
+    }
+
+    .more-modal__placeholder-row {
+        padding: 10px 15px;
     }
 
     .more-modal__actions--round {

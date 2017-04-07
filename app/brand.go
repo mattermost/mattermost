@@ -13,11 +13,13 @@ import (
 )
 
 func SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	brandInterface := einterfaces.GetBrandInterface()
 	if brandInterface == nil {
-		err := model.NewLocAppError("SaveBrandImage", "api.admin.upload_brand_image.not_available.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return err
+		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if err := brandInterface.SaveBrandImage(imageData); err != nil {
@@ -29,16 +31,12 @@ func SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 
 func GetBrandImage() ([]byte, *model.AppError) {
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		err := model.NewLocAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return nil, err
+		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	brandInterface := einterfaces.GetBrandInterface()
 	if brandInterface == nil {
-		err := model.NewLocAppError("GetBrandImage", "api.admin.get_brand_image.not_available.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return nil, err
+		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if img, err := brandInterface.GetBrandImage(); err != nil {

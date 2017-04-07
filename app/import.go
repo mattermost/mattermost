@@ -415,7 +415,7 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			return err
 		}
 	} else {
-		if _, err := UpdateUser(user, utils.GetSiteURL(), false); err != nil {
+		if _, err := UpdateUser(user, false); err != nil {
 			return err
 		}
 		if _, err := UpdateUserRoles(user.Id, roles); err != nil {
@@ -865,7 +865,7 @@ func OldImportUser(team *model.Team, user *model.User) *model.User {
 			l4g.Error(utils.T("api.import.import_user.set_email.error"), cresult.Err)
 		}
 
-		if err := JoinUserToTeam(team, user, utils.GetSiteURL()); err != nil {
+		if err := JoinUserToTeam(team, user, ""); err != nil {
 			l4g.Error(utils.T("api.import.import_user.join_team.error"), err)
 		}
 

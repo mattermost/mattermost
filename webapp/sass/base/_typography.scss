@@ -26,6 +26,10 @@ body {
     word-break: break-all;
 }
 
+.whitespace--nowrap {
+    white-space: nowrap;
+}
+
 .overflow--ellipsis {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -33,11 +37,11 @@ body {
 
 .fa {
     &.fa-margin--left {
-        margin-left: 2px;
+        margin-left: 3px;
     }
 
     &.fa-margin--right {
-        margin-right: 2px;
+        margin-right: 3px;
     }
 }
 

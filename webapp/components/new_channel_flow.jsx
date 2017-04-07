@@ -9,43 +9,17 @@ import {cleanUpUrlable} from 'utils/url.jsx';
 import NewChannelModal from './new_channel_modal.jsx';
 import ChangeURLModal from './change_url_modal.jsx';
 
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {createChannel} from 'actions/channel_actions.jsx';
 import {browserHistory} from 'react-router/es6';
 
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
-const messages = defineMessages({
-    channel: {
-        id: 'channel_flow.channel',
-        defaultMessage: 'Channel'
-    },
-    group: {
-        id: 'channel_flow.group',
-        defaultMessage: 'Group'
-    },
-    change: {
-        id: 'channel_flow.changeUrlTitle',
-        defaultMessage: 'Change {term} URL'
-    },
-    set: {
-        id: 'channel_flow.set_url_title',
-        defaultMessage: 'Set {term} URL'
-    },
-    create: {
-        id: 'channel_flow.create',
-        defaultMessage: 'Create {term}'
-    },
-    changeUrlDescription: {
-        id: 'channel_flow.changeUrlDescription',
-        defaultMessage: 'Some characters are not allowed in URLs and may be removed.'
-    }
-});
 
 import React from 'react';
 
-class NewChannelFlow extends React.Component {
+export default class NewChannelFlow extends React.Component {
     constructor(props) {
         super(props);
 
@@ -182,9 +156,6 @@ class NewChannelFlow extends React.Component {
 
         let changeURLTitle = '';
         let changeURLSubmitButtonText = '';
-        let channelTerm = '';
-
-        const {formatMessage} = this.props.intl;
 
         // Only listen to flow state if we are being shown
         if (this.props.show) {
@@ -192,21 +163,34 @@ class NewChannelFlow extends React.Component {
             case SHOW_NEW_CHANNEL:
                 if (this.state.channelType === 'O') {
                     showChannelModal = true;
-                    channelTerm = formatMessage(messages.channel);
                 } else {
                     showGroupModal = true;
-                    channelTerm = formatMessage(messages.group);
                 }
                 break;
             case SHOW_EDIT_URL:
                 showChangeURLModal = true;
-                changeURLTitle = formatMessage(messages.change, {term: channelTerm});
-                changeURLSubmitButtonText = formatMessage(messages.change, {term: channelTerm});
+                changeURLTitle = (
+                    <FormattedMessage
+                        id='channel_flow.changeUrlTitle'
+                        defaultMessage='Change Channel URL'
+                    />
+                );
+                changeURLSubmitButtonText = changeURLTitle;
                 break;
             case SHOW_EDIT_URL_THEN_COMPLETE:
                 showChangeURLModal = true;
-                changeURLTitle = formatMessage(messages.set, {term: channelTerm});
-                changeURLSubmitButtonText = formatMessage(messages.create, {term: channelTerm});
+                changeURLTitle = (
+                    <FormattedMessage
+                        id='channel_flow.set_url_title'
+                        defaultMessage='Set Channel URL'
+                    />
+                );
+                changeURLSubmitButtonText = (
+                    <FormattedMessage
+                        id='channel_flow.create'
+                        defaultMessage='Create Channel'
+                    />
+                );
                 break;
             }
         }
@@ -239,8 +223,6 @@ class NewChannelFlow extends React.Component {
                 <ChangeURLModal
                     show={showChangeURLModal}
                     title={changeURLTitle}
-                    description={formatMessage(messages.changeUrlDescription)}
-                    urlLabel={channelTerm + ' URL'}
                     submitButtonText={changeURLSubmitButtonText}
                     currentURL={this.state.channelName}
                     serverError={this.state.serverError}
@@ -259,10 +241,7 @@ NewChannelFlow.defaultProps = {
 };
 
 NewChannelFlow.propTypes = {
-    intl: intlShape.isRequired,
     show: React.PropTypes.bool.isRequired,
     channelType: React.PropTypes.string.isRequired,
     onModalDismissed: React.PropTypes.func.isRequired
 };
-
-export default injectIntl(NewChannelFlow);

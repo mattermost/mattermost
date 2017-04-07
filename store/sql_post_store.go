@@ -64,6 +64,7 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
+	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -194,6 +195,58 @@ func (s SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) Stor
 
 		var posts []*model.Post
 		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
+		} else {
+			for _, post := range posts {
+				pl.AddPost(post)
+				pl.AddOrder(post.Id)
+			}
+		}
+
+		result.Data = pl
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+	go func() {
+		result := StoreResult{}
+		pl := model.NewPostList()
+
+		var posts []*model.Post
+
+		query := `
+            SELECT
+                A.*
+            FROM
+                (SELECT
+                    *
+                FROM
+                    Posts
+                WHERE
+                    Id
+                IN
+                    (SELECT
+                        Name
+                    FROM
+                        Preferences
+                    WHERE
+                        UserId = :UserId
+                        AND Category = 'flagged_post')
+                        AND DeleteAt = 0
+                ) as A
+            INNER JOIN Channels as B
+                ON B.Id = A.ChannelId
+            WHERE B.TeamId = :TeamId OR B.TeamId = ''
+            ORDER BY CreateAt DESC
+            LIMIT :Limit OFFSET :Offset`
+
+		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error())
 		} else {
 			for _, post := range posts {

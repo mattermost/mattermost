@@ -19,14 +19,23 @@
             width: 300px;
         }
     }
-
+    .post-right__scroll{
+        .post-create__container{
+            .post-create-body {
+                .icon__emoji_picker {
+                    display:none;
+                    top: -7px;
+                }
+            }
+        }
+    }
     .post-create__container {
         form {
             padding: .5em 0 0;
         }
 
         .post-create-footer {
-            padding: 0 45px;
+            padding: 0 45px 0 8px;
 
             .post-error {
                 position: relative;
@@ -46,6 +55,7 @@
                 display: table-cell;
                 padding-left: 45px;
 
+
                 .sidebar--right & {
                     padding-left: 0;
                 }
@@ -54,15 +64,30 @@
             .app__content & {
                 .btn-file {
                     bottom: -2px;
-                    left: 0;
+                    left: 10px;
                     line-height: 36px;
                     padding: 0;
                     top: auto;
-                    width: 45px;
+                    width: 25px;
                 }
             }
 
-            .send-button {
+            .app__content & {
+                .icon {
+                    position: relative;
+                    top: 3px;
+
+                }
+            }
+
+            .icon__emoji_picker {
+                position: relative;
+                display: none;
+                top: 1px;
+                right: -1px;
+            }
+
+                    .send-button {
                 display: table-cell;
             }
         }
@@ -127,6 +152,15 @@
                 top: auto;
             }
         }
+
+        &.move--left,
+        &.webrtc--show,
+        &.move--right {
+            .header-list__right {
+                // hide it behind the RHS
+                z-index: -1;
+            }
+        }
     }
     .post {
         .attachment {
@@ -182,6 +216,13 @@
                 }
             }
         }
+
+        .sidebar--right__title {
+            display: inline-block;
+            max-width: 300px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     .inner-wrap {
@@ -200,7 +241,7 @@
                     left: -79px;
                     position: absolute;
                     text-align: right;
-                    top: 6px;
+                    top: 3px;
                     width: 60px;
                 }
 
@@ -213,8 +254,13 @@
                 }
             }
 
+            .post__pinned-badge {
+                margin-left: 0;
+                margin-right: 5px;
+            }
+
             &:not(.post--thread) {
-                padding: 5px .5em 0 77px;
+                padding: 0 .5em 0 77px;
 
                 .post__link {
                     margin: 4px 0 7px;
@@ -224,7 +270,7 @@
                 span {
                     p {
                         &:last-child {
-                            margin-bottom: .3em;
+                            margin-bottom: 0;
                         }
                     }
                 }
@@ -289,7 +335,7 @@
             .flag-icon__container {
                 left: -21px;
                 position: absolute;
-                top: 7px;
+                top: 4px;
             }
 
             .sidebar--right & .flag-icon__container {
@@ -306,7 +352,7 @@
                     .flag-icon__container {
                         left: -19px;
                         position: absolute;
-                        top: 7px;
+                        top: 4px;
                     }
 
                     .post__header {
@@ -359,8 +405,15 @@
                 }
 
                 .post__header {
+                    float: left;
+                    padding-top: 3px;
+
                     .col__reply {
                         top: -21px;
+                    }
+
+                    .post__pinned-badge {
+                        margin-right: 5px;
                     }
                 }
 
@@ -375,10 +428,17 @@
                         text-rendering: auto;
                         top: -2px;
                         width: 51px;
+
                         &:hover {
                             text-decoration: underline;
                         }
                     }
+                }
+            }
+
+            &.post--comment:not(.post--compact) {
+                .post__pinned-badge {
+                    margin-left: 10px;
                 }
             }
         }

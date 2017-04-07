@@ -25,15 +25,18 @@ type Routes struct {
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9_-\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email}'
 
-	Teams        *mux.Router // 'api/v4/teams'
-	TeamsForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
-	Team         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}'
-	TeamByName   *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
-	TeamMembers  *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
-	TeamMember   *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
+	Teams              *mux.Router // 'api/v4/teams'
+	TeamsForUser       *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
+	Team               *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}'
+	TeamForUser        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}'
+	TeamByName         *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
+	TeamMembers        *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
+	TeamMember         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
+	TeamMembersForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/members'
 
 	Channels                 *mux.Router // 'api/v4/channels'
 	Channel                  *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}'
+	ChannelForUser           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
 	ChannelByName            *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels/name/{channel_name:[A-Za-z0-9_-]+}'
 	ChannelByNameForTeamName *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}/channels/name/{channel_name:[A-Za-z0-9_-]+}'
 	ChannelsForTeam          *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels'
@@ -48,6 +51,8 @@ type Routes struct {
 	Files *mux.Router // 'api/v4/files'
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
 
+	PublicFile *mux.Router // 'files/{file_id:[A-Za-z0-9]+}/public'
+
 	Commands        *mux.Router // 'api/v4/commands'
 	Command         *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
 	CommandsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/commands'
@@ -58,9 +63,15 @@ type Routes struct {
 	OutgoingHooks *mux.Router // 'api/v4/hooks/outgoing'
 	OutgoingHook  *mux.Router // 'api/v4/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
 
-	OAuth *mux.Router // 'api/v4/oauth'
+	Admin      *mux.Router // 'api/v4/admin'
+	OAuth      *mux.Router // 'api/v4/oauth'
+	SAML       *mux.Router // 'api/v4/saml'
+	Compliance *mux.Router // 'api/v4/compliance'
+	Cluster    *mux.Router // 'api/v4/cluster'
 
-	Admin *mux.Router // 'api/v4/admin'
+	LDAP *mux.Router // 'api/v4/ldap'
+
+	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
 
@@ -81,7 +92,6 @@ var BaseRoutes *Routes
 func InitRouter() {
 	app.Srv.Router = mux.NewRouter()
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
-	app.Srv.WebSocketRouter = app.NewWebSocketRouter()
 }
 
 func InitApi(full bool) {
@@ -90,19 +100,22 @@ func InitApi(full bool) {
 	BaseRoutes.ApiRoot = app.Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
 
 	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
-	BaseRoutes.User = BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.User = BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.UserByUsername = BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	BaseRoutes.UserByEmail = BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
 
 	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
 	BaseRoutes.TeamsForUser = BaseRoutes.User.PathPrefix("/teams").Subrouter()
 	BaseRoutes.Team = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.TeamForUser = BaseRoutes.TeamsForUser.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
 	BaseRoutes.TeamMember = BaseRoutes.TeamMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.TeamMembersForUser = BaseRoutes.User.PathPrefix("/teams/members").Subrouter()
 
 	BaseRoutes.Channels = BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
 	BaseRoutes.Channel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.ChannelForUser = BaseRoutes.User.PathPrefix("/channels/{channel_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.ChannelByName = BaseRoutes.Team.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.ChannelByNameForTeamName = BaseRoutes.TeamByName.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
 	BaseRoutes.ChannelsForTeam = BaseRoutes.Team.PathPrefix("/channels").Subrouter()
@@ -116,6 +129,7 @@ func InitApi(full bool) {
 
 	BaseRoutes.Files = BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
 	BaseRoutes.File = BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
+	BaseRoutes.PublicFile = BaseRoutes.Root.PathPrefix("/files/{file_id:[A-Za-z0-9]+}/public").Subrouter()
 
 	BaseRoutes.Commands = BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	BaseRoutes.Command = BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
@@ -127,8 +141,13 @@ func InitApi(full bool) {
 	BaseRoutes.OutgoingHooks = BaseRoutes.Hooks.PathPrefix("/outgoing").Subrouter()
 	BaseRoutes.OutgoingHook = BaseRoutes.OutgoingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
 
+	BaseRoutes.SAML = BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
 	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.Compliance = BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
+	BaseRoutes.Cluster = BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
+	BaseRoutes.LDAP = BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
+	BaseRoutes.Brand = BaseRoutes.ApiRoot.PathPrefix("/brand").Subrouter()
 	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
@@ -147,6 +166,14 @@ func InitApi(full bool) {
 	InitSystem()
 	InitWebhook()
 	InitPreference()
+	InitSaml()
+	InitCompliance()
+	InitCluster()
+	InitLdap()
+	InitBrand()
+	InitCommand()
+	InitStatus()
+	InitWebSocket()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

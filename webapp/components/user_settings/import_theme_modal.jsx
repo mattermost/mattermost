@@ -173,6 +173,7 @@ export default class ImportThemeModal extends React.Component {
                             <div className='form-group less'>
                                 <div className='col-sm-12'>
                                     <input
+                                        id='themeVector'
                                         type='text'
                                         className='form-control'
                                         value={this.state.value}
@@ -186,6 +187,7 @@ export default class ImportThemeModal extends React.Component {
                         </Modal.Body>
                         <Modal.Footer>
                             <button
+                                id='cancelButton'
                                 type='button'
                                 className='btn btn-default'
                                 onClick={() => this.setState({show: false})}
@@ -196,6 +198,7 @@ export default class ImportThemeModal extends React.Component {
                                 />
                             </button>
                             <button
+                                id='submitButton'
                                 onClick={this.handleSubmit}
                                 type='submit'
                                 className='btn btn-primary'

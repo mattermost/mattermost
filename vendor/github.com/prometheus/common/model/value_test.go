@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-func TestEqual(t *testing.T) {
+func TestEqualValues(t *testing.T) {
 	tests := map[string]struct {
 		in1, in2 SampleValue
 		want     bool
@@ -74,6 +74,57 @@ func TestEqual(t *testing.T) {
 			t.Errorf("Comparing %s, %f and %f: got %t, want %t", name, test.in1, test.in2, got, test.want)
 		}
 	}
+}
+
+func TestEqualSamples(t *testing.T) {
+	testSample := &Sample{}
+
+	tests := map[string]struct {
+		in1, in2 *Sample
+		want     bool
+	}{
+		"equal pointers": {
+			in1:  testSample,
+			in2:  testSample,
+			want: true,
+		},
+		"different metrics": {
+			in1:  &Sample{Metric: Metric{"foo": "bar"}},
+			in2:  &Sample{Metric: Metric{"foo": "biz"}},
+			want: false,
+		},
+		"different timestamp": {
+			in1:  &Sample{Timestamp: 0},
+			in2:  &Sample{Timestamp: 1},
+			want: false,
+		},
+		"different value": {
+			in1:  &Sample{Value: 0},
+			in2:  &Sample{Value: 1},
+			want: false,
+		},
+		"equal samples": {
+			in1: &Sample{
+				Metric:    Metric{"foo": "bar"},
+				Timestamp: 0,
+				Value:     1,
+			},
+			in2: &Sample{
+				Metric:    Metric{"foo": "bar"},
+				Timestamp: 0,
+				Value:     1,
+			},
+			want: true,
+		},
+	}
+
+	for name, test := range tests {
+		got := test.in1.Equal(test.in2)
+		if got != test.want {
+			t.Errorf("Comparing %s, %v and %v: got %t, want %t", name, test.in1, test.in2, got, test.want)
+		}
+	}
+
 }
 
 func TestSamplePairJSON(t *testing.T) {

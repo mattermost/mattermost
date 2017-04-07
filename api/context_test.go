@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSiteURL(t *testing.T) {
+func TestSiteURLHeader(t *testing.T) {
 	c := &Context{}
 
 	testCases := []struct {
@@ -19,10 +19,10 @@ func TestSiteURL(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		c.SetSiteURL(tc.url)
+		c.SetSiteURLHeader(tc.url)
 
-		if c.siteURL != tc.want {
-			t.Fatalf("expected %s, got %s", tc.want, c.siteURL)
+		if c.siteURLHeader != tc.want {
+			t.Fatalf("expected %s, got %s", tc.want, c.siteURLHeader)
 		}
 	}
 

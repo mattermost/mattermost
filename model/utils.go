@@ -156,6 +156,15 @@ func MapToJson(objmap map[string]string) string {
 	}
 }
 
+// MapToJson converts a map to a json string
+func MapBoolToJson(objmap map[string]bool) string {
+	if b, err := json.Marshal(objmap); err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 // MapFromJson will decode the key/value pair map
 func MapFromJson(data io.Reader) map[string]string {
 	decoder := json.NewDecoder(data)
@@ -163,6 +172,18 @@ func MapFromJson(data io.Reader) map[string]string {
 	var objmap map[string]string
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]string)
+	} else {
+		return objmap
+	}
+}
+
+// MapFromJson will decode the key/value pair map
+func MapBoolFromJson(data io.Reader) map[string]bool {
+	decoder := json.NewDecoder(data)
+
+	var objmap map[string]bool
+	if err := decoder.Decode(&objmap); err != nil {
+		return make(map[string]bool)
 	} else {
 		return objmap
 	}

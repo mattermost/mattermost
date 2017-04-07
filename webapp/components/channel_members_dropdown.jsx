@@ -9,6 +9,7 @@ import {removeUserFromChannel, makeUserChannelAdmin, makeUserChannelMember} from
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
+import {canManageMembers} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -91,8 +92,7 @@ export default class ChannelMembersDropdown extends React.Component {
 
     // Checks if the current user has the power to remove this member from the channel.
     canRemoveMember() {
-        // TODO: This will be implemented as part of PLT-5047.
-        return true;
+        return canManageMembers(this.props.channel, UserStore.isSystemAdminForCurrentUser(), TeamStore.isTeamAdminForCurrentTeam(), ChannelStore.isChannelAdminForCurrentChannel());
     }
 
     render() {
@@ -131,6 +131,7 @@ export default class ChannelMembersDropdown extends React.Component {
                 removeFromChannel = (
                     <li role='presentation'>
                         <a
+                            id='removeFromChannel'
                             role='menuitem'
                             href='#'
                             onClick={this.handleRemoveFromChannel}
@@ -149,6 +150,7 @@ export default class ChannelMembersDropdown extends React.Component {
                 makeChannelMember = (
                     <li role='presentation'>
                         <a
+                            id='makeChannelMember'
                             role='menuitem'
                             href='#'
                             onClick={this.handleMakeChannelMember}
@@ -167,6 +169,7 @@ export default class ChannelMembersDropdown extends React.Component {
                 makeChannelAdmin = (
                     <li role='presentation'>
                         <a
+                            id='makeChannelAdmin'
                             role='menuitem'
                             href='#'
                             onClick={this.handleMakeChannelAdmin}
@@ -183,6 +186,7 @@ export default class ChannelMembersDropdown extends React.Component {
             return (
                 <div className='dropdown member-drop'>
                     <a
+                        id='channelMemberDropdown'
                         href='#'
                         className='dropdown-toggle theme'
                         type='button'
@@ -206,6 +210,7 @@ export default class ChannelMembersDropdown extends React.Component {
         } else if (this.canRemoveMember()) {
             return (
                 <button
+                    id='removeMember'
                     type='button'
                     className='btn btn-danger btn-message'
                     onClick={this.handleRemoveFromChannel}

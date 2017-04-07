@@ -34,6 +34,7 @@ export default class PolicySettings extends AdminSettings {
         config.TeamSettings.RestrictPrivateChannelManagement = this.state.restrictPrivateChannelManagement;
         config.TeamSettings.RestrictPublicChannelDeletion = this.state.restrictPublicChannelDeletion;
         config.TeamSettings.RestrictPrivateChannelDeletion = this.state.restrictPrivateChannelDeletion;
+        config.TeamSettings.RestrictPrivateChannelManageMembers = this.state.restrictPrivateChannelManageMembers;
 
         return config;
     }
@@ -49,18 +50,17 @@ export default class PolicySettings extends AdminSettings {
             restrictPublicChannelManagement: config.TeamSettings.RestrictPublicChannelManagement,
             restrictPrivateChannelManagement: config.TeamSettings.RestrictPrivateChannelManagement,
             restrictPublicChannelDeletion: config.TeamSettings.RestrictPublicChannelDeletion,
-            restrictPrivateChannelDeletion: config.TeamSettings.RestrictPrivateChannelDeletion
+            restrictPrivateChannelDeletion: config.TeamSettings.RestrictPrivateChannelDeletion,
+            restrictPrivateChannelManageMembers: config.TeamSettings.RestrictPrivateChannelManageMembers
         };
     }
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.policy'
-                    defaultMessage='Policy'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.policy'
+                defaultMessage='Policy'
+            />
         );
     }
 
@@ -85,7 +85,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.general.policy.teamInviteDescription'
-                            defaultMessage='Set policy on who can invite others to a team using <b>Invite New Member</b> to invite new users by email, or the <b>Get Team Invite Link</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.'
+                            defaultMessage='Set policy on who can invite others to a team using <b>Send Email Invite</b> to invite new users by email, or the <b>Get Team Invite Link</b> and <b>Add Members to Team</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.'
                         />
                     }
                 />
@@ -181,7 +181,7 @@ export default class PolicySettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelCreationTitle'
-                            defaultMessage='Enable private group creation for:'
+                            defaultMessage='Enable private channel creation for:'
                         />
                     }
                     value={this.state.restrictPrivateChannelCreation}
@@ -189,7 +189,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelCreationDescription'
-                            defaultMessage='Set policy on who can create private groups.'
+                            defaultMessage='Set policy on who can create private channels.'
                         />
                     }
                 />
@@ -204,7 +204,7 @@ export default class PolicySettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelManagementTitle'
-                            defaultMessage='Enable private group renaming for:'
+                            defaultMessage='Enable private channel renaming for:'
                         />
                     }
                     value={this.state.restrictPrivateChannelManagement}
@@ -212,7 +212,30 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelManagementDescription'
-                            defaultMessage='Set policy on who can rename and set the header or purpose for private groups.'
+                            defaultMessage='Set policy on who can rename and set the header or purpose for private channels.'
+                        />
+                    }
+                />
+                <DropdownSetting
+                    id='restrictPrivateChannelManageMembers'
+                    values={[
+                        {value: Constants.PERMISSIONS_ALL, text: Utils.localizeMessage('admin.general.policy.permissionsAllChannel', 'All channel members')},
+                        {value: Constants.PERMISSIONS_CHANNEL_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsChannelAdmin', 'Channel, Team and System Admins')},
+                        {value: Constants.PERMISSIONS_TEAM_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsAdmin', 'Team and System Admins')},
+                        {value: Constants.PERMISSIONS_SYSTEM_ADMIN, text: Utils.localizeMessage('admin.general.policy.permissionsSystemAdmin', 'System Admins')}
+                    ]}
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.restrictPrivateChannelManageMembersTitle'
+                            defaultMessage='Enable managing of private group members for:'
+                        />
+                    }
+                    value={this.state.restrictPrivateChannelManageMembers}
+                    onChange={this.handleChange}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.general.policy.restrictPrivateChannelManageMembersDescription'
+                            defaultMessage='Set policy on who can add and remove members from private groups.'
                         />
                     }
                 />
@@ -227,7 +250,7 @@ export default class PolicySettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelDeletionTitle'
-                            defaultMessage='Enable private group deletion for:'
+                            defaultMessage='Enable private channel deletion for:'
                         />
                     }
                     value={this.state.restrictPrivateChannelDeletion}
@@ -235,7 +258,7 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.restrictPrivateChannelDeletionDescription'
-                            defaultMessage='Set policy on who can delete private groups. Deleted groups can be recovered from the database using a {commandLineToolLink}.'
+                            defaultMessage='Set policy on who can delete private channels. Deleted channels can be recovered from the database using a {commandLineToolLink}.'
                             values={{
                                 commandLineToolLink: (
                                     <a

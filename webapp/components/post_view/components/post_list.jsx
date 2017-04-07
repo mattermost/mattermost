@@ -104,6 +104,10 @@ export default class PostList extends React.Component {
     }
 
     isAtBottom() {
+        if (!this.refs.postlist) {
+            return this.wasAtBottom;
+        }
+
         // consider the view to be at the bottom if it's within this many pixels of the bottom
         const atBottomMargin = 10;
 
@@ -135,6 +139,10 @@ export default class PostList extends React.Component {
         // Postpone all DOM related calculations to next frame.
         // scrollHeight etc might return wrong data at this point
         setTimeout(() => {
+            if (!this.refs.postlist) {
+                return;
+            }
+
             this.wasAtBottom = this.isAtBottom();
             this.props.postListScrolled(this.isAtBottom());
             this.prevScrollHeight = this.refs.postlist.scrollHeight;
@@ -331,6 +339,7 @@ export default class PostList extends React.Component {
                 <Post
                     key={keyPrefix + 'postKey'}
                     ref={post.id}
+                    isLastPost={i === 0}
                     sameUser={sameUser}
                     sameRoot={sameRoot}
                     post={post}

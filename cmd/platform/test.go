@@ -10,9 +10,13 @@ import (
 	"os/exec"
 
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/wsapi"
 	"github.com/spf13/cobra"
+	"os/signal"
+	"syscall"
 )
 
 var testCmd = &cobra.Command{
@@ -27,9 +31,16 @@ var runWebClientTestsCmd = &cobra.Command{
 	RunE:  webClientTestsCmdF,
 }
 
+var runServerForWebClientTestsCmd = &cobra.Command{
+	Use:   "web_client_tests_server",
+	Short: "Run the server configured for running the web client tests against it",
+	RunE:  serverForWebClientTestsCmdF,
+}
+
 func init() {
 	testCmd.AddCommand(
 		runWebClientTestsCmd,
+		runServerForWebClientTestsCmd,
 	)
 }
 
@@ -37,10 +48,33 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	initDBCommandContextCobra(cmd)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	api.InitRouter()
+	wsapi.InitRouter()
+	api4.InitApi(false)
 	api.InitApi()
+	wsapi.InitApi()
 	setupClientTests()
 	app.StartServer()
 	runWebClientTests()
+	app.StopServer()
+
+	return nil
+}
+
+func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
+	initDBCommandContextCobra(cmd)
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+	api.InitRouter()
+	wsapi.InitRouter()
+	api4.InitApi(false)
+	api.InitApi()
+	wsapi.InitApi()
+	setupClientTests()
+	app.StartServer()
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-c
+
 	app.StopServer()
 
 	return nil

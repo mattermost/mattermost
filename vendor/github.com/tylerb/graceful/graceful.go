@@ -366,6 +366,7 @@ func (srv *Server) manageConnections(add, idle, active, remove chan net.Conn, sh
 		select {
 		case conn := <-add:
 			srv.connections[conn] = struct{}{}
+			srv.idleConnections[conn] = struct{}{} // Newly-added connections are considered idle until they become active.
 		case conn := <-idle:
 			srv.idleConnections[conn] = struct{}{}
 		case conn := <-active:

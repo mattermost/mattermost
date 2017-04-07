@@ -32,7 +32,8 @@ export default class Textbox extends React.Component {
         onBlur: React.PropTypes.func,
         supportsCommands: React.PropTypes.bool.isRequired,
         handlePostError: React.PropTypes.func,
-        suggestionListStyle: React.PropTypes.string
+        suggestionListStyle: React.PropTypes.string,
+        emojiEnabled: React.PropTypes.bool
     };
 
     static defaultProps = {
@@ -156,6 +157,10 @@ export default class Textbox extends React.Component {
         this.setState({preview: !this.state.preview});
     }
 
+    hidePreview() {
+        this.setState({preview: false});
+    }
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.channelId !== this.props.channelId) {
             // Update channel id for AtMentionProvider.
@@ -241,6 +246,14 @@ export default class Textbox extends React.Component {
             </div>
         );
 
+        let textboxClassName = 'form-control custom-textarea';
+        if (this.props.emojiEnabled) {
+            textboxClassName += ' custom-textarea--emoji-picker';
+        }
+        if (this.state.connection) {
+            textboxClassName += ' ' + this.state.connection;
+        }
+
         return (
             <div
                 ref='wrapper'
@@ -249,7 +262,7 @@ export default class Textbox extends React.Component {
                 <SuggestionBox
                     id={this.props.id}
                     ref='message'
-                    className={`form-control custom-textarea ${this.state.connection}`}
+                    className={textboxClassName}
                     type='textarea'
                     spellCheck='true'
                     placeholder={this.props.createMessage}

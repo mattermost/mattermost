@@ -142,7 +142,6 @@ func Publish(message *model.WebSocketEvent) {
 		metrics.IncrementWebsocketEvent(message.Event)
 	}
 
-	message.DoPreComputeJson()
 	for _, hub := range hubs {
 		hub.Broadcast(message)
 	}
@@ -153,7 +152,6 @@ func Publish(message *model.WebSocketEvent) {
 }
 
 func PublishSkipClusterSend(message *model.WebSocketEvent) {
-	message.DoPreComputeJson()
 	for _, hub := range hubs {
 		hub.Broadcast(message)
 	}

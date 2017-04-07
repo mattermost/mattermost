@@ -489,6 +489,15 @@ export default class Client {
 
     // Team Routes Section
 
+    getTeam(teamId, success, error) {
+        request.
+            get(`${this.getTeamsRoute()}/${teamId}/me`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeam', success, error));
+    }
+
     findTeamByName(teamName, success, error) {
         request.
             post(`${this.getTeamsRoute()}/find_team_by_name`).
@@ -550,6 +559,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getAllTeamListings', success, error));
     }
 
+    getTeamsForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
+    }
+
     getMyTeam(success, error) {
         request.
             get(`${this.getTeamNeededRoute()}/me`).
@@ -584,6 +603,16 @@ export default class Client {
         type('application/json').
         accept('application/json').
         end(this.handleResponse.bind(this, 'getMyTeamMembers', success, error));
+    }
+
+    getTeamMembersForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams/members`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
     }
 
     getMyTeamsUnread(teamId, success, error) {
@@ -659,6 +688,30 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
         this.trackEvent('api', 'api_teams_invite_members');
+    }
+
+    addUsersToTeam(teamId, userIds, success, error) {
+        let nonEmptyTeamId = teamId;
+        if (nonEmptyTeamId === '') {
+            nonEmptyTeamId = this.getTeamId();
+        }
+
+        const teamMembers = userIds.map((userId) => {
+            return {
+                team_id: nonEmptyTeamId,
+                user_id: userId
+            };
+        });
+
+        request.
+            post(`${this.url}/api/v4/teams/${nonEmptyTeamId}/members/batch`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(teamMembers).
+            end(this.handleResponse.bind(this, 'addUsersToTeam', success, error));
+
+        this.trackEvent('api', 'api_teams_batch_add_members', {team_id: nonEmptyTeamId, count: teamMembers.length});
     }
 
     removeUserFromTeam(teamId, userId, success, error) {
@@ -1104,6 +1157,29 @@ export default class Client {
         this.trackEvent('api', 'api_profiles_get_in_team', {team_id: teamId});
     }
 
+    getProfilesNotInTeam(teamId, offset, limit, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?not_in_team=${this.getTeamId()}&page=${offset}&per_page=${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesNotInTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_not_in_team', {team_id: teamId});
+    }
+
     getProfilesInChannel(channelId, offset, limit, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/users/${offset}/${limit}`).
@@ -1126,6 +1202,29 @@ export default class Client {
         this.trackEvent('api', 'api_profiles_get_not_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
+    getProfilesWithoutTeam(page, perPage, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?without_team=1&page=${page}&per_page=${perPage}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesWithoutTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_without_team');
+    }
+
     getProfilesByIds(userIds, success, error) {
         request.
             post(`${this.getUsersRoute()}/ids`).
@@ -1146,6 +1245,19 @@ export default class Client {
             accept('application/json').
             send({term, team_id: teamId, ...options}).
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
+    }
+
+    searchUsersNotInTeam(term, teamId, options, success, error) {
+        // Note that this is calling an APIv4 Endpoint since no APIv3 equivalent exists.
+        request.
+            post(`${this.url}/api/v4/users/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term, not_in_team_id: teamId, ...options}).
+            end(this.handleResponse.bind(this, 'searchUsersNotInTeam', success, error));
+
+        this.trackEvent('api', 'api_search_users_not_in_team', {team_id: teamId});
     }
 
     autocompleteUsersInChannel(term, channelId, success, error) {
@@ -1250,6 +1362,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
 
         this.trackEvent('api', 'api_users_update_profile_picture');
+    }
+
+    getProfilePictureUrl(id, lastPictureUpdate) {
+        let url = `${this.getUsersRoute()}/${id}/image`;
+
+        if (lastPictureUpdate) {
+            url += `?time=${lastPictureUpdate}`;
+        }
+
+        return url;
     }
 
     // Channel Routes Section
@@ -1438,18 +1560,6 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannel', success, error));
 
         this.trackEvent('api', 'api_channel_get', {team_id: this.getTeamId(), channel_id: channelId});
-    }
-
-    // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
-    getMoreChannels(success, error) {
-        request.
-            get(`${this.getChannelsRoute()}/more`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
-
-        this.trackEvent('api', 'api_channels_more', {team_id: this.getTeamId()});
     }
 
     getMoreChannelsPage(offset, limit, success, error) {
@@ -1802,6 +1912,15 @@ export default class Client {
         this.trackEvent('api', 'api_posts_get_flagged', {team_id: this.getTeamId()});
     }
 
+    getPinnedPosts(channelId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/pinned`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPinnedPosts', success, error));
+    }
+
     getFileInfosForPost(channelId, postId, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/get_file_infos`).
@@ -2140,6 +2259,7 @@ export default class Client {
         request.
             post(`${this.getEmojiRoute()}/delete`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send({id}).
             end(this.handleResponse.bind(this, 'deleteEmoji', success, error));
@@ -2187,10 +2307,29 @@ export default class Client {
         });
     }
 
+    pinPost(channelId, postId, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/pin`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send().
+            end(this.handleResponse.bind(this, 'pinPost', success, error));
+    }
+
+    unpinPost(channelId, postId, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/unpin`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send().
+            end(this.handleResponse.bind(this, 'unpinPost', success, error));
+    }
+
     saveReaction(channelId, reaction, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/save`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'saveReaction', success, error));
@@ -2202,6 +2341,7 @@ export default class Client {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/delete`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'deleteReaction', success, error));
