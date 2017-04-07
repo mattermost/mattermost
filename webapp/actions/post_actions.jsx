@@ -36,6 +36,11 @@ export function handleNewPost(post, msg) {
     if (ChannelStore.getMyMember(post.channel_id)) {
         completePostReceive(post, websocketMessageProps);
     } else {
+        // This API call requires any real team id in API v3, so set one if we don't already have one
+        if (!Client.teamId && msg && msg.data) {
+            Client.setTeamId(msg.data.team_id);
+        }
+
         AsyncClient.getChannelMember(post.channel_id, UserStore.getCurrentId()).then(() => completePostReceive(post, websocketMessageProps));
     }
 }
