@@ -1,22 +1,22 @@
-Mattermost Platform 
+Mattermost Platform
 © 2015-2017 Mattermost, Inc.  All Rights Reserved.  See LICENSE.txt for license information.
 
-NOTICES: 
+NOTICES:
 --------
 
-This document includes a list of open source components used in Mattermost, including those that have been modified. 
+This document includes a list of open source components used in Mattermost, including those that have been modified.
 
 --------
 
 ## react
 
-This product contains a modified portion of 'react', a declarative, efficient, and 
-flexible JavaScript library for building user interfaces by Facebook, Inc. 
+This product contains a modified portion of 'react', a declarative, efficient, and
+flexible JavaScript library for building user interfaces by Facebook, Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/facebook/react
-  
-* LICENSE: 
+
+* LICENSE:
 
 BSD License
 
@@ -52,41 +52,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'perfect-scrollbar', a scrollbar plugin 
-by Hyunje Alex Jun and other contributors. 
-* HOMEPAGE: 
+This product contains a modified portion of 'perfect-scrollbar', a scrollbar plugin
+by Hyunje Alex Jun and other contributors.
+* HOMEPAGE:
   * https://github.com/noraesae/perfect-scrollbar
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT) Copyright (c) 2015 Hyunje Alex Jun and other contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this
-software and associated documentation files (the "Software"), to deal in the Software 
-without restriction, including without limitation the rights to use, copy, modify, 
-merge, publish, distribute, sublicense, and/or sell copies of the Software, and to 
-permit persons to whom the Software is furnished to do so, subject to the following 
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the following
 conditions:
 
-The above copyright notice and this permission notice shall be included in all copies 
+The above copyright notice and this permission notice shall be included in all copies
 or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'jquery-dragster', a drag and drop listener 
-by Jan Martin. 
+This product contains a modified portion of 'jquery-dragster', a drag and drop listener
+by Jan Martin.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/catmanjan/jquery-dragster
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -112,12 +112,12 @@ SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'twemoji', a set of emoticons by Twitter, Inc. 
+This product contains a modified portion of 'twemoji', a set of emoticons by Twitter, Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/twitter/twemoji
-  
-* LICENSE: 
+
+* LICENSE:
 
 # Code licensed under the MIT License:
 
@@ -194,7 +194,7 @@ exhaustive, and do not form part of our licenses.
      such as asking that all changes be marked or described.
      Although not required by our licenses, you are encouraged to
      respect those requests where reasonable. More_considerations
-     for the public: 
+     for the public:
 	wiki.creativecommons.org/Considerations_for_licensees
 
 =======================================================================
@@ -539,30 +539,30 @@ Creative Commons may be contacted at creativecommons.org.
 
 ---
 
-This product contains a modified portion of 'golang-lru', a golang LRU cache by hashicorp, 
+This product contains a modified portion of 'golang-lru', a golang LRU cache by hashicorp,
 based on Groupcache by Google Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/hashicorp/golang-lru
-  
-* LICENSE: 
 
-This Source Code Form is subject to the terms of the Mozilla Public License, v.2.0. If a 
-copy of the MPL was not distributed with this file, You can obtain one at 
+* LICENSE:
+
+This Source Code Form is subject to the terms of the Mozilla Public License, v.2.0. If a
+copy of the MPL was not distributed with this file, You can obtain one at
 http://mozilla.org/MPL/2.0/.
 
 ---
 
-This product contains a modified portion of 'golang-freetype', a port of the Freetype 
-font rasterizer (www.freetype.org) to the Go programming. 
+This product contains a modified portion of 'golang-freetype', a port of the Freetype
+font rasterizer (www.freetype.org) to the Go programming.
 
-Portions of this software are copyright © 2010 The FreeType Project (www.freetype.org).  
+Portions of this software are copyright © 2010 The FreeType Project (www.freetype.org).
 All rights reserved.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * http://www.freetype.org
-  
-* LICENSE: 
+
+* LICENSE:
 
                     The FreeType Project LICENSE
                     ----------------------------
@@ -730,17 +730,17 @@ Legal Terms
   Our home page can be found at
 
     http://www.freetype.org
-    
+
 --- end of FTL.TXT ---
-    
+
 ---
 
 This product contains a modified portion of 'gemoji', a collection of emoji images and names by Apple Inc. and other contributors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/github/gemoji/blob/master/LICENSE
-  
-* LICENSE: 
+
+* LICENSE:
 
 octocat, squirrel, shipit
 Copyright (c) 2013 GitHub Inc. All rights reserved.
@@ -758,32 +758,32 @@ All other images
 Copyright (c) 2013 Apple Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this
-software and associated documentation files (the "Software"), to deal in the Software 
-without restriction, including without limitation the rights to use, copy, modify, 
-merge, publish, distribute, sublicense, and/or sell copies of the Software, and to 
-permit persons to whom the Software is furnished to do so, subject to the following 
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the following
 conditions:
 
-The above copyright notice and this permission notice shall be included in all copies 
+The above copyright notice and this permission notice shall be included in all copies
 or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
-PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
 ---
 
 This product contains a modified portion of 'marked', a full-featured markdown parser and compiler, written in JavaScript. Built for speed.
 
-by Christopher Jeffrey 
+by Christopher Jeffrey
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/chjj/marked
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2011-2014, Christopher Jeffrey (https://github.com/chjj/)
 
@@ -813,10 +813,10 @@ This product contains a modified portion of 'react-bootstrap', a library of reus
 
 by  Stephen J. Collings, Matthew Honnibal, Pieter Vanderwerff
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/react-bootstrap/react-bootstrap
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -846,10 +846,10 @@ This product contains a modified portion of 'goexif', which provides decoding of
 
 by Robert Carlsen & Contributors
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/rwcarlsen/goexif
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012, Robert Carlsen & Contributors
 All rights reserved.
@@ -881,10 +881,10 @@ This product contains a modified portion of 'graphics-go', an implementation of 
 
 by The Graphics-Go Authors
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://code.google.com/p/graphics-go/
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2011 The Graphics-Go Authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
@@ -913,10 +913,10 @@ This product contains a modified portion of 'Bootstrap Colorpicker', a nice and 
 
 by Stefan Petre
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/mjolnic/bootstrap-colorpicker/
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright 2012 Stefan Petre
 
@@ -940,10 +940,10 @@ This product contains a modified portion of 'highlight.js', a syntax highlighter
 
 by Ivan Sagalaev
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/isagalaev/highlight.js
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2006, Ivan Sagalaev
 All rights reserved.
@@ -955,8 +955,8 @@ modification, are permitted provided that the following conditions are met:
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither the name of highlight.js nor the names of its contributors 
-      may be used to endorse or promote products derived from this software 
+    * Neither the name of highlight.js nor the names of its contributors
+      may be used to endorse or promote products derived from this software
       without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND ANY
@@ -972,14 +972,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'Chart.min.js', used to make simple HTML5 charts using the canvas element. 
+This product contains a modified portion of 'Chart.min.js', used to make simple HTML5 charts using the canvas element.
 
 by Nick Downie
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/nnnick/Chart.js/
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2013-2015 Nick Downie
 
@@ -995,10 +995,10 @@ This product contains a modified portion of 'babel-es6-polyfill', a pure ES6 pol
 
 by Jason Berry
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/JasonBerry/babel-es6-polyfill
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2015 Jason Berry
 
@@ -1026,10 +1026,10 @@ This product contains a modified portion of 'go-ldap', basic LDAP v3 functionali
 
 by The Go Authors
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/go-ldap/ldap
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 
@@ -1065,10 +1065,10 @@ This product contains a modified portion of 'Google Fonts', various Open Source 
 
 by Google Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://www.google.com/fonts
-  
-* LICENSE: 
+
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
@@ -1158,13 +1158,13 @@ Creative Commons may be contacted at https://creativecommons.org/.
 
 ---
 
-This product contains a modified portion of 'go-i18n', a Go package and a command that translates Go programs into multiple languages 
-by Nick Snyder. 
+This product contains a modified portion of 'go-i18n', a Go package and a command that translates Go programs into multiple languages
+by Nick Snyder.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/nicksnyder/go-i18n
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2014 Nick Snyder https://github.com/nicksnyder
 
@@ -1188,13 +1188,13 @@ THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'react-intl', a library that provides React components and an API to format dates, numbers, and string messages including pluralization. 
-by Yahoo Inc. 
+This product contains a modified portion of 'react-intl', a library that provides React components and an API to format dates, numbers, and string messages including pluralization.
+by Yahoo Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/yahoo/react-intl
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright 2014 Yahoo Inc.
 All rights reserved.
@@ -1228,13 +1228,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## fastclick
 
-This product contains a modified portion of 'fastclick', a library for eliminating the delay between a physical tap and the firing of a click event on mobile browsers. 
+This product contains a modified portion of 'fastclick', a library for eliminating the delay between a physical tap and the firing of a click event on mobile browsers.
 by FT Labs.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/ftlabs/fastclick
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2014 The Financial Times Ltd.
 
@@ -1261,12 +1261,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'dgoogauth', a go implementation of the Google Authenticator library by Damian Gryski. 
+This product contains a modified portion of 'dgoogauth', a go implementation of the Google Authenticator library by Damian Gryski.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/dgryski/dgoogauth
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright 2012 Damian Gryski
 
@@ -1286,10 +1286,10 @@ limitations under the License.
 
 This product contains a modified portion of 'compass-mixins', which pulls SASS style sheets on Bower, and enjoys the compass mixins by using libsass for faster compilation, by Christopher M. Eppstein.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/Igosuki/compass-mixins
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)(slightly modified)
 
@@ -1327,10 +1327,10 @@ control history of the product.
 
 This product contains a modified portion of 'flux', an application architecture for React utilizing a unidirectional data flow by Facebook, Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/facebook/flux
-  
-* LICENSE: 
+
+* LICENSE:
 
 BSD License
 
@@ -1367,10 +1367,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'font-awesome', a full suite of 632 pictographic icons for easy scalable vector graphics on websites, created and maintained by Dave Gandy.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/FortAwesome/Font-Awesome
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1392,10 +1392,10 @@ No attribution is required by products that make use of this software.
 
 This product contains a modified portion of 'jquery', a library for JavaScript for DOM operations by jQuery Foundation and other contributors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/jquery/jquery
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright jQuery Foundation and other contributors, https://jquery.org/
 
@@ -1438,10 +1438,10 @@ the terms above.
 
 This product contains a modified portion of 'fbjs', a collection of JavaScript utilities by Facebook, Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/facebook/fbjs
-  
-* LICENSE: 
+
+* LICENSE:
 
 BSD License
 
@@ -1477,16 +1477,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
-This product contains a modified portion of 'marked', a full-featured markdown parser and compiler, written in JavaScript. Built for speed by Christopher Jeffrey. 
+This product contains a modified portion of 'marked', a full-featured markdown parser and compiler, written in JavaScript. Built for speed by Christopher Jeffrey.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/chjj/marked
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
-Copyright (c) 2011-2014, Christopher Jeffrey. 
+Copyright (c) 2011-2014, Christopher Jeffrey.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1502,12 +1502,12 @@ No attribution is required by products that make use of this software.
 
 ---
 
-This product contains a modified portion of 'match-at', to correspond to the original string, where it doesn't slice the string by Ben Alpert. 
+This product contains a modified portion of 'match-at', to correspond to the original string, where it doesn't slice the string by Ben Alpert.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/spicyj/match-at
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1533,12 +1533,12 @@ SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'object-assign',  a polyfill that doesn't overwrite the native method by Sindre Sorhus. 
+This product contains a modified portion of 'object-assign',  a polyfill that doesn't overwrite the native method by Sindre Sorhus.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/sindresorhus/object-assign
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1566,10 +1566,10 @@ THE SOFTWARE.
 
 This product contains a modified portion of 'react-custom-scrollbars',  a React scrollbars component.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/malte-wessel/react-custom-scrollbars
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2015 react-custom-scrollbars
 
@@ -1595,10 +1595,10 @@ SOFTWARE.
 
 This product contains a modified portion of 'react-dom',  to be paired with the isomorphic React, which will be shipped as react to npm.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/facebook/react
-  
-* LICENSE: 
+
+* LICENSE:
 
 BSD License
 
@@ -1636,10 +1636,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'react-router',  a complete routing library for React by Ryan Florence and Michael Jackson.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/reactjs/react-router
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1667,10 +1667,10 @@ SOFTWARE.
 
 This product contains a modified portion of 'react-router',  a small progressive client-side HTTP request library, and Node.js module with the same API, sporting many high-level HTTP client features by TJ Holowaychuk.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/visionmedia/superagent
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1699,10 +1699,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 This product contains a modified portion of 'velocity-animate',  an animation engine with the same API as jQuery's $.animate() by Julian Shapiro.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/julianshapiro/velocity
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License
 
@@ -1728,14 +1728,14 @@ SOFTWARE.
 
 ---
 
-## autolinker 
+## autolinker
 
 This product contains a modified portion of 'autolinker',  to automatically link the URLs, email addresses, and Twitter handles in a given block of text/HTML by Gregory Jacobs.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/gregjacobs/Autolinker.js
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License
 
@@ -1764,21 +1764,21 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 This product contains a modified portion of 'gziphandler',  a tiny Go package which wraps HTTP handlers to transparently gzip the response body, for clients which support it by The New York Times Company.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/NYTimes/gziphandler
-  
-* LICENSE: 
+
+* LICENSE:
 
 Apache License 2.0
 
 Copyright (c) 2015 The New York Times Company
- 
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this library except in compliance with the License.
 You may obtain a copy of the License at
- 
+
     http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -1789,10 +1789,10 @@ limitations under the License.
 
 This product contains a modified portion of 'handlers',  a collection of handlers (aka "HTTP middleware") for use with Go's net/http package (or any framework supporting http.Handler) by The Gorilla Handlers Authors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/gorilla/handlers
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2013 The Gorilla Handlers Authors. All rights reserved.
 
@@ -1821,10 +1821,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'log4go',  an unmaintained fork, left only so it doesn't break imports by Kyle Lemons.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/alecthomas/log4go
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2010, Kyle Lemons <kyle@kylelemons.net>. All rights reserved.
 
@@ -1844,10 +1844,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'manners',  a package imaging providing basic image manipulation functions (resize, rotate, flip, crop, etc.) by Grigory Dryapak.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/disintegration/imaging
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1875,10 +1875,10 @@ SOFTWARE.
 
 This product contains a modified portion of 'gorp',  to save time, minimize the drudgery of getting data in and out of the database, and help code focus on algorithms, not infrastructure by James Cooper.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/go-gorp/gorp
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -1907,10 +1907,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 This product contains a modified portion of 'mysql',  a lightweight and fast MySQL driver for Go's (golang) database/sql package by Mozilla Public.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/go-sql-driver/mysql
-  
-* LICENSE: 
+
+* LICENSE:
 
 Mozilla Public License Version 2.0
 ==================================
@@ -1949,7 +1949,7 @@ Mozilla Public License Version 2.0
     means any form of the work other than Source Code Form.
 
 1.7. "Larger Work"
-    means a work that combines Covered Software with other material, in 
+    means a work that combines Covered Software with other material, in
     a separate file or files, that is not Covered Software.
 
 1.8. "License"
@@ -2285,15 +2285,15 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
   defined by the Mozilla Public License, v. 2.0.
-  
+
 ---
 
 This product contains a modified portion of 'context', a golang registry for global request variables by Rodrigo Moraes.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/gorilla/context
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 Rodrigo Moraes. All rights reserved.
 
@@ -2327,10 +2327,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'mux', a powerful URL router and dispatcher for golang by Rodrigo Moraes.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/gorilla/mux
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 Rodrigo Moraes. All rights reserved.
 
@@ -2364,10 +2364,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'websocket', a WebSocket implementation for Go by The Gorilla WebSocket Authors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/gorilla/websocket
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2013 The Gorilla WebSocket Authors. All rights reserved.
 
@@ -2398,32 +2398,32 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'pq', a Pure Go Postgres driver for database/sql by Blake Mizerany and Contributors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/lib/pq
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2011-2013, 'pq' Contributors
 Portions Copyright (C) 2011 Blake Mizerany
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, 
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
 subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ---
 
 This product contains a modified portion of 'user_agent', a Go library that parses HTTP User Agents by Miquel Sabaté Solà.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/mssola/user_agent
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012-2016 Miquel Sabaté Solà
 
@@ -2450,10 +2450,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 This product contains a modified portion of 'uuid', a package generates and inspects UUIDs based on RFC 412 and DCE 1.1: Authentication and Security Services by Google Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/pborman/uuid
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2009,2014 Google Inc. All rights reserved.
 
@@ -2487,10 +2487,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'yaml', a YAML support for the Go language by Canonical Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://gopkg.in/yaml.v2
-  
-* LICENSE: 
+
+* LICENSE:
 
 
 Copyright (c) 2011-2014 - Canonical Inc.
@@ -2685,10 +2685,10 @@ Library.
 
 This product contains a modified portion of 'throttled', a package store offering a memory-based and a Redis-based throttled by Martin Angers.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * http://gopkg.in/throttled/throttled.v1/store
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2014, Martin Angers
 All rights reserved.
@@ -2701,20 +2701,20 @@ Redistribution and use in source and binary forms, with or without modification,
 
 * Neither the name of the author nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
 This product contains a modified portion of 'throttled', a package throttled implementing different throttling strategies for controlling access to HTTP handlers by Martin Angers and Contributors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * http://gopkg.in/throttled/throttled.v1
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2014, Martin Angers and Contributors.
 All rights reserved.
@@ -2727,20 +2727,20 @@ Redistribution and use in source and binary forms, with or without modification,
 
 * Neither the name of the author nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ---
 
 This product contains a modified portion of 'fsnotify', to utilize golang.org/x/sys rather than syscall from the standard library by The Go Authors and fsnotify Authors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * http://gopkg.in/fsnotify.v1
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 Copyright (c) 2012 fsnotify Authors. All rights reserved.
@@ -2777,10 +2777,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'asn1-ber', an ASN1 BER Encoding / Decoding Library for the GO programming language by The Go Authors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * http://gopkg.in/asn1-ber.v1
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 
@@ -2814,10 +2814,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'asn1-ber', an ASN1 BER Encoding / Decoding Library for the GO programming language by The Go Authors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * http://gopkg.in/asn1-ber.v1
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 
@@ -2853,10 +2853,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'jasny-bootstrap', an extension of bootstrap with additional components
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/jasny/bootstrap
-  
-* LICENSE: 
+
+* LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3034,17 +3034,17 @@ This product contains a modified portion of 'jasny-bootstrap', an extension of b
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-   
+
 ---
 
 ## redigo
 
 This product contains a modified portion of 'redigo', a Go client for the Redis database.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/garyburd/redigo
-  
-* LICENSE: 
+
+* LICENSE:
 
                                  Apache License
                            Version 2.0, January 2004
@@ -3227,10 +3227,10 @@ This product contains a modified portion of 'redigo', a Go client for the Redis 
 
 This product contains a modified portion of 'crypto', a set of Go cryptographic libraries.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/golang/crypto
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -3267,10 +3267,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'image', a set of Go image libraries.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/golang/image
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -3307,10 +3307,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'rsc', a random source code library from Google
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://code.google.com/archive/p/rsc/
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) <YEAR>, <OWNER>
 All rights reserved.
@@ -3331,10 +3331,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 This product contains a modified portion of 'mattermost-driver-javascript', a Javascript library for interacting with the Mattermost API.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/mattermost/mattermost-driver-javascript
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright 2016 Mattermost
 
@@ -3350,10 +3350,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 This product contains a modified portion of 'react-select', a select control built with and for ReactJS by jedwatson.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/JedWatson/react-select
-  
-* LICENSE: 
+
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -3380,12 +3380,12 @@ SOFTWARE.
 
 ---
 
-This product contains a modified portion of 'osext', providing a function that returns an absolute path to the current program executable, built by kardianos. 
+This product contains a modified portion of 'osext', providing a function that returns an absolute path to the current program executable, built by kardianos.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/kardianos/osext
-  
-* LICENSE: 
+
+* LICENSE:
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 
@@ -3419,10 +3419,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of 'go-saml', a SAML client library for Go written by RobotsAndPencils.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/RobotsAndPencils/go-saml
 
-* LICENSE: 
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -3450,10 +3450,10 @@ SOFTWARE.
 
 This product contains a modified portion of 'bootstrap', a sleek, intuitive, and powerful front-end framework for faster and easier web development.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/twbs/bootstrap
 
-* LICENSE: 
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -3481,10 +3481,10 @@ THE SOFTWARE.
 
 This product contains a modified portion of 'Intl.js', to bring long overdue localization methods to ECMAScript implementations, built by andyearnshaw.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/andyearnshaw/Intl.js
 
-* LICENSE: 
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -3554,12 +3554,12 @@ the property of their respective owners.
 
 ---
 
-This product contains a modified portion of 'pdfjs-dist', is a Portable Document Format (PDF) library that is built with HTML5 built by mozilla. 
+This product contains a modified portion of 'pdfjs-dist', is a Portable Document Format (PDF) library that is built with HTML5 built by mozilla.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/mozilla/pdfjs-dist
 
-* LICENSE: 
+* LICENSE:
 
      				Apache License
                            Version 2.0, January 2004
@@ -3737,15 +3737,15 @@ This product contains a modified portion of 'pdfjs-dist', is a Portable Document
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-   
+
 ---
 
 This product contains a modified portion of 'xregexp', used to provide augmented (and extensible) JavaScript regular expressions, built by slevithan.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/slevithan/xregexp
 
-* LICENSE: 
+* LICENSE:
 
 The MIT License
 
@@ -3773,10 +3773,10 @@ THE SOFTWARE.
 
 This product contains a modified portion of 'iNoBounce', used to prevent overscrolling on iOS devices, built by lazd.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/lazd/iNoBounce
 
-* LICENSE: 
+* LICENSE:
 
 Copyright (c) 2013, Lawrence Davis
 All rights reserved.
@@ -3792,7 +3792,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 This product contains a modified portion of 'minio-go', a Golang Client SDK providing simple APIs to access any Amazon S3 compatible object storage server, built by Minio.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/minio/minio-go
 
 * LICENSE:
@@ -3979,10 +3979,10 @@ This product contains a modified portion of 'minio-go', a Golang Client SDK prov
 
 This product contains a modified portion of 'graceful', a Go package enabling graceful shutdown of an http.Handler server, built by Tyler Bunnell.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/tylerb/graceful
 
-* LICENSE: 
+* LICENSE:
 
 The MIT License (MIT)
 
@@ -4010,10 +4010,10 @@ SOFTWARE.
 
 This product contains a modified portion of 'letsencrypt' to manage TLS certificates automatically via LetsEncrypt.org, built by Russ Cox.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/rsc/letsencrypt
 
-* LICENSE: 
+* LICENSE:
 
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -4047,10 +4047,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of ‘manners’ a polite webserver for Go, built by Braintree, a division of PayPal, Inc.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/braintree/manners
 
-* LICENSE: 
+* LICENSE:
 
 Copyright (c) 2014 Braintree, a division of PayPal, Inc.
 
@@ -4076,10 +4076,10 @@ THE SOFTWARE.
 
 This product contains a modified portion of ‘perks’ which contains the Go package quantile that computes approximate quantiles over an unbounded data stream within low memory and CPU bounds, built by Blake Mizerany.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/beorn7/perks
 
-* LICENSE: 
+* LICENSE:
 
 Copyright (C) 2013 Blake Mizerany
 
@@ -4106,10 +4106,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 This product contains a modified portion of ‘protobuf’ for Go support for Protocol Buffers, built by The Go Authors.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/golang/protobuf
 
-* LICENSE: 
+* LICENSE:
 
 Go support for Protocol Buffers - Google's data interchange format
 
@@ -4146,10 +4146,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains a modified portion of ‘golang_protobuf_extensions’ which provides various Protocol Buffer extensions, built by matttproud.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/matttproud/golang_protobuf_extensions
 
-* LICENSE: 
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
@@ -4169,10 +4169,10 @@ limitations under the License.
 
 This product contains a modified portion of ‘cobra’, a Commander for modern Go CLI interactions, built by spf13.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/spf13/cobra
 
-* LICENSE: 
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
@@ -4192,10 +4192,10 @@ limitations under the License.
 
 This product contains a modified portion of ‘pflag’, a Commander for modern Go CLI interactions, built by Alex Ogier.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/spf13/pflag
 
-* LICENSE: 
+* LICENSE:
 
 Copyright (c) 2012 Alex Ogier. All rights reserved.
 Copyright (c) 2012 The Go Authors. All rights reserved.
@@ -4231,10 +4231,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This product contains modified portions of Prometheus ‘client_golang’, which is the Go library for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/prometheus/client_golang
 
-* LICENSE: 
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
@@ -4254,10 +4254,10 @@ limitations under the License.
 
 This product contains modified portions of Prometheus ‘client_model’, which provides data model artifacts for Prometheus. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/prometheus/client_model
 
-* LICENSE: 
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
@@ -4277,10 +4277,10 @@ limitations under the License.
 
 This product contains modified portions of Prometheus ‘common’, which is the part of the Prometheus project that contains Go libraries that are shared across Prometheus components and libraries. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/prometheus/common
 
-* LICENSE: 
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
@@ -4300,10 +4300,10 @@ limitations under the License.
 
 This product contains modified portions of Prometheus ‘procfs’, which is the part of the Prometheus project that provides functions to retrieve system, kernel and process metrics from the pseudo-filesystem proc. Prometheus is a systems and service monitoring system, started by Matt T. Proud and Julius Volz in 2012.
 
-* HOMEPAGE: 
+* HOMEPAGE:
   * https://github.com/prometheus/procfs
 
-* LICENSE: 
+* LICENSE:
 
 # Code licensed under the Apache 2.0 License:
 
