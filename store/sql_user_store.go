@@ -1298,7 +1298,7 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 				ON tm.UserId = Users.Id
 				AND tm.TeamId = :NotInTeamId
 			WHERE
-				tm.UserId IS NULL
+				(tm.UserId IS NULL OR tm.DeleteAt != 0)
 				SEARCH_CLAUSE
 				INACTIVE_CLAUSE
 			ORDER BY Users.Username ASC
