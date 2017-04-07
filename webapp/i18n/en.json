@@ -694,7 +694,7 @@
   "admin.service.corsDescription": "Enable HTTP Cross origin request from a specific domain. Use \"*\" if you want to allow CORS from any domain or leave it blank to disable it.",
   "admin.service.corsEx": "http://example.com",
   "admin.service.corsTitle": "Enable cross-origin requests from:",
-  "admin.service.developerDesc": "When true, JavaScript errors are shown in a red bar at the top of the user interface. Not recommended for use in production. ",
+  "admin.service.developerDesc": "When true, JavaScript errors are shown in a purple bar at the top of the user interface. Not recommended for use in production. ",
   "admin.service.developerTitle": "Enable Developer Mode: ",
   "admin.service.enforcMfaTitle": "Enforce Multi-factor Authentication:",
   "admin.service.enforceMfaDesc": "When true, <a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>multi-factor authentication</a> is required for login. New users will be required to configure MFA on signup. Logged in users without MFA configured are redirected to the MFA setup page until configuration is complete.<br/><br/>If your system has users with login methods other than AD/LDAP and email, MFA must be enforced with the authentication provider outside of Mattermost.",
