@@ -752,7 +752,7 @@
   "admin.sidebar.advanced": "Advanced",
   "admin.sidebar.audits": "Compliance and Auditing",
   "admin.sidebar.authentication": "Authentication",
-  "admin.sidebar.cluster": "High Availability (Beta)",
+  "admin.sidebar.cluster": "High Availability",
   "admin.sidebar.compliance": "Compliance",
   "admin.sidebar.configuration": "Configuration",
   "admin.sidebar.connections": "Connections",
