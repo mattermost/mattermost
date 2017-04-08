@@ -24,6 +24,8 @@ func InitOAuth() {
 	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(deleteOAuthApp)).Methods("DELETE")
 	BaseRoutes.OAuthApp.Handle("/regen_secret", ApiSessionRequired(regenerateOAuthAppSecret)).Methods("POST")
 
+	BaseRoutes.User.Handle("/oauth/apps/authorized", ApiSessionRequired(getAuthorizedOAuthApps)).Methods("GET")
+
 	// API version independent OAuth 2.0 as a service provider endpoints
 	BaseRoutes.Root.Handle("/oauth/authorize", ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
 	BaseRoutes.Root.Handle("/oauth/authorize", ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
@@ -195,6 +197,26 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 
 	c.LogAudit("success")
 	w.Write([]byte(oauthApp.ToJson()))
+}
+
+func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	apps, err := app.GetAuthorizedAppsForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.OAuthAppListToJson(apps)))
 }
 
 func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -434,6 +434,66 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
+func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+	}()
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	rapp, resp := AdminClient.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
+		ClientId:     rapp.Id,
+		RedirectUri:  rapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	}
+
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+
+	apps, resp := Client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	CheckNoError(t, resp)
+
+	found := false
+	for _, a := range apps {
+		if a.Id == rapp.Id {
+			found = true
+		}
+
+		if a.ClientSecret != "" {
+			t.Fatal("not sanitized")
+		}
+	}
+
+	if !found {
+		t.Fatal("missing app")
+	}
+
+	_, resp = Client.GetAuthorizedOAuthAppsForUser(th.BasicUser2.Id, 0, 1000)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.GetAuthorizedOAuthAppsForUser("junk", 0, 1000)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = AdminClient.GetAuthorizedOAuthAppsForUser(th.BasicUser.Id, 0, 1000)
+	CheckNoError(t, resp)
+}
+
 func TestAuthorizeOAuthApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
