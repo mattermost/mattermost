@@ -2303,6 +2303,17 @@ func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Res
 	}
 }
 
+// DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
+func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
+	requestData := map[string]string{"client_id": appId}
+	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/deauthorize", MapToJson(requestData), ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.

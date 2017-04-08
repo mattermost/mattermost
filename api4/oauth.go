@@ -29,6 +29,7 @@ func InitOAuth() {
 	// API version independent OAuth 2.0 as a service provider endpoints
 	BaseRoutes.Root.Handle("/oauth/authorize", ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
 	BaseRoutes.Root.Handle("/oauth/authorize", ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
+	BaseRoutes.Root.Handle("/oauth/deauthorize", ApiSessionRequired(deauthorizeOAuthApp)).Methods("POST")
 	BaseRoutes.Root.Handle("/oauth/access_token", ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
 
 	// API version independent OAuth as a client endpoints
@@ -64,6 +65,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("client_id=" + rapp.Id)
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rapp.ToJson()))
 }
 
@@ -242,6 +244,25 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectUrl})))
+}
+
+func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	requestData := model.MapFromJson(r.Body)
+	clientId := requestData["client_id"]
+
+	if len(clientId) != 26 {
+		c.SetInvalidParam("client_id")
+		return
+	}
+
+	err := app.DeauthorizeOAuthAppForUser(c.Session.UserId, clientId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
 }
 
 func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {

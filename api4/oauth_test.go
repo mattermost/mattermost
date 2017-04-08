@@ -32,6 +32,7 @@ func TestCreateOAuthApp(t *testing.T) {
 
 	rapp, resp := AdminClient.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	if rapp.Name != oapp.Name {
 		t.Fatal("names did not match")
@@ -46,6 +47,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 
 	oapp.Name = ""
 	_, resp = AdminClient.CreateOAuthApp(oapp)
@@ -560,4 +562,50 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ClientId = model.NewId()
 	_, resp = Client.AuthorizeOAuthApp(authRequest)
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestDeauthorizeOAuthApp(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+	}()
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	rapp, resp := AdminClient.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
+		ClientId:     rapp.Id,
+		RedirectUri:  rapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	}
+
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+
+	pass, resp := Client.DeauthorizeOAuthApp(rapp.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = Client.DeauthorizeOAuthApp("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.DeauthorizeOAuthApp(model.NewId())
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.DeauthorizeOAuthApp(rapp.Id)
+	CheckUnauthorizedStatus(t, resp)
 }
