@@ -294,6 +294,74 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
+func TestDeleteOAuthApp(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+	}()
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
+	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	rapp, resp := AdminClient.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	oapp.Name = GenerateTestAppName()
+	rapp2, resp := Client.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	pass, resp := AdminClient.DeleteOAuthApp(rapp.Id)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have passed")
+	}
+
+	_, resp = AdminClient.DeleteOAuthApp(rapp2.Id)
+	CheckNoError(t, resp)
+
+	rapp, resp = AdminClient.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	oapp.Name = GenerateTestAppName()
+	rapp2, resp = Client.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	_, resp = Client.DeleteOAuthApp(rapp.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.DeleteOAuthApp(rapp2.Id)
+	CheckNoError(t, resp)
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+	_, resp = Client.DeleteOAuthApp(rapp.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.DeleteOAuthApp(rapp.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = AdminClient.DeleteOAuthApp("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = AdminClient.DeleteOAuthApp(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	_, resp = AdminClient.DeleteOAuthApp(rapp.Id)
+	CheckNotImplementedStatus(t, resp)
+}
+
 func TestAuthorizeOAuthApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

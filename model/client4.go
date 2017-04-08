@@ -2262,6 +2262,16 @@ func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response) {
 	}
 }
 
+// DeleteOAuthApp deletes a registered OAuth 2.0 client application.
+func (c *Client4) DeleteOAuthApp(appId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetOAuthAppRoute(appId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
 func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Response) {
 	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/authorize", authRequest.ToJson(), ""); err != nil {

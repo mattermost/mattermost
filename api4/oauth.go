@@ -21,6 +21,7 @@ func InitOAuth() {
 	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(getOAuthApps)).Methods("GET")
 	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(getOAuthApp)).Methods("GET")
 	BaseRoutes.OAuthApp.Handle("/info", ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
+	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(deleteOAuthApp)).Methods("DELETE")
 
 	// API version independent OAuth 2.0 as a service provider endpoints
 	BaseRoutes.Root.Handle("/oauth/authorize", ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
@@ -127,6 +128,40 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp.Sanitize()
 	w.Write([]byte(oauthApp.ToJson()))
+}
+
+func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireAppId()
+	if c.Err != nil {
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
+		return
+	}
+
+	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.Session.UserId != oauthApp.CreatorId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
+		return
+	}
+
+	err = app.DeleteOAuthApp(oauthApp.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
 }
 
 func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
