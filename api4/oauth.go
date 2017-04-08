@@ -15,8 +15,10 @@ import (
 func InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
-	BaseRoutes.OAuth.Handle("/apps", ApiSessionRequired(createOAuthApp)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/apps", ApiSessionRequired(getOAuthApps)).Methods("GET")
+	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(createOAuthApp)).Methods("POST")
+	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(getOAuthApps)).Methods("GET")
+	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(getOAuthApp)).Methods("GET")
+	BaseRoutes.OAuthApp.Handle("/info", ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -67,4 +69,45 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.OAuthAppListToJson(apps)))
+}
+
+func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireAppId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
+		return
+	}
+
+	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if oauthApp.CreatorId != c.Session.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
+		return
+	}
+
+	w.Write([]byte(oauthApp.ToJson()))
+}
+
+func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireAppId()
+	if c.Err != nil {
+		return
+	}
+
+	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	oauthApp.Sanitize()
+	w.Write([]byte(oauthApp.ToJson()))
 }
