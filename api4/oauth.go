@@ -16,6 +16,7 @@ func InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
 	BaseRoutes.OAuth.Handle("/apps", ApiSessionRequired(createOAuthApp)).Methods("POST")
+	BaseRoutes.OAuth.Handle("/apps", ApiSessionRequired(getOAuthApps)).Methods("GET")
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -27,7 +28,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
-		c.Err = model.NewAppError("createOAuthApp", "api.command.admin_only.app_error", nil, "", http.StatusForbidden)
+		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
 	}
 
@@ -41,4 +42,29 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("client_id=" + rapp.Id)
 	w.Write([]byte(rapp.ToJson()))
+}
+
+func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
+		c.Err = model.NewAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	var apps []*model.OAuthApp
+	var err *model.AppError
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+		apps, err = app.GetOAuthApps(c.Params.Page, c.Params.PerPage)
+	} else if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
+		apps, err = app.GetOAuthAppsByCreator(c.Session.UserId, c.Params.Page, c.Params.PerPage)
+	} else {
+		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
+		return
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.OAuthAppListToJson(apps)))
 }

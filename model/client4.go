@@ -2221,13 +2221,24 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
 
 // OAuth Section
 
-// CreateOAuthApp will register a new OAuth 2.0 client application with the Mattermost OAuth 2.0 service provider.
+// CreateOAuthApp will register a new OAuth 2.0 client application with Mattermost acting as a OAuth 2.0 service provider.
 func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
 	if r, err := c.DoApiPost(c.GetOAuthAppsRoute(), app.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
 		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as a OAuth 2.0 service provider.
+func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetOAuthAppsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppListFromJson(r.Body), BuildResponse(r)
 	}
 }
 
