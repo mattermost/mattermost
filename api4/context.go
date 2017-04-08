@@ -475,6 +475,18 @@ func (c *Context) RequireCategory() *Context {
 	return c
 }
 
+func (c *Context) RequireService() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Service) == 0 {
+		c.SetInvalidUrlParam("service")
+	}
+
+	return c
+}
+
 func (c *Context) RequirePreferenceName() *Context {
 	if c.Err != nil {
 		return c

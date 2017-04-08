@@ -33,6 +33,7 @@ type ApiParams struct {
 	ChannelName    string
 	PreferenceName string
 	Category       string
+	Service        string
 	Page           int
 	PerPage        int
 }
@@ -99,6 +100,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	}
 
 	if val, ok := props["category"]; ok {
+		params.Category = val
+	}
+
+	if val, ok := props["service"]; ok {
 		params.Category = val
 	}
 

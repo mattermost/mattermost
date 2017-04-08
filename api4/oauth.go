@@ -5,6 +5,8 @@ package api4
 
 import (
 	"net/http"
+	"net/url"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -19,6 +21,21 @@ func InitOAuth() {
 	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(getOAuthApps)).Methods("GET")
 	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(getOAuthApp)).Methods("GET")
 	BaseRoutes.OAuthApp.Handle("/info", ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
+
+	// API version independent OAuth 2.0 as a service provider endpoints
+	BaseRoutes.Root.Handle("/oauth/authorize", ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
+	BaseRoutes.Root.Handle("/oauth/authorize", ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
+	BaseRoutes.Root.Handle("/oauth/access_token", ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
+
+	// API version independent OAuth as a client endpoints
+	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/login", ApiHandler(loginWithOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", ApiHandler(signupWithOAuth)).Methods("GET")
+
+	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
+	BaseRoutes.Root.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/login/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -110,4 +127,244 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp.Sanitize()
 	w.Write([]byte(oauthApp.ToJson()))
+}
+
+func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	authRequest := model.AuthorizeRequestFromJson(r.Body)
+	if authRequest == nil {
+		c.SetInvalidParam("authorize_request")
+	}
+
+	if err := authRequest.IsValid(); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	redirectUrl, err := app.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+
+	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectUrl})))
+}
+
+func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		err := model.NewAppError("authorizeOAuth", "api.oauth.authorize_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
+		utils.RenderWebError(err, w, r)
+		return
+	}
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: r.URL.Query().Get("response_type"),
+		ClientId:     r.URL.Query().Get("client_id"),
+		RedirectUri:  r.URL.Query().Get("redirect_uri"),
+		Scope:        r.URL.Query().Get("scope"),
+		State:        r.URL.Query().Get("state"),
+	}
+
+	if err := authRequest.IsValid(); err != nil {
+		utils.RenderWebError(err, w, r)
+		return
+	}
+
+	oauthApp, err := app.GetOAuthApp(authRequest.ClientId)
+	if err != nil {
+		utils.RenderWebError(err, w, r)
+		return
+	}
+
+	// here we should check if the user is logged in
+	if len(c.Session.UserId) == 0 {
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+		return
+	}
+
+	isAuthorized := false
+
+	if _, err := app.GetPreferenceByCategoryAndNameForUser(c.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
+		// when we support scopes we should check if the scopes match
+		isAuthorized = true
+	}
+
+	// Automatically allow if the app is trusted
+	if oauthApp.IsTrusted || isAuthorized {
+		authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
+		redirectUrl, err := app.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
+
+		if err != nil {
+			utils.RenderWebError(err, w, r)
+			return
+		}
+
+		http.Redirect(w, r, redirectUrl, http.StatusFound)
+		return
+	}
+
+	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+	w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
+	http.ServeFile(w, r, utils.FindDir(model.CLIENT_DIR)+"root.html")
+}
+
+func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	code := r.FormValue("code")
+	refreshToken := r.FormValue("refresh_token")
+
+	grantType := r.FormValue("grant_type")
+	switch grantType {
+	case model.ACCESS_TOKEN_GRANT_TYPE:
+		if len(code) == 0 {
+			c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.missing_code.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+	case model.REFRESH_TOKEN_GRANT_TYPE:
+		if len(refreshToken) == 0 {
+			c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.missing_refresh_token.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+	default:
+		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_grant.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	clientId := r.FormValue("client_id")
+	if len(clientId) != 26 {
+		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_id.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	secret := r.FormValue("client_secret")
+	if len(secret) == 0 {
+		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_secret.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	redirectUri := r.FormValue("redirect_uri")
+
+	c.LogAudit("attempt")
+
+	accessRsp, err := app.GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refreshToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
+	c.LogAudit("success")
+
+	w.Write([]byte(accessRsp.ToJson()))
+}
+
+func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireService()
+	if c.Err != nil {
+		return
+	}
+
+	service := c.Params.Service
+
+	code := r.URL.Query().Get("code")
+	if len(code) == 0 {
+		c.Err = model.NewAppError("completeOAuth", "api.oauth.complete_oauth.missing_code.app_error", map[string]interface{}{"service": strings.Title(service)}, "URL: "+r.URL.String(), http.StatusBadRequest)
+		return
+	}
+
+	state := r.URL.Query().Get("state")
+
+	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
+
+	body, teamId, props, err := app.AuthorizeOAuthUser(service, code, state, uri)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	user, err := app.CompleteOAuth(service, body, teamId, props)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	action := props["action"]
+
+	var redirectUrl string
+	if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
+		redirectUrl = c.GetSiteURLHeader() + "/login?extra=signin_change"
+	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
+
+		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
+	} else {
+		session, err := app.DoLogin(w, r, user, "")
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		c.Session = *session
+
+		redirectUrl = c.GetSiteURLHeader()
+	}
+
+	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+}
+
+func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireService()
+	if c.Err != nil {
+		return
+	}
+
+	loginHint := r.URL.Query().Get("login_hint")
+	redirectTo := r.URL.Query().Get("redirect_to")
+
+	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if authUrl, err := app.GetOAuthLoginEndpoint(c.Params.Service, teamId, redirectTo, loginHint); err != nil {
+		c.Err = err
+		return
+	} else {
+		http.Redirect(w, r, authUrl, http.StatusFound)
+	}
+}
+
+func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireService()
+	if c.Err != nil {
+		return
+	}
+
+	if !utils.Cfg.TeamSettings.EnableUserCreation {
+		c.Err = model.NewAppError("signupWithOAuth", "api.oauth.singup_with_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if authUrl, err := app.GetOAuthSignupEndpoint(c.Params.Service, teamId); err != nil {
+		c.Err = err
+		return
+	} else {
+		http.Redirect(w, r, authUrl, http.StatusFound)
+	}
 }

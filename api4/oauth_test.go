@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"testing"
 
@@ -291,4 +292,72 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
 	_, resp = AdminClient.GetOAuthAppInfo(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
+}
+
+func TestAuthorizeOAuthApp(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+	}()
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+
+	rapp, resp := AdminClient.CreateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AUTHCODE_RESPONSE_TYPE,
+		ClientId:     rapp.Id,
+		RedirectUri:  rapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	}
+
+	ruri, resp := Client.AuthorizeOAuthApp(authRequest)
+	CheckNoError(t, resp)
+
+	if len(ruri) == 0 {
+		t.Fatal("redirect url should be set")
+	}
+
+	ru, _ := url.Parse(ruri)
+	if ru == nil {
+		t.Fatal("redirect url unparseable")
+	} else {
+		if len(ru.Query().Get("code")) == 0 {
+			t.Fatal("authorization code not returned")
+		}
+		if ru.Query().Get("state") != authRequest.State {
+			t.Fatal("returned state doesn't match")
+		}
+	}
+
+	authRequest.RedirectUri = ""
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckBadRequestStatus(t, resp)
+
+	authRequest.RedirectUri = "http://somewhereelse.com"
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckBadRequestStatus(t, resp)
+
+	authRequest.RedirectUri = rapp.CallbackUrls[0]
+	authRequest.ResponseType = ""
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckBadRequestStatus(t, resp)
+
+	authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
+	authRequest.ClientId = ""
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckBadRequestStatus(t, resp)
+
+	authRequest.ClientId = model.NewId()
+	_, resp = Client.AuthorizeOAuthApp(authRequest)
+	CheckNotFoundStatus(t, resp)
 }

@@ -251,23 +251,23 @@ func (c *Client4) GetOAuthAppRoute(appId string) string {
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodGet, url, "", etag)
+	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
 
 func (c *Client4) DoApiPost(url string, data string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodPost, url, data, "")
+	return c.DoApiRequest(http.MethodPost, c.ApiUrl+url, data, "")
 }
 
 func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodPut, url, data, "")
+	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
 }
 
 func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodDelete, url, "", "")
+	return c.DoApiRequest(http.MethodDelete, c.ApiUrl+url, "", "")
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
-	rq, _ := http.NewRequest(method, c.ApiUrl+url, strings.NewReader(data))
+	rq, _ := http.NewRequest(method, url, strings.NewReader(data))
 	rq.Close = true
 
 	if len(etag) > 0 {
@@ -2259,6 +2259,16 @@ func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response) {
 	} else {
 		defer closeBody(r)
 		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
+func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Response) {
+	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/authorize", authRequest.ToJson(), ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["redirect"], BuildResponse(r)
 	}
 }
 
