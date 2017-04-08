@@ -2272,6 +2272,16 @@ func (c *Client4) DeleteOAuthApp(appId string) (bool, *Response) {
 	}
 }
 
+// RegenerateOAuthAppSecret regenerates the client secret for a registered OAuth 2.0 client application.
+func (c *Client4) RegenerateOAuthAppSecret(appId string) (*OAuthApp, *Response) {
+	if r, err := c.DoApiPost(c.GetOAuthAppRoute(appId)+"/regen_secret", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
 func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Response) {
 	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/authorize", authRequest.ToJson(), ""); err != nil {
