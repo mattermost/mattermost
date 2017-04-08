@@ -5,6 +5,8 @@ import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
 import Constants from 'utils/constants.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
+
 var ActionTypes = Constants.ActionTypes;
 
 var CHANGE_EVENT = 'change';
@@ -126,6 +128,13 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
 
     switch (action.type) {
     case ActionTypes.RECEIVED_SEARCH:
+        if (SearchStore.getIsPinnedPosts() === action.is_pinned_posts &&
+            action.is_pinned_posts === true &&
+            SearchStore.getSearchResults().posts &&
+            ChannelStore.getCurrentId() !== Object.values(SearchStore.getSearchResults().posts)[0].channel_id) {
+            // ignore pin posts update after switch to a new channel
+            return;
+        }
         SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts, action.is_pinned_posts);
         SearchStore.emitSearchChange();
         break;
