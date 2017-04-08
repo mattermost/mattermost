@@ -59,7 +59,8 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.last_picture_update}
+                    style={{backgroundImage:'url(' + Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.last_picture_update + ')', backgroundSize:'cover'}}
+                    src='/images/1x1.png'
                 />
             );
         }

@@ -175,13 +175,6 @@ export default class ProfilePopover extends React.Component {
         }
 
         var dataContent = [];
-//            <img
-//                className='user-popover__image'
-//                src={this.props.src}
-//                height='128'
-//                width='128'
-//                key='user-popover-image'
-//            />
         dataContent.push(
             <img
                 className='user-popover__image'

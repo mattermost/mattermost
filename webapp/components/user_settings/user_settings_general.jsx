@@ -949,6 +949,7 @@ class UserSettingsGeneralTab extends React.Component {
                         e.preventDefault();
                     }}
                     extraInfo={extraInfo}
+                    disableOpen='false'
                 />
             );
         } else {
@@ -956,9 +957,11 @@ class UserSettingsGeneralTab extends React.Component {
                 <SettingItemMin
                     title={formatMessage(holders.username)}
                     describe={UserStore.getCurrentUser().username}
-                    updateSection={() => {
-                        this.updateSection('username');
+                    updateSection={(e) => {
+                        this.updateSection('');
+                        e.preventDefault();
                     }}
+                    disableOpen='false'
                 />
             );
         }
