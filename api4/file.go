@@ -94,10 +94,30 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data, err := app.ReadFile(info.Path); err != nil {
+	data, err := app.ReadFile(info.Path)
+	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, toDownload, w, r); err != nil {
+		return
+	}
+
+	contentTypeToCheck := []string{"image/jpeg", "image/png", "image/bmp", "image/gif",
+		"video/avi", "video/mpeg", "audio/mpeg3", "audio/wav"}
+
+	contentType := http.DetectContentType(data)
+	foundContentType := false
+	for _, contentTypeFromList := range contentTypeToCheck {
+		if contentType == contentTypeFromList && toDownload == false {
+			foundContentType = true
+			break
+		}
+	}
+	if !foundContentType {
+		toDownload = true
+	}
+
+	err = writeFileResponse(info.Name, info.MimeType, data, toDownload, w, r)
+	if err != nil {
 		c.Err = err
 		return
 	}
