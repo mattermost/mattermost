@@ -158,7 +158,10 @@ export default class AboutBuildModal extends React.Component {
                         <div className='form-group about-modal__copyright'>
                             <FormattedMessage
                                 id='about.copyright'
-                                defaultMessage='Copyright 2016 Mattermost, Inc. All rights reserved'
+                                defaultMessage='Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved'
+                                values={{
+                                    currentYear: new Date().getFullYear()
+                                }}
                             />
                         </div>
                     </div>
