@@ -153,30 +153,36 @@ export default class PostBodyAdditionalContent extends React.Component {
 
     render() {
         if (this.isLinkToggleable() && !this.state.linkLoadError) {
-            const messageWithToggle = [];
-
             // if message has only one line and starts with a link place toggle in this only line
             // else - place it in new line between message and embed
             const prependToggle = (/^\s*https?:\/\/.*$/).test(this.props.post.message);
-            messageWithToggle.push(
+
+            const toggle = (
                 <a
+                    key='toggle'
                     className={`post__embed-visibility ${prependToggle ? 'pull-left' : ''}`}
                     data-expanded={this.state.embedVisible}
                     aria-label='Toggle Embed Visibility'
                     onClick={this.toggleEmbedVisibility}
                 />
             );
+            const message = (
+                <div key='message'>
+                    {this.props.message}
+                </div>
+            );
 
+            let contents;
             if (prependToggle) {
-                messageWithToggle.push(this.props.message);
+                contents = [toggle, message];
             } else {
-                messageWithToggle.unshift(this.props.message);
+                contents = [message, toggle];
             }
 
-            let toggleableEmbed;
             if (this.state.embedVisible) {
-                toggleableEmbed = (
+                contents.push(
                     <div
+                        key='embed'
                         className='post__embed-container'
                     >
                         {this.generateToggleableEmbed()}
@@ -186,8 +192,7 @@ export default class PostBodyAdditionalContent extends React.Component {
 
             return (
                 <div>
-                    {messageWithToggle}
-                    {toggleableEmbed}
+                    {contents}
                 </div>
             );
         }
