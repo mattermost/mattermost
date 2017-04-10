@@ -953,3 +953,15 @@ export function getMissingProfiles(ids, success, error) {
 
     AsyncClient.getProfilesByIds(missingIds, success, error);
 }
+
+export function loadMyTeamMembers() {
+    Client.getMyTeamMembers((data) => {
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
+            team_members: data
+        });
+        AsyncClient.getMyTeamsUnread();
+    }, (err) => {
+        AsyncClient.dispatchError(err, 'getMyTeamMembers');
+    });
+}
