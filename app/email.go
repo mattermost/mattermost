@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package app
@@ -18,7 +18,7 @@ func SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL st
 
 	subject := T("api.templates.username_change_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
-		"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+			"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 
 	bodyPage := utils.NewHTMLTemplate("email_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -40,8 +40,7 @@ func SendEmailChangeVerifyEmail(userId, newUserEmail, locale, siteURL string) *m
 
 	subject := T("api.templates.email_change_verify_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
-		"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
-
+			"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 
 	bodyPage := utils.NewHTMLTemplate("email_change_verify_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -63,7 +62,7 @@ func SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.App
 
 	subject := T("api.templates.email_change_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
-		"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+			"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 
 	bodyPage := utils.NewHTMLTemplate("email_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -128,7 +127,7 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 
 	subject := T("api.templates.welcome_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
-		"ServerURL": rawUrl.Host})
+			"ServerURL": rawUrl.Host})
 
 	bodyPage := utils.NewHTMLTemplate("welcome_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -161,7 +160,7 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 
 	subject := T("api.templates.password_change_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
-		"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
+			"TeamDisplayName": utils.Cfg.TeamSettings.SiteName})
 
 	bodyPage := utils.NewHTMLTemplate("password_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -234,8 +233,8 @@ func SendInviteEmails(team *model.Team, senderName string, invites []string, sit
 
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
-				"TeamDisplayName": team.DisplayName,
-				"SiteName": utils.ClientCfg["SiteName"]})
+					"TeamDisplayName": team.DisplayName,
+					"SiteName":        utils.ClientCfg["SiteName"]})
 
 			bodyPage := utils.NewHTMLTemplate("invite_body", model.DEFAULT_LOCALE)
 			bodyPage.Props["SiteURL"] = siteURL
