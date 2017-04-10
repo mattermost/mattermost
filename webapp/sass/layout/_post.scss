@@ -397,6 +397,7 @@
         .custom-textarea {
             -ms-overflow-style: auto;
             overflow: auto;
+            -webkit-overflow-scrolling: touch;
 
             &:not(.custom-textarea--emoji-picker) {
                 padding-right: 43px;
