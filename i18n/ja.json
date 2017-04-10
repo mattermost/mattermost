@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "公開チャンネルの作成と管理は、システム管理者しかできません。"
+    "translation": "非公開チャンネルの作成と管理は、システム管理者のみが行えます。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "公開チャンネルの作成と管理は、チーム管理者かシステム管理者しかできません。"
+    "translation": "非公開チャンネルの作成と管理は、チーム管理者かシステム管理者のみが行えます。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開グループを削除しましょう。"
+    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開チャンネルを削除しましょう。"
   },
   {
     "id": "api.channel.leave.left",
@@ -2281,7 +2281,7 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>重複していたアカウントが更新されました</h3>利用しているMattermostサーバーがバージョン3.0に更新され、1つのアカウントで複数のチームを利用できるようになりました。<br/><br/>サーバー上の他のアカウントと同じメールアドレス・ユーザー名が使用されていることを検知したため、このメールでお知らせしています。<br/><br/>アカウントは次の通りに更新されました: <br/><br/>{{if .EmailChanged }}- メールアドレスが重複していた`/{{.TeamName}}`チームのアカウントのメールアドレスは`{{.Email}}`に変更されました。 メールアドレスとパスワードをログインに使用している場合は、この新しいメールアドレスを使用してください。<br/><br/>{{end}}{{if .UsernameChanged }}- ユーザー名が重複していた`/{{.TeamName}}`チームのアカウントのユーザー名は`{{.Username}}`に変更されました。<br/><br/>{{end}} 推奨される操作: <br/><br/>重複していたアカウントを利用してチームへログインし、メインのアカウントをチームと公開チャンネル、利用を続ける非公開グループに追加することを推奨します。<br/><br/>メインのアカウントで全ての公開チャンネルと非公開グループの履歴を閲覧することが出来ます。ダイレクトメッセージの履歴は、重複していたアカウントでログインすることで閲覧することが出来ます。<br/><br/>追加情報: <br/><br/>Mattermost 3.0への更新に関する情報は、次のURLよりご確認ください: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>重複していたアカウントが更新されました</h3>利用しているMattermostサーバーがバージョン3.0に更新され、1つのアカウントを複数のチームで利用できるようになりました。<br/><br/>サーバー上の他のアカウントと同じメールアドレス・ユーザー名が使用されていることを検知したため、このメールでお知らせしています。<br/><br/>アカウントは次の通りに更新されました: <br/><br/>{{if .EmailChanged }}- メールアドレスが重複していた`/{{.TeamName}}`チームのアカウントのメールアドレスは`{{.Email}}`に変更されました。 メールアドレスとパスワードをログインに使用している場合は、この新しいメールアドレスを使用してください。<br/><br/>{{end}}{{if .UsernameChanged }}- ユーザー名が重複していた`/{{.TeamName}}`チームのアカウントのユーザー名は`{{.Username}}`に変更されました。<br/><br/>{{end}} 推奨される操作: <br/><br/>重複していたアカウントを利用してチームへログインし、メインのアカウントをチームとチャンネルに追加することを推奨します。<br/><br/>メインのアカウントで全てのチャンネルの履歴を閲覧することが出来ます。ダイレクトメッセージの履歴は、重複していたアカウントでログインすることで閲覧することが出来ます。<br/><br/>追加情報: <br/><br/>Mattermost 3.0への更新に関する情報は、次のURLよりご確認ください: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -3721,23 +3721,23 @@
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
+    "translation": "チャンネルIDをマルチパートフォームに書き込む際にエラーが発生しました"
   },
   {
     "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Error writing file to multipart form"
+    "translation": "ファイルをマルチパートフォームに書き込む際にエラーが発生しました"
   },
   {
     "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
+    "translation": "ファイルサイズをマルチパートフォームに書き込む際にエラーが発生しました"
   },
   {
     "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Error writing importFrom to multipart form"
+    "translation": "インポート元をマルチパートフォームに書き出す際にエラーが発生しました"
   },
   {
     "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
+    "translation": "マルチパートライターをクローズする際にエラーが発生しました"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -5497,11 +5497,11 @@
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
-    "translation": "チャンネルを検索する際にエラーが発生しました"
+    "translation": "チームを検索する際にエラーが発生しました"
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
-    "translation": "チャンネルを検索する際にエラーが発生しました"
+    "translation": "公開されているチームを検索する際にエラーが発生しました"
   },
   {
     "id": "store.sql_team.update.app_error",
