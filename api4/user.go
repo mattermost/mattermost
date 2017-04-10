@@ -43,6 +43,7 @@ func InitUser() {
 	BaseRoutes.User.Handle("/mfa/generate", ApiSessionRequired(generateMfaSecret)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
+	BaseRoutes.Users.Handle("/login/switch", ApiHandler(switchAccountType)).Methods("POST")
 	BaseRoutes.Users.Handle("/logout", ApiHandler(logout)).Methods("POST")
 
 	BaseRoutes.UserByUsername.Handle("", ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -980,4 +981,41 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
+	switchRequest := model.SwitchRequestFromJson(r.Body)
+	if switchRequest == nil {
+		c.SetInvalidParam("switch_request")
+		return
+	}
+
+	link := ""
+	var err *model.AppError
+
+	if switchRequest.EmailToOAuth() {
+		link, err = app.SwitchEmailToOAuth(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
+	} else if switchRequest.OAuthToEmail() {
+		c.SessionRequired()
+		if c.Err != nil {
+			return
+		}
+
+		link, err = app.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.Session.UserId)
+	} else if switchRequest.EmailToLdap() {
+		link, err = app.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapId, switchRequest.NewPassword)
+	} else if switchRequest.LdapToEmail() {
+		link, err = app.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
+	} else {
+		c.SetInvalidParam("switch_request")
+		return
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
