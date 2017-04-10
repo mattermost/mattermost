@@ -150,6 +150,7 @@ type ServiceSettings struct {
 	AllowEditPost                            *string
 	PostEditTimeLimit                        *int
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
+	EnablePostSearch                         *bool
 	EnableUserTypingMessages                 *bool
 	ClusterLogTimeoutMilliseconds            *int
 }
@@ -1129,6 +1130,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds == nil {
 		o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = new(int64)
 		*o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = 5000
+	}
+
+	if o.ServiceSettings.EnablePostSearch == nil {
+		o.ServiceSettings.EnablePostSearch = new(bool)
+		*o.ServiceSettings.EnablePostSearch = true
 	}
 
 	if o.ServiceSettings.EnableUserTypingMessages == nil {
