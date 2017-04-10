@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "只有系统管理员能创建公开频道。"
+    "translation": "只有系统管理员能创建私有频道。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "只有团队和系统管理员能创建与管理公开频道。"
+    "translation": "只有团队和系统管理员能创建与管理私有频道。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
-    "translation": "无法获取 user_id=%v 以及 channel_id=%v 的未读数量，err=%v"
+    "translation": "无法获取未读数量：user_id=%v, channel_id=%v, err=%v"
   },
   {
     "id": "api.cluster.init.debug",
@@ -817,7 +817,7 @@
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "暂未支持客户端配置的新格式。请在查询字串指定 format=old。"
   },
   {
     "id": "api.context.404.app_error",
@@ -1295,7 +1295,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "暂未支持客户端授权的新格式。请在查询字串指定 format=old。"
   },
   {
     "id": "api.license.init.debug",
@@ -2281,7 +2281,7 @@
   },
   {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帐号已更新</h3>您的 Mattermost 伺服器正在升级到版本 3.0，从此您可以在多个团队中使用同一个帐号。<br/><br/>您收到此邮件因为升级过程中发现您的邮箱地址或用户名和另外个帐号重复。<br/><br/>改动如下：<br/><br/>{{if .EmailChanged }}- 在 `/{{.TeamName}}` 团队中重复电子邮件已改为 `{{.Email}}`。你可以使用此新的电子邮件地址和密码登入。<br/><br/>{{end}}{{if .UsernameChanged }}- 在 `/{{.TeamName}}` 团队中重复用户名已改为 `{{.Username}}` 亿避免与其他帐号混淆。<br/><br/>{{end}} 建议操作： <br/><br/>建议您登入重复帐号的团队并将主帐号添加到想继续使用的团队，公开频道以及私有群组。<br/><br/>这样您可以用主帐号访问所有公开频道以及私有群组的历史。您可以继续登入重复帐号来获取私信历史。<br/><br/>更多咨询： <br/><br/>关于更多升级到 Mattermost 3.0 的相关咨询，请参见：<a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>您的多重帐号已更新</h3>您的 Mattermost 伺服器正在升级到版本 3.0，从此您可以在多个团队中使用同一个帐号。<br/><br/>您收到此邮件因为升级过程中发现您的邮箱地址或用户名和另外个帐号重复。<br/><br/>改动如下：<br/><br/>{{if .EmailChanged }}- 在 `/{{.TeamName}}` 团队中重复电子邮件已改为 `{{.Email}}`。你可以使用此新的电子邮件地址和密码登入。<br/><br/>{{end}}{{if .UsernameChanged }}- 在 `/{{.TeamName}}` 团队中重复用户名已改为 `{{.Username}}` 以避免与其他帐号混淆。<br/><br/>{{end}} 建议操作： <br/><br/>建议您登入重复帐号的团队并将主帐号添加到想继续使用的团队以及频道。<br/><br/>这样您可以用主帐号访问所有频道的历史。您可以继续登入重复帐号来获取私信历史。<br/><br/>更多咨询： <br/><br/>关于更多升级到 Mattermost 3.0 的相关咨询，请参见：<a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -3721,23 +3721,23 @@
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
+    "translation": "写入频道 id 到混合表单错误"
   },
   {
     "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Error writing file to multipart form"
+    "translation": "写入文件到混合表单错误"
   },
   {
     "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
+    "translation": "写入 fileSize 到混合表单错误"
   },
   {
     "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Error writing importFrom to multipart form"
+    "translation": "写入 importForm 到混合表单错误"
   },
   {
     "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
+    "translation": "关闭混合写入器错误"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
@@ -5497,11 +5497,11 @@
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
-    "translation": "我们搜索频道时遇到错误"
+    "translation": "我们搜索团队时遇到错误"
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
-    "translation": "我们搜索频道时遇到错误"
+    "translation": "我们搜索公开团队时遇到错误"
   },
   {
     "id": "store.sql_team.update.app_error",
