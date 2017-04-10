@@ -127,7 +127,7 @@ exports[`components/AboutBuildModal should match snapshot for enterprise edition
         className="form-group about-modal__copyright"
       >
         <FormattedMessage
-          defaultMessage="Copyright 2016 Mattermost, Inc. All rights reserved"
+          defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
           id="about.copyright"
           values={Object {}}
         />
