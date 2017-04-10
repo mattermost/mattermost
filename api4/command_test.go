@@ -282,3 +282,39 @@ func TestListAutocompleteCommands(t *testing.T) {
 		}
 	})
 }
+
+func TestRegenToken(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	newCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger"}
+
+	createdCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	token, resp := th.SystemAdminClient.RegenCommandToken(createdCmd.Id)
+	CheckNoError(t, resp)
+	if token == createdCmd.Token {
+		t.Fatal("should update the token")
+	}
+
+	token, resp = Client.RegenCommandToken(createdCmd.Id)
+	CheckForbiddenStatus(t, resp)
+	if token != "" {
+		t.Fatal("should not return the token")
+	}
+
+}

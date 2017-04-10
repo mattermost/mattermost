@@ -2223,6 +2223,16 @@ func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response
 	}
 }
 
+// RegenCommandToken will create a new command if the user have the right permissions.
+func (c *Client4) RegenCommandToken(commandId string) (string, *Response) {
+	if r, err := c.DoApiPut(c.GetCommandRoute(commandId)+"/regen_token", ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["token"], BuildResponse(r)
+	}
+}
+
 // Status Section
 
 // GetUserStatus returns a user based on the provided user id string.
