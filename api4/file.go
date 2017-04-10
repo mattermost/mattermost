@@ -22,7 +22,7 @@ func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
 	BaseRoutes.Files.Handle("", ApiSessionRequired(uploadFile)).Methods("POST")
-	BaseRoutes.File.Handle("", ApiSessionRequired(getFile)).Methods("GET")
+	BaseRoutes.File.Handle("", ApiSessionRequiredTrustRequester(getFile)).Methods("GET")
 	BaseRoutes.File.Handle("/thumbnail", ApiSessionRequired(getFileThumbnail)).Methods("GET")
 	BaseRoutes.File.Handle("/link", ApiSessionRequired(getFileLink)).Methods("GET")
 	BaseRoutes.File.Handle("/preview", ApiSessionRequired(getFilePreview)).Methods("GET")
@@ -78,6 +78,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	toDownload, failConv := strconv.ParseBool(r.URL.Query().Get("download"))
+	if failConv != nil {
+		toDownload = false
+	}
+
 	info, err := app.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
@@ -92,7 +97,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, toDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -124,7 +129,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, true, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -191,7 +196,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, true, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -253,13 +258,13 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, info.MimeType, data, true, w, r); err != nil {
 		c.Err = err
 		return
 	}
 }
 
-func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
+func writeFileResponse(filename string, contentType string, bytes []byte, toDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 
@@ -269,7 +274,11 @@ func writeFileResponse(filename string, contentType string, bytes []byte, w http
 		w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 	}
 
-	w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+	if toDownload {
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+	} else {
+		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+	}
 
 	// prevent file links from being embedded in iframes
 	w.Header().Set("X-Frame-Options", "DENY")
