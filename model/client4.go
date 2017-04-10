@@ -2212,6 +2212,16 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
 	}
 }
 
+// DeleteCommand deletes a command based on the provided command id string
+func (c *Client4) DeleteCommand(commandId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetCommandRoute(commandId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // ListCommands will retrieve a list of commands available in the team.
 func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Response) {
 	query := fmt.Sprintf("?team_id=%v&custom_only=%v", teamId, customOnly)
