@@ -409,6 +409,16 @@ func (c *Client4) Logout() (bool, *Response) {
 	}
 }
 
+// SwitchAccountType changes a user's login type from one type to another.
+func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/login/switch", switchRequest.ToJson()); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["follow_link"], BuildResponse(r)
+	}
+}
+
 // User Section
 
 // CreateUser creates a user in the system based on the provided user struct.

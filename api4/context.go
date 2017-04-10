@@ -242,8 +242,7 @@ func (c *Context) IsSystemAdmin() bool {
 
 func (c *Context) SessionRequired() {
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "UserRequired")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
 }

@@ -914,41 +914,14 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
-
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUserByEmail(email); err != nil {
-		c.LogAudit("fail - couldn't get user")
+	link, err := app.SwitchEmailToOAuth(email, password, mfaToken, service)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := app.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
-		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
-		c.Err = err
-		return
-	}
-
-	stateProps := map[string]string{}
-	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
-	stateProps["email"] = email
-
-	m := map[string]string{}
-	if service == model.USER_AUTH_SERVICE_SAML {
-		m["follow_link"] = c.GetSiteURLHeader() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + email
-	} else {
-		if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
-			c.LogAuditWithUserId(user.Id, "fail - oauth issue")
-			c.Err = err
-			return
-		} else {
-			m["follow_link"] = authUrl
-		}
-	}
-
-	c.LogAuditWithUserId(user.Id, "success")
-	w.Write([]byte(model.MapToJson(m)))
+	c.LogAudit("success for email=" + email)
+	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
 func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -966,51 +939,19 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
-
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUserByEmail(email); err != nil {
-		c.LogAudit("fail - couldn't get user")
+	link, err := app.SwitchOAuthToEmail(email, password, c.Session.UserId)
+	if err != nil {
 		c.Err = err
 		return
 	}
-
-	if user.Id != c.Session.UserId {
-		c.LogAudit("fail - user ids didn't match")
-		c.Err = model.NewLocAppError("oauthToEmail", "api.user.oauth_to_email.context.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	if err := app.UpdatePassword(user, password); err != nil {
-		c.LogAudit("fail - database issue")
-		c.Err = err
-		return
-	}
-
-	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale, utils.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
-		}
-	}()
-
-	if err := app.RevokeAllSessions(c.Session.UserId); err != nil {
-		c.Err = err
-		return
-	}
-	c.LogAuditWithUserId(c.Session.UserId, "Revoked all sessions for user")
 
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
 
-	m := map[string]string{}
-	m["follow_link"] = "/login?extra=signin_change"
-
 	c.LogAudit("success")
-	w.Write([]byte(model.MapToJson(m)))
+	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
 func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1044,55 +985,19 @@ func emailToLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUserByEmail(email); err != nil {
-		c.LogAudit("fail - couldn't get user")
+	link, err := app.SwitchEmailToLdap(email, emailPassword, token, ldapId, ldapPassword)
+	if err != nil {
 		c.Err = err
 		return
 	}
-
-	if err := app.CheckPasswordAndAllCriteria(user, emailPassword, token); err != nil {
-		c.LogAuditWithUserId(user.Id, "failed - bad authentication")
-		c.Err = err
-		return
-	}
-
-	if err := app.RevokeAllSessions(user.Id); err != nil {
-		c.Err = err
-		return
-	}
-	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
 
-	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil {
-		c.Err = model.NewLocAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	if err := ldapInterface.SwitchToLdap(user.Id, ldapId, ldapPassword); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail - ldap switch failed")
-		c.Err = err
-		return
-	}
-
-	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, utils.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
-		}
-	}()
-
-	m := map[string]string{}
-	m["follow_link"] = "/login?extra=signin_change"
-
 	c.LogAudit("success")
-	w.Write([]byte(model.MapToJson(m)))
+	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
 func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1120,66 +1025,19 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	var user *model.User
-	var err *model.AppError
-	if user, err = app.GetUserByEmail(email); err != nil {
-		c.LogAudit("fail - couldn't get user")
+	link, err := app.SwitchLdapToEmail(ldapPassword, token, email, emailPassword)
+	if err != nil {
 		c.Err = err
 		return
 	}
-
-	if user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-		c.Err = model.NewLocAppError("ldapToEmail", "api.user.ldap_to_email.not_ldap_account.app_error", nil, "")
-		return
-	}
-
-	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil || user.AuthData == nil {
-		c.Err = model.NewLocAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	if err := ldapInterface.CheckPassword(*user.AuthData, ldapPassword); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail - ldap authentication failed")
-		c.Err = err
-		return
-	}
-
-	if err := app.CheckUserMfa(user, token); err != nil {
-		c.LogAuditWithUserId(user.Id, "fail - mfa token failed")
-		c.Err = err
-		return
-	}
-
-	if err := app.UpdatePassword(user, emailPassword); err != nil {
-		c.LogAudit("fail - database issue")
-		c.Err = err
-		return
-	}
-
-	if err := app.RevokeAllSessions(user.Id); err != nil {
-		c.Err = err
-		return
-	}
-	c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 
 	c.RemoveSessionCookie(w, r)
 	if c.Err != nil {
 		return
 	}
 
-	go func() {
-		if err := app.SendSignInChangeEmail(user.Email, c.T("api.templates.signin_change_email.body.method_email"), user.Locale, utils.GetSiteURL()); err != nil {
-			l4g.Error(err.Error())
-		}
-	}()
-
-	m := map[string]string{}
-	m["follow_link"] = "/login?extra=signin_change"
-
 	c.LogAudit("success")
-	w.Write([]byte(model.MapToJson(m)))
+	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
 func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
