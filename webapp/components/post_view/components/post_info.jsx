@@ -460,7 +460,7 @@ export default class PostInfo extends React.Component {
         }
 
         let flagTrigger;
-        if (isEphemeral) {
+        if (!isEphemeral) {
             flagTrigger = (
                 <OverlayTrigger
                     key={'flagtooltipkey' + flagVisible}
