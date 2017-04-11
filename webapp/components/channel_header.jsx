@@ -8,6 +8,7 @@ import MessageWrapper from './message_wrapper.jsx';
 import PopoverListMembers from 'components/popover_list_members';
 import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
+import ConvertChannelModal from './channel_convert_modal.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from './channel_members_modal.jsx';
@@ -763,12 +764,14 @@ export default class ChannelHeader extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_header.convert'
-                                    defaultMessage='Convert to Private Group'
+                                    defaultMessage='Convert to Private Channel'
                                 />
                             </a>
                         </li>
                     );
                 }
+                            
+                );
             }
 
             if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
@@ -1050,6 +1053,7 @@ export default class ChannelHeader extends React.Component {
                     onHide={this.hideConvertChannelModal}
                     channel={channel}
                 />
+
             </div>
         );
     }

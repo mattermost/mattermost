@@ -212,6 +212,26 @@ function renderChannelDeletedMessage(post, options) {
     );
 }
 
+
+function renderConvertToChannelMessage(post, options) {
+    if (!(post.props.username)) {
+        return null;
+    }
+
+    const username = renderUsername(post.props.username, options);
+    const oldChannelType = post.props.old_channeltype;
+    const newChannelType = post.props.new_channeltype;
+
+    return (
+        <FormattedMessage
+            id='api.channel.post_update_channel_type_message_and_forget.update_success'
+            defaultMessage='@channel: {username} has converted this channel to a private channel.'
+            values={{
+                username
+            }}
+        />
+    );
+}
 const systemMessageRenderers = {
     [PostTypes.JOIN_CHANNEL]: renderJoinChannelMessage,
     [PostTypes.LEAVE_CHANNEL]: renderLeaveChannelMessage,
@@ -220,7 +240,8 @@ const systemMessageRenderers = {
     [PostTypes.HEADER_CHANGE]: renderHeaderChangeMessage,
     [PostTypes.DISPLAYNAME_CHANGE]: renderDisplayNameChangeMessage,
     [PostTypes.PURPOSE_CHANGE]: renderPurposeChangeMessage,
-    [PostTypes.CHANNEL_DELETED]: renderChannelDeletedMessage
+    [PostTypes.CHANNEL_DELETED]: renderChannelDeletedMessage,
+    [PostTypes.CONVERT_TO_CHANNEL]: renderConvertToChannelMessage
 };
 
 export function renderSystemMessage(post, options) {

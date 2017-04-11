@@ -123,6 +123,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	oldChannel.Purpose = channel.Purpose
 
 	oldChannelDisplayName := oldChannel.DisplayName
+	oldChannelType := oldChannel.Type
 
 	if len(channel.DisplayName) > 0 {
 		oldChannel.DisplayName = channel.DisplayName
@@ -144,8 +145,18 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
 				l4g.Error(err.Error())
 			}
+		} else {
+			c.LogAudit("name=" + channel.Name)
 		}
-		c.LogAudit("name=" + channel.Name)
+
+		if oldChannelType == model.CHANNEL_OPEN && channel.Type == model.CHANNEL_PRIVATE {
+			if err := app.PostUpdateChannelTypeMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelType, channel.Type, c.GetSiteURL()); err != nil {
+				l4g.Error(err.Error())
+			}
+		} else {
+			c.LogAudit("type=" + channel.Type)
+		}
+
 		w.Write([]byte(oldChannel.ToJson()))
 	}
 }

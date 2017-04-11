@@ -19,6 +19,7 @@ const (
 	POST_LEAVE_CHANNEL         = "system_leave_channel"
 	POST_ADD_REMOVE            = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL        = "system_add_to_channel"
+	POST_CONVERT_TO_CHANNEL    = "system_convert_to_channel"
 	POST_REMOVE_FROM_CHANNEL   = "system_remove_from_channel"
 	POST_HEADER_CHANGE         = "system_header_change"
 	POST_DISPLAYNAME_CHANGE    = "system_displayname_change"
@@ -143,7 +144,7 @@ func (o *Post) IsValid() *AppError {
 		o.Type == POST_JOIN_CHANNEL || o.Type == POST_LEAVE_CHANNEL ||
 		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL ||
 		o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_PURPOSE_CHANGE ||
-		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED) {
+		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED || o.Type == POST_CONVERT_TO_CHANNEL) {
 		return NewLocAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type)
 	}
 

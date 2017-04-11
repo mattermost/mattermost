@@ -718,6 +718,36 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 	return nil
 }
 
+func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string, oldChannelType string, newChannelType string, siteURL string) *model.AppError {
+	uc := Srv.Store.User().Get(userId)
+
+	if uresult := <-uc; uresult.Err != nil {
+		return model.NewLocAppError("PostUpdateChannelTypeMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, uresult.Err.Error())
+	} else {
+		user := uresult.Data.(*model.User)
+
+		message := fmt.Sprintf(utils.T("api.channel.post_update_channel_type_message_and_forget.update_success"), user.Username, oldChannelType, newChannelType)
+
+		post := &model.Post{
+			ChannelId: channelId,
+			Message:   message,
+			Type:      model.POST_CONVERT_TO_CHANNEL,
+			UserId:    userId,
+			Props: model.StringInterface{
+				"username":        user.Username,
+				"old_channeltype": oldChannelType,
+				"new_channeltype": newChannelType,
+			},
+		}
+
+		if _, err := CreatePost(post, teamId, false, siteURL); err != nil {
+			return model.NewLocAppError("PostUpdateChannelTypeMessage", "api.channel.post_update_channel_type_message_and_forget.create_post.error", nil, err.Error())
+		}
+	}
+
+	return nil
+}
+
 func GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	if result := <-Srv.Store.Channel().Get(channelId, true); result.Err != nil && result.Err.Id == "store.sql_channel.get.existing.app_error" {
 		result.Err.StatusCode = http.StatusNotFound
