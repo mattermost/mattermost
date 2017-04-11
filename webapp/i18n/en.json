@@ -1891,7 +1891,7 @@
   "setting_item_max.save": "Save",
   "setting_item_min.edit": "Edit",
   "setting_picture.cancel": "Cancel",
-  "setting_picture.help": "Upload a profile picture in either JPG or PNG format, at least {width}px in width and {height}px height.",
+  "setting_picture.help": "Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.",
   "setting_picture.save": "Save",
   "setting_picture.select": "Select",
   "setting_upload.import": "Import",
