@@ -2311,3 +2311,15 @@ func (c *Client4) GetEmojiList() ([]*Emoji, *Response) {
 		return EmojiListFromJson(r.Body), BuildResponse(r)
 	}
 }
+
+// Reaction Section
+
+// GetReactions returns a list of reactions to a post.
+func (c *Client4) GetReactions(postId string) ([]*Reaction, *Response) {
+	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/reactions", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ReactionsFromJson(r.Body), BuildResponse(r)
+	}
+}
