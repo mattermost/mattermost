@@ -264,8 +264,12 @@
             &:not(.post--thread) {
                 padding: 0 .5em 0 77px;
 
+                &.other--root {
+
+                }
+
                 .post__link {
-                    margin: 4px 0 7px;
+                    margin: 3px 0 7px;
                     vertical-align: bottom;
                 }
 
@@ -280,7 +284,7 @@
                 .post__header {
                     float: left;
                     height: 21px;
-                    padding-top: 1px;
+                    padding-top: 2px;
 
                     .col__name {
                         font-weight: bold;
@@ -300,14 +304,6 @@
                 }
 
                 &.other--root {
-                    .post__body {
-                        > div {
-                            &:first-child {
-                                min-height: 21px;
-                            }
-                        }
-                    }
-
                     .post__link + .post__body {
                         clear: both;
                     }
