@@ -186,7 +186,9 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		}
 	}
 
-	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+	if _, ok := utils.GetSupportedLocales()[user.Locale]; !ok {
+		user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+	}
 
 	if ruser, err := createUser(user); err != nil {
 		return nil, err
