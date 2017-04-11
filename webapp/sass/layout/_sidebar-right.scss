@@ -83,6 +83,13 @@
        }
     }
 
+    .post-image__thumbnail {
+        &.medium {
+            width: 300px;
+            height: 175px;
+        }
+    }
+
     .help__format-text {
         display: none;
     }

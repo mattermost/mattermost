@@ -143,13 +143,9 @@
 }
 
 .post-image__column {
-    border: 1px solid alpha-color($black, .2);
     float: left;
-    height: 100px;
-    margin: 5px 10px 5px 0;
-    position: relative;
-    width: 240px;
-
+    margin-right: 20px !important;
+    
     &--placeholder {
         visibility: hidden;
     }
@@ -171,6 +167,7 @@
     position: relative;
     text-align: center;
     width: 100%;
+    background-size: cover;
 
     &.small {
         background-position: center;
@@ -205,44 +202,31 @@
 }
 
 .post-image__thumbnail {
-    @include cursor(zoom-in);
     float: left;
-    height: 100%;
-    width: 50%;
+    clear: both;
+    margin-bottom: 5px;
+    &.small {
+        width: 128px;
+        height: 100px;
+    }
+    &.small__width {
+        width: 128px;
+    }
+    &.medium {
+        width: 400px;
+        height: 200px;
+    }
 }
 
 .post-image__details {
-    @include clearfix;
-    background: $white;
-    border-left: 1px solid $light-gray;
-    color: alpha-color($black, .8);
-    float: left;
-    font-size: 13px;
-    height: 100%;
-    padding: 7px;
-    width: 50%;
-    word-break: break-word;
-
-    .post-image__name {
-        display: block;
-        margin-bottom: 3px;
-    }
-
-    .post-image__download {
-        @include opacity(.7);
-        cursor: pointer;
-        display: inline-block;
-        padding-right: 7px;
-    }
-
-    .post-image__type {
-        @include opacity(.6);
-    }
-
-    .post-image__size {
-        @include opacity(.6);
-        margin-left: 4px;
-    }
+    width: 128px;
+    color: #ffffff;
+    clear: both;
+    max-height: 45px;
+    text-align: center;
+    padding: 3px;
+    overflow: hidden;
+    margin: 0 auto !important;
 }
 
 .file-details__container {

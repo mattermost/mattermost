@@ -351,4 +351,11 @@
         margin-left: 5px;
         width: calc(100% - 80px);
     }
+
+    .post-image__thumbnail {
+        &.medium {
+            width: 400px !important;
+            height: 200px !important;
+        }
+    }
 }

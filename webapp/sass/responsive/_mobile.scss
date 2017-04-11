@@ -448,9 +448,11 @@
         }
     }
 
-    .post-image__column {
-        height: 95px;
-        width: 200px;
+    .post-image__thumbnail {
+        &.medium {
+            width: 320px;
+            height: 175px;
+        }
     }
 
     .form-control {
