@@ -104,12 +104,8 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 							ioutil.ReadAll(resp.Body)
 							resp.Body.Close()
 						}()
-						respProps := model.MapFromJson(resp.Body)
-
-						if text, ok := respProps["text"]; ok {
-							if _, err := CreateWebhookPost(hook.CreatorId, hook.TeamId, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type, siteURL); err != nil {
-								l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
-							}
+						if outgoingWebhookResp := model.OutgoingWebhookResponseFromJson(resp.Body); outgoingWebhookResp != nil {
+							CreateOutgoingWebhookResponsePost(payload, outgoingWebhookResp, siteURL)
 						}
 					}
 				}(url)
@@ -119,6 +115,42 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 	}
 
 	return nil
+}
+
+func CreateOutgoingWebhookResponsePost(request *model.OutgoingWebhookPayload, response *model.OutgoingWebhookResponse, siteURL string) {
+	post := &model.Post{
+		UserId:    request.UserId,
+		ChannelId: request.ChannelId,
+		Message:   response.Text,
+		ParentId:  request.PostId,
+		RootId:    request.PostId,
+		Props:     map[string]interface{}{"from_webhook": "true"},
+		Type:      model.POST_DEFAULT,
+	}
+
+	if response.Attachments != nil {
+		parseSlackAttachment(post, response.Attachments)
+		post.Type = model.POST_SLACK_ATTACHMENT
+	}
+
+	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride && len(response.Username) != 0 {
+		post.AddProp("override_username", response.Username)
+	}
+
+	post.AddProp("override_icon_url", "")
+	if utils.Cfg.ServiceSettings.EnablePostIconOverride && len(response.IconURL) != 0 {
+		post.AddProp("override_icon_url", response.IconURL)
+	}
+
+	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
+		if _, err := CreatePost(post, request.TeamId, false, siteURL); err != nil {
+			l4g.Error(utils.T("api.post.create_webhook_post.creating.app_error"))
+		}
+	} else if response.Text != "" {
+		post.ParentId = ""
+		SendEphemeralPost(request.TeamId, post.UserId, post)
+	}
+
 }
 
 func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string, siteURL string) (*model.Post, *model.AppError) {

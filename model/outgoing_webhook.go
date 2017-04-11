@@ -43,6 +43,14 @@ type OutgoingWebhookPayload struct {
 	TriggerWord string `json:"trigger_word"`
 }
 
+type OutgoingWebhookResponse struct {
+	ResponseType string             `json:"response_type"`
+	Text         string             `json:"text"`
+	Username     string             `json:"username"`
+	IconURL      string             `json:"icon_url"`
+	Attachments  []*SlackAttachment `json:"attachments"`
+}
+
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -223,4 +231,24 @@ func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
 	}
 
 	return false
+}
+
+func OutgoingWebhookResponseFromJson(data io.Reader) *OutgoingWebhookResponse {
+	decoder := json.NewDecoder(data)
+	var o OutgoingWebhookResponse
+
+	if err := decoder.Decode(&o); err != nil {
+		return nil
+	}
+
+	// Ensure attachment fields are stored as strings
+	for _, attachment := range o.Attachments {
+		for _, field := range attachment.Fields {
+			if field.Value != nil {
+				field.Value = fmt.Sprintf("%v", field.Value)
+			}
+		}
+	}
+
+	return &o
 }
