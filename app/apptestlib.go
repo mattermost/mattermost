@@ -75,6 +75,14 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	return me
 }
 
+func (me *TestHelper) MakeUsername() string {
+	return "un_" + model.NewId()
+}
+
+func (me *TestHelper) MakeEmail() string {
+	return "success_" + model.NewId() + "@simulator.amazonses.com"
+}
+
 func (me *TestHelper) CreateTeam() *model.Team {
 	id := model.NewId()
 	team := &model.Team{
