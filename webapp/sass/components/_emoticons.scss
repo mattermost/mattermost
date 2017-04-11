@@ -247,30 +247,33 @@
 .emoji-picker__preview {
     border-top: 1px solid;
     display: table-cell;
-    vertical-align: middle;
     flex-grow: 0;
     flex-shrink: 0;
-    height:45px;
-    width: 278px;
+    height: 45px;
     padding: 3px 10px;
+    vertical-align: middle;
+    width: 278px;
 
     &.emoji-picker__preview-placeholder {
         padding: 12px;
     }
 
-    .emoji-picker__preview-image-box {
+    > div {
         display: table-cell;
         vertical-align: middle;
+    }
+
+    .emoji-picker__preview-image-box {
         height: 36px;
         width: 42px;
 
         .sprite-preview {
-            height: 36px;
-            width: 36px;
-            vertical-align: middle;
-            padding: 0px;
-            border: 0px;
+            border: none;
             display: inline-block;
+            height: 36px;
+            padding: 0;
+            vertical-align: middle;
+            width: 36px;
         }
     }
 
