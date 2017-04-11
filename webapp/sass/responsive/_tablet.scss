@@ -19,16 +19,18 @@
             width: 300px;
         }
     }
-    .post-right__scroll{
-        .post-create__container{
+
+    .post-right__scroll {
+        .post-create__container {
             .post-create-body {
                 .icon__emoji_picker {
-                    display:none;
+                    display: none;
                     top: -7px;
                 }
             }
         }
     }
+
     .post-create__container {
         form {
             padding: .5em 0 0;
@@ -278,7 +280,7 @@
                 .post__header {
                     float: left;
                     height: 21px;
-                    padding-top: 3px;
+                    padding-top: 1px;
 
                     .col__name {
                         font-weight: bold;
