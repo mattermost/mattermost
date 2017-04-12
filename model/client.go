@@ -1841,15 +1841,14 @@ func (c *Client) GetTeamStats(teamId string) (*Result, *AppError) {
 	}
 }
 
-// GetTeamStats will return a team stats object containing the number of users on the team
-// based on the team id provided. Must be authenticated.
+// GetTeamByName will return a team object based on the team name provided. Must be authenticated.
 func (c *Client) GetTeamByName(teamName string) (*Result, *AppError) {
 	if r, err := c.DoApiGet(fmt.Sprintf("/teams/name/%v", teamName), "", ""); err != nil {
 		return nil, err
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), TeamStatsFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
 	}
 }
 
