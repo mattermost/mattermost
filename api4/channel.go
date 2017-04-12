@@ -150,7 +150,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if oldChannelType == model.CHANNEL_OPEN && channel.Type == model.CHANNEL_PRIVATE {
-			if err := app.PostUpdateChannelTypeMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelType, channel.Type, c.GetSiteURL()); err != nil {
+			if err := app.PostUpdateChannelTypeMessage(c.Session.UserId, channel.Id, c.Params.TeamId, oldChannelType, channel.Type); err != nil {
 				l4g.Error(err.Error())
 			}
 		} else {

@@ -718,7 +718,7 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 	return nil
 }
 
-func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string, oldChannelType string, newChannelType string, siteURL string) *model.AppError {
+func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string, oldChannelType string, newChannelType string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 
 	if uresult := <-uc; uresult.Err != nil {
@@ -740,7 +740,7 @@ func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string
 			},
 		}
 
-		if _, err := CreatePost(post, teamId, false, siteURL); err != nil {
+		if _, err := CreatePost(post, teamId, false); err != nil {
 			return model.NewLocAppError("PostUpdateChannelTypeMessage", "api.channel.post_update_channel_type_message_and_forget.create_post.error", nil, err.Error())
 		}
 	}
