@@ -724,10 +724,14 @@ var inlineCodePattern = regexp.MustCompile("(?m)\\`(?:.+?|.*?\n(.*?\\S.*?\n)*.*?
 
 // Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
 func removeCodeFromMessage(message string) string {
-	message = codeBlockPattern.ReplaceAllString(message, "")
+	if strings.Contains(message, "```") {
+		message = codeBlockPattern.ReplaceAllString(message, "")
+	}
 
 	// Replace with a space to prevent cases like "user`code`name" from turning into "username"
-	message = inlineCodePattern.ReplaceAllString(message, " ")
+	if strings.Contains(message, "`") {
+		message = inlineCodePattern.ReplaceAllString(message, " ")
+	}
 
 	return message
 }
