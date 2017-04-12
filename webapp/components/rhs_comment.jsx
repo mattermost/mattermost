@@ -553,7 +553,7 @@ export default class RhsComment extends React.Component {
         }
 
         let flagTrigger;
-        if (isEphemeral) {
+        if (!isEphemeral) {
             flagTrigger = (
                 <OverlayTrigger
                     key={'commentflagtooltipkey' + flagVisible}
