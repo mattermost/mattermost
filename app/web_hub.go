@@ -82,7 +82,7 @@ func HubStart() {
 			ticker.Stop()
 		}()
 
-		stopCheckingForDeadlock = make(chan bool)
+		stopCheckingForDeadlock = make(chan bool, 1)
 
 		for {
 			select {
@@ -113,7 +113,11 @@ func HubStart() {
 func HubStop() {
 	l4g.Info(utils.T("api.web_hub.start.stopping.debug"))
 
-	stopCheckingForDeadlock <- true
+	select {
+	case stopCheckingForDeadlock <- true:
+	default:
+		l4g.Warn("We appear to have already sent the stop checking for deadlocks command")
+	}
 
 	for _, hub := range hubs {
 		hub.Stop()
