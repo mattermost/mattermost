@@ -752,7 +752,7 @@
   "admin.sidebar.advanced": "고급",
   "admin.sidebar.audits": "활동",
   "admin.sidebar.authentication": "인증",
-  "admin.sidebar.cluster": "고가용성 (베타)",
+  "admin.sidebar.cluster": "High Availability",
   "admin.sidebar.compliance": "감사",
   "admin.sidebar.configuration": "환경설정",
   "admin.sidebar.connections": "연결",

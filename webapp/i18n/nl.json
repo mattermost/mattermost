@@ -752,7 +752,7 @@
   "admin.sidebar.advanced": "Geavanceerd",
   "admin.sidebar.audits": "Compliance en Auditing",
   "admin.sidebar.authentication": "Authenticatie",
-  "admin.sidebar.cluster": "High Availability (Beta)",
+  "admin.sidebar.cluster": "High Availability",
   "admin.sidebar.compliance": "Voldoet aan",
   "admin.sidebar.configuration": "Configuratie",
   "admin.sidebar.connections": "Verbindingen",
