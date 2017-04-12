@@ -24,8 +24,7 @@ export class ConvertChannelModal extends React.Component {
         this.handleCancel = this.handleCancel.bind(this);
 
         this.state = {
-            serverError: '',
-            invalid: false
+            serverError: ''
         };
     }
 
@@ -37,10 +36,7 @@ export class ConvertChannelModal extends React.Component {
         this.props.onHide();
 
         this.setState({
-            serverError: '',
-            nameError: '',
-            displayNameError: '',
-            invalid: false
+            serverError: ''
         });
     }
 
@@ -49,8 +45,11 @@ export class ConvertChannelModal extends React.Component {
 
         const channel = Object.assign({}, this.props.channel);
         const oldChannelType = channel.type;
+        const state = {serverError: ''};
 
         channel.type = Constants.PRIVATE_CHANNEL;
+
+        this.setState(state);
 
         if (oldChannelType !== Constants.OPEN_CHANNEL) {
             return;
@@ -62,8 +61,7 @@ export class ConvertChannelModal extends React.Component {
             },
             (err) => {
                 this.setState({
-                    serverError: err.message,
-                    invalid: true
+                    serverError: err.message
                 });
             }
         );
@@ -76,6 +74,11 @@ export class ConvertChannelModal extends React.Component {
     render() {
         const displayName = this.props.channel.display_name;
         const {formatMessage} = this.props.intl;
+
+        let serverError = null;
+        if (this.state.serverError) {
+            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+        }
 
         return (
             <Modal
@@ -152,6 +155,7 @@ export class ConvertChannelModal extends React.Component {
                                 }}
                             />
                         </p>
+                        {serverError}
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
