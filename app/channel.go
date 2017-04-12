@@ -718,7 +718,7 @@ func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId
 	return nil
 }
 
-func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string, oldChannelType string, newChannelType string) *model.AppError {
+func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 
 	if uresult := <-uc; uresult.Err != nil {
@@ -734,9 +734,7 @@ func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string
 			Type:      model.POST_CONVERT_TO_CHANNEL,
 			UserId:    userId,
 			Props: model.StringInterface{
-				"username":        user.Username,
-				"old_channeltype": oldChannelType,
-				"new_channeltype": newChannelType,
+				"username": user.Username,
 			},
 		}
 

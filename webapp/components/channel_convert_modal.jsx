@@ -1,18 +1,12 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
-import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import {cleanUpUrlable, getShortenedURL} from 'utils/url.jsx';
 
-import TeamStore from 'stores/team_store.jsx';
-
-import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
+import {intlShape, injectIntl, FormattedMessage} from 'react-intl';
 import {updateChannel} from 'actions/channel_actions.jsx';
-import {Modal, Tooltip, OverlayTrigger} from 'react-bootstrap';
-
 import React from 'react';
+import {Modal} from 'react-bootstrap';
 
 export class ConvertChannelModal extends React.Component {
     constructor(props) {
@@ -48,13 +42,11 @@ export class ConvertChannelModal extends React.Component {
 
         const channel = Object.assign({}, this.props.channel);
         const oldChannelType = channel.type;
-        const {formatMessage} = this.props.intl;
 
         channel.type = Constants.PRIVATE_CHANNEL;
 
         if (oldChannelType !== Constants.OPEN_CHANNEL) {
             return;
-
         }
 
         updateChannel(channel,
@@ -75,8 +67,7 @@ export class ConvertChannelModal extends React.Component {
     }
 
     render() {
-        const {formatMessage} = this.props.intl;
-        let displayName = this.props.channel.display_name;
+        const displayName = this.props.channel.display_name;
 
         return (
             <Modal
@@ -89,35 +80,58 @@ export class ConvertChannelModal extends React.Component {
                         <FormattedMessage
                             id='convert_channel.title'
                             defaultMessage='Convert Public Channel to Private channel'
-                            values={{
-                                    displayName: (displayName)
-                                }}
                         />
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div>
-                        <h4>Convert <strong>{displayName}</strong> to a private channel?</h4>
-                        <br />
+                        <h4>
+                            <FormattedMessage
+                                id='convert_channel.convert_channel_question'
+                                defaultMessage='Convert <strong>{displayName}</strong> to a private channel?'
+                                values={{displayName}}
+                            />
+                        </h4>
+                        <br/>
                         <p>
-                            <strong>{displayName}</strong> is currently a public channel.
+                            <FormattedMessage
+                                id='convert_channel.channel_public_description'
+                                defaultMessage='<strong>{displayName}</strong> is currently a public channel.'
+                                values={{displayName}}
+                            />
                         </p>
-                        <br />
-                        <p>Converting it to a private channel means:</p>
+                        <br/>
+                        <p>
+                            <FormattedMessage
+                                id='convert_channel.convert_private_description'
+                                defaultMessage='Converting it to a private channel means:'
+                            />
+                        </p>
                         <ul>
                             <li>
-                                Only people currently in the channel will be able to see and message in the channel
+                                <FormattedMessage
+                                    id='convert_channel.convert_private_description_bullet_first'
+                                    defaultMessage='Only people currently in the channel will be able to see and message in the channel'
+                                />
                             </li>
                             <li>
-                                All previous uploaded files (unless accessed via the Public Link) and 
-                                past conversations in the public channel will become inaccessible to users not in the channel
+                                <FormattedMessage
+                                    id='convert_channel.convert_private_description_bullet_second'
+                                    defaultMessage='All previous uploaded files (unless accessed via the Public Link) and past conversations in the public channel will become inaccessible to users not in the channel'
+                                />
                             </li>
                             <li>
-                                Members will have to be invited to join this channel in the future
+                                <FormattedMessage
+                                    id='convert_channel.convert_private_description_bullet_third'
+                                    defaultMessage='Members will have to be invited to join this channel in the future'
+                                />
                             </li>
                         </ul>
                         <p>
-                            Are you sure you want to convert <strong>{displayName}</strong> to a <strong>private channel</strong>?
+                            <FormattedMessage
+                                id='convert_channel.convert_channel_confirm_question'
+                                defaultMessage='Are you sure you want to convert <strong>{displayName}</strong> to a <strong>private channel</strong>?'
+                            />
                         </p>
                     </div>
                 </Modal.Body>

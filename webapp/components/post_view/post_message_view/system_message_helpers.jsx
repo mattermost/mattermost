@@ -212,15 +212,12 @@ function renderChannelDeletedMessage(post, options) {
     );
 }
 
-
 function renderConvertToChannelMessage(post, options) {
     if (!(post.props.username)) {
         return null;
     }
 
     const username = renderUsername(post.props.username, options);
-    const oldChannelType = post.props.old_channeltype;
-    const newChannelType = post.props.new_channeltype;
 
     return (
         <FormattedMessage
