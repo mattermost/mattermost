@@ -257,6 +257,7 @@ func UpgradeDatabaseToVersion38(sqlStore *SqlStore) {
 func UpgradeDatabaseToVersion39(sqlStore *SqlStore) {
 	// TODO: Uncomment following condition when version 3.9.0 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_3_8_0, VERSION_3_9_0) {
+	sqlStore.CreateColumnIfNotExists("OAuthAccessData", "Scope", "varchar(128)", "varchar(128)", model.DEFAULT_SCOPE)
 
 	//	saveSchemaVersion(sqlStore, VERSION_3_9_0)
 	//}

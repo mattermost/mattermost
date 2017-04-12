@@ -246,9 +246,9 @@ type OAuthStore interface {
 	SaveApp(app *model.OAuthApp) StoreChannel
 	UpdateApp(app *model.OAuthApp) StoreChannel
 	GetApp(id string) StoreChannel
-	GetAppByUser(userId string) StoreChannel
-	GetApps() StoreChannel
-	GetAuthorizedApps(userId string) StoreChannel
+	GetAppByUser(userId string, offset, limit int) StoreChannel
+	GetApps(offset, limit int) StoreChannel
+	GetAuthorizedApps(userId string, offset, limit int) StoreChannel
 	DeleteApp(id string) StoreChannel
 	SaveAuthData(authData *model.AuthData) StoreChannel
 	GetAuthData(code string) StoreChannel

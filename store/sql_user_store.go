@@ -389,8 +389,7 @@ func (us SqlUserStore) Get(id string) StoreChannel {
 		if obj, err := us.GetReplica().Get(model.User{}, id); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error())
 		} else if obj == nil {
-			result.Err = model.NewLocAppError("SqlUserStore.Get", MISSING_ACCOUNT_ERROR, nil, "user_id="+id)
-			result.Err.StatusCode = http.StatusNotFound
+			result.Err = model.NewAppError("SqlUserStore.Get", MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
 		} else {
 			result.Data = obj.(*model.User)
 		}
