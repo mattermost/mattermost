@@ -525,7 +525,7 @@ export function clientLogout(redirectTo = '/') {
 
 export function emitSearchMentionsEvent(user) {
     let terms = '';
-    if (user.notify_props && user.notify_props.mention_keys) {
+    if (user.notify_props) {
         const termKeys = UserStore.getMentionKeys(user.id);
 
         if (termKeys.indexOf('@channel') !== -1) {
