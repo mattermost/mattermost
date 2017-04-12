@@ -28,35 +28,6 @@ export class ConvertChannelModal extends React.Component {
         };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!Utils.areObjectsEqual(nextProps.channel, this.props.channel)) {
-            this.setState({
-
-            });
-        }
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (!nextProps.show && !this.props.show) {
-            return false;
-        }
-
-        if (!Utils.areObjectsEqual(nextState, this.state)) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(nextProps, this.props)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.show && this.props.show) {
-        }
-    }
-
     handleHide(e) {
         if (e) {
             e.preventDefault();
