@@ -725,8 +725,7 @@ func PostUpdateChannelTypeMessage(userId string, channelId string, teamId string
 		return model.NewLocAppError("PostUpdateChannelTypeMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, uresult.Err.Error())
 	} else {
 		user := uresult.Data.(*model.User)
-
-		message := fmt.Sprintf(utils.T("api.channel.post_update_channel_type_message_and_forget.update_success"), user.Username, oldChannelType, newChannelType)
+		message := fmt.Sprintf(utils.T("api.channel.post_update_channel_type_message_and_forget.update_success"), user.Username)
 
 		post := &model.Post{
 			ChannelId: channelId,

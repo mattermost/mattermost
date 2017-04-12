@@ -14,6 +14,13 @@
         max-height: calc(90vh - 62px);
         overflow: auto;
         padding: 20px 15px;
+
+        .modal-padding {
+            padding-top: 10px;
+            padding-right: 50px;
+            padding-bottom: 30px;
+            padding-left: 50px;
+        }
     }
 
     .edit-modal-body {

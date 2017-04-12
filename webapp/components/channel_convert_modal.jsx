@@ -3,10 +3,17 @@
 
 import Constants from 'utils/constants.jsx';
 
-import {intlShape, injectIntl, FormattedMessage} from 'react-intl';
+import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannel} from 'actions/channel_actions.jsx';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+
+const holders = defineMessages({
+    privateChannel: {
+        id: 'convert_channel.private_channel',
+        defaultMessage: 'private channel'
+    }
+});
 
 export class ConvertChannelModal extends React.Component {
     constructor(props) {
@@ -68,6 +75,7 @@ export class ConvertChannelModal extends React.Component {
 
     render() {
         const displayName = this.props.channel.display_name;
+        const {formatMessage} = this.props.intl;
 
         return (
             <Modal
@@ -79,25 +87,31 @@ export class ConvertChannelModal extends React.Component {
                     <Modal.Title>
                         <FormattedMessage
                             id='convert_channel.title'
-                            defaultMessage='Convert Public Channel to Private channel'
+                            defaultMessage='Convert Public Channel to Private Channel'
                         />
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div>
+                    <div
+                        className={'modal-padding'}
+                    >
                         <h4>
                             <FormattedMessage
                                 id='convert_channel.convert_channel_question'
-                                defaultMessage='Convert <strong>{displayName}</strong> to a private channel?'
-                                values={{displayName}}
+                                defaultMessage='Convert {displayName} to a private channel?'
+                                values={{
+                                    displayName: <strong>{displayName}</strong>
+                                }}
                             />
                         </h4>
                         <br/>
                         <p>
                             <FormattedMessage
                                 id='convert_channel.channel_public_description'
-                                defaultMessage='<strong>{displayName}</strong> is currently a public channel.'
-                                values={{displayName}}
+                                defaultMessage='{displayName} is currently a public channel.'
+                                values={{
+                                    displayName: <strong>{displayName}</strong>
+                                }}
                             />
                         </p>
                         <br/>
@@ -127,10 +141,15 @@ export class ConvertChannelModal extends React.Component {
                                 />
                             </li>
                         </ul>
+                        <br/>
                         <p>
                             <FormattedMessage
                                 id='convert_channel.convert_channel_confirm_question'
-                                defaultMessage='Are you sure you want to convert <strong>{displayName}</strong> to a <strong>private channel</strong>?'
+                                defaultMessage='Are you sure you want to convert {displayName} to a {privateChannel}?'
+                                values={{
+                                    displayName: <strong>{displayName}</strong>,
+                                    privateChannel: <strong>{formatMessage(holders.privateChannel)}</strong>
+                                }}
                             />
                         </p>
                     </div>
