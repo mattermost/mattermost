@@ -1704,8 +1704,16 @@
     "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
