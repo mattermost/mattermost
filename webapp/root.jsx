@@ -60,6 +60,8 @@ function preRenderSetup(callwhendone) {
     // Make sure the websockets close and reset version
     $(window).on('beforeunload',
          () => {
+             // Turn off to prevent getting stuck in a loop
+             $(window).off('beforeunload');
              BrowserStore.setLastServerVersion('');
              if (UserStore.getCurrentUser()) {
                  AsyncClient.viewChannel('', ChannelStore.getCurrentId() || '');

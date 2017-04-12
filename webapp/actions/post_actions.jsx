@@ -20,23 +20,28 @@ const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 
 export function handleNewPost(post, msg) {
-    let websocketMessageProps = null;
+    let websocketMessageProps = {};
     if (msg) {
         websocketMessageProps = msg.data;
-    }
-
-    if (msg && msg.data) {
-        if (msg.data.channel_type === Constants.DM_CHANNEL) {
-            loadNewDMIfNeeded(post.user_id);
-        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
-            loadNewGMIfNeeded(post.channel_id, post.user_id);
-        }
     }
 
     if (ChannelStore.getMyMember(post.channel_id)) {
         completePostReceive(post, websocketMessageProps);
     } else {
+        // This API call requires any real team id in API v3, so set one if we don't already have one
+        if (!Client.teamId && msg && msg.data) {
+            Client.setTeamId(msg.data.team_id);
+        }
+
         AsyncClient.getChannelMember(post.channel_id, UserStore.getCurrentId()).then(() => completePostReceive(post, websocketMessageProps));
+    }
+
+    if (msg && msg.data) {
+        if (msg.data.channel_type === Constants.DM_CHANNEL) {
+            loadNewDMIfNeeded(post.channel_id);
+        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
+            loadNewGMIfNeeded(post.channel_id);
+        }
     }
 }
 

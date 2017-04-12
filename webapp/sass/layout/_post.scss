@@ -397,6 +397,7 @@
         .custom-textarea {
             -ms-overflow-style: auto;
             overflow: auto;
+            -webkit-overflow-scrolling: touch;
 
             &:not(.custom-textarea--emoji-picker) {
                 padding-right: 43px;
@@ -857,6 +858,7 @@
         // If the last paragraph of an edited post is a paragraph, make it inline-block so that the (edited) indicator can be on the same line as it
         .post-message__text > p:last-child {
             display: inline-block;
+            width: auto;
         }
 
         .post-edited-indicator {
@@ -1122,6 +1124,7 @@
 
         &:after {
             content: '[...]';
+            font-family: 'Open Sans', sans-serif;
             position: relative;
             top: -1px;
         }

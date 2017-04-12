@@ -1,5 +1,9 @@
 @charset 'UTF-8';
 
+.markdown__link {
+    word-break: break-all;
+}
+
 .markdown__heading {
     font-weight: 700;
     line-height: 1.5;

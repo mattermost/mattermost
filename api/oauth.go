@@ -702,7 +702,7 @@ func GetAuthorizationCode(c *Context, service string, props map[string]string, l
 	props["hash"] = model.HashPassword(clientId)
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
-	redirectUri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
+	redirectUri := utils.GetSiteURL() + "/signup/" + service + "/complete"
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
