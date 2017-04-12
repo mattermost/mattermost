@@ -39,6 +39,7 @@ func TestSendNotifications(t *testing.T) {
 func TestGetExplicitMentions(t *testing.T) {
 	id1 := model.NewId()
 	id2 := model.NewId()
+	id3 := model.NewId()
 
 	// not mentioning anybody
 	message := "this is a message"
@@ -126,6 +127,37 @@ func TestGetExplicitMentions(t *testing.T) {
 	keywords = map[string][]string{}
 	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 {
 		t.Fatal("@channel in code block shouldn't cause a mention")
+	}
+
+	// Markdown-formatted text that isn't code should trigger mentions
+	message = "*@aaa @bbb @ccc*"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
+		t.Fatal("should've mentioned all 3 users", mentions)
+	}
+
+	message = "**@aaa @bbb @ccc**"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
+		t.Fatal("should've mentioned all 3 users")
+	}
+
+	message = "~~@aaa @bbb @ccc~~"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
+		t.Fatal("should've mentioned all 3 users")
+	}
+
+	message = "### @aaa"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned aaa")
+	}
+
+	message = "> @aaa"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned aaa")
 	}
 }
 

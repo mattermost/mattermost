@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
@@ -649,7 +650,10 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 
 	message = removeCodeFromMessage(message)
 
-	for _, word := range strings.Fields(message) {
+	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
+		// Split on whitespace (as strings.Fields normally does) or on Markdown characters
+		return unicode.IsSpace(c) || c == '*' || c == '~'
+	}) {
 		isMention := false
 
 		if word == "@here" {
