@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -646,6 +647,8 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
+	message = removeCodeFromMessage(message)
+
 	for _, word := range strings.Fields(message) {
 		isMention := false
 
@@ -710,6 +713,23 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 	}
 
 	return mentioned, potentialOthersMentioned, hereMentioned, channelMentioned, allMentioned
+}
+
+// Matches a line containing only ``` and a potential language definition, any number of lines not containing ```,
+// and then either a line containing only ``` or the end of the text
+var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*\\`\\`\\`.*$[\\s\\S]+?(^[^\\S\n]*\\`\\`\\`$|\\z)")
+
+// Matches a backquote, either some text or any number of non-empty lines, and then a final backquote
+var inlineCodePattern = regexp.MustCompile("(?m)\\`(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`")
+
+// Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
+func removeCodeFromMessage(message string) string {
+	message = codeBlockPattern.ReplaceAllString(message, "")
+
+	// Replace with a space to prevent cases like "user`code`name" from turning into "username"
+	message = inlineCodePattern.ReplaceAllString(message, " ")
+
+	return message
 }
 
 // Given a map of user IDs to profiles, returns a list of mention
