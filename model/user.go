@@ -69,15 +69,15 @@ type User struct {
 }
 
 type UserPatch struct {
-	Username    *string    `json:"username"`
-	Nickname    *string    `json:"nickname"`
-	FirstName   *string    `json:"first_name"`
-	LastName    *string    `json:"last_name"`
-	Position    *string    `json:"position"`
-	Email       *string    `json:"email"`
-	Props       *StringMap `json:"props,omitempty"`
-	NotifyProps *StringMap `json:"notify_props,omitempty"`
-	Locale      *string    `json:"locale"`
+	Username    *string   `json:"username"`
+	Nickname    *string   `json:"nickname"`
+	FirstName   *string   `json:"first_name"`
+	LastName    *string   `json:"last_name"`
+	Position    *string   `json:"position"`
+	Email       *string   `json:"email"`
+	Props       StringMap `json:"props,omitempty"`
+	NotifyProps StringMap `json:"notify_props,omitempty"`
+	Locale      *string   `json:"locale"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -260,11 +260,11 @@ func (u *User) Patch(patch *UserPatch) {
 	}
 
 	if patch.Props != nil {
-		u.Props = *patch.Props
+		u.Props = patch.Props
 	}
 
 	if patch.NotifyProps != nil {
-		u.NotifyProps = *patch.NotifyProps
+		u.NotifyProps = patch.NotifyProps
 	}
 
 	if patch.Locale != nil {

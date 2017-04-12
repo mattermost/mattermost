@@ -192,6 +192,14 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			} else if count != 1 {
 				result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count))
 			} else {
+				user.Password = ""
+				user.AuthData = new(string)
+				*user.AuthData = ""
+				user.MfaSecret = ""
+				oldUser.Password = ""
+				oldUser.AuthData = new(string)
+				*oldUser.AuthData = ""
+				oldUser.MfaSecret = ""
 				result.Data = [2]*model.User{user, oldUser}
 			}
 		}
