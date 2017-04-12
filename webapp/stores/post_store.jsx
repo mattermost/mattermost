@@ -17,6 +17,7 @@ const EDIT_POST_EVENT = 'edit_post';
 const POSTS_VIEW_JUMP_EVENT = 'post_list_jump';
 const SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 const POST_PINNED_CHANGE_EVENT = 'post_pinned_change';
+const UPDATE_POST_SCROLL_EVENT = 'update_post_scroll';
 
 class PostStoreClass extends EventEmitter {
     constructor() {
@@ -49,6 +50,18 @@ class PostStoreClass extends EventEmitter {
 
     removePostFocusedListener(callback) {
         this.removeListener(FOCUSED_POST_CHANGE, callback);
+    }
+
+    emitPostScroll() {
+        this.emit(UPDATE_POST_SCROLL_EVENT);
+    }
+
+    addPostScrollListener(callback) {
+        this.on(UPDATE_POST_SCROLL_EVENT, callback);
+    }
+
+    removePostScrollLisener(callback) {
+        this.removeListener(UPDATE_POST_SCROLL_EVENT, callback);
     }
 
     emitEditPost(post) {

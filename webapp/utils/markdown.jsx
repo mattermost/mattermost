@@ -7,6 +7,8 @@ import * as SyntaxHighlighting from './syntax_highlighting.jsx';
 import marked from 'marked';
 import katex from 'katex';
 
+import PostStore from 'stores/post_store.jsx';
+
 function markdownImageLoaded(image) {
     if (image.hasAttribute('height') && image.attributes.height.value !== 'auto') {
         const maxHeight = parseInt(global.getComputedStyle(image).maxHeight, 10);
@@ -20,6 +22,7 @@ function markdownImageLoaded(image) {
     } else {
         image.style.height = 'auto';
     }
+    PostStore.emitPostScroll();
 }
 global.markdownImageLoaded = markdownImageLoaded;
 

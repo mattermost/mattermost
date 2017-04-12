@@ -22,7 +22,7 @@ import Constants from 'utils/constants.jsx';
 const ScrollTypes = Constants.ScrollTypes;
 
 import PreferenceStore from 'stores/preference_store.jsx';
-
+import PostStore from 'stores/post_store.jsx';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
 import React from 'react';
@@ -46,6 +46,7 @@ export default class PostList extends React.Component {
         this.scrollToBottomAnimated = this.scrollToBottomAnimated.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.childComponentDidUpdate = this.childComponentDidUpdate.bind(this);
+        this.checkAndUpdateScrolling = this.checkAndUpdateScrolling.bind(this);
 
         this.jumpToPostNode = null;
         this.wasAtBottom = true;
@@ -519,12 +520,14 @@ export default class PostList extends React.Component {
 
         window.addEventListener('resize', this.handleResize);
         window.addEventListener('keydown', this.handleKeyDown);
+        PostStore.addPostScrollListener(this.checkAndUpdateScrolling);
     }
 
     componentWillUnmount() {
         window.cancelAnimationFrame(this.animationFrameId);
         window.removeEventListener('resize', this.handleResize);
         window.removeEventListener('keydown', this.handleKeyDown);
+        PostStore.removePostScrollListener(this.checkAndUpdateScrolling);
         this.scrollStopAction.cancel();
     }
 
