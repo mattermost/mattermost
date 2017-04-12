@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package app
@@ -81,7 +81,7 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string, us
 			err = cmResult.Err
 		}
 
-	if requestor == nil {
+		if requestor == nil {
 			if err := postJoinChannelMessage(user, offTopic); err != nil {
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
