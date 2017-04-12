@@ -1,6 +1,6 @@
 {
   "about.close": "Close",
-  "about.copyright": "Copyright 2016 Mattermost, Inc. All rights reserved",
+  "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved",
   "about.database": "Database:",
   "about.date": "Build Date:",
   "about.enterpriseEditionLearn": "Learn more about Enterprise Edition at ",
