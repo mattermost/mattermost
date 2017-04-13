@@ -21,8 +21,9 @@ import (
 )
 
 const (
-	DEADLOCK_TICKER = 15 * time.Second // check every 15 seconds
-	DEADLOCK_WARN   = 4096             // number of buffered messages before printing stack trace
+	BROADCAST_QUEUE_SIZE = 4096
+	DEADLOCK_TICKER      = 15 * time.Second                  // check every 15 seconds
+	DEADLOCK_WARN        = (BROADCAST_QUEUE_SIZE * 99) / 100 // number of buffered messages before printing stack trace
 )
 
 type Hub struct {
@@ -46,7 +47,7 @@ func NewWebHub() *Hub {
 		register:       make(chan *WebConn),
 		unregister:     make(chan *WebConn),
 		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
-		broadcast:      make(chan *model.WebSocketEvent, 4096),
+		broadcast:      make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
 		stop:           make(chan string),
 		invalidateUser: make(chan string),
 		ExplicitStop:   false,
@@ -87,7 +88,7 @@ func HubStart() {
 			select {
 			case <-ticker.C:
 				for _, hub := range hubs {
-					if len(hub.broadcast) > DEADLOCK_WARN {
+					if len(hub.broadcast) >= DEADLOCK_WARN {
 						l4g.Error("Hub processing might be deadlock on hub %v goroutine %v with %v events in the buffer", hub.connectionIndex, hub.goroutineId, len(hub.broadcast))
 						buf := make([]byte, 1<<16)
 						runtime.Stack(buf, true)
