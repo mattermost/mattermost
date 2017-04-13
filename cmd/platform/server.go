@@ -37,7 +37,6 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	utils.CfgDisableConfigWatch, _ = cmd.Flags().GetBool("disableconfigwatch")
-	l4g.Info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> %v", utils.CfgDisableConfigWatch)
 
 	runServer(config)
 	return nil
