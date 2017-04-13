@@ -185,6 +185,14 @@ function handleEvent(msg) {
         handlePreferenceChangedEvent(msg);
         break;
 
+    case SocketEvents.PREFERENCES_CHANGED:
+        handlePreferencesChangedEvent(msg);
+        break;
+
+    case SocketEvents.PREFERENCES_DELETED:
+        handlePreferencesDeletedEvent(msg);
+        break;
+
     case SocketEvents.TYPING:
         handleUserTypingEvent(msg);
         break;
@@ -354,6 +362,16 @@ function handleChannelDeletedEvent(msg) {
 function handlePreferenceChangedEvent(msg) {
     const preference = JSON.parse(msg.data.preference);
     GlobalActions.emitPreferenceChangedEvent(preference);
+}
+
+function handlePreferencesChangedEvent(msg) {
+    const preferences = JSON.parse(msg.data.preferences);
+    GlobalActions.emitPreferencesChangedEvent(preferences);
+}
+
+function handlePreferencesDeletedEvent(msg) {
+    const preferences = JSON.parse(msg.data.preferences);
+    GlobalActions.emitPreferencesDeletedEvent(preferences);
 }
 
 function handleUserTypingEvent(msg) {
