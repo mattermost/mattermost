@@ -11,6 +11,7 @@ import {loadStatusesForChannel} from 'actions/status_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -426,11 +427,6 @@ export function updatePost(post, success, isPost) {
         });
 }
 
-export function removePostFromStore(post) {
-    PostStore.removePost(post);
-    PostStore.emitChange();
-}
-
 export function emitEmojiPosted(emoji) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.EMOJI_POSTED,
@@ -443,7 +439,7 @@ export function deletePost(channelId, post, success, error) {
         channelId,
         post.id,
         () => {
-            removePostFromStore(post);
+            GlobalActions.emitRemovePost(post);
             if (post.id === PostStore.getSelectedPostId()) {
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POST_SELECTED,
