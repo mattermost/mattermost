@@ -32,6 +32,7 @@ const (
 	WEBSOCKET_AUTHENTICATION_CHALLENGE = "authentication_challenge"
 	WEBSOCKET_EVENT_REACTION_ADDED     = "reaction_added"
 	WEBSOCKET_EVENT_REACTION_REMOVED   = "reaction_removed"
+	WEBSOCKET_EVENT_RESPONSE           = "response"
 )
 
 type WebSocketMessage interface {
@@ -115,7 +116,7 @@ func (o *WebSocketResponse) IsValid() bool {
 }
 
 func (o *WebSocketResponse) EventType() string {
-	return ""
+	return WEBSOCKET_EVENT_RESPONSE
 }
 
 func (o *WebSocketResponse) ToJson() string {
