@@ -73,39 +73,39 @@ func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 func TestUserIsValid(t *testing.T) {
 	user := User{}
 
-	if err := user.IsValid(); !HasExpectedError(err, "id", "") {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "id", "") {
 		t.Fatal(err)
 	}
 
 	user.Id = NewId()
-	if err := user.IsValid(); !HasExpectedError(err, "create_at", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "create_at", user.Id) {
 		t.Fatal()
 	}
 
 	user.CreateAt = GetMillis()
-	if err := user.IsValid(); !HasExpectedError(err, "update_at", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "update_at", user.Id) {
 		t.Fatal()
 	}
 
 	user.UpdateAt = GetMillis()
-	if err := user.IsValid(); !HasExpectedError(err, "username", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
 		t.Fatal()
 	}
 
 	user.Username = NewId() + "^hello#"
-	if err := user.IsValid(); !HasExpectedError(err, "username", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
 		t.Fatal()
 	}
 
 	user.Username = "n" + NewId()
 	user.Email = strings.Repeat("a", 129)
-	if err := user.IsValid(); !HasExpectedError(err, "email", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "email", user.Id) {
 		t.Fatal()
 	}
 
 	user.Email = strings.Repeat("a", 128)
 	user.Nickname = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedError(err, "nickname", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "nickname", user.Id) {
 		t.Fatal()
 	}
 
@@ -121,13 +121,13 @@ func TestUserIsValid(t *testing.T) {
 	}
 
 	user.FirstName = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedError(err, "first_name", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "first_name", user.Id) {
 		t.Fatal(err)
 	}
 
 	user.FirstName = strings.Repeat("a", 64)
 	user.LastName = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedError(err, "last_name", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "last_name", user.Id) {
 		t.Fatal(err)
 	}
 
@@ -138,12 +138,12 @@ func TestUserIsValid(t *testing.T) {
 	}
 
 	user.Position = strings.Repeat("a", 65)
-	if err := user.IsValid(); !HasExpectedError(err, "position", user.Id) {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "position", user.Id) {
 		t.Fatal(err)
 	}
 }
 
-func HasExpectedError(err *AppError, fieldName string, userId string) bool {
+func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string) bool {
 	if err == nil {
 		return false
 	}
