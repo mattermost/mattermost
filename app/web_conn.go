@@ -108,26 +108,7 @@ func (c *WebConn) WritePump() {
 				return
 			}
 
-			var msgBytes []byte
 			evt, evtOk := msg.(*model.WebSocketEvent)
-			if evtOk {
-				cpyEvt := &model.WebSocketEvent{}
-				*cpyEvt = *evt
-				cpyEvt.Sequence = c.Sequence
-				msgBytes = []byte(cpyEvt.ToJson())
-				c.Sequence++
-			} else {
-				msgBytes = []byte(msg.ToJson())
-			}
-
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
-				// browsers will appear as CloseNoStatusReceived
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
-				} else {
-					l4g.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
-				}
 
 			skipSend := false
 			if len(c.Send) >= SEND_SLOW_WARN {
@@ -139,6 +120,17 @@ func (c *WebConn) WritePump() {
 			}
 
 			if !skipSend {
+				var msgBytes []byte
+				if evtOk {
+					cpyEvt := &model.WebSocketEvent{}
+					*cpyEvt = *evt
+					cpyEvt.Sequence = c.Sequence
+					msgBytes = []byte(cpyEvt.ToJson())
+					c.Sequence++
+				} else {
+					msgBytes = []byte(msg.ToJson())
+				}
+
 				if len(c.Send) >= SEND_DEADLOCK_WARN {
 					if evtOk {
 						l4g.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
@@ -148,7 +140,7 @@ func (c *WebConn) WritePump() {
 				}
 
 				c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-				if err := c.WebSocket.WriteMessage(websocket.TextMessage, msg.GetPreComputeJson()); err != nil {
+				if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
 					// browsers will appear as CloseNoStatusReceived
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 						l4g.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
