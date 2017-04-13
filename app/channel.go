@@ -688,6 +688,26 @@ func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId str
 	return nil
 }
 
+func PostUpdateChannelMessages(userId string, channelId string, teamId string, oldChannel *model.Channel, modifiedChannel *model.Channel) (string, *model.AppError) {
+	var msg string
+	if oldChannel.DisplayName != modifiedChannel.DisplayName {
+		if err := PostUpdateChannelDisplayNameMessage(userId, channelId, teamId, oldChannel.DisplayName, modifiedChannel.DisplayName); err != nil {
+			return "", err
+		}
+	} else {
+		msg = "name=" + oldChannel.Name
+	}
+
+	if oldChannel.Type == model.CHANNEL_OPEN && modifiedChannel.Type == model.CHANNEL_PRIVATE {
+		if err := PostUpdateChannelTypeMessage(userId, channelId, teamId); err != nil {
+			return "", err
+		}
+	} else {
+		msg = "type=" + oldChannel.Type
+	}
+	return msg, nil
+}
+
 func PostUpdateChannelDisplayNameMessage(userId string, channelId string, teamId string, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
 	uc := Srv.Store.User().Get(userId)
 
