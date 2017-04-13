@@ -2476,6 +2476,14 @@
     "translation": "User sign-up with email is disabled."
   },
   {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Missing Invite Id."
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
     "id": "api.user.create_user.signup_link_expired.app_error",
     "translation": "The signup link has expired"
   },
