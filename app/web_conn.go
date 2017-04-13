@@ -152,7 +152,7 @@ func (c *WebConn) WritePump() {
 				}
 
 				if einterfaces.GetMetricsInterface() != nil {
-					go einterfaces.GetMetricsInterface().IncrementWebScoketBroadcast(msg.EventType())
+					go einterfaces.GetMetricsInterface().IncrementWebSocketBroadcast(msg.EventType())
 				}
 
 			}
