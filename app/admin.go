@@ -136,7 +136,6 @@ func SaveConfig(cfg *model.Config) *model.AppError {
 		return model.NewLocAppError("saveConfig", "ent.cluster.save_config.error", nil, "")
 	}
 
-	//oldCfg := utils.Cfg
 	utils.DisableConfigWatch()
 	utils.SaveConfig(utils.CfgFileName, cfg)
 	utils.LoadConfig(utils.CfgFileName)
@@ -150,6 +149,7 @@ func SaveConfig(cfg *model.Config) *model.AppError {
 		}
 	}
 
+	// oldCfg := utils.Cfg
 	// Future feature is to sync the configuration files
 	// if einterfaces.GetClusterInterface() != nil {
 	// 	err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, true)

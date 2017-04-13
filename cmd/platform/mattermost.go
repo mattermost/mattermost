@@ -30,6 +30,7 @@ func main() {
 		RunE:  runServerCmd,
 	}
 	rootCmd.PersistentFlags().StringP("config", "c", "config.json", "Configuration file to use.")
+	rootCmd.PersistentFlags().Bool("disableconfigwatch", false, "When set config.json will not be loaded from disk when the file is changed.")
 
 	resetCmd.Flags().Bool("confirm", false, "Confirm you really want to delete everything and a DB backup has been performed.")
 
