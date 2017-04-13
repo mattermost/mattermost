@@ -876,7 +876,8 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			list := &model.PostList{}
 			list.MakeNonNil()
 			result.Data = list
-			result.Err = model.NewLocAppError("SqlPostStore.Search", "Searching has been disabled on this server. Please contact your System Administrator.", nil, fmt.Sprintf("teamId=%v userId=%v params=%v", teamId, userId, params.ToJson()))
+
+			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v params=%v", teamId, userId, params.ToJson()))
 			storeChannel <- result
 			close(storeChannel)
 			return
