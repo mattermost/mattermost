@@ -432,10 +432,10 @@ export function createChannel(channel, success, error) {
             }
         },
         (err) => {
-            AsyncClient.dispatchError(err, 'createChannel');
-
             if (error) {
                 error(err);
+            } else {
+                AsyncClient.dispatchError(err, 'createChannel');
             }
         }
     );
