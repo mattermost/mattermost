@@ -76,7 +76,7 @@ type Routes struct {
 
 	System *mux.Router // 'api/v4/system'
 
-	Preferences *mux.Router // 'api/v4/preferences'
+	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
 	License *mux.Router // 'api/v4/license'
 

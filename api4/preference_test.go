@@ -4,8 +4,11 @@
 package api4
 
 import (
-	"github.com/mattermost/platform/model"
+	"strings"
 	"testing"
+	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestGetPreferences(t *testing.T) {
@@ -239,6 +242,61 @@ func TestUpdatePreferences(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestUpdatePreferencesWebsocket(t *testing.T) {
+	th := Setup().InitBasic()
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	WebSocketClient.Listen()
+
+	userId := th.BasicUser.Id
+	preferences := &model.Preferences{
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     model.NewId(),
+		},
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     model.NewId(),
+		},
+	}
+	_, resp := th.Client.UpdatePreferences(userId, preferences)
+	CheckNoError(t, resp)
+
+	timeout := time.After(300 * time.Millisecond)
+
+	waiting := true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.Event != model.WEBSOCKET_EVENT_PREFERENCES_CHANGED {
+				// Ignore any other events
+				continue
+			}
+
+			received, err := model.PreferencesFromJson(strings.NewReader(event.Data["preferences"].(string)))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for i, preference := range *preferences {
+				if preference.UserId != received[i].UserId || preference.Category != received[i].Category || preference.Name != received[i].Name {
+					t.Fatal("received incorrect preference")
+				}
+			}
+
+			waiting = false
+		case <-timeout:
+			t.Fatal("timed out waiting for preference update event")
+		}
+	}
+}
+
 func TestDeletePreferences(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
@@ -284,4 +342,62 @@ func TestDeletePreferences(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.DeletePreferences(th.BasicUser.Id, &preferences)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestDeletePreferencesWebsocket(t *testing.T) {
+	th := Setup().InitBasic()
+
+	userId := th.BasicUser.Id
+	preferences := &model.Preferences{
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     model.NewId(),
+		},
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     model.NewId(),
+		},
+	}
+	_, resp := th.Client.UpdatePreferences(userId, preferences)
+	CheckNoError(t, resp)
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	WebSocketClient.Listen()
+
+	_, resp = th.Client.DeletePreferences(userId, preferences)
+	CheckNoError(t, resp)
+
+	timeout := time.After(30000 * time.Millisecond)
+
+	waiting := true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.Event != model.WEBSOCKET_EVENT_PREFERENCES_DELETED {
+				// Ignore any other events
+				continue
+			}
+
+			received, err := model.PreferencesFromJson(strings.NewReader(event.Data["preferences"].(string)))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for i, preference := range *preferences {
+				if preference.UserId != received[i].UserId || preference.Category != received[i].Category || preference.Name != received[i].Name {
+					t.Fatal("received incorrect preference")
+				}
+			}
+
+			waiting = false
+		case <-timeout:
+			t.Fatal("timed out waiting for preference delete event")
+		}
+	}
 }

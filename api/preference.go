@@ -40,18 +40,8 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, preference := range preferences {
-		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.set.app_error", nil,
-				c.T("api.preference.save_preferences.set_details.app_error",
-					map[string]interface{}{"SessionUserId": c.Session.UserId, "PreferenceUserId": preference.UserId}))
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
-	}
-
-	if result := <-app.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		c.Err = result.Err
+	if err := app.UpdatePreferences(c.Session.UserId, preferences); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -92,20 +82,9 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, preference := range preferences {
-		if c.Session.UserId != preference.UserId {
-			c.Err = model.NewLocAppError("deletePreferences", "api.preference.delete_preferences.user_id.app_error",
-				nil, "session.user_id="+c.Session.UserId+",preference.user_id="+preference.UserId)
-			c.Err.StatusCode = http.StatusForbidden
-			return
-		}
-	}
-
-	for _, preference := range preferences {
-		if result := <-app.Srv.Store.Preference().Delete(c.Session.UserId, preference.Category, preference.Name); result.Err != nil {
-			c.Err = result.Err
-			return
-		}
+	if err := app.DeletePreferences(c.Session.UserId, preferences); err != nil {
+		c.Err = err
+		return
 	}
 
 	ReturnStatusOK(w)
