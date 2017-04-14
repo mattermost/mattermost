@@ -34,6 +34,29 @@ func GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
 	}
 }
 
+func DeleteReactionForPost(userId, postId, emojiName string) *model.AppError {
+	post, err := GetSinglePost(postId)
+	if err != nil {
+		return err
+	}
+
+	reaction := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: emojiName,
+	}
+
+	if result := <-Srv.Store.Reaction().Delete(reaction); result.Err != nil {
+		return result.Err
+	} else {
+		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
+
+		InvalidateCacheForReactions(reaction.PostId)
+	}
+
+	return nil
+}
+
 func sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)

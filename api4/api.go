@@ -48,6 +48,7 @@ type Routes struct {
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
 	PostsForChannel *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
 	PostsForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts'
+	PostForUser     *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
 
 	Files *mux.Router // 'api/v4/files'
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
@@ -88,6 +89,8 @@ type Routes struct {
 
 	Emojis *mux.Router // 'api/v4/emoji'
 	Emoji  *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
+
+	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-]+}'
 
 	Webrtc *mux.Router // 'api/v4/webrtc'
 }
@@ -132,6 +135,7 @@ func InitApi(full bool) {
 	BaseRoutes.Post = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.PostsForChannel = BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
 	BaseRoutes.PostsForUser = BaseRoutes.User.PathPrefix("/posts").Subrouter()
+	BaseRoutes.PostForUser = BaseRoutes.PostsForUser.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 
 	BaseRoutes.Files = BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
 	BaseRoutes.File = BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
@@ -165,6 +169,8 @@ func InitApi(full bool) {
 
 	BaseRoutes.Emojis = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
 	BaseRoutes.Emoji = BaseRoutes.Emojis.PathPrefix("/{emoji_id:[A-Za-z0-9]+}").Subrouter()
+
+	BaseRoutes.ReactionByNameForPostForUser = BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9_-]+}").Subrouter()
 
 	BaseRoutes.Webrtc = BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 

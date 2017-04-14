@@ -499,6 +499,18 @@ func (c *Context) RequirePreferenceName() *Context {
 	return c
 }
 
+func (c *Context) RequireEmojiName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !model.IsValidAlphaNum(c.Params.EmojiName, true) {
+		c.SetInvalidUrlParam("emoji_name")
+	}
+
+	return c
+}
+
 func (c *Context) RequireHookId() *Context {
 	if c.Err != nil {
 		return c
