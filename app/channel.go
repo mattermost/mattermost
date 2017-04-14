@@ -690,6 +690,7 @@ func PostUpdateChannelPurposeMessage(userId string, channelId string, teamId str
 
 func PostUpdateChannelMessages(userId string, channelId string, teamId string, oldChannel *model.Channel, modifiedChannel *model.Channel) (string, *model.AppError) {
 	var msg string
+
 	if oldChannel.DisplayName != modifiedChannel.DisplayName {
 		if err := PostUpdateChannelDisplayNameMessage(userId, channelId, teamId, oldChannel.DisplayName, modifiedChannel.DisplayName); err != nil {
 			return "", err

@@ -185,7 +185,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	modifiedChannel := oldChannel
+	modifiedChannel := *oldChannel
 	modifiedChannel.Header = channel.Header
 	modifiedChannel.Purpose = channel.Purpose
 
@@ -201,15 +201,16 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		modifiedChannel.Type = channel.Type
 	}
 
-	if _, err := app.UpdateChannel(oldChannel); err != nil {
+	if _, err := app.UpdateChannel(&modifiedChannel); err != nil {
 		c.Err = err
 		return
 	} else {
-		if msg, err := app.PostUpdateChannelMessages(c.Session.UserId, channel.Id, c.TeamId, oldChannel, modifiedChannel); err != nil {
+		if msg, err := app.PostUpdateChannelMessages(c.Session.UserId, channel.Id, c.TeamId, oldChannel, &modifiedChannel); err != nil {
 			c.Err = err
-			return
+		} else {
+			c.LogAudit(msg)
 		}
-		c.LogAudit(msg)
+
 		w.Write([]byte(modifiedChannel.ToJson()))
 	}
 
