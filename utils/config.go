@@ -66,6 +66,8 @@ func FindDir(dir string) string {
 		fileName, _ = filepath.Abs("./" + dir + "/")
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../" + dir + "/")
+	} else if _, err := os.Stat("../../" + dir + "/"); err == nil {
+		fileName, _ = filepath.Abs("../../" + dir + "/")
 	}
 
 	return fileName + "/"
@@ -257,6 +259,7 @@ func LoadConfig(fileName string) {
 	viper.SetConfigType("json")
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath("../config")
+	viper.AddConfigPath("../../config")
 	viper.AddConfigPath(".")
 
 	configReadErr := viper.ReadInConfig()
