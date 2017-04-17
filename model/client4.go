@@ -2286,6 +2286,19 @@ func (c *Client4) UpdateUserStatus(userId string, userStatus *Status) (*Status, 
 	}
 }
 
+// Webrtc Section
+
+// GetWebrtcToken returns a valid token, stun server and turn server with credentials to
+// use with the Mattermost WebRTC service.
+func (c *Client4) GetWebrtcToken() (*WebrtcInfoResponse, *Response) {
+	if r, err := c.DoApiGet("/webrtc/token", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return WebrtcInfoResponseFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Emoji Section
 
 // CreateEmoji will save an emoji to the server if the current user has permission
