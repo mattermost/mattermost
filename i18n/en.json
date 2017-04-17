@@ -3961,7 +3961,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a zero or positive number."
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
