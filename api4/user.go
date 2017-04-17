@@ -32,6 +32,7 @@ func InitUser() {
 	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")
 	BaseRoutes.User.Handle("", ApiSessionRequired(deleteUser)).Methods("DELETE")
 	BaseRoutes.User.Handle("/roles", ApiSessionRequired(updateUserRoles)).Methods("PUT")
+	BaseRoutes.User.Handle("/active", ApiSessionRequired(updateUserActive)).Methods("PUT")
 	BaseRoutes.User.Handle("/password", ApiSessionRequired(updatePassword)).Methods("PUT")
 	BaseRoutes.Users.Handle("/password/reset", ApiHandler(resetPassword)).Methods("POST")
 	BaseRoutes.Users.Handle("/password/reset/send", ApiHandler(sendPasswordReset)).Methods("POST")
@@ -585,6 +586,37 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.StringInterfaceFromJson(r.Body)
+
+	active, ok := props["active"].(bool)
+	if !ok {
+		c.SetInvalidParam("active")
+		return
+	}
+
+	// true when you're trying to de-activate yourself
+	isSelfDeactive := !active && c.Params.UserId == c.Session.UserId
+
+	if !isSelfDeactive && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.Err = model.NewLocAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId)
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if ruser, err := app.UpdateActiveNoLdap(c.Params.UserId, active); err != nil {
+		c.Err = err
+	} else {
+		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
+		ReturnStatusOK(w)
+	}
 }
 
 func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
