@@ -19,8 +19,10 @@
 #post-list {
     .markdown-inline-img {
         -moz-force-broken-image-icon: 1;
-        height: 500px;
+        display: block;
+        margin: 5px 0;
         max-height: 500px;
+        max-width: 500px;
     }
 }
 
@@ -67,7 +69,7 @@
     padding: 4px 10px 5px;
     position: absolute;
     right: 0;
-    top: 5;
+    top: 5px;
     z-index: 5;
 }
 
