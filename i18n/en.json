@@ -5204,6 +5204,10 @@
     "translation": "Query error searching posts: %v"
   },
   {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+  },
+  {
     "id": "store.sql_post.update.app_error",
     "translation": "We couldn't update the Post"
   },
