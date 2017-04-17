@@ -1543,6 +1543,7 @@
   "integrations.outgoingWebhook.description": "Outgoing webhooks allow external integrations to receive and respond to messages",
   "integrations.outgoingWebhook.title": "Outgoing Webhook",
   "integrations.successful": "Setup Successful",
+  "intro_messages.channel": "channel",
   "intro_messages.DM": "This is the start of your direct message history with {teammate}.<br />Direct messages and files shared here are not shown to people outside this area.",
   "intro_messages.anyMember": " Any member can join and read this channel.",
   "intro_messages.beginning": "Beginning of {name}",
