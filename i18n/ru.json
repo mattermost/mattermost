@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Создание и управление Публичными Каналами возможно только Системными Администраторами."
+    "translation": "Создание и управление Приватными Каналами доступно только Системным Администраторам."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Создание и управление Публичными Каналами возможно Командой и Системными Администраторами."
+    "translation": "Создание и управление Приватными Каналами доступно Команде и Системным Администраторам."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить Приватную Группу вместо того, чтобы покинуть."
+    "translation": "Вы единственный оставшийся участник, попробуйте удалить Приватный Канал вместо того, чтобы выйти."
   },
   {
     "id": "api.channel.leave.left",
@@ -817,7 +817,7 @@
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
   },
   {
     "id": "api.context.404.app_error",
@@ -925,7 +925,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Групповые сообщения"
+    "translation": "Групповые Сообщения"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1295,7 +1295,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "Новый формат пользовательской лицензии пока не поддерживается. Пожалуйста, укажите format=old в строке запроса. "
   },
   {
     "id": "api.license.init.debug",
@@ -1533,7 +1533,7 @@
   },
   {
     "id": "api.post.handle_post_events_and_forget.members.error",
-    "translation": "Не удалось получить членов канала channel_id=%v, err=%v"
+    "translation": "Не удалось получить участников канала channel_id=%v, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1965,7 +1965,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "Для добавления пользователя в команду требуется указать параметр."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2037,7 +2037,7 @@
   },
   {
     "id": "api.team.invite_members.member",
-    "translation": "член"
+    "translation": "участник"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2085,7 +2085,7 @@
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Указанный пользователь не является членом указанной группы."
+    "translation": "Указанный пользователь не является участником указанной группы."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -5473,7 +5473,7 @@
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Мы не можем удалить члена команды"
+    "translation": "Мы не можем удалить участника команды"
   },
   {
     "id": "store.sql_team.save.app_error",
