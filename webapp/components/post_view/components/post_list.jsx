@@ -489,8 +489,14 @@ export default class PostList extends React.Component {
     }
 
     scrollToBottomAnimated() {
-        var postList = $(this.refs.postlist);
-        postList.animate({scrollTop: this.refs.postlist.scrollHeight}, '500');
+        if (UserAgent.isIos()) {
+            // JQuery animation doesn't work on iOS
+            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        } else {
+            var postList = $(this.refs.postlist);
+
+            postList.animate({scrollTop: this.refs.postlist.scrollHeight}, '500');
+        }
     }
 
     getArchivesIntroMessage() {
