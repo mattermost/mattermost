@@ -185,6 +185,116 @@ func TestGetEmojiList(t *testing.T) {
 		}
 	}
 
-	// ADD delete test when create the delete endpoint
+	_, resp = Client.DeleteEmoji(emojis[0].Id)
+	CheckNoError(t, resp)
+	listEmoji, resp = Client.GetEmojiList()
+	CheckNoError(t, resp)
+	found := false
+	for _, savedEmoji := range listEmoji {
+		if savedEmoji.Id == emojis[0].Id {
+			found = true
+			break
+		}
+		if found {
+			t.Fatalf("should not get a deleted emoji %v", emojis[0].Id)
+		}
+	}
+
+}
+
+func TestDeleteEmoji(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	emoji := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	ok, resp := Client.DeleteEmoji(newEmoji.Id)
+	CheckNoError(t, resp)
+	if ok != true {
+		t.Fatal("should return true")
+	} else {
+		_, err := Client.GetEmoji(newEmoji.Id)
+		if err == nil {
+			t.Fatal("should not return the emoji it was deleted")
+		}
+	}
+
+	//Admin can delete other users emoji
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	ok, resp = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
+	CheckNoError(t, resp)
+	if ok != true {
+		t.Fatal("should return true")
+	} else {
+		_, err := th.SystemAdminClient.GetEmoji(newEmoji.Id)
+		if err == nil {
+			t.Fatal("should not return the emoji it was deleted")
+		}
+	}
+
+	// Try to delete just deleted emoji
+	_, resp = Client.DeleteEmoji(newEmoji.Id)
+	CheckInternalErrorStatus(t, resp)
+
+	//Try to delete non-existing emoji
+	_, resp = Client.DeleteEmoji(model.NewId())
+	CheckInternalErrorStatus(t, resp)
+
+	//Try to delete without Id
+	_, resp = Client.DeleteEmoji("")
+	CheckNotFoundStatus(t, resp)
+
+	//Try to delete other user's custom emoji
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	th.LoginBasic2()
+	ok, resp = Client.DeleteEmoji(newEmoji.Id)
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	emoji := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	emoji, resp = Client.GetEmoji(newEmoji.Id)
+	CheckNoError(t, resp)
+	if emoji.Id != newEmoji.Id {
+		t.Fatal("wrong emoji was returned")
+	}
+
+	_, resp = Client.GetEmoji(model.NewId())
+	CheckInternalErrorStatus(t, resp)
 
 }
