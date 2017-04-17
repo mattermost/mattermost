@@ -18,6 +18,10 @@
         }
     }
 
+    .filtered-user-list {
+        height: calc(100vh - 120px);
+    }
+
     .Select-value-label {
         white-space: nowrap;
     }
@@ -256,7 +260,6 @@
 
     .member-list-holder {
         background: $white;
-        margin-bottom: 4em;
         overflow: visible;
         padding: 5px 0;
 
