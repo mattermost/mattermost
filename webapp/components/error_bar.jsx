@@ -49,11 +49,11 @@ export default class ErrorBar extends React.Component {
         const errorIgnored = ErrorStore.getIgnoreNotification();
 
         if (!errorIgnored) {
-            if (global.mm_config.SendEmailNotifications === 'false') {
-                ErrorStore.storeLastError({notification: true, message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
-                return;
-            } else if (isSystemAdmin && global.mm_config.SiteURL === '') {
+            if (isSystemAdmin && global.mm_config.SiteURL === '') {
                 ErrorStore.storeLastError({notification: true, message: SITE_URL_ERROR});
+                return;
+            } else if (global.mm_config.SendEmailNotifications === 'false') {
+                ErrorStore.storeLastError({notification: true, message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
                 return;
             }
         }
@@ -178,10 +178,10 @@ export default class ErrorBar extends React.Component {
             let defaultMessage;
             if (global.mm_config.EnableSignUpWithGitLab === 'true') {
                 id = 'error_bar.site_url_gitlab';
-                defaultMessage = '{docsLink} is now a required setting. Please configure it in the System Console or in gitlab.rb if you\'re using GitLab Mattermost.';
+                defaultMessage = 'Please configure your {docsLink} in the System Console or in gitlab.rb if you\'re using GitLab Mattermost.';
             } else {
                 id = 'error_bar.site_url';
-                defaultMessage = '{docsLink} is now a required setting. Please configure it in {link}.';
+                defaultMessage = 'Please configure your {docsLink} in the System Console.';
             }
 
             message = (

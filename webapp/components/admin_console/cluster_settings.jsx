@@ -53,7 +53,7 @@ export default class ClusterSettings extends AdminSettings {
         return (
             <FormattedMessage
                 id='admin.advance.cluster'
-                defaultMessage='High Availability (Beta)'
+                defaultMessage='High Availability'
             />
         );
     }

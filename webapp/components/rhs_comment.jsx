@@ -151,7 +151,7 @@ export default class RhsComment extends React.Component {
         unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
-    createDropdown() {
+    createDropdown(isSystemMessage) {
         const post = this.props.post;
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
@@ -201,57 +201,59 @@ export default class RhsComment extends React.Component {
             }
         }
 
-        dropdownContents.push(
-            <li
-                key='rhs-root-permalink'
-                role='presentation'
-            >
-                <a
-                    href='#'
-                    onClick={this.handlePermalink}
+        if (!isSystemMessage) {
+            dropdownContents.push(
+                <li
+                    key='rhs-root-permalink'
+                    role='presentation'
                 >
-                    <FormattedMessage
-                        id='rhs_comment.permalink'
-                        defaultMessage='Permalink'
-                    />
-                </a>
-            </li>
-        );
+                    <a
+                        href='#'
+                        onClick={this.handlePermalink}
+                    >
+                        <FormattedMessage
+                            id='rhs_comment.permalink'
+                            defaultMessage='Permalink'
+                        />
+                    </a>
+                </li>
+            );
 
-        if (post.is_pinned) {
-            dropdownContents.push(
-                <li
-                    key='rhs-comment-unpin'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.unpinPost}
+            if (post.is_pinned) {
+                dropdownContents.push(
+                    <li
+                        key='rhs-comment-unpin'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='rhs_root.unpin'
-                            defaultMessage='Un-pin from channel'
-                        />
-                    </a>
-                </li>
-            );
-        } else {
-            dropdownContents.push(
-                <li
-                    key='rhs-comment-pin'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.pinPost}
+                        <a
+                            href='#'
+                            onClick={this.unpinPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.unpin'
+                                defaultMessage='Un-pin from channel'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='rhs-comment-pin'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='rhs_root.pin'
-                            defaultMessage='Pin to channel'
-                        />
-                    </a>
-                </li>
-            );
+                        <a
+                            href='#'
+                            onClick={this.pinPost}
+                        >
+                            <FormattedMessage
+                                id='rhs_root.pin'
+                                defaultMessage='Pin to channel'
+                            />
+                        </a>
+                    </li>
+                );
+            }
         }
 
         if (this.canDelete) {
@@ -362,15 +364,10 @@ export default class RhsComment extends React.Component {
         const post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
-        const isSystemMessage = PostUtils.isSystemMessage(post);
-        let canReact = false;
 
-        if (post.state !== Constants.POST_FAILED &&
-            post.state !== Constants.POST_LOADING &&
-            !Utils.isPostEphemeral(post) &&
-            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
-            canReact = true;
-        }
+        const isEphemeral = Utils.isPostEphemeral(post);
+        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var currentUserCss = '';
         if (this.props.currentUser.id === post.user_id) {
@@ -412,7 +409,7 @@ export default class RhsComment extends React.Component {
             }
 
             botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
-        } else if (PostUtils.isSystemMessage(post)) {
+        } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
                     user={{}}
@@ -474,7 +471,7 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        if (PostUtils.isSystemMessage(post)) {
+        if (isSystemMessage) {
             profilePic = (
                 <span
                     className='icon'
@@ -556,7 +553,7 @@ export default class RhsComment extends React.Component {
         }
 
         let flagTrigger;
-        if (!Utils.isPostEphemeral(post)) {
+        if (!isEphemeral) {
             flagTrigger = (
                 <OverlayTrigger
                     key={'commentflagtooltipkey' + flagVisible}
@@ -578,7 +575,7 @@ export default class RhsComment extends React.Component {
         let react;
         let reactOverlay;
 
-        if (canReact) {
+        if (!isEphemeral && !isPending && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
             react = (
                 <span>
                     <a
@@ -612,17 +609,17 @@ export default class RhsComment extends React.Component {
         }
 
         let options;
-        if (Utils.isPostEphemeral(post)) {
+        if (isEphemeral) {
             options = (
                 <li className='col col__remove'>
                     {this.createRemovePostButton()}
                 </li>
             );
-        } else if (!PostUtils.isSystemMessage(post)) {
+        } else if (!isSystemMessage) {
             options = (
                 <li className='col col__reply'>
                     {reactOverlay}
-                    {this.createDropdown()}
+                    {this.createDropdown(isSystemMessage)}
                     {react}
                 </li>
             );

@@ -1659,6 +1659,44 @@ func TestUserStoreSearch(t *testing.T) {
 			t.Fatal("should not have found user")
 		}
 	}
+
+	// Check SearchNotInTeam finds previously deleted team members.
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u4.Id}))
+
+	if r1 := <-store.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u4.Id {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user")
+		}
+	}
+
+	Must(store.Team().UpdateMember(&model.TeamMember{TeamId: tid, UserId: u4.Id, DeleteAt: model.GetMillis() - 1000}))
+	if r1 := <-store.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u4.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
 }
 
 func TestUserStoreSearchWithoutTeam(t *testing.T) {

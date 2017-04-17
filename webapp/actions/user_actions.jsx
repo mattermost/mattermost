@@ -11,7 +11,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
-import {getDirectChannelName} from 'utils/utils.jsx';
+import {getDirectChannelName, getUserIdFromChannelName} from 'utils/utils.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
@@ -255,24 +255,45 @@ function populateChannelWithProfiles(channelId, userIds) {
     UserStore.emitInChannelChange();
 }
 
-export function loadNewDMIfNeeded(userId) {
-    if (userId === UserStore.getCurrentId()) {
-        return;
+export function loadNewDMIfNeeded(channelId) {
+    function checkPreference(channel) {
+        const userId = getUserIdFromChannelName(channel);
+
+        if (!userId) {
+            return;
+        }
+
+        const pref = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
+        if (pref === false) {
+            PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+            AsyncClient.savePreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+            loadProfilesForDM();
+        }
     }
 
-    const pref = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
-    if (pref === false) {
-        PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
-        AsyncClient.savePreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
-        loadProfilesForDM();
+    const channel = ChannelStore.get(channelId);
+    if (channel) {
+        checkPreference(channel);
+    } else {
+        Client.getChannel(
+            channelId,
+            (data) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_CHANNEL,
+                    channel: data.channel,
+                    member: data.member
+                });
+
+                checkPreference(data.channel);
+            },
+            (err) => {
+                AsyncClient.dispatchError(err, 'getChannel');
+            }
+       );
     }
 }
 
-export function loadNewGMIfNeeded(channelId, userId) {
-    if (userId === UserStore.getCurrentId()) {
-        return;
-    }
-
+export function loadNewGMIfNeeded(channelId) {
     function checkPreference() {
         const pref = PreferenceStore.getBool(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
         if (pref === false) {
@@ -931,4 +952,16 @@ export function getMissingProfiles(ids, success, error) {
     }
 
     AsyncClient.getProfilesByIds(missingIds, success, error);
+}
+
+export function loadMyTeamMembers() {
+    Client.getMyTeamMembers((data) => {
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
+            team_members: data
+        });
+        AsyncClient.getMyTeamsUnread();
+    }, (err) => {
+        AsyncClient.dispatchError(err, 'getMyTeamMembers');
+    });
 }

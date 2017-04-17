@@ -699,7 +699,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
-		o.SupportSettings.TermsOfServiceLink = nil
+		*o.SupportSettings.TermsOfServiceLink = ""
 	}
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
@@ -708,7 +708,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
-		o.SupportSettings.PrivacyPolicyLink = nil
+		*o.SupportSettings.PrivacyPolicyLink = ""
 	}
 
 	if o.SupportSettings.PrivacyPolicyLink == nil {
@@ -717,7 +717,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.AboutLink) {
-		o.SupportSettings.AboutLink = nil
+		*o.SupportSettings.AboutLink = ""
 	}
 
 	if o.SupportSettings.AboutLink == nil {
@@ -726,7 +726,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.HelpLink) {
-		o.SupportSettings.HelpLink = nil
+		*o.SupportSettings.HelpLink = ""
 	}
 
 	if o.SupportSettings.HelpLink == nil {
@@ -735,7 +735,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.ReportAProblemLink) {
-		o.SupportSettings.ReportAProblemLink = nil
+		*o.SupportSettings.ReportAProblemLink = ""
 	}
 
 	if o.SupportSettings.ReportAProblemLink == nil {

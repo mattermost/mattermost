@@ -188,8 +188,8 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
 
-	if _, err := Client.GetOAuthAppsByUser(); err != nil {
-		t.Fatal("Should have passed.")
+	if _, err := Client.GetOAuthAppsByUser(); err == nil {
+		t.Fatal("Should have failed.")
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
