@@ -11,6 +11,9 @@ export default class ClusterTableContainer extends React.Component {
     constructor(props) {
         super(props);
 
+        this.load = this.load.bind(this);
+        this.reload = this.reload.bind(this);
+
         this.interval = null;
 
         this.state = {
