@@ -150,6 +150,13 @@ export function createDMIntroMessage(channel, centeredIntro) {
 }
 
 export function createOffTopicIntroMessage(channel, centeredIntro) {
+    var uiType = (
+            <FormattedMessage
+                id='intro_messages.channel'
+                defaultMessage='channel'
+            />
+    );
+
     return (
         <div className={'channel-intro ' + centeredIntro}>
             <FormattedHTMLMessage
@@ -159,7 +166,7 @@ export function createOffTopicIntroMessage(channel, centeredIntro) {
                     display_name: channel.display_name
                 }}
             />
-            {createInviteChannelMemberButton(channel, 'channel')}
+            {createInviteChannelMemberButton(channel, uiType)}
             {createSetHeaderButton(channel)}
         </div>
     );
