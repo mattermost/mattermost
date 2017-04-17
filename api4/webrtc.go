@@ -1,7 +1,7 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package api
+package api4
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ import (
 func InitWebrtc() {
 	l4g.Debug(utils.T("api.webrtc.init.debug"))
 
-	BaseRoutes.Webrtc.Handle("/token", ApiUserRequired(webrtcToken)).Methods("POST")
+	BaseRoutes.Webrtc.Handle("/token", ApiSessionRequired(webrtcToken)).Methods("GET")
 }
 
 func webrtcToken(c *Context, w http.ResponseWriter, r *http.Request) {
