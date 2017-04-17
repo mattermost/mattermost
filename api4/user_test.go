@@ -850,6 +850,49 @@ func TestUpdateUserRoles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 }
 
+func TestUpdateUserActive(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.Client
+	SystemAdminClient := th.SystemAdminClient
+	user := th.BasicUser
+
+	pass, resp := Client.UpdateUserActive(user.Id, false)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have returned true")
+	}
+
+	pass, resp = Client.UpdateUserActive(user.Id, false)
+	CheckUnauthorizedStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have returned false")
+	}
+
+	th.LoginBasic2()
+
+	_, resp = Client.UpdateUserActive(user.Id, true)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UpdateUserActive(GenerateTestId(), true)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UpdateUserActive("junk", true)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.UpdateUserActive(user.Id, true)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserActive(user.Id, true)
+	CheckNoError(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserActive(user.Id, false)
+	CheckNoError(t, resp)
+}
+
 func TestGetUsers(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
