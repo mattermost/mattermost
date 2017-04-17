@@ -151,10 +151,10 @@ export function createDMIntroMessage(channel, centeredIntro) {
 
 export function createOffTopicIntroMessage(channel, centeredIntro) {
     var uiType = (
-            <FormattedMessage
-                id='intro_messages.channel'
-                defaultMessage='channel'
-            />
+        <FormattedMessage
+            id='intro_messages.channel'
+            defaultMessage='channel'
+        />
     );
 
     return (
