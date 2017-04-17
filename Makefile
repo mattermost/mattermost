@@ -417,7 +417,7 @@ run-server: prepare-enterprise start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go --disableconfigwatch &
 
 run-cli: prepare-enterprise start-docker
 	@echo Running mattermost for development
