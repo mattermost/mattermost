@@ -36,6 +36,7 @@ var Cfg *model.Config = &model.Config{}
 var CfgDiagnosticId = ""
 var CfgHash = ""
 var CfgFileName string = ""
+var CfgDisableConfigWatch = false
 var ClientCfg map[string]string = map[string]string{}
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
@@ -178,6 +179,10 @@ func InitializeConfigWatch() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
+	if CfgDisableConfigWatch {
+		return
+	}
+
 	if watcher == nil {
 		var err error
 		watcher, err = fsnotify.NewWatcher()
@@ -215,11 +220,13 @@ func EnableConfigWatch() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
-	configFile := filepath.Clean(CfgFileName)
-	configDir, _ := filepath.Split(configFile)
-
 	if watcher != nil {
-		watcher.Add(configDir)
+		configFile := filepath.Clean(CfgFileName)
+		configDir, _ := filepath.Split(configFile)
+
+		if watcher != nil {
+			watcher.Add(configDir)
+		}
 	}
 }
 

@@ -20,6 +20,7 @@ func doLoadConfig(filename string) (err string) {
 	utils.LoadConfig(filename)
 	utils.InitializeConfigWatch()
 	utils.EnableConfigWatch()
+
 	return ""
 }
 
