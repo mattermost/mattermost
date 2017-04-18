@@ -6,7 +6,7 @@ import {configureOfflineServiceStore} from 'mattermost-redux/store';
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import reduxInitialState from 'mattermost-redux/store/initial_state';
 import {createTransform, persistStore} from 'redux-persist';
-import localForage from 'localForage';
+import localForage from 'localforage';
 
 import {transformSet} from './utils';
 
