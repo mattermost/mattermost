@@ -1549,6 +1549,8 @@
   "intro_messages.creator": "This is the start of the {name} {type}, created by {creator} on {date}.",
   "intro_messages.default": "<h4 class='channel-intro__title'>Beginning of {display_name}</h4><p class='channel-intro__content'><strong>Welcome to {display_name}!</strong><br/><br/>Post messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.</p>",
   "intro_messages.group": "private channel",
+  "intro_messages.GM": "This is the start of your group message history with {names}.<br />Messages and files shared here are not shown to people outside this area.",
+  "intro_messages.group_message": "This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.",
   "intro_messages.invite": "Invite others to this {type}",
   "intro_messages.inviteOthers": "Invite others to this team",
   "intro_messages.noCreator": "This is the start of the {name} {type}, created on {date}.",
