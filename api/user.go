@@ -1197,7 +1197,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
+	if hashedId == model.HashSha256(userId+utils.Cfg.EmailSettings.InviteSalt) {
 		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
 			return
 		} else {
