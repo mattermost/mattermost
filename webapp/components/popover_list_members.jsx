@@ -70,17 +70,10 @@ export default class PopoverListMembers extends React.Component {
     showMembersModal(e) {
         e.preventDefault();
 
-        if (ChannelStore.isDefault(this.props.channel)) {
-            this.setState({
-                showPopover: false,
-                showTeamMembersModal: true
-            });
-        } else {
-            this.setState({
-                showPopover: false,
-                showChannelMembersModal: true
-            });
-        }
+        this.setState({
+            showPopover: false,
+            showChannelMembersModal: true
+        });
     }
 
     render() {
@@ -158,7 +151,11 @@ export default class PopoverListMembers extends React.Component {
                         defaultMessage='Manage Members'
                     />
                 );
-                if (!canManageMembers(this.props.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin) && !ChannelStore.isDefault(this.props.channel)) {
+
+                const manageMembers = canManageMembers(this.props.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin);
+                const isDefaultChannel = ChannelStore.isDefault(this.props.channel);
+
+                if ((manageMembers === false && isDefaultChannel === false) || isDefaultChannel) {
                     membersName = (
                         <FormattedMessage
                             id='members_popover.viewMembers'
