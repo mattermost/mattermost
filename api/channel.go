@@ -124,7 +124,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		userIds = append(userIds, c.Session.UserId)
 	}
 
-	if sc, err := app.CreateGroupChannel(userIds); err != nil {
+	if sc, err := app.CreateGroupChannel(userIds, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
