@@ -11,8 +11,8 @@ import (
 func TestPasswordRecoveryIsValid(t *testing.T) {
 	// Valid example.
 	p := PasswordRecovery{
-		UserId: NewId(),
-		Code: strings.Repeat("a", 128),
+		UserId:   NewId(),
+		Code:     strings.Repeat("a", 128),
 		CreateAt: GetMillis(),
 	}
 
