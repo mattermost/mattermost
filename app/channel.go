@@ -197,7 +197,7 @@ func WaitForChannelMembership(channelId string, userId string) {
 	}
 }
 
-func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -238,6 +238,10 @@ func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 
 			if result := <-Srv.Store.Channel().SaveMember(cm); result.Err != nil {
 				return nil, result.Err
+			}
+
+			if user.Id == creatorId {
+				WaitForChannelMembership(group.Id, creatorId)
 			}
 
 			InvalidateCacheForUser(user.Id)
