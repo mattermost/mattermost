@@ -8,31 +8,25 @@ import (
 	"testing"
 )
 
-func TestModelSecurityBulletinToJson(t *testing.T) {
+func TestSecurityBulletinToJson(t *testing.T) {
 	b := SecurityBulletin{
 		Id: "asdfghjkl",
 		AppliesToVersion: "3.7.3",
 	}
 
 	j := b.ToJson()
-
-	if j != `{"id":"asdfghjkl","applies_to_version":"3.7.3"}` {
-		t.Fatalf("Got unexpected json: %v", j)
-	}
+	expected := `{"id":"asdfghjkl","applies_to_version":"3.7.3"}`
+	CheckString(t, j, expected)
 }
 
-func TestModelSecurityBulletinFromJson(t *testing.T) {
+func TestSecurityBulletinFromJson(t *testing.T) {
 	// Valid Security Bulletin JSON.
 	s1 := `{"id":"asdfghjkl","applies_to_version":"3.7.3"}`
 	b1 := SecurityBulletinFromJson(strings.NewReader(s1))
 
-	if b1.AppliesToVersion != "3.7.3" {
-		t.Fatalf("Got unexpected applies to version: %v", b1.AppliesToVersion)
-	}
+	CheckString(t, b1.AppliesToVersion, "3.7.3")
 
-	if b1.Id != "asdfghjkl" {
-		t.Fatalf("Got unexpected id: %v", b1.Id)
-	}
+	CheckString(t, b1.Id, "asdfghjkl")
 
 	// Malformed JSON
 	s2 := `{"wat"`
@@ -43,7 +37,7 @@ func TestModelSecurityBulletinFromJson(t *testing.T) {
 	}
 }
 
-func TestModelSecurityBulletinsToJson(t *testing.T) {
+func TestSecurityBulletinsToJson(t *testing.T) {
 	b := SecurityBulletins{
 		{
 			Id: "asdfghjkl",
@@ -57,12 +51,11 @@ func TestModelSecurityBulletinsToJson(t *testing.T) {
 
 	j := b.ToJson()
 
-	if j != `[{"id":"asdfghjkl","applies_to_version":"3.7.3"},{"id":"qwertyuiop","applies_to_version":"3.5.1"}]` {
-		t.Fatalf("Got unexpected json: %v", j)
-	}
+	expected := `[{"id":"asdfghjkl","applies_to_version":"3.7.3"},{"id":"qwertyuiop","applies_to_version":"3.5.1"}]`
+	CheckString(t, j, expected)
 }
 
-func TestModelSecurityBulletinsFromJson(t *testing.T) {
+func TestSecurityBulletinsFromJson(t *testing.T) {
 	// Valid bulletins
 	s1 := `[{"id":"asdfghjkl","applies_to_version":"3.7.3"},{"id":"qwertyuiop","applies_to_version":"3.7.3"}]`
 

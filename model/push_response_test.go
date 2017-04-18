@@ -8,48 +8,34 @@ import (
 	"testing"
 )
 
-func TestModelNewOkPushResponse(t *testing.T) {
+func TestNewOkPushResponse(t *testing.T) {
 	r := NewOkPushResponse()
-	if r["status"] != "OK" {
-		t.Fatalf("Expected OK, got %v", r["status"])
-	}
+	CheckString(t, r["status"], "OK")
 }
 
-func TestModelNewRemovePushResponse(t *testing.T) {
+func TestNewRemovePushResponse(t *testing.T) {
 	r := NewRemovePushResponse()
-	if r["status"] != "REMOVE" {
-		t.Fatalf("Expected REMOVE, got %v", r["status"])
-	}
+	CheckString(t, r["status"], "REMOVE")
 }
 
-func TestModelNewErrorPushResponse(t *testing.T) {
+func TestNewErrorPushResponse(t *testing.T) {
 	r := NewErrorPushResponse("error message")
-	if r["status"] != "FAIL" {
-		t.Fatalf("Expected error, got %v", r["status"])
-	}
-	if r["error"] != "error message" {
-		t.Fatalf("Got wrong error message")
-	}
+	CheckString(t, r["status"], "FAIL")
+	CheckString(t, r["error"], "error message")
 }
 
-func TestModelPushResponseToJson(t *testing.T) {
+func TestPushResponseToJson(t *testing.T) {
 	r := NewErrorPushResponse("error message")
 	j := r.ToJson()
 
-	if j != `{"error":"error message","status":"FAIL"}` {
-		t.Fatalf("Got unexpected json: %v", j)
-	}
+	expected := `{"error":"error message","status":"FAIL"}`
+	CheckString(t, j, expected)
 }
 
-func TestModelPushResponseFromJson(t *testing.T) {
+func TestPushResponseFromJson(t *testing.T) {
 	j := `{"error":"error message","status":"FAIL"}`
-
 	r := PushResponseFromJson(strings.NewReader(j))
 
-	if r["status"] != "FAIL" {
-		t.Fatalf("Expected error, got %v", r["status"])
-	}
-	if r["error"] != "error message" {
-		t.Fatalf("Got wrong error message")
-	}
+	CheckString(t, r["status"], "FAIL")
+	CheckString(t, r["error"], "error message")
 }

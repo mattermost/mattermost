@@ -22,14 +22,12 @@ func TestWebrtcInfoResponseToFromJson(t *testing.T) {
 	CheckString(t, r, "")
 }
 
-func TestModelGatewayResponseFromJson(t *testing.T) {
+func TestGatewayResponseFromJson(t *testing.T) {
 	// Valid Gateway Response
 	s1 := `{"janus": "something"}`
 	g1 := GatewayResponseFromJson(strings.NewReader(s1))
 
-	if g1.Status != "something" {
-		t.Fatalf("Got unexpected Status: %v", g1.Status)
-	}
+	CheckString(t, g1.Status, "something")
 
 	// Malformed JSON
 	s2 := `{"wat"`
