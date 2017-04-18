@@ -65,17 +65,12 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Reaction().Save(reaction); result.Err != nil {
-		c.Err = result.Err
+	if reaction, err := app.SaveReactionForPost(reaction); err != nil {
+		c.Err = err
 		return
 	} else {
-		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, channelId, reaction, post)
-
-		reaction := result.Data.(*model.Reaction)
-
-		app.InvalidateCacheForReactions(reaction.PostId)
-
 		w.Write([]byte(reaction.ToJson()))
+		return
 	}
 }
 
