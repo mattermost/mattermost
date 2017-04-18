@@ -872,6 +872,17 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 	go func() {
 		result := StoreResult{}
 
+		if !*utils.Cfg.ServiceSettings.EnablePostSearch {
+			list := &model.PostList{}
+			list.MakeNonNil()
+			result.Data = list
+
+			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v params=%v", teamId, userId, params.ToJson()))
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
 		queryParams := map[string]interface{}{
 			"TeamId": teamId,
 			"UserId": userId,
@@ -883,6 +894,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 {
 			result.Data = []*model.Post{}
 			storeChannel <- result
+			close(storeChannel)
 			return
 		}
 
