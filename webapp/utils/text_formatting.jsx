@@ -167,7 +167,7 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
         const alias = `$MM_ATMENTION${index}`;
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
+            value: `<span data-mention='${username}'><a class='mention-link' href='#'>${mention}</a></span>`,
             originalText: mention
         });
         return alias;

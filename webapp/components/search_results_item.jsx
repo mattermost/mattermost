@@ -3,9 +3,9 @@
 
 import $ from 'jquery';
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
-import UserProfile from './user_profile.jsx';
+import UserProfile from './profile_popover/username_profile_popover.jsx';
 import FileAttachmentListContainer from './file_attachment_list_container.jsx';
-import ProfilePicture from './profile_picture.jsx';
+import ProfilePicture from './profile_popover/picture_profile_popover.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';

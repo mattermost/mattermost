@@ -232,6 +232,33 @@ class UserStoreClass extends EventEmitter {
         return Selectors.getUsersByUsername(store.getState());
     }
 
+    getLiteProfilesUsernameMap() {
+        function buildProfile(user) {
+            var keys = ['id', 'lastPictureUpdate', 'first_name', 'last_name', 'email', 'position', 'username'];
+            var profile = {};
+            keys.forEach((key) => {
+                if (user.hasOwnProperty(key)) {
+                    profile[key] = user[key];
+                }
+            });
+
+            return profile;
+        }
+
+        var liteProfiles = {};
+        var profiles = this.getProfiles();
+
+        for (var p in profiles) {
+            if (profiles.hasOwnProperty(p)) {
+                var user = profiles[p];
+                var profile = buildProfile(user);
+                liteProfiles[profile.username] = profile;
+            }
+        }
+
+        return liteProfiles;
+    }
+
     getActiveOnlyProfiles(skipCurrent) {
         const active = {};
         const profiles = this.getProfiles();

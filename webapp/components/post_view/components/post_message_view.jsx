@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import AtMentionProfile from 'components/profile_popover/atmention_profile_popover.jsx';
+
 import Constants from 'utils/constants.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
@@ -20,6 +22,7 @@ export default class PostMessageView extends React.Component {
         enableFormatting: React.PropTypes.bool.isRequired,
         mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
         usernameMap: React.PropTypes.object.isRequired,
+        liteUsernameMap: React.PropTypes.object.isRequired,
         channelNamesMap: React.PropTypes.object.isRequired,
         team: React.PropTypes.object.isRequired,
         isLastPost: React.PropTypes.bool
@@ -52,6 +55,10 @@ export default class PostMessageView extends React.Component {
         }
 
         if (!Utils.areObjectsEqual(nextProps.mentionKeys, this.props.mentionKeys)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextProps.liteUsernameMap, this.props.liteUsernameMap)) {
             return true;
         }
 
@@ -111,14 +118,17 @@ export default class PostMessageView extends React.Component {
             return <div>{renderedSystemMessage}</div>;
         }
 
+        const htmlFormattedText = TextFormatting.formatText(this.props.post.message, options);
+        const postMessageComponent = Utils.postMessageHtmlToComponent(htmlFormattedText, AtMentionProfile, this.props.liteUsernameMap);
+
         return (
             <div>
                 <span
                     id={this.props.isLastPost ? 'lastPostMessageText' : null}
                     className='post-message__text'
                     onClick={Utils.handleFormattedTextClick}
-                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
                 />
+                {postMessageComponent}
                 {this.renderEditedIndicator()}
             </div>
         );
