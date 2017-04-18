@@ -32,12 +32,12 @@ func TestStatuses(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Username: "n" + model.NewId()}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", Username: "n" + model.NewId()}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
 	LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser2.Id))
