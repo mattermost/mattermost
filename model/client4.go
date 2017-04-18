@@ -2229,6 +2229,18 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
 	}
 }
 
+// PostLog is a convenience Web Service call so clients can log messages into
+// the server-side logs.  For example we typically log javascript error messages
+// into the server-side.  It returns the log message if the logging was successful.
+func (c *Client4) PostLog(message map[string]string) (map[string]string, *Response) {
+	if r, err := c.DoApiPost("/logs", MapToJson(message)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // OAuth Section
 
 // CreateOAuthApp will register a new OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
