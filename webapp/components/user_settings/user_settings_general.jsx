@@ -11,7 +11,6 @@ import ErrorStore from 'stores/error_store.jsx';
 
 import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
@@ -80,6 +79,19 @@ const holders = defineMessages({
 import React from 'react';
 
 class UserSettingsGeneralTab extends React.Component {
+    static propTypes = {
+        intl: intlShape.isRequired,
+        user: React.PropTypes.object.isRequired,
+        updateSection: React.PropTypes.func.isRequired,
+        updateTab: React.PropTypes.func.isRequired,
+        activeSection: React.PropTypes.string.isRequired,
+        closeModal: React.PropTypes.func.isRequired,
+        collapseModal: React.PropTypes.func.isRequired,
+        actions: React.PropTypes.shape({
+            getMe: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
         this.submitActive = false;
@@ -205,7 +217,7 @@ class UserSettingsGeneralTab extends React.Component {
         updateUser(user, type,
             () => {
                 this.updateSection('');
-                AsyncClient.getMe();
+                this.props.actions.getMe();
                 const verificationEnabled = global.window.mm_config.SendEmailNotifications === 'true' && global.window.mm_config.RequireEmailVerification === 'true' && emailUpdated;
 
                 if (verificationEnabled) {
@@ -1193,15 +1205,5 @@ class UserSettingsGeneralTab extends React.Component {
         );
     }
 }
-
-UserSettingsGeneralTab.propTypes = {
-    intl: intlShape.isRequired,
-    user: React.PropTypes.object.isRequired,
-    updateSection: React.PropTypes.func.isRequired,
-    updateTab: React.PropTypes.func.isRequired,
-    activeSection: React.PropTypes.string.isRequired,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
-};
 
 export default injectIntl(UserSettingsGeneralTab);

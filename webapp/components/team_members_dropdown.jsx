@@ -18,6 +18,14 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class TeamMembersDropdown extends React.Component {
+    static propTypes = {
+        user: React.PropTypes.object.isRequired,
+        teamMember: React.PropTypes.object.isRequired,
+        actions: React.PropTypes.shape({
+            getUser: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -48,7 +56,7 @@ export default class TeamMembersDropdown extends React.Component {
                 this.props.user.id,
                 'team_user',
                 () => {
-                    AsyncClient.getUser(this.props.user.id);
+                    this.props.actions.getUser(this.props.user.id);
 
                     if (this.props.user.id === me.id) {
                         loadMyTeamMembers();
@@ -110,7 +118,7 @@ export default class TeamMembersDropdown extends React.Component {
                 this.props.user.id,
                 'team_user team_admin',
                 () => {
-                    AsyncClient.getUser(this.props.user.id);
+                    this.props.actions.getUser(this.props.user.id);
                 },
                 (err) => {
                     this.setState({serverError: err.message});
@@ -145,7 +153,7 @@ export default class TeamMembersDropdown extends React.Component {
             this.props.user.id,
             this.state.newRole,
             () => {
-                AsyncClient.getUser(this.props.user.id);
+                this.props.actions.getUser(this.props.user.id);
 
                 const teamUrl = TeamStore.getCurrentTeamUrl();
                 if (teamUrl) {
@@ -385,8 +393,3 @@ export default class TeamMembersDropdown extends React.Component {
         );
     }
 }
-
-TeamMembersDropdown.propTypes = {
-    user: React.PropTypes.object.isRequired,
-    teamMember: React.PropTypes.object.isRequired
-};

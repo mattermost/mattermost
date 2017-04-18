@@ -11,6 +11,12 @@ import Client from 'client/web_client.jsx';
 
 import {ActionTypes} from 'utils/constants.jsx';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
+
 export function loadIncomingHooks() {
     Client.listIncomingHooks(
         (data) => {
@@ -42,7 +48,7 @@ function loadProfilesForIncomingHooks(hooks) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(list);
+    getProfilesByIds(list)(dispatch, getState);
 }
 
 export function loadOutgoingHooks() {
@@ -76,7 +82,7 @@ function loadProfilesForOutgoingHooks(hooks) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(list);
+    getProfilesByIds(list)(dispatch, getState);
 }
 
 export function loadTeamCommands() {
@@ -110,5 +116,5 @@ function loadProfilesForCommands(commands) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(list);
+    getProfilesByIds(list)(dispatch, getState);
 }

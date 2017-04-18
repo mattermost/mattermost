@@ -1,16 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
-import LocalizationStore from './localization_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 const UserStatuses = Constants.UserStatuses;
 
 const CHANGE_EVENT_NOT_IN_CHANNEL = 'change_not_in_channel';
@@ -23,48 +19,52 @@ const CHANGE_EVENT_SESSIONS = 'change_sessions';
 const CHANGE_EVENT_AUDITS = 'change_audits';
 const CHANGE_EVENT_STATUSES = 'change_statuses';
 
+import store from 'stores/redux_store.jsx';
+import * as Selectors from 'mattermost-redux/selectors/entities/users';
+import {UserTypes} from 'mattermost-redux/action_types';
+
 var Utils;
 
 class UserStoreClass extends EventEmitter {
     constructor() {
         super();
-        this.clear();
-    }
 
-    clear() {
-        // All the profiles, regardless of where they came from
-        this.profiles = {};
-        this.paging_offset = 0;
-        this.paging_count = 0;
-
-        // Lists of sorted IDs for users in a team
-        this.profiles_not_in_team = {};
-        this.not_in_team_offset = 0;
-        this.not_in_team_count = 0;
-
-        // Lists of sorted IDs for users in a team
-        this.profiles_in_team = {};
-        this.in_team_offset = 0;
-        this.in_team_count = 0;
-
-        // Lists of sorted IDs for users in a channel
-        this.profiles_in_channel = {};
-        this.in_channel_offset = {};
-        this.in_channel_count = {};
-
-        // Lists of sorted IDs for users not in a channel
-        this.profiles_not_in_channel = {};
-        this.not_in_channel_offset = {};
-        this.not_in_channel_count = {};
-
-        // Lists of sorted IDs for users without a team
-        this.profiles_without_team = {};
-
-        this.statuses = {};
-        this.sessions = {};
-        this.audits = [];
-        this.currentUserId = '';
         this.noAccounts = false;
+        this.entities = {};
+
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.users;
+
+            if (newEntities.profiles !== this.entities.profiles) {
+                this.emitChange();
+            }
+            if (newEntities.profilesInChannel !== this.entities.profilesInChannel) {
+                this.emitInChannelChange();
+            }
+            if (newEntities.profilesNotInChannel !== this.entities.profilesNotInChannel) {
+                this.emitNotInChannelChange();
+            }
+            if (newEntities.profilesInTeam !== this.entities.profilesInTeam) {
+                this.emitInTeamChange();
+            }
+            if (newEntities.profilesNotInTeam !== this.entities.profilesNotInTeam) {
+                this.emitNotInTeamChange();
+            }
+            if (newEntities.profilesWithoutTeam !== this.entities.profilesWithoutTeam) {
+                this.emitWithoutTeamChange();
+            }
+            if (newEntities.statuses !== this.entities.statuses) {
+                this.emitStatusesChange();
+            }
+            if (newEntities.myAudits !== this.entities.myAudits) {
+                this.emitAuditsChange();
+            }
+            if (newEntities.mySessions !== this.entities.mySessions) {
+                this.emitSessionsChange();
+            }
+
+            this.entities = newEntities;
+        });
     }
 
     emitChange(userId) {
@@ -178,49 +178,21 @@ class UserStoreClass extends EventEmitter {
     // General
 
     getCurrentUser() {
-        return this.getProfiles()[this.currentUserId];
-    }
-
-    setCurrentUser(user) {
-        this.saveProfile(user);
-        this.currentUserId = user.id;
-        global.window.mm_current_user_id = this.currentUserId;
-        if (LocalizationStore.getLocale() !== user.locale) {
-            setTimeout(() => GlobalActions.newLocalizationSelected(user.locale), 0);
-        }
+        return Selectors.getCurrentUser(store.getState());
     }
 
     getCurrentId() {
-        var user = this.getCurrentUser();
-
-        if (user) {
-            return user.id;
-        }
-
-        return null;
+        return Selectors.getCurrentUserId(store.getState());
     }
 
     // System-Wide Profiles
 
-    saveProfiles(profiles) {
-        const newProfiles = Object.assign({}, profiles);
-        const currentId = this.getCurrentId();
-        if (newProfiles[currentId]) {
-            Reflect.deleteProperty(newProfiles, currentId);
-        }
-        this.profiles = Object.assign({}, this.profiles, newProfiles);
-    }
-
     getProfiles() {
-        return this.profiles;
+        return Selectors.getUsers(store.getState());
     }
 
     getProfile(userId) {
-        if (this.profiles[userId]) {
-            return Object.assign({}, this.profiles[userId]);
-        }
-
-        return null;
+        return Selectors.getUser(store.getState(), userId);
     }
 
     getProfileListForIds(userIds, skipCurrent = false, skipInactive = false) {
@@ -257,17 +229,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getProfilesUsernameMap() {
-        var profileUsernameMap = {};
-
-        var profiles = this.getProfiles();
-        for (var key in profiles) {
-            if (profiles.hasOwnProperty(key)) {
-                var profile = profiles[key];
-                profileUsernameMap[profile.username] = profile;
-            }
-        }
-
-        return profileUsernameMap;
+        return Selectors.getUsersByUsername(store.getState());
     }
 
     getActiveOnlyProfiles(skipCurrent) {
@@ -310,10 +272,11 @@ class UserStoreClass extends EventEmitter {
     getProfileList(skipCurrent = false, allowInactive = false) {
         const profiles = [];
         const currentId = this.getCurrentId();
+        const profileMap = this.getProfiles();
 
-        for (const id in this.profiles) {
-            if (this.profiles.hasOwnProperty(id)) {
-                var profile = this.profiles[id];
+        for (const id in profileMap) {
+            if (profileMap.hasOwnProperty(id)) {
+                var profile = profileMap[id];
 
                 if (skipCurrent && id === currentId) {
                     continue;
@@ -339,103 +302,32 @@ class UserStoreClass extends EventEmitter {
     }
 
     saveProfile(profile) {
-        this.profiles[profile.id] = profile;
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE,
+            data: profile
+        });
     }
 
     // Team-Wide Profiles
 
-    saveProfilesInTeam(teamId, profiles) {
-        const oldProfileList = this.profiles_in_team[teamId] || [];
-        const oldProfileMap = {};
-        for (let i = 0; i < oldProfileList.length; i++) {
-            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
-        }
-
-        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
-        const newProfileList = Object.keys(newProfileMap);
-
-        newProfileList.sort((a, b) => {
-            const aProfile = newProfileMap[a];
-            const bProfile = newProfileMap[b];
-
-            if (aProfile.username < bProfile.username) {
-                return -1;
-            }
-            if (aProfile.username > bProfile.username) {
-                return 1;
-            }
-            return 0;
-        });
-
-        this.profiles_in_team[teamId] = newProfileList;
-        this.saveProfiles(profiles);
-    }
-
     getProfileListInTeam(teamId = TeamStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
-        const userIds = this.profiles_in_team[teamId] || [];
+        const userIds = Array.from(Selectors.getUserIdsInTeams(store.getState())[teamId] || []);
 
         return this.getProfileListForIds(userIds, skipCurrent, skipInactive);
     }
 
     removeProfileFromTeam(teamId, userId) {
-        const userIds = this.profiles_in_team[teamId];
-        if (!userIds) {
-            return;
-        }
-
-        const index = userIds.indexOf(userId);
-        if (index === -1) {
-            return;
-        }
-
-        userIds.splice(index, 1);
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM,
+            data: {user_id: userId},
+            id: teamId
+        });
     }
 
     // Not In Team Profiles
 
-    saveProfilesNotInTeam(teamId, profiles) {
-        const oldProfileList = this.profiles_not_in_team[teamId] || [];
-        const oldProfileMap = {};
-        for (let i = 0; i < oldProfileList.length; i++) {
-            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
-        }
-
-        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
-        const newProfileList = Object.keys(newProfileMap);
-
-        newProfileList.sort((a, b) => {
-            const aProfile = newProfileMap[a];
-            const bProfile = newProfileMap[b];
-
-            if (aProfile.username < bProfile.username) {
-                return -1;
-            }
-            if (aProfile.username > bProfile.username) {
-                return 1;
-            }
-            return 0;
-        });
-
-        this.profiles_not_in_team[teamId] = newProfileList;
-        this.saveProfiles(profiles);
-    }
-
-    removeProfileNotInTeam(teamId, userId) {
-        const userIds = this.profiles_not_in_team[teamId];
-        if (!userIds) {
-            return;
-        }
-
-        const index = userIds.indexOf(userId);
-        if (index === -1) {
-            return;
-        }
-
-        userIds.splice(index, 1);
-    }
-
     getProfileListNotInTeam(teamId = TeamStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
-        const userIds = this.profiles_not_in_team[teamId] || [];
+        const userIds = Array.from(Selectors.getUserIdsNotInTeams(store.getState())[teamId] || []);
         const profiles = [];
         const currentId = this.getCurrentId();
 
@@ -460,178 +352,84 @@ class UserStoreClass extends EventEmitter {
         return profiles;
     }
 
-    // Channel-Wide Profiles
-
-    saveProfilesInChannel(channelId = ChannelStore.getCurrentId(), profiles) {
-        const oldProfileList = this.profiles_in_channel[channelId] || [];
-        const oldProfileMap = {};
-        for (let i = 0; i < oldProfileList.length; i++) {
-            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
-        }
-
-        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
-        const newProfileList = Object.keys(newProfileMap);
-
-        newProfileList.sort((a, b) => {
-            const aProfile = newProfileMap[a];
-            const bProfile = newProfileMap[b];
-
-            if (aProfile.username < bProfile.username) {
-                return -1;
-            }
-            if (aProfile.username > bProfile.username) {
-                return 1;
-            }
-            return 0;
+    removeProfileNotInTeam(teamId, userId) {
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_IN_TEAM,
+            data: {user_id: userId},
+            id: teamId
         });
-
-        this.profiles_in_channel[channelId] = newProfileList;
-        this.saveProfiles(profiles);
     }
 
+    // Channel-Wide Profiles
+
     saveProfileInChannel(channelId = ChannelStore.getCurrentId(), profile) {
-        const profileMap = {};
-        profileMap[profile.id] = profile;
-        this.saveProfilesInChannel(channelId, profileMap);
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
+            data: {user_id: profile.id},
+            id: channelId
+        });
     }
 
     saveUserIdInChannel(channelId = ChannelStore.getCurrentId(), userId) {
-        const profile = this.getProfile(userId);
-
-        // Must have profile or we can't sort the list
-        if (!profile) {
-            return false;
-        }
-
-        this.saveProfileInChannel(channelId, profile);
-
-        return true;
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
+            data: {user_id: userId},
+            id: channelId
+        });
     }
 
     removeProfileInChannel(channelId, userId) {
-        const userIds = this.profiles_in_channel[channelId];
-        if (!userIds) {
-            return;
-        }
-
-        const index = userIds.indexOf(userId);
-        if (index === -1) {
-            return;
-        }
-
-        userIds.splice(index, 1);
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
+            data: {user_id: userId},
+            id: channelId
+        });
     }
 
     getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false) {
-        const userIds = this.profiles_in_channel[channelId] || [];
+        const userIds = Array.from(Selectors.getUserIdsInChannels(store.getState())[channelId] || []);
 
         return this.getProfileListForIds(userIds, skipCurrent, false);
     }
 
-    saveProfilesNotInChannel(channelId = ChannelStore.getCurrentId(), profiles) {
-        const oldProfileList = this.profiles_not_in_channel[channelId] || [];
-        const oldProfileMap = {};
-        for (let i = 0; i < oldProfileList.length; i++) {
-            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
-        }
-
-        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
-        const newProfileList = Object.keys(newProfileMap);
-
-        newProfileList.sort((a, b) => {
-            const aProfile = newProfileMap[a];
-            const bProfile = newProfileMap[b];
-
-            if (aProfile.username < bProfile.username) {
-                return -1;
-            }
-            if (aProfile.username > bProfile.username) {
-                return 1;
-            }
-            return 0;
-        });
-
-        this.profiles_not_in_channel[channelId] = newProfileList;
-        this.saveProfiles(profiles);
-    }
-
     saveProfileNotInChannel(channelId = ChannelStore.getCurrentId(), profile) {
-        const profileMap = {};
-        profileMap[profile.id] = profile;
-        this.saveProfilesNotInChannel(channelId, profileMap);
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
+            data: {user_id: profile.id},
+            id: channelId
+        });
     }
 
     removeProfileNotInChannel(channelId, userId) {
-        const userIds = this.profiles_not_in_channel[channelId];
-        if (!userIds) {
-            return;
-        }
-
-        const index = userIds.indexOf(userId);
-        if (index === -1) {
-            return;
-        }
-
-        userIds.splice(index, 1);
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
+            data: {user_id: userId},
+            id: channelId
+        });
     }
 
     getProfileListNotInChannel(channelId = ChannelStore.getCurrentId(), skipInactive = false) {
-        const userIds = this.profiles_not_in_channel[channelId] || [];
+        const userIds = Array.from(Selectors.getUserIdsNotInChannels(store.getState())[channelId] || []);
 
         return this.getProfileListForIds(userIds, false, skipInactive);
     }
 
     // Profiles without any teams
 
-    saveProfilesWithoutTeam(profiles) {
-        const oldProfileList = this.profiles_without_team;
-        const oldProfileMap = {};
-        for (let i = 0; i < oldProfileList.length; i++) {
-            oldProfileMap[oldProfileList[i]] = this.getProfile(oldProfileList[i]);
-        }
-
-        const newProfileMap = Object.assign({}, oldProfileMap, profiles);
-        const newProfileList = Object.keys(newProfileMap);
-
-        newProfileList.sort((a, b) => {
-            const aProfile = newProfileMap[a];
-            const bProfile = newProfileMap[b];
-
-            if (aProfile.username < bProfile.username) {
-                return -1;
-            }
-            if (aProfile.username > bProfile.username) {
-                return 1;
-            }
-            return 0;
-        });
-
-        this.profiles_without_team = newProfileList;
-        this.saveProfiles(profiles);
-    }
-
     getProfileListWithoutTeam(skipCurrent = false, skipInactive = false) {
-        const userIds = this.profiles_without_team || [];
+        const userIds = Array.from(Selectors.getUserIdsWithoutTeam(store.getState()) || []);
 
         return this.getProfileListForIds(userIds, skipCurrent, skipInactive);
     }
 
     // Other
 
-    setSessions(sessions) {
-        this.sessions = sessions;
-    }
-
     getSessions() {
-        return this.sessions;
-    }
-
-    setAudits(audits) {
-        this.audits = audits;
+        return store.getState().entities.users.mySessions;
     }
 
     getAudits() {
-        return this.audits;
+        return store.getState().entities.users.myAudits;
     }
 
     getCurrentMentionKeys() {
@@ -668,17 +466,17 @@ class UserStoreClass extends EventEmitter {
         return keys;
     }
 
-    setStatuses(statuses) {
-        this.statuses = Object.assign(this.statuses, statuses);
-    }
-
     setStatus(userId, status) {
-        this.statuses[userId] = status;
-        this.emitStatusesChange();
+        const data = {};
+        data[userId] = status;
+        store.dispatch({
+            type: UserTypes.RECEIVED_STATUSES,
+            data
+        });
     }
 
     getStatuses() {
-        return this.statuses;
+        return store.getState().entities.users.statuses;
     }
 
     getStatus(id) {
@@ -706,141 +504,9 @@ class UserStoreClass extends EventEmitter {
 
         return false;
     }
-
-    setPage(offset, count) {
-        this.paging_offset = offset + count;
-        this.paging_count = this.paging_count + count;
-    }
-
-    getPagingOffset() {
-        return this.paging_offset;
-    }
-
-    getPagingCount() {
-        return this.paging_count;
-    }
-
-    setInTeamPage(offset, count) {
-        this.in_team_offset = offset + count;
-        this.in_team_count = this.in_team_count + count;
-    }
-
-    getInTeamPagingOffset() {
-        return this.in_team_offset;
-    }
-
-    getInTeamPagingCount() {
-        return this.in_team_count;
-    }
-
-    setNotInTeamPage(offset, count) {
-        this.not_in_team_offset = offset + count;
-        this.not_in_team_count = this.not_in_team_count + count;
-    }
-
-    getNotInTeamPagingOffset() {
-        return this.not_in_team_offset;
-    }
-
-    getNotInTeamPagingCount() {
-        return this.not_in_team_count;
-    }
-
-    setInChannelPage(channelId, offset, count) {
-        this.in_channel_offset[channelId] = offset + count;
-        this.in_channel_count[channelId] = this.dm_paging_count + count;
-    }
-
-    getInChannelPagingOffset(channelId) {
-        return this.in_channel_offset[channelId] | 0;
-    }
-
-    getInChannelPagingCount(channelId) {
-        return this.in_channel_count[channelId] | 0;
-    }
-
-    setNotInChannelPage(channelId, offset, count) {
-        this.not_in_channel_offset[channelId] = offset + count;
-        this.not_in_channel_count[channelId] = this.dm_paging_count + count;
-    }
-
-    getNotInChannelPagingOffset(channelId) {
-        return this.not_in_channel_offset[channelId] | 0;
-    }
-
-    getNotInChannelPagingCount(channelId) {
-        return this.not_in_channel_count[channelId] | 0;
-    }
 }
 
 var UserStore = new UserStoreClass();
 UserStore.setMaxListeners(600);
-
-UserStore.dispatchToken = AppDispatcher.register((payload) => {
-    var action = payload.action;
-
-    switch (action.type) {
-    case ActionTypes.RECEIVED_PROFILES:
-        UserStore.saveProfiles(action.profiles);
-        if (action.offset != null && action.count != null) {
-            UserStore.setPage(action.offset, action.count);
-        }
-        UserStore.emitChange();
-        break;
-    case ActionTypes.RECEIVED_PROFILES_IN_TEAM:
-        UserStore.saveProfilesInTeam(action.team_id, action.profiles);
-        if (action.offset != null && action.count != null) {
-            UserStore.setInTeamPage(action.offset, action.count);
-        }
-        UserStore.emitInTeamChange();
-        break;
-    case ActionTypes.RECEIVED_PROFILES_NOT_IN_TEAM:
-        UserStore.saveProfilesNotInTeam(action.team_id, action.profiles);
-        if (action.offset != null && action.count != null) {
-            UserStore.setNotInTeamPage(action.offset, action.count);
-        }
-        UserStore.emitNotInTeamChange();
-        break;
-    case ActionTypes.RECEIVED_PROFILES_IN_CHANNEL:
-        UserStore.saveProfilesInChannel(action.channel_id, action.profiles);
-        if (action.offset != null && action.count != null) {
-            UserStore.setInChannelPage(action.offset, action.count);
-        }
-        UserStore.emitInChannelChange();
-        break;
-    case ActionTypes.RECEIVED_PROFILES_NOT_IN_CHANNEL:
-        UserStore.saveProfilesNotInChannel(action.channel_id, action.profiles);
-        if (action.offset != null && action.count != null) {
-            UserStore.setNotInChannelPage(action.offset, action.count);
-        }
-        UserStore.emitNotInChannelChange();
-        break;
-    case ActionTypes.RECEIVED_PROFILES_WITHOUT_TEAM:
-        UserStore.saveProfilesWithoutTeam(action.profiles);
-        UserStore.emitWithoutTeamChange();
-        break;
-    case ActionTypes.RECEIVED_PROFILE:
-        UserStore.saveProfile(action.profile);
-        UserStore.emitChange();
-        break;
-    case ActionTypes.RECEIVED_ME:
-        UserStore.setCurrentUser(action.me);
-        UserStore.emitChange(action.me.id);
-        break;
-    case ActionTypes.RECEIVED_SESSIONS:
-        UserStore.setSessions(action.sessions);
-        UserStore.emitSessionsChange();
-        break;
-    case ActionTypes.RECEIVED_AUDITS:
-        UserStore.setAudits(action.audits);
-        UserStore.emitAuditsChange();
-        break;
-    case ActionTypes.RECEIVED_STATUSES:
-        UserStore.setStatuses(action.statuses);
-        UserStore.emitStatusesChange();
-        break;
-    default:
-    }
-});
 
 export {UserStore as default};

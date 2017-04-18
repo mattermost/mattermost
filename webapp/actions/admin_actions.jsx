@@ -5,6 +5,13 @@ import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router/es6';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {getUser} from 'mattermost-redux/actions/users';
+
 export function revokeSession(altId, success, error) {
     Client.revokeSession(altId,
         () => {
@@ -57,7 +64,7 @@ export function adminResetMfa(userId, success, error) {
     Client.adminResetMfa(
         userId,
         () => {
-            AsyncClient.getUser(userId);
+            getUser(userId)(dispatch, getState);
 
             if (success) {
                 success();

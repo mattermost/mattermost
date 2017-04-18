@@ -14,7 +14,7 @@ import AboutBuildModal from './about_build_modal.jsx';
 import SidebarHeaderDropdownButton from './sidebar_header_dropdown_button.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
-import AddUsersToTeam from './add_users_to_team.jsx';
+import AddUsersToTeam from 'containers/add_users_to_team';
 
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
 

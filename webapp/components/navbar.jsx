@@ -7,7 +7,7 @@ import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
 import MessageWrapper from './message_wrapper.jsx';
 import NotifyCounts from './notify_counts.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
-import ChannelInviteModal from './channel_invite_modal.jsx';
+import ChannelInviteModal from 'containers/channel_invite_modal';
 import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';

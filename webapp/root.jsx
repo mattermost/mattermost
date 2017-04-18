@@ -6,21 +6,27 @@ require('perfect-scrollbar/jquery')($);
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Provider} from 'react-redux';
 import {Router, browserHistory} from 'react-router/es6';
 import PDFJS from 'pdfjs-dist';
-import * as GlobalActions from 'actions/global_actions.jsx';
+
 import * as Websockets from 'actions/websocket_actions.jsx';
+import {loadMe} from 'actions/user_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
+import {getClientConfig, getLicenseConfig, setUrl} from 'mattermost-redux/actions/general';
+
 // Import our styles
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'google-fonts/google-fonts.css';
 import 'sass/styles.scss';
 import 'katex/dist/katex.min.css';
+
+import store from 'stores/redux_store.jsx';
 
 // Import the root of our routing tree
 import rRoot from 'routes/route_root.jsx';
@@ -51,11 +57,26 @@ function preRenderSetup(callwhendone) {
 
     var d1 = $.Deferred(); //eslint-disable-line new-cap
 
-    GlobalActions.emitInitialLoad(
-        () => {
-            d1.resolve();
-        }
-    );
+    setUrl(window.location.origin);
+
+    const currentUserId = localStorage.getItem('currentUserId');
+
+    if (currentUserId) {
+        loadMe(() => d1.resolve());
+    } else {
+        getClientConfig()(store.dispatch, store.getState).then(
+            (config) => {
+                global.window.mm_config = config;
+
+                getLicenseConfig()(store.dispatch, store.getState).then(
+                    (license) => {
+                        global.window.mm_license = license;
+                        d1.resolve();
+                    }
+                );
+            }
+        );
+    }
 
     // Make sure the websockets close and reset version
     $(window).on('beforeunload',
@@ -86,10 +107,12 @@ function preRenderSetup(callwhendone) {
 
 function renderRootComponent() {
     ReactDOM.render((
-        <Router
-            history={browserHistory}
-            routes={rRoot}
-        />
+        <Provider store={store}>
+            <Router
+                history={browserHistory}
+                routes={rRoot}
+            />
+        </Provider>
     ),
     document.getElementById('root'));
 }

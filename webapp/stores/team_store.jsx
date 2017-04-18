@@ -17,17 +17,33 @@ const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
 const UNREAD_EVENT = 'unread';
 
+import store from 'stores/redux_store.jsx';
+import * as Selectors from 'mattermost-redux/selectors/entities/teams';
+import {TeamTypes} from 'mattermost-redux/action_types';
+
 var Utils;
 
 class TeamStoreClass extends EventEmitter {
     constructor() {
         super();
         this.clear();
+
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.teams;
+
+            if (newEntities.teams !== this.entities.teams) {
+                this.emitChange();
+            }
+            if (newEntities.myMembers !== this.entities.myMembers) {
+                this.emitChange();
+            }
+
+            this.entities = newEntities;
+        });
     }
 
     clear() {
-        this.teams = {};
-        this.my_team_members = [];
+        this.entities = {};
         this.members_in_team = {};
         this.members_not_in_team = {};
         this.stats = {};
@@ -91,7 +107,7 @@ class TeamStoreClass extends EventEmitter {
     }
 
     getAll() {
-        return this.teams;
+        return store.getState().entities.teams.teams;
     }
 
     getCurrentId() {
@@ -100,10 +116,14 @@ class TeamStoreClass extends EventEmitter {
 
     setCurrentId(id) {
         this.currentTeamId = id;
+        store.dispatch({
+            type: TeamTypes.SELECT_TEAM,
+            data: id
+        });
     }
 
     getCurrent() {
-        const team = this.teams[this.currentTeamId];
+        const team = this.getAll()[this.currentTeamId];
 
         if (team) {
             return team;
@@ -165,17 +185,23 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveTeam(team) {
-        this.teams[team.id] = team;
+        const teams = {};
+        teams[team.id] = team;
+        this.saveTeams(teams);
     }
 
     saveTeams(teams) {
-        this.teams = teams;
+        store.dispatch({
+            type: TeamTypes.RECEIVED_TEAMS_LIST,
+            data: teams
+        });
     }
 
     updateTeam(team) {
         const t = JSON.parse(team);
-        if (this.teams && this.teams[t.id]) {
-            this.teams[t.id] = t;
+        const teams = this.getAll();
+        if (teams && teams[t.id]) {
+            this.saveTeam(t);
         }
 
         if (this.teamListings && this.teamListings[t.id]) {
@@ -193,7 +219,7 @@ class TeamStoreClass extends EventEmitter {
 
     saveMyTeam(team) {
         this.saveTeam(team);
-        this.currentTeamId = team.id;
+        this.setCurrentId(team.id);
     }
 
     saveStats(teamId, stats) {
@@ -201,20 +227,31 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveMyTeamMembers(members) {
-        this.my_team_members = members;
+        var data = {};
+        members.forEach((member) => {
+            data[member.team_id] = member;
+        });
+
+        store.dispatch({
+            type: TeamTypes.RECEIVED_MY_TEAM_MEMBERS,
+            data
+        });
     }
 
     appendMyTeamMember(member) {
-        this.my_team_members.push(member);
+        const members = this.getMyTeamMembers();
+        members.push(member);
+        this.saveMyTeamMembers(member);
     }
 
     saveMyTeamMembersUnread(members) {
-        for (let i = 0; i < this.my_team_members.length; i++) {
-            const team = this.my_team_members[i];
+        const myMembers = this.getMyTeamMembers();
+        for (let i = 0; i < myMembers.length; i++) {
+            const team = myMembers[i];
             const member = members.filter((m) => m.team_id === team.team_id)[0];
 
             if (member) {
-                this.my_team_members[i] = Object.assign({},
+                myMembers[i] = Object.assign({},
                     team,
                     {
                         msg_count: member.msg_count,
@@ -222,19 +259,23 @@ class TeamStoreClass extends EventEmitter {
                     });
             }
         }
+
+        this.saveMyTeamMembers(myMembers);
     }
 
     removeMyTeamMember(teamId) {
-        for (let i = 0; i < this.my_team_members.length; i++) {
-            if (this.my_team_members[i].team_id === teamId) {
-                this.my_team_members.splice(i, 1);
+        const myMembers = this.getMyTeamMembers();
+        for (let i = 0; i < myMembers.length; i++) {
+            if (myMembers[i].team_id === teamId) {
+                myMembers.splice(i, 1);
             }
         }
-        this.emitChange();
+
+        this.saveMyTeamMembers(myMembers);
     }
 
     getMyTeamMembers() {
-        return this.my_team_members;
+        return Object.values(Selectors.getTeamMemberships(store.getState()));
     }
 
     saveMembersInTeam(teamId = this.getCurrentId(), members) {
@@ -320,19 +361,21 @@ class TeamStoreClass extends EventEmitter {
     }
 
     updateUnreadCount(teamId, totalMsgCount, channelMember) {
-        const member = this.my_team_members.filter((m) => m.team_id === teamId)[0];
+        let member = this.getMyTeamMembers().filter((m) => m.team_id === teamId)[0];
         if (member) {
+            member = Object.assign({}, member);
             member.msg_count -= (totalMsgCount - channelMember.msg_count);
             member.mention_count -= channelMember.mention_count;
         }
     }
 
     subtractUnread(teamId, msgs, mentions) {
-        const member = this.my_team_members.filter((m) => m.team_id === teamId)[0];
+        let member = this.getMyTeamMembers().filter((m) => m.team_id === teamId)[0];
         if (member) {
             const msgCount = member.msg_count - msgs;
             const mentionCount = member.mention_count - mentions;
 
+            member = Object.assign({}, member);
             member.msg_count = (msgCount > 0) ? msgCount : 0;
             member.mention_count = (mentionCount > 0) ? mentionCount : 0;
         }
@@ -344,7 +387,7 @@ class TeamStoreClass extends EventEmitter {
             return;
         }
 
-        const member = this.my_team_members.filter((m) => m.team_id === id)[0];
+        const member = Object.assign({}, this.getMyTeamMembers().filter((m) => m.team_id === id)[0]);
         member.msg_count++;
     }
 
@@ -355,7 +398,7 @@ class TeamStoreClass extends EventEmitter {
         }
 
         if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
-            const member = this.my_team_members.filter((m) => m.team_id === id)[0];
+            const member = Object.assign({}, this.getMyTeamMembers().filter((m) => m.team_id === id)[0]);
             member.mention_count++;
         }
     }

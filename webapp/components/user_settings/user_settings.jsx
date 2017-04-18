@@ -4,8 +4,8 @@
 import UserStore from 'stores/user_store.jsx';
 import * as utils from 'utils/utils.jsx';
 import NotificationsTab from './user_settings_notifications.jsx';
-import SecurityTab from './user_settings_security.jsx';
-import GeneralTab from './user_settings_general.jsx';
+import SecurityTab from 'containers/user_settings_security';
+import GeneralTab from 'containers/user_settings_general';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
 

@@ -19,9 +19,20 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import store from 'stores/redux_store.jsx';
+import {searchProfilesNotInCurrentChannel} from 'mattermost-redux/selectors/entities/users';
+
 const USERS_PER_PAGE = 50;
 
 export default class ChannelInviteModal extends React.Component {
+    static propTypes = {
+        onHide: React.PropTypes.func.isRequired,
+        channel: React.PropTypes.object.isRequired,
+        actions: React.PropTypes.shape({
+            getProfilesNotInChannel: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -39,10 +50,9 @@ export default class ChannelInviteModal extends React.Component {
         const teamStats = TeamStore.getCurrentStats();
 
         this.state = {
-            users: null,
+            users: UserStore.getProfileListNotInChannel(props.channel.id, true),
             total: teamStats.active_member_count - channelStats.member_count,
             show: true,
-            search: false,
             statusChange: false
         };
     }
@@ -53,7 +63,7 @@ export default class ChannelInviteModal extends React.Component {
         UserStore.addNotInChannelChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onStatusChange);
 
-        AsyncClient.getProfilesNotInChannel(this.props.channel.id, 0);
+        this.props.actions.getProfilesNotInChannel(TeamStore.getCurrentId(), this.props.channel.id, 0);
         AsyncClient.getTeamStats(TeamStore.getCurrentId());
     }
 
@@ -64,17 +74,19 @@ export default class ChannelInviteModal extends React.Component {
         UserStore.removeStatusesChangeListener(this.onStatusChange);
     }
 
-    onChange(force) {
-        if (this.state.search && !force) {
-            this.search(this.term);
-            return;
+    onChange() {
+        let users;
+        if (this.term) {
+            users = searchProfilesNotInCurrentChannel(store.getState(), this.term, true);
+        } else {
+            users = UserStore.getProfileListNotInChannel(this.props.channel.id, true);
         }
 
         const channelStats = ChannelStore.getStats(this.props.channel.id);
         const teamStats = TeamStore.getCurrentStats();
 
         this.setState({
-            users: UserStore.getProfileListNotInChannel(this.props.channel.id, true),
+            users,
             total: teamStats.active_member_count - channelStats.member_count
         });
     }
@@ -103,40 +115,24 @@ export default class ChannelInviteModal extends React.Component {
     }
 
     nextPage(page) {
-        AsyncClient.getProfilesNotInChannel(this.props.channel.id, (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        this.props.actions.getProfilesNotInChannel(TeamStore.getCurrentId(), this.props.channel.id, (page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
     }
 
     search(term) {
         clearTimeout(this.searchTimeoutId);
-
         this.term = term;
 
         if (term === '') {
-            this.onChange(true);
-            this.setState({search: false});
-            this.searchTimeoutId = '';
+            this.onChange();
             return;
         }
 
-        const searchTimeoutId = setTimeout(
+        this.searchTimeoutId = setTimeout(
             () => {
-                searchUsers(
-                    term,
-                    TeamStore.getCurrentId(),
-                    {not_in_channel_id: this.props.channel.id},
-                    (users) => {
-                        if (searchTimeoutId !== this.searchTimeoutId) {
-                            return;
-                        }
-
-                        this.setState({search: true, users});
-                    }
-                );
+                searchUsers(term, TeamStore.getCurrentId(), {not_in_channel_id: this.props.channel.id});
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
-
-        this.searchTimeoutId = searchTimeoutId;
     }
 
     render() {
@@ -190,8 +186,3 @@ export default class ChannelInviteModal extends React.Component {
         );
     }
 }
-
-ChannelInviteModal.propTypes = {
-    onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
-};

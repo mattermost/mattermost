@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container.jsx';
-import TeamMembersDropdown from 'components/team_members_dropdown.jsx';
+import TeamMembersDropdown from 'containers/team_members_dropdown';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -15,6 +15,9 @@ import Constants from 'utils/constants.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 
 import React from 'react';
+
+import store from 'stores/redux_store.jsx';
+import {searchProfilesInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
 
 const USERS_PER_PAGE = 50;
 
@@ -29,6 +32,7 @@ export default class MemberListTeam extends React.Component {
         this.loadComplete = this.loadComplete.bind(this);
 
         this.searchTimeoutId = 0;
+        this.term = '';
 
         const stats = TeamStore.getCurrentStats();
 
@@ -36,8 +40,6 @@ export default class MemberListTeam extends React.Component {
             users: UserStore.getProfileListInTeam(),
             teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
             total: stats.total_member_count,
-            search: false,
-            term: '',
             loading: true
         };
     }
@@ -67,15 +69,15 @@ export default class MemberListTeam extends React.Component {
         this.onChange(true);
     }
 
-    onChange(force) {
-        if (this.state.search && !force) {
-            return;
-        } else if (this.state.search) {
-            this.search(this.state.term);
-            return;
+    onChange() {
+        let users;
+        if (this.term) {
+            users = searchProfilesInCurrentTeam(store.getState(), this.term);
+        } else {
+            users = UserStore.getProfileListInTeam();
         }
 
-        this.setState({users: UserStore.getProfileListInTeam(), teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
+        this.setState({users, teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
     }
 
     onStatsChange() {
@@ -84,15 +86,17 @@ export default class MemberListTeam extends React.Component {
     }
 
     nextPage(page) {
-        loadProfilesAndTeamMembers((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        loadProfilesAndTeamMembers(page, USERS_PER_PAGE);
     }
 
     search(term) {
         clearTimeout(this.searchTimeoutId);
+        this.term = term;
 
         if (term === '') {
-            this.setState({search: false, term, users: UserStore.getProfileListInTeam(), teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
+            this.setState({loading: false});
             this.searchTimeoutId = '';
+            this.onChange();
             return;
         }
 
@@ -106,7 +110,7 @@ export default class MemberListTeam extends React.Component {
                         if (searchTimeoutId !== this.searchTimeoutId) {
                             return;
                         }
-                        this.setState({loading: true, search: true, users, term, teamMembers: Object.assign([], TeamStore.getMembersInTeam())});
+                        this.setState({loading: true});
                         loadTeamMembersForProfilesList(users, TeamStore.getCurrentId(), this.loadComplete);
                     }
                 );

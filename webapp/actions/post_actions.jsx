@@ -20,6 +20,12 @@ import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
+
 export function handleNewPost(post, msg) {
     let websocketMessageProps = {};
     if (msg) {
@@ -310,7 +316,7 @@ export function loadProfilesForPosts(posts) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(list);
+    getProfilesByIds(list)(dispatch, getState);
 }
 
 export function addReaction(channelId, postId, emojiName) {

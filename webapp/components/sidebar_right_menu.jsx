@@ -6,7 +6,7 @@ import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
-import AddUsersToTeam from './add_users_to_team.jsx';
+import AddUsersToTeam from 'containers/add_users_to_team';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
