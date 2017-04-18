@@ -106,66 +106,58 @@ func TestLicenseIsStarted(t *testing.T) {
 	}
 }
 
-func TestLicenseToJson(t *testing.T) {
+func TestLicenseToFromJson(t *testing.T) {
 	f := Features{}
 	f.SetDefaults()
 
 	l := License{
-		Id:        "rcgiyftm7jyrxnma1osd8zswby",
-		IssuedAt:  123456789000,
-		StartsAt:  123456789000,
-		ExpiresAt: 123456789000,
+		Id:        NewId(),
+		IssuedAt:  GetMillis(),
+		StartsAt:  GetMillis(),
+		ExpiresAt: GetMillis(),
 		Customer: &Customer{
-			Id:          "rcgiyftm7jyrxnma1osd8zswb7",
-			Name:        "Customer Name",
-			Email:       "customer@customer.com",
-			Company:     "Customer Company",
-			PhoneNumber: "01234567890",
+			Id:          NewId(),
+			Name:        NewId(),
+			Email:       NewId(),
+			Company:     NewId(),
+			PhoneNumber: NewId(),
 		},
 		Features: &f,
 	}
 
 	j := l.ToJson()
 
-	if j != `{"id":"rcgiyftm7jyrxnma1osd8zswby","issued_at":123456789000,"starts_at":123456789000,"expires_at":123456789000,"customer":{"id":"rcgiyftm7jyrxnma1osd8zswb7","name":"Customer Name","email":"customer@customer.com","company":"Customer Company","phone_number":"01234567890"},"features":{"users":0,"ldap":true,"mfa":true,"google_oauth":true,"office365_oauth":true,"compliance":true,"cluster":true,"metrics":true,"custom_brand":true,"mhpns":true,"saml":true,"password_requirements":true,"future_features":true}}` {
-		t.Fatal("JSON not as expected")
-	}
-}
-
-func TestLicenseFromJson(t *testing.T) {
-	valid := `{"id":"rcgiyftm7jyrxnma1osd8zswby","issued_at":123456789000,"starts_at":123456789000,"expires_at":123456789000,"customer":{"id":"rcgiyftm7jyrxnma1osd8zswb7","name":"Customer Name","email":"customer@customer.com","company":"Customer Company","phone_number":"01234567890"},"features":{"users":200,"ldap":true,"mfa":true,"google_oauth":true,"office365_oauth":true,"compliance":true,"cluster":true,"metrics":true,"custom_brand":true,"mhpns":true,"saml":true,"password_requirements":true,"future_features":true}}`
-
-	l1 := LicenseFromJson(strings.NewReader(valid))
+	l1 := LicenseFromJson(strings.NewReader(j))
 	if l1 == nil {
 		t.Fatalf("Decoding failed but should have passed.")
 	}
 
-	CheckString(t, l1.Id, "rcgiyftm7jyrxnma1osd8zswby")
-	CheckInt64(t, l1.IssuedAt, 123456789000)
-	CheckInt64(t, l1.StartsAt, 123456789000)
-	CheckInt64(t, l1.ExpiresAt, 123456789000)
+	CheckString(t, l1.Id, l.Id)
+	CheckInt64(t, l1.IssuedAt, l.IssuedAt)
+	CheckInt64(t, l1.StartsAt, l.StartsAt)
+	CheckInt64(t, l1.ExpiresAt, l.ExpiresAt)
 
-	CheckString(t, l1.Customer.Id, "rcgiyftm7jyrxnma1osd8zswb7")
-	CheckString(t, l1.Customer.Name, "Customer Name")
-	CheckString(t, l1.Customer.Email, "customer@customer.com")
-	CheckString(t, l1.Customer.Company, "Customer Company")
-	CheckString(t, l1.Customer.PhoneNumber, "01234567890")
+	CheckString(t, l1.Customer.Id, l.Customer.Id)
+	CheckString(t, l1.Customer.Name, l.Customer.Name)
+	CheckString(t, l1.Customer.Email, l.Customer.Email)
+	CheckString(t, l1.Customer.Company, l.Customer.Company)
+	CheckString(t, l1.Customer.PhoneNumber, l.Customer.PhoneNumber)
 
-	f := l1.Features
+	f1 := l1.Features
 
-	CheckInt(t, *f.Users, 200)
-	CheckTrue(t, *f.LDAP)
-	CheckTrue(t, *f.MFA)
-	CheckTrue(t, *f.GoogleOAuth)
-	CheckTrue(t, *f.Office365OAuth)
-	CheckTrue(t, *f.Compliance)
-	CheckTrue(t, *f.Cluster)
-	CheckTrue(t, *f.Metrics)
-	CheckTrue(t, *f.CustomBrand)
-	CheckTrue(t, *f.MHPNS)
-	CheckTrue(t, *f.SAML)
-	CheckTrue(t, *f.PasswordRequirements)
-	CheckTrue(t, *f.FutureFeatures)
+	CheckInt(t, *f1.Users, *f.Users)
+	CheckBool(t, *f1.LDAP, *f.LDAP)
+	CheckBool(t, *f1.MFA, *f.MFA)
+	CheckBool(t, *f1.GoogleOAuth, *f.GoogleOAuth)
+	CheckBool(t, *f1.Office365OAuth, *f.Office365OAuth)
+	CheckBool(t, *f1.Compliance, *f.Compliance)
+	CheckBool(t, *f1.Cluster, *f.Cluster)
+	CheckBool(t, *f1.Metrics, *f.Metrics)
+	CheckBool(t, *f1.CustomBrand, *f.CustomBrand)
+	CheckBool(t, *f1.MHPNS, *f.MHPNS)
+	CheckBool(t, *f1.SAML, *f.SAML)
+	CheckBool(t, *f1.PasswordRequirements, *f.PasswordRequirements)
+	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`
 	l2 := LicenseFromJson(strings.NewReader(invalid))

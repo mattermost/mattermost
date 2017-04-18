@@ -42,3 +42,10 @@ func CheckFalse(t *testing.T, test bool) {
 		t.Fatal("Expected true")
 	}
 }
+
+func CheckBool(t *testing.T, got bool, expected bool) {
+	if got != expected {
+		debug.PrintStack()
+		t.Fatalf("Got: %v, Expected: %v", got, expected)
+	}
+}

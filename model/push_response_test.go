@@ -24,18 +24,11 @@ func TestNewErrorPushResponse(t *testing.T) {
 	CheckString(t, r["error"], "error message")
 }
 
-func TestPushResponseToJson(t *testing.T) {
+func TestPushResponseToFromJson(t *testing.T) {
 	r := NewErrorPushResponse("error message")
 	j := r.ToJson()
+	r1 := PushResponseFromJson(strings.NewReader(j))
 
-	expected := `{"error":"error message","status":"FAIL"}`
-	CheckString(t, j, expected)
-}
-
-func TestPushResponseFromJson(t *testing.T) {
-	j := `{"error":"error message","status":"FAIL"}`
-	r := PushResponseFromJson(strings.NewReader(j))
-
-	CheckString(t, r["status"], "FAIL")
-	CheckString(t, r["error"], "error message")
+	CheckString(t, r1["status"], r["status"])
+	CheckString(t, r1["error"], r["error"])
 }

@@ -13,13 +13,14 @@ func TestWebrtcInfoResponseToFromJson(t *testing.T) {
 	json := o.ToJson()
 	ro := WebrtcInfoResponseFromJson(strings.NewReader(json))
 
-	if o.Token != ro.Token {
-		t.Fatal("Tokens do not match")
-	}
+	CheckString(t, ro.Token, o.Token)
+	CheckString(t, ro.GatewayUrl, o.GatewayUrl)
 
 	invalidJson := `{"wat"`
 	r := WebrtcInfoResponseFromJson(strings.NewReader(invalidJson))
-	CheckString(t, r, "")
+	if r != nil {
+		t.Fatalf("Should have failed")
+	}
 }
 
 func TestGatewayResponseFromJson(t *testing.T) {
