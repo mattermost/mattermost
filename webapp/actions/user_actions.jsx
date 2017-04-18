@@ -42,8 +42,6 @@ import {
     loadMe as loadMeRedux
 } from 'mattermost-redux/actions/users';
 
-import {getMyTeams} from 'mattermost-redux/actions/teams';
-
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
         () => {
@@ -68,11 +66,9 @@ export function loadMe(callback) {
 
             localStorage.setItem('currentUserId', UserStore.getCurrentId());
 
-            getMyTeams()(dispatch, getState).then(() => {
-                if (callback) {
-                    callback();
-                }
-            });
+            if (callback) {
+                callback();
+            }
         }
     );
 }
