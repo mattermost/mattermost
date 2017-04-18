@@ -190,7 +190,7 @@ func TestLogin(t *testing.T) {
 	props["display_name"] = rteam2.Data.(*model.Team).DisplayName
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hash := model.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	ruser2, err := Client.CreateUserFromSignup(&user2, data, hash)
 	if err != nil {

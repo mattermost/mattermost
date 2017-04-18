@@ -4,10 +4,11 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"net/url"
 	"testing"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestRegisterApp(t *testing.T) {
