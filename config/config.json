@@ -1,6 +1,7 @@
 {
     "ServiceSettings": {
         "SiteURL": "http://localhost:8065",
+        "LicenseFileLocation": "",
         "ListenAddress": ":8065",
         "ConnectionSecurity": "",
         "TLSCertFile": "",
@@ -73,7 +74,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "c1zj4n189ri53jz8buf7a8qo5aqwuzk4"
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -97,7 +98,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "t3ihzne6y8q9rme97zuii5e647wmrufb",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -126,8 +127,8 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
-        "PasswordResetSalt": "",
+        "InviteSalt": "fihisqi8aexeou8qdzbu1xae4yhh445k",
+        "PasswordResetSalt": "bjeoqjqof6kuso4964tg9pzfzqcjrrkx",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",

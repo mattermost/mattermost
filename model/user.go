@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -144,7 +143,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = "n" + NewId()
+		u.Username = NewId()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -571,10 +570,6 @@ func IsValidUsername(s string) bool {
 	}
 
 	if !validUsernameChars.MatchString(s) {
-		return false
-	}
-
-	if !unicode.IsLetter(rune(s[0])) {
 		return false
 	}
 
