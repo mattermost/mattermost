@@ -200,7 +200,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	authData := &model.AuthData{UserId: c.Session.UserId, ClientId: clientId, CreateAt: model.GetMillis(), RedirectUri: redirectUri, State: state, Scope: scope}
-	authData.Code = model.HashPassword(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, c.Session.UserId))
+	authData.Code = model.HashSha256(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, c.Session.UserId))
 
 	// this saves the OAuth2 app as authorized
 	authorizedApp := model.Preference{
@@ -501,7 +501,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !model.ComparePassword(code, fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
+		if code != model.HashSha256(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
 			c.LogAudit("fail - auth code is invalid")
 			c.Err = model.NewLocAppError("getAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "")
 			return
@@ -565,6 +565,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		<-app.Srv.Store.OAuth().RemoveAuthData(authData.Code)
 	} else {
 		// when grantType is refresh_token
+		fmt.Printf(refreshToken)
 		if result := <-app.Srv.Store.OAuth().GetAccessDataByRefreshToken(refreshToken); result.Err != nil {
 			c.LogAudit("fail - refresh token is invalid")
 			c.Err = model.NewLocAppError("getAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "")
@@ -636,7 +637,7 @@ func getTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		data := query.Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+		if hash != model.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			return "", model.NewLocAppError("getTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "")
 		}
 
@@ -699,7 +700,7 @@ func GetAuthorizationCode(c *Context, service string, props map[string]string, l
 	endpoint := sso.AuthEndpoint
 	scope := sso.Scope
 
-	props["hash"] = model.HashPassword(clientId)
+	props["hash"] = model.HashSha256(clientId)
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
 	redirectUri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
@@ -732,7 +733,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
-	if !model.ComparePassword(stateProps["hash"], sso.Id) {
+	if stateProps["hash"] != model.HashSha256(sso.Id) {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "")
 	}
 

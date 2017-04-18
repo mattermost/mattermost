@@ -941,8 +941,8 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashed := model.HashPassword(hashedId)
-	if model.ComparePassword(hashed, userId+utils.Cfg.EmailSettings.InviteSalt) {
+	hashed := model.HashSha256(hashedId)
+	if hashed == model.HashSha256(userId+utils.Cfg.EmailSettings.InviteSalt) {
 		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
 			return
 		} else {
