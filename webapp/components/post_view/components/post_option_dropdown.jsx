@@ -1,10 +1,7 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Agent from 'utils/user_agent.jsx';
-import RhsDropdownMenu from 'components/rhs_dropdown_menu.jsx';
-
-import {Dropdown} from 'react-bootstrap';
+import $ from 'jquery';
 import React from 'react';
 import {zipObject, keys, isPlainObject} from 'lodash';
 import {FormattedMessage} from 'react-intl';
@@ -16,30 +13,29 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-export default class RhsDropdown extends React.Component {
+export default class PostOptionDropdown extends React.Component {
     constructor(props) {
         super(props);
-
-        this.toggleDropdown = this.toggleDropdown.bind(this);
         this.handlePermalink = this.handlePermalink.bind(this);
         this.pinPost = this.pinPost.bind(this);
         this.unpinPost = this.unpinPost.bind(this);
+        this.flagPost = this.flagPost.bind(this);
+        this.unflagPost = this.unflagPost.bind(this);
         this.handleEditDisable = this.handleEditDisable.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
         this.initSwitches();
-        this.state = {
-            showDropdown: false
-        };
     }
 
     initSwitches() {
         this.setSwitches(this.props);
 
         this.switchKeys = keys(this.switches);
-        this.switchHandler = zipObject(this.switchKeys.concat(['flag']),
+        this.switchHandler = zipObject(this.switchKeys,
             [
                 this.handlePermalink,
+                this.props.handleCommentClick,
                 {
                     true: this.unpinPost,
                     false: this.pinPost
@@ -47,8 +43,8 @@ export default class RhsDropdown extends React.Component {
                 this.handleDelete,
                 null,
                 {
-                    true: this.props.flagPost,
-                    false: this.props.unflagPost
+                    false: this.flagPost,
+                    true: this.unflagPost
                 }
             ]
         );
@@ -58,6 +54,7 @@ export default class RhsDropdown extends React.Component {
         const post = props.post;
         this.switches = {
             permalink: !PostUtils.isSystemMessage(post),
+            reply: props.allowReply,
             pin: post.is_pinned,
             del: PostUtils.canDeletePost(post),
             edit: PostUtils.canEditPost(post, this.editDisableAction)
@@ -69,6 +66,22 @@ export default class RhsDropdown extends React.Component {
 
     componentWillUpdate(props) {
         this.setSwitches(props);
+    }
+
+    handleDropdownOpened() {
+        this.props.handleDropdownOpened(true);
+
+        const position = $('#post-list').height() - $(this.refs.dropdownToggle).offset().top;
+        const dropdown = $(this.refs.dropdown);
+
+        if (position < dropdown.height()) {
+            dropdown.addClass('bottom');
+        }
+    }
+
+    componentDidMount() {
+        $('#post_dropdown' + this.props.post.id).on('shown.bs.dropdown', this.handleDropdownOpened);
+        $('#post_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
 
     handlePermalink(e) {
@@ -104,6 +117,16 @@ export default class RhsDropdown extends React.Component {
         PostActions.unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
+    flagPost(e) {
+        e.preventDefault();
+        PostActions.flagPost(this.props.post.id);
+    }
+
+    unflagPost(e) {
+        e.preventDefault();
+        PostActions.unflagPost(this.props.post.id);
+    }
+
     getDropdownItem(switchName) {
         let handler = this.switchHandler[switchName];
         let prefix = '';
@@ -114,7 +137,7 @@ export default class RhsDropdown extends React.Component {
         if (handler) {
             return (
                 <li
-                    key={'rhs-comment-' + prefix + switchName}
+                    key={switchName + 'Link'}
                     role='presentation'
                 >
                     <a
@@ -124,7 +147,7 @@ export default class RhsDropdown extends React.Component {
                         onClick={handler}
                     >
                         <FormattedMessage
-                            id={'rhs_root.' + prefix + switchName}
+                            id={'post_info.' + prefix + switchName}
                         />
                     </a>
                 </li>
@@ -167,15 +190,15 @@ export default class RhsDropdown extends React.Component {
                         role='menuitem'
                         data-toggle='modal'
                         data-target='#edit_post'
-                        data-refocusid='#reply_textbox'
-                        data-title={Utils.localizeMessage('rhs_comment.comment', 'Comment')}
+                        data-refocusid='#post_textbox'
+                        data-title={type}
                         data-message={post.message}
                         data-postid={post.id}
                         data-channelid={post.channel_id}
                         data-comments={dataComments}
                     >
                         <FormattedMessage
-                            id='rhs_comment.edit'
+                            id='post_info.edit'
                             defaultMessage='Edit'
                         />
                     </a>
@@ -186,50 +209,56 @@ export default class RhsDropdown extends React.Component {
         return dropdownContents;
     }
 
-    toggleDropdown() {
-        const showDropdown = !this.state.showDropdown;
-        if (Agent.isMobile() || Agent.isMobileApp()) {
-            const scroll = document.querySelector('.scrollbar--view');
-            if (showDropdown) {
-                scroll.style.overflow = 'hidden';
-            } else {
-                scroll.style.overflow = 'scroll';
-            }
-        }
-
-        this.setState({showDropdown});
-    }
-
     render() {
+        const post = this.props.post;
+
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
+            return '';
+        }
+        const dropdownContents = this.createDropdown();
+        if (dropdownContents.length === 0) {
+            return '';
+        }
         return (
-            <Dropdown
-                id='rhs_dropdown'
-                open={this.state.showDropdown}
-                onToggle={this.toggleDropdown}
+            <div
+                className='dropdown'
+                ref='dotMenu'
             >
-                <a
-                    href='#'
-                    className='post__dropdown dropdown-toggle'
-                    bsRole='toggle'
-                    onClick={this.toggleDropdown}
-                />
-                <RhsDropdownMenu>
-                    {this.createDropdown()}
-                </RhsDropdownMenu>
-            </Dropdown>
+                <div
+                    id={'post_dropdown' + this.props.post.id}
+                >
+                    <a
+                        ref='dropdownToggle'
+                        href='#'
+                        className='dropdown-toggle post__dropdown theme'
+                        type='button'
+                        data-toggle='dropdown'
+                        aria-expanded='false'
+                    />
+                    <div className='dropdown-menu__content'>
+                        <ul
+                            ref='dropdown'
+                            className='dropdown-menu'
+                            role='menu'
+                        >
+                            {dropdownContents}
+                        </ul>
+                    </div>
+                </div>
+            </div>
         );
     }
 }
 
-RhsDropdown.defaultProps = {
+PostOptionDropdown.defaultProps = {
     post: null,
-    commentCount: 0
+    allowReply: false
 };
-
-RhsDropdown.propTypes = {
+PostOptionDropdown.propTypes = {
     post: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number.isRequired,
+    allowReply: React.PropTypes.bool.isRequired,
+    handleDropdownOpened: React.PropTypes.func.isRequired,
     isFlagged: React.PropTypes.bool,
-    flagPost: React.PropTypes.func.isRequired,
-    unflagPost: React.PropTypes.func.isRequired
+    handleCommentClick: React.PropTypes.func.isRequired
 };
