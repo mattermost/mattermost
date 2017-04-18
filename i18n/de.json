@@ -97,7 +97,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server wird benötigt"
+    "translation": "SMTP-Server wird benötigt"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-Mail Einstellungen überprüfen"
+    "translation": "Mattermost - E-Mail-Einstellungen überprüfen"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "Die Kanalüberschrift %s wurde entfernt (vorher: %s)"
+    "translation": "Die Kanalüberschrift wurde von %s entfernt (vorher: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Es ist ein Fehler beim Versenden der E-Mail Einladung(en) aufgetreten"
+    "translation": "Es ist ein Fehler beim Versenden der E-Mail-Einladung(en) aufgetreten"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "E-Mail Einladung(en) versendet"
+    "translation": "E-Mail-Einladung(en) versendet"
   },
   {
     "id": "api.command.regen.app_error",
@@ -841,7 +841,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Ungültige Sitzung  token={{.Token}}, err={{.Error}}"
+    "translation": "Ungültige Sitzung token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -1307,7 +1307,7 @@
   },
   {
     "id": "api.oauth.allow_oauth.bad_client.app_error",
-    "translation": "Ungültige Anfrage - Fehlerhafte client_id"
+    "translation": "Ungültige Anfrage: Fehlerhafte client_id"
   },
   {
     "id": "api.oauth.allow_oauth.bad_redirect.app_error",
@@ -4001,7 +4001,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "SAML SSO URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "SAML-SSO-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -4145,7 +4145,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Callback URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Callback-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -4169,7 +4169,7 @@
   },
   {
     "id": "model.oauth.is_valid.icon_url.app_error",
-    "translation": "Icon URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Icon-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
