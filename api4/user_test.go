@@ -60,12 +60,6 @@ func TestCreateUser(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
-	ruser.Email = GenerateTestEmail()
-	ruser.Username = "1" + user.Username
-	_, resp = Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
-	CheckBadRequestStatus(t, resp)
-
 	openServer := *utils.Cfg.TeamSettings.EnableOpenServer
 	canCreateAccount := utils.Cfg.TeamSettings.EnableUserCreation
 	defer func() {

@@ -97,9 +97,9 @@ func TestUserIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
-	user.Username = "n" + NewId()
-	user.Email = strings.Repeat("a", 129)
-	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "email", user.Id) {
+	user.Username = NewId()
+	user.Email = strings.Repeat("01234567890", 20)
+	if err := user.IsValid(); err == nil {
 		t.Fatal()
 	}
 
@@ -204,9 +204,9 @@ var usernames = []struct {
 	{"spin-punch", true},
 	{"sp", true},
 	{"s", true},
-	{"1spin-punch", false},
-	{"-spin-punch", false},
-	{".spin-punch", false},
+	{"1spin-punch", true},
+	{"-spin-punch", true},
+	{".spin-punch", true},
 	{"Spin-punch", false},
 	{"spin punch-", false},
 	{"spin_punch", true},
