@@ -19,6 +19,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import RhsDropdown from 'components/rhs_dropdown.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
@@ -106,6 +107,23 @@ export default class SearchResultsItem extends React.Component {
                     {this.timeTag(post)}
                 </Link>
             );
+    }
+
+    createDropdown() {
+        const post = this.props.post;
+
+        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
+            return '';
+        }
+
+        return (
+            <RhsDropdown
+                post={post}
+                isFlagged={this.props.isFlagged}
+                flagPost={this.flagPost}
+                unflagPost={this.unflagPost}
+            />
+        );
     }
 
     render() {
@@ -242,6 +260,7 @@ export default class SearchResultsItem extends React.Component {
 
             rhsControls = (
                 <li className='col__controls'>
+                    {this.createDropdown()}
                     <a
                         href='#'
                         className='comment-icon__container search-item__comment'

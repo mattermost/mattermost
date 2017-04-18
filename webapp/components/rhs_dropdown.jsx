@@ -37,7 +37,7 @@ export default class RhsDropdown extends React.Component {
         this.setSwitches(this.props);
 
         this.switchKeys = keys(this.switches);
-        this.switchHandler = zipObject(this.switchKeys.concat(['flag']),
+        this.switchHandler = zipObject(this.switchKeys,
             [
                 this.handlePermalink,
                 {
@@ -47,8 +47,8 @@ export default class RhsDropdown extends React.Component {
                 this.handleDelete,
                 null,
                 {
-                    true: this.props.flagPost,
-                    false: this.props.unflagPost
+                    false: this.props.flagPost,
+                    true: this.props.unflagPost
                 }
             ]
         );
@@ -190,10 +190,12 @@ export default class RhsDropdown extends React.Component {
         const showDropdown = !this.state.showDropdown;
         if (Agent.isMobile() || Agent.isMobileApp()) {
             const scroll = document.querySelector('.scrollbar--view');
-            if (showDropdown) {
-                scroll.style.overflow = 'hidden';
-            } else {
-                scroll.style.overflow = 'scroll';
+            if (scroll) {
+                if (showDropdown) {
+                    scroll.style.overflow = 'hidden';
+                } else {
+                    scroll.style.overflow = 'scroll';
+                }
             }
         }
 
