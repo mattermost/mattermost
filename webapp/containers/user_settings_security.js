@@ -7,11 +7,9 @@ import {getMe} from 'mattermost-redux/actions/users';
 
 import SecurityTab from 'components/user_settings/user_settings_security.jsx';
 
-function makeMapStateToProps() {
-    return function mapStateToProps(state, ownProps) {
-        return {
-            ...ownProps
-        };
+function mapStateToProps(state, ownProps) {
+    return {
+        ...ownProps
     };
 }
 
@@ -23,4 +21,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(SecurityTab);
+export default connect(mapStateToProps, mapDispatchToProps)(SecurityTab);

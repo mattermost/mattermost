@@ -733,7 +733,8 @@ export function webLogin(loginId, password, token, success, error) {
                 localStorage.setItem('currentUserId', UserStore.getCurrentId());
                 success();
             } else if (!ok && error) {
-                error(getState().requests.users.login.error);
+                const serverError = getState().requests.users.login.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );

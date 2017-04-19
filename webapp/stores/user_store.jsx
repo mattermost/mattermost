@@ -484,7 +484,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getNoAccounts() {
-        return this.noAccounts;
+        return global.window.mm_config.NoAccounts === 'true';
     }
 
     setNoAccounts(noAccounts) {

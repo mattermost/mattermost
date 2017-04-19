@@ -86,6 +86,8 @@ export default function configureStore(initialState) {
 
                     setTimeout(() => {
                         purging = false;
+                        localStorage.removeItem('currentUserId');
+                        window.location.href = '/';
                     }, 500);
                 }
             });

@@ -7,11 +7,9 @@ import {getUser} from 'mattermost-redux/actions/users';
 
 import TeamMembersDropdown from 'components/team_members_dropdown.jsx';
 
-function makeMapStateToProps() {
-    return function mapStateToProps(state, ownProps) {
-        return {
-            ...ownProps
-        };
+function mapStateToProps(state, ownProps) {
+    return {
+        ...ownProps
     };
 }
 
@@ -23,4 +21,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(TeamMembersDropdown);
+export default connect(mapStateToProps, mapDispatchToProps)(TeamMembersDropdown);

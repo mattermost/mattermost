@@ -7,11 +7,9 @@ import {getProfilesNotInTeam} from 'mattermost-redux/actions/users';
 
 import AddUsersToTeam from 'components/add_users_to_team.jsx';
 
-function makeMapStateToProps() {
-    return function mapStateToProps(state, ownProps) {
-        return {
-            ...ownProps
-        };
+function mapStateToProps(state, ownProps) {
+    return {
+        ...ownProps
     };
 }
 
@@ -23,4 +21,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(AddUsersToTeam);
+export default connect(mapStateToProps, mapDispatchToProps)(AddUsersToTeam);

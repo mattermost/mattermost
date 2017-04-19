@@ -7,11 +7,9 @@ import {getProfiles, getProfilesInTeam} from 'mattermost-redux/actions/users';
 
 import MoreDirectChannels from 'components/more_direct_channels.jsx';
 
-function makeMapStateToProps() {
-    return function mapStateToProps(state, ownProps) {
-        return {
-            ...ownProps
-        };
+function mapStateToProps(state, ownProps) {
+    return {
+        ...ownProps
     };
 }
 
@@ -24,4 +22,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(MoreDirectChannels);
+export default connect(mapStateToProps, mapDispatchToProps)(MoreDirectChannels);

@@ -7,11 +7,9 @@ import {getProfilesInChannel} from 'mattermost-redux/actions/users';
 
 import PopoverListMembers from 'components/popover_list_members.jsx';
 
-function makeMapStateToProps() {
-    return function mapStateToProps(state, ownProps) {
-        return {
-            ...ownProps
-        };
+function mapStateToProps(state, ownProps) {
+    return {
+        ...ownProps
     };
 }
 
@@ -23,4 +21,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(PopoverListMembers);
+export default connect(mapStateToProps, mapDispatchToProps)(PopoverListMembers);

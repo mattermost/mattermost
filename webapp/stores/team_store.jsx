@@ -185,9 +185,7 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveTeam(team) {
-        const teams = {};
-        teams[team.id] = team;
-        this.saveTeams(teams);
+        this.saveTeams([team]);
     }
 
     saveTeams(teams) {
@@ -227,21 +225,16 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveMyTeamMembers(members) {
-        var data = {};
-        members.forEach((member) => {
-            data[member.team_id] = member;
-        });
-
         store.dispatch({
             type: TeamTypes.RECEIVED_MY_TEAM_MEMBERS,
-            data
+            data: members
         });
     }
 
     appendMyTeamMember(member) {
         const members = this.getMyTeamMembers();
         members.push(member);
-        this.saveMyTeamMembers(member);
+        this.saveMyTeamMembers(members);
     }
 
     saveMyTeamMembersUnread(members) {
@@ -412,36 +405,28 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_MY_TEAM:
         TeamStore.saveMyTeam(action.team);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_TEAM:
         TeamStore.saveTeam(action.team);
-        TeamStore.emitChange();
         break;
     case ActionTypes.CREATED_TEAM:
         TeamStore.saveTeam(action.team);
         TeamStore.appendMyTeamMember(action.member);
-        TeamStore.emitChange();
         break;
     case ActionTypes.UPDATE_TEAM:
         TeamStore.saveTeam(action.team);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAMS:
         TeamStore.saveTeams(action.teams);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MY_TEAM_MEMBERS:
         TeamStore.saveMyTeamMembers(action.team_members);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MY_TEAMS_UNREAD:
         TeamStore.saveMyTeamMembersUnread(action.team_members);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAM_LISTINGS:
         TeamStore.saveTeamListings(action.teams);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MEMBERS_IN_TEAM:
         TeamStore.saveMembersInTeam(action.team_id, action.team_members);
