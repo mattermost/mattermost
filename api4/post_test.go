@@ -423,11 +423,16 @@ func TestGetPostsForChannel(t *testing.T) {
 	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, time)
 	CheckNoError(t, resp)
 
+	t.Log(len(posts.Posts))
+
 	found := make([]bool, 2)
+
 	for _, p := range posts.Posts {
 		if p.CreateAt < time {
 			t.Fatal("bad create at for post returned")
 		}
+
+		t.Log(p.Id, post5.Id, post4.Id)
 
 		if p.Id == post4.Id {
 			found[0] = true
