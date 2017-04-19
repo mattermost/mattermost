@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import {batchActions} from 'redux-batched-actions';
-import {configureOfflineServiceStore} from 'mattermost-redux/store';
+import configureServiceStore from 'mattermost-redux/store';
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import reduxInitialState from 'mattermost-redux/store/initial_state';
 import {createTransform, persistStore} from 'redux-persist';
@@ -106,6 +106,6 @@ export default function configureStore(initialState) {
         }
     };
 
-    return configureOfflineServiceStore({}, offlineOptions);
+    return configureServiceStore({}, {}, offlineOptions);
 }
 
