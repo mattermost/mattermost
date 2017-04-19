@@ -293,7 +293,7 @@ test-client: start-docker prepare-enterprise
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
 
-test: test-server test-client
+test:
 
 cover:
 	@echo Opening coverage info in browser. If this failed run make test first
