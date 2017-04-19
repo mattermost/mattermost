@@ -173,91 +173,19 @@ clean-docker:
 	fi
 
 check-client-style:
-	@echo Checking client style
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
+check-server-style:
 
-check-server-style: govet
-	@echo Running GOFMT
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
-	@echo "$(GOFMT_OUTPUT)"
-	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt success"; \
-	else \
-		echo "gofmt failure"; \
-		exit 1; \
-	fi
-
-check-style: check-client-style check-server-style
-
-test-te-race: start-docker prepare-enterprise
-	@echo Testing TE race conditions
-
-	@echo "Packages to test: "$(TE_PACKAGES)
-
-	@for package in $(TE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
-	done
-
-test-ee-race: start-docker prepare-enterprise
-	@echo Testing EE race conditions
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo "Packages to test: "$(EE_PACKAGES)
-
-	for package in $(EE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c $$package; \
-		if [ -f $$(basename $$package).test ]; then \
-			echo "Testing "$$package; \
-			./$$(basename $$package).test -test.timeout=2000s || exit 1; \
-			rm -r $$(basename $$package).test; \
-		fi; \
-	done
-
-	rm -f config/*.crt
-	rm -f config/*.key
-endif
-
-test-server-race: test-te-race test-ee-race
+check-style:
 
 do-cover-file:
 	@echo "mode: count" > cover.out
 
-test-te: start-docker prepare-enterprise do-cover-file
-	@echo Testing TE
+test-te:
 
+test-postgres:
 
-	@echo "Packages to test: "$(TE_PACKAGES)
-
-	@for package in $(TE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
-		if [ -f cprofile.out ]; then \
-			tail -n +2 cprofile.out >> cover.out; \
-			rm cprofile.out; \
-		fi; \
-	done
-
-test-postgres: start-docker prepare-enterprise
-	@echo Testing Postgres
-
-	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
-	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
-
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) github.com/mattermost/platform/store || exit 1; \
-	if [ -f cprofile.out ]; then \
-		tail -n +2 cprofile.out >> cover.out; \
-		rm cprofile.out; \
-	fi; \
-
-	@sed -i'' -e 's|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|g' config/config.json
-	@sed -i'' -e 's|"DriverName": "postgres"|"DriverName": "mysql"|g' config/config.json
-	@rm config/config.json-e
-
-test-ee: start-docker prepare-enterprise do-cover-file
-	@echo Testing EE
+test-ee:
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo "Packages to test: "$(EE_PACKAGES)
