@@ -739,6 +739,8 @@ func TestPatchUser(t *testing.T) {
 	patch.LastName = new(string)
 	*patch.LastName = "Wilander"
 	patch.Position = new(string)
+	patch.NotifyProps = model.StringMap{}
+	patch.NotifyProps["comment"] = "somethingrandom"
 
 	ruser, resp := Client.PatchUser(user.Id, patch)
 	CheckNoError(t, resp)
@@ -758,6 +760,9 @@ func TestPatchUser(t *testing.T) {
 	}
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
+	}
+	if ruser.NotifyProps["comment"] != "somethingrandom" {
+		t.Fatal("NotifyProps did not update properly")
 	}
 
 	_, resp = Client.PatchUser("junk", patch)

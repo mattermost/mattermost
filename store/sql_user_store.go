@@ -192,6 +192,8 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 			} else if count != 1 {
 				result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count))
 			} else {
+				user.Sanitize(map[string]bool{})
+				oldUser.Sanitize(map[string]bool{})
 				result.Data = [2]*model.User{user, oldUser}
 			}
 		}
@@ -458,9 +460,7 @@ func (us SqlUserStore) GetAllProfiles(offset int, limit int) StoreChannel {
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 			}
 
 			result.Data = users
@@ -507,9 +507,7 @@ func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) StoreCh
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 			}
 
 			result.Data = users
@@ -555,9 +553,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 			}
 
 			result.Data = users
@@ -609,9 +605,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 			userMap := make(map[string]*model.User)
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 				userMap[u.Id] = u
 			}
 
@@ -657,9 +651,7 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 			}
 
 			result.Data = users
@@ -705,9 +697,7 @@ func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) StoreChanne
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 			}
 
 			result.Data = users
@@ -748,9 +738,7 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string)
 			userMap := make(map[string]*model.User)
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 				userMap[u.Id] = u
 			}
 
@@ -796,9 +784,7 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
 
 			for _, userWithLastActivityAt := range users {
 				u := userWithLastActivityAt.User
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 				u.LastActivityAt = userWithLastActivityAt.LastActivityAt
 				userMap[u.Id] = &u
 			}
@@ -868,9 +854,8 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
+
 				profileByIdsCache.AddWithExpiresInSecs(u.Id, u, PROFILE_BY_IDS_CACHE_SEC)
 			}
 
@@ -900,9 +885,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() StoreChannel {
 			userMap := make(map[string]*model.User)
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 				userMap[u.Id] = u
 			}
 
@@ -1485,9 +1468,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		result.Err = model.NewLocAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+"search_type="+searchType+", "+err.Error())
 	} else {
 		for _, u := range users {
-			u.Password = ""
-			u.AuthData = new(string)
-			*u.AuthData = ""
+			u.Sanitize(map[string]bool{})
 		}
 
 		result.Data = users
@@ -1560,9 +1541,7 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
 		} else {
 
 			for _, u := range users {
-				u.Password = ""
-				u.AuthData = new(string)
-				*u.AuthData = ""
+				u.Sanitize(map[string]bool{})
 			}
 
 			result.Data = users
