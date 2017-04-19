@@ -260,7 +260,6 @@ export default class ProfilePopover extends React.Component {
                     </a>
                 </div>
             );
-            dataContent.push(webrtc);
         }
 
         return '';

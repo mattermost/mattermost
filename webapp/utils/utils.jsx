@@ -1362,7 +1362,7 @@ export function postMessageHtmlToComponent(html, AtMentionComponent, usernameMap
     const processingInstructions = [
         {
             replaceChildren: true,
-            shouldProcessNode: (node) => node.attribs && node.attribs[attrib] && !isSpecialMention(node.attribs[attrib]) && usernameMap.hasOwnProperty(node.attribs[attrib]),
+            shouldProcessNode: (node) => node.attribs && node.attribs[attrib] && usernameMap.hasOwnProperty(node.attribs[attrib]),
             processNode: (node) => {
                 const username = node.attribs[attrib];
                 return atMentionComponent(AtMentionComponent, usernameMap[username], username);
@@ -1375,12 +1375,6 @@ export function postMessageHtmlToComponent(html, AtMentionComponent, usernameMap
     ];
 
     return parser.parseWithInstructions(html, isValidNode, processingInstructions);
-}
-
-function isSpecialMention(username) {
-    return Constants.SPECIAL_MENTIONS.reduce((acc, val) => {
-        return acc || username === val;
-    }, false);
 }
 
 function atMentionComponent(AtMentionComponent, user, username) {

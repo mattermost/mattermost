@@ -162,12 +162,23 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
         return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || Boolean(usernameMap[u]));
     }
 
+    function isSpecialMention(username) {
+        return Constants.SPECIAL_MENTIONS.reduce((acc, val) => {
+            return acc || username === val;
+        }, false);
+    }
+
     function addToken(username, mention) {
         const index = tokens.size;
         const alias = `$MM_ATMENTION${index}`;
 
+        let tokenValue = `<span data-mention='${username}'><a class='mention-link' href='#'>${mention}</a></span>`;
+        if (isSpecialMention(username)) {
+            tokenValue = mention;
+        }
+
         tokens.set(alias, {
-            value: `<span data-mention='${username}'><a class='mention-link' href='#'>${mention}</a></span>`,
+            value: tokenValue,
             originalText: mention
         });
         return alias;
