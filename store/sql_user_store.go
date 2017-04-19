@@ -829,9 +829,9 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 		if allowFromCache {
 			for _, userId := range userIds {
 				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
-					u := &model.User{}
-					*u = *cacheItem.(*model.User)
-					users = append(users, u)
+					//u := &model.User{}
+					//*u = *cacheItem.(*model.User)
+					users = append(users, cacheItem.(*model.User))
 				} else {
 					remainingUserIds = append(remainingUserIds, userId)
 				}

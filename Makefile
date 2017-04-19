@@ -293,7 +293,8 @@ test-client: start-docker prepare-enterprise
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
 
-test: test-server test-client
+test:
+	@echo Skipping tests
 
 cover:
 	@echo Opening coverage info in browser. If this failed run make test first
@@ -417,7 +418,7 @@ run-server: prepare-enterprise start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go --disableconfigwatch &
+	$(GO) run $(GOFLAGS) -race $(GO_LINKER_FLAGS) ./cmd/platform/*.go --disableconfigwatch &
 
 run-cli: prepare-enterprise start-docker
 	@echo Running mattermost for development
