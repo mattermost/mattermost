@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
@@ -1339,6 +1340,8 @@ func TestResetPassword(t *testing.T) {
 	} else {
 		recovery = result.Data.(*model.PasswordRecovery)
 	}
+
+	time.Sleep(2 * time.Second)
 
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox utils.JSONMessageHeaderInbucket
