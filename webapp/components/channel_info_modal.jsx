@@ -115,6 +115,15 @@ export default class ChannelInfoModal extends React.Component {
                     <div className='form-group'>
                         <div className='info__label'>
                             <FormattedMessage
+                                id='channel_info.header'
+                                defaultMessage='Header:'
+                            />
+                        </div>
+                        <div className='info__value'>{channel.header}</div>
+                    </div>
+                    <div className='form-group'>
+                        <div className='info__label'>
+                            <FormattedMessage
                                 id='channel_info.url'
                                 defaultMessage='URL:'
                             />
