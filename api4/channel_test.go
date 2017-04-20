@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"sort"
 	"strconv"
 	"testing"
@@ -364,6 +365,78 @@ func TestCreateDirectChannel(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.CreateDirectChannel(user3.Id, user2.Id)
+	CheckNoError(t, resp)
+}
+
+func TestCreateGroupChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	user := th.BasicUser
+	user2 := th.BasicUser2
+	user3 := th.CreateUser()
+
+	userIds := []string{user.Id, user2.Id, user3.Id}
+
+	rgc, resp := Client.CreateGroupChannel(userIds)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	if rgc == nil {
+		t.Fatal("should have created a group channel")
+	}
+
+	if rgc.Type != model.CHANNEL_GROUP {
+		t.Fatal("should have created a channel of group type")
+	}
+
+	m, _ := app.GetChannelMembersPage(rgc.Id, 0, 10)
+	if len(*m) != 3 {
+		t.Fatal("should have 3 channel members")
+	}
+
+	// saving duplicate group channel
+	rgc2, resp := Client.CreateGroupChannel([]string{user3.Id, user2.Id})
+	CheckNoError(t, resp)
+
+	if rgc.Id != rgc2.Id {
+		t.Fatal("should have returned existing channel")
+	}
+
+	m2, _ := app.GetChannelMembersPage(rgc2.Id, 0, 10)
+	if !reflect.DeepEqual(*m, *m2) {
+		t.Fatal("should be equal")
+	}
+
+	rgc, resp = Client.CreateGroupChannel([]string{user2.Id})
+	CheckBadRequestStatus(t, resp)
+
+	user4 := th.CreateUser()
+	user5 := th.CreateUser()
+	user6 := th.CreateUser()
+	user7 := th.CreateUser()
+	user8 := th.CreateUser()
+	user9 := th.CreateUser()
+
+	rgc, resp = Client.CreateGroupChannel([]string{user.Id, user2.Id, user3.Id, user4.Id, user5.Id, user6.Id, user7.Id, user8.Id, user9.Id})
+	CheckBadRequestStatus(t, resp)
+
+	if rgc != nil {
+		t.Fatal("should return nil")
+	}
+
+	_, resp = Client.CreateGroupChannel([]string{user.Id, user2.Id, user3.Id, GenerateTestId()})
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.CreateGroupChannel([]string{user.Id, user2.Id, user3.Id, "junk"})
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.CreateGroupChannel(userIds)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.CreateGroupChannel(userIds)
 	CheckNoError(t, resp)
 }
 
