@@ -111,6 +111,13 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
         notificationDuration = duration;
     }
 
+    // If notification is meant for the current active channel, don't
+    // show the notification
+    const activeChannel = ChannelStore.getCurrent();
+    if (activeChannel.id === channel.id) {
+        return;
+    }
+
     if (Notification.permission === 'granted' || (Notification.permission === 'default' && !requestedNotificationPermission)) {
         requestedNotificationPermission = true;
 
