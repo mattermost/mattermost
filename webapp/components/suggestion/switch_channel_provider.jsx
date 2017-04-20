@@ -67,7 +67,9 @@ export default class SwitchChannelProvider extends Provider {
 
             autocompleteUsers(
                 channelPrefix,
-                (users) => {
+                (data) => {
+                    const users = Object.assign([], data.users);
+
                     if (this.shouldCancelDispatch(channelPrefix)) {
                         return;
                     }
