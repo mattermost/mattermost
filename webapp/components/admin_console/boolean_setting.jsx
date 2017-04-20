@@ -7,6 +7,8 @@ import Setting from './setting.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import * as Utils from 'utils/utils.jsx';
+
 export default class BooleanSetting extends React.Component {
     constructor(props) {
         super(props);
@@ -42,6 +44,7 @@ export default class BooleanSetting extends React.Component {
                     <input
                         type='radio'
                         value='true'
+                        id={Utils.createSafeId(this.props.id) + 'true'}
                         name={this.props.id}
                         checked={this.props.value}
                         onChange={this.handleChange}
@@ -53,6 +56,7 @@ export default class BooleanSetting extends React.Component {
                     <input
                         type='radio'
                         value='false'
+                        id={Utils.createSafeId(this.props.id) + 'false'}
                         name={this.props.id}
                         checked={!this.props.value}
                         onChange={this.handleChange}
