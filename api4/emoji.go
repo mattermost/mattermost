@@ -22,7 +22,7 @@ func InitEmoji() {
 	BaseRoutes.Emojis.Handle("", ApiSessionRequired(getEmojiList)).Methods("GET")
 	BaseRoutes.Emoji.Handle("", ApiSessionRequired(deleteEmoji)).Methods("DELETE")
 	BaseRoutes.Emoji.Handle("", ApiSessionRequired(getEmoji)).Methods("GET")
-	BaseRoutes.Emoji.Handle("/image", ApiSessionRequired(getEmojiImage)).Methods("GET")
+	BaseRoutes.Emoji.Handle("/image", ApiSessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
