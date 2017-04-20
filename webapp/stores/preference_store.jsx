@@ -20,14 +20,17 @@ class PreferenceStore extends EventEmitter {
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
 
         this.preferences = new Map();
-        this.entities = {};
+        this.entities = Selectors.getMyPreferences(store.getState());
+        Object.keys(this.entities).forEach((key) => {
+            this.preferences.set(key, this.entities[key].value);
+        });
 
         store.subscribe(() => {
             const newEntities = Selectors.getMyPreferences(store.getState());
             if (this.entities !== newEntities) {
                 this.preferences = new Map();
                 Object.keys(newEntities).forEach((key) => {
-                    this.preferences.set(key, newEntities[key]);
+                    this.preferences.set(key, newEntities[key].value);
                 });
                 this.emitChange();
             }
