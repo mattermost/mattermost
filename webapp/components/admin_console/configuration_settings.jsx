@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import ErrorStore from 'stores/error_store.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
@@ -20,6 +22,8 @@ export default class ConfigurationSettings extends AdminSettings {
         super(props);
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
+
+        this.handleSaved = this.handleSaved.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
     }
@@ -62,6 +66,14 @@ export default class ConfigurationSettings extends AdminSettings {
         };
     }
 
+    handleSaved(newConfig) {
+        const lastError = ErrorStore.getLastError();
+
+        if (lastError && lastError.message === 'error_bar.site_url' && newConfig.ServiceSettings.SiteURL) {
+            ErrorStore.clearLastError(true);
+        }
+    }
+
     renderTitle() {
         return (
             <h3>
@@ -96,7 +108,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This field can be left blank unless you are configuring email batching in <b>Notifications > Email</b>. When blank, the URL is automatically configured based on incoming traffic.'
+                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This setting is required.'
                         />
                     }
                     value={this.state.siteURL}
