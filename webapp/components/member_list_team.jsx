@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container.jsx';
-import TeamMembersDropdown from 'containers/team_members_dropdown';
+import TeamMembersDropdown from 'components/team_members_dropdown';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';

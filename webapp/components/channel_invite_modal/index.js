@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getMe} from 'mattermost-redux/actions/users';
+import {getProfilesNotInChannel} from 'mattermost-redux/actions/users';
 
-import SecurityTab from 'components/user_settings/user_settings_security.jsx';
+import ChannelInviteModal from './channel_invite_modal.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,9 +16,9 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getMe
+            getProfilesNotInChannel
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SecurityTab);
+export default connect(mapStateToProps, mapDispatchToProps)(ChannelInviteModal);

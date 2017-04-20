@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getUserAudits} from 'mattermost-redux/actions/users';
+import {getProfiles, getProfilesInTeam} from 'mattermost-redux/actions/users';
 
-import AccessHistoryModal from './access_history_modal.jsx';
+import MoreDirectChannels from './more_direct_channels.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,9 +16,10 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getUserAudits
+            getProfiles,
+            getProfilesInTeam
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AccessHistoryModal);
+export default connect(mapStateToProps, mapDispatchToProps)(MoreDirectChannels);

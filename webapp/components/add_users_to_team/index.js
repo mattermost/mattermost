@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getProfiles, getProfilesInTeam} from 'mattermost-redux/actions/users';
+import {getProfilesNotInTeam} from 'mattermost-redux/actions/users';
 
-import MoreDirectChannels from 'components/more_direct_channels.jsx';
+import AddUsersToTeam from './add_users_to_team.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,10 +16,9 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getProfiles,
-            getProfilesInTeam
+            getProfilesNotInTeam
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MoreDirectChannels);
+export default connect(mapStateToProps, mapDispatchToProps)(AddUsersToTeam);

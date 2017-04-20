@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getProfilesInChannel} from 'mattermost-redux/actions/users';
+import {getMe} from 'mattermost-redux/actions/users';
 
-import PopoverListMembers from 'components/popover_list_members.jsx';
+import UserSettingsGeneralTab from './user_settings_general.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,9 +16,9 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getProfilesInChannel
+            getMe
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(PopoverListMembers);
+export default connect(mapStateToProps, mapDispatchToProps)(UserSettingsGeneralTab);

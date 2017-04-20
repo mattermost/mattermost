@@ -2,9 +2,9 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import SettingItemMin from '../setting_item_min.jsx';
-import SettingItemMax from '../setting_item_max.jsx';
-import SettingPicture from '../setting_picture.jsx';
+import SettingItemMin from 'components/setting_item_min.jsx';
+import SettingItemMax from 'components/setting_item_max.jsx';
+import SettingPicture from 'components/setting_picture.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';

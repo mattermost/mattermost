@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SettingItemMin from '../setting_item_min.jsx';
-import SettingItemMax from '../setting_item_max.jsx';
+import SettingItemMin from 'components/setting_item_min.jsx';
+import SettingItemMax from 'components/setting_item_max.jsx';
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
-import ToggleModalButton from '../toggle_modal_button.jsx';
+import ToggleModalButton from 'components/toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 

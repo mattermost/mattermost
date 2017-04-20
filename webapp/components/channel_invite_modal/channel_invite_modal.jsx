@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ChannelInviteButton from './channel_invite_button.jsx';
+import ChannelInviteButton from 'components/channel_invite_button.jsx';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container.jsx';
-import LoadingScreen from './loading_screen.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';

@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {revokeSession, getSessions} from 'mattermost-redux/actions/users';
+import {getProfilesInChannel} from 'mattermost-redux/actions/users';
 
-import ActivityLogModal from './activity_log_modal.jsx';
+import PopoverListMembers from './popover_list_members.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,10 +16,9 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getSessions,
-            revokeSession
+            getProfilesInChannel
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ActivityLogModal);
+export default connect(mapStateToProps, mapDispatchToProps)(PopoverListMembers);

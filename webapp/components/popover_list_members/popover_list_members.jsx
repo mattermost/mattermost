@@ -7,9 +7,9 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import TeamMembersModal from './team_members_modal.jsx';
-import ChannelMembersModal from './channel_members_modal.jsx';
-import ChannelInviteModal from 'containers/channel_invite_modal';
+import TeamMembersModal from 'components/team_members_modal.jsx';
+import ChannelMembersModal from 'components/channel_members_modal.jsx';
+import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 

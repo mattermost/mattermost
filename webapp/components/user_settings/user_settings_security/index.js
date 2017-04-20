@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getProfilesNotInTeam} from 'mattermost-redux/actions/users';
+import {getMe} from 'mattermost-redux/actions/users';
 
-import AddUsersToTeam from 'components/add_users_to_team.jsx';
+import SecurityTab from './user_settings_security.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,9 +16,9 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getProfilesNotInTeam
+            getMe
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddUsersToTeam);
+export default connect(mapStateToProps, mapDispatchToProps)(SecurityTab);

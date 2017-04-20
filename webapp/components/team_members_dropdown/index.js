@@ -3,9 +3,9 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getProfilesNotInChannel} from 'mattermost-redux/actions/users';
+import {getUser} from 'mattermost-redux/actions/users';
 
-import ChannelInviteModal from 'components/channel_invite_modal.jsx';
+import TeamMembersDropdown from './team_members_dropdown.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -16,9 +16,9 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getProfilesNotInChannel
+            getUser
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChannelInviteModal);
+export default connect(mapStateToProps, mapDispatchToProps)(TeamMembersDropdown);
