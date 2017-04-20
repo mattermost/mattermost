@@ -106,7 +106,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.DeleteReactionForPost(c.Session.UserId, reaction.PostId, reaction.EmojiName)
+	err := app.DeleteReactionForPost(reaction)
 	if err != nil {
 		c.Err = err
 		return

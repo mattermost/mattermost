@@ -34,16 +34,10 @@ func GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
 	}
 }
 
-func DeleteReactionForPost(userId, postId, emojiName string) *model.AppError {
-	post, err := GetSinglePost(postId)
+func DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+	post, err := GetSinglePost(reaction.PostId)
 	if err != nil {
 		return err
-	}
-
-	reaction := &model.Reaction{
-		UserId:    userId,
-		PostId:    postId,
-		EmojiName: emojiName,
 	}
 
 	if result := <-Srv.Store.Reaction().Delete(reaction); result.Err != nil {
