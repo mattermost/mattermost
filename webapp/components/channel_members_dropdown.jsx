@@ -10,6 +10,7 @@ import {removeUserFromChannel, makeUserChannelAdmin, makeUserChannelMember} from
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {canManageMembers} from 'utils/channel_utils.jsx';
+import {Constants} from 'utils/constants.jsx';
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -127,7 +128,7 @@ export default class ChannelMembersDropdown extends React.Component {
             }
 
             let removeFromChannel = null;
-            if (this.canRemoveMember()) {
+            if (this.canRemoveMember() && this.props.channel.name !== Constants.DEFAULT_CHANNEL) {
                 removeFromChannel = (
                     <li role='presentation'>
                         <a
@@ -207,7 +208,7 @@ export default class ChannelMembersDropdown extends React.Component {
                     {serverError}
                 </div>
             );
-        } else if (this.canRemoveMember()) {
+        } else if (this.canRemoveMember() && this.props.channel.name !== Constants.DEFAULT_CHANNEL) {
             return (
                 <button
                     id='removeMember'
@@ -222,6 +223,12 @@ export default class ChannelMembersDropdown extends React.Component {
                 </button>
             );
         } else if (this.isChannelAdmin()) {
+            if (this.props.channel.name === Constants.DEFAULT_CHANNEL) {
+                return (
+                    <div/>
+                );
+            }
+
             return (
                 <div>
                     <FormattedMessage
@@ -229,6 +236,12 @@ export default class ChannelMembersDropdown extends React.Component {
                         defaultMessage='Channel Admin'
                     />
                 </div>
+            );
+        }
+
+        if (this.props.channel.name === Constants.DEFAULT_CHANNEL) {
+            return (
+                <div/>
             );
         }
 

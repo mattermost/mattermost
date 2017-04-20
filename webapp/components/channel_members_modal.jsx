@@ -8,6 +8,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {canManageMembers} from 'utils/channel_utils.jsx';
+import {Constants} from 'utils/constants.jsx';
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
@@ -35,7 +36,7 @@ export default class ChannelMembersModal extends React.Component {
         const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
 
         let addMembersButton = null;
-        if (canManageMembers(this.state.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+        if (canManageMembers(this.state.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin) && this.state.channel.name !== Constants.DEFAULT_CHANNEL) {
             addMembersButton = (
                 <a
                     id='showInviteModal'

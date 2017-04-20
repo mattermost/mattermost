@@ -462,6 +462,27 @@ export default class ChannelHeader extends React.Component {
                 </li>
             );
 
+            if (ChannelStore.isDefault(channel)) {
+                dropdownContents.push(
+                    <li
+                        id='channelManageMembers'
+                        key='manage_members'
+                        role='presentation'
+                    >
+                        <a
+                            role='menuitem'
+                            href='#'
+                            onClick={() => this.setState({showMembersModal: true})}
+                        >
+                            <FormattedMessage
+                                id='channel_header.viewMembers'
+                                defaultMessage='View Members'
+                            />
+                        </a>
+                    </li>
+                );
+            }
+
             dropdownContents.push(
                 <li
                     id='channelNotificationPreferences'
@@ -723,7 +744,7 @@ export default class ChannelHeader extends React.Component {
         );
 
         let channelMembersModal;
-        if (this.state.showMembersModal && channel.name !== Constants.DEFAULT_CHANNEL) {
+        if (this.state.showMembersModal) {
             channelMembersModal = (
                 <ChannelMembersModal
                     onModalDismissed={() => this.setState({showMembersModal: false})}
