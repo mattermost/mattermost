@@ -153,12 +153,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		isTokenFromQueryString = true
 	}
 
-	if *utils.Cfg.ServiceSettings.SiteURL != "" {
-		c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
-	} else {
-		protocol := GetProtocol(r)
-		c.SetSiteURL(protocol + "://" + r.Host)
-	}
+	c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))

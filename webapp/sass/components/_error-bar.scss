@@ -11,6 +11,9 @@
     z-index: 9999;
 
     a {
+        color: $white !important;
+        text-decoration: underline;
+
         &.error-bar__close {
             color: $white;
             font-family: 'Open Sans', sans-serif;

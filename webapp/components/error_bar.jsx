@@ -9,10 +9,12 @@ import {isLicenseExpiring, isLicenseExpired, isLicensePastGracePeriod, displayEx
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Link} from 'react-router';
 
 const EXPIRING_ERROR = 'error_bar.expiring';
 const EXPIRED_ERROR = 'error_bar.expired';
 const PAST_GRACE_ERROR = 'error_bar.past_grace';
+const SITE_URL_ERROR = 'error_bar.site_url';
 
 export default class ErrorBar extends React.Component {
     constructor() {
@@ -27,7 +29,11 @@ export default class ErrorBar extends React.Component {
             isSystemAdmin = Utils.isSystemAdmin(user.roles);
         }
 
-        if (!ErrorStore.getIgnoreNotification() && global.window.mm_config.SendEmailNotifications === 'false') {
+        const errorIgnored = ErrorStore.getIgnoreNotification();
+
+        if (!errorIgnored && isSystemAdmin && global.mm_config.SiteURL === '') {
+            ErrorStore.storeLastError({notification: true, message: SITE_URL_ERROR});
+        } else if (!errorIgnored && global.window.mm_config.SendEmailNotifications === 'false') {
             ErrorStore.storeLastError({notification: true, message: Utils.localizeMessage('error_bar.preview_mode', 'Preview Mode: Email notifications have not been configured')});
         } else if (isLicenseExpiring() && isSystemAdmin) {
             ErrorStore.storeLastError({notification: true, message: EXPIRING_ERROR});
@@ -118,6 +124,45 @@ export default class ErrorBar extends React.Component {
                 <FormattedMessage
                     id={PAST_GRACE_ERROR}
                     defaultMessage='Enterprise license has expired, please contact your System Administrator for details'
+                />
+            );
+        } else if (message === SITE_URL_ERROR) {
+            let id;
+            let defaultMessage;
+            if (global.mm_config.EnableSignUpWithGitLab === 'true') {
+                id = 'error_bar.site_url_gitlab';
+                defaultMessage = '{docsLink} is now a required setting. Please configure it in the System Console or in gitlab.rb if you\'re using GitLab Mattermost.';
+            } else {
+                id = 'error_bar.site_url';
+                defaultMessage = '{docsLink} is now a required setting. Please configure it in {link}.';
+            }
+
+            message = (
+                <FormattedMessage
+                    id={id}
+                    defaultMessage={defaultMessage}
+                    values={{
+                        docsLink: (
+                            <a
+                                href='https://docs.mattermost.com/administration/config-settings.html#site-url'
+                                rel='noopener noreferrer'
+                                target='_blank'
+                            >
+                                <FormattedMessage
+                                    id='error_bar.site_url.docsLink'
+                                    defaultMessage='Site URL'
+                                />
+                            </a>
+                        ),
+                        link: (
+                            <Link to='/admin_console/general/configuration'>
+                                <FormattedMessage
+                                    id='error_bar.site_url.link'
+                                    defaultMessage='the System Console'
+                                />
+                            </Link>
+                        )
+                    }}
                 />
             );
         }
