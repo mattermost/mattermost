@@ -84,10 +84,11 @@ export default function configureStore(initialState) {
                         }
                     ]));
 
+                    localStorage.removeItem('currentUserId');
+                    window.location.href = '/';
+
                     setTimeout(() => {
                         purging = false;
-                        localStorage.removeItem('currentUserId');
-                        window.location.href = '/';
                     }, 500);
                 }
             });
