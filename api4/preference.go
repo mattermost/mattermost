@@ -99,17 +99,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, preference := range preferences {
-		if c.Params.UserId != preference.UserId {
-			c.Err = model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
-				c.T("api.preference.update_preferences.set_details.app_error",
-					map[string]interface{}{"SessionUserId": c.Params.UserId, "PreferenceUserId": preference.UserId}),
-				http.StatusForbidden)
-			return
-		}
-	}
-
-	if _, err := app.UpdatePreferences(preferences); err != nil {
+	if err := app.UpdatePreferences(c.Params.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}
@@ -134,17 +124,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, preference := range preferences {
-		if c.Params.UserId != preference.UserId {
-			c.Err = model.NewAppError("deletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
-				c.T("api.preference.delete_preferences.delete.app_error",
-					map[string]interface{}{"SessionUserId": c.Params.UserId, "PreferenceUserId": preference.UserId}),
-				http.StatusForbidden)
-			return
-		}
-	}
-
-	if _, err := app.DeletePreferences(c.Params.UserId, preferences); err != nil {
+	if err := app.DeletePreferences(c.Params.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}
