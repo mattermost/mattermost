@@ -547,7 +547,8 @@ export function updateUser(user, type, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -576,7 +577,8 @@ export function updateUserNotifyProps(props, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.updateMe.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -588,7 +590,8 @@ export function updateUserRoles(userId, newRoles, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -600,7 +603,8 @@ export function activateMfa(code, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         },
     );
@@ -612,7 +616,8 @@ export function deactivateMfa(success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         },
     );
@@ -629,7 +634,8 @@ export function checkMfa(loginId, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.checkMfa.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -657,7 +663,8 @@ export function updatePassword(userId, currentPassword, newPassword, success, er
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                error();
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -739,7 +746,8 @@ export function createUserWithInvite(user, data, emailHash, inviteId, success, e
             if (resp && success) {
                 success(resp);
             } else if (resp == null && error) {
-                error();
+                const serverError = getState().requests.users.create.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
