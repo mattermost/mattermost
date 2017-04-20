@@ -12,22 +12,6 @@ const getState = store.getState;
 
 import {getUser} from 'mattermost-redux/actions/users';
 
-export function revokeSession(altId, success, error) {
-    Client.revokeSession(altId,
-        () => {
-            AsyncClient.getSessions();
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        }
-    );
-}
-
 export function saveConfig(config, success, error) {
     Client.saveConfig(
         config,

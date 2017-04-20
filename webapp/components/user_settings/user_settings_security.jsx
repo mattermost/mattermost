@@ -3,8 +3,8 @@
 
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
-import AccessHistoryModal from '../access_history_modal.jsx';
-import ActivityLogModal from '../activity_log_modal.jsx';
+import AccessHistoryModal from 'components/access_history_modal';
+import ActivityLogModal from 'components/activity_log_modal';
 import ToggleModalButton from '../toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';

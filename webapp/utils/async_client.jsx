@@ -322,52 +322,6 @@ export function getUser(userId, success, error) {
     );
 }
 
-export function getSessions() {
-    if (isCallInProgress('getSessions')) {
-        return;
-    }
-
-    callTracker.getSessions = utils.getTimestamp();
-    Client.getSessions(
-        UserStore.getCurrentId(),
-        (data) => {
-            callTracker.getSessions = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SESSIONS,
-                sessions: data
-            });
-        },
-        (err) => {
-            callTracker.getSessions = 0;
-            dispatchError(err, 'getSessions');
-        }
-    );
-}
-
-export function getAudits() {
-    if (isCallInProgress('getAudits')) {
-        return;
-    }
-
-    callTracker.getAudits = utils.getTimestamp();
-    Client.getAudits(
-        UserStore.getCurrentId(),
-        (data) => {
-            callTracker.getAudits = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_AUDITS,
-                audits: data
-            });
-        },
-        (err) => {
-            callTracker.getAudits = 0;
-            dispatchError(err, 'getAudits');
-        }
-    );
-}
-
 export function getLogs() {
     if (isCallInProgress('getLogs')) {
         return;

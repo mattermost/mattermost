@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import LoadingScreen from './loading_screen.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import $ from 'jquery';
@@ -13,9 +12,15 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
 
-import {revokeSession} from 'actions/admin_actions.jsx';
-
 export default class ActivityLogModal extends React.Component {
+    static propTypes = {
+        onHide: React.PropTypes.func.isRequired,
+        actions: React.PropTypes.shape({
+            getSessions: React.PropTypes.func.isRequired,
+            revokeSession: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -35,7 +40,6 @@ export default class ActivityLogModal extends React.Component {
     getStateFromStores() {
         return {
             sessions: UserStore.getSessions(),
-            serverError: null,
             clientError: null
         };
     }
@@ -47,18 +51,11 @@ export default class ActivityLogModal extends React.Component {
         setTimeout(() => {
             modalContent.removeClass('animation--highlight');
         }, 1500);
-        revokeSession(altId,
-            null,
-            (err) => {
-                const state = this.getStateFromStores();
-                state.serverError = err;
-                this.setState(state);
-            }
-        );
+        this.props.actions.revokeSession(UserStore.getCurrentId(), altId);
     }
 
     onShow() {
-        AsyncClient.getSessions();
+        this.props.actions.getSessions(UserStore.getCurrentId());
         if (!Utils.isMobile()) {
             $('.modal-body').perfectScrollbar();
         }
@@ -302,7 +299,3 @@ export default class ActivityLogModal extends React.Component {
         );
     }
 }
-
-ActivityLogModal.propTypes = {
-    onHide: React.PropTypes.func.isRequired
-};
