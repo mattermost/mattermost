@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import ErrorStore from 'stores/error_store.jsx';
+
+import {ErrorBarTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
@@ -18,6 +21,8 @@ export default class EmailSettings extends AdminSettings {
         super(props);
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
+
+        this.handleSaved = this.handleSaved.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
     }
@@ -37,6 +42,12 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.SkipServerCertificateVerification = this.state.skipServerCertificateVerification;
 
         return config;
+    }
+
+    handleSaved(newConfig) {
+        if (newConfig.EmailSettings.SendEmailNotifications) {
+            ErrorStore.clearError(ErrorBarTypes.PREVIEW_MODE);
+        }
     }
 
     getStateFromConfig(config) {
