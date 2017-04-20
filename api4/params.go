@@ -26,12 +26,14 @@ type ApiParams struct {
 	HookId         string
 	ReportId       string
 	EmojiId        string
+	AppId          string
 	Email          string
 	Username       string
 	TeamName       string
 	ChannelName    string
 	PreferenceName string
 	Category       string
+	Service        string
 	Page           int
 	PerPage        int
 }
@@ -77,6 +79,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 		params.EmojiId = val
 	}
 
+	if val, ok := props["app_id"]; ok {
+		params.AppId = val
+	}
+
 	if val, ok := props["email"]; ok {
 		params.Email = val
 	}
@@ -94,6 +100,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	}
 
 	if val, ok := props["category"]; ok {
+		params.Category = val
+	}
+
+	if val, ok := props["service"]; ok {
 		params.Category = val
 	}
 

@@ -28,7 +28,6 @@ func TestOAuthRegisterApp(t *testing.T) {
 		if _, err := Client.RegisterApp(oauthApp); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
-
 	}
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true

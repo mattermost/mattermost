@@ -382,6 +382,17 @@ func (c *Context) RequirePostId() *Context {
 	return c
 }
 
+func (c *Context) RequireAppId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.AppId) != 26 {
+		c.SetInvalidUrlParam("app_id")
+	}
+	return c
+}
+
 func (c *Context) RequireFileId() *Context {
 	if c.Err != nil {
 		return c
@@ -459,6 +470,18 @@ func (c *Context) RequireCategory() *Context {
 
 	if !model.IsValidAlphaNum(c.Params.Category, true) {
 		c.SetInvalidUrlParam("category")
+	}
+
+	return c
+}
+
+func (c *Context) RequireService() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Service) == 0 {
+		c.SetInvalidUrlParam("service")
 	}
 
 	return c
