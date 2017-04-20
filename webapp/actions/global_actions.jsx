@@ -403,9 +403,31 @@ export function emitPreferenceChangedEvent(preference) {
         preference
     });
 
-    if (preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW) {
+    if (addedNewDmUser(preference)) {
         loadProfilesForSidebar();
     }
+}
+
+export function emitPreferencesChangedEvent(preferences) {
+    AppDispatcher.handleServerAction({
+        type: Constants.ActionTypes.RECEIVED_PREFERENCES,
+        preferences
+    });
+
+    if (preferences.findIndex(addedNewDmUser) !== -1) {
+        loadProfilesForSidebar();
+    }
+}
+
+function addedNewDmUser(preference) {
+    return preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW && preference.value === 'true';
+}
+
+export function emitPreferencesDeletedEvent(preferences) {
+    AppDispatcher.handleServerAction({
+        type: Constants.ActionTypes.DELETED_PREFERENCES,
+        preferences
+    });
 }
 
 export function emitRemovePost(post) {
