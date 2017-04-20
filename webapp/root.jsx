@@ -27,7 +27,7 @@ import rRoot from 'routes/route_root.jsx';
 
 PDFJS.disableWorker = true;
 
-global.foo = '1234';
+global.foo = '1234a';
 
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
