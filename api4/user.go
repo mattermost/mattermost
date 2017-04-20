@@ -110,7 +110,11 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if HandleEtag(etag, "Get User", w, r) {
 		return
 	} else {
-		app.SanitizeProfile(user, c.IsSystemAdmin())
+		if c.Session.UserId == user.Id {
+			user.Sanitize(map[string]bool{})
+		} else {
+			app.SanitizeProfile(user, c.IsSystemAdmin())
+		}
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return

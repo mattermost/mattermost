@@ -467,8 +467,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     setStatus(userId, status) {
-        const data = {};
-        data[userId] = status;
+        const data = [{user_id: userId, status}];
         store.dispatch({
             type: UserTypes.RECEIVED_STATUSES,
             data

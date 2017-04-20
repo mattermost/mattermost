@@ -42,28 +42,11 @@ import {
     loadMe as loadMeRedux
 } from 'mattermost-redux/actions/users';
 
+import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
+
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
         () => {
-            global.window.mm_config = store.getState().entities.general.config;
-            global.window.mm_license = store.getState().entities.general.license;
-
-            if (global.window && global.window.analytics) {
-                global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
-                    context: {
-                        ip: '0.0.0.0'
-                    },
-                    page: {
-                        path: '',
-                        referrer: '',
-                        search: '',
-                        title: '',
-                        url: ''
-                    },
-                    anonymousId: '00000000000000000000000000'
-                });
-            }
-
             localStorage.setItem('currentUserId', UserStore.getCurrentId());
 
             if (callback) {
@@ -71,6 +54,42 @@ export function loadMe(callback) {
             }
         }
     );
+}
+
+export function loadMeAndConfig(callback) {
+    loadMe(() => {
+        getClientConfig()(store.dispatch, store.getState).then(
+            (config) => {
+                global.window.mm_config = config;
+
+                if (global.window && global.window.analytics) {
+                    global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
+                        context: {
+                            ip: '0.0.0.0'
+                        },
+                        page: {
+                            path: '',
+                            referrer: '',
+                            search: '',
+                            title: '',
+                            url: ''
+                        },
+                        anonymousId: '00000000000000000000000000'
+                    });
+                }
+
+                getLicenseConfig()(store.dispatch, store.getState).then(
+                    (license) => { // eslint-disable-line max-nested-callbacks
+                        global.window.mm_license = license;
+
+                        if (callback) {
+                            callback();
+                        }
+                    }
+                );
+            }
+        );
+    });
 }
 
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {

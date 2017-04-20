@@ -11,7 +11,7 @@ import {Router, browserHistory} from 'react-router/es6';
 import PDFJS from 'pdfjs-dist';
 
 import * as Websockets from 'actions/websocket_actions.jsx';
-import {loadMe} from 'actions/user_actions.jsx';
+import {loadMeAndConfig} from 'actions/user_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -62,7 +62,7 @@ function preRenderSetup(callwhendone) {
     const currentUserId = localStorage.getItem('currentUserId');
 
     if (currentUserId) {
-        loadMe(() => d1.resolve());
+        loadMeAndConfig(() => d1.resolve());
     } else {
         getClientConfig()(store.dispatch, store.getState).then(
             (config) => {
