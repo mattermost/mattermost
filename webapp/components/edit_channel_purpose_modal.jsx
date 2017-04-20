@@ -110,6 +110,21 @@ export default class EditChannelPurposeModal extends React.Component {
             );
         }
 
+        let channelPurposeModal = (
+            <FormattedMessage
+                id='edit_channel_purpose_modal.body'
+                defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
+            />
+        );
+        if (this.props.channel.type === 'P') {
+            channelPurposeModal = (
+                <FormattedMessage
+                    id='edit_channel_private_purpose_modal.body'
+                    defaultMessage='This text appears in the \"View Info\" modal of the private channel.'
+                />
+            );
+        }
+
         return (
             <Modal
                 className='modal-edit-channel-purpose'
@@ -125,10 +140,7 @@ export default class EditChannelPurposeModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <p>
-                        <FormattedMessage
-                            id='edit_channel_purpose_modal.body'
-                            defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
-                        />
+                        {channelPurposeModal}
                     </p>
                     <textarea
                         ref='purpose'
