@@ -349,7 +349,25 @@ export default class Navbar extends React.Component {
                     </li>
                 );
 
-                if (!ChannelStore.isDefault(channel)) {
+                if (ChannelStore.isDefault(channel)) {
+                    manageMembersOption = (
+                        <li
+                            key='view_members'
+                            role='presentation'
+                        >
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.showMembersModal}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.viewMembers'
+                                    defaultMessage='View Members'
+                                />
+                            </a>
+                        </li>
+                    );
+                } else {
                     addMembersOption = (
                         <li role='presentation'>
                             <ToggleModalButton
