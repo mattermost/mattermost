@@ -50,6 +50,7 @@ export default class SaveButton extends React.Component {
         return (
             <button
                 type='submit'
+                id='saveSetting'
                 className={className}
                 disabled={disabled}
                 {...props}
