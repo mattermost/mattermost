@@ -4,7 +4,6 @@
 package api
 
 import (
-	"bytes"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -190,28 +189,15 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Emoji().Get(id, true); result.Err != nil {
-		c.Err = result.Err
+	image, imageType, err := app.GetEmojiImage(id)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		var img []byte
-
-		if data, err := app.ReadFile(getEmojiImagePath(id)); err != nil {
-			c.Err = model.NewLocAppError("getEmojiImage", "api.emoji.get_image.read.app_error", nil, err.Error())
-			return
-		} else {
-			img = data
-		}
-
-		if _, imageType, err := image.DecodeConfig(bytes.NewReader(img)); err != nil {
-			model.NewLocAppError("getEmojiImage", "api.emoji.get_image.decode.app_error", nil, err.Error())
-		} else {
-			w.Header().Set("Content-Type", "image/"+imageType)
-		}
-
-		w.Header().Set("Cache-Control", "max-age=2592000, public")
-		w.Write(img)
 	}
+
+	w.Header().Set("Content-Type", "image/"+imageType)
+	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Write(image)
 }
 
 func getEmojiImagePath(id string) string {

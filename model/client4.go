@@ -2489,6 +2489,17 @@ func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response) {
 	}
 }
 
+// GetEmojiImage returns the emoji image.
+func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetEmojiRoute(emojiId)+"/image", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetEmojiImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
 // Reaction Section
 
 // SaveReaction saves an emoji reaction for a post. Returns the saved reaction if successful, otherwise an error will be returned.
