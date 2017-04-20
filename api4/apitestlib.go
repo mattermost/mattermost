@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -107,31 +108,57 @@ func Setup() *TestHelper {
 func TearDown() {
 	utils.DisableDebugLogForTest()
 
-	options := map[string]bool{}
-	options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-	if result := <-app.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
-		l4g.Error("Error tearing down test users")
-	} else {
-		users := result.Data.([]*model.User)
+	var wg sync.WaitGroup
+	wg.Add(3)
 
-		for _, u := range users {
-			if err := app.PermanentDeleteUser(u); err != nil {
-				l4g.Error(err.Error())
+	go func() {
+		defer wg.Done()
+		options := map[string]bool{}
+		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
+		if result := <-app.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
+			l4g.Error("Error tearing down test users")
+		} else {
+			users := result.Data.([]*model.User)
+
+			for _, u := range users {
+				if err := app.PermanentDeleteUser(u); err != nil {
+					l4g.Error(err.Error())
+				}
 			}
 		}
-	}
+	}()
 
-	if result := <-app.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
-		l4g.Error("Error tearing down test teams")
-	} else {
-		teams := result.Data.([]*model.Team)
+	go func() {
+		defer wg.Done()
+		if result := <-app.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
+			l4g.Error("Error tearing down test teams")
+		} else {
+			teams := result.Data.([]*model.Team)
 
-		for _, t := range teams {
-			if err := app.PermanentDeleteTeam(t); err != nil {
-				l4g.Error(err.Error())
+			for _, t := range teams {
+				if err := app.PermanentDeleteTeam(t); err != nil {
+					l4g.Error(err.Error())
+				}
 			}
 		}
-	}
+	}()
+
+	go func() {
+		defer wg.Done()
+		if result := <-app.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
+			l4g.Error("Error tearing down test oauth apps")
+		} else {
+			apps := result.Data.([]*model.OAuthApp)
+
+			for _, a := range apps {
+				if strings.HasPrefix(a.Name, "fakeoauthapp") {
+					<-app.Srv.Store.OAuth().DeleteApp(a.Id)
+				}
+			}
+		}
+	}()
+
+	wg.Wait()
 
 	utils.EnableDebugLogForTest()
 }
@@ -378,7 +405,7 @@ func GenerateTestEmail() string {
 }
 
 func GenerateTestUsername() string {
-	return "fakeuser" + model.NewRandomString(13)
+	return "fakeuser" + model.NewRandomString(10)
 }
 
 func GenerateTestTeamName() string {
@@ -387,6 +414,10 @@ func GenerateTestTeamName() string {
 
 func GenerateTestChannelName() string {
 	return "fakechannel" + model.NewRandomString(10)
+}
+
+func GenerateTestAppName() string {
+	return "fakeoauthapp" + model.NewRandomString(10)
 }
 
 func GenerateTestId() string {

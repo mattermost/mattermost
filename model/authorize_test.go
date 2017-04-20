@@ -20,6 +20,17 @@ func TestAuthJson(t *testing.T) {
 	if a1.Code != ra1.Code {
 		t.Fatal("codes didn't match")
 	}
+
+	a2 := AuthorizeRequest{}
+	a2.ClientId = NewId()
+	a2.Scope = NewId()
+
+	json = a2.ToJson()
+	ra2 := AuthorizeRequestFromJson(strings.NewReader(json))
+
+	if a2.ClientId != ra2.ClientId {
+		t.Fatal("client ids didn't match")
+	}
 }
 
 func TestAuthPreSave(t *testing.T) {

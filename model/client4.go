@@ -242,24 +242,32 @@ func (c *Client4) GetReactionsRoute() string {
 	return fmt.Sprintf("/reactions")
 }
 
+func (c *Client4) GetOAuthAppsRoute() string {
+	return fmt.Sprintf("/oauth/apps")
+}
+
+func (c *Client4) GetOAuthAppRoute(appId string) string {
+	return fmt.Sprintf("/oauth/apps/%v", appId)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodGet, url, "", etag)
+	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
 
 func (c *Client4) DoApiPost(url string, data string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodPost, url, data, "")
+	return c.DoApiRequest(http.MethodPost, c.ApiUrl+url, data, "")
 }
 
 func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodPut, url, data, "")
+	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
 }
 
 func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
-	return c.DoApiRequest(http.MethodDelete, url, "", "")
+	return c.DoApiRequest(http.MethodDelete, c.ApiUrl+url, "", "")
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
-	rq, _ := http.NewRequest(method, c.ApiUrl+url, strings.NewReader(data))
+	rq, _ := http.NewRequest(method, url, strings.NewReader(data))
 	rq.Close = true
 
 	if len(etag) > 0 {
@@ -2208,6 +2216,101 @@ func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
 	} else {
 		defer closeBody(r)
 		return ArrayFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// OAuth Section
+
+// CreateOAuthApp will register a new OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
+func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
+	if r, err := c.DoApiPost(c.GetOAuthAppsRoute(), app.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
+func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetOAuthAppsRoute()+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOAuthApp gets a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
+func (c *Client4) GetOAuthApp(appId string) (*OAuthApp, *Response) {
+	if r, err := c.DoApiGet(c.GetOAuthAppRoute(appId), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetOAuthAppInfo gets a sanitized version of a registered OAuth 2.0 client application with Mattermost acting as an OAuth 2.0 service provider.
+func (c *Client4) GetOAuthAppInfo(appId string) (*OAuthApp, *Response) {
+	if r, err := c.DoApiGet(c.GetOAuthAppRoute(appId)+"/info", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// DeleteOAuthApp deletes a registered OAuth 2.0 client application.
+func (c *Client4) DeleteOAuthApp(appId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetOAuthAppRoute(appId)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// RegenerateOAuthAppSecret regenerates the client secret for a registered OAuth 2.0 client application.
+func (c *Client4) RegenerateOAuthAppSecret(appId string) (*OAuthApp, *Response) {
+	if r, err := c.DoApiPost(c.GetOAuthAppRoute(appId)+"/regen_secret", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
+func (c *Client4) GetAuthorizedOAuthAppsForUser(userId string, page, perPage int) ([]*OAuthApp, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/oauth/apps/authorized"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return OAuthAppListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AuthorizeOAuthApp will authorize an OAuth 2.0 client application to access a user's account and provide a redirect link to follow.
+func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Response) {
+	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/authorize", authRequest.ToJson(), ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["redirect"], BuildResponse(r)
+	}
+}
+
+// DeauthorizeOAuthApp will deauthorize an OAuth 2.0 client application from accessing a user's account.
+func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
+	requestData := map[string]string{"client_id": appId}
+	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/deauthorize", MapToJson(requestData), ""); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 
