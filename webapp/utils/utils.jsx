@@ -1278,10 +1278,6 @@ export function isValidPassword(password) {
 }
 
 export function getSiteURL() {
-    if (global.mm_config.SiteURL) {
-        return global.mm_config.SiteURL;
-    }
-
     if (window.location.origin) {
         return window.location.origin;
     }

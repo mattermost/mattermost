@@ -125,7 +125,7 @@ class TeamStoreClass extends EventEmitter {
 
         if (current) {
             // can't call Utils.getSiteURL here because that introduces a circular dependency
-            const origin = window.mm_config.SiteURL || window.location.origin;
+            const origin = window.location.origin;
 
             return origin + '/signup_user_complete/?id=' + current.invite_id;
         }
@@ -141,7 +141,7 @@ class TeamStoreClass extends EventEmitter {
         }
 
         // can't call Utils.getSiteURL here because that introduces a circular dependency
-        const origin = window.mm_config.SiteURL || window.location.origin;
+        const origin = window.location.origin;
 
         return origin + '/' + team.name;
     }
