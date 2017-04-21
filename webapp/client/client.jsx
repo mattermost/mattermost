@@ -1319,19 +1319,19 @@ export default class Client {
         this.trackEvent('api', 'api_channels_set_active', {channel_id: id});
     }
 
-    verifyEmail(uid, hid, success, error) {
+    verifyEmail(token, success, error) {
         request.
-            post(`${this.getUsersRoute()}/verify_email`).
+            post(`${this.url}/api/v4/users/email/verify`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({uid, hid}).
+            send({token}).
             end(this.handleResponse.bind(this, 'verifyEmail', success, error));
     }
 
     resendVerification(email, success, error) {
         request.
-            post(`${this.getUsersRoute()}/resend_verification`).
+            post(`${this.url}/api/v4/users/email/verify/send`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').

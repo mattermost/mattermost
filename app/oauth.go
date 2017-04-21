@@ -109,7 +109,7 @@ func AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeReques
 	}
 
 	authData := &model.AuthData{UserId: userId, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectUri, State: authRequest.State, Scope: authRequest.Scope}
-	authData.Code = model.HashPassword(fmt.Sprintf("%v:%v:%v:%v", authRequest.ClientId, authRequest.RedirectUri, authData.CreateAt, userId))
+	authData.Code = utils.HashSha256(fmt.Sprintf("%v:%v:%v:%v", authRequest.ClientId, authRequest.RedirectUri, authData.CreateAt, userId))
 
 	// this saves the OAuth2 app as authorized
 	authorizedApp := model.Preference{
@@ -167,7 +167,7 @@ func GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refresh
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if !model.ComparePassword(code, fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
+		if code != utils.HashSha256(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -527,7 +527,7 @@ func GetAuthorizationCode(service string, props map[string]string, loginHint str
 	endpoint := sso.AuthEndpoint
 	scope := sso.Scope
 
-	props["hash"] = model.HashPassword(clientId)
+	props["hash"] = utils.HashSha256(clientId)
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
 	redirectUri := utils.GetSiteURL() + "/signup/" + service + "/complete"
@@ -560,7 +560,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
-	if !model.ComparePassword(stateProps["hash"], sso.Id) {
+	if stateProps["hash"] != utils.HashSha256(sso.Id) {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "")
 	}
 

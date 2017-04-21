@@ -30,6 +30,13 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	TOKEN_TYPE_PASSWORD_RECOVERY = "password_recovery"
+	TOKEN_TYPE_VERIFY_EMAIL      = "verify_email"
+	PASSWORD_RECOVER_EXPIRY_TIME = 1000 * 60 * 60 // 1 hour
+	VERIFY_EMAIL_EXPIRY_TIME     = 1000 * 60 * 60 // 1 hour
+)
+
 func CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
 	if err := IsUserSignUpAllowed(); err != nil {
 		return nil, err
@@ -37,7 +44,7 @@ func CreateUserWithHash(user *model.User, hash string, data string) (*model.User
 
 	props := model.MapFromJson(strings.NewReader(data))
 
-	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 		return nil, model.NewLocAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "")
 	}
 
@@ -990,11 +997,9 @@ func UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.A
 				}()
 
 				if utils.Cfg.EmailSettings.RequireEmailVerification {
-					go func() {
-						if err := SendEmailChangeVerifyEmail(rusers[0].Id, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
-							l4g.Error(err.Error())
-						}
-					}()
+					if err := SendEmailVerification(rusers[0]); err != nil {
+						l4g.Error(err.Error())
+					}
 				}
 			}
 
@@ -1096,19 +1101,19 @@ func UpdatePasswordSendEmail(user *model.User, newPassword, method string) *mode
 	return nil
 }
 
-func ResetPasswordFromCode(code, newPassword string) *model.AppError {
-	var recovery *model.PasswordRecovery
+func ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError {
+	var token *model.Token
 	var err *model.AppError
-	if recovery, err = GetPasswordRecovery(code); err != nil {
+	if token, err = GetPasswordRecoveryToken(userSuppliedTokenString); err != nil {
 		return err
 	} else {
-		if model.GetMillis()-recovery.CreateAt >= model.PASSWORD_RECOVER_EXPIRY_TIME {
+		if model.GetMillis()-token.CreateAt >= PASSWORD_RECOVER_EXPIRY_TIME {
 			return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
 	var user *model.User
-	if user, err = GetUser(recovery.UserId); err != nil {
+	if user, err = GetUser(token.Extra); err != nil {
 		return err
 	}
 
@@ -1122,7 +1127,7 @@ func ResetPasswordFromCode(code, newPassword string) *model.AppError {
 		return err
 	}
 
-	if err := DeletePasswordRecoveryForUser(recovery.UserId); err != nil {
+	if err := DeleteToken(token); err != nil {
 		l4g.Error(err.Error())
 	}
 
@@ -1140,39 +1145,42 @@ func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	var recovery *model.PasswordRecovery
-	if recovery, err = CreatePasswordRecovery(user.Id); err != nil {
+	var token *model.Token
+	if token, err = CreatePasswordRecoveryToken(user.Id); err != nil {
 		return false, err
 	}
 
-	if _, err := SendPasswordResetEmail(email, recovery, user.Locale, siteURL); err != nil {
+	if _, err := SendPasswordResetEmail(email, token, user.Locale, siteURL); err != nil {
 		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
 	}
 
 	return true, nil
 }
 
-func CreatePasswordRecovery(userId string) (*model.PasswordRecovery, *model.AppError) {
-	recovery := &model.PasswordRecovery{}
-	recovery.UserId = userId
+func CreatePasswordRecoveryToken(userId string) (*model.Token, *model.AppError) {
+	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, userId)
 
-	if result := <-Srv.Store.PasswordRecovery().SaveOrUpdate(recovery); result.Err != nil {
+	if result := <-Srv.Store.Token().Save(token); result.Err != nil {
 		return nil, result.Err
 	}
 
-	return recovery, nil
+	return token, nil
 }
 
-func GetPasswordRecovery(code string) (*model.PasswordRecovery, *model.AppError) {
-	if result := <-Srv.Store.PasswordRecovery().GetByCode(code); result.Err != nil {
-		return nil, model.NewAppError("GetPasswordRecovery", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+func GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
+	if result := <-Srv.Store.Token().GetByToken(token); result.Err != nil {
+		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	} else {
-		return result.Data.(*model.PasswordRecovery), nil
+		token := result.Data.(*model.Token)
+		if token.Type != TOKEN_TYPE_PASSWORD_RECOVERY {
+			return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
+		}
+		return token, nil
 	}
 }
 
-func DeletePasswordRecoveryForUser(userId string) *model.AppError {
-	if result := <-Srv.Store.PasswordRecovery().Delete(userId); result.Err != nil {
+func DeleteToken(token *model.Token) *model.AppError {
+	if result := <-Srv.Store.Token().Delete(token.Token); result.Err != nil {
 		return result.Err
 	}
 
@@ -1262,10 +1270,6 @@ func PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-Srv.Store.PasswordRecovery().Delete(user.Id); result.Err != nil {
-		return result.Err
-	}
-
 	l4g.Warn(utils.T("api.user.permanent_delete_user.deleted.warn"), user.Email, user.Id)
 
 	return nil
@@ -1282,6 +1286,63 @@ func PermanentDeleteAllUsers() *model.AppError {
 	}
 
 	return nil
+}
+
+func SendEmailVerification(user *model.User) *model.AppError {
+	token, err := CreateVerifyEmailToken(user.Id)
+	if err != nil {
+		return err
+	}
+
+	if _, err := GetStatus(user.Id); err != nil {
+		go SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+	} else {
+		go SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+	}
+
+	return nil
+}
+
+func VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
+	var token *model.Token
+	var err *model.AppError
+	if token, err = GetVerifyEmailToken(userSuppliedTokenString); err != nil {
+		return err
+	} else {
+		if model.GetMillis()-token.CreateAt >= PASSWORD_RECOVER_EXPIRY_TIME {
+			return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
+		}
+		if err := VerifyUserEmail(token.Extra); err != nil {
+			return err
+		}
+		if err := DeleteToken(token); err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
+	return nil
+}
+
+func CreateVerifyEmailToken(userId string) (*model.Token, *model.AppError) {
+	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, userId)
+
+	if result := <-Srv.Store.Token().Save(token); result.Err != nil {
+		return nil, result.Err
+	}
+
+	return token, nil
+}
+
+func GetVerifyEmailToken(token string) (*model.Token, *model.AppError) {
+	if result := <-Srv.Store.Token().GetByToken(token); result.Err != nil {
+		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.bad_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	} else {
+		token := result.Data.(*model.Token)
+		if token.Type != TOKEN_TYPE_VERIFY_EMAIL {
+			return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.broken_token.app_error", nil, "", http.StatusBadRequest)
+		}
+		return token, nil
+	}
 }
 
 func VerifyUserEmail(userId string) *model.AppError {

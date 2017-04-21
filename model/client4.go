@@ -741,8 +741,8 @@ func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
 }
 
 // ResetPassword uses a recovery code to update reset a user's password.
-func (c *Client4) ResetPassword(code, newPassword string) (bool, *Response) {
-	requestBody := map[string]string{"code": code, "new_password": newPassword}
+func (c *Client4) ResetPassword(token, newPassword string) (bool, *Response) {
+	requestBody := map[string]string{"token": token, "new_password": newPassword}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/password/reset", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
@@ -811,9 +811,9 @@ func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag strin
 	}
 }
 
-// VerifyUserEmail will verify a user's email using user id and hash strings.
-func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
-	requestBody := map[string]string{"user_id": userId, "hash_id": hashId}
+// VerifyUserEmail will verify a user's email using the supplied token.
+func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
+	requestBody := map[string]string{"token": token}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/email/verify", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {

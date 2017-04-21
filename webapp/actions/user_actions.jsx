@@ -749,10 +749,9 @@ export function updatePassword(userId, currentPassword, newPassword, success, er
     );
 }
 
-export function verifyEmail(uid, hid, success, error) {
+export function verifyEmail(token, success, error) {
     Client.verifyEmail(
-        uid,
-        hid,
+        token,
         (data) => {
             if (success) {
                 success(data);
@@ -766,9 +765,9 @@ export function verifyEmail(uid, hid, success, error) {
     );
 }
 
-export function resetPassword(code, password, success, error) {
+export function resetPassword(token, password, success, error) {
     Client.resetPassword(
-        code,
+        token,
         password,
         () => {
             browserHistory.push('/login?extra=' + ActionTypes.PASSWORD_CHANGE);
