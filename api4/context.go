@@ -468,7 +468,7 @@ func (c *Context) RequireCategory() *Context {
 		return c
 	}
 
-	if !model.IsValidAlphaNum(c.Params.Category, true) {
+	if !model.IsValidAlphaNumHyphenUnderscore(c.Params.Category, true) {
 		c.SetInvalidUrlParam("category")
 	}
 
@@ -492,7 +492,7 @@ func (c *Context) RequirePreferenceName() *Context {
 		return c
 	}
 
-	if !model.IsValidAlphaNum(c.Params.PreferenceName, true) {
+	if !model.IsValidAlphaNumHyphenUnderscore(c.Params.PreferenceName, true) {
 		c.SetInvalidUrlParam("preference_name")
 	}
 
@@ -504,7 +504,7 @@ func (c *Context) RequireEmojiName() *Context {
 		return c
 	}
 
-	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !model.IsValidAlphaNum(c.Params.EmojiName, true) {
+	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !model.IsValidAlphaNumHyphenUnderscore(c.Params.EmojiName, false) {
 		c.SetInvalidUrlParam("emoji_name")
 	}
 

@@ -57,6 +57,21 @@ func TestReactionIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	reaction.EmojiName = "emoji-"
+	if err := reaction.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	reaction.EmojiName = "emoji_"
+	if err := reaction.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	reaction.EmojiName = "emoji:"
+	if err := reaction.IsValid(); err == nil {
+		t.Fatal(err)
+	}
+
 	reaction.CreateAt = 0
 	if err := reaction.IsValid(); err == nil {
 		t.Fatal("create at should be invalid")

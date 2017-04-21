@@ -56,8 +56,28 @@ func TestEmojiIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
+	emoji.Name = ""
+	if err := emoji.IsValid(); err == nil {
+		t.Fatal(err)
+	}
+
 	emoji.Name = strings.Repeat("1", 64)
 	if err := emoji.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	emoji.Name = "name-"
+	if err := emoji.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	emoji.Name = "name_"
+	if err := emoji.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	emoji.Name = "name:"
+	if err := emoji.IsValid(); err == nil {
 		t.Fatal(err)
 	}
 }

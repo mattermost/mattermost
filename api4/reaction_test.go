@@ -228,7 +228,7 @@ func TestDeleteReaction(t *testing.T) {
 	r2 := &model.Reaction{
 		UserId:    userId,
 		PostId:    postId,
-		EmojiName: "sad",
+		EmojiName: "smile-",
 	}
 
 	app.SaveReactionForPost(r1)
@@ -248,7 +248,7 @@ func TestDeleteReaction(t *testing.T) {
 	r3 := &model.Reaction{
 		UserId:    user2Id,
 		PostId:    postId,
-		EmojiName: "smile",
+		EmojiName: "smile_",
 	}
 
 	th.LoginBasic2()
