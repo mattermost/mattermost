@@ -4,7 +4,6 @@
 package api
 
 import (
-	"bytes"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -148,41 +147,24 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var emoji *model.Emoji
-	if result := <-app.Srv.Store.Emoji().Get(id, false); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		emoji = result.Data.(*model.Emoji)
-
-		if c.Session.UserId != emoji.CreatorId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			c.Err = model.NewLocAppError("deleteEmoji", "api.emoji.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
-			c.Err.StatusCode = http.StatusUnauthorized
-			return
-		}
-	}
-
-	if err := (<-app.Srv.Store.Emoji().Delete(id, model.GetMillis())).Err; err != nil {
+	emoji, err := app.GetEmoji(id)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	go deleteEmojiImage(id)
-	go deleteReactionsForEmoji(emoji.Name)
-
-	ReturnStatusOK(w)
-}
-
-func deleteEmojiImage(id string) {
-	if err := app.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		l4g.Error("Failed to rename image when deleting emoji %v", id)
+	if c.Session.UserId != emoji.CreatorId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.Err = model.NewLocAppError("deleteEmoji", "api.emoji.delete.permissions.app_error", nil, "user_id="+c.Session.UserId)
+		c.Err.StatusCode = http.StatusUnauthorized
+		return
 	}
-}
 
-func deleteReactionsForEmoji(emojiName string) {
-	if result := <-app.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
-		l4g.Warn(utils.T("api.emoji.delete.delete_reactions.app_error"), emojiName)
-		l4g.Warn(result.Err)
+	err = app.DeleteEmoji(emoji)
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		ReturnStatusOK(w)
 	}
 }
 
@@ -207,28 +189,15 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Emoji().Get(id, true); result.Err != nil {
-		c.Err = result.Err
+	image, imageType, err := app.GetEmojiImage(id)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		var img []byte
-
-		if data, err := app.ReadFile(getEmojiImagePath(id)); err != nil {
-			c.Err = model.NewLocAppError("getEmojiImage", "api.emoji.get_image.read.app_error", nil, err.Error())
-			return
-		} else {
-			img = data
-		}
-
-		if _, imageType, err := image.DecodeConfig(bytes.NewReader(img)); err != nil {
-			model.NewLocAppError("getEmojiImage", "api.emoji.get_image.decode.app_error", nil, err.Error())
-		} else {
-			w.Header().Set("Content-Type", "image/"+imageType)
-		}
-
-		w.Header().Set("Cache-Control", "max-age=2592000, public")
-		w.Write(img)
 	}
+
+	w.Header().Set("Content-Type", "image/"+imageType)
+	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Write(image)
 }
 
 func getEmojiImagePath(id string) string {

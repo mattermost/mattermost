@@ -498,7 +498,11 @@
 
     .system-users__team-filter {
         display: inline-block;
-        width: 200px
+        width: 200px;
+    }
+
+    label {
+        font-weight: normal;
     }
 }
 

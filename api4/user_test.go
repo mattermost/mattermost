@@ -60,12 +60,6 @@ func TestCreateUser(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.user.is_valid.email.app_error")
 	CheckBadRequestStatus(t, resp)
 
-	ruser.Email = GenerateTestEmail()
-	ruser.Username = "1" + user.Username
-	_, resp = Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
-	CheckBadRequestStatus(t, resp)
-
 	openServer := *utils.Cfg.TeamSettings.EnableOpenServer
 	canCreateAccount := utils.Cfg.TeamSettings.EnableUserCreation
 	defer func() {
@@ -745,6 +739,8 @@ func TestPatchUser(t *testing.T) {
 	patch.LastName = new(string)
 	*patch.LastName = "Wilander"
 	patch.Position = new(string)
+	patch.NotifyProps = model.StringMap{}
+	patch.NotifyProps["comment"] = "somethingrandom"
 
 	ruser, resp := Client.PatchUser(user.Id, patch)
 	CheckNoError(t, resp)
@@ -764,6 +760,9 @@ func TestPatchUser(t *testing.T) {
 	}
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
+	}
+	if ruser.NotifyProps["comment"] != "somethingrandom" {
+		t.Fatal("NotifyProps did not update properly")
 	}
 
 	_, resp = Client.PatchUser("junk", patch)
@@ -848,6 +847,49 @@ func TestUpdateUserRoles(t *testing.T) {
 
 	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.ROLE_SYSTEM_USER.Id)
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestUpdateUserActive(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.Client
+	SystemAdminClient := th.SystemAdminClient
+	user := th.BasicUser
+
+	pass, resp := Client.UpdateUserActive(user.Id, false)
+	CheckNoError(t, resp)
+
+	if !pass {
+		t.Fatal("should have returned true")
+	}
+
+	pass, resp = Client.UpdateUserActive(user.Id, false)
+	CheckUnauthorizedStatus(t, resp)
+
+	if pass {
+		t.Fatal("should have returned false")
+	}
+
+	th.LoginBasic2()
+
+	_, resp = Client.UpdateUserActive(user.Id, true)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UpdateUserActive(GenerateTestId(), true)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.UpdateUserActive("junk", true)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.UpdateUserActive(user.Id, true)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserActive(user.Id, true)
+	CheckNoError(t, resp)
+
+	_, resp = SystemAdminClient.UpdateUserActive(user.Id, false)
+	CheckNoError(t, resp)
 }
 
 func TestGetUsers(t *testing.T) {

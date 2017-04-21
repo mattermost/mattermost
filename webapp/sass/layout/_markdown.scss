@@ -1,5 +1,8 @@
 @charset 'UTF-8';
 
+.markdown__link {
+}
+
 .markdown__heading {
     font-weight: 700;
     line-height: 1.5;
@@ -64,19 +67,19 @@
     padding: 4px 10px 5px;
     position: absolute;
     right: 0;
-    top: 0;
+    top: 5;
     z-index: 5;
 }
 
 .post-code__lineno {
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    -webkit-user-select: none;
     border-right: 1px solid #aaa;
     color: #aaa;
     margin-right: .5em;
     text-align: right;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
     user-select: none;
 }
 

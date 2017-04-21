@@ -11,6 +11,7 @@ import {loadStatusesForChannel} from 'actions/status_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -20,23 +21,28 @@ const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 
 export function handleNewPost(post, msg) {
-    let websocketMessageProps = null;
+    let websocketMessageProps = {};
     if (msg) {
         websocketMessageProps = msg.data;
-    }
-
-    if (msg && msg.data) {
-        if (msg.data.channel_type === Constants.DM_CHANNEL) {
-            loadNewDMIfNeeded(post.user_id);
-        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
-            loadNewGMIfNeeded(post.channel_id, post.user_id);
-        }
     }
 
     if (ChannelStore.getMyMember(post.channel_id)) {
         completePostReceive(post, websocketMessageProps);
     } else {
+        // This API call requires any real team id in API v3, so set one if we don't already have one
+        if (!Client.teamId && msg && msg.data) {
+            Client.setTeamId(msg.data.team_id);
+        }
+
         AsyncClient.getChannelMember(post.channel_id, UserStore.getCurrentId()).then(() => completePostReceive(post, websocketMessageProps));
+    }
+
+    if (msg && msg.data) {
+        if (msg.data.channel_type === Constants.DM_CHANNEL) {
+            loadNewDMIfNeeded(post.channel_id);
+        } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
+            loadNewGMIfNeeded(post.channel_id);
+        }
     }
 }
 
@@ -426,11 +432,6 @@ export function updatePost(post, success, isPost) {
         });
 }
 
-export function removePostFromStore(post) {
-    PostStore.removePost(post);
-    PostStore.emitChange();
-}
-
 export function emitEmojiPosted(emoji) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.EMOJI_POSTED,
@@ -443,7 +444,7 @@ export function deletePost(channelId, post, success, error) {
         channelId,
         post.id,
         () => {
-            removePostFromStore(post);
+            GlobalActions.emitRemovePost(post);
             if (post.id === PostStore.getSelectedPostId()) {
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POST_SELECTED,

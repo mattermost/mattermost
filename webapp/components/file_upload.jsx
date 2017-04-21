@@ -350,11 +350,16 @@ class FileUpload extends React.Component {
         const channelId = this.props.channelId || ChannelStore.getCurrentId();
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
-        const emojiSpan = (<span
-            className={'fa fa-smile-o icon--emoji-picker emoji-' + this.props.navBarName}
-            onClick={this.emojiClick}
-                           />);
-        const filestyle = {visibility: 'hidden'};
+
+        let emojiSpan;
+        if (this.props.emojiEnabled) {
+            emojiSpan = (
+                <span
+                    className={'fa fa-smile-o icon--emoji-picker emoji-' + this.props.navBarName}
+                    onClick={this.emojiClick}
+                />
+            );
+        }
 
         return (
             <span
@@ -363,20 +368,19 @@ class FileUpload extends React.Component {
             >
                 <div className='icon--attachment'>
                     <span
+                        className='icon'
                         dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
-                        onClick={() => this.refs.fileInput.click()}
                     />
                     <input
                         ref='fileInput'
                         type='file'
-                        style={filestyle}
                         onChange={this.handleChange}
                         onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
                         multiple={multiple}
                         accept={accept}
                     />
                 </div>
-                {this.props.emojiEnabled ? emojiSpan : ''}
+                {emojiSpan}
             </span>
         );
     }

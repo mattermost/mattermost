@@ -14,6 +14,8 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'client/web_client.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 
+import {showManagementOptions} from './channel_utils.jsx';
+
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
 
@@ -150,6 +152,22 @@ export function createDMIntroMessage(channel, centeredIntro) {
 }
 
 export function createOffTopicIntroMessage(channel, centeredIntro) {
+    var uiType = (
+        <FormattedMessage
+            id='intro_messages.channel'
+            defaultMessage='channel'
+        />
+    );
+
+    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+
+    let setHeaderButton = createSetHeaderButton(channel);
+    if (!showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+        setHeaderButton = null;
+    }
+
     return (
         <div className={'channel-intro ' + centeredIntro}>
             <FormattedHTMLMessage
@@ -159,8 +177,8 @@ export function createOffTopicIntroMessage(channel, centeredIntro) {
                     display_name: channel.display_name
                 }}
             />
-            {createInviteChannelMemberButton(channel, 'channel')}
-            {createSetHeaderButton(channel)}
+            {createInviteChannelMemberButton(channel, uiType)}
+            {setHeaderButton}
         </div>
     );
 }
@@ -182,6 +200,7 @@ export function createDefaultIntroMessage(channel, centeredIntro) {
 
     const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
     const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
 
     if (global.window.mm_license.IsLicensed === 'true') {
         if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
@@ -189,6 +208,11 @@ export function createDefaultIntroMessage(channel, centeredIntro) {
         } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
             inviteModalLink = null;
         }
+    }
+
+    let setHeaderButton = createSetHeaderButton(channel);
+    if (!showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+        setHeaderButton = null;
     }
 
     return (
@@ -201,7 +225,7 @@ export function createDefaultIntroMessage(channel, centeredIntro) {
                 }}
             />
             {inviteModalLink}
-            {createSetHeaderButton(channel)}
+            {setHeaderButton}
             <br/>
         </div>
     );
@@ -296,6 +320,15 @@ export function createStandardIntroMessage(channel, centeredIntro) {
         );
     }
 
+    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+
+    let setHeaderButton = createSetHeaderButton(channel);
+    if (!showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+        setHeaderButton = null;
+    }
+
     return (
         <div className={'channel-intro ' + centeredIntro}>
             <h4 className='channel-intro__title'>
@@ -314,7 +347,7 @@ export function createStandardIntroMessage(channel, centeredIntro) {
                 <br/>
             </p>
             {createInviteChannelMemberButton(channel, uiType)}
-            {createSetHeaderButton(channel)}
+            {setHeaderButton}
         </div>
     );
 }

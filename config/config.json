@@ -41,6 +41,7 @@
         "AllowEditPost": "always",
         "PostEditTimeLimit": 300,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
+        "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
@@ -69,12 +70,12 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
         "DataSourceReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "8s96y35qz5ihiz7w1jcecsqp5xnnkp13"
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -98,7 +99,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "1oidkhjpy4p54jwfrgwk7nhkzgwrq6ug",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -127,8 +128,8 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
-        "PasswordResetSalt": "",
+        "InviteSalt": "mtt8hrn4tmo5d8nz91jg3z7gr8xudb4z",
+        "PasswordResetSalt": "8j44cnpee8b46a34kpnnc6r8gy6dizts",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",

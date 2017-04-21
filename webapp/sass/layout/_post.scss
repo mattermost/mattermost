@@ -397,6 +397,7 @@
         .custom-textarea {
             -ms-overflow-style: auto;
             overflow: auto;
+            -webkit-overflow-scrolling: touch;
 
             &:not(.custom-textarea--emoji-picker) {
                 padding-right: 43px;
@@ -836,7 +837,7 @@
         }
 
         .post__img {
-            padding-top: 3px;
+            padding-top: 1px;
             width: 16px;
 
             img {
@@ -857,6 +858,7 @@
         // If the last paragraph of an edited post is a paragraph, make it inline-block so that the (edited) indicator can be on the same line as it
         .post-message__text > p:last-child {
             display: inline-block;
+            width: auto;
         }
 
         .post-edited-indicator {
@@ -911,7 +913,7 @@
                 left: 36px;
                 margin-left: 7px;
                 position: absolute;
-                top: 8px;
+                top: 6px;
             }
 
             .post__img {
@@ -1034,6 +1036,7 @@
             right: 0;
             top: -4px;
             white-space: nowrap;
+            z-index: 6;
         }
 
         .col__remove {
@@ -1122,6 +1125,7 @@
 
         &:after {
             content: '[...]';
+            font-family: 'Open Sans', sans-serif;
             position: relative;
             top: -1px;
         }
@@ -1156,7 +1160,6 @@
         word-wrap: break-word;
 
         div {
-            margin-bottom: .4em;
         }
 
         p + p {

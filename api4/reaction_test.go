@@ -1,9 +1,10 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api4
 
 import (
+	"strings"
 	"testing"
 
 	"reflect"
@@ -11,6 +12,111 @@ import (
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
+
+func TestSaveReaction(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	userId := th.BasicUser.Id
+	postId := th.BasicPost.Id
+
+	reaction := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: "smile",
+	}
+
+	rr, resp := Client.SaveReaction(reaction)
+	CheckNoError(t, resp)
+
+	if rr.UserId != reaction.UserId {
+		t.Fatal("UserId did not match")
+	}
+
+	if rr.PostId != reaction.PostId {
+		t.Fatal("PostId did not match")
+	}
+
+	if rr.EmojiName != reaction.EmojiName {
+		t.Fatal("EmojiName did not match")
+	}
+
+	if rr.CreateAt == 0 {
+		t.Fatal("CreateAt should exist")
+	}
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 1 {
+		t.Fatal("didn't save reaction correctly")
+	}
+
+	// saving a duplicate reaction
+	rr, resp = Client.SaveReaction(reaction)
+	CheckNoError(t, resp)
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 1 {
+		t.Fatal("should have not save duplicated reaction")
+	}
+
+	reaction.EmojiName = "sad"
+
+	rr, resp = Client.SaveReaction(reaction)
+	CheckNoError(t, resp)
+
+	if rr.EmojiName != reaction.EmojiName {
+		t.Fatal("EmojiName did not match")
+	}
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 2 {
+		t.Fatal("should have save multiple reactions")
+	}
+
+	reaction.PostId = GenerateTestId()
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckForbiddenStatus(t, resp)
+
+	reaction.PostId = "junk"
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckBadRequestStatus(t, resp)
+
+	reaction.PostId = postId
+	reaction.UserId = GenerateTestId()
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckForbiddenStatus(t, resp)
+
+	reaction.UserId = "junk"
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckBadRequestStatus(t, resp)
+
+	reaction.UserId = userId
+	reaction.EmojiName = ""
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckBadRequestStatus(t, resp)
+
+	reaction.EmojiName = strings.Repeat("a", 65)
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckBadRequestStatus(t, resp)
+
+	reaction.EmojiName = "smile"
+	otherUser := th.CreateUser()
+	Client.Logout()
+	Client.Login(otherUser.Email, otherUser.Password)
+
+	_, resp = Client.SaveReaction(reaction)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SaveReaction(reaction)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.SaveReaction(reaction)
+	CheckForbiddenStatus(t, resp)
+}
 
 func TestGetReactions(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

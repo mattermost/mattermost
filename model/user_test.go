@@ -4,6 +4,8 @@
 package model
 
 import (
+	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 )
@@ -71,43 +73,43 @@ func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 func TestUserIsValid(t *testing.T) {
 	user := User{}
 
-	if err := user.IsValid(); err == nil {
-		t.Fatal()
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "id", "") {
+		t.Fatal(err)
 	}
 
 	user.Id = NewId()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "create_at", user.Id) {
 		t.Fatal()
 	}
 
 	user.CreateAt = GetMillis()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "update_at", user.Id) {
 		t.Fatal()
 	}
 
 	user.UpdateAt = GetMillis()
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
 		t.Fatal()
 	}
 
 	user.Username = NewId() + "^hello#"
-	if err := user.IsValid(); err == nil {
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "username", user.Id) {
 		t.Fatal()
 	}
 
-	user.Username = "n" + NewId()
+	user.Username = NewId()
 	user.Email = strings.Repeat("01234567890", 20)
 	if err := user.IsValid(); err == nil {
 		t.Fatal()
 	}
 
-	user.Email = "test@nowhere.com"
-	user.Nickname = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	user.Email = strings.Repeat("a", 128)
+	user.Nickname = strings.Repeat("a", 65)
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "nickname", user.Id) {
 		t.Fatal()
 	}
 
-	user.Nickname = ""
+	user.Nickname = strings.Repeat("a", 64)
 	if err := user.IsValid(); err != nil {
 		t.Fatal(err)
 	}
@@ -118,27 +120,38 @@ func TestUserIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user.FirstName = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	user.FirstName = strings.Repeat("a", 65)
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "first_name", user.Id) {
 		t.Fatal(err)
 	}
 
-	user.FirstName = ""
-	user.LastName = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	user.FirstName = strings.Repeat("a", 64)
+	user.LastName = strings.Repeat("a", 65)
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "last_name", user.Id) {
 		t.Fatal(err)
 	}
 
-	user.LastName = ""
-	user.Position = ""
+	user.LastName = strings.Repeat("a", 64)
+	user.Position = strings.Repeat("a", 64)
 	if err := user.IsValid(); err != nil {
 		t.Fatal(err)
 	}
 
-	user.Position = strings.Repeat("01234567890", 20)
-	if err := user.IsValid(); err == nil {
+	user.Position = strings.Repeat("a", 65)
+	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "position", user.Id) {
 		t.Fatal(err)
 	}
+}
+
+func HasExpectedUserIsValidError(err *AppError, fieldName string, userId string) bool {
+	if err == nil {
+		return false
+	}
+
+	return err.Where == "User.IsValid" &&
+		err.Id == fmt.Sprintf("model.user.is_valid.%s.app_error", fieldName) &&
+		err.StatusCode == http.StatusBadRequest &&
+		(userId == "" || err.DetailedError == "user_id="+userId)
 }
 
 func TestUserGetFullName(t *testing.T) {
@@ -191,9 +204,9 @@ var usernames = []struct {
 	{"spin-punch", true},
 	{"sp", true},
 	{"s", true},
-	{"1spin-punch", false},
-	{"-spin-punch", false},
-	{".spin-punch", false},
+	{"1spin-punch", true},
+	{"-spin-punch", true},
+	{".spin-punch", true},
 	{"Spin-punch", false},
 	{"spin punch-", false},
 	{"spin_punch", true},

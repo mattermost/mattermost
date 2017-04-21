@@ -39,22 +39,45 @@ func GetPreferenceByCategoryAndNameForUser(userId string, category string, prefe
 	}
 }
 
-func UpdatePreferences(preferences model.Preferences) (bool, *model.AppError) {
-	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return false, result.Err
-	}
-
-	return true, nil
-}
-
-func DeletePreferences(userId string, preferences model.Preferences) (bool, *model.AppError) {
+func UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
-		if result := <-Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); result.Err != nil {
-			result.Err.StatusCode = http.StatusBadRequest
-			return false, result.Err
+		if userId != preference.UserId {
+			return model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
+				"userId="+userId+", preference.UserId="+preference.UserId, http.StatusForbidden)
 		}
 	}
 
-	return true, nil
+	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
+		return result.Err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)
+	message.Add("preferences", preferences.ToJson())
+	go Publish(message)
+
+	return nil
+}
+
+func DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
+	for _, preference := range preferences {
+		if userId != preference.UserId {
+			err := model.NewAppError("deletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
+				"userId="+userId+", preference.UserId="+preference.UserId, http.StatusForbidden)
+			return err
+		}
+	}
+
+	for _, preference := range preferences {
+		if result := <-Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); result.Err != nil {
+			result.Err.StatusCode = http.StatusBadRequest
+			return result.Err
+		}
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_DELETED, "", "", userId, nil)
+	message.Add("preferences", preferences.ToJson())
+	go Publish(message)
+
+	return nil
 }

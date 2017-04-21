@@ -1281,7 +1281,7 @@ export function isValidPassword(password) {
         }
 
         minimumLength = global.window.mm_config.PasswordMinimumLength;
-    } else if (password.length < Constants.MIN_PASSWORD_LENGTH) {
+    } else if (password.length < Constants.MIN_PASSWORD_LENGTH || password.length > Constants.MAX_PASSWORD_LENGTH) {
         error = true;
     }
 
@@ -1289,9 +1289,10 @@ export function isValidPassword(password) {
         errorMsg = (
             <FormattedMessage
                 id={errorId}
-                default='Your password must be at least {min} characters.'
+                default='Your password must contain between {min} and {max} characters.'
                 values={{
-                    min: minimumLength
+                    min: minimumLength,
+                    max: Constants.MAX_PASSWORD_LENGTH
                 }}
             />
         );

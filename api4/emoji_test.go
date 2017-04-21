@@ -4,6 +4,9 @@
 package api4
 
 import (
+	"bytes"
+	"image"
+	_ "image/gif"
 	"testing"
 
 	"github.com/mattermost/platform/model"
@@ -185,6 +188,233 @@ func TestGetEmojiList(t *testing.T) {
 		}
 	}
 
-	// ADD delete test when create the delete endpoint
+	_, resp = Client.DeleteEmoji(emojis[0].Id)
+	CheckNoError(t, resp)
+	listEmoji, resp = Client.GetEmojiList()
+	CheckNoError(t, resp)
+	found := false
+	for _, savedEmoji := range listEmoji {
+		if savedEmoji.Id == emojis[0].Id {
+			found = true
+			break
+		}
+		if found {
+			t.Fatalf("should not get a deleted emoji %v", emojis[0].Id)
+		}
+	}
+}
 
+func TestDeleteEmoji(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	emoji := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	ok, resp := Client.DeleteEmoji(newEmoji.Id)
+	CheckNoError(t, resp)
+	if ok != true {
+		t.Fatal("should return true")
+	} else {
+		_, err := Client.GetEmoji(newEmoji.Id)
+		if err == nil {
+			t.Fatal("should not return the emoji it was deleted")
+		}
+	}
+
+	//Admin can delete other users emoji
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	ok, resp = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
+	CheckNoError(t, resp)
+	if ok != true {
+		t.Fatal("should return true")
+	} else {
+		_, err := th.SystemAdminClient.GetEmoji(newEmoji.Id)
+		if err == nil {
+			t.Fatal("should not return the emoji it was deleted")
+		}
+	}
+
+	// Try to delete just deleted emoji
+	_, resp = Client.DeleteEmoji(newEmoji.Id)
+	CheckInternalErrorStatus(t, resp)
+
+	//Try to delete non-existing emoji
+	_, resp = Client.DeleteEmoji(model.NewId())
+	CheckInternalErrorStatus(t, resp)
+
+	//Try to delete without Id
+	_, resp = Client.DeleteEmoji("")
+	CheckNotFoundStatus(t, resp)
+
+	//Try to delete other user's custom emoji
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	th.LoginBasic2()
+	ok, resp = Client.DeleteEmoji(newEmoji.Id)
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	emoji := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	emoji, resp = Client.GetEmoji(newEmoji.Id)
+	CheckNoError(t, resp)
+	if emoji.Id != newEmoji.Id {
+		t.Fatal("wrong emoji was returned")
+	}
+
+	_, resp = Client.GetEmoji(model.NewId())
+	CheckInternalErrorStatus(t, resp)
+}
+
+func TestGetEmojiImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	DriverName := utils.Cfg.FileSettings.DriverName
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		utils.Cfg.FileSettings.DriverName = DriverName
+	}()
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	emoji1 := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	emoji1, resp := Client.CreateEmoji(emoji1, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
+
+	_, resp = Client.GetEmojiImage(emoji1.Id)
+	CheckNotImplementedStatus(t, resp)
+	CheckErrorMessage(t, resp, "api.emoji.disabled.app_error")
+
+	utils.Cfg.FileSettings.DriverName = ""
+	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+
+	_, resp = Client.GetEmojiImage(emoji1.Id)
+	CheckNotImplementedStatus(t, resp)
+	CheckErrorMessage(t, resp, "api.emoji.storage.app_error")
+
+	utils.Cfg.FileSettings.DriverName = DriverName
+
+	emojiImage, resp := Client.GetEmojiImage(emoji1.Id)
+	CheckNoError(t, resp)
+	if len(emojiImage) <= 0 {
+		t.Fatal("should return the image")
+	}
+	_, imageType, err := image.DecodeConfig(bytes.NewReader(emojiImage))
+	if err != nil {
+		t.Fatalf("unable to identify received image: %v", err.Error())
+	} else if imageType != "gif" {
+		t.Fatal("should've received gif data")
+	}
+
+	emoji2 := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	emoji2, resp = Client.CreateEmoji(emoji2, utils.CreateTestAnimatedGif(t, 10, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	emojiImage, resp = Client.GetEmojiImage(emoji2.Id)
+	CheckNoError(t, resp)
+	if len(emojiImage) <= 0 {
+		t.Fatal("should return the image")
+	}
+	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
+	if err != nil {
+		t.Fatalf("unable to identify received image: %v", err.Error())
+	} else if imageType != "gif" {
+		t.Fatal("should've received gif data")
+	}
+
+	emoji3 := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+	emoji3, resp = Client.CreateEmoji(emoji3, utils.CreateTestJpeg(t, 10, 10), "image.jpg")
+	CheckNoError(t, resp)
+
+	emojiImage, resp = Client.GetEmojiImage(emoji3.Id)
+	CheckNoError(t, resp)
+	if len(emojiImage) <= 0 {
+		t.Fatal("should return the image")
+	}
+	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
+	if err != nil {
+		t.Fatalf("unable to identify received image: %v", err.Error())
+	} else if imageType != "jpeg" {
+		t.Fatal("should've received gif data")
+	}
+
+	emoji4 := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+	emoji4, resp = Client.CreateEmoji(emoji4, utils.CreateTestPng(t, 10, 10), "image.png")
+	CheckNoError(t, resp)
+
+	emojiImage, resp = Client.GetEmojiImage(emoji4.Id)
+	CheckNoError(t, resp)
+	if len(emojiImage) <= 0 {
+		t.Fatal("should return the image")
+	}
+	_, imageType, err = image.DecodeConfig(bytes.NewReader(emojiImage))
+	if err != nil {
+		t.Fatalf("unable to identify received image: %v", err.Error())
+	} else if imageType != "png" {
+		t.Fatal("should've received gif data")
+	}
+
+	_, resp = Client.DeleteEmoji(emoji4.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.GetEmojiImage(emoji4.Id)
+	CheckNotFoundStatus(t, resp)
+
+	_, resp = Client.GetEmojiImage(model.NewId())
+	CheckInternalErrorStatus(t, resp)
+
+	_, resp = Client.GetEmojiImage("")
+	CheckBadRequestStatus(t, resp)
 }

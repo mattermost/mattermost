@@ -5,9 +5,9 @@ package app
 
 import (
 	"bytes"
-	"encoding/json"
 	"image"
 	"image/color"
+	"encoding/json"
 	"math/rand"
 	"strings"
 	"testing"
@@ -67,7 +67,7 @@ func TestCheckUserDomain(t *testing.T) {
 func TestCreateOAuthUser(t *testing.T) {
 	th := Setup().InitBasic()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)), Username: "joram" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)), Username: model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
 
 	json := glUser.ToJson()
 	user, err := CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)

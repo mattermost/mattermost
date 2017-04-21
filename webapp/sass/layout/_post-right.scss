@@ -148,9 +148,8 @@
     -webkit-overflow-scrolling: touch;
     @include flex(1 1 auto);
     overflow: auto;
-    position: relative;
     padding-top: 10px;
-    min-height: 700px;
+    position: relative;
 
     .file-preview__container {
         margin-top: 5px;

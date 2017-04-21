@@ -170,22 +170,26 @@ func userActivateCmdF(cmd *cobra.Command, args []string) error {
 func changeUsersActiveStatus(userArgs []string, active bool) {
 	users := getUsersFromUserArgs(userArgs)
 	for i, user := range users {
-		changeUserActiveStatus(user, userArgs[i], active)
+		err := changeUserActiveStatus(user, userArgs[i], active)
+
+		if err != nil {
+			CommandPrintErrorln(err.Error())
+		}
 	}
 }
 
-func changeUserActiveStatus(user *model.User, userArg string, activate bool) {
+func changeUserActiveStatus(user *model.User, userArg string, activate bool) error {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
-		return
+		return fmt.Errorf("Can't find user '%v'", userArg)
 	}
 	if user.IsLDAPUser() {
-		CommandPrintErrorln(utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
-		return
+		return errors.New(utils.T("api.user.update_active.no_deactivate_ldap.app_error"))
 	}
 	if _, err := app.UpdateActive(user, activate); err != nil {
-		CommandPrintErrorln("Unable to change activation status of user: " + userArg)
+		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
+
+	return nil
 }
 
 func userDeactivateCmdF(cmd *cobra.Command, args []string) error {
@@ -258,20 +262,26 @@ func userInviteCmdF(cmd *cobra.Command, args []string) error {
 
 	teams := getTeamsFromTeamArgs(args[1:])
 	for i, team := range teams {
-		inviteUser(email, team, args[i+1])
+		err := inviteUser(email, team, args[i+1])
+
+		if err != nil {
+			CommandPrintErrorln(err.Error())
+		}
 	}
 
 	return nil
 }
 
-func inviteUser(email string, team *model.Team, teamArg string) {
+func inviteUser(email string, team *model.Team, teamArg string) error {
 	invites := []string{email}
 	if team == nil {
-		CommandPrintErrorln("Can't find team '" + teamArg + "'")
-		return
+		return fmt.Errorf("Can't find team '%v'", teamArg)
 	}
+
 	app.SendInviteEmails(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
+
+	return nil
 }
 
 func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {

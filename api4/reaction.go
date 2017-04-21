@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api4
@@ -15,7 +15,41 @@ import (
 func InitReaction() {
 	l4g.Debug(utils.T("api.reaction.init.debug"))
 
+	BaseRoutes.Reactions.Handle("", ApiSessionRequired(saveReaction)).Methods("POST")
 	BaseRoutes.Post.Handle("/reactions", ApiSessionRequired(getReactions)).Methods("GET")
+}
+
+func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
+	reaction := model.ReactionFromJson(r.Body)
+	if reaction == nil {
+		c.SetInvalidParam("reaction")
+		return
+	}
+
+	if len(reaction.UserId) != 26 || len(reaction.PostId) != 26 || len(reaction.EmojiName) == 0 || len(reaction.EmojiName) > 64 {
+		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "")
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	}
+
+	if reaction.UserId != c.Session.UserId {
+		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "")
+		c.Err.StatusCode = http.StatusForbidden
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, reaction.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if reaction, err := app.SaveReactionForPost(reaction); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(reaction.ToJson()))
+		return
+	}
 }
 
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -23,6 +23,7 @@ func InitCommand() {
 	BaseRoutes.Command.Handle("", ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
 	BaseRoutes.Team.Handle("/commands/autocomplete", ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
+	BaseRoutes.Command.Handle("/regen_token", ApiSessionRequired(regenCommandToken)).Methods("PUT")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -200,4 +201,41 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
+}
+
+func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	c.LogAudit("attempt")
+	cmd, err := app.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	if c.Session.UserId != cmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
+		return
+	}
+
+	rcmd, err := app.RegenCommandToken(cmd)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	resp := make(map[string]string)
+	resp["token"] = rcmd.Token
+
+	w.Write([]byte(model.MapToJson(resp)))
 }

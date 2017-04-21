@@ -229,6 +229,8 @@ export const SocketEvents = {
     USER_UPDATED: 'user_updated',
     TYPING: 'typing',
     PREFERENCE_CHANGED: 'preference_changed',
+    PREFERENCES_CHANGED: 'preferences_changed',
+    PREFERENCES_DELETED: 'preferences_deleted',
     EPHEMERAL_MESSAGE: 'ephemeral_message',
     STATUS_CHANGED: 'status_change',
     HELLO: 'hello',

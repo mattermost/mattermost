@@ -18,7 +18,7 @@ func TestUserStoreSave(t *testing.T) {
 
 	u1 := model.User{}
 	u1.Email = model.NewId()
-	u1.Username = "n" + model.NewId()
+	u1.Username = model.NewId()
 
 	if err := (<-store.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save user", err)
@@ -49,7 +49,7 @@ func TestUserStoreSave(t *testing.T) {
 	for i := 0; i < 50; i++ {
 		u1.Id = ""
 		u1.Email = model.NewId()
-		u1.Username = "n" + model.NewId()
+		u1.Username = model.NewId()
 		if err := (<-store.User().Save(&u1)).Err; err != nil {
 			t.Fatal("couldn't save item", err)
 		}
@@ -59,7 +59,7 @@ func TestUserStoreSave(t *testing.T) {
 
 	u1.Id = ""
 	u1.Email = model.NewId()
-	u1.Username = "n" + model.NewId()
+	u1.Username = model.NewId()
 	if err := (<-store.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
@@ -936,7 +936,7 @@ func TestUserStoreGetByUsername(t *testing.T) {
 
 	u1 := &model.User{}
 	u1.Email = model.NewId()
-	u1.Username = "n" + model.NewId()
+	u1.Username = model.NewId()
 	Must(store.User().Save(u1))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}))
 
@@ -956,7 +956,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 
 	u1 := &model.User{
 		Email:       model.NewId(),
-		Username:    "n" + model.NewId(),
+		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_GITLAB,
 		AuthData:    &auth,
 	}
@@ -966,7 +966,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 
 	u2 := &model.User{
 		Email:       model.NewId(),
-		Username:    "n" + model.NewId(),
+		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &auth2,
 	}
@@ -1013,7 +1013,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 	// test a special case where two users will have conflicting login information so we throw a special error
 	u3 := &model.User{
 		Email:       model.NewId(),
-		Username:    "n" + model.NewId(),
+		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &auth3,
 	}
@@ -1021,7 +1021,7 @@ func TestUserStoreGetForLogin(t *testing.T) {
 
 	u4 := &model.User{
 		Email:       model.NewId(),
-		Username:    "n" + model.NewId(),
+		Username:    model.NewId(),
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 		AuthData:    &u3.Username,
 	}
@@ -1659,6 +1659,44 @@ func TestUserStoreSearch(t *testing.T) {
 			t.Fatal("should not have found user")
 		}
 	}
+
+	// Check SearchNotInTeam finds previously deleted team members.
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u4.Id}))
+
+	if r1 := <-store.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u4.Id {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			t.Fatal("should not have found user")
+		}
+	}
+
+	Must(store.Team().UpdateMember(&model.TeamMember{TeamId: tid, UserId: u4.Id, DeleteAt: model.GetMillis() - 1000}))
+	if r1 := <-store.User().SearchNotInTeam(tid, "simo", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found := false
+		for _, profile := range profiles {
+			if profile.Id == u4.Id {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Fatal("should have found user")
+		}
+	}
 }
 
 func TestUserStoreSearchWithoutTeam(t *testing.T) {
@@ -1764,12 +1802,12 @@ func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
 
 	u1 := model.User{}
 	u1.Email = model.NewId()
-	u1.Username = "n" + model.NewId()
+	u1.Username = model.NewId()
 	u1.Roles = "system_user system_admin"
 
 	u2 := model.User{}
 	u2.Email = model.NewId()
-	u2.Username = "n" + model.NewId()
+	u2.Username = model.NewId()
 
 	if err := (<-store.User().Save(&u1)).Err; err != nil {
 		t.Fatal("couldn't save user", err)

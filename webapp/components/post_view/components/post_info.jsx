@@ -63,13 +63,8 @@ export default class PostInfo extends React.Component {
         $('#post_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
 
-    createDropdown() {
+    createDropdown(isSystemMessage) {
         const post = this.props.post;
-        const isSystemMessage = PostUtils.isSystemMessage(post);
-
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
-            return '';
-        }
 
         var type = 'Post';
         if (post.root_id && post.root_id.length > 0) {
@@ -82,7 +77,7 @@ export default class PostInfo extends React.Component {
             dataComments = this.props.commentCount;
         }
 
-        if (this.props.allowReply) {
+        if (!isSystemMessage) {
             dropdownContents.push(
                 <li
                     key='replyLink'
@@ -157,42 +152,42 @@ export default class PostInfo extends React.Component {
                     </a>
                 </li>
             );
-        }
 
-        if (this.props.post.is_pinned) {
-            dropdownContents.push(
-                <li
-                    key='unpinLink'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.unpinPost}
+            if (this.props.post.is_pinned) {
+                dropdownContents.push(
+                    <li
+                        key='unpinLink'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='post_info.unpin'
-                            defaultMessage='Un-pin from channel'
-                        />
-                    </a>
-                </li>
-            );
-        } else {
-            dropdownContents.push(
-                <li
-                    key='pinLink'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.pinPost}
+                        <a
+                            href='#'
+                            onClick={this.unpinPost}
+                        >
+                            <FormattedMessage
+                                id='post_info.unpin'
+                                defaultMessage='Un-pin from channel'
+                            />
+                        </a>
+                    </li>
+                );
+            } else {
+                dropdownContents.push(
+                    <li
+                        key='pinLink'
+                        role='presentation'
                     >
-                        <FormattedMessage
-                            id='post_info.pin'
-                            defaultMessage='Pin to channel'
-                        />
-                    </a>
-                </li>
-            );
+                        <a
+                            href='#'
+                            onClick={this.pinPost}
+                        >
+                            <FormattedMessage
+                                id='post_info.pin'
+                                defaultMessage='Pin to channel'
+                            />
+                        </a>
+                    </li>
+                );
+            }
         }
 
         if (this.canDelete) {
@@ -331,21 +326,28 @@ export default class PostInfo extends React.Component {
 
     render() {
         var post = this.props.post;
-        var comments = '';
-        var showCommentClass = '';
-        var commentCountText = this.props.commentCount;
         const flagIcon = Constants.FLAG_ICON_SVG;
 
         this.canDelete = PostUtils.canDeletePost(post);
         this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
 
-        if (this.props.commentCount >= 1) {
-            showCommentClass = ' icon--show';
-        } else {
-            commentCountText = '';
-        }
+        const isEphemeral = Utils.isPostEphemeral(post);
+        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
+        const isSystemMessage = PostUtils.isSystemMessage(post);
 
-        if (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && !Utils.isPostEphemeral(post) && this.props.allowReply) {
+        let comments = null;
+        let react = null;
+        if (!isEphemeral && !isPending && !isSystemMessage) {
+            let showCommentClass;
+            let commentCountText;
+            if (this.props.commentCount >= 1) {
+                showCommentClass = ' icon--show';
+                commentCountText = this.props.commentCount;
+            } else {
+                showCommentClass = '';
+                commentCountText = '';
+            }
+
             comments = (
                 <a
                     href='#'
@@ -361,51 +363,48 @@ export default class PostInfo extends React.Component {
                     </span>
                 </a>
             );
-        }
 
-        let react;
-        if (post.state !== Constants.POST_FAILED &&
-            post.state !== Constants.POST_LOADING &&
-            !Utils.isPostEphemeral(post) &&
-            Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
-            react = (
-                <span>
-                    <Overlay
-                        show={this.state.showEmojiPicker}
-                        placement='top'
-                        rootClose={true}
-                        container={this}
-                        onHide={() => this.setState({showEmojiPicker: false})}
-                        target={() => ReactDOM.findDOMNode(this.refs['reactIcon_' + post.id])}
+            if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+                react = (
+                    <span>
+                        <Overlay
+                            show={this.state.showEmojiPicker}
+                            placement='top'
+                            rootClose={true}
+                            container={this}
+                            onHide={() => this.setState({showEmojiPicker: false})}
+                            target={() => ReactDOM.findDOMNode(this.refs['reactIcon_' + post.id])}
 
-                    >
-                        <EmojiPicker
-                            onEmojiClick={this.reactEmojiClick}
-                            pickerLocation='top'
+                        >
+                            <EmojiPicker
+                                onEmojiClick={this.reactEmojiClick}
+                                pickerLocation='top'
 
-                        />
-                    </Overlay>
-                    <a
-                        href='#'
-                        className='reacticon__container'
-                        onClick={this.emojiPickerClick}
-                        ref={'reactIcon_' + post.id}
-                    ><i className='fa fa-smile-o'/>
-                    </a>
-                </span>
+                            />
+                        </Overlay>
+                        <a
+                            href='#'
+                            className='reacticon__container'
+                            onClick={this.emojiPickerClick}
+                            ref={'reactIcon_' + post.id}
+                        ><i className='fa fa-smile-o'/>
+                        </a>
+                    </span>
 
-            );
+                );
+            }
         }
 
         let options;
-        if (Utils.isPostEphemeral(post)) {
+        if (isEphemeral) {
             options = (
                 <li className='col col__remove'>
                     {this.createRemovePostButton()}
                 </li>
             );
-        } else {
-            const dropdown = this.createDropdown();
+        } else if (!isPending) {
+            const dropdown = this.createDropdown(isSystemMessage);
+
             if (dropdown) {
                 options = (
                     <li className='col col__reply'>
@@ -461,7 +460,7 @@ export default class PostInfo extends React.Component {
         }
 
         let flagTrigger;
-        if (!Utils.isPostEphemeral(post)) {
+        if (!isEphemeral) {
             flagTrigger = (
                 <OverlayTrigger
                     key={'flagtooltipkey' + flagVisible}
@@ -516,14 +515,12 @@ PostInfo.defaultProps = {
     post: null,
     commentCount: 0,
     isLastComment: false,
-    allowReply: false,
     sameUser: false
 };
 PostInfo.propTypes = {
     post: React.PropTypes.object.isRequired,
     commentCount: React.PropTypes.number.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
-    allowReply: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
     handleDropdownOpened: React.PropTypes.func.isRequired,
     sameUser: React.PropTypes.bool.isRequired,

@@ -28,7 +28,6 @@ func TestOAuthRegisterApp(t *testing.T) {
 		if _, err := Client.RegisterApp(oauthApp); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
-
 	}
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
@@ -188,8 +187,8 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
 
-	if _, err := Client.GetOAuthAppsByUser(); err != nil {
-		t.Fatal("Should have passed.")
+	if _, err := Client.GetOAuthAppsByUser(); err == nil {
+		t.Fatal("Should have failed.")
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false

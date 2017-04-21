@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -26,13 +25,12 @@ const (
 	PUSH_NOTIFY_PROP        = "push"
 	EMAIL_NOTIFY_PROP       = "email"
 
-	DEFAULT_LOCALE             = "en"
-	USER_AUTH_SERVICE_EMAIL    = "email"
-	USER_AUTH_SERVICE_USERNAME = "username"
+	DEFAULT_LOCALE          = "en"
+	USER_AUTH_SERVICE_EMAIL = "email"
 
 	USER_EMAIL_MAX_LENGTH     = 128
 	USER_NICKNAME_MAX_RUNES   = 64
-	USER_POSITION_MAX_RUNES   = 35
+	USER_POSITION_MAX_RUNES   = 64
 	USER_FIRST_NAME_MAX_RUNES = 64
 	USER_LAST_NAME_MAX_RUNES  = 64
 	USER_AUTH_DATA_MAX_LENGTH = 128
@@ -69,15 +67,15 @@ type User struct {
 }
 
 type UserPatch struct {
-	Username    *string    `json:"username"`
-	Nickname    *string    `json:"nickname"`
-	FirstName   *string    `json:"first_name"`
-	LastName    *string    `json:"last_name"`
-	Position    *string    `json:"position"`
-	Email       *string    `json:"email"`
-	Props       *StringMap `json:"props,omitempty"`
-	NotifyProps *StringMap `json:"notify_props,omitempty"`
-	Locale      *string    `json:"locale"`
+	Username    *string   `json:"username"`
+	Nickname    *string   `json:"nickname"`
+	FirstName   *string   `json:"first_name"`
+	LastName    *string   `json:"last_name"`
+	Position    *string   `json:"position"`
+	Email       *string   `json:"email"`
+	Props       StringMap `json:"props,omitempty"`
+	NotifyProps StringMap `json:"notify_props,omitempty"`
+	Locale      *string   `json:"locale"`
 }
 
 // IsValid validates the user and returns an error if it isn't configured
@@ -85,54 +83,63 @@ type UserPatch struct {
 func (u *User) IsValid() *AppError {
 
 	if len(u.Id) != 26 {
-		return NewAppError("User.IsValid", "model.user.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return InvalidUserError("id", "")
 	}
 
 	if u.CreateAt == 0 {
-		return NewAppError("User.IsValid", "model.user.is_valid.create_at.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("create_at", u.Id)
 	}
 
 	if u.UpdateAt == 0 {
-		return NewAppError("User.IsValid", "model.user.is_valid.update_at.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("update_at", u.Id)
 	}
 
 	if !IsValidUsername(u.Username) {
-		return NewAppError("User.IsValid", "model.user.is_valid.username.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("username", u.Id)
 	}
 
 	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 {
-		return NewAppError("User.IsValid", "model.user.is_valid.email.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("email", u.Id)
 	}
 
 	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
-		return NewAppError("User.IsValid", "model.user.is_valid.nickname.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("nickname", u.Id)
 	}
 
 	if utf8.RuneCountInString(u.Position) > USER_POSITION_MAX_RUNES {
-		return NewAppError("User.IsValid", "model.user.is_valid.position.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("position", u.Id)
 	}
 
 	if utf8.RuneCountInString(u.FirstName) > USER_FIRST_NAME_MAX_RUNES {
-		return NewAppError("User.IsValid", "model.user.is_valid.first_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("first_name", u.Id)
 	}
 
 	if utf8.RuneCountInString(u.LastName) > USER_LAST_NAME_MAX_RUNES {
-		return NewAppError("User.IsValid", "model.user.is_valid.last_name.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("last_name", u.Id)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > USER_AUTH_DATA_MAX_LENGTH {
-		return NewAppError("User.IsValid", "model.user.is_valid.auth_data.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("auth_data", u.Id)
 	}
 
 	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
-		return NewAppError("User.IsValid", "model.user.is_valid.auth_data_type.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("auth_data_type", u.Id)
 	}
 
 	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
-		return NewAppError("User.IsValid", "model.user.is_valid.auth_data_pwd.app_error", nil, "user_id="+u.Id, http.StatusBadRequest)
+		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
 	return nil
+}
+
+func InvalidUserError(fieldName string, userId string) *AppError {
+	id := fmt.Sprintf("model.user.is_valid.%s.app_error", fieldName)
+	details := ""
+	if userId != "" {
+		details = "user_id=" + userId
+	}
+	return NewAppError("User.IsValid", id, nil, details, http.StatusBadRequest)
 }
 
 // PreSave will set the Id and Username if missing.  It will also fill
@@ -144,7 +151,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Username == "" {
-		u.Username = "n" + NewId()
+		u.Username = NewId()
 	}
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -260,11 +267,11 @@ func (u *User) Patch(patch *UserPatch) {
 	}
 
 	if patch.Props != nil {
-		u.Props = *patch.Props
+		u.Props = patch.Props
 	}
 
 	if patch.NotifyProps != nil {
-		u.NotifyProps = *patch.NotifyProps
+		u.NotifyProps = patch.NotifyProps
 	}
 
 	if patch.Locale != nil {
@@ -571,10 +578,6 @@ func IsValidUsername(s string) bool {
 	}
 
 	if !validUsernameChars.MatchString(s) {
-		return false
-	}
-
-	if !unicode.IsLetter(rune(s[0])) {
 		return false
 	}
 

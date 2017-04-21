@@ -118,9 +118,7 @@ export default class ProfilePopover extends React.Component {
         if (webrtcEnabled && this.props.user.id !== this.state.currentUserId) {
             const isOnline = this.props.status !== UserStatuses.OFFLINE;
             let webrtcMessage;
-            let circleClass = 'offline';
             if (isOnline && !this.props.isBusy) {
-                circleClass = '';
                 webrtcMessage = (
                     <FormattedMessage
                         id='user_profile.webrtc.call'
@@ -143,32 +141,20 @@ export default class ProfilePopover extends React.Component {
                 );
             }
 
-            const webrtcTooltip = (
-                <Tooltip id='webrtcTooltip'>{webrtcMessage}</Tooltip>
-            );
-
             webrtc = (
                 <div
-                    className='webrtc__user-profile'
+                    data-toggle='tooltip'
                     key='makeCall'
+                    className='popover__row'
                 >
                     <a
                         href='#'
+                        className='text-nowrap user-popover__email'
                         onClick={() => this.initWebrtc()}
                         disabled={!isOnline}
                     >
-                        <OverlayTrigger
-                            delayShow={Constants.WEBRTC_TIME_DELAY}
-                            placement='top'
-                            overlay={webrtcTooltip}
-                        >
-                            <div
-                                id='webrtc-btn'
-                                className={'webrtc__button ' + circleClass}
-                            >
-                                <span dangerouslySetInnerHTML={{__html: Constants.VIDEO_ICON}}/>
-                            </div>
-                        </OverlayTrigger>
+                        <i className='fa fa-video-camera'/>
+                        {webrtcMessage}
                     </a>
                 </div>
             );
@@ -219,8 +205,6 @@ export default class ProfilePopover extends React.Component {
             );
         }
 
-        dataContent.push(webrtc);
-
         const email = this.props.user.email;
         if (global.window.mm_config.ShowEmailAddress === 'true' || UserStore.isSystemAdminForCurrentUser() || this.props.user === UserStore.getCurrentUser()) {
             dataContent.push(
@@ -244,7 +228,7 @@ export default class ProfilePopover extends React.Component {
                 <div
                     data-toggle='tooltip'
                     key='user-popover-dm'
-                    className='popover__row'
+                    className='popover__row first'
                 >
                     <a
                         href='#'
@@ -259,6 +243,7 @@ export default class ProfilePopover extends React.Component {
                     </a>
                 </div>
             );
+            dataContent.push(webrtc);
         }
 
         return (

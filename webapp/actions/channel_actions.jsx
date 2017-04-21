@@ -300,7 +300,7 @@ export function loadDMsAndGMsForUnreads() {
         if (unreads[id].msgs > 0 || unreads[id].mentions > 0) {
             const channel = ChannelStore.get(id);
             if (channel && channel.type === Constants.DM_CHANNEL) {
-                loadNewDMIfNeeded(Utils.getUserIdFromChannelName(channel));
+                loadNewDMIfNeeded(channel.id);
             } else if (channel && channel.type === Constants.GM_CHANNEL) {
                 loadNewGMIfNeeded(channel.id);
             }
@@ -432,10 +432,10 @@ export function createChannel(channel, success, error) {
             }
         },
         (err) => {
-            AsyncClient.dispatchError(err, 'createChannel');
-
             if (error) {
                 error(err);
+            } else {
+                AsyncClient.dispatchError(err, 'createChannel');
             }
         }
     );

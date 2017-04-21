@@ -64,8 +64,10 @@ type Routes struct {
 	OutgoingHooks *mux.Router // 'api/v4/hooks/outgoing'
 	OutgoingHook  *mux.Router // 'api/v4/hooks/outgoing/{hook_id:[A-Za-z0-9]+}'
 
-	Admin      *mux.Router // 'api/v4/admin'
-	OAuth      *mux.Router // 'api/v4/oauth'
+	OAuth     *mux.Router // 'api/v4/oauth'
+	OAuthApps *mux.Router // 'api/v4/oauth/apps'
+	OAuthApp  *mux.Router // 'api/v4/oauth/apps/{app_id:[A-Za-z0-9]+}'
+
 	SAML       *mux.Router // 'api/v4/saml'
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
@@ -76,11 +78,13 @@ type Routes struct {
 
 	System *mux.Router // 'api/v4/system'
 
-	Preferences *mux.Router // 'api/v4/preferences'
+	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
 	License *mux.Router // 'api/v4/license'
 
 	Public *mux.Router // 'api/v4/public'
+
+	Reactions *mux.Router // 'api/v4/reactions'
 
 	Emojis *mux.Router // 'api/v4/emoji'
 	Emoji  *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
@@ -144,8 +148,11 @@ func InitApi(full bool) {
 	BaseRoutes.OutgoingHook = BaseRoutes.OutgoingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
 
 	BaseRoutes.SAML = BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+
 	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
-	BaseRoutes.Admin = BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
+	BaseRoutes.OAuthApps = BaseRoutes.OAuth.PathPrefix("/apps").Subrouter()
+	BaseRoutes.OAuthApp = BaseRoutes.OAuthApps.PathPrefix("/{app_id:[A-Za-z0-9]+}").Subrouter()
+
 	BaseRoutes.Compliance = BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
 	BaseRoutes.Cluster = BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
 	BaseRoutes.LDAP = BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
@@ -154,6 +161,7 @@ func InitApi(full bool) {
 	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
+	BaseRoutes.Reactions = BaseRoutes.ApiRoot.PathPrefix("/reactions").Subrouter()
 
 	BaseRoutes.Emojis = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
 	BaseRoutes.Emoji = BaseRoutes.Emojis.PathPrefix("/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -177,7 +185,9 @@ func InitApi(full bool) {
 	InitStatus()
 	InitWebSocket()
 	InitEmoji()
+	InitOAuth()
 	InitReaction()
+	InitWebrtc()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

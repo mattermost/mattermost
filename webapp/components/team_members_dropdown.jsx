@@ -8,7 +8,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {removeUserFromTeam, updateTeamMemberRoles} from 'actions/team_actions.jsx';
-import {updateActive} from 'actions/user_actions.jsx';
+import {loadMyTeamMembers, updateActive} from 'actions/user_actions.jsx';
 
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -49,6 +49,10 @@ export default class TeamMembersDropdown extends React.Component {
                 'team_user',
                 () => {
                     AsyncClient.getUser(this.props.user.id);
+
+                    if (this.props.user.id === me.id) {
+                        loadMyTeamMembers();
+                    }
                 },
                 (err) => {
                     this.setState({serverError: err.message});

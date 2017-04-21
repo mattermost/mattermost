@@ -186,7 +186,9 @@ func CreateUser(user *model.User) (*model.User, *model.AppError) {
 		}
 	}
 
-	user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+	if _, ok := utils.GetSupportedLocales()[user.Locale]; !ok {
+		user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+	}
 
 	if ruser, err := createUser(user); err != nil {
 		return nil, err
@@ -940,9 +942,7 @@ func UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppEr
 		return nil, err
 	}
 
-	SanitizeProfile(updatedUser, asAdmin)
-
-	sendUpdatedUserEvent(updatedUser)
+	sendUpdatedUserEvent(*updatedUser, asAdmin)
 
 	return updatedUser, nil
 }
@@ -960,14 +960,14 @@ func PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*model.User
 		return nil, err
 	}
 
-	SanitizeProfile(updatedUser, asAdmin)
-
-	sendUpdatedUserEvent(updatedUser)
+	sendUpdatedUserEvent(*updatedUser, asAdmin)
 
 	return updatedUser, nil
 }
 
-func sendUpdatedUserEvent(user *model.User) {
+func sendUpdatedUserEvent(user model.User, asAdmin bool) {
+	SanitizeProfile(&user, asAdmin)
+
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[user.Id] = true
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)

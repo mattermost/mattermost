@@ -1688,10 +1688,6 @@
     "translation": "Unable to set preferences for other user"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
   },
@@ -1704,8 +1700,16 @@
     "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3608,6 +3612,10 @@
     "translation": "Expires in must be set"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
+  },
+  {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri"
   },
@@ -3961,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a zero or positive number."
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -5202,6 +5210,10 @@
   {
     "id": "store.sql_post.search.warn",
     "translation": "Query error searching posts: %v"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.update.app_error",

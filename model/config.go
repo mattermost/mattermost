@@ -151,6 +151,7 @@ type ServiceSettings struct {
 	AllowEditPost                            *string
 	PostEditTimeLimit                        *int
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
+	EnablePostSearch                         *bool
 	EnableUserTypingMessages                 *bool
 	ClusterLogTimeoutMilliseconds            *int
 }
@@ -698,7 +699,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
-		o.SupportSettings.TermsOfServiceLink = nil
+		*o.SupportSettings.TermsOfServiceLink = ""
 	}
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
@@ -707,7 +708,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
-		o.SupportSettings.PrivacyPolicyLink = nil
+		*o.SupportSettings.PrivacyPolicyLink = ""
 	}
 
 	if o.SupportSettings.PrivacyPolicyLink == nil {
@@ -716,7 +717,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.AboutLink) {
-		o.SupportSettings.AboutLink = nil
+		*o.SupportSettings.AboutLink = ""
 	}
 
 	if o.SupportSettings.AboutLink == nil {
@@ -725,7 +726,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.HelpLink) {
-		o.SupportSettings.HelpLink = nil
+		*o.SupportSettings.HelpLink = ""
 	}
 
 	if o.SupportSettings.HelpLink == nil {
@@ -734,7 +735,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.ReportAProblemLink) {
-		o.SupportSettings.ReportAProblemLink = nil
+		*o.SupportSettings.ReportAProblemLink = ""
 	}
 
 	if o.SupportSettings.ReportAProblemLink == nil {
@@ -1146,6 +1147,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds == nil {
 		o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = new(int64)
 		*o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = 5000
+	}
+
+	if o.ServiceSettings.EnablePostSearch == nil {
+		o.ServiceSettings.EnablePostSearch = new(bool)
+		*o.ServiceSettings.EnablePostSearch = true
 	}
 
 	if o.ServiceSettings.EnableUserTypingMessages == nil {

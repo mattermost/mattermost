@@ -35,7 +35,9 @@ var watcher *fsnotify.Watcher
 var Cfg *model.Config = &model.Config{}
 var CfgDiagnosticId = ""
 var CfgHash = ""
+var ClientCfgHash = ""
 var CfgFileName string = ""
+var CfgDisableConfigWatch = false
 var ClientCfg map[string]string = map[string]string{}
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
@@ -66,6 +68,8 @@ func FindDir(dir string) string {
 		fileName, _ = filepath.Abs("./" + dir + "/")
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../" + dir + "/")
+	} else if _, err := os.Stat("../../" + dir + "/"); err == nil {
+		fileName, _ = filepath.Abs("../../" + dir + "/")
 	}
 
 	return fileName + "/"
@@ -176,6 +180,10 @@ func InitializeConfigWatch() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
+	if CfgDisableConfigWatch {
+		return
+	}
+
 	if watcher == nil {
 		var err error
 		watcher, err = fsnotify.NewWatcher()
@@ -213,11 +221,13 @@ func EnableConfigWatch() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
-	configFile := filepath.Clean(CfgFileName)
-	configDir, _ := filepath.Split(configFile)
-
 	if watcher != nil {
-		watcher.Add(configDir)
+		configFile := filepath.Clean(CfgFileName)
+		configDir, _ := filepath.Split(configFile)
+
+		if watcher != nil {
+			watcher.Add(configDir)
+		}
 	}
 }
 
@@ -257,6 +267,7 @@ func LoadConfig(fileName string) {
 	viper.SetConfigType("json")
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath("../config")
+	viper.AddConfigPath("../../config")
 	viper.AddConfigPath(".")
 
 	configReadErr := viper.ReadInConfig()
@@ -313,6 +324,8 @@ func LoadConfig(fileName string) {
 	Cfg = &config
 	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
 	ClientCfg = getClientConfig(Cfg)
+	clientCfgJson, _ := json.Marshal(ClientCfg)
+	ClientCfgHash = fmt.Sprintf("%x", md5.Sum(clientCfgJson))
 
 	// Actions that need to run every time the config is loaded
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
