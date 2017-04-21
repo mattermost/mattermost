@@ -340,6 +340,22 @@ export default class SignupController extends React.Component {
                             {signupControls}
                             {serverError}
                         </div>
+                        <span className='color--light'>
+                            <FormattedMessage
+                                id='signup_user_completed.haveAccount'
+                                defaultMessage='Already have an account?'
+                            />
+                            {' '}
+                            <Link
+                                to={'/login'}
+                                query={this.props.location.query}
+                            >
+                                <FormattedMessage
+                                    id='signup_user_completed.signIn'
+                                    defaultMessage='Click here to sign in.'
+                                />
+                            </Link>
+                        </span>
                     </div>
                 </div>
             </div>
