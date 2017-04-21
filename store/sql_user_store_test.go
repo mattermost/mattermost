@@ -858,6 +858,44 @@ func TestUserStoreGetProfilesByUsernames(t *testing.T) {
 			t.Fatal("invalid returned user")
 		}
 	}
+
+	team2Id := model.NewId()
+
+	u3 := &model.User{}
+	u3.Email = model.NewId()
+	u3.Username = "username3" + model.NewId()
+	Must(store.User().Save(u3))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: team2Id, UserId: u3.Id}))
+
+	if r1 := <-store.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, ""); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
+		}
+
+		if users[u3.Id].Id != u3.Id {
+			t.Fatal("invalid returned user")
+		}
+	}
+
+	if r1 := <-store.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, teamId); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.(map[string]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users")
+		}
+
+		if users[u1.Id].Id != u1.Id {
+			t.Fatal("invalid returned user")
+		}
+	}
 }
 
 func TestUserStoreGetSystemAdminProfiles(t *testing.T) {
