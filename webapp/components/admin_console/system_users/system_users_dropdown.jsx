@@ -263,7 +263,7 @@ export default class SystemUsersDropdown extends React.Component {
                     >
                         <FormattedMessage
                             id='admin.user_item.makeActive'
-                            defaultMessage='Make Active'
+                            defaultMessage='Activate'
                         />
                     </a>
                 </li>
