@@ -42,6 +42,7 @@
     "twemoji": "2.2.5",
     "velocity-animate": "1.4.3",
     "webrtc-adapter": "3.2.0",
+    "whatwg-fetch": "2.0.3",
     "xregexp": "3.1.1"
   },
   "devDependencies": {
