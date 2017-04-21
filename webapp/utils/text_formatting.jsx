@@ -192,8 +192,7 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
             const truncated = usernameLower.substring(0, c);
             const suffix = usernameLower.substring(c);
 
-            // If we've found a username or run out of punctuation to trim off, render it as an at mention
-            if (mentionExists(truncated) || !punctuation.test(truncated[truncated.length - 1])) {
+            if (mentionExists(truncated)) {
                 const alias = addToken(truncated, '@' + truncated);
                 return prefix + alias + suffix;
             }

@@ -51,16 +51,16 @@ describe('TextFormatting.AtMentions', function() {
     });
 
     it('Implied at mentions', function() {
-        // PLT-4454 Assume users exist for things that look like at mentions until we support the new mention syntax
+        // implied at mention is presented as is and non-clickable
         assert.equal(
             TextFormatting.autolinkAtMentions('@user', new Map(), {}),
-            '$MM_ATMENTION0',
+            '@user',
             'should imply user exists and replace mention with token'
         );
 
         assert.equal(
             TextFormatting.autolinkAtMentions('@user.', new Map(), {}),
-            '$MM_ATMENTION0.',
+            '@user.',
             'should assume username doesn\'t end in punctuation'
         );
     });
