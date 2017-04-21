@@ -223,6 +223,13 @@ export default class AddUsersToTeam extends React.Component {
             />
         );
 
+        const buttonSubmitText = (
+            <FormattedMessage
+                id='multiselect.add'
+                defaultMessage='Add'
+            />
+        );
+
         return (
             <Modal
                 dialogClassName={'more-modal more-direct-channels'}
@@ -258,6 +265,7 @@ export default class AddUsersToTeam extends React.Component {
                         handleSubmit={this.handleSubmit}
                         maxValues={MAX_SELECTABLE_VALUES}
                         numRemainingText={numRemainingText}
+                        buttonSubmitText={buttonSubmitText}
                     />
                 </Modal.Body>
             </Modal>
