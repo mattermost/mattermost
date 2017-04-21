@@ -365,7 +365,8 @@ class UserSettingsGeneralTab extends React.Component {
             lastName: user.last_name,
             nickname: user.nickname,
             position: user.position,
-            email: user.email,
+            originalEmail: user.email,
+            email: '',
             confirmEmail: '',
             picture: null,
             loadingPicture: false,
@@ -424,12 +425,28 @@ class UserSettingsGeneralTab extends React.Component {
 
             if (this.props.user.auth_service === '') {
                 inputs.push(
+                    <div key='currentEmailSetting'>
+                        <div className='form-group'>
+                            <label className='col-sm-5 control-label'>
+                                <FormattedMessage
+                                    id='user.settings.general.currentEmail'
+                                    defaultMessage='Current Email'
+                                />
+                            </label>
+                            <div className='col-sm-7'>
+                                <label className='control-label'>{this.state.originalEmail}</label>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                inputs.push(
                     <div key='emailSetting'>
                         <div className='form-group'>
                             <label className='col-sm-5 control-label'>
                                 <FormattedMessage
-                                    id='user.settings.general.primaryEmail'
-                                    defaultMessage='Primary Email'
+                                    id='user.settings.general.newEmail'
+                                    defaultMessage='New Email'
                                 />
                             </label>
                             <div className='col-sm-7'>
