@@ -34,6 +34,23 @@ func GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
 	}
 }
 
+func DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+	post, err := GetSinglePost(reaction.PostId)
+	if err != nil {
+		return err
+	}
+
+	if result := <-Srv.Store.Reaction().Delete(reaction); result.Err != nil {
+		return result.Err
+	} else {
+		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
+
+		InvalidateCacheForReactions(reaction.PostId)
+	}
+
+	return nil
+}
+
 func sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)

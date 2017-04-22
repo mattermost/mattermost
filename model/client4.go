@@ -2533,3 +2533,13 @@ func (c *Client4) GetReactions(postId string) ([]*Reaction, *Response) {
 		return ReactionsFromJson(r.Body), BuildResponse(r)
 	}
 }
+
+// DeleteReaction deletes reaction of a user in a post.
+func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetUserRoute(reaction.UserId) + c.GetPostRoute(reaction.PostId) + fmt.Sprintf("/reactions/%v", reaction.EmojiName)); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}

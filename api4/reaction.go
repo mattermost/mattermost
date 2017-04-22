@@ -17,6 +17,7 @@ func InitReaction() {
 
 	BaseRoutes.Reactions.Handle("", ApiSessionRequired(saveReaction)).Methods("POST")
 	BaseRoutes.Post.Handle("/reactions", ApiSessionRequired(getReactions)).Methods("GET")
+	BaseRoutes.ReactionByNameForPostForUser.Handle("", ApiSessionRequired(deleteReaction)).Methods("DELETE")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -70,4 +71,45 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.ReactionsToJson(reactions)))
 		return
 	}
+}
+
+func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireEmojiName()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if c.Params.UserId != c.Session.UserId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	reaction := &model.Reaction{
+		UserId:    c.Params.UserId,
+		PostId:    c.Params.PostId,
+		EmojiName: c.Params.EmojiName,
+	}
+
+	err := app.DeleteReactionForPost(reaction)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
