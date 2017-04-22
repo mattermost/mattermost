@@ -58,6 +58,10 @@ func CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *m
 	if result := <-Srv.Store.Emoji().Save(emoji); result.Err != nil {
 		return nil, result.Err
 	} else {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
+		message.Add("emoji", emoji.ToJson())
+
+		go Publish(message)
 		return result.Data.(*model.Emoji), nil
 	}
 }
