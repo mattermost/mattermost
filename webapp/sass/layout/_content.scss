@@ -67,13 +67,6 @@
     }
 }
 
-#post-create {
-    @include flex(0 0 auto);
-    background: $white;
-    width: 100%;
-    z-index: 3;
-}
-
 #archive-link-home {
     @include flex(0 0 auto);
     cursor: pointer;
