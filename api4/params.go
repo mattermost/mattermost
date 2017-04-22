@@ -32,6 +32,7 @@ type ApiParams struct {
 	TeamName       string
 	ChannelName    string
 	PreferenceName string
+	EmojiName      string
 	Category       string
 	Service        string
 	Page           int
@@ -109,6 +110,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["preference_name"]; ok {
 		params.PreferenceName = val
+	}
+
+	if val, ok := props["emoji_name"]; ok {
+		params.EmojiName = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {
