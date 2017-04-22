@@ -2379,6 +2379,17 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	}
 }
 
+// ExecuteCommand executes a given command.
+func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
+	commandArgs := &CommandArgs{ChannelId: channelId, Command: command}
+	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandResponseFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // ListCommands will retrieve a list of commands available in the team.
 func (c *Client4) ListAutocompleteCommands(teamId string) ([]*Command, *Response) {
 	if r, err := c.DoApiGet(c.GetTeamAutoCompleteCommandsRoute(teamId), ""); err != nil {
