@@ -282,9 +282,9 @@ export default class ProfilePopover extends React.Component {
                 {this.generateImage(this.props.src)}
                 {this.generateFullname()}
                 {this.generatePosition()}
-                {this.generateWebrtc()}
                 {this.generateEmail()}
                 {this.generateDirectMessage()}
+                {this.generateWebrtc()}
             </Popover>
         );
     }
