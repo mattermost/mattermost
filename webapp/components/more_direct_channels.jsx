@@ -279,6 +279,13 @@ export default class MoreDirectChannels extends React.Component {
             }
         }
 
+        const buttonSubmitText = (
+            <FormattedMessage
+                id='multiselect.go'
+                defaultMessage='Go'
+            />
+        );
+
         const numRemainingText = (
             <FormattedMessage
                 id='multiselect.numPeopleRemaining'
@@ -320,6 +327,7 @@ export default class MoreDirectChannels extends React.Component {
                         noteText={note}
                         maxValues={MAX_SELECTABLE_VALUES}
                         numRemainingText={numRemainingText}
+                        buttonSubmitText={buttonSubmitText}
                     />
                 </Modal.Body>
             </Modal>
