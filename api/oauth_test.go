@@ -4,10 +4,11 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"net/url"
 	"testing"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestRegisterApp(t *testing.T) {
@@ -156,8 +157,8 @@ func TestGetOAuthAppsByUser(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
 
-	if _, err := Client.GetOAuthAppsByUser(); err != nil {
-		t.Fatal("Should have passed.")
+	if _, err := Client.GetOAuthAppsByUser(); err == nil {
+		t.Fatal("Should have failed.")
 	}
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
@@ -194,8 +195,8 @@ func TestGetOAuthAppsByUser(t *testing.T) {
 	} else {
 		apps := result.Data.([]*model.OAuthApp)
 
-		if len(apps) < 4 {
-			t.Fatal("incorrect number of apps should have been 4 or more")
+		if len(apps) < 2 {
+			t.Fatal("incorrect number of apps should have been 2 or more")
 		}
 	}
 }

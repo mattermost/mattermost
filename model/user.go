@@ -4,6 +4,7 @@
 package model
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -533,6 +534,13 @@ func UserListFromJson(data io.Reader) []*User {
 	} else {
 		return nil
 	}
+}
+
+func HashSha256(text string) string {
+	hash := sha256.New()
+	hash.Write([]byte(text))
+
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword

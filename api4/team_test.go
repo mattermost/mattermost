@@ -126,7 +126,7 @@ func TestGetAllTeams(t *testing.T) {
 	rrteams, resp := Client.GetAllTeams("", 1, 1)
 	CheckNoError(t, resp)
 
-	if (len(rrteams) != 1) {
+	if len(rrteams) != 1 {
 		t.Fatal("wrong number of teams - should be 1")
 	}
 
@@ -139,21 +139,21 @@ func TestGetAllTeams(t *testing.T) {
 	rrteams1, resp := Client.GetAllTeams("", 1, 0)
 	CheckNoError(t, resp)
 
-	if (len(rrteams1) != 0) {
+	if len(rrteams1) != 0 {
 		t.Fatal("wrong number of teams - should be 0")
 	}
 
 	rrteams2, resp := th.SystemAdminClient.GetAllTeams("", 1, 1)
 	CheckNoError(t, resp)
 
-	if (len(rrteams2) != 1) {
+	if len(rrteams2) != 1 {
 		t.Fatal("wrong number of teams - should be 1")
 	}
 
 	rrteams2, resp = Client.GetAllTeams("", 1, 0)
 	CheckNoError(t, resp)
 
-	if (len(rrteams2) != 0) {
+	if len(rrteams2) != 0 {
 		t.Fatal("wrong number of teams - should be 0")
 	}
 

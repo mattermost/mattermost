@@ -69,6 +69,10 @@ export default class AdminSettings extends React.Component {
                 if (callback) {
                     callback();
                 }
+
+                if (this.handleSaved) {
+                    this.handleSaved(config);
+                }
             },
             (err) => {
                 this.setState({
@@ -78,6 +82,10 @@ export default class AdminSettings extends React.Component {
 
                 if (callback) {
                     callback();
+                }
+
+                if (this.handleSaved) {
+                    this.handleSaved(config);
                 }
             }
         );
