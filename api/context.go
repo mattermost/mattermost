@@ -33,17 +33,18 @@ var allowedMethods []string = []string{
 }
 
 type Context struct {
-	Session      model.Session
-	RequestId    string
-	IpAddress    string
-	Path         string
-	Err          *model.AppError
-	teamURLValid bool
-	teamURL      string
-	siteURL      string
-	T            goi18n.TranslateFunc
-	Locale       string
-	TeamId       string
+	Session       model.Session
+	RequestId     string
+	IpAddress     string
+	Path          string
+	Err           *model.AppError
+	teamURLValid  bool
+	teamURL       string
+	siteURL       string
+	siteURLHeader string
+	T             goi18n.TranslateFunc
+	Locale        string
+	TeamId        string
 }
 
 func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -154,6 +155,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.SetSiteURL(*utils.Cfg.ServiceSettings.SiteURL)
+	c.SetSiteURLHeader(GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
@@ -442,6 +444,14 @@ func (c *Context) GetTeamURL() string {
 
 func (c *Context) GetSiteURL() string {
 	return c.siteURL
+}
+
+func (c *Context) SetSiteURLHeader(url string) {
+	c.siteURLHeader = strings.TrimRight(url, "/")
+}
+
+func (c *Context) GetSiteURLHeader() string {
+	return c.siteURLHeader
 }
 
 func (c *Context) GetCurrentTeamMember() *model.TeamMember {
