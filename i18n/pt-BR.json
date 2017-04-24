@@ -1002,6 +1002,10 @@
     "translation": "Inicializando as rotas de API emoji"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Inicializando as rotas de API emoji"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "O armazenamento de arquivos não está configurado corretamente. Por favor, configure o S3 ou o armazenamento de arquivos no servidor local."
   },
@@ -1684,10 +1688,6 @@
     "translation": "Não foi possível ajustar as preferências para o outro usuário"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Falha ao deletar a reação devido ao ID do canal não corresponder com o ID do post na URL"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Falha ao obter as reações devido ao ID do canal não corresponder com o ID do post na URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Esta reação não é válida."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Falha ao salvar a reação devido ao ID do canal não corresponder com o ID do post na URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Você não pode salvar a reação de outro usuário."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3608,6 +3616,10 @@
     "translation": "Uri de redirecionamento inválida"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Tipo de resposta inválida"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "Escopo inválido"
   },
@@ -3702,6 +3714,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "Não foi possível escrever o pedido"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Falta o parâmetro channel"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Falta o parâmetro team"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Tamanho máximo do arquivo inválido nas configurações de arquivo. Deve ser zero ou um número positivo."
+    "translation": "Tamanho máximo de arquivo inválido nas configurações de arquivo. Deve ser um número inteiro maior que zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -5186,6 +5206,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "Você não pode atualizar um Post"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Pesquisas foram desabilitadas neste servidor. Por favor entre em contato o Administrador do Sistema."
   },
   {
     "id": "store.sql_post.search.warn",
