@@ -4,10 +4,11 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
 )
@@ -47,7 +48,7 @@ func GetSession(token string) (*model.Session, *model.AppError) {
 		} else {
 			session = sessionResult.Data.(*model.Session)
 
-			if session.IsExpired() || session.Token != token {
+			if session == nil || session.IsExpired() || session.Token != token {
 				return nil, model.NewLocAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": sessionResult.Err.DetailedError}, "")
 			} else {
 				AddSessionToCache(session)
