@@ -32,7 +32,7 @@ class WebClientClass extends Client {
     }
     trackEvent(category, event, props) {
         if (global.window && global.window.analytics) {
-            const properties = Object.assign({category, type: event, user_id: UserStore.getCurrentId()}, props);
+            const properties = Object.assign({category, type: event, user_actual_id: UserStore.getCurrentId()}, props);
             const options = {
                 context: {
                     ip: '0.0.0.0'
