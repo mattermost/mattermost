@@ -430,11 +430,7 @@ func GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.Ap
 		return nil, err
 	}
 
-	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
-	}
-
-	return users, nil
+	return sanitizeProfiles(users, asAdmin), nil
 }
 
 func GetUsersEtag() string {
@@ -479,11 +475,7 @@ func GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*
 		return nil, err
 	}
 
-	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
-	}
-
-	return users, nil
+	return sanitizeProfiles(users, asAdmin), nil
 }
 
 func GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -492,11 +484,7 @@ func GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) (
 		return nil, err
 	}
 
-	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
-	}
-
-	return users, nil
+	return sanitizeProfiles(users, asAdmin), nil
 }
 
 func GetUsersInTeamEtag(teamId string) string {
@@ -537,11 +525,7 @@ func GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool
 		return nil, err
 	}
 
-	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
-	}
-
-	return users, nil
+	return sanitizeProfiles(users, asAdmin), nil
 }
 
 func GetUsersNotInChannel(teamId string, channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -574,11 +558,7 @@ func GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage
 		return nil, err
 	}
 
-	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
-	}
-
-	return users, nil
+	return sanitizeProfiles(users, asAdmin), nil
 }
 
 func GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -587,11 +567,7 @@ func GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User
 		return nil, err
 	}
 
-	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
-	}
-
-	return users, nil
+	return sanitizeProfiles(users, asAdmin), nil
 }
 
 func GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.AppError) {
@@ -607,13 +583,25 @@ func GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppErr
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
-
-		for _, u := range users {
-			SanitizeProfile(u, asAdmin)
-		}
-
-		return users, nil
+		return sanitizeProfiles(users, asAdmin), nil
 	}
+}
+
+func GetUsersByUsernames(usernames []string, asAdmin bool) ([]*model.User, *model.AppError) {
+	if result := <-Srv.Store.User().GetProfilesByUsernames(usernames, ""); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users := result.Data.([]*model.User)
+		return sanitizeProfiles(users, asAdmin), nil
+	}
+}
+
+func sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
+	for _, u := range users {
+		SanitizeProfile(u, asAdmin)
+	}
+
+	return users
 }
 
 func GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
