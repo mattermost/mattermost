@@ -172,6 +172,7 @@ export default class SuggestionBox extends React.Component {
                 e.preventDefault();
             } else if (e.which === KeyCodes.ENTER || e.which === KeyCodes.TAB) {
                 GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
+                this.props.onKeyDown(e);
                 e.preventDefault();
             } else if (e.which === KeyCodes.ESCAPE) {
                 GlobalActions.emitClearSuggestions(this.suggestionId);
