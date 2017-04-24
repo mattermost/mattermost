@@ -437,7 +437,7 @@ func TestDecode_DecodeHookType(t *testing.T) {
 func TestDecode_Nil(t *testing.T) {
 	t.Parallel()
 
-	var input interface{} = nil
+	var input interface{}
 	result := Basic{
 		Vstring: "foo",
 	}

@@ -975,6 +975,38 @@ func TestToStringSliceE(t *testing.T) {
 	}
 }
 
+func TestToDurationSliceE(t *testing.T) {
+	tests := []struct {
+		input  interface{}
+		expect []time.Duration
+		iserr  bool
+	}{
+		{[]string{"1s", "1m"}, []time.Duration{time.Second, time.Minute}, false},
+		{[]int{1, 2}, []time.Duration{1, 2}, false},
+		{[]interface{}{1, 3}, []time.Duration{1, 3}, false},
+		// errors
+		{nil, nil, true},
+		{testing.T{}, nil, true},
+	}
+
+	for i, test := range tests {
+		errmsg := fmt.Sprintf("i = %d", i) // assert helper message
+
+		v, err := ToDurationSliceE(test.input)
+		if test.iserr {
+			assert.Error(t, err, errmsg)
+			continue
+		}
+
+		assert.NoError(t, err, errmsg)
+		assert.Equal(t, test.expect, v, errmsg)
+
+		// Non-E test
+		v = ToDurationSlice(test.input)
+		assert.Equal(t, test.expect, v, errmsg)
+	}
+}
+
 func TestToBoolE(t *testing.T) {
 	tests := []struct {
 		input  interface{}

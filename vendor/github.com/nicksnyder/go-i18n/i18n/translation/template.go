@@ -13,6 +13,10 @@ type template struct {
 }
 
 func newTemplate(src string) (*template, error) {
+	if src == "" {
+		return new(template), nil
+	}
+
 	var tmpl template
 	err := tmpl.parseTemplate(src)
 	return &tmpl, err

@@ -59,7 +59,8 @@ func dial(handler serverType, t *testing.T) *Client {
 	}()
 
 	config := &ClientConfig{
-		User: "testuser",
+		User:            "testuser",
+		HostKeyCallback: InsecureIgnoreHostKey(),
 	}
 
 	conn, chans, reqs, err := NewClientConn(c2, "", config)
@@ -641,7 +642,8 @@ func TestSessionID(t *testing.T) {
 	}
 	serverConf.AddHostKey(testSigners["ecdsa"])
 	clientConf := &ClientConfig{
-		User: "user",
+		HostKeyCallback: InsecureIgnoreHostKey(),
+		User:            "user",
 	}
 
 	go func() {
@@ -747,7 +749,9 @@ func TestHostKeyAlgorithms(t *testing.T) {
 
 	// By default, we get the preferred algorithm, which is ECDSA 256.
 
-	clientConf := &ClientConfig{}
+	clientConf := &ClientConfig{
+		HostKeyCallback: InsecureIgnoreHostKey(),
+	}
 	connect(clientConf, KeyAlgoECDSA256)
 
 	// Client asks for RSA explicitly.

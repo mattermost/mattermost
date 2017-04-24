@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:generate go run gen.go gen_common.go gen_plural.go
+//go:generate go run gen.go gen_common.go
 
 // Package number contains tools and data for formatting numbers.
 package number

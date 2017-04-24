@@ -19,7 +19,7 @@ two versions of Go, currently: 1.6 and 1.7.
 
 * KISS;
 * Fast;
-* Small API, if its easy to code in Go, don't make a function for it.
+* Small API. If it's easy to code in Go, don't make a function for it.
 
 # Users
 

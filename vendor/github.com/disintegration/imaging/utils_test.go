@@ -15,7 +15,7 @@ func testParallelN(enabled bool, n, procs int) bool {
 		}
 	})
 	for i := 0; i < n; i++ {
-		if data[i] != true {
+		if !data[i] {
 			return false
 		}
 	}
@@ -27,7 +27,7 @@ func TestParallel(t *testing.T) {
 	for _, e := range []bool{true, false} {
 		for _, n := range []int{1, 10, 100, 1000} {
 			for _, p := range []int{1, 2, 4, 8, 16, 100} {
-				if testParallelN(e, n, p) != true {
+				if !testParallelN(e, n, p) {
 					t.Errorf("test [parallel %v %d %d] failed", e, n, p)
 				}
 			}
@@ -56,26 +56,6 @@ func TestClamp(t *testing.T) {
 	for _, d := range td {
 		if clamp(d.f) != d.u {
 			t.Errorf("test [clamp %v %v] failed: %v", d.f, d.u, clamp(d.f))
-		}
-	}
-}
-
-func TestClampint32(t *testing.T) {
-	td := []struct {
-		i int32
-		u uint8
-	}{
-		{0, 0},
-		{255, 255},
-		{128, 128},
-		{256, 255},
-		{2500, 255},
-		{-10, 0},
-	}
-
-	for _, d := range td {
-		if clampint32(d.i) != d.u {
-			t.Errorf("test [clampint32 %v %v] failed: %v", d.i, d.u, clampint32(d.i))
 		}
 	}
 }

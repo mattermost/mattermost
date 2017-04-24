@@ -14,13 +14,17 @@ package dns
 import (
 	crand "crypto/rand"
 	"encoding/binary"
+	"fmt"
 	"math/big"
 	"math/rand"
 	"strconv"
 	"sync"
 )
 
-const maxCompressionOffset = 2 << 13 // We have 14 bits for the compression pointer
+const (
+	maxCompressionOffset    = 2 << 13 // We have 14 bits for the compression pointer
+	maxDomainNameWireOctets = 255     // See RFC 1035 section 2.3.4
+)
 
 var (
 	ErrAlg           error = &Error{err: "bad algorithm"}                  // ErrAlg indicates an error with the (DNSSEC) algorithm.
@@ -33,6 +37,7 @@ var (
 	ErrKeyAlg        error = &Error{err: "bad key algorithm"}              // ErrKeyAlg indicates that the algorithm in the key is not valid.
 	ErrKey           error = &Error{err: "bad key"}
 	ErrKeySize       error = &Error{err: "bad key size"}
+	ErrLongDomain    error = &Error{err: fmt.Sprintf("domain name exceeded %d wire-format octets", maxDomainNameWireOctets)}
 	ErrNoSig         error = &Error{err: "no signature found"}
 	ErrPrivKey       error = &Error{err: "bad private key"}
 	ErrRcode         error = &Error{err: "bad rcode"}
@@ -329,6 +334,7 @@ func UnpackDomainName(msg []byte, off int) (string, int, error) {
 	s := make([]byte, 0, 64)
 	off1 := 0
 	lenmsg := len(msg)
+	maxLen := maxDomainNameWireOctets
 	ptr := 0 // number of pointers followed
 Loop:
 	for {
@@ -353,8 +359,10 @@ Loop:
 					fallthrough
 				case '"', '\\':
 					s = append(s, '\\', b)
+					// presentation-format \X escapes add an extra byte
+					maxLen += 1
 				default:
-					if b < 32 || b >= 127 { // unprintable use \DDD
+					if b < 32 || b >= 127 { // unprintable, use \DDD
 						var buf [3]byte
 						bufs := strconv.AppendInt(buf[:0], int64(b), 10)
 						s = append(s, '\\')
@@ -364,6 +372,8 @@ Loop:
 						for _, r := range bufs {
 							s = append(s, r)
 						}
+						// presentation-format \DDD escapes add 3 extra bytes
+						maxLen += 3
 					} else {
 						s = append(s, b)
 					}
@@ -388,6 +398,9 @@ Loop:
 			if ptr++; ptr > 10 {
 				return "", lenmsg, &Error{err: "too many compression pointers"}
 			}
+			// pointer should guarantee that it advances and points forwards at least
+			// but the condition on previous three lines guarantees that it's
+			// at least loop-free
 			off = (c^0xC0)<<8 | int(c1)
 		default:
 			// 0x80 and 0x40 are reserved
@@ -399,6 +412,9 @@ Loop:
 	}
 	if len(s) == 0 {
 		s = []byte(".")
+	} else if len(s) >= maxLen {
+		// error if the name is too long, but don't throw it away
+		return string(s), lenmsg, ErrLongDomain
 	}
 	return string(s), off1, nil
 }

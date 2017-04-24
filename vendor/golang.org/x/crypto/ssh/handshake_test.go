@@ -436,6 +436,7 @@ func testHandshakeErrorHandlingN(t *testing.T, readLimit, writeLimit int, couple
 	clientConf.SetDefaults()
 	clientConn := newHandshakeTransport(&errorKeyingTransport{b, -1, -1}, &clientConf, []byte{'a'}, []byte{'b'})
 	clientConn.hostKeyAlgorithms = []string{key.PublicKey().Type()}
+	clientConn.hostKeyCallback = InsecureIgnoreHostKey()
 	go clientConn.readLoop()
 	go clientConn.kexLoop()
 
@@ -523,5 +524,33 @@ func TestDisconnect(t *testing.T) {
 	_, err = trS.readPacket()
 	if err == nil {
 		t.Errorf("readPacket 3 succeeded")
+	}
+}
+
+func TestHandshakeRekeyDefault(t *testing.T) {
+	clientConf := &ClientConfig{
+		Config: Config{
+			Ciphers: []string{"aes128-ctr"},
+		},
+		HostKeyCallback: InsecureIgnoreHostKey(),
+	}
+	trC, trS, err := handshakePair(clientConf, "addr", false)
+	if err != nil {
+		t.Fatalf("handshakePair: %v", err)
+	}
+	defer trC.Close()
+	defer trS.Close()
+
+	trC.writePacket([]byte{msgRequestSuccess, 0, 0})
+	trC.Close()
+
+	rgb := (1024 + trC.readBytesLeft) >> 30
+	wgb := (1024 + trC.writeBytesLeft) >> 30
+
+	if rgb != 64 {
+		t.Errorf("got rekey after %dG read, want 64G", rgb)
+	}
+	if wgb != 64 {
+		t.Errorf("got rekey after %dG write, want 64G", wgb)
 	}
 }

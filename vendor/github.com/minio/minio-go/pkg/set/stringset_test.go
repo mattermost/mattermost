@@ -17,6 +17,7 @@
 package set
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -316,6 +317,30 @@ func TestStringSetString(t *testing.T) {
 
 	for _, testCase := range testCases {
 		if str := testCase.set.String(); str != testCase.expectedResult {
+			t.Fatalf("expected: %s, got: %s", testCase.expectedResult, str)
+		}
+	}
+}
+
+// StringSet.ToSlice() is called with series of cases for valid and erroneous inputs and the result is validated.
+func TestStringSetToSlice(t *testing.T) {
+	testCases := []struct {
+		set            StringSet
+		expectedResult string
+	}{
+		// Test empty set.
+		{NewStringSet(), `[]`},
+		// Test set with empty value.
+		{CreateStringSet(""), `[]`},
+		// Test set with value.
+		{CreateStringSet("foo"), `[foo]`},
+		// Test set with value.
+		{CreateStringSet("foo", "bar"), `[bar foo]`},
+	}
+
+	for _, testCase := range testCases {
+		sslice := testCase.set.ToSlice()
+		if str := fmt.Sprintf("%s", sslice); str != testCase.expectedResult {
 			t.Fatalf("expected: %s, got: %s", testCase.expectedResult, str)
 		}
 	}

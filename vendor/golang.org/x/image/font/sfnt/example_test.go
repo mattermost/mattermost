@@ -20,9 +20,9 @@ func ExampleRasterizeGlyph() {
 	const (
 		ppem    = 32
 		width   = 24
-		height  = 32
+		height  = 36
 		originX = 0
-		originY = 28
+		originY = 32
 	)
 
 	f, err := sfnt.Parse(goregular.TTF)
@@ -30,12 +30,12 @@ func ExampleRasterizeGlyph() {
 		log.Fatalf("Parse: %v", err)
 	}
 	var b sfnt.Buffer
-	x, err := f.GlyphIndex(&b, 'G')
+	x, err := f.GlyphIndex(&b, 'Ġ')
 	if err != nil {
 		log.Fatalf("GlyphIndex: %v", err)
 	}
 	if x == 0 {
-		log.Fatalf("GlyphIndex: no glyph index found for the rune 'G'")
+		log.Fatalf("GlyphIndex: no glyph index found for the rune 'Ġ'")
 	}
 	segments, err := f.LoadGlyph(&b, x, fixed.I(ppem), nil)
 	if err != nil {
@@ -50,33 +50,32 @@ func ExampleRasterizeGlyph() {
 		switch seg.Op {
 		case sfnt.SegmentOpMoveTo:
 			r.MoveTo(
-				originX+float32(seg.Args[0])/64,
-				originY-float32(seg.Args[1])/64,
+				originX+float32(seg.Args[0].X)/64,
+				originY+float32(seg.Args[0].Y)/64,
 			)
 		case sfnt.SegmentOpLineTo:
 			r.LineTo(
-				originX+float32(seg.Args[0])/64,
-				originY-float32(seg.Args[1])/64,
+				originX+float32(seg.Args[0].X)/64,
+				originY+float32(seg.Args[0].Y)/64,
 			)
 		case sfnt.SegmentOpQuadTo:
 			r.QuadTo(
-				originX+float32(seg.Args[0])/64,
-				originY-float32(seg.Args[1])/64,
-				originX+float32(seg.Args[2])/64,
-				originY-float32(seg.Args[3])/64,
+				originX+float32(seg.Args[0].X)/64,
+				originY+float32(seg.Args[0].Y)/64,
+				originX+float32(seg.Args[1].X)/64,
+				originY+float32(seg.Args[1].Y)/64,
 			)
 		case sfnt.SegmentOpCubeTo:
 			r.CubeTo(
-				originX+float32(seg.Args[0])/64,
-				originY-float32(seg.Args[1])/64,
-				originX+float32(seg.Args[2])/64,
-				originY-float32(seg.Args[3])/64,
-				originX+float32(seg.Args[4])/64,
-				originY-float32(seg.Args[5])/64,
+				originX+float32(seg.Args[0].X)/64,
+				originY+float32(seg.Args[0].Y)/64,
+				originX+float32(seg.Args[1].X)/64,
+				originY+float32(seg.Args[1].Y)/64,
+				originX+float32(seg.Args[2].X)/64,
+				originY+float32(seg.Args[2].Y)/64,
 			)
 		}
 	}
-	// TODO: call ClosePath? Once overall or once per contour (i.e. MoveTo)?
 
 	dst := image.NewAlpha(image.Rect(0, 0, width, height))
 	r.Draw(dst, dst.Bounds(), image.Opaque, image.Point{})
@@ -96,6 +95,10 @@ func ExampleRasterizeGlyph() {
 	// ........................
 	// ........................
 	// ........................
+	// ............888.........
+	// ............888.........
+	// ............888.........
+	// ............+++.........
 	// ........................
 	// ..........+++++++++.....
 	// .......+8888888888888+..

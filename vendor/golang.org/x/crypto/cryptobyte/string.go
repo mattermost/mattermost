@@ -5,7 +5,7 @@
 // Package cryptobyte implements building and parsing of byte strings for
 // DER-encoded ASN.1 and TLS messages. See the examples for the Builder and
 // String types to get started.
-package cryptobyte
+package cryptobyte // import "golang.org/x/crypto/cryptobyte"
 
 // String represents a string of bytes. It provides methods for parsing
 // fixed-length and length-prefixed values from it.

@@ -8,6 +8,7 @@ import (
 // Anchor is the anchor point for image alignment.
 type Anchor int
 
+// Anchor point positions.
 const (
 	Center Anchor = iota
 	TopLeft

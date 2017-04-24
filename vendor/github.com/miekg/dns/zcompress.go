@@ -5,86 +5,76 @@ package dns
 
 func compressionLenHelperType(c map[string]int, r RR) {
 	switch x := r.(type) {
-	case *KX:
-		compressionLenHelper(c, x.Exchanger)
-	case *MX:
-		compressionLenHelper(c, x.Mx)
-	case *NSEC:
-		compressionLenHelper(c, x.NextDomain)
-	case *DNAME:
-		compressionLenHelper(c, x.Target)
-	case *HIP:
-		for i := range x.RendezvousServers {
-			compressionLenHelper(c, x.RendezvousServers[i])
-		}
-	case *CNAME:
-		compressionLenHelper(c, x.Target)
-	case *MR:
-		compressionLenHelper(c, x.Mr)
-	case *PX:
-		compressionLenHelper(c, x.Map822)
-		compressionLenHelper(c, x.Mapx400)
-	case *SIG:
-		compressionLenHelper(c, x.SignerName)
-	case *SRV:
-		compressionLenHelper(c, x.Target)
-	case *TALINK:
-		compressionLenHelper(c, x.PreviousName)
-		compressionLenHelper(c, x.NextName)
-	case *LP:
-		compressionLenHelper(c, x.Fqdn)
-	case *NAPTR:
-		compressionLenHelper(c, x.Replacement)
-	case *NS:
-		compressionLenHelper(c, x.Ns)
-	case *RP:
-		compressionLenHelper(c, x.Mbox)
-		compressionLenHelper(c, x.Txt)
-	case *RRSIG:
-		compressionLenHelper(c, x.SignerName)
-	case *TKEY:
-		compressionLenHelper(c, x.Algorithm)
-	case *TSIG:
-		compressionLenHelper(c, x.Algorithm)
-	case *AFSDB:
-		compressionLenHelper(c, x.Hostname)
-	case *MF:
-		compressionLenHelper(c, x.Mf)
-	case *RT:
-		compressionLenHelper(c, x.Host)
-	case *MINFO:
-		compressionLenHelper(c, x.Rmail)
-		compressionLenHelper(c, x.Email)
 	case *PTR:
 		compressionLenHelper(c, x.Ptr)
 	case *SOA:
 		compressionLenHelper(c, x.Ns)
 		compressionLenHelper(c, x.Mbox)
-	case *MD:
-		compressionLenHelper(c, x.Md)
-	case *NSAPPTR:
-		compressionLenHelper(c, x.Ptr)
-	case *MG:
-		compressionLenHelper(c, x.Mg)
+	case *AFSDB:
+		compressionLenHelper(c, x.Hostname)
+	case *HIP:
+		for i := range x.RendezvousServers {
+			compressionLenHelper(c, x.RendezvousServers[i])
+		}
+	case *LP:
+		compressionLenHelper(c, x.Fqdn)
+	case *CNAME:
+		compressionLenHelper(c, x.Target)
 	case *MB:
 		compressionLenHelper(c, x.Mb)
+	case *RP:
+		compressionLenHelper(c, x.Mbox)
+		compressionLenHelper(c, x.Txt)
+	case *RRSIG:
+		compressionLenHelper(c, x.SignerName)
+	case *MF:
+		compressionLenHelper(c, x.Mf)
+	case *MINFO:
+		compressionLenHelper(c, x.Rmail)
+		compressionLenHelper(c, x.Email)
+	case *SIG:
+		compressionLenHelper(c, x.SignerName)
+	case *SRV:
+		compressionLenHelper(c, x.Target)
+	case *TSIG:
+		compressionLenHelper(c, x.Algorithm)
+	case *KX:
+		compressionLenHelper(c, x.Exchanger)
+	case *MG:
+		compressionLenHelper(c, x.Mg)
+	case *NSAPPTR:
+		compressionLenHelper(c, x.Ptr)
+	case *PX:
+		compressionLenHelper(c, x.Map822)
+		compressionLenHelper(c, x.Mapx400)
+	case *DNAME:
+		compressionLenHelper(c, x.Target)
+	case *MR:
+		compressionLenHelper(c, x.Mr)
+	case *MX:
+		compressionLenHelper(c, x.Mx)
+	case *TKEY:
+		compressionLenHelper(c, x.Algorithm)
+	case *NSEC:
+		compressionLenHelper(c, x.NextDomain)
+	case *TALINK:
+		compressionLenHelper(c, x.PreviousName)
+		compressionLenHelper(c, x.NextName)
+	case *MD:
+		compressionLenHelper(c, x.Md)
+	case *NAPTR:
+		compressionLenHelper(c, x.Replacement)
+	case *NS:
+		compressionLenHelper(c, x.Ns)
+	case *RT:
+		compressionLenHelper(c, x.Host)
 	}
 }
 
 func compressionLenSearchType(c map[string]int, r RR) (int, bool) {
 	switch x := r.(type) {
-	case *MF:
-		k1, ok1 := compressionLenSearch(c, x.Mf)
-		return k1, ok1
 	case *MG:
 		k1, ok1 := compressionLenSearch(c, x.Mg)
-		return k1, ok1
-	case *MINFO:
-		k1, ok1 := compressionLenSearch(c, x.Rmail)
-		k2, ok2 := compressionLenSearch(c, x.Email)
-		return k1 + k2, ok1 && ok2
-	case *MR:
-		k1, ok1 := compressionLenSearch(c, x.Mr)
 		return k1, ok1
 	case *PTR:
 		k1, ok1 := compressionLenSearch(c, x.Ptr)
@@ -92,11 +82,17 @@ func compressionLenSearchType(c map[string]int, r RR) (int, bool) {
 	case *AFSDB:
 		k1, ok1 := compressionLenSearch(c, x.Hostname)
 		return k1, ok1
-	case *CNAME:
-		k1, ok1 := compressionLenSearch(c, x.Target)
+	case *MB:
+		k1, ok1 := compressionLenSearch(c, x.Mb)
 		return k1, ok1
 	case *MD:
 		k1, ok1 := compressionLenSearch(c, x.Md)
+		return k1, ok1
+	case *MF:
+		k1, ok1 := compressionLenSearch(c, x.Mf)
+		return k1, ok1
+	case *NS:
+		k1, ok1 := compressionLenSearch(c, x.Ns)
 		return k1, ok1
 	case *RT:
 		k1, ok1 := compressionLenSearch(c, x.Host)
@@ -105,14 +101,18 @@ func compressionLenSearchType(c map[string]int, r RR) (int, bool) {
 		k1, ok1 := compressionLenSearch(c, x.Ns)
 		k2, ok2 := compressionLenSearch(c, x.Mbox)
 		return k1 + k2, ok1 && ok2
-	case *MB:
-		k1, ok1 := compressionLenSearch(c, x.Mb)
+	case *CNAME:
+		k1, ok1 := compressionLenSearch(c, x.Target)
+		return k1, ok1
+	case *MINFO:
+		k1, ok1 := compressionLenSearch(c, x.Rmail)
+		k2, ok2 := compressionLenSearch(c, x.Email)
+		return k1 + k2, ok1 && ok2
+	case *MR:
+		k1, ok1 := compressionLenSearch(c, x.Mr)
 		return k1, ok1
 	case *MX:
 		k1, ok1 := compressionLenSearch(c, x.Mx)
-		return k1, ok1
-	case *NS:
-		k1, ok1 := compressionLenSearch(c, x.Ns)
 		return k1, ok1
 	}
 	return 0, false
