@@ -86,7 +86,7 @@ class GeneralTab extends React.Component {
 
         var state = {serverError: '', clientError: ''};
 
-        var data = this.props.team;
+        var data = {...this.props.team};
         data.allow_open_invite = this.state.allow_open_invite;
         updateTeam(data,
             () => {
@@ -119,7 +119,7 @@ class GeneralTab extends React.Component {
             return;
         }
 
-        var data = this.props.team;
+        var data = {...this.props.team};
         data.display_name = this.state.name;
         updateTeam(data,
             () => {
@@ -152,7 +152,7 @@ class GeneralTab extends React.Component {
             return;
         }
 
-        var data = this.props.team;
+        var data = {...this.props.team};
         data.invite_id = this.state.invite_id;
         updateTeam(data,
             () => {
@@ -189,7 +189,7 @@ class GeneralTab extends React.Component {
             return;
         }
 
-        var data = this.props.team;
+        var data = {...this.props.team};
         data.description = this.state.description;
         updateTeam(data,
             () => {

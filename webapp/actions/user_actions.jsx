@@ -39,10 +39,12 @@ import {
     updateUserPassword,
     createUser,
     login,
-    loadMe as loadMeRedux
+    loadMe as loadMeRedux,
+    updateUserRoles as updateUserRolesRedux
 } from 'mattermost-redux/actions/users';
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
+import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/teams';
 
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
@@ -169,30 +171,13 @@ export function loadProfilesWithoutTeam(page, perPage, success) {
 }
 
 function loadTeamMembersForProfiles(userIds, teamId, success, error) {
-    Client.getTeamMembersByIds(
-        teamId,
-        userIds,
+    getTeamMembersByIds(teamId, userIds)(dispatch, getState).then(
         (data) => {
-            const memberMap = {};
-            for (let i = 0; i < data.length; i++) {
-                memberMap[data[i].user_id] = data[i];
-            }
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_IN_TEAM,
-                team_id: teamId,
-                team_members: memberMap
-            });
-
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getTeamMembersByIds');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.teams.getTeamMembers.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -585,7 +570,7 @@ export function updateUserNotifyProps(props, success, error) {
 }
 
 export function updateUserRoles(userId, newRoles, success, error) {
-    updateUserRoles(userId, newRoles)(dispatch, getState).then(
+    updateUserRolesRedux(userId, newRoles)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -852,13 +837,9 @@ export function getMissingProfiles(ids) {
 }
 
 export function loadMyTeamMembers() {
-    Client.getMyTeamMembers((data) => {
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
-            team_members: data
-        });
-        AsyncClient.getMyTeamsUnread();
-    }, (err) => {
-        AsyncClient.dispatchError(err, 'getMyTeamMembers');
-    });
+    getMyTeamMembers()(dispatch, getState).then(
+        () => {
+            AsyncClient.getMyTeamsUnread();
+        }
+    );
 }

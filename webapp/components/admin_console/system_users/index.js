@@ -3,10 +3,10 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
+import {getTeams, getTeamStats} from 'mattermost-redux/actions/teams';
 import {getUser} from 'mattermost-redux/actions/users';
-import {getTeamStats} from 'mattermost-redux/actions/teams';
 
-import TeamMembersDropdown from './team_members_dropdown.jsx';
+import SystemUsers from './system_users.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -17,10 +17,11 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getUser,
-            getTeamStats
+            getTeams,
+            getTeamStats,
+            getUser
         }, dispatch)
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(TeamMembersDropdown);
+export default connect(mapStateToProps, mapDispatchToProps)(SystemUsers);

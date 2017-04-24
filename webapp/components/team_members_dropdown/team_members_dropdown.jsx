@@ -22,7 +22,8 @@ export default class TeamMembersDropdown extends React.Component {
         user: React.PropTypes.object.isRequired,
         teamMember: React.PropTypes.object.isRequired,
         actions: React.PropTypes.shape({
-            getUser: React.PropTypes.func.isRequired
+            getUser: React.PropTypes.func.isRequired,
+            getTeamStats: React.PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -76,7 +77,7 @@ export default class TeamMembersDropdown extends React.Component {
             () => {
                 UserStore.removeProfileFromTeam(this.props.teamMember.team_id, this.props.user.id);
                 UserStore.emitInTeamChange();
-                AsyncClient.getTeamStats(this.props.teamMember.team_id);
+                this.props.actions.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -88,7 +89,7 @@ export default class TeamMembersDropdown extends React.Component {
         updateActive(this.props.user.id, true,
             () => {
                 AsyncClient.getChannelStats(ChannelStore.getCurrentId());
-                AsyncClient.getTeamStats(this.props.teamMember.team_id);
+                this.props.actions.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -100,7 +101,7 @@ export default class TeamMembersDropdown extends React.Component {
         updateActive(this.props.user.id, false,
             () => {
                 AsyncClient.getChannelStats(ChannelStore.getCurrentId());
-                AsyncClient.getTeamStats(this.props.teamMember.team_id);
+                this.props.actions.getTeamStats(this.props.teamMember.team_id);
             },
             (err) => {
                 this.setState({serverError: err.message});
