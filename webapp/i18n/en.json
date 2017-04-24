@@ -1742,6 +1742,7 @@
   "msg_typing.isTyping": "{user} is typing...",
   "msg_typing.someone": "Someone",
   "multiselect.go": "Go",
+  "multiselect.add": "Add",
   "multiselect.instructions": "Use up/down arrows to navigate and enter to select",
   "multiselect.numPeopleRemaining": "You can add {num, number} more {num, plural, =0 {people} one {person} other {people}}. ",
   "multiselect.numRemaining": "You can add {num, number} more",
