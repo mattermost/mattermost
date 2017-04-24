@@ -836,25 +836,29 @@ func TestUserStoreGetProfilesByUsernames(t *testing.T) {
 	if r1 := <-store.User().GetProfilesByUsernames([]string{u1.Username, u2.Username}, teamId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		if users[0].Id != u1.Id && users[1].Id != u1.Id {
+			t.Fatal("invalid returned user 1")
+		}
+
+		if users[0].Id != u2.Id && users[1].Id != u2.Id {
+			t.Fatal("invalid returned user 2")
 		}
 	}
 
 	if r1 := <-store.User().GetProfilesByUsernames([]string{u1.Username}, teamId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
+		if users[0].Id != u1.Id {
 			t.Fatal("invalid returned user")
 		}
 	}
@@ -870,29 +874,29 @@ func TestUserStoreGetProfilesByUsernames(t *testing.T) {
 	if r1 := <-store.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, ""); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 2 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
-			t.Fatal("invalid returned user")
+		if users[0].Id != u1.Id && users[1].Id != u1.Id {
+			t.Fatal("invalid returned user 1")
 		}
 
-		if users[u3.Id].Id != u3.Id {
-			t.Fatal("invalid returned user")
+		if users[0].Id != u3.Id && users[1].Id != u3.Id {
+			t.Fatal("invalid returned user 3")
 		}
 	}
 
 	if r1 := <-store.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, teamId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
-		users := r1.Data.(map[string]*model.User)
+		users := r1.Data.([]*model.User)
 		if len(users) != 1 {
 			t.Fatal("invalid returned users")
 		}
 
-		if users[u1.Id].Id != u1.Id {
+		if users[0].Id != u1.Id {
 			t.Fatal("invalid returned user")
 		}
 	}

@@ -741,14 +741,7 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string)
 		if _, err := us.GetReplica().Select(&users, query, props); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByUsernames", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
-			userMap := make(map[string]*model.User)
-
-			for _, u := range users {
-				u.Sanitize(map[string]bool{})
-				userMap[u.Id] = u
-			}
-
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
