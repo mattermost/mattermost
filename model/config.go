@@ -183,13 +183,14 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName         string
-	DataSource         string
-	DataSourceReplicas []string
-	MaxIdleConns       int
-	MaxOpenConns       int
-	Trace              bool
-	AtRestEncryptKey   string
+	DriverName               string
+	DataSource               string
+	DataSourceReplicas       []string
+	DataSourceSearchReplicas []string
+	MaxIdleConns             int
+	MaxOpenConns             int
+	Trace                    bool
+	AtRestEncryptKey         string
 }
 
 type LogSettings struct {
@@ -1435,6 +1436,10 @@ func (o *Config) Sanitize() {
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
+	}
+
+	for i := range o.SqlSettings.DataSourceSearchReplicas {
+		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 }
 
