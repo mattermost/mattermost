@@ -2,10 +2,8 @@
 // See License.txt for license information.
 
 import BrowserStore from 'stores/browser_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import ErrorStore from 'stores/error_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 
