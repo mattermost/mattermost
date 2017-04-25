@@ -487,6 +487,10 @@ func (o *Config) SetDefaults() {
 		o.FileSettings.InitialFont = "luximbi.ttf"
 	}
 
+	if o.FileSettings.Directory == "" {
+		o.FileSettings.Directory = "./data/"
+	}
+
 	if len(o.EmailSettings.InviteSalt) == 0 {
 		o.EmailSettings.InviteSalt = NewRandomString(32)
 	}
