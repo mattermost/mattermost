@@ -440,6 +440,10 @@ func (s SqlChannelStore) Delete(channelId string, time int64) StoreChannel {
 	return s.SetDeleteAt(channelId, time, time)
 }
 
+func (s SqlChannelStore) Restore(channelId string, time int64) StoreChannel {
+	return s.SetDeleteAt(channelId, 0, time)
+}
+
 func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

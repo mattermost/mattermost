@@ -364,6 +364,34 @@ func TestChannelStoreGetForPost(t *testing.T) {
 	}
 }
 
+func TestSqlChannelStoreRestore(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "Channel1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	if r := <-store.Channel().Delete(o1.Id, model.GetMillis()); r.Err != nil {
+		t.Fatal(r.Err)
+	}
+
+	if r := <-store.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt == 0 {
+		t.Fatal("should have been deleted")
+	}
+
+	if r := <-store.Channel().Restore(o1.Id, model.GetMillis()); r.Err != nil {
+		t.Fatal(r.Err)
+	}
+
+	if r := <-store.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt != 0 {
+		t.Fatal("should have been restored")
+	}
+
+}
+
 func TestChannelStoreDelete(t *testing.T) {
 	Setup()
 

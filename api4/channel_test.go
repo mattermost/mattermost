@@ -1008,6 +1008,32 @@ func TestDeleteChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestRestoreChannel(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	publicChannel1 := th.CreatePublicChannel()
+	Client.DeleteChannel(publicChannel1.Id)
+
+	privateChannel1 := th.CreatePrivateChannel()
+	Client.DeleteChannel(privateChannel1.Id)
+
+	_, resp := Client.RestoreChannel(publicChannel1.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.RestoreChannel(privateChannel1.Id)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginTeamAdmin()
+
+	_, resp = Client.RestoreChannel(publicChannel1.Id)
+	CheckOKStatus(t, resp)
+
+	_, resp = Client.RestoreChannel(privateChannel1.Id)
+	CheckOKStatus(t, resp)
+	}
+
 func TestGetChannelByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
