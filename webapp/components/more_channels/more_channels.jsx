@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SearchableChannelList from './searchable_channel_list.jsx';
+import SearchableChannelList from 'components/searchable_channel_list.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import {joinChannel, searchMoreChannels} from 'actions/channel_actions.jsx';
 import {showCreateOption} from 'utils/channel_utils.jsx';
 
@@ -23,6 +22,14 @@ const CHANNELS_PER_PAGE = 50;
 const SEARCH_TIMEOUT_MILLISECONDS = 100;
 
 export default class MoreChannels extends React.Component {
+    static propTypes = {
+        onModalDismissed: React.PropTypes.func,
+        handleNewChannel: React.PropTypes.func,
+        actions: React.PropTypes.shape({
+            getChannels: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -47,7 +54,7 @@ export default class MoreChannels extends React.Component {
 
     componentDidMount() {
         ChannelStore.addChangeListener(this.onChange);
-        AsyncClient.getMoreChannelsPage(0, CHANNELS_CHUNK_SIZE * 2);
+        this.props.actions.getChannels(TeamStore.getCurrentId(), 0, CHANNELS_CHUNK_SIZE * 2);
     }
 
     componentWillUnmount() {
@@ -76,7 +83,7 @@ export default class MoreChannels extends React.Component {
     }
 
     nextPage(page) {
-        AsyncClient.getMoreChannelsPage((page + 1) * CHANNELS_PER_PAGE, CHANNELS_PER_PAGE);
+        this.props.actions.getChannels(TeamStore.getCurrentId(), (page + 1) * CHANNELS_PER_PAGE, CHANNELS_PER_PAGE);
     }
 
     handleJoin(channel, done) {
@@ -194,8 +201,3 @@ export default class MoreChannels extends React.Component {
         );
     }
 }
-
-MoreChannels.propTypes = {
-    onModalDismissed: React.PropTypes.func,
-    handleNewChannel: React.PropTypes.func
-};

@@ -16,9 +16,6 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-
-import {getClientConfig, getLicenseConfig, setUrl} from 'mattermost-redux/actions/general';
 
 // Import our styles
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
@@ -26,7 +23,13 @@ import 'google-fonts/google-fonts.css';
 import 'sass/styles.scss';
 import 'katex/dist/katex.min.css';
 
+// Redux actions
 import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {viewChannel} from 'mattermost-redux/actions/channels';
+import {getClientConfig, getLicenseConfig, setUrl} from 'mattermost-redux/actions/general';
 
 // Import the root of our routing tree
 import rRoot from 'routes/route_root.jsx';
@@ -85,7 +88,7 @@ function preRenderSetup(callwhendone) {
              $(window).off('beforeunload');
              BrowserStore.setLastServerVersion('');
              if (UserStore.getCurrentUser()) {
-                 AsyncClient.viewChannel('', ChannelStore.getCurrentId() || '');
+                 viewChannel('', ChannelStore.getCurrentId() || '')(dispatch, getState);
              }
              Websockets.close();
          }

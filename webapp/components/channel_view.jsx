@@ -7,7 +7,7 @@ import React from 'react';
 import ChannelHeader from 'components/channel_header.jsx';
 import FileUploadOverlay from 'components/file_upload_overlay.jsx';
 import CreatePost from 'components/create_post.jsx';
-import PostViewCache from 'components/post_view/post_view_cache.jsx';
+import PostViewCache from 'components/post_view';
 
 import ChannelStore from 'stores/channel_store.jsx';
 

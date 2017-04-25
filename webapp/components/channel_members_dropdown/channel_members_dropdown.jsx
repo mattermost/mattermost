@@ -7,7 +7,6 @@ import UserStore from 'stores/user_store.jsx';
 
 import {removeUserFromChannel, makeUserChannelAdmin, makeUserChannelMember} from 'actions/channel_actions.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {canManageMembers} from 'utils/channel_utils.jsx';
 import {Constants} from 'utils/constants.jsx';
@@ -16,6 +15,16 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class ChannelMembersDropdown extends React.Component {
+    static propTypes = {
+        channel: React.PropTypes.object.isRequired,
+        user: React.PropTypes.object.isRequired,
+        teamMember: React.PropTypes.object.isRequired,
+        channelMember: React.PropTypes.object.isRequired,
+        actions: React.PropTypes.shape({
+            getChannelStats: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -35,7 +44,7 @@ export default class ChannelMembersDropdown extends React.Component {
             this.props.channel.id,
             this.props.user.id,
             () => {
-                AsyncClient.getChannelStats(this.props.channel.id);
+                this.props.actions.getChannelStats(this.props.channel.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -48,7 +57,7 @@ export default class ChannelMembersDropdown extends React.Component {
             this.props.channel.id,
             this.props.user.id,
             () => {
-                AsyncClient.getChannelStats(this.props.channel.id);
+                this.props.actions.getChannelStats(this.props.channel.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -61,7 +70,7 @@ export default class ChannelMembersDropdown extends React.Component {
             this.props.channel.id,
             this.props.user.id,
             () => {
-                AsyncClient.getChannelStats(this.props.channel.id);
+                this.props.actions.getChannelStats(this.props.channel.id);
             },
             (err) => {
                 this.setState({serverError: err.message});
@@ -255,10 +264,3 @@ export default class ChannelMembersDropdown extends React.Component {
         );
     }
 }
-
-ChannelMembersDropdown.propTypes = {
-    channel: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
-    teamMember: React.PropTypes.object.isRequired,
-    channelMember: React.PropTypes.object.isRequired
-};

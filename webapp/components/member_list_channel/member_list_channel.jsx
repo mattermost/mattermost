@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ChannelMembersDropdown from 'components/channel_members_dropdown.jsx';
+import ChannelMembersDropdown from 'components/channel_members_dropdown';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -9,7 +9,6 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import {searchUsers, loadProfilesAndTeamMembersAndChannelMembers, loadTeamMembersAndChannelMembersForProfilesList} from 'actions/user_actions.jsx';
-import {getChannelStats} from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -23,6 +22,13 @@ import {searchProfilesInCurrentChannel} from 'mattermost-redux/selectors/entitie
 const USERS_PER_PAGE = 50;
 
 export default class MemberListChannel extends React.Component {
+    static propTypes = {
+        channel: React.PropTypes.object.isRequired,
+        actions: React.PropTypes.shape({
+            getChannelStats: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -53,7 +59,7 @@ export default class MemberListChannel extends React.Component {
         ChannelStore.addStatsChangeListener(this.onStatsChange);
 
         loadProfilesAndTeamMembersAndChannelMembers(0, Constants.PROFILE_CHUNK_SIZE, TeamStore.getCurrentId(), ChannelStore.getCurrentId(), this.loadComplete);
-        getChannelStats(ChannelStore.getCurrentId());
+        this.props.actions.getChannelStats(ChannelStore.getCurrentId());
     }
 
     componentWillUnmount() {
@@ -163,7 +169,3 @@ export default class MemberListChannel extends React.Component {
         );
     }
 }
-
-MemberListChannel.propTypes = {
-    channel: React.PropTypes.object.isRequired
-};
