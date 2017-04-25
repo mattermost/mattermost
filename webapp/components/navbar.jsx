@@ -239,7 +239,9 @@ export default class Navbar extends React.Component {
         }
     };
 
-    createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
+    createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
+        const isAdmin = isSystemAdmin || isTeamAdmin;
+
         if (channel) {
             let viewInfoOption;
             let viewPinnedPostsOption;
@@ -384,7 +386,7 @@ export default class Navbar extends React.Component {
                         </li>
                     );
 
-                    if (isAdmin) {
+                    if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
                         manageMembersOption = (
                             <li
                                 key='manage_members'
@@ -697,8 +699,8 @@ export default class Navbar extends React.Component {
         var channel = this.state.channel;
         var channelTitle = this.props.teamDisplayName;
         var popoverContent;
-        var isAdmin = false;
-        var isSystemAdmin = false;
+        var isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+        var isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         var isChannelAdmin = false;
         var isDirect = false;
         let isGroup = false;
@@ -729,8 +731,6 @@ export default class Navbar extends React.Component {
                 </Popover>
             );
 
-            isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-            isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
             isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
 
             if (channel.type === 'O') {
@@ -817,7 +817,7 @@ export default class Navbar extends React.Component {
                         onModalDismissed={this.hideMembersModal}
                         showInviteModal={() => this.refs.channelInviteModalButton.show()}
                         channel={channel}
-                        isAdmin={isAdmin}
+                        isAdmin={isTeamAdmin || isSystemAdmin}
                     />
                 );
             }
@@ -842,7 +842,7 @@ export default class Navbar extends React.Component {
             </button>
         );
 
-        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isAdmin, isSystemAdmin, isChannelAdmin, isDirect, isGroup, popoverContent);
+        var channelMenuDropdown = this.createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent);
 
         return (
             <div>
