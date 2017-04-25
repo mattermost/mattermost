@@ -7,27 +7,25 @@ import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 
-export default class ScrollToBottomArrows extends React.Component {
-    render() {
-        // only show on mobile
-        if ($(window).width() > 768) {
-            return <noscript/>;
-        }
-
-        let className = 'post-list__arrows';
-        if (this.props.isScrolling && !this.props.atBottom) {
-            className += ' scrolling';
-        }
-
-        return (
-            <div
-                className={className}
-                onClick={this.props.onClick}
-            >
-                <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}}/>
-            </div>
-        );
+export default function ScrollToBottomArrows(props) {
+    // only show on mobile
+    if ($(window).width() > 768) {
+        return <noscript/>;
     }
+
+    let className = 'post-list__arrows';
+    if (props.isScrolling && !props.atBottom) {
+        className += ' scrolling';
+    }
+
+    return (
+        <div
+            className={className}
+            onClick={props.onClick}
+        >
+            <span dangerouslySetInnerHTML={{__html: Constants.SCROLL_BOTTOM_ICON}}/>
+        </div>
+    );
 }
 
 ScrollToBottomArrows.propTypes = {

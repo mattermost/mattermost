@@ -4,32 +4,30 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-export default class Banner extends React.Component {
-    render() {
-        let title = (
-            <FormattedMessage
-                id='admin.banner.heading'
-                defaultMessage='Note:'
-            />
-        );
+export default function Banner(props) {
+    let title = (
+        <FormattedMessage
+            id='admin.banner.heading'
+            defaultMessage='Note:'
+        />
+    );
 
-        if (this.props.title) {
-            title = this.props.title;
-        }
-
-        return (
-            <div className='banner'>
-                <div className='banner__content'>
-                    <h4 className='banner__heading'>
-                        {title}
-                    </h4>
-                    <p>
-                        {this.props.description}
-                    </p>
-                </div>
-            </div>
-        );
+    if (props.title) {
+        title = props.title;
     }
+
+    return (
+        <div className='banner'>
+            <div className='banner__content'>
+                <h4 className='banner__heading'>
+                    {title}
+                </h4>
+                <p>
+                    {props.description}
+                </p>
+            </div>
+        </div>
+    );
 }
 
 Banner.defaultProps = {

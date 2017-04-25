@@ -67,29 +67,27 @@ const WEBSERVER_MODE_HELP_TEXT = (
     </div>
 );
 
-export default class WebserverModeDropdownSetting extends React.Component {
-    render() {
-        return (
-            <DropdownSetting
-                id='webserverMode'
-                values={[
-                    {value: 'gzip', text: Utils.localizeMessage('admin.webserverModeGzip', 'gzip')},
-                    {value: 'uncompressed', text: Utils.localizeMessage('admin.webserverModeUncompressed', 'Uncompressed')},
-                    {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDisabled', 'Disabled')}
-                ]}
-                label={
-                    <FormattedMessage
-                        id='admin.webserverModeTitle'
-                        defaultMessage='Webserver Mode:'
-                    />
-                }
-                value={this.props.value}
-                onChange={this.props.onChange}
-                disabled={this.props.disabled}
-                helpText={WEBSERVER_MODE_HELP_TEXT}
-            />
-        );
-    }
+export default function WebserverModeDropdownSetting(props) {
+    return (
+        <DropdownSetting
+            id='webserverMode'
+            values={[
+                {value: 'gzip', text: Utils.localizeMessage('admin.webserverModeGzip', 'gzip')},
+                {value: 'uncompressed', text: Utils.localizeMessage('admin.webserverModeUncompressed', 'Uncompressed')},
+                {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDisabled', 'Disabled')}
+            ]}
+            label={
+                <FormattedMessage
+                    id='admin.webserverModeTitle'
+                    defaultMessage='Webserver Mode:'
+                />
+            }
+            value={props.value}
+            onChange={props.onChange}
+            disabled={props.disabled}
+            helpText={WEBSERVER_MODE_HELP_TEXT}
+        />
+    );
 }
 WebserverModeDropdownSetting.defaultProps = {
 };

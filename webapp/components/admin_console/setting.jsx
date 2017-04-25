@@ -3,25 +3,23 @@
 
 import React from 'react';
 
-export default class Setting extends React.Component {
-    render() {
-        return (
-            <div className='form-group'>
-                <label
-                    className='control-label col-sm-4'
-                    htmlFor={this.props.inputId}
-                >
-                    {this.props.label}
-                </label>
-                <div className='col-sm-8'>
-                    {this.props.children}
-                    <div className='help-text'>
-                        {this.props.helpText}
-                    </div>
+export default function Setting(props) {
+    return (
+        <div className='form-group'>
+            <label
+                className='control-label col-sm-4'
+                htmlFor={props.inputId}
+            >
+                {props.label}
+            </label>
+            <div className='col-sm-8'>
+                {props.children}
+                <div className='help-text'>
+                    {props.helpText}
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }
 Setting.defaultProps = {
 };

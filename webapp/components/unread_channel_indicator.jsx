@@ -5,21 +5,19 @@
 // because it is either above or below the screen
 import React from 'react';
 
-export default class UnreadChannelIndicator extends React.Component {
-    render() {
-        let displayValue = 'none';
-        if (this.props.show) {
-            displayValue = 'block';
-        }
-        return (
-            <div
-                className={'nav-pills__unread-indicator ' + this.props.extraClass}
-                style={{display: displayValue}}
-            >
-                {this.props.text}
-            </div>
-        );
+export default function UnreadChannelIndicator(props) {
+    let displayValue = 'none';
+    if (props.show) {
+        displayValue = 'block';
     }
+    return (
+        <div
+            className={'nav-pills__unread-indicator ' + props.extraClass}
+            style={{display: displayValue}}
+        >
+            {props.text}
+        </div>
+    );
 }
 
 UnreadChannelIndicator.defaultProps = {
