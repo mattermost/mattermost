@@ -607,9 +607,9 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	}
 }
 
-// GetUsersByIds returns a list of users based on the provided usernames.
+// GetUsersByUsernames returns a list of users based on the provided usernames.
 func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
-	if r, err := c.DoApiPost(c.GetUsersRoute()+"/names", ArrayToJson(usernames)); err != nil {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/usernames", ArrayToJson(usernames)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
