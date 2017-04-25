@@ -115,21 +115,20 @@ class InviteMemberModal extends React.Component {
         var valid = true;
 
         for (var i = 0; i < count; i++) {
-            var index = inviteIds[i];
             var invite = {};
+            var index = inviteIds[i];
             invite.email = ReactDOM.findDOMNode(this.refs['email' + index]).value.trim();
-            if (!invite.email || !utils.isEmail(invite.email)) {
-                emailErrors[index] = this.props.intl.formatMessage(holders.emailError);
-                valid = false;
-            } else {
-                emailErrors[index] = '';
-            }
-
             invite.firstName = ReactDOM.findDOMNode(this.refs['first_name' + index]).value.trim();
-
             invite.lastName = ReactDOM.findDOMNode(this.refs['last_name' + index]).value.trim();
-
-            invites.push(invite);
+            if (invite.email !== '' || index === 0) {
+                if (!invite.email || !utils.isEmail(invite.email)) {
+                    emailErrors[index] = this.props.intl.formatMessage(holders.emailError);
+                    valid = false;
+                } else {
+                    emailErrors[index] = '';
+                }
+                invites.push(invite);
+            }
         }
 
         this.setState({emailErrors, firstNameErrors, lastNameErrors});
