@@ -729,20 +729,19 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string)
 			idQuery += ":username" + strconv.Itoa(index)
 		}
 
-		props["TeamId"] = teamId
+		var query string
+		if teamId == "" {
+			query = `SELECT * FROM Users WHERE Username IN (` + idQuery + `)`
+		} else {
+			query = `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
+				Users.Id = TeamMembers.UserId AND Users.Username IN (` + idQuery + `) AND TeamMembers.TeamId = :TeamId `
+			props["TeamId"] = teamId
+		}
 
-		if _, err := us.GetReplica().Select(&users, `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
-			Users.Id = TeamMembers.UserId AND Users.Username IN (`+idQuery+`) AND TeamMembers.TeamId = :TeamId `, props); err != nil {
+		if _, err := us.GetReplica().Select(&users, query, props); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByUsernames", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
-			userMap := make(map[string]*model.User)
-
-			for _, u := range users {
-				u.Sanitize(map[string]bool{})
-				userMap[u.Id] = u
-			}
-
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result

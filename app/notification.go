@@ -95,7 +95,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 		if len(potentialOtherMentions) > 0 {
 			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
-				outOfChannelMentions := result.Data.(map[string]*model.User)
+				outOfChannelMentions := result.Data.([]*model.User)
 				go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
 			}
 		}
@@ -592,13 +592,13 @@ func getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
 	}
 }
 
-func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, profiles map[string]*model.User) *model.AppError {
-	if len(profiles) == 0 {
+func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, users []*model.User) *model.AppError {
+	if len(users) == 0 {
 		return nil
 	}
 
 	var usernames []string
-	for _, user := range profiles {
+	for _, user := range users {
 		usernames = append(usernames, user.Username)
 	}
 	sort.Strings(usernames)

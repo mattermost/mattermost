@@ -607,6 +607,16 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	}
 }
 
+// GetUsersByUsernames returns a list of users based on the provided usernames.
+func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/usernames", ArrayToJson(usernames)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/search", search.ToJson()); err != nil {

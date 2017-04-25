@@ -22,6 +22,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
 	BaseRoutes.Users.Handle("", ApiSessionRequired(getUsers)).Methods("GET")
 	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
+	BaseRoutes.Users.Handle("/usernames", ApiSessionRequired(getUsersByNames)).Methods("POST")
 	BaseRoutes.Users.Handle("/search", ApiSessionRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/autocomplete", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 
@@ -360,6 +361,24 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
 	if users, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.UserListToJson(users)))
+	}
+}
+
+func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	usernames := model.ArrayFromJson(r.Body)
+
+	if len(usernames) == 0 {
+		c.SetInvalidParam("usernames")
+		return
+	}
+
+	// No permission check required
+
+	if users, err := app.GetUsersByUsernames(usernames, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
