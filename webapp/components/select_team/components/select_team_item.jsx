@@ -67,6 +67,7 @@ export default class SelectTeamItem extends React.Component {
             <div className='signup-team-dir'>
                 {showDescriptionTooltip}
                 <Link
+                    id={Utils.createSafeId(this.props.team.display_name)}
                     to={this.props.url}
                     onClick={this.handleTeamClick}
                 >
