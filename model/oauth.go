@@ -16,6 +16,7 @@ const (
 	OAUTH_ACTION_LOGIN        = "login"
 	OAUTH_ACTION_EMAIL_TO_SSO = "email_to_sso"
 	OAUTH_ACTION_SSO_TO_EMAIL = "sso_to_email"
+	OAUTH_ACTION_MOBILE       = "mobile"
 )
 
 type OAuthApp struct {
