@@ -338,7 +338,6 @@ function handleUserUpdatedEvent(msg) {
     const user = msg.data.user;
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
-        UserStore.emitChange(user.id);
     }
 }
 

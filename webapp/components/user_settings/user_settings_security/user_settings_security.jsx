@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import SettingItemMin from '../setting_item_min.jsx';
-import SettingItemMax from '../setting_item_max.jsx';
-import AccessHistoryModal from '../access_history_modal.jsx';
-import ActivityLogModal from '../activity_log_modal.jsx';
-import ToggleModalButton from '../toggle_modal_button.jsx';
+import SettingItemMin from 'components/setting_item_min.jsx';
+import SettingItemMax from 'components/setting_item_max.jsx';
+import AccessHistoryModal from 'components/access_history_modal';
+import ActivityLogModal from 'components/activity_log_modal';
+import ToggleModalButton from 'components/toggle_modal_button.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -23,6 +22,19 @@ import {browserHistory, Link} from 'react-router/es6';
 import icon50 from 'images/icon50x50.png';
 
 export default class SecurityTab extends React.Component {
+    static propTypes = {
+        user: React.PropTypes.object,
+        activeSection: React.PropTypes.string,
+        updateSection: React.PropTypes.func,
+        updateTab: React.PropTypes.func,
+        closeModal: React.PropTypes.func.isRequired,
+        collapseModal: React.PropTypes.func.isRequired,
+        setEnforceFocus: React.PropTypes.func.isRequired,
+        actions: React.PropTypes.shape({
+            getMe: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -98,7 +110,7 @@ export default class SecurityTab extends React.Component {
             newPassword,
             () => {
                 this.props.updateSection('');
-                AsyncClient.getMe();
+                this.props.actions.getMe();
                 this.setState(this.getDefaultState());
             },
             (err) => {
@@ -1021,13 +1033,4 @@ export default class SecurityTab extends React.Component {
 SecurityTab.defaultProps = {
     user: {},
     activeSection: ''
-};
-SecurityTab.propTypes = {
-    user: React.PropTypes.object,
-    activeSection: React.PropTypes.string,
-    updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired,
-    setEnforceFocus: React.PropTypes.func.isRequired
 };

@@ -9,7 +9,6 @@ import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
@@ -31,6 +30,12 @@ import * as Utils from 'utils/utils.jsx';
 import en from 'i18n/en.json';
 import * as I18n from 'i18n/i18n.jsx';
 import {browserHistory} from 'react-router/es6';
+
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+import {ChannelTypes} from 'mattermost-redux/action_types';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -77,6 +82,11 @@ export function emitChannelClickEvent(channel) {
             channelMember,
             prev: oldChannelId
         });
+
+        dispatch({
+            type: ChannelTypes.SELECT_CHANNEL,
+            data: chan.id
+        }, getState);
     }
 
     if (channel.fake) {
@@ -92,85 +102,6 @@ export function emitChannelClickEvent(channel) {
     } else {
         switchToChannel(channel);
     }
-}
-
-export function emitInitialLoad(callback) {
-    Client.getInitialLoad(
-            (data) => {
-                global.window.mm_config = data.client_cfg;
-                global.window.mm_license = data.license_cfg;
-
-                if (global.window && global.window.analytics) {
-                    global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
-                        context: {
-                            ip: '0.0.0.0'
-                        },
-                        page: {
-                            path: '',
-                            referrer: '',
-                            search: '',
-                            title: '',
-                            url: ''
-                        },
-                        anonymousId: '00000000000000000000000000'
-                    });
-                }
-
-                UserStore.setNoAccounts(data.no_accounts);
-
-                if (data.user && data.user.id) {
-                    global.window.mm_user = data.user;
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_ME,
-                        me: data.user
-                    });
-                }
-
-                if (data.preferences) {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_PREFERENCES,
-                        preferences: data.preferences
-                    });
-                }
-
-                if (data.teams) {
-                    var teams = {};
-                    data.teams.forEach((team) => {
-                        teams[team.id] = team;
-                    });
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_ALL_TEAMS,
-                        teams
-                    });
-                }
-
-                if (data.team_members) {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
-                        team_members: data.team_members
-                    });
-                }
-
-                if (data.direct_profiles) {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_DIRECT_PROFILES,
-                        profiles: data.direct_profiles
-                    });
-                }
-
-                if (callback) {
-                    callback();
-                }
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getInitialLoad');
-
-                if (callback) {
-                    callback();
-                }
-            }
-        );
 }
 
 export function doFocusPost(channelId, postId, data) {
@@ -536,12 +467,11 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
 export function clientLogout(redirectTo = '/') {
     BrowserStore.clear();
     ErrorStore.clearLastError();
-    PreferenceStore.clear();
-    UserStore.clear();
     TeamStore.clear();
     ChannelStore.clear();
     stopPeriodicStatusUpdates();
     WebsocketActions.close();
+    localStorage.removeItem('currentUserId');
     window.location.href = redirectTo;
 }
 

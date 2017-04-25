@@ -17,6 +17,9 @@ import * as UserAgent from 'utils/user_agent.jsx';
 
 import React from 'react';
 
+import store from 'stores/redux_store.jsx';
+import {searchProfilesInCurrentChannel} from 'mattermost-redux/selectors/entities/users';
+
 const USERS_PER_PAGE = 50;
 
 export default class MemberListChannel extends React.Component {
@@ -29,6 +32,7 @@ export default class MemberListChannel extends React.Component {
         this.loadComplete = this.loadComplete.bind(this);
 
         this.searchTimeoutId = 0;
+        this.term = '';
 
         const stats = ChannelStore.getCurrentStats();
 
@@ -37,8 +41,6 @@ export default class MemberListChannel extends React.Component {
             teamMembers: Object.assign({}, TeamStore.getMembersInTeam()),
             channelMembers: Object.assign({}, ChannelStore.getMembersInChannel()),
             total: stats.member_count,
-            search: false,
-            term: '',
             loading: true
         };
     }
@@ -66,16 +68,16 @@ export default class MemberListChannel extends React.Component {
         this.setState({loading: false});
     }
 
-    onChange(force) {
-        if (this.state.search && !force) {
-            return;
-        } else if (this.state.search) {
-            this.search(this.state.term);
-            return;
+    onChange() {
+        let users;
+        if (this.term) {
+            users = searchProfilesInCurrentChannel(store.getState(), this.term);
+        } else {
+            users = UserStore.getProfileListInChannel();
         }
 
         this.setState({
-            users: UserStore.getProfileListInChannel(),
+            users,
             teamMembers: Object.assign({}, TeamStore.getMembersInTeam()),
             channelMembers: Object.assign({}, ChannelStore.getMembersInChannel())
         });
@@ -87,43 +89,30 @@ export default class MemberListChannel extends React.Component {
     }
 
     nextPage(page) {
-        loadProfilesAndTeamMembersAndChannelMembers((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+        loadProfilesAndTeamMembersAndChannelMembers(page + 1, USERS_PER_PAGE);
     }
 
     search(term) {
         clearTimeout(this.searchTimeoutId);
+        this.term = term;
 
         if (term === '') {
-            this.setState({
-                search: false,
-                term,
-                users: UserStore.getProfileListInChannel(),
-                teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
-                channelMembers: Object.assign([], ChannelStore.getMembersInChannel())
-            });
+            this.setState({loading: false});
             this.searchTimeoutId = '';
+            this.onChange();
             return;
         }
 
         const searchTimeoutId = setTimeout(
             () => {
-                searchUsers(
-                    term,
-                    TeamStore.getCurrentId(),
-                    {},
+                searchUsers(term, TeamStore.getCurrentId(), {},
                     (users) => {
                         if (searchTimeoutId !== this.searchTimeoutId) {
                             return;
                         }
 
-                        this.setState({
-                            loading: true,
-                            search: true,
-                            users,
-                            term,
-                            teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
-                            channelMembers: Object.assign([], ChannelStore.getMembersInChannel())
-                        });
+                        this.setState({loading: true});
+
                         loadTeamMembersAndChannelMembersForProfilesList(users, TeamStore.getCurrentId(), ChannelStore.getCurrentId(), this.loadComplete);
                     }
                 );

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -202,7 +203,14 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
+	respCfg := map[string]string{}
+	for k, v := range utils.ClientCfg {
+		respCfg[k] = v
+	}
+
+	respCfg["NoAccounts"] = strconv.FormatBool(app.IsFirstUserAccount())
+
+	w.Write([]byte(model.MapToJson(respCfg)))
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {

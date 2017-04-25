@@ -13,6 +13,13 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {getUser} from 'mattermost-redux/actions/users';
+
 export function checkIfTeamExists(teamName, onSuccess, onError) {
     Client.findTeamByName(teamName, onSuccess, onError);
 }
@@ -62,7 +69,7 @@ export function removeUserFromTeam(teamId, userId, success, error) {
             TeamStore.removeMemberInTeam(teamId, userId);
             UserStore.removeProfileFromTeam(teamId, userId);
             UserStore.emitInTeamChange();
-            AsyncClient.getUser(userId);
+            getUser(userId)(dispatch, getState);
             AsyncClient.getTeamStats(teamId);
 
             if (success) {

@@ -7,13 +7,12 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import TeamMembersModal from './team_members_modal.jsx';
-import ChannelMembersModal from './channel_members_modal.jsx';
-import ChannelInviteModal from './channel_invite_modal.jsx';
+import TeamMembersModal from 'components/team_members_modal.jsx';
+import ChannelMembersModal from 'components/channel_members_modal.jsx';
+import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -26,6 +25,15 @@ import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class PopoverListMembers extends React.Component {
+    static propTypes = {
+        channel: React.PropTypes.object.isRequired,
+        members: React.PropTypes.array.isRequired,
+        memberCount: React.PropTypes.number,
+        actions: React.PropTypes.shape({
+            getProfilesInChannel: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -239,7 +247,7 @@ export default class PopoverListMembers extends React.Component {
                     ref='member_popover_target'
                     onClick={(e) => {
                         this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover});
-                        AsyncClient.getProfilesInChannel(this.props.channel.id, 0);
+                        this.props.actions.getProfilesInChannel(this.props.channel.id, 0);
                     }}
                 >
                     {countText}
@@ -272,8 +280,3 @@ export default class PopoverListMembers extends React.Component {
     }
 }
 
-PopoverListMembers.propTypes = {
-    channel: React.PropTypes.object.isRequired,
-    members: React.PropTypes.array.isRequired,
-    memberCount: React.PropTypes.number
-};

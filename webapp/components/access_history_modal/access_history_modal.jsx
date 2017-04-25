@@ -1,12 +1,11 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import LoadingScreen from './loading_screen.jsx';
-import AuditTable from './audit_table.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
+import AuditTable from 'components/audit_table.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import $ from 'jquery';
@@ -16,6 +15,13 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 export default class AccessHistoryModal extends React.Component {
+    static propTypes = {
+        onHide: React.PropTypes.func.isRequired,
+        actions: React.PropTypes.shape({
+            getUserAudits: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -37,7 +43,7 @@ export default class AccessHistoryModal extends React.Component {
     }
 
     onShow() {
-        AsyncClient.getAudits();
+        this.props.actions.getUserAudits(UserStore.getCurrentId(), 0, 200);
         if (!Utils.isMobile()) {
             $('.modal-body').perfectScrollbar();
         }
@@ -100,7 +106,3 @@ export default class AccessHistoryModal extends React.Component {
         );
     }
 }
-
-AccessHistoryModal.propTypes = {
-    onHide: React.PropTypes.func.isRequired
-};
