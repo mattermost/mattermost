@@ -287,6 +287,14 @@ export const ErrorPageTypes = {
     LOCAL_STORAGE: 'local_storage'
 };
 
+export const ErrorBarTypes = {
+    LICENSE_EXPIRING: 'error_bar.license_expiring',
+    LICENSE_EXPIRED: 'error_bar.license_expired',
+    LICENSE_PAST_GRACE: 'error_bar.past_grace',
+    PREVIEW_MODE: 'error_bar.preview_mode',
+    SITE_URL: 'error_bar.site_url'
+};
+
 export const Constants = {
     Preferences,
     SocketEvents,
@@ -297,6 +305,7 @@ export const Constants = {
     TutorialSteps,
     PostTypes,
     ErrorPageTypes,
+    ErrorBarTypes,
 
     IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_TO_CHANNEL, PostTypes.ADD_REMOVE],
 
