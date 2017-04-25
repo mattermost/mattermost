@@ -281,7 +281,7 @@ export default class TeamMembersDropdown extends React.Component {
             //         >
             //             <FormattedMessage
             //                 id='team_members_dropdown.makeActive'
-            //                 defaultMessage='Make Active'
+            //                 defaultMessage='Activate'
             //             />
             //         </a>
             //     </li>
@@ -299,7 +299,7 @@ export default class TeamMembersDropdown extends React.Component {
             //         >
             //             <FormattedMessage
             //                 id='team_members_dropdown.makeInactive'
-            //                 defaultMessage='Make Inactive'
+            //                 defaultMessage='Deactivate'
             //             />
             //         </a>
             //     </li>
