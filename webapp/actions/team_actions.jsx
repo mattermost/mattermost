@@ -145,8 +145,11 @@ export function getInviteInfo(inviteId, success, error) {
 }
 
 export function inviteMembers(data, success, error) {
+    if (!data.invites) {
+        success();
+    }
     const emails = [];
-    data.forEach((i) => {
+    data.invites.forEach((i) => {
         emails.push(i.email);
     });
     sendEmailInvitesToTeam(TeamStore.getCurrentId(), emails)(dispatch, getState).then(
