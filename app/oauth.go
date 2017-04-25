@@ -190,9 +190,10 @@ func GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refresh
 			} else {
 				//return the same token and no need to create a new session
 				accessRsp = &model.AccessResponse{
-					AccessToken: accessData.Token,
-					TokenType:   model.ACCESS_TOKEN_TYPE,
-					ExpiresIn:   int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
+					AccessToken:  accessData.Token,
+					TokenType:    model.ACCESS_TOKEN_TYPE,
+					RefreshToken: accessData.RefreshToken,
+					ExpiresIn:    int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
 				}
 			}
 		} else {
@@ -273,15 +274,17 @@ func newSessionUpdateToken(appName string, accessData *model.AccessData, user *m
 	}
 
 	accessData.Token = session.Token
+	accessData.RefreshToken = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 	if result := <-Srv.Store.OAuth().UpdateAccessData(accessData); result.Err != nil {
 		l4g.Error(result.Err)
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError)
 	}
 	accessRsp := &model.AccessResponse{
-		AccessToken: session.Token,
-		TokenType:   model.ACCESS_TOKEN_TYPE,
-		ExpiresIn:   int32(*utils.Cfg.ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24),
+		AccessToken:  session.Token,
+		RefreshToken: accessData.RefreshToken,
+		TokenType:    model.ACCESS_TOKEN_TYPE,
+		ExpiresIn:    int32(*utils.Cfg.ServiceSettings.SessionLengthSSOInDays * 60 * 60 * 24),
 	}
 
 	return accessRsp, nil

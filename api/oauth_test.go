@@ -517,7 +517,17 @@ func TestOAuthAccessToken(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 
@@ -593,6 +603,8 @@ func TestOAuthAccessToken(t *testing.T) {
 		rsp := result.Data.(*model.AccessResponse)
 		if len(rsp.AccessToken) == 0 {
 			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
 		} else {
 			token = rsp.AccessToken
 			refreshToken = rsp.RefreshToken
@@ -644,8 +656,21 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	data.Set("refresh_token", refreshToken)
-	if _, err := Client.GetAccessToken(data); err != nil {
+	if result, err := Client.GetAccessToken(data); err != nil {
 		t.Fatal(err)
+	} else {
+		rsp := result.Data.(*model.AccessResponse)
+		if len(rsp.AccessToken) == 0 {
+			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
+		} else if rsp.RefreshToken == refreshToken {
+			t.Fatal("refresh token did not update")
+		}
+
+		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
+			t.Fatal("access token type incorrect")
+		}
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
