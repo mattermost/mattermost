@@ -1,16 +1,19 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import Client from 'client/web_client.jsx';
+import {Preferences, Constants} from 'utils/constants.jsx';
 
-import {ActionTypes, Preferences, Constants} from 'utils/constants.jsx';
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {getStatusesByIds} from 'mattermost-redux/actions/users';
 
 export function loadStatusesForChannel(channelId = ChannelStore.getCurrentId()) {
     const postList = PostStore.getVisiblePosts(channelId);
@@ -108,15 +111,7 @@ export function loadStatusesByIds(userIds) {
         return;
     }
 
-    Client.getStatusesByIds(
-        userIds,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_STATUSES,
-                statuses: data
-            });
-        }
-    );
+    getStatusesByIds(userIds)(dispatch, getState);
 }
 
 let intervalId = '';

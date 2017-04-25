@@ -127,14 +127,14 @@ export default class AtMentionProvider extends Provider {
                     return;
                 }
 
-                const members = data.in_channel;
+                const members = Object.assign([], data.users);
                 for (const id of Object.keys(members)) {
-                    members[id].type = Constants.MENTION_MEMBERS;
+                    members[id] = {...members[id], type: Constants.MENTION_MEMBERS};
                 }
 
-                const nonmembers = data.out_of_channel;
+                const nonmembers = data.out_of_channel || [];
                 for (const id of Object.keys(nonmembers)) {
-                    nonmembers[id].type = Constants.MENTION_NONMEMBERS;
+                    nonmembers[id] = {...nonmembers[id], type: Constants.MENTION_NONMEMBERS};
                 }
 
                 let specialMentions = [];

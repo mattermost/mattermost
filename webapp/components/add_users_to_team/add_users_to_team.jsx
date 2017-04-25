@@ -10,7 +10,6 @@ import {searchUsersNotInTeam} from 'actions/user_actions.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 import {displayUsernameForUser} from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
@@ -20,10 +19,20 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
+import store from 'stores/redux_store.jsx';
+import {searchProfilesNotInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
+
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 20;
 
 export default class AddUsersToTeam extends React.Component {
+    static propTypes = {
+        onModalDismissed: React.PropTypes.func,
+        actions: React.PropTypes.shape({
+            getProfilesNotInTeam: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -34,11 +43,12 @@ export default class AddUsersToTeam extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.search = this.search.bind(this);
         this.addValue = this.addValue.bind(this);
+        this.handlePageChange = this.handlePageChange.bind(this);
 
         this.searchTimeoutId = 0;
 
         this.state = {
-            users: null,
+            users: Object.assign([], UserStore.getProfileListNotInTeam(TeamStore.getCurrentId(), true)),
             values: [],
             show: true,
             search: false
@@ -50,7 +60,7 @@ export default class AddUsersToTeam extends React.Component {
         UserStore.addNotInTeamChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
 
-        AsyncClient.getProfilesNotInTeam(TeamStore.getCurrentId(), 0, USERS_PER_PAGE * 2);
+        this.props.actions.getProfilesNotInTeam(TeamStore.getCurrentId(), 0, USERS_PER_PAGE * 2);
     }
 
     componentWillUnmount() {
@@ -97,12 +107,13 @@ export default class AddUsersToTeam extends React.Component {
         this.setState({values});
     }
 
-    onChange(force) {
-        if (this.state.search && !force) {
-            return;
+    onChange() {
+        let users;
+        if (this.term) {
+            users = Object.assign([], searchProfilesNotInCurrentTeam(store.getState(), this.term, true));
+        } else {
+            users = Object.assign([], UserStore.getProfileListNotInTeam(TeamStore.getCurrentId(), true));
         }
-
-        const users = Object.assign([], UserStore.getProfileListNotInTeam(TeamStore.getCurrentId(), true));
 
         for (let i = 0; i < users.length; i++) {
             const user = Object.assign({}, users[i]);
@@ -118,53 +129,25 @@ export default class AddUsersToTeam extends React.Component {
 
     handlePageChange(page, prevPage) {
         if (page > prevPage) {
-            AsyncClient.getProfilesNotInTeam((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+            this.props.actions.getProfilesNotInTeam(TeamStore.getCurrentId(), page + 1, USERS_PER_PAGE);
         }
     }
 
     search(term) {
         clearTimeout(this.searchTimeoutId);
+        this.term = term;
 
         if (term === '') {
-            this.onChange(true);
-            this.setState({search: false});
-            this.searchTimeoutId = '';
+            this.onChange();
             return;
         }
 
-        const teamId = TeamStore.getCurrentId();
-
-        const searchTimeoutId = setTimeout(
+        this.searchTimeoutId = setTimeout(
             () => {
-                searchUsersNotInTeam(
-                    term,
-                    teamId,
-                    {},
-                    (users) => {
-                        if (searchTimeoutId !== this.searchTimeoutId) {
-                            return;
-                        }
-
-                        let indexToDelete = -1;
-                        for (let i = 0; i < users.length; i++) {
-                            if (users[i].id === UserStore.getCurrentId()) {
-                                indexToDelete = i;
-                            }
-                            users[i].value = users[i].id;
-                            users[i].label = '@' + users[i].username;
-                        }
-
-                        if (indexToDelete !== -1) {
-                            users.splice(indexToDelete, 1);
-                        }
-                        this.setState({search: true, users});
-                    }
-                );
+                searchUsersNotInTeam(term, TeamStore.getCurrentId(), {});
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
-
-        this.searchTimeoutId = searchTimeoutId;
     }
 
     handleDelete(values) {
@@ -272,7 +255,3 @@ export default class AddUsersToTeam extends React.Component {
         );
     }
 }
-
-AddUsersToTeam.propTypes = {
-    onModalDismissed: React.PropTypes.func
-};

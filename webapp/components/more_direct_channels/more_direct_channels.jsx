@@ -10,7 +10,6 @@ import {openDirectChannelToUser, openGroupChannelToUsers} from 'actions/channel_
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import Constants from 'utils/constants.jsx';
 import {displayUsernameForUser} from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
@@ -20,10 +19,22 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
+import store from 'stores/redux_store.jsx';
+import {searchProfiles, searchProfilesInCurrentTeam} from 'mattermost-redux/selectors/entities/users';
+
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 
 export default class MoreDirectChannels extends React.Component {
+    static propTypes = {
+        startingUsers: React.PropTypes.arrayOf(React.PropTypes.object),
+        onModalDismissed: React.PropTypes.func,
+        actions: React.PropTypes.shape({
+            getProfiles: React.PropTypes.func.isRequired,
+            getProfilesInTeam: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -36,6 +47,7 @@ export default class MoreDirectChannels extends React.Component {
         this.addValue = this.addValue.bind(this);
 
         this.searchTimeoutId = 0;
+        this.term = '';
         this.listType = global.window.mm_config.RestrictDirectMessage;
 
         const values = [];
@@ -63,9 +75,9 @@ export default class MoreDirectChannels extends React.Component {
         UserStore.addStatusesChangeListener(this.onChange);
 
         if (this.listType === 'any') {
-            AsyncClient.getProfiles(0, USERS_PER_PAGE * 2);
+            this.props.actions.getProfiles(0, USERS_PER_PAGE * 2);
         } else {
-            AsyncClient.getProfilesInTeam(TeamStore.getCurrentId(), 0, USERS_PER_PAGE * 2);
+            this.props.actions.getProfilesInTeam(TeamStore.getCurrentId(), 0, USERS_PER_PAGE * 2);
         }
     }
 
@@ -134,13 +146,15 @@ export default class MoreDirectChannels extends React.Component {
         this.setState({values});
     }
 
-    onChange(force) {
-        if (this.state.search && !force) {
-            return;
-        }
-
+    onChange() {
         let users;
-        if (this.listType === 'any') {
+        if (this.term) {
+            if (this.listType === 'any') {
+                users = Object.assign([], searchProfiles(store.getState(), this.term, true));
+            } else {
+                users = Object.assign([], searchProfilesInCurrentTeam(store.getState(), this.term, true));
+            }
+        } else if (this.listType === 'any') {
             users = Object.assign([], UserStore.getProfileList(true));
         } else {
             users = Object.assign([], UserStore.getProfileListInTeam(TeamStore.getCurrentId(), true));
@@ -160,17 +174,20 @@ export default class MoreDirectChannels extends React.Component {
 
     handlePageChange(page, prevPage) {
         if (page > prevPage) {
-            AsyncClient.getProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE);
+            if (this.listType === 'any') {
+                this.props.actions.getProfiles(page + 1, USERS_PER_PAGE);
+            } else {
+                this.props.actions.getProfilesInTeam(page + 1, USERS_PER_PAGE);
+            }
         }
     }
 
     search(term) {
         clearTimeout(this.searchTimeoutId);
+        this.term = term;
 
         if (term === '') {
-            this.onChange(true);
-            this.setState({search: false});
-            this.searchTimeoutId = '';
+            this.onChange();
             return;
         }
 
@@ -181,37 +198,12 @@ export default class MoreDirectChannels extends React.Component {
             teamId = TeamStore.getCurrentId();
         }
 
-        const searchTimeoutId = setTimeout(
+        this.searchTimeoutId = setTimeout(
             () => {
-                searchUsers(
-                    term,
-                    teamId,
-                    {},
-                    (users) => {
-                        if (searchTimeoutId !== this.searchTimeoutId) {
-                            return;
-                        }
-
-                        let indexToDelete = -1;
-                        for (let i = 0; i < users.length; i++) {
-                            if (users[i].id === UserStore.getCurrentId()) {
-                                indexToDelete = i;
-                            }
-                            users[i].value = users[i].id;
-                            users[i].label = '@' + users[i].username;
-                        }
-
-                        if (indexToDelete !== -1) {
-                            users.splice(indexToDelete, 1);
-                        }
-                        this.setState({search: true, users});
-                    }
-                );
+                searchUsers(term, teamId);
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
-
-        this.searchTimeoutId = searchTimeoutId;
     }
 
     handleDelete(values) {
@@ -334,8 +326,3 @@ export default class MoreDirectChannels extends React.Component {
         );
     }
 }
-
-MoreDirectChannels.propTypes = {
-    startingUsers: React.PropTypes.arrayOf(React.PropTypes.object),
-    onModalDismissed: React.PropTypes.func
-};
