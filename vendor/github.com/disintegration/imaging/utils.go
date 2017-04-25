@@ -1,28 +1,24 @@
 package imaging
 
 import (
-	"math"
 	"runtime"
 	"sync"
 	"sync/atomic"
 )
 
-var parallelizationEnabled = true
-
-// if GOMAXPROCS = 1: no goroutines used
-// if GOMAXPROCS > 1: spawn N=GOMAXPROCS workers in separate goroutines
+// parallel starts parallel image processing based on the current GOMAXPROCS value.
+// If GOMAXPROCS = 1 it uses no parallelization.
+// If GOMAXPROCS > 1 it spawns N=GOMAXPROCS workers in separate goroutines.
 func parallel(dataSize int, fn func(partStart, partEnd int)) {
 	numGoroutines := 1
 	partSize := dataSize
 
-	if parallelizationEnabled {
-		numProcs := runtime.GOMAXPROCS(0)
-		if numProcs > 1 {
-			numGoroutines = numProcs
-			partSize = dataSize / (numGoroutines * 10)
-			if partSize < 1 {
-				partSize = 1
-			}
+	numProcs := runtime.GOMAXPROCS(0)
+	if numProcs > 1 {
+		numGoroutines = numProcs
+		partSize = dataSize / (numGoroutines * 10)
+		if partSize < 1 {
+			partSize = 1
 		}
 	}
 
@@ -54,6 +50,7 @@ func parallel(dataSize int, fn func(partStart, partEnd int)) {
 	}
 }
 
+// absint returns the absolute value of i.
 func absint(i int) int {
 	if i < 0 {
 		return -i
@@ -61,17 +58,14 @@ func absint(i int) int {
 	return i
 }
 
-// clamp & round float64 to uint8 (0..255)
-func clamp(v float64) uint8 {
-	return uint8(math.Min(math.Max(v, 0.0), 255.0) + 0.5)
-}
-
-// clamp int32 to uint8 (0..255)
-func clampint32(v int32) uint8 {
-	if v < 0 {
-		return 0
-	} else if v > 255 {
+// clamp rounds and clamps float64 value to fit into uint8.
+func clamp(x float64) uint8 {
+	v := int64(x + 0.5)
+	if v > 255 {
 		return 255
 	}
-	return uint8(v)
+	if v > 0 {
+		return uint8(v)
+	}
+	return 0
 }

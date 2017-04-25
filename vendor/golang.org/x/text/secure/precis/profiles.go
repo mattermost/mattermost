@@ -13,10 +13,19 @@ import (
 )
 
 var (
-	Nickname              *Profile = nickname          // Implements the Nickname profile specified in RFC 7700.
-	UsernameCaseMapped    *Profile = usernameCaseMap   // Implements the UsernameCaseMapped profile specified in RFC 7613.
-	UsernameCasePreserved *Profile = usernameNoCaseMap // Implements the UsernameCasePreserved profile specified in RFC 7613.
-	OpaqueString          *Profile = opaquestring      // Implements the OpaqueString profile defined in RFC 7613 for passwords and other secure labels.
+	// Implements the Nickname profile specified in RFC 7700.
+	// The nickname profile is not idempotent and may need to be applied multiple
+	// times before being used for comparisons.
+	Nickname *Profile = nickname
+
+	// Implements the UsernameCaseMapped profile specified in RFC 7613.
+	UsernameCaseMapped *Profile = usernameCaseMap
+
+	// Implements the UsernameCasePreserved profile specified in RFC 7613.
+	UsernameCasePreserved *Profile = usernameNoCaseMap
+
+	// Implements the OpaqueString profile defined in RFC 7613 for passwords and other secure labels.
+	OpaqueString *Profile = opaquestring
 )
 
 var (

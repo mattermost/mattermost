@@ -5,7 +5,12 @@ import:
   repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
-  version: v1.0.0
+  version: v1.1.0
+- package: github.com/dyatlov/go-opengraph
+  subpackages:
+  - opengraph
+- package: github.com/fsnotify/fsnotify
+  version: v1.4.2
 - package: github.com/go-gorp/gorp
   version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
@@ -23,17 +28,27 @@ import:
 - package: github.com/mattermost/rsc
   subpackages:
   - qr
+- package: github.com/minio/minio-go
+  version: v2.0.4
 - package: github.com/mssola/user_agent
   version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
-  version: v1.7.0
+  version: v1.8.0
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
   version: v1.0
+- package: github.com/rsc/letsencrypt
 - package: github.com/rwcarlsen/goexif
   subpackages:
   - exif
+- package: github.com/segmentio/analytics-go
+  version: 2.1.1
+- package: github.com/spf13/cobra
+- package: github.com/spf13/pflag
+- package: github.com/spf13/viper
+- package: github.com/tylerb/graceful
+  version: v1.2.15
 - package: golang.org/x/crypto
   subpackages:
   - bcrypt
@@ -43,12 +58,10 @@ import:
 - package: gopkg.in/throttled/throttled.v2
   version: v2.0.3
   subpackages:
-  - store
+  - store/memstore
 - package: github.com/segmentio/analytics-go
   version: 2.1.1
 - package: github.com/rsc/letsencrypt
-- package: github.com/minio/minio-go
-  version: v2.0.3
 - package: github.com/prometheus/client_golang
   version: v0.8.0
   subpackages:
@@ -75,9 +88,5 @@ import:
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
-- package: github.com/jaytaylor/html2text
-- package: gopkg.in/gomail.v2
-  version: 2.0.0
-- package: github.com/spf13/viper
-- package: github.com/fsnotify/fsnotify
-  version: v1.4.2
+- package: github.com/cpanato/html2text
+

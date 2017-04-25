@@ -44,24 +44,10 @@ func (j *jws) post(url string, content []byte) (*http.Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to HTTP POST to %s -> %s", url, err.Error())
 	}
-	
-	// Even in case of an error, the response should still contain a nonce.
+
 	nonce, nonceErr := getNonceFromResponse(resp)
 	if nonceErr == nil {
 		j.nonces.Push(nonce)
-	}
-
-	if err != nil {
-		switch err.(type) {
-		case NonceError:
-			// In case of a nonce error - retry once
-			resp, err = httpPost(url, "application/jose+json", bytes.NewBuffer([]byte(signedContent.FullSerialize())))
-			if err != nil {
-				return nil, fmt.Errorf("Failed to HTTP POST to %s -> %s", url, err.Error())
-			}
-		default:
-			return nil, fmt.Errorf("Failed to HTTP POST to %s -> %s", url, err.Error())
-		}
 	}
 
 	return resp, nil

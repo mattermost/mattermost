@@ -5,8 +5,6 @@
 package sfnt
 
 import (
-	"unicode/utf8"
-
 	"golang.org/x/text/encoding/charmap"
 )
 
@@ -112,20 +110,12 @@ func (f *Font) makeCachedGlyphIndexFormat0(buf []byte, offset, length uint32) ([
 	var table [256]byte
 	copy(table[:], buf[6:])
 	return buf, func(f *Font, b *Buffer, r rune) (GlyphIndex, error) {
-		// TODO: for this closure to be goroutine-safe, the
-		// golang.org/x/text/encoding/charmap API needs to allocate a new
-		// Encoder and new []byte buffers, for every call to this closure, even
-		// though all we want to do is to encode one rune as one byte. We could
-		// possibly add some fields in the Buffer struct to re-use these
-		// allocations, but a better solution is to improve the charmap API.
-		var dst, src [utf8.UTFMax]byte
-		n := utf8.EncodeRune(src[:], r)
-		_, _, err = charmap.Macintosh.NewEncoder().Transform(dst[:], src[:n], true)
-		if err != nil {
+		x, ok := charmap.Macintosh.EncodeRune(r)
+		if !ok {
 			// The source rune r is not representable in the Macintosh-Roman encoding.
 			return 0, nil
 		}
-		return GlyphIndex(table[dst[0]]), nil
+		return GlyphIndex(table[x]), nil
 	}, nil
 }
 

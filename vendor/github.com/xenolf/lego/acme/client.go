@@ -529,10 +529,7 @@ func (c *Client) chooseSolvers(auth authorization, domain string) map[int]solver
 func (c *Client) getChallenges(domains []string) ([]authorizationResource, map[string]error) {
 	resc, errc := make(chan authorizationResource), make(chan domainError)
 
-	var delay time.Duration
-	if len(domains) > overallRequestLimit {
-		delay = time.Second / overallRequestLimit
-	}
+	delay := time.Second / overallRequestLimit
 
 	for _, domain := range domains {
 		time.Sleep(delay)

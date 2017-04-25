@@ -17,7 +17,7 @@ func Histogram(img image.Image) [256]float64 {
 	var total float64
 
 	if width == 0 || height == 0 {
-		return histogram		
+		return histogram
 	}
 
 	for y := 0; y < height; y++ {

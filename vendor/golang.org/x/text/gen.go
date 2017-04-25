@@ -110,6 +110,7 @@ func main() {
 		_          = generate("./secure/precis", unicode, norm, rangetable, cases, width, bidi)
 		_          = generate("./currency", unicode, cldr, language, internal)
 		_          = generate("./internal/number", unicode, cldr, language, internal)
+		_          = generate("./feature/plural", unicode, cldr, language, internal)
 		_          = generate("./internal/export/idna", unicode, bidi, norm)
 		_          = generate("./language/display", unicode, cldr, language, internal)
 		_          = generate("./collate", unicode, norm, cldr, language, rangetable)

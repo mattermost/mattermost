@@ -943,7 +943,7 @@ func TestCopyObjectV2(t *testing.T) {
 	}
 
 	// Set copy conditions.
-	copyConds := NewCopyConditions()
+	copyConds := CopyConditions{}
 	err = copyConds.SetModified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
 	if err != nil {
 		t.Fatal("Error:", err)

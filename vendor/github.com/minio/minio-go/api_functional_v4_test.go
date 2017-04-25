@@ -1255,6 +1255,7 @@ func TestGetObjectReadSeekFunctional(t *testing.T) {
 
 	// Generate data more than 32K
 	buf := bytes.Repeat([]byte("2"), rand.Intn(1<<20)+32*1024)
+	bufSize := len(buf)
 
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -1263,9 +1264,20 @@ func TestGetObjectReadSeekFunctional(t *testing.T) {
 		t.Fatal("Error:", err, bucketName, objectName)
 	}
 
-	if n != int64(len(buf)) {
+	if n != int64(bufSize) {
 		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", len(buf), n)
 	}
+
+	defer func() {
+		err = c.RemoveObject(bucketName, objectName)
+		if err != nil {
+			t.Fatal("Error: ", err)
+		}
+		err = c.RemoveBucket(bucketName)
+		if err != nil {
+			t.Fatal("Error:", err)
+		}
+	}()
 
 	// Read the data back
 	r, err := c.GetObject(bucketName, objectName)
@@ -1277,77 +1289,86 @@ func TestGetObjectReadSeekFunctional(t *testing.T) {
 	if err != nil {
 		t.Fatal("Error:", err, bucketName, objectName)
 	}
-	if st.Size != int64(len(buf)) {
+	if st.Size != int64(bufSize) {
 		t.Fatalf("Error: number of bytes in stat does not match, want %v, got %v\n",
 			len(buf), st.Size)
 	}
 
-	offset := int64(2048)
-	n, err = r.Seek(offset, 0)
-	if err != nil {
-		t.Fatal("Error:", err, offset)
-	}
-	if n != offset {
-		t.Fatalf("Error: number of bytes seeked does not match, want %v, got %v\n",
-			offset, n)
-	}
-	n, err = r.Seek(0, 1)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != offset {
-		t.Fatalf("Error: number of current seek does not match, want %v, got %v\n",
-			offset, n)
-	}
-	_, err = r.Seek(offset, 2)
-	if err == nil {
-		t.Fatal("Error: seek on positive offset for whence '2' should error out")
-	}
-	n, err = r.Seek(-offset, 2)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != st.Size-offset {
-		t.Fatalf("Error: number of bytes seeked back does not match, want %d, got %v\n", st.Size-offset, n)
-	}
-
-	var buffer1 bytes.Buffer
-	if _, err = io.CopyN(&buffer1, r, st.Size); err != nil {
-		if err != io.EOF {
-			t.Fatal("Error:", err)
+	// This following function helps us to compare data from the reader after seek
+	// with the data from the original buffer
+	cmpData := func(r io.Reader, start, end int) {
+		if end-start == 0 {
+			return
+		}
+		buffer := bytes.NewBuffer([]byte{})
+		if _, err := io.CopyN(buffer, r, int64(bufSize)); err != nil {
+			if err != io.EOF {
+				t.Fatal("Error:", err)
+			}
+		}
+		if !bytes.Equal(buf[start:end], buffer.Bytes()) {
+			t.Fatal("Error: Incorrect read bytes v/s original buffer.")
 		}
 	}
-	if !bytes.Equal(buf[len(buf)-int(offset):], buffer1.Bytes()) {
-		t.Fatal("Error: Incorrect read bytes v/s original buffer.")
+
+	// Generic seek error for errors other than io.EOF
+	seekErr := errors.New("seek error")
+
+	testCases := []struct {
+		offset    int64
+		whence    int
+		pos       int64
+		err       error
+		shouldCmp bool
+		start     int
+		end       int
+	}{
+		// Start from offset 0, fetch data and compare
+		{0, 0, 0, nil, true, 0, 0},
+		// Start from offset 2048, fetch data and compare
+		{2048, 0, 2048, nil, true, 2048, bufSize},
+		// Start from offset larger than possible
+		{int64(bufSize) + 1024, 0, 0, seekErr, false, 0, 0},
+		// Move to offset 0 without comparing
+		{0, 0, 0, nil, false, 0, 0},
+		// Move one step forward and compare
+		{1, 1, 1, nil, true, 1, bufSize},
+		// Move larger than possible
+		{int64(bufSize), 1, 0, seekErr, false, 0, 0},
+		// Provide negative offset with CUR_SEEK
+		{int64(-1), 1, 0, seekErr, false, 0, 0},
+		// Test with whence SEEK_END and with positive offset
+		{1024, 2, int64(bufSize) - 1024, io.EOF, true, 0, 0},
+		// Test with whence SEEK_END and with negative offset
+		{-1024, 2, int64(bufSize) - 1024, nil, true, bufSize - 1024, bufSize},
+		// Test with whence SEEK_END and with large negative offset
+		{-int64(bufSize) * 2, 2, 0, seekErr, true, 0, 0},
 	}
 
-	// Seek again and read again.
-	n, err = r.Seek(offset-1, 0)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != (offset - 1) {
-		t.Fatalf("Error: number of bytes seeked back does not match, want %v, got %v\n", offset-1, n)
-	}
-
-	var buffer2 bytes.Buffer
-	if _, err = io.CopyN(&buffer2, r, st.Size); err != nil {
-		if err != io.EOF {
-			t.Fatal("Error:", err)
+	for i, testCase := range testCases {
+		// Perform seek operation
+		n, err := r.Seek(testCase.offset, testCase.whence)
+		// We expect an error
+		if testCase.err == seekErr && err == nil {
+			t.Fatalf("Test %d, unexpected err value: expected: %v, found: %v", i+1, testCase.err, err)
 		}
-	}
-	// Verify now lesser bytes.
-	if !bytes.Equal(buf[2047:], buffer2.Bytes()) {
-		t.Fatal("Error: Incorrect read bytes v/s original buffer.")
-	}
-
-	err = c.RemoveObject(bucketName, objectName)
-	if err != nil {
-		t.Fatal("Error: ", err)
-	}
-	err = c.RemoveBucket(bucketName)
-	if err != nil {
-		t.Fatal("Error:", err)
+		// We expect a specific error
+		if testCase.err != seekErr && testCase.err != err {
+			t.Fatalf("Test %d, unexpected err value: expected: %v, found: %v", i+1, testCase.err, err)
+		}
+		// If we expect an error go to the next loop
+		if testCase.err != nil {
+			continue
+		}
+		// Check the returned seek pos
+		if n != testCase.pos {
+			t.Fatalf("Test %d, error: number of bytes seeked does not match, want %v, got %v\n", i+1,
+				testCase.pos, n)
+		}
+		// Compare only if shouldCmp is activated
+		if testCase.shouldCmp {
+			cmpData(r, testCase.start, testCase.end)
+		}
 	}
 }
 
@@ -1662,7 +1683,7 @@ func TestCopyObject(t *testing.T) {
 	}
 
 	// Set copy conditions.
-	copyConds := NewCopyConditions()
+	copyConds := CopyConditions{}
 
 	// Start by setting wrong conditions
 	err = copyConds.SetModified(time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC))
@@ -1725,7 +1746,7 @@ func TestCopyObject(t *testing.T) {
 	}
 
 	// CopyObject again but with wrong conditions
-	copyConds = NewCopyConditions()
+	copyConds = CopyConditions{}
 	err = copyConds.SetUnmodified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
 	if err != nil {
 		t.Fatal("Error:", err)

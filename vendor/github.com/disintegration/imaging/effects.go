@@ -62,8 +62,7 @@ func blurHorizontal(src *image.NRGBA, kernel []float64) *image.NRGBA {
 			}
 
 			for y := 0; y < height; y++ {
-
-				r, g, b, a := 0.0, 0.0, 0.0, 0.0
+				var r, g, b, a float64
 				for ix := start; ix <= end; ix++ {
 					weight := kernel[absint(x-ix)]
 					i := y*src.Stride + ix*4
@@ -74,17 +73,11 @@ func blurHorizontal(src *image.NRGBA, kernel []float64) *image.NRGBA {
 					a += wa
 				}
 
-				r = math.Min(math.Max(r/a, 0.0), 255.0)
-				g = math.Min(math.Max(g/a, 0.0), 255.0)
-				b = math.Min(math.Max(b/a, 0.0), 255.0)
-				a = math.Min(math.Max(a/weightSum, 0.0), 255.0)
-
 				j := y*dst.Stride + x*4
-				dst.Pix[j+0] = uint8(r + 0.5)
-				dst.Pix[j+1] = uint8(g + 0.5)
-				dst.Pix[j+2] = uint8(b + 0.5)
-				dst.Pix[j+3] = uint8(a + 0.5)
-
+				dst.Pix[j+0] = clamp(r / a)
+				dst.Pix[j+1] = clamp(g / a)
+				dst.Pix[j+2] = clamp(b / a)
+				dst.Pix[j+3] = clamp(a / weightSum)
 			}
 		}
 	})
@@ -117,8 +110,7 @@ func blurVertical(src *image.NRGBA, kernel []float64) *image.NRGBA {
 			}
 
 			for x := 0; x < width; x++ {
-
-				r, g, b, a := 0.0, 0.0, 0.0, 0.0
+				var r, g, b, a float64
 				for iy := start; iy <= end; iy++ {
 					weight := kernel[absint(y-iy)]
 					i := iy*src.Stride + x*4
@@ -129,17 +121,11 @@ func blurVertical(src *image.NRGBA, kernel []float64) *image.NRGBA {
 					a += wa
 				}
 
-				r = math.Min(math.Max(r/a, 0.0), 255.0)
-				g = math.Min(math.Max(g/a, 0.0), 255.0)
-				b = math.Min(math.Max(b/a, 0.0), 255.0)
-				a = math.Min(math.Max(a/weightSum, 0.0), 255.0)
-
 				j := y*dst.Stride + x*4
-				dst.Pix[j+0] = uint8(r + 0.5)
-				dst.Pix[j+1] = uint8(g + 0.5)
-				dst.Pix[j+2] = uint8(b + 0.5)
-				dst.Pix[j+3] = uint8(a + 0.5)
-
+				dst.Pix[j+0] = clamp(r / a)
+				dst.Pix[j+1] = clamp(g / a)
+				dst.Pix[j+2] = clamp(b / a)
+				dst.Pix[j+3] = clamp(a / weightSum)
 			}
 		}
 	})
@@ -173,7 +159,7 @@ func Sharpen(img image.Image, sigma float64) *image.NRGBA {
 				i := y*src.Stride + x*4
 				for j := 0; j < 4; j++ {
 					k := i + j
-					val := int(src.Pix[k]) + (int(src.Pix[k]) - int(blurred.Pix[k]))
+					val := int(src.Pix[k])<<1 - int(blurred.Pix[k])
 					if val < 0 {
 						val = 0
 					} else if val > 255 {

@@ -35,13 +35,6 @@ func (e UnsupportedError) Error() string {
 	return "tiff: unsupported feature: " + string(e)
 }
 
-// An InternalError reports that an internal error was encountered.
-type InternalError string
-
-func (e InternalError) Error() string {
-	return "tiff: internal error: " + string(e)
-}
-
 var errNoPixels = FormatError("not enough pixel data")
 
 type decoder struct {

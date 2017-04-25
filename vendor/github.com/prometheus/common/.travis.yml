@@ -2,6 +2,5 @@ sudo: false
 
 language: go
 go:
-  - 1.5.4
-  - 1.6.2
+  - 1.7.5
   - tip

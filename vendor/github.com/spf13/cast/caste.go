@@ -1077,6 +1077,35 @@ func ToIntSliceE(i interface{}) ([]int, error) {
 	}
 }
 
+// ToDurationSliceE casts an interface to a []time.Duration type.
+func ToDurationSliceE(i interface{}) ([]time.Duration, error) {
+	if i == nil {
+		return []time.Duration{}, fmt.Errorf("unable to cast %#v of type %T to []time.Duration", i, i)
+	}
+
+	switch v := i.(type) {
+	case []time.Duration:
+		return v, nil
+	}
+
+	kind := reflect.TypeOf(i).Kind()
+	switch kind {
+	case reflect.Slice, reflect.Array:
+		s := reflect.ValueOf(i)
+		a := make([]time.Duration, s.Len())
+		for j := 0; j < s.Len(); j++ {
+			val, err := ToDurationE(s.Index(j).Interface())
+			if err != nil {
+				return []time.Duration{}, fmt.Errorf("unable to cast %#v of type %T to []time.Duration", i, i)
+			}
+			a[j] = val
+		}
+		return a, nil
+	default:
+		return []time.Duration{}, fmt.Errorf("unable to cast %#v of type %T to []time.Duration", i, i)
+	}
+}
+
 // StringToDate attempts to parse a string into a time.Time type using a
 // predefined list of formats.  If no suitable format is found, an error is
 // returned.

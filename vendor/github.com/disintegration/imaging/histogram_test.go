@@ -36,7 +36,7 @@ func TestHistogram(t *testing.T) {
 	for _, val := range h {
 		if val != 0 {
 			t.Errorf("Histogram for an empty image should be a zero histogram.")
-			return 
+			return
 		}
 	}
 }

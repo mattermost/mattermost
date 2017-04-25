@@ -33,6 +33,7 @@ type tomlOpts struct {
 }
 
 var timeType = reflect.TypeOf(time.Time{})
+var marshalerType = reflect.TypeOf(new(Marshaler)).Elem()
 
 // Check if the given marshall type maps to a TomlTree primitive
 func isPrimitive(mtype reflect.Type) bool {
@@ -50,7 +51,7 @@ func isPrimitive(mtype reflect.Type) bool {
 	case reflect.String:
 		return true
 	case reflect.Struct:
-		return mtype == timeType
+		return mtype == timeType || isCustomMarshaler(mtype)
 	default:
 		return false
 	}
@@ -90,6 +91,20 @@ func isTree(mtype reflect.Type) bool {
 	}
 }
 
+func isCustomMarshaler(mtype reflect.Type) bool {
+	return mtype.Implements(marshalerType)
+}
+
+func callCustomMarshaler(mval reflect.Value) ([]byte, error) {
+	return mval.Interface().(Marshaler).MarshalTOML()
+}
+
+// Marshaler is the interface implemented by types that
+// can marshal themselves into valid TOML.
+type Marshaler interface {
+	MarshalTOML() ([]byte, error)
+}
+
 /*
 Marshal returns the TOML encoding of v.  Behavior is similar to the Go json
 encoder, except that there is no concept of a Marshaler interface or MarshalTOML
@@ -106,6 +121,9 @@ func Marshal(v interface{}) ([]byte, error) {
 		return []byte{}, errors.New("Only a struct can be marshaled to TOML")
 	}
 	sval := reflect.ValueOf(v)
+	if isCustomMarshaler(mtype) {
+		return callCustomMarshaler(sval)
+	}
 	t, err := valueToTree(mtype, sval)
 	if err != nil {
 		return []byte{}, err
@@ -178,6 +196,8 @@ func valueToToml(mtype reflect.Type, mval reflect.Value) (interface{}, error) {
 		return valueToToml(mtype.Elem(), mval.Elem())
 	}
 	switch {
+	case isCustomMarshaler(mtype):
+		return callCustomMarshaler(mval)
 	case isTree(mtype):
 		return valueToTree(mtype, mval)
 	case isTreeSlice(mtype):

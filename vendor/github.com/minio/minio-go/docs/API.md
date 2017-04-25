@@ -1,4 +1,4 @@
-# Golang Client API Reference [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Minio/minio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Minio Go Client API Reference [![Slack](https://slack.minio.io/slack?type=svg)](https://slack.minio.io)
 
 ## Initialize Minio Client object.
 
@@ -60,7 +60,7 @@ func main() {
 |[`ListBuckets`](#ListBuckets)   |[`PutObject`](#PutObject)   |[`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)  | [`SetCustomTransport`](#SetCustomTransport) |
 |[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject)   |[`PresignedPostPolicy`](#PresignedPostPolicy)   |  [`ListBucketPolicies`](#ListBucketPolicies)  | [`TraceOn`](#TraceOn) |
 | [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject)   |   |  [`SetBucketNotification`](#SetBucketNotification)  | [`TraceOff`](#TraceOff) |
-|[`ListObjects`](#ListObjects)   |[`RemoveObject`](#RemoveObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)   |
+|[`ListObjects`](#ListObjects)  |[`RemoveObject`](#RemoveObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)  | [`SetS3TransferAccelerate`](#SetS3TransferAccelerate) |
 |[`ListObjectsV2`](#ListObjectsV2) | [`RemoveObjects`](#RemoveObjects) |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
 |[`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |   |  [`ListenBucketNotification`](#ListenBucketNotification)  |
 |   | [`FPutObject`](#FPutObject)  |   |   |
@@ -69,7 +69,7 @@ func main() {
 ## 1. Constructor
 <a name="Minio"></a>
 
-### New(endpoint string, accessKeyID string, secretAccessKey string, ssl bool) (*Client, error)
+### New(endpoint, accessKeyID, secretAccessKey string, ssl bool) (*Client, error)
 Initializes a new client object.
 
 __Parameters__
@@ -86,7 +86,7 @@ __Parameters__
 ## 2. Bucket operations
 
 <a name="MakeBucket"></a>
-### MakeBucket(bucketName string, location string) error
+### MakeBucket(bucketName, location string) error
 Creates a new bucket.
 
 
@@ -216,7 +216,7 @@ if err != nil {
 ```
 
 <a name="ListObjects"></a>
-### ListObjects(bucketName string, prefix string, recursive bool, doneCh chan struct{}) <-chan ObjectInfo
+### ListObjects(bucketName, prefix string, recursive bool, doneCh chan struct{}) <-chan ObjectInfo
 
 Lists objects in a bucket.
 
@@ -267,7 +267,7 @@ for object := range objectCh {
 
 
 <a name="ListObjectsV2"></a>
-### ListObjectsV2(bucketName string, prefix string, recursive bool, doneCh chan struct{}) <-chan ObjectInfo
+### ListObjectsV2(bucketName, prefix string, recursive bool, doneCh chan struct{}) <-chan ObjectInfo
 
 Lists objects in a bucket using the recommended listing API v2
 
@@ -317,7 +317,7 @@ for object := range objectCh {
 ```
 
 <a name="ListIncompleteUploads"></a>
-### ListIncompleteUploads(bucketName string, prefix string, recursive bool, doneCh chan struct{}) <- chan ObjectMultipartInfo
+### ListIncompleteUploads(bucketName, prefix string, recursive bool, doneCh chan struct{}) <- chan ObjectMultipartInfo
 
 Lists partially uploaded objects in a bucket.
 
@@ -373,7 +373,7 @@ for multiPartObject := range multiPartObjectCh {
 ## 3. Object operations
 
 <a name="GetObject"></a>
-### GetObject(bucketName string, objectName string) (*Object, error)
+### GetObject(bucketName, objectName string) (*Object, error)
 
 Downloads an object.
 
@@ -392,7 +392,7 @@ __Return Value__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
-|`object`  | _*minio.Object_ |_minio.Object_ represents object reader  |
+|`object`  | _*minio.Object_ |_minio.Object_ represents object reader. It implements io.Reader, io.Seeker, io.ReaderAt and io.Closer interfaces. |
 
 
 __Example__
@@ -418,7 +418,7 @@ if _, err = io.Copy(localFile, object); err != nil {
 ```
 
 <a name="FGetObject"></a>
-### FGetObject(bucketName string, objectName string, filePath string) error
+### FGetObject(bucketName, objectName, filePath string) error
  Downloads and saves the object as a file in the local filesystem.
 
 
@@ -446,7 +446,7 @@ if err != nil {
 ```
 
 <a name="PutObject"></a>
-### PutObject(bucketName string, objectName string, reader io.Reader, contentType string) (n int, err error)
+### PutObject(bucketName, objectName string, reader io.Reader, contentType string) (n int, err error)
 
 Uploads an object.
 
@@ -489,7 +489,7 @@ if err != nil {
 
 
 <a name="CopyObject"></a>
-### CopyObject(bucketName string, objectName string, objectSource string, conditions CopyConditions) error
+### CopyObject(bucketName, objectName, objectSource string, conditions CopyConditions) error
 
 Copy a source object into a new object with the provided name in the provided bucket.
 
@@ -509,24 +509,34 @@ __Example__
 
 
 ```go
+// Use-case-1
+// To copy an existing object to a new object with _no_ copy conditions.
+copyConditions := minio.CopyConditions{}
+err := minioClient.CopyObject("mybucket", "myobject", "my-sourcebucketname/my-sourceobjectname", copyConds)
+if err != nil {
+    fmt.Println(err)
+    return
+}
 
-// All following conditions are allowed and can be combined together.
+// Use-case-2
+// To copy an existing object to a new object with the following copy conditions
+// 1. that matches a given ETag
+// 2. and modified after 1st April 2014
+// 3. but unmodified since 23rd April 2014
 
-// Set copy conditions.
-var copyConds = minio.NewCopyConditions()
-// Set modified condition, copy object modified since 2014 April.
-copyConds.SetModified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
+// Initialize empty copy conditions.
+var copyConds = minio.CopyConditions{}
 
-// Set unmodified condition, copy object unmodified since 2014 April.
-// copyConds.SetUnmodified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
+// copy object that matches the given ETag.
+copyConds.SetMatchETag("31624deb84149d2f8ef9c385918b653a")
 
-// Set matching ETag condition, copy object which matches the following ETag.
-// copyConds.SetMatchETag("31624deb84149d2f8ef9c385918b653a")
+// and modified after 1st April 2014
+copyConds.SetModified(time.Date(2014, time.April, 1, 0, 0, 0, 0, time.UTC))
 
-// Set matching ETag except condition, copy object which does not match the following ETag.
-// copyConds.SetMatchETagExcept("31624deb84149d2f8ef9c385918b653a")
+// but unmodified since 23rd April 2014
+copyConds.SetUnmodified(time.Date(2014, time.April, 23, 0, 0, 0, 0, time.UTC))
 
-err := minioClient.CopyObject("mybucket", "myobject", "/my-sourcebucketname/my-sourceobjectname", copyConds)
+err := minioClient.CopyObject("mybucket", "myobject", "my-sourcebucketname/my-sourceobjectname", copyConds)
 if err != nil {
     fmt.Println(err)
     return
@@ -535,7 +545,7 @@ if err != nil {
 ```
 
 <a name="FPutObject"></a>
-### FPutObject(bucketName string, objectName string, filePath string, contentType string) error
+### FPutObject(bucketName, objectName, filePath, contentType string) error
 
 Uploads contents from a file to objectName.
 
@@ -569,7 +579,7 @@ if err != nil {
 ```
 
 <a name="StatObject"></a>
-### StatObject(bucketName string, objectName string) (ObjectInfo, error)
+### StatObject(bucketName, objectName string) (ObjectInfo, error)
 
 Gets metadata of an object.
 
@@ -613,7 +623,7 @@ fmt.Println(objInfo)
 ```
 
 <a name="RemoveObject"></a>
-### RemoveObject(bucketName string, objectName string) error
+### RemoveObject(bucketName, objectName string) error
 
 Removes an object.
 
@@ -670,7 +680,7 @@ for e := range errorCh {
 
 
 <a name="RemoveIncompleteUpload"></a>
-### RemoveIncompleteUpload(bucketName string, objectName string) error
+### RemoveIncompleteUpload(bucketName, objectName string) error
 
 Removes a partially uploaded object.
 
@@ -699,7 +709,7 @@ if err != nil {
 
 
 <a name="PresignedGetObject"></a>
-### PresignedGetObject(bucketName string, objectName string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
+### PresignedGetObject(bucketName, objectName string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
 
 Generates a presigned URL for HTTP GET operations. Browsers/Mobile clients may point to this URL to directly download objects even if the bucket is private. This presigned URL can have an associated expiration time in seconds after which it is no longer operational. The default expiry is set to 7 days.
 
@@ -733,7 +743,7 @@ if err != nil {
 ```
 
 <a name="PresignedPutObject"></a>
-### PresignedPutObject(bucketName string, objectName string, expiry time.Duration) (*url.URL, error)
+### PresignedPutObject(bucketName, objectName string, expiry time.Duration) (*url.URL, error)
 
 Generates a presigned URL for HTTP PUT operations. Browsers/Mobile clients may point to this URL to upload objects directly to a bucket even if it is private. This presigned URL can have an associated expiration time in seconds after which it is no longer operational. The default expiry is set to 7 days.
 
@@ -822,7 +832,7 @@ fmt.Printf("%s\n", url)
 ## 5. Bucket policy/notification operations
 
 <a name="SetBucketPolicy"></a>
-### SetBucketPolicy(bucketname string, objectPrefix string, policy policy.BucketPolicy) error
+### SetBucketPolicy(bucketname, objectPrefix string, policy policy.BucketPolicy) error
 
 Set access permissions on bucket or an object prefix.
 
@@ -864,7 +874,7 @@ if err != nil {
 ```
 
 <a name="GetBucketPolicy"></a>
-### GetBucketPolicy(bucketName string, objectPrefix string) (policy.BucketPolicy, error)
+### GetBucketPolicy(bucketName, objectPrefix string) (policy.BucketPolicy, error)
 
 Get access permissions on a bucket or a prefix.
 
@@ -901,7 +911,7 @@ fmt.Println("Access permissions for mybucket is", bucketPolicy)
 ```
 
 <a name="ListBucketPolicies"></a>
-### ListBucketPolicies(bucketName string, objectPrefix string) (map[string]BucketPolicy, error)
+### ListBucketPolicies(bucketName, objectPrefix string) (map[string]BucketPolicy, error)
 
 Get access permissions rules associated to the specified bucket and prefix.
 
@@ -1099,7 +1109,7 @@ for notificationInfo := range minioClient.ListenBucketNotification("YOUR-BUCKET"
 ## 6. Client custom settings
 
 <a name="SetAppInfo"></a>
-### SetAppInfo(appName string, appVersion string)
+### SetAppInfo(appName, appVersion string)
 Adds application details to User-Agent.
 
 __Parameters__
@@ -1147,6 +1157,17 @@ __Parameters__
 <a name="TraceOff"></a>
 ### TraceOff()
 Disables HTTP tracing.
+
+<a name="SetS3TransferAccelerate"></a>
+### SetS3TransferAccelerate(acceleratedEndpoint string)
+Set AWS S3 transfer acceleration endpoint for all API requests hereafter.
+NOTE: This API applies only to AWS S3 and ignored with other S3 compatible object storage services.
+
+__Parameters__
+
+| Param  | Type  | Description  |
+|---|---|---|
+|`acceleratedEndpoint`  | _string_  | Set to new S3 transfer acceleration endpoint.|
 
 
 ## 7. Explore Further
