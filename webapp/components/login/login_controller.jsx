@@ -433,6 +433,7 @@ export default class LoginController extends React.Component {
                             defaultMessage="Don't have an account? "
                         />
                         <Link
+                            id='signup'
                             to={'/signup_user_complete' + this.props.location.search}
                             className='signup-team-login'
                         >
