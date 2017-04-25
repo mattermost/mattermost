@@ -16,6 +16,10 @@ func (st *singleTranslation) MarshalInterface() interface{} {
 	}
 }
 
+func (st *singleTranslation) MarshalFlatInterface() interface{} {
+	return map[string]interface{}{"other": st.template}
+}
+
 func (st *singleTranslation) ID() string {
 	return st.id
 }

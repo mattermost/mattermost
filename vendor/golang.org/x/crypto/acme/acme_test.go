@@ -6,6 +6,7 @@ package acme
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -23,8 +24,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // Decodes a JWS-encoded request and unmarshals the decoded JSON into a provided
@@ -981,7 +980,8 @@ func TestNonce_fetch(t *testing.T) {
 	defer ts.Close()
 	for ; i < len(tests); i++ {
 		test := tests[i]
-		n, err := fetchNonce(context.Background(), http.DefaultClient, ts.URL)
+		c := &Client{}
+		n, err := c.fetchNonce(context.Background(), ts.URL)
 		if n != test.nonce {
 			t.Errorf("%d: n=%q; want %q", i, n, test.nonce)
 		}
@@ -999,7 +999,8 @@ func TestNonce_fetchError(t *testing.T) {
 		w.WriteHeader(http.StatusTooManyRequests)
 	}))
 	defer ts.Close()
-	_, err := fetchNonce(context.Background(), http.DefaultClient, ts.URL)
+	c := &Client{}
+	_, err := c.fetchNonce(context.Background(), ts.URL)
 	e, ok := err.(*Error)
 	if !ok {
 		t.Fatalf("err is %T; want *Error", err)
@@ -1061,6 +1062,44 @@ func TestNonce_postJWS(t *testing.T) {
 		if _, exist := client.nonces[k]; exist {
 			t.Errorf("used nonce %q in client.nonces", k)
 		}
+	}
+}
+
+func TestRetryPostJWS(t *testing.T) {
+	var count int
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		count++
+		w.Header().Set("replay-nonce", fmt.Sprintf("nonce%d", count))
+		if r.Method == "HEAD" {
+			// We expect the client to do 2 head requests to fetch
+			// nonces, one to start and another after getting badNonce
+			return
+		}
+
+		head, err := decodeJWSHead(r)
+		if err != nil {
+			t.Errorf("decodeJWSHead: %v", err)
+		} else if head.Nonce == "" {
+			t.Error("head.Nonce is empty")
+		} else if head.Nonce == "nonce1" {
+			// return a badNonce error to force the call to retry
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"type":"urn:ietf:params:acme:error:badNonce"}`))
+			return
+		}
+		// Make client.Authorize happy; we're not testing its result.
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"status":"valid"}`))
+	}))
+	defer ts.Close()
+
+	client := Client{Key: testKey, dir: &Directory{AuthzURL: ts.URL}}
+	// This call will fail with badNonce, causing a retry
+	if _, err := client.Authorize(context.Background(), "example.com"); err != nil {
+		t.Errorf("client.Authorize 1: %v", err)
+	}
+	if count != 4 {
+		t.Errorf("total requests count: %d; want 4", count)
 	}
 }
 

@@ -598,7 +598,7 @@ func TestOverlay(t *testing.T) {
 	for _, d := range td {
 		got := Overlay(d.src1, d.src2, d.p, d.a)
 		want := d.want
-		if !compareNRGBA(got, want, 1) {
+		if !compareNRGBA(got, want, 0) {
 			t.Errorf("test [%s] failed: %#v", d.desc, got)
 		}
 	}

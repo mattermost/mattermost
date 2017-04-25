@@ -37,6 +37,7 @@ func testMergeExecute(t *testing.T, files []string) {
 		sourceLanguage:   "en-us",
 		outdir:           "testdata/output",
 		format:           "json",
+		flat:             false,
 	}
 	if err := mc.execute(); err != nil {
 		t.Fatal(err)
@@ -69,6 +70,6 @@ func expectEqualFiles(t *testing.T, expectedName, actualName string) {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(actual, expected) {
-		t.Fatalf("contents of files did not match: %s, %s", expectedName, actualName)
+		t.Errorf("contents of files did not match: %s, %s", expectedName, actualName)
 	}
 }

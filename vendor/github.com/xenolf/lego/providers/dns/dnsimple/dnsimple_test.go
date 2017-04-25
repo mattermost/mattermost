@@ -74,7 +74,7 @@ func TestNewDNSProviderInvalidWithMissingOauthToken(t *testing.T) {
 	provider, err := NewDNSProvider()
 
 	assert.Nil(t, provider)
-	assert.EqualError(t, err, "DNSimple OAuth token missing")
+	assert.EqualError(t, err, "DNSimple OAuth token is missing")
 }
 
 //
@@ -102,7 +102,7 @@ func TestNewDNSProviderCredentialsInvalidWithMissingOauthToken(t *testing.T) {
 	provider, err := NewDNSProviderCredentials("", "")
 
 	assert.Nil(t, provider)
-	assert.EqualError(t, err, "DNSimple OAuth token missing")
+	assert.EqualError(t, err, "DNSimple OAuth token is missing")
 }
 
 //

@@ -206,6 +206,26 @@ func TestAdjustContrast(t *testing.T) {
 	}
 }
 
+func TestAdjustContrastGolden(t *testing.T) {
+	src, err := Open("testdata/lena_128.png")
+	if err != nil {
+		t.Errorf("Open: %v", err)
+	}
+	for name, p := range map[string]float64{
+		"out_contrast_m10.png": -10,
+		"out_contrast_p10.png": 10,
+	} {
+		got := AdjustContrast(src, p)
+		want, err := Open("testdata/" + name)
+		if err != nil {
+			t.Errorf("Open: %v", err)
+		}
+		if !compareNRGBA(got, toNRGBA(want), 0) {
+			t.Errorf("resulting image differs from golden: %s", name)
+		}
+	}
+}
+
 func TestAdjustBrightness(t *testing.T) {
 	td := []struct {
 		desc string
@@ -333,6 +353,26 @@ func TestAdjustBrightness(t *testing.T) {
 	}
 }
 
+func TestAdjustBrightnessGolden(t *testing.T) {
+	src, err := Open("testdata/lena_128.png")
+	if err != nil {
+		t.Errorf("Open: %v", err)
+	}
+	for name, p := range map[string]float64{
+		"out_brightness_m10.png": -10,
+		"out_brightness_p10.png": 10,
+	} {
+		got := AdjustBrightness(src, p)
+		want, err := Open("testdata/" + name)
+		if err != nil {
+			t.Errorf("Open: %v", err)
+		}
+		if !compareNRGBA(got, toNRGBA(want), 0) {
+			t.Errorf("resulting image differs from golden: %s", name)
+		}
+	}
+}
+
 func TestAdjustGamma(t *testing.T) {
 	td := []struct {
 		desc string
@@ -412,6 +452,26 @@ func TestAdjustGamma(t *testing.T) {
 		want := d.want
 		if !compareNRGBA(got, want, 0) {
 			t.Errorf("test [%s] failed: %#v", d.desc, got)
+		}
+	}
+}
+
+func TestAdjustGammaGolden(t *testing.T) {
+	src, err := Open("testdata/lena_128.png")
+	if err != nil {
+		t.Errorf("Open: %v", err)
+	}
+	for name, g := range map[string]float64{
+		"out_gamma_0.75.png": 0.75,
+		"out_gamma_1.25.png": 1.25,
+	} {
+		got := AdjustGamma(src, g)
+		want, err := Open("testdata/" + name)
+		if err != nil {
+			t.Errorf("Open: %v", err)
+		}
+		if !compareNRGBA(got, toNRGBA(want), 0) {
+			t.Errorf("resulting image differs from golden: %s", name)
 		}
 	}
 }

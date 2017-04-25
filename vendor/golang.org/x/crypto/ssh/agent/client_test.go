@@ -233,7 +233,9 @@ func TestAuth(t *testing.T) {
 		conn.Close()
 	}()
 
-	conf := ssh.ClientConfig{}
+	conf := ssh.ClientConfig{
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
 	conf.Auth = append(conf.Auth, ssh.PublicKeysCallback(agent.Signers))
 	conn, _, _, err := ssh.NewClientConn(b, "", &conf)
 	if err != nil {

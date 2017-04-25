@@ -1,11 +1,9 @@
-/*
-Package imaging provides basic image manipulation functions (resize, rotate, flip, crop, etc.).
-This package is based on the standard Go image package and works best along with it.
-
-Image manipulation functions provided by the package take any image type
-that implements `image.Image` interface as an input, and return a new image of
-`*image.NRGBA` type (32bit RGBA colors, not premultiplied by alpha).
-*/
+// Package imaging provides basic image manipulation functions (resize, rotate, flip, crop, etc.).
+// This package is based on the standard Go image package and works best along with it.
+//
+// Image manipulation functions provided by the package take any image type
+// that implements `image.Image` interface as an input, and return a new image of
+// `*image.NRGBA` type (32bit RGBA colors, not premultiplied by alpha).
 package imaging
 
 import (
@@ -24,8 +22,10 @@ import (
 	"golang.org/x/image/tiff"
 )
 
+// Format is an image file format.
 type Format int
 
+// Image file formats.
 const (
 	JPEG Format = iota
 	PNG
@@ -52,6 +52,7 @@ func (f Format) String() string {
 }
 
 var (
+	// ErrUnsupportedFormat means the given image format (or file extension) is unsupported.
 	ErrUnsupportedFormat = errors.New("imaging: unsupported image format")
 )
 
@@ -194,15 +195,12 @@ func Clone(img image.Image) *image.NRGBA {
 				di := dst.PixOffset(0, dstY)
 				si := src.PixOffset(srcMinX, srcMinY+dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					dst.Pix[di+0] = src.Pix[si+0]
 					dst.Pix[di+1] = src.Pix[si+2]
 					dst.Pix[di+2] = src.Pix[si+4]
 					dst.Pix[di+3] = src.Pix[si+6]
-
 					di += 4
 					si += 8
-
 				}
 			}
 		})
@@ -213,9 +211,9 @@ func Clone(img image.Image) *image.NRGBA {
 				di := dst.PixOffset(0, dstY)
 				si := src.PixOffset(srcMinX, srcMinY+dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					a := src.Pix[si+3]
 					dst.Pix[di+3] = a
+
 					switch a {
 					case 0:
 						dst.Pix[di+0] = 0
@@ -237,7 +235,6 @@ func Clone(img image.Image) *image.NRGBA {
 
 					di += 4
 					si += 4
-
 				}
 			}
 		})
@@ -248,9 +245,9 @@ func Clone(img image.Image) *image.NRGBA {
 				di := dst.PixOffset(0, dstY)
 				si := src.PixOffset(srcMinX, srcMinY+dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					a := src.Pix[si+6]
 					dst.Pix[di+3] = a
+
 					switch a {
 					case 0:
 						dst.Pix[di+0] = 0
@@ -272,7 +269,6 @@ func Clone(img image.Image) *image.NRGBA {
 
 					di += 4
 					si += 8
-
 				}
 			}
 		})
@@ -283,16 +279,13 @@ func Clone(img image.Image) *image.NRGBA {
 				di := dst.PixOffset(0, dstY)
 				si := src.PixOffset(srcMinX, srcMinY+dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					c := src.Pix[si]
 					dst.Pix[di+0] = c
 					dst.Pix[di+1] = c
 					dst.Pix[di+2] = c
 					dst.Pix[di+3] = 0xff
-
 					di += 4
 					si += 1
-
 				}
 			}
 		})
@@ -303,16 +296,13 @@ func Clone(img image.Image) *image.NRGBA {
 				di := dst.PixOffset(0, dstY)
 				si := src.PixOffset(srcMinX, srcMinY+dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					c := src.Pix[si]
 					dst.Pix[di+0] = c
 					dst.Pix[di+1] = c
 					dst.Pix[di+2] = c
 					dst.Pix[di+3] = 0xff
-
 					di += 4
 					si += 2
-
 				}
 			}
 		})
@@ -322,7 +312,6 @@ func Clone(img image.Image) *image.NRGBA {
 			for dstY := partStart; dstY < partEnd; dstY++ {
 				di := dst.PixOffset(0, dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					srcX := srcMinX + dstX
 					srcY := srcMinY + dstY
 					siy := src.YOffset(srcX, srcY)
@@ -332,9 +321,7 @@ func Clone(img image.Image) *image.NRGBA {
 					dst.Pix[di+1] = g
 					dst.Pix[di+2] = b
 					dst.Pix[di+3] = 0xff
-
 					di += 4
-
 				}
 			}
 		})
@@ -345,22 +332,18 @@ func Clone(img image.Image) *image.NRGBA {
 		for i := 0; i < plen; i++ {
 			pnew[i] = color.NRGBAModel.Convert(src.Palette[i]).(color.NRGBA)
 		}
-
 		parallel(dstH, func(partStart, partEnd int) {
 			for dstY := partStart; dstY < partEnd; dstY++ {
 				di := dst.PixOffset(0, dstY)
 				si := src.PixOffset(srcMinX, srcMinY+dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					c := pnew[src.Pix[si]]
 					dst.Pix[di+0] = c.R
 					dst.Pix[di+1] = c.G
 					dst.Pix[di+2] = c.B
 					dst.Pix[di+3] = c.A
-
 					di += 4
 					si += 1
-
 				}
 			}
 		})
@@ -370,15 +353,12 @@ func Clone(img image.Image) *image.NRGBA {
 			for dstY := partStart; dstY < partEnd; dstY++ {
 				di := dst.PixOffset(0, dstY)
 				for dstX := 0; dstX < dstW; dstX++ {
-
 					c := color.NRGBAModel.Convert(img.At(srcMinX+dstX, srcMinY+dstY)).(color.NRGBA)
 					dst.Pix[di+0] = c.R
 					dst.Pix[di+1] = c.G
 					dst.Pix[di+2] = c.B
 					dst.Pix[di+3] = c.A
-
 					di += 4
-
 				}
 			}
 		})
@@ -388,7 +368,7 @@ func Clone(img image.Image) *image.NRGBA {
 	return dst
 }
 
-// This function used internally to convert any image type to NRGBA if needed.
+// toNRGBA converts any image type to *image.NRGBA with min-point at (0, 0).
 func toNRGBA(img image.Image) *image.NRGBA {
 	srcBounds := img.Bounds()
 	if srcBounds.Min.X == 0 && srcBounds.Min.Y == 0 {

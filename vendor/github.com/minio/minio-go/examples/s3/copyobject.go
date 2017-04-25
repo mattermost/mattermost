@@ -45,7 +45,7 @@ func main() {
 	// All following conditions are allowed and can be combined together.
 
 	// Set copy conditions.
-	var copyConds = minio.NewCopyConditions()
+	var copyConds = minio.CopyConditions{}
 	// Set modified condition, copy object modified since 2014 April.
 	copyConds.SetModified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
 

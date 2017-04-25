@@ -9,6 +9,7 @@ go:
   - 1.5
   - 1.6
   - 1.7
+  - 1.8
 
 before_install:
   - go get golang.org/x/tools/cmd/cover

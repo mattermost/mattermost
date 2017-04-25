@@ -108,10 +108,10 @@ func TestResize(t *testing.T) {
 				Rect:   image.Rect(0, 0, 4, 4),
 				Stride: 4 * 4,
 				Pix: []uint8{
-					0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x3f, 0xff, 0x00, 0x00, 0xc0, 0xff, 0x00, 0x00, 0xff,
-					0x00, 0xff, 0x00, 0x3f, 0x6d, 0x6e, 0x24, 0x6f, 0xb1, 0x13, 0x3a, 0xd0, 0xc0, 0x00, 0x3f, 0xff,
-					0x00, 0xff, 0x00, 0xc0, 0x13, 0xb2, 0x3a, 0xcf, 0x33, 0x32, 0x9a, 0xef, 0x3f, 0x00, 0xc0, 0xff,
-					0x00, 0xff, 0x00, 0xff, 0x00, 0xc0, 0x3f, 0xff, 0x00, 0x3f, 0xc0, 0xff, 0x00, 0x00, 0xff, 0xff,
+					0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x40, 0xff, 0x00, 0x00, 0xbf, 0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0x40, 0x6e, 0x6d, 0x25, 0x70, 0xb0, 0x14, 0x3b, 0xcf, 0xbf, 0x00, 0x40, 0xff,
+					0x00, 0xff, 0x00, 0xbf, 0x14, 0xb0, 0x3b, 0xcf, 0x33, 0x33, 0x99, 0xef, 0x40, 0x00, 0xbf, 0xff,
+					0x00, 0xff, 0x00, 0xff, 0x00, 0xbf, 0x40, 0xff, 0x00, 0x40, 0xbf, 0xff, 0x00, 0x00, 0xff, 0xff,
 				},
 			},
 		},
@@ -158,7 +158,7 @@ func TestResize(t *testing.T) {
 	for _, d := range td {
 		got := Resize(d.src, d.w, d.h, d.f)
 		want := d.want
-		if !compareNRGBA(got, want, 1) {
+		if !compareNRGBA(got, want, 0) {
 			t.Errorf("test [%s] failed: %#v", d.desc, got)
 		}
 	}
@@ -198,6 +198,28 @@ func TestResize(t *testing.T) {
 	bcs2 := bcspline(2, 1, 0)
 	if bcs2 != 0 {
 		t.Errorf("test [bcspline 2] failed: %f", bcs2)
+	}
+}
+
+func TestResizeGolden(t *testing.T) {
+	src, err := Open("testdata/lena_512.png")
+	if err != nil {
+		t.Errorf("Open: %v", err)
+	}
+	for name, filter := range map[string]ResampleFilter{
+		"out_resize_nearest.png": NearestNeighbor,
+		"out_resize_linear.png":  Linear,
+		"out_resize_catrom.png":  CatmullRom,
+		"out_resize_lanczos.png": Lanczos,
+	} {
+		got := Resize(src, 128, 0, filter)
+		want, err := Open("testdata/" + name)
+		if err != nil {
+			t.Errorf("Open: %v", err)
+		}
+		if !compareNRGBA(got, toNRGBA(want), 0) {
+			t.Errorf("resulting image differs from golden: %s", name)
+		}
 	}
 }
 
@@ -566,5 +588,41 @@ func TestThumbnail(t *testing.T) {
 		if !compareNRGBA(got, want, 0) {
 			t.Errorf("test [%s] failed: %#v", d.desc, got)
 		}
+	}
+}
+
+func BenchmarkResizeLanczosUp(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_128.png", 512, Lanczos)
+}
+
+func BenchmarkResizeLinearUp(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_128.png", 512, Linear)
+}
+
+func BenchmarkResizeNearestNeighborUp(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_128.png", 512, NearestNeighbor)
+}
+
+func BenchmarkResizeLanczosDown(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_512.png", 128, Lanczos)
+}
+
+func BenchmarkResizeLinearDown(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_512.png", 128, Linear)
+}
+
+func BenchmarkResizeNearestNeighborDown(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_512.png", 128, NearestNeighbor)
+}
+
+func benchmarkResize(b *testing.B, filename string, size int, f ResampleFilter) {
+	b.StopTimer()
+	img, err := Open(filename)
+	if err != nil {
+		b.Fatalf("Open: %v", err)
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Resize(img, size, size, f)
 	}
 }

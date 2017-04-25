@@ -598,35 +598,42 @@ func runNormTests(t *testing.T, name string, fn appendFunc) {
 
 func runAppendTests(t *testing.T, name string, f Form, fn appendFunc, tests []AppendTest) {
 	for i, test := range tests {
-		if *testn >= 0 && i != *testn {
-			continue
-		}
-		out := []byte(test.left)
-		have := string(fn(f, out, test.right))
-		if len(have) != len(test.out) {
-			t.Errorf("%s.%s:%d: length is %d; want %d (%+q vs %+q)", fstr[f], name, i, len(have), len(test.out), pc(have), pc(test.out))
-		}
-		if have != test.out {
-			k, pf := pidx(have, test.out)
-			t.Errorf("%s.%s:%d: \nwas  %s%+q; \nwant %s%+q", fstr[f], name, i, pf, pc(have[k:]), pf, pc(test.out[k:]))
-		}
+		t.Run(fmt.Sprintf("%s/%d", fstr[f], i), func(t *testing.T) {
+			id := pc(test.left + test.right)
+			if *testn >= 0 && i != *testn {
+				return
+			}
+			t.Run("fn", func(t *testing.T) {
+				out := []byte(test.left)
+				have := string(fn(f, out, test.right))
+				if len(have) != len(test.out) {
+					t.Errorf("%+q: length is %d; want %d (%+q vs %+q)", id, len(have), len(test.out), pc(have), pc(test.out))
+				}
+				if have != test.out {
+					k, pf := pidx(have, test.out)
+					t.Errorf("%+q:\nwas  %s%+q; \nwant %s%+q", id, pf, pc(have[k:]), pf, pc(test.out[k:]))
+				}
+			})
 
-		// Bootstrap by normalizing input. Ensures that the various variants
-		// behave the same.
-		for g := NFC; g <= NFKD; g++ {
-			if f == g {
-				continue
+			// Bootstrap by normalizing input. Ensures that the various variants
+			// behave the same.
+			for g := NFC; g <= NFKD; g++ {
+				if f == g {
+					continue
+				}
+				t.Run(fstr[g], func(t *testing.T) {
+					want := g.String(test.left + test.right)
+					have := string(fn(g, g.AppendString(nil, test.left), test.right))
+					if len(have) != len(want) {
+						t.Errorf("%+q: length is %d; want %d (%+q vs %+q)", id, len(have), len(want), pc(have), pc(want))
+					}
+					if have != want {
+						k, pf := pidx(have, want)
+						t.Errorf("%+q:\nwas  %s%+q; \nwant %s%+q", id, pf, pc(have[k:]), pf, pc(want[k:]))
+					}
+				})
 			}
-			want := g.String(test.left + test.right)
-			have := string(fn(g, g.AppendString(nil, test.left), test.right))
-			if len(have) != len(want) {
-				t.Errorf("%s(%s.%s):%d: length is %d; want %d (%+q vs %+q)", fstr[g], fstr[f], name, i, len(have), len(want), pc(have), pc(want))
-			}
-			if have != want {
-				k, pf := pidx(have, want)
-				t.Errorf("%s(%s.%s):%d: \nwas  %s%+q; \nwant %s%+q", fstr[g], fstr[f], name, i, pf, pc(have[k:]), pf, pc(want[k:]))
-			}
-		}
+		})
 	}
 }
 
@@ -768,6 +775,16 @@ var appendTestsNFKC = []AppendTest{
 	// - Many non-starter decompositions in a row causing overflow.
 	{"", rep(0x340, 31), rep(0x300, 30) + cgj + "\u0300"},
 	{"", rep(0xFF9E, 31), rep(0x3099, 30) + cgj + "\u3099"},
+
+	{"", "\u0644\u0625" + rep(0x300, 31), "\u0644\u0625" + rep(0x300, 29) + cgj + "\u0300\u0300"},
+	{"", "\ufef9" + rep(0x300, 31), "\u0644\u0625" + rep(0x300, 29) + cgj + rep(0x0300, 2)},
+	{"", "\ufef9" + rep(0x300, 31), "\u0644\u0625" + rep(0x300, 29) + cgj + rep(0x0300, 2)},
+
+	// U+0F81 TIBETAN VOWEL SIGN REVERSED II splits into two modifiers.
+	{"", "\u0f7f" + rep(0xf71, 29) + "\u0f81", "\u0f7f" + rep(0xf71, 29) + cgj + "\u0f71\u0f80"},
+	{"", "\u0f7f" + rep(0xf71, 28) + "\u0f81", "\u0f7f" + rep(0xf71, 29) + "\u0f80"},
+	{"", "\u0f7f" + rep(0xf81, 16), "\u0f7f" + rep(0xf71, 15) + rep(0xf80, 15) + cgj + "\u0f71\u0f80"},
+
 	// weird UTF-8
 	{"\u00E0\xE1", "\x86", "\u00E0\xE1\x86"},
 	{"a\u0300\u11B7", "\u0300", "\u00E0\u11B7\u0300"},
@@ -780,6 +797,7 @@ var appendTestsNFKC = []AppendTest{
 
 	{"", strings.Repeat("a\u0316\u0300", 6), strings.Repeat("\u00E0\u0316", 6)},
 	// large input.
+	{"", strings.Repeat("a\u0300\u0316", 31), strings.Repeat("\u00E0\u0316", 31)},
 	{"", strings.Repeat("a\u0300\u0316", 4000), strings.Repeat("\u00E0\u0316", 4000)},
 	{"", strings.Repeat("\x80\x80", 4000), strings.Repeat("\x80\x80", 4000)},
 	{"", "\u0041\u0307\u0304", "\u01E0"},
@@ -847,6 +865,12 @@ var appendTestsNFKD = []AppendTest{
 		"",
 		"\u0300\u0320a" + grave(34) + "\u0320",
 		"\u0320\u0300a" + grave(30) + cgj + "\u0320" + grave(4),
+	},
+	{
+		// U+0F81 TIBETAN VOWEL SIGN REVERSED II splits into two modifiers.
+		"",
+		"a\u0f7f" + rep(0xf71, 29) + "\u0f81",
+		"a\u0f7f" + rep(0xf71, 29) + cgj + "\u0f71\u0f80",
 	},
 }
 

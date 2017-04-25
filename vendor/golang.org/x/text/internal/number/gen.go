@@ -45,7 +45,7 @@ func main() {
 
 	d := &cldr.Decoder{}
 	d.SetDirFilter("supplemental", "main")
-	d.SetSectionFilter("numbers", "numberingSystem", "plurals")
+	d.SetSectionFilter("numbers", "numberingSystem")
 	data, err := d.DecodeZip(r)
 	if err != nil {
 		log.Fatalf("DecodeZip: %v", err)
@@ -60,15 +60,7 @@ func main() {
 
 	genNumSystem(w, data)
 	genSymbols(w, data)
-	genPlurals(w, data)
 	genFormats(w, data)
-
-	w = gen.NewCodeWriter()
-	defer w.WriteGoFile(*outputTestFile, pkg)
-
-	fmt.Fprintln(w, `import "golang.org/x/text/internal/format/plural"`)
-
-	genPluralsTests(w, data)
 }
 
 var systemMap = map[string]system{"latn": 0}

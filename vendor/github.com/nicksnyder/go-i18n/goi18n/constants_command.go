@@ -139,7 +139,6 @@ Options:
         Default: .
 
 `)
-	os.Exit(1)
 }
 
 // commonInitialisms is a set of common initialisms.

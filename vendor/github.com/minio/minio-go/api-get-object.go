@@ -212,9 +212,11 @@ type Object struct {
 	reqCh      chan<- getRequest
 	resCh      <-chan getResponse
 	doneCh     chan<- struct{}
-	prevOffset int64
 	currOffset int64
 	objectInfo ObjectInfo
+
+	// Ask lower level to initiate data fetching based on currOffset
+	seekData bool
 
 	// Keeps track of closed call.
 	isClosed bool
@@ -258,6 +260,10 @@ func (o *Object) doGetRequest(request getRequest) (getResponse, error) {
 	if response.Error != nil {
 		return response, response.Error
 	}
+
+	// Data are ready on the wire, no need to reinitiate connection in lower level
+	o.seekData = false
+
 	return response, nil
 }
 
@@ -266,8 +272,6 @@ func (o *Object) doGetRequest(request getRequest) (getResponse, error) {
 func (o *Object) setOffset(bytesRead int64) error {
 	// Update the currentOffset.
 	o.currOffset += bytesRead
-	// Save the current offset as previous offset.
-	o.prevOffset = o.currOffset
 
 	if o.currOffset >= o.objectInfo.Size {
 		return io.EOF
@@ -303,22 +307,9 @@ func (o *Object) Read(b []byte) (n int, err error) {
 		readReq.isFirstReq = true
 	}
 
-	// Verify if offset has changed and currOffset is greater than
-	// previous offset. Perhaps due to Seek().
-	offsetChange := o.prevOffset - o.currOffset
-	if offsetChange < 0 {
-		offsetChange = -offsetChange
-	}
-	if offsetChange > 0 {
-		// Fetch the new reader at the current offset again.
-		readReq.Offset = o.currOffset
-		readReq.DidOffsetChange = true
-	} else {
-		// No offset changes no need to fetch new reader, continue
-		// reading.
-		readReq.DidOffsetChange = false
-		readReq.Offset = 0
-	}
+	// Ask to establish a new data fetch routine based on seekData flag
+	readReq.DidOffsetChange = o.seekData
+	readReq.Offset = o.currOffset
 
 	// Send and receive from the first request.
 	response, err := o.doGetRequest(readReq)
@@ -430,8 +421,6 @@ func (o *Object) ReadAt(b []byte, offset int64) (n int, err error) {
 	if !o.objectInfoSet {
 		// Update the currentOffset.
 		o.currOffset += bytesRead
-		// Save the current offset as previous offset.
-		o.prevOffset = o.currOffset
 	} else {
 		// If this was not the first request update
 		// the offsets and compare against objectInfo
@@ -492,8 +481,6 @@ func (o *Object) Seek(offset int64, whence int) (n int64, err error) {
 			return 0, err
 		}
 	}
-	// Save current offset as previous offset.
-	o.prevOffset = o.currOffset
 
 	// Switch through whence.
 	switch whence {
@@ -527,6 +514,10 @@ func (o *Object) Seek(offset int64, whence int) (n int64, err error) {
 	if o.prevErr == io.EOF {
 		o.prevErr = nil
 	}
+
+	// Ask lower level to fetch again from source
+	o.seekData = true
+
 	// Return the effective offset.
 	return o.currOffset, nil
 }
