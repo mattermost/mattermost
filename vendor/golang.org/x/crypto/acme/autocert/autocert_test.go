@@ -178,6 +178,38 @@ func TestGetCertificate_nilPrompt(t *testing.T) {
 	}
 }
 
+func TestGetCertificate_expiredCache(t *testing.T) {
+	// Make an expired cert and cache it.
+	pk, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      pkix.Name{CommonName: "example.org"},
+		NotAfter:     time.Now(),
+	}
+	pub, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &pk.PublicKey, pk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tlscert := &tls.Certificate{
+		Certificate: [][]byte{pub},
+		PrivateKey:  pk,
+	}
+
+	man := &Manager{Prompt: AcceptTOS, Cache: newMemCache()}
+	defer man.stopRenew()
+	if err := man.cachePut(context.Background(), "example.org", tlscert); err != nil {
+		t.Fatalf("man.cachePut: %v", err)
+	}
+
+	// The expired cached cert should trigger a new cert issuance
+	// and return without an error.
+	hello := &tls.ClientHelloInfo{ServerName: "example.org"}
+	testGetCertificate(t, man, "example.org", hello)
+}
+
 // startACMEServerStub runs an ACME server
 // The domain argument is the expected domain name of a certificate request.
 func startACMEServerStub(t *testing.T, man *Manager, domain string) (url string, finish func()) {

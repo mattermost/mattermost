@@ -1,5 +1,5 @@
-hash: 024025a74451af061cc996e2b9192bad74cfd0952515fab332e3ad2968606909
-updated: 2017-04-24T11:23:43.046980248-04:00
+hash: 2981cc5d3b1d66303a95d49e7744f43dc121baa129aed53d32df3049f31c05b2
+updated: 2017-04-25T23:58:57.82192591+02:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -12,6 +12,8 @@ imports:
   version: d788b7d6dc58bea298b318059332a25442583880
 - name: github.com/dgryski/dgoogauth
   version: 96977cbd42e27be71f9f731db6634123de7e861a
+- name: github.com/dimchansky/utfbom
+  version: 6c6132ff69f0f6c088739067407b5d32c52e1d0f
 - name: github.com/disintegration/imaging
   version: ac27d1805a555e1754fa177216ee07f4e63c30b5
 - name: github.com/dyatlov/go-opengraph
@@ -119,7 +121,7 @@ imports:
   subpackages:
   - expfmt
 - name: github.com/prometheus/procfs
-  version: 332f6238064950a97bc3ed3f5421f6418537e707
+  version: 6ac8c5d890d415025dd5aae7595bcb2a6e7e2fad
 - name: github.com/rsc/letsencrypt
   version: 76104d26167d38b6a0010f42bfc8ec5487742e8b
 - name: github.com/rwcarlsen/goexif
@@ -138,7 +140,7 @@ imports:
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: f4f10f6873175e78bb1503da7e78c260a7f3ef63
+  version: 6ed17b5128e8932c9ecd4c3970e8ea5e60a418ac
 - name: github.com/spf13/jwalterweatherman
   version: fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66
 - name: github.com/spf13/pflag
@@ -154,7 +156,7 @@ imports:
 - name: github.com/xtgo/uuid
   version: a0b114877d4caeffbd7f87e3757c17fce570fea7
 - name: golang.org/x/crypto
-  version: 3543873453996aaab2fc6b3928a35fc5ca2b5afb
+  version: c7af5bf2638a1164f2eb5467c39c6cffbd13a02e
   subpackages:
   - bcrypt
   - blowfish
@@ -168,14 +170,14 @@ imports:
   - tiff
   - tiff/lzw
 - name: golang.org/x/net
-  version: d212a1ef2de2f5d441c327b8f26cf3ea3ea9f265
+  version: da118f7b8e5954f39d0d2130ab35d4bf0e3cb344
   subpackages:
   - context
   - html
   - html/atom
   - publicsuffix
 - name: golang.org/x/sys
-  version: ea9bcade75cb975a0b9738936568ab388b845617
+  version: 9f30dcbe5be197894515a338a9bda9253567ea8f
   subpackages:
   - unix
 - name: golang.org/x/text
@@ -184,11 +186,13 @@ imports:
   - transform
   - unicode/norm
 - name: golang.org/x/time
-  version: c06e80d9300e4443158a03817b8a8cb37d230320
+  version: 8be79e1e0910c292df4e79c241bb7e8f7e725959
   subpackages:
   - rate
 - name: gopkg.in/asn1-ber.v1
   version: 4e86f4367175e39f69d9358a5f17b4dda270378d
+- name: gopkg.in/gomail.v2
+  version: 41f3572897373c5538c50a2402db15db079fa4fd
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
   subpackages:
