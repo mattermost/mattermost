@@ -161,27 +161,11 @@ func TestGetOldClientLicense(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	isLicensed := utils.IsLicensed
-	clientLicense := utils.ClientLicense
-	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.ClientLicense = clientLicense
-	}()
-	utils.IsLicensed = true
-	utils.ClientLicense = map[string]string{
-		"IsLicensed": "true",
-		"IssuedAt":   "123",
-	}
-
 	license, resp := Client.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
 	if len(license["IsLicensed"]) == 0 {
 		t.Fatal("license not returned correctly")
-	}
-
-	if len(license["IssuedAt"]) != 0 {
-		t.Fatal("license not sanitized correctly")
 	}
 
 	Client.Logout()
@@ -200,7 +184,7 @@ func TestGetOldClientLicense(t *testing.T) {
 	license, resp = th.SystemAdminClient.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
-	if len(license["IssuedAt"]) == 0 {
+	if len(license["IsLicensed"]) == 0 {
 		t.Fatal("license not returned correctly")
 	}
 }
