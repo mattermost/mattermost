@@ -24,20 +24,24 @@ func InitJobs(s store.Store) *Jobs {
 	}
 }
 
-func (jobs *Jobs) StartAll() {
+func (jobs *Jobs) StartAll() *Jobs {
 	l4g.Info("Starting jobs")
 
 	jobs.startOnce.Do(func() {
 		go jobs.DataRetention.Run()
 		go jobs.SearchIndexing.Run()
 	})
+
+	return jobs
 }
 
-func (jobs *Jobs) StopAll() {
+func (jobs *Jobs) StopAll() *Jobs {
 	l4g.Info("Stopping jobs")
 
 	jobs.DataRetention.Stop()
 	jobs.SearchIndexing.Stop()
 
 	l4g.Info("Stopped jobs")
+
+	return jobs
 }
