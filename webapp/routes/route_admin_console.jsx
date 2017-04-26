@@ -41,8 +41,8 @@ import NativeAppLinkSettings from 'components/admin_console/native_app_link_sett
 import ComplianceSettings from 'components/admin_console/compliance_settings.jsx';
 import RateSettings from 'components/admin_console/rate_settings.jsx';
 import DeveloperSettings from 'components/admin_console/developer_settings.jsx';
-import SystemUsers from 'components/admin_console/system_users/system_users.jsx';
-import TeamAnalytics from 'components/analytics/team_analytics.jsx';
+import SystemUsers from 'components/admin_console/system_users';
+import TeamAnalytics from 'components/analytics/team_analytics';
 import LicenseSettings from 'components/admin_console/license_settings.jsx';
 import Audits from 'components/admin_console/audits.jsx';
 import Logs from 'components/admin_console/logs.jsx';

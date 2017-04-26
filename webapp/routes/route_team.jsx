@@ -174,7 +174,7 @@ export default {
                     onEnter: onChannelEnter,
                     getComponents: (location, callback) => {
                         Promise.all([
-                            System.import('components/team_sidebar/team_sidebar_controller.jsx'),
+                            System.import('components/team_sidebar'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/channel_view.jsx')
                         ]).then(
@@ -187,7 +187,7 @@ export default {
                     onEnter: onPermalinkEnter,
                     getComponents: (location, callback) => {
                         Promise.all([
-                            System.import('components/team_sidebar/team_sidebar_controller.jsx'),
+                            System.import('components/team_sidebar'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/permalink_view.jsx')
                         ]).then(
@@ -199,7 +199,7 @@ export default {
                     path: 'tutorial',
                     getComponents: (location, callback) => {
                         Promise.all([
-                            System.import('components/team_sidebar/team_sidebar_controller.jsx'),
+                            System.import('components/team_sidebar'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/tutorial/tutorial_view.jsx')
                         ]).then(

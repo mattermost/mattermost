@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import MemberListTeam from './member_list_team.jsx';
+import MemberListTeam from 'components/member_list_team';
 import TeamStore from 'stores/team_store.jsx';
 
 import {FormattedMessage} from 'react-intl';

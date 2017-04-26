@@ -11,7 +11,6 @@ import TeamStore from 'stores/team_store.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -29,7 +28,8 @@ export default class ChannelInviteModal extends React.Component {
         onHide: React.PropTypes.func.isRequired,
         channel: React.PropTypes.object.isRequired,
         actions: React.PropTypes.shape({
-            getProfilesNotInChannel: React.PropTypes.func.isRequired
+            getProfilesNotInChannel: React.PropTypes.func.isRequired,
+            getTeamStats: React.PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -64,7 +64,7 @@ export default class ChannelInviteModal extends React.Component {
         UserStore.addStatusesChangeListener(this.onStatusChange);
 
         this.props.actions.getProfilesNotInChannel(TeamStore.getCurrentId(), this.props.channel.id, 0);
-        AsyncClient.getTeamStats(TeamStore.getCurrentId());
+        this.props.actions.getTeamStats(TeamStore.getCurrentId());
     }
 
     componentWillUnmount() {

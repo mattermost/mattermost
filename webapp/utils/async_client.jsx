@@ -418,50 +418,6 @@ export function getConfig(success, error) {
     );
 }
 
-export function getAllTeams() {
-    if (isCallInProgress('getAllTeams')) {
-        return;
-    }
-
-    callTracker.getAllTeams = utils.getTimestamp();
-    Client.getAllTeams(
-        (data) => {
-            callTracker.getAllTeams = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_ALL_TEAMS,
-                teams: data
-            });
-        },
-        (err) => {
-            callTracker.getAllTeams = 0;
-            dispatchError(err, 'getAllTeams');
-        }
-    );
-}
-
-export function getAllTeamListings() {
-    if (isCallInProgress('getAllTeamListings')) {
-        return;
-    }
-
-    callTracker.getAllTeamListings = utils.getTimestamp();
-    Client.getAllTeamListings(
-        (data) => {
-            callTracker.getAllTeamListings = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_ALL_TEAM_LISTINGS,
-                teams: data
-            });
-        },
-        (err) => {
-            callTracker.getAllTeams = 0;
-            dispatchError(err, 'getAllTeamListings');
-        }
-    );
-}
-
 export function search(terms, isOrSearch) {
     if (isCallInProgress('search_' + String(terms))) {
         return;
@@ -559,57 +515,6 @@ export function getStatuses() {
     );
 }
 
-export function getMyTeam() {
-    if (isCallInProgress('getMyTeam')) {
-        return null;
-    }
-
-    callTracker.getMyTeam = utils.getTimestamp();
-    return Client.getMyTeam(
-        (data) => {
-            callTracker.getMyTeam = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MY_TEAM,
-                team: data
-            });
-        },
-        (err) => {
-            callTracker.getMyTeam = 0;
-            dispatchError(err, 'getMyTeam');
-        }
-    );
-}
-
-export function getTeamMember(teamId, userId) {
-    const callName = `getTeamMember${teamId}${userId}`;
-    if (isCallInProgress(callName)) {
-        return;
-    }
-
-    callTracker[callName] = utils.getTimestamp();
-    Client.getTeamMember(
-        teamId,
-        userId,
-        (data) => {
-            callTracker[callName] = 0;
-
-            const memberMap = {};
-            memberMap[userId] = data;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_IN_TEAM,
-                team_id: teamId,
-                team_members: memberMap
-            });
-        },
-        (err) => {
-            callTracker[callName] = 0;
-            dispatchError(err, 'getTeamMember');
-        }
-    );
-}
-
 export function getMyTeamsUnread(teamId) {
     const members = TeamStore.getMyTeamMembers();
     if (members.length > 1) {
@@ -635,31 +540,6 @@ export function getMyTeamsUnread(teamId) {
             }
         );
     }
-}
-
-export function getTeamStats(teamId) {
-    const callName = `getTeamStats${teamId}`;
-    if (isCallInProgress(callName)) {
-        return;
-    }
-
-    callTracker[callName] = utils.getTimestamp();
-    Client.getTeamStats(
-        teamId,
-        (data) => {
-            callTracker[callName] = 0;
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_TEAM_STATS,
-                team_id: teamId,
-                stats: data
-            });
-        },
-        (err) => {
-            callTracker[callName] = 0;
-            dispatchError(err, 'getTeamStats');
-        }
-    );
 }
 
 export function getAllPreferences() {
