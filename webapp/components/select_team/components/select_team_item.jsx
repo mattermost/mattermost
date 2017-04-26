@@ -6,6 +6,7 @@ import React from 'react';
 import {Link} from 'react-router/es6';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import {Constants} from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 export default class SelectTeamItem extends React.Component {
     static propTypes = {
@@ -67,6 +68,7 @@ export default class SelectTeamItem extends React.Component {
             <div className='signup-team-dir'>
                 {showDescriptionTooltip}
                 <Link
+                    id={Utils.createSafeId(this.props.team.display_name)}
                     to={this.props.url}
                     onClick={this.handleTeamClick}
                 >
