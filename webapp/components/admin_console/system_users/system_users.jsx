@@ -16,7 +16,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {getAllTeams, getStandardAnalytics, getTeamStats, getUser} from 'utils/async_client.jsx';
+import {getStandardAnalytics} from 'utils/async_client.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import {convertTeamMapToList} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -33,6 +33,14 @@ const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 export default class SystemUsers extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            getTeams: React.PropTypes.func.isRequired,
+            getTeamStats: React.PropTypes.func.isRequired,
+            getUser: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -76,7 +84,7 @@ export default class SystemUsers extends React.Component {
         UserStore.addWithoutTeamChangeListener(this.updateUsersFromStore);
 
         this.loadDataForTeam(this.state.teamId);
-        getAllTeams();
+        this.props.actions.getTeams(0, 1000);
     }
 
     componentWillUpdate(nextProps, nextState) {
@@ -155,7 +163,7 @@ export default class SystemUsers extends React.Component {
             loadProfilesWithoutTeam(0, Constants.PROFILE_CHUNK_SIZE, this.loadComplete);
         } else {
             loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, teamId, this.loadComplete);
-            getTeamStats(teamId);
+            this.props.actions.getTeamStats(teamId);
         }
     }
 
@@ -240,7 +248,7 @@ export default class SystemUsers extends React.Component {
             return;
         }
 
-        getUser(
+        this.props.actions.getUser(
             id,
             () => {
                 this.setState({

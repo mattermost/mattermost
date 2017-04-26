@@ -6,7 +6,6 @@ import TeamButton from './components/team_button.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -15,6 +14,12 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class TeamSidebar extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            getTeams: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -44,7 +49,7 @@ export default class TeamSidebar extends React.Component {
         window.addEventListener('resize', this.handleResize);
         TeamStore.addChangeListener(this.onChange);
         TeamStore.addUnreadChangeListener(this.onChange);
-        AsyncClient.getAllTeamListings();
+        this.props.actions.getTeams(0, 200);
         this.setStyles();
     }
 

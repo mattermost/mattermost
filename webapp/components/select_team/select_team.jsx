@@ -7,7 +7,6 @@ import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SelectTeamItem from './components/select_team_item.jsx';
 
@@ -19,6 +18,11 @@ import React from 'react';
 import logoImage from 'images/logo.png';
 
 export default class SelectTeam extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            getTeams: React.PropTypes.func.isRequired
+        }).isRequired
+    }
 
     constructor(props) {
         super(props);
@@ -33,7 +37,7 @@ export default class SelectTeam extends React.Component {
 
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChange);
-        AsyncClient.getAllTeamListings();
+        this.props.actions.getTeams(0, 200);
     }
 
     componentWillUnmount() {

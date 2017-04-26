@@ -36,6 +36,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {ChannelTypes} from 'mattermost-redux/action_types';
+import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -189,16 +190,7 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
 }
 
 export function emitLeaveTeam() {
-    Client.removeUserFromTeam(
-        TeamStore.getCurrentId(),
-        UserStore.getCurrentId(),
-        () => {
-            // DO nothing.  The websocket should cause a re-direct
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'removeUserFromTeam');
-        }
-    );
+    removeUserFromTeam(TeamStore.getCurrentId(), UserStore.getCurrentId())(dispatch, getState);
 }
 
 export function emitLoadMorePostsEvent() {
@@ -467,7 +459,6 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
 export function clientLogout(redirectTo = '/') {
     BrowserStore.clear();
     ErrorStore.clearLastError();
-    TeamStore.clear();
     ChannelStore.clear();
     stopPeriodicStatusUpdates();
     WebsocketActions.close();

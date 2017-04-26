@@ -13,6 +13,8 @@ const CONFIG_CHANGE_EVENT = 'config_change';
 const ALL_TEAMS_EVENT = 'all_team_change';
 const SERVER_COMPLIANCE_REPORT_CHANGE_EVENT = 'server_compliance_reports_change';
 
+import store from 'stores/redux_store.jsx';
+
 class AdminStoreClass extends EventEmitter {
     constructor() {
         super();
@@ -21,8 +23,19 @@ class AdminStoreClass extends EventEmitter {
         this.audits = null;
         this.config = null;
         this.clusterId = null;
-        this.teams = {};
         this.complianceReports = null;
+
+        this.entities = store.getState().entities.teams;
+
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.teams;
+
+            if (newEntities.teams !== this.entities.teams) {
+                this.emitAllTeamsChange();
+            }
+
+            this.entities = newEntities;
+        });
     }
 
     emitLogChange() {
@@ -126,15 +139,11 @@ class AdminStoreClass extends EventEmitter {
     }
 
     getAllTeams() {
-        return this.teams;
-    }
-
-    saveAllTeams(teams) {
-        this.teams = teams;
+        return store.getState().entities.teams.teams;
     }
 
     getTeam(id) {
-        return this.teams[id];
+        return this.getAllTeams()[id];
     }
 }
 
@@ -160,10 +169,6 @@ AdminStoreClass.dispatchToken = AppDispatcher.register((payload) => {
         AdminStore.saveConfig(action.config);
         AdminStore.saveClusterId(action.clusterId);
         AdminStore.emitConfigChange();
-        break;
-    case ActionTypes.RECEIVED_ALL_TEAMS:
-        AdminStore.saveAllTeams(action.teams);
-        AdminStore.emitAllTeamsChange();
         break;
     default:
     }

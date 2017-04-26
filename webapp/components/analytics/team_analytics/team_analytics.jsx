@@ -15,14 +15,20 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import {StatTypes} from 'utils/constants.jsx';
 import {convertTeamMapToList} from 'utils/team_utils.jsx';
 
-import LineChart from './line_chart.jsx';
-import StatisticCount from './statistic_count.jsx';
-import TableChart from './table_chart.jsx';
-import {formatPostsPerDayData, formatUsersWithPostsPerDayData} from './system_analytics.jsx';
+import LineChart from 'components/analytics/line_chart.jsx';
+import StatisticCount from 'components/analytics/statistic_count.jsx';
+import TableChart from 'components/analytics/table_chart.jsx';
+import {formatPostsPerDayData, formatUsersWithPostsPerDayData} from 'components/analytics/system_analytics.jsx';
 
 const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 
 export default class TeamAnalytics extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            getTeams: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -50,7 +56,7 @@ export default class TeamAnalytics extends React.Component {
         }
 
         if (this.state.teams.length === 0) {
-            AsyncClient.getAllTeams();
+            this.props.actions.getTeams(0, 1000);
         }
     }
 

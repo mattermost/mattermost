@@ -8,7 +8,6 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import {searchUsers, loadProfilesAndTeamMembers, loadTeamMembersForProfilesList} from 'actions/user_actions.jsx';
-import {getTeamStats} from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 
@@ -22,11 +21,17 @@ import {searchProfilesInCurrentTeam} from 'mattermost-redux/selectors/entities/u
 const USERS_PER_PAGE = 50;
 
 export default class MemberListTeam extends React.Component {
+    static propTypes = {
+        isAdmin: React.PropTypes.bool,
+        actions: React.PropTypes.shape({
+            getTeamStats: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
         this.onChange = this.onChange.bind(this);
-        this.onTeamChange = this.onTeamChange.bind(this);
         this.onStatsChange = this.onStatsChange.bind(this);
         this.search = this.search.bind(this);
         this.loadComplete = this.loadComplete.bind(this);
@@ -45,28 +50,24 @@ export default class MemberListTeam extends React.Component {
     }
 
     componentDidMount() {
-        UserStore.addInTeamChangeListener(this.onTeamChange);
+        UserStore.addInTeamChangeListener(this.onChange);
         UserStore.addStatusesChangeListener(this.onChange);
-        TeamStore.addChangeListener(this.onTeamChange);
+        TeamStore.addChangeListener(this.onChange);
         TeamStore.addStatsChangeListener(this.onStatsChange);
 
         loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, TeamStore.getCurrentId(), this.loadComplete);
-        getTeamStats(TeamStore.getCurrentId());
+        this.props.actions.getTeamStats(TeamStore.getCurrentId());
     }
 
     componentWillUnmount() {
-        UserStore.removeInTeamChangeListener(this.onTeamChange);
+        UserStore.removeInTeamChangeListener(this.onChange);
         UserStore.removeStatusesChangeListener(this.onChange);
-        TeamStore.removeChangeListener(this.onTeamChange);
+        TeamStore.removeChangeListener(this.onChange);
         TeamStore.removeStatsChangeListener(this.onStatsChange);
     }
 
     loadComplete() {
         this.setState({loading: false});
-    }
-
-    onTeamChange() {
-        this.onChange(true);
     }
 
     onChange() {
@@ -163,7 +164,3 @@ export default class MemberListTeam extends React.Component {
         );
     }
 }
-
-MemberListTeam.propTypes = {
-    isAdmin: React.PropTypes.bool
-};
