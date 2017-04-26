@@ -487,10 +487,24 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	} else {
 		msg.Badge = int(badge.Data.(int64))
 	}
+
 	msg.Type = model.PUSH_TYPE_MESSAGE
 	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
 	msg.ChannelName = channel.Name
+	msg.UserId = user.Id
+
+	if ou, ok := post.Props["override_username"]; ok && ou != nil {
+		msg.OverrideUsername = ou.(string)
+	}
+
+	if oi, ok := post.Props["override_icon_url"]; ok && oi != nil {
+		msg.OverrideIconUrl = oi.(string)
+	}
+
+	if fw, ok := post.Props["from_webhook"]; ok && fw != nil {
+		msg.FromWebhook = fw.(string)
+	}
 
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
