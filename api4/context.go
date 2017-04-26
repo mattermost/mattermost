@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -504,7 +505,9 @@ func (c *Context) RequireEmojiName() *Context {
 		return c
 	}
 
-	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !model.IsValidAlphaNumHyphenUnderscore(c.Params.EmojiName, false) {
+	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
+
+	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !validName.MatchString(c.Params.EmojiName) {
 		c.SetInvalidUrlParam("emoji_name")
 	}
 
