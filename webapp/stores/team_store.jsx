@@ -185,12 +185,14 @@ class TeamStoreClass extends EventEmitter {
     }
 
     saveTeam(team) {
-        this.saveTeams([team]);
+        const teams = {};
+        teams[team.id] = team;
+        this.saveTeams(teams);
     }
 
     saveTeams(teams) {
         store.dispatch({
-            type: TeamTypes.RECEIVED_TEAMS_LIST,
+            type: TeamTypes.RECEIVED_TEAMS,
             data: teams
         });
     }
