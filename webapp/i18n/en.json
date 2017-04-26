@@ -532,6 +532,7 @@
   "admin.log.locationPlaceholder": "Enter your file location",
   "admin.log.locationTitle": "File Log Directory:",
   "admin.log.logSettings": "Log Settings",
+  "admin.logs.bannerDesc": "To look up users by User ID, go to Reporting > Users and paste the ID into the search filter.",
   "admin.logs.reload": "Reload",
   "admin.logs.title": "Server Logs",
   "admin.metrics.enableDescription": "When true, Mattermost will enable performance monitoring collection and profiling. Please see <a href=\"http://docs.mattermost.com/deployment/metrics.html\" target='_blank'>documentation</a> to learn more about configuring performance monitoring for Mattermost.",
