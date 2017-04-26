@@ -4,6 +4,7 @@ logs
 node_modules
 /dist
 /webapp/dist
+jobserver
 npm-debug.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license

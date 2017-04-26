@@ -242,6 +242,21 @@ func DisableConfigWatch() {
 	}
 }
 
+func InitAndLoadConfig(filename string) (err string) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Sprintf("%v", r)
+		}
+	}()
+	TranslationsPreInit()
+	EnableConfigFromEnviromentVars()
+	LoadConfig(filename)
+	InitializeConfigWatch()
+	EnableConfigWatch()
+
+	return ""
+}
+
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName

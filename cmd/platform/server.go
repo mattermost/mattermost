@@ -43,7 +43,7 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runServer(configFileLocation string) {
-	if errstr := doLoadConfig(configFileLocation); errstr != "" {
+	if errstr := utils.InitAndLoadConfig(configFileLocation); errstr != "" {
 		l4g.Exit("Unable to load mattermost configuration file: ", errstr)
 		return
 	}

@@ -334,6 +334,22 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
+build-job-server: build-job-server-linux build-job-server-mac build-job-server-windows
+
+build-job-server-linux:
+	mkdir -p bin/linux_amd64
+	@echo Build mattermost job server for Linux amd64
+	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
+
+build-job-server-osx:
+	@echo Build mattermost job server for OSX amd64
+	mkdir -p bin/darwin_amd64
+	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
+
+build-job-server-windows:
+	@echo Build mattermost job server for Windows amd64
+	mkdir -p bin/windows_amd64
+	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
 
 package: build build-client
 	@ echo Packaging mattermost
