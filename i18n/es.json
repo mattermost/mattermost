@@ -185,19 +185,19 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "La gestión y creación de Canales Privados está restringido a los Administradores del Sistema."
+    "translation": "La gestión y creación de Canales Privados está restringida a los Administradores del Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "La gestión y creación de Canales Privados está restringido a los Administradores de Equipo y Sistema."
+    "translation": "La gestión y creación de Canales Privados está restringida a los Administradores de Equipo y Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "La gestión y creación de Canales Públicos está restringido a los Administradores del Sistema."
+    "translation": "La gestión y creación de Canales Públicos está restringida a los Administradores del Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "La gestión y creación de Canales Públicos está restringido a los Administradores de Equipo y Sistema."
+    "translation": "La gestión y creación de Canales Públicos está restringida a los Administradores de Equipo y Sistema."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2341,7 +2341,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] Te haz unido a {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] Te has unido a {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
