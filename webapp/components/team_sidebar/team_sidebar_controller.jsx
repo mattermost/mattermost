@@ -102,6 +102,9 @@ export default class TeamSidebar extends React.Component {
         for (const index in this.state.teamMembers) {
             if (this.state.teamMembers.hasOwnProperty(index)) {
                 const teamMember = this.state.teamMembers[index];
+                if (teamMember.delete_at > 0) {
+                    continue;
+                }
                 const teamId = teamMember.team_id;
                 myTeams.push(Object.assign({
                     unread: teamMember.msg_count > 0,
