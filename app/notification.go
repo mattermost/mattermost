@@ -494,7 +494,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
 	msg.ChannelName = channel.Name
-	msg.UserId = user.Id
+	msg.SenderId = post.UserId
 
 	if ou, ok := post.Props["override_username"]; ok && ou != nil {
 		msg.OverrideUsername = ou.(string)
