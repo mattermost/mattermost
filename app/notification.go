@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
@@ -660,7 +662,12 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
-	for _, word := range strings.Fields(message) {
+	message = removeCodeFromMessage(message)
+
+	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
+		// Split on whitespace (as strings.Fields normally does) or on Markdown characters
+		return unicode.IsSpace(c) || c == '*' || c == '~'
+	}) {
 		isMention := false
 
 		if word == "@here" {
@@ -724,6 +731,27 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 	}
 
 	return mentioned, potentialOthersMentioned, hereMentioned, channelMentioned, allMentioned
+}
+
+// Matches a line containing only ``` and a potential language definition, any number of lines not containing ```,
+// and then either a line containing only ``` or the end of the text
+var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*\\`\\`\\`.*$[\\s\\S]+?(^[^\\S\n]*\\`\\`\\`$|\\z)")
+
+// Matches a backquote, either some text or any number of non-empty lines, and then a final backquote
+var inlineCodePattern = regexp.MustCompile("(?m)\\`(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`")
+
+// Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
+func removeCodeFromMessage(message string) string {
+	if strings.Contains(message, "```") {
+		message = codeBlockPattern.ReplaceAllString(message, "")
+	}
+
+	// Replace with a space to prevent cases like "user`code`name" from turning into "username"
+	if strings.Contains(message, "`") {
+		message = inlineCodePattern.ReplaceAllString(message, " ")
+	}
+
+	return message
 }
 
 // Given a map of user IDs to profiles, returns a list of mention
