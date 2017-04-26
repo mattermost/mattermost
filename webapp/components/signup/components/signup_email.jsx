@@ -333,6 +333,7 @@ export default class SignupEmail extends React.Component {
                         </strong></h5>
                         <div className={emailDivStyle}>
                             <input
+                                id='email'
                                 type='email'
                                 ref='email'
                                 className='form-control'
@@ -357,6 +358,7 @@ export default class SignupEmail extends React.Component {
                         </strong></h5>
                         <div className={nameDivStyle}>
                             <input
+                                id='name'
                                 type='text'
                                 ref='name'
                                 className='form-control'
@@ -378,6 +380,7 @@ export default class SignupEmail extends React.Component {
                         </strong></h5>
                         <div className={passwordDivStyle}>
                             <input
+                                id='password'
                                 type='password'
                                 ref='password'
                                 className='form-control'
@@ -390,6 +393,7 @@ export default class SignupEmail extends React.Component {
                     </div>
                     <p className='margin--extra'>
                         <button
+                            id='createAccountButton'
                             type='submit'
                             onClick={this.handleSubmit}
                             className='btn-primary btn'
