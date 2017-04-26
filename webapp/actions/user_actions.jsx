@@ -631,7 +631,7 @@ export function checkMfa(loginId, success, error) {
 
     checkMfaRedux(loginId)(dispatch, getState).then(
         (data) => {
-            if (data && success) {
+            if (data != null && success) {
                 success(data);
             } else if (data == null && error) {
                 const serverError = getState().requests.users.checkMfa.error;
