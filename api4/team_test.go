@@ -1406,10 +1406,10 @@ func TestInviteUsersToTeam(t *testing.T) {
 			t.Log("No email was received, maybe due load on the server. Disabling this verification")
 		}
 		if err == nil && len(resultsMailbox) > 0 {
-			if !strings.ContainsAny(resultsMailbox[0].To[0], email) {
+			if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email) {
 				t.Fatal("Wrong To recipient")
 			} else {
-				if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[0].ID); err == nil {
+				if resultsEmail, err := utils.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
 					if resultsEmail.Subject != expectedSubject {
 						t.Log(resultsEmail.Subject)
 						t.Log(expectedSubject)
