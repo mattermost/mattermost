@@ -1,6 +1,8 @@
 // Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ReactDOM from 'react-dom';
+import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
@@ -18,7 +20,7 @@ const holders = defineMessages({
 export class ConvertChannelModal extends React.Component {
     constructor(props) {
         super(props);
-
+        this.handleShow = this.handleShow.bind(this);
         this.handleHide = this.handleHide.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
@@ -26,6 +28,43 @@ export class ConvertChannelModal extends React.Component {
         this.state = {
             serverError: ''
         };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.channel, this.props.channel)) {
+            this.setState({
+                displayName: nextProps.channel.display_name,
+                channelName: nextProps.channel.name
+            });
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!nextProps.show && !this.props.show) {
+            return false;
+        }
+
+        if (!Utils.areObjectsEqual(nextState, this.state)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextProps, this.props)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.show && this.props.show) {
+            this.handleShow();
+        }
+    }
+
+    handleShow(e) {
+        const convertChannelBtn = ReactDOM.findDOMNode(this.refs.convertChannelBtn);
+        convertChannelBtn.focus();
+
     }
 
     handleHide(e) {
@@ -89,8 +128,11 @@ export class ConvertChannelModal extends React.Component {
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
                         <FormattedMessage
-                            id='convert_channel.title'
-                            defaultMessage='Convert Public Channel to Private Channel'
+                            id='convert_channel.convert_channel_question'
+                            defaultMessage='Convert {displayName} to a private channel?'
+                            values={{
+                                displayName: <strong>{displayName}</strong>
+                            }}
                         />
                     </Modal.Title>
                 </Modal.Header>
@@ -98,16 +140,6 @@ export class ConvertChannelModal extends React.Component {
                     <div
                         className={'modal-padding'}
                     >
-                        <h4>
-                            <FormattedMessage
-                                id='convert_channel.convert_channel_question'
-                                defaultMessage='Convert {displayName} to a private channel?'
-                                values={{
-                                    displayName: <strong>{displayName}</strong>
-                                }}
-                            />
-                        </h4>
-                        <br/>
                         <p>
                             <FormattedMessage
                                 id='convert_channel.channel_public_description'
@@ -170,6 +202,7 @@ export class ConvertChannelModal extends React.Component {
                         />
                     </button>
                     <button
+                        ref='convertChannelBtn'
                         onClick={this.handleSubmit}
                         type='submit'
                         className='btn btn-primary'
