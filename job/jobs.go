@@ -8,7 +8,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	ejobs "github.com/mattermost/platform/einterfaces/jobs"
-	"github.com/mattermost/platform/job/testjob"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 )
@@ -22,7 +21,7 @@ type Jobs struct {
 
 func InitJobs(s store.Store) *Jobs {
 	jobs := &Jobs{
-		SearchIndexing: testjob.MakeTestJob(s, "SearchIndexing"),
+		SearchIndexing: MakeTestJob(s, "SearchIndexing"),
 	}
 
 	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {

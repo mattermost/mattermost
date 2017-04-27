@@ -310,7 +310,8 @@ cover:
 prepare-enterprise:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Enterprise build selected, preparing
-	cp $(BUILD_ENTERPRISE_DIR)/imports.go cmd/platform/
+	mkdir -p imports/
+	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
 	rm -f enterprise
 	ln -s $(BUILD_ENTERPRISE_DIR) enterprise
 endif
@@ -336,19 +337,16 @@ build-client:
 
 build-job-server: build-job-server-linux build-job-server-mac build-job-server-windows
 
-build-job-server-linux:
-	mkdir -p bin/linux_amd64
+build-job-server-linux: .prebuild prepare-enterprise
 	@echo Build mattermost job server for Linux amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
 
-build-job-server-osx:
+build-job-server-osx: .prebuild prepare-enterprise
 	@echo Build mattermost job server for OSX amd64
-	mkdir -p bin/darwin_amd64
 	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
 
-build-job-server-windows:
+build-job-server-windows: .prebuild prepare-enterprise
 	@echo Build mattermost job server for Windows amd64
-	mkdir -p bin/windows_amd64
 	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
 
 package: build build-client
