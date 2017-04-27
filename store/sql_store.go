@@ -65,28 +65,29 @@ const (
 )
 
 type SqlStore struct {
-	master        *gorp.DbMap
-	replicas      []*gorp.DbMap
-	team          TeamStore
-	channel       ChannelStore
-	post          PostStore
-	user          UserStore
-	audit         AuditStore
-	compliance    ComplianceStore
-	session       SessionStore
-	oauth         OAuthStore
-	system        SystemStore
-	webhook       WebhookStore
-	command       CommandStore
-	preference    PreferenceStore
-	license       LicenseStore
-	recovery      PasswordRecoveryStore
-	emoji         EmojiStore
-	status        StatusStore
-	fileInfo      FileInfoStore
-	reaction      ReactionStore
-	SchemaVersion string
-	rrCounter     int64
+	master           *gorp.DbMap
+	replicas         []*gorp.DbMap
+	team             TeamStore
+	channel          ChannelStore
+	post             PostStore
+	user             UserStore
+	audit            AuditStore
+	clusterDiscovery ClusterDiscoveryStore
+	compliance       ComplianceStore
+	session          SessionStore
+	oauth            OAuthStore
+	system           SystemStore
+	webhook          WebhookStore
+	command          CommandStore
+	preference       PreferenceStore
+	license          LicenseStore
+	recovery         PasswordRecoveryStore
+	emoji            EmojiStore
+	status           StatusStore
+	fileInfo         FileInfoStore
+	reaction         ReactionStore
+	SchemaVersion    string
+	rrCounter        int64
 }
 
 func initConnection() *SqlStore {
@@ -123,6 +124,7 @@ func NewSqlStore() Store {
 	sqlStore.post = NewSqlPostStore(sqlStore)
 	sqlStore.user = NewSqlUserStore(sqlStore)
 	sqlStore.audit = NewSqlAuditStore(sqlStore)
+	sqlStore.clusterDiscovery = NewSqlClusterDiscoveryStore(sqlStore)
 	sqlStore.compliance = NewSqlComplianceStore(sqlStore)
 	sqlStore.session = NewSqlSessionStore(sqlStore)
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
@@ -637,6 +639,10 @@ func (ss *SqlStore) Session() SessionStore {
 
 func (ss *SqlStore) Audit() AuditStore {
 	return ss.audit
+}
+
+func (ss *SqlStore) ClusterDiscovery() ClusterDiscoveryStore {
+	return ss.clusterDiscovery
 }
 
 func (ss *SqlStore) Compliance() ComplianceStore {

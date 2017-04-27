@@ -34,6 +34,7 @@ type Store interface {
 	Post() PostStore
 	User() UserStore
 	Audit() AuditStore
+	ClusterDiscovery() ClusterDiscoveryStore
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
@@ -232,6 +233,15 @@ type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
 	Get(user_id string, offset int, limit int) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
+}
+
+type ClusterDiscoveryStore interface {
+	Save(discovery *model.ClusterDiscovery) StoreChannel
+	Delete(discovery *model.ClusterDiscovery) StoreChannel
+	Exists(discovery *model.ClusterDiscovery) StoreChannel
+	GetAll(discoveryType, clusterName string) StoreChannel
+	SetLastPingAt(discovery *model.ClusterDiscovery) StoreChannel
+	Cleanup() StoreChannel
 }
 
 type ComplianceStore interface {
