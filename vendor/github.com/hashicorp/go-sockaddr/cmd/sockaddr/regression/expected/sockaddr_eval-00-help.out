@@ -1,0 +1,19 @@
+Usage: sockaddr eval [options] [template ...]
+
+  Parse the sockaddr template and evaluates the output.
+  
+  The `sockaddr` library has the potential to be very complex,
+  which is why the `sockaddr` command supports an `eval`
+  subcommand in order to test configurations from the command
+  line.  The `eval` subcommand automatically wraps its input
+  with the `{{` and `}}` template delimiters unless the `-r`
+  command is specified, in which case `eval` parses the raw
+  input.  If the `template` argument passed to `eval` is a
+  dash (`-`), then `sockaddr eval` will read from stdin and
+  automatically sets the `-r` flag.
+
+Options:
+
+  -d  Debug output
+  -n  Suppress newlines between args
+  -r  Suppress wrapping the input with {{ }} delimiters
