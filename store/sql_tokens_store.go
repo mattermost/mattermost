@@ -21,6 +21,7 @@ func NewSqlTokenStore(sqlStore *SqlStore) TokenStore {
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Token{}, "Tokens").SetKeys(false, "Token")
+		table.ColMap("Token").SetMaxSize(64)
 		table.ColMap("Type").SetMaxSize(64)
 		table.ColMap("Extra").SetMaxSize(128)
 	}
