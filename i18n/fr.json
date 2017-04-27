@@ -1002,6 +1002,10 @@
     "translation": "Initialisation des routes de l'API des émoticônes"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Initialisation des routes de l'API des émoticônes"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "Le stockage de fichier n'est pas configuré correctement. Veuillez le paramétrer soit pour utiliser S3 soit le système de fichier local du serveur."
   },
@@ -1684,10 +1688,6 @@
     "translation": "Impossible d'enregistrer les préférences pour un autre utilisateur"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Impossible de supprimer la réaction car l'ID du canal ne correspond pas à l'ID du message dans l'URL"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Impossible de récupérer les réactions car l'ID du canal ne correspond pas à l'ID du message dans l'URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Impossible de sauvegarder la réaction car l'ID du canal ne correspond pas à l'ID du message dans l'URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3608,6 +3616,10 @@
     "translation": "Uri de redirection invalide"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "Portée invalide"
   },
@@ -3702,6 +3714,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "Impossible d'écrire la demande"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Missing channel parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Missing team parameter"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Taille de fichier max invalide pour les paramètres du fichier. Doit être zéro ou un entier positif."
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -5186,6 +5206,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "Vous ne pouvez pas mettre à jour un message existant"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.warn",
