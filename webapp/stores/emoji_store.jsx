@@ -139,6 +139,17 @@ class EmojiStore extends EventEmitter {
         return this.map.get(name);
     }
 
+    removeRecentEmoji(id) {
+        const recentEmojis = this.getRecentEmojis();
+        for (let i = recentEmojis.length - 1; i >= 0; i--) {
+            if (recentEmojis[i].id === id) {
+                recentEmojis.splice(i, 1);
+                break;
+            }
+        }
+        localStorage.setItem(Constants.RECENT_EMOJI_KEY, JSON.stringify(recentEmojis));
+    }
+
     addRecentEmoji(rawAlias) {
         const recentEmojis = this.getRecentEmojis();
 
@@ -214,6 +225,7 @@ class EmojiStore extends EventEmitter {
             break;
         case ActionTypes.REMOVED_CUSTOM_EMOJI:
             this.removeCustomEmoji(action.id);
+            this.removeRecentEmoji(action.id);
             this.emitChange();
             break;
         case ActionTypes.EMOJI_POSTED:
