@@ -180,6 +180,13 @@ func TestGetOldClientLicense(t *testing.T) {
 	if _, err := Client.DoApiGet("/license/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
 		t.Fatal("should have errored with 400")
 	}
+
+	license, resp = th.SystemAdminClient.GetOldClientLicense("")
+	CheckNoError(t, resp)
+
+	if len(license["IsLicensed"]) == 0 {
+		t.Fatal("license not returned correctly")
+	}
 }
 
 func TestGetAudits(t *testing.T) {
