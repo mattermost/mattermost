@@ -1,7 +1,9 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import $ from 'jquery';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
 import UserList from 'components/user_list.jsx';
@@ -83,12 +85,14 @@ export default class SearchableUserList extends React.Component {
         this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT);
 
         this.props.nextPage();
+        $(ReactDOM.findDOMNode(this.refs.channelListScroll)).scrollTop(0);
     }
 
     previousPage(e) {
         e.preventDefault();
 
         this.props.previousPage();
+        $(ReactDOM.findDOMNode(this.refs.channelListScroll)).scrollTop(0);
     }
 
     focusSearchBar() {
