@@ -61,10 +61,9 @@ export class ConvertChannelModal extends React.Component {
         }
     }
 
-    handleShow(e) {
+    handleShow() {
         const convertChannelBtn = ReactDOM.findDOMNode(this.refs.convertChannelBtn);
         convertChannelBtn.focus();
-
     }
 
     handleHide(e) {

@@ -548,9 +548,25 @@ export default class Navbar extends React.Component {
                             </a>
                         </li>
                     );
+
+                    if (!ChannelStore.isDefault(channel) && channel.type === Constants.OPEN_CHANNEL) {
+                        convertChannelOption = (
+                            <li role='presentation'>
+                                <a
+                                    role='menuitem'
+                                    href='#'
+                                    onClick={this.showConvertChannelModal}
+                                >
+                                    <FormattedMessage
+                                        id='channel_header.convert'
+                                        defaultMessage='Convert to Private Channel'
+                                    />
+                                </a>
+                            </li>
+                        );
+                    }
                 }
 
-<<<<<<< HEAD
                 if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
                     deleteChannelOption = (
                         <li role='presentation'>
@@ -566,44 +582,8 @@ export default class Navbar extends React.Component {
                             </ToggleModalButton>
                         </li>
                     );
-=======
-
-                if (!ChannelStore.isDefault(channel) && channel.type === Constants.OPEN_CHANNEL) {
-                    convertChannelOption = (
-                        <li role='presentation'>
-                            <a
-                                role='menuitem'
-                                href='#'
-                                onClick={this.showConvertChannelModal}
-                            >
-                                <FormattedMessage
-                                    id='channel_header.convert'
-                                    defaultMessage='Convert to Private Channel'
-                                />
-                            </a>
-                        </li>
-                    );
                 }
-
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) || this.state.userCount === 1) {
-                    if (!ChannelStore.isDefault(channel)) {
-                        deleteChannelOption = (
-                            <li role='presentation'>
-                                <ToggleModalButton
-                                    role='menuitem'
-                                    dialogType={DeleteChannelModal}
-                                    dialogProps={{channel}}
-                                >
-                                    <FormattedMessage
-                                        id='channel_header.delete'
-                                        defaultMessage='Delete Channel'
-                                    />
-                                </ToggleModalButton>
-                            </li>
-                        );
-                    }
->>>>>>> added mobile option to show convertChannelModal
-                }
+                
 
                 const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
                 if (!ChannelStore.isDefault(channel) && canLeave) {
