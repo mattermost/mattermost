@@ -4,7 +4,6 @@
 import Suggestion from './suggestion.jsx';
 import Provider from './provider.jsx';
 
-import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
@@ -31,10 +30,7 @@ class AtMentionSuggestion extends Suggestion {
             description = (
                 <FormattedMessage
                     id='suggestion.mention.all'
-                    defaultMessage='Notifies everyone in the channel, use in {townsquare} to notify the whole team'
-                    values={{
-                        townsquare: ChannelStore.getByName('town-square').display_name
-                    }}
+                    defaultMessage='CAUTION: This mentions everyone in channel'
                 />
             );
             icon = <i className='mention__image fa fa-users fa-2x'/>;
