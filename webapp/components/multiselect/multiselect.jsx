@@ -129,6 +129,18 @@ export default class MultiSelect extends React.Component {
             );
         }
 
+        let buttonSubmitText;
+        if (this.props.buttonSubmitText) {
+            buttonSubmitText = this.props.buttonSubmitText;
+        } else if (this.props.maxValues != null) {
+            buttonSubmitText = (
+                <FormattedMessage
+                    id='multiselect.go'
+                    defaultMessage='Go'
+                />
+            );
+        }
+
         let optionsToDisplay = [];
         let nextButton;
         let previousButton;
@@ -216,10 +228,7 @@ export default class MultiSelect extends React.Component {
                             className='btn btn-primary btn-sm'
                             onClick={this.props.handleSubmit}
                         >
-                            <FormattedMessage
-                                id='multiselect.go'
-                                defaultMessage='Go'
-                            />
+                            {buttonSubmitText}
                         </button>
                     </div>
                     <div className='multi-select__help'>
@@ -265,5 +274,6 @@ MultiSelect.propTypes = {
     handleSubmit: React.PropTypes.func,
     noteText: React.PropTypes.node,
     maxValues: React.PropTypes.number,
-    numRemainingText: React.PropTypes.node
+    numRemainingText: React.PropTypes.node,
+    buttonSubmitText: React.PropTypes.node
 };

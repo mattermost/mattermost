@@ -22,6 +22,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("", ApiHandler(createUser)).Methods("POST")
 	BaseRoutes.Users.Handle("", ApiSessionRequired(getUsers)).Methods("GET")
 	BaseRoutes.Users.Handle("/ids", ApiSessionRequired(getUsersByIds)).Methods("POST")
+	BaseRoutes.Users.Handle("/usernames", ApiSessionRequired(getUsersByNames)).Methods("POST")
 	BaseRoutes.Users.Handle("/search", ApiSessionRequired(searchUsers)).Methods("POST")
 	BaseRoutes.Users.Handle("/autocomplete", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 
@@ -110,7 +111,11 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if HandleEtag(etag, "Get User", w, r) {
 		return
 	} else {
-		app.SanitizeProfile(user, c.IsSystemAdmin())
+		if c.Session.UserId == user.Id {
+			user.Sanitize(map[string]bool{})
+		} else {
+			app.SanitizeProfile(user, c.IsSystemAdmin())
+		}
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
@@ -360,6 +365,24 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
 	if users, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.UserListToJson(users)))
+	}
+}
+
+func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	usernames := model.ArrayFromJson(r.Body)
+
+	if len(usernames) == 0 {
+		c.SetInvalidParam("usernames")
+		return
+	}
+
+	// No permission check required
+
+	if users, err := app.GetUsersByUsernames(usernames, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -745,23 +768,23 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	code := props["code"]
-	if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
-		c.SetInvalidParam("code")
+	token := props["token"]
+	if len(token) != model.TOKEN_SIZE {
+		c.SetInvalidParam("token")
 		return
 	}
 
 	newPassword := props["new_password"]
 
-	c.LogAudit("attempt - code=" + code)
+	c.LogAudit("attempt - token=" + token)
 
-	if err := app.ResetPasswordFromCode(code, newPassword); err != nil {
-		c.LogAudit("fail - code=" + code)
+	if err := app.ResetPasswordFromToken(token, newPassword); err != nil {
+		c.LogAudit("fail - token=" + token)
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success - code=" + code)
+	c.LogAudit("success - token=" + token)
 
 	ReturnStatusOK(w)
 }
@@ -962,32 +985,21 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
-	userId := props["user_id"]
-	if len(userId) != 26 {
-		c.SetInvalidParam("user_id")
+	token := props["token"]
+	if len(token) != model.TOKEN_SIZE {
+		c.SetInvalidParam("token")
 		return
 	}
 
-	hashedId := props["hash_id"]
-	if len(hashedId) == 0 {
-		c.SetInvalidParam("hash_id")
+	if err := app.VerifyEmailFromToken(token); err != nil {
+		c.Err = model.NewLocAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error())
+		c.Err.StatusCode = http.StatusBadRequest
+		return
+	} else {
+		c.LogAudit("Email Verified")
+		ReturnStatusOK(w)
 		return
 	}
-
-	hashed := model.HashPassword(hashedId)
-	if model.ComparePassword(hashed, userId+utils.Cfg.EmailSettings.InviteSalt) {
-		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
-			return
-		} else {
-			c.LogAudit("Email Verified")
-			ReturnStatusOK(w)
-			return
-		}
-	}
-
-	c.Err = model.NewLocAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, "")
-	c.Err.StatusCode = http.StatusBadRequest
-	return
 }
 
 func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1006,10 +1018,12 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := app.GetStatus(user.Id); err != nil {
-		go app.SendVerifyEmail(user.Id, user.Email, user.Locale, utils.GetSiteURL())
-	} else {
-		go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale, utils.GetSiteURL())
+	app.SendEmailVerification(user)
+	if err != nil {
+		// Don't want to leak whether the email is valid or not
+		l4g.Error("Unable to create email verification token: " + err.Error())
+		ReturnStatusOK(w)
+		return
 	}
 
 	ReturnStatusOK(w)

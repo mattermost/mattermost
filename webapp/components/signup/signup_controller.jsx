@@ -13,6 +13,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {addUserToTeamFromInvite, getInviteInfo} from 'actions/team_actions.jsx';
+import {loadMe} from 'actions/user_actions.jsx';
 
 import logoImage from 'images/logo.png';
 import ErrorBar from 'components/error_bar.jsx';
@@ -74,7 +75,7 @@ export default class SignupController extends React.Component {
                     hash,
                     inviteId,
                     (team) => {
-                        GlobalActions.emitInitialLoad(
+                        loadMe(
                             () => {
                                 browserHistory.push('/' + team.name + '/channels/town-square');
                             }
@@ -340,6 +341,22 @@ export default class SignupController extends React.Component {
                             {signupControls}
                             {serverError}
                         </div>
+                        <span className='color--light'>
+                            <FormattedMessage
+                                id='signup_user_completed.haveAccount'
+                                defaultMessage='Already have an account?'
+                            />
+                            {' '}
+                            <Link
+                                to={'/login'}
+                                query={this.props.location.query}
+                            >
+                                <FormattedMessage
+                                    id='signup_user_completed.signIn'
+                                    defaultMessage='Click here to sign in.'
+                                />
+                            </Link>
+                        </span>
                     </div>
                 </div>
             </div>

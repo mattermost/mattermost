@@ -10,6 +10,12 @@ import Client from 'client/web_client.jsx';
 
 import {ActionTypes} from 'utils/constants.jsx';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
+
 export function loadEmoji(getProfiles = true) {
     Client.listEmoji(
         (data) => {
@@ -42,5 +48,5 @@ function loadProfilesForEmoji(emojiList) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(list);
+    getProfilesByIds(list)(dispatch, getState);
 }

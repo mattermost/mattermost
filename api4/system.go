@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -29,6 +30,7 @@ func InitSystem() {
 	BaseRoutes.ApiRoot.Handle("/caches/invalidate", ApiSessionRequired(invalidateCaches)).Methods("POST")
 
 	BaseRoutes.ApiRoot.Handle("/logs", ApiSessionRequired(getLogs)).Methods("GET")
+	BaseRoutes.ApiRoot.Handle("/logs", ApiSessionRequired(postLog)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -160,6 +162,34 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.ArrayToJson(lines)))
 }
 
+func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.ServiceSettings.EnableDeveloper && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	m := model.MapFromJson(r.Body)
+	lvl := m["level"]
+	msg := m["message"]
+
+	if len(msg) > 400 {
+		msg = msg[0:399]
+	}
+
+	if lvl == "ERROR" {
+		err := &model.AppError{}
+		err.Message = msg
+		err.Id = msg
+		err.Where = "client"
+		c.LogError(err)
+	} else {
+		l4g.Debug(msg)
+	}
+
+	m["message"] = msg
+	w.Write([]byte(model.MapToJson(m)))
+}
+
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 
@@ -173,7 +203,14 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
+	respCfg := map[string]string{}
+	for k, v := range utils.ClientCfg {
+		respCfg[k] = v
+	}
+
+	respCfg["NoAccounts"] = strconv.FormatBool(app.IsFirstUserAccount())
+
+	w.Write([]byte(model.MapToJson(respCfg)))
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -194,6 +231,14 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var clientLicense map[string]string
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		clientLicense = utils.ClientLicense
+	} else {
+		clientLicense = utils.GetSanitizedClientLicense()
+	}
+
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(model.MapToJson(utils.GetSanitizedClientLicense())))
+	w.Write([]byte(model.MapToJson(clientLicense)))
 }

@@ -5,16 +5,17 @@ package api
 
 import (
 	"encoding/base64"
-	"github.com/mattermost/platform/app"
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/platform/app"
+	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestOAuthRegisterApp(t *testing.T) {
@@ -28,7 +29,6 @@ func TestOAuthRegisterApp(t *testing.T) {
 		if _, err := Client.RegisterApp(oauthApp); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
 		}
-
 	}
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
@@ -518,7 +518,17 @@ func TestOAuthAccessToken(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 
@@ -594,6 +604,8 @@ func TestOAuthAccessToken(t *testing.T) {
 		rsp := result.Data.(*model.AccessResponse)
 		if len(rsp.AccessToken) == 0 {
 			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
 		} else {
 			token = rsp.AccessToken
 			refreshToken = rsp.RefreshToken
@@ -645,8 +657,21 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	data.Set("refresh_token", refreshToken)
-	if _, err := Client.GetAccessToken(data); err != nil {
+	if result, err := Client.GetAccessToken(data); err != nil {
 		t.Fatal(err)
+	} else {
+		rsp := result.Data.(*model.AccessResponse)
+		if len(rsp.AccessToken) == 0 {
+			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
+		} else if rsp.RefreshToken == refreshToken {
+			t.Fatal("refresh token did not update")
+		}
+
+		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
+			t.Fatal("access token type incorrect")
+		}
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
@@ -711,7 +736,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	stateProps["hash"] = model.HashPassword(utils.Cfg.GitLabSettings.Id)
+	stateProps["hash"] = utils.HashSha256(utils.Cfg.GitLabSettings.Id)
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/gitlab/complete?code=123&state="+url.QueryEscape(state), Client.HttpClient, "", true); err == nil {
 		t.Fatal("should have failed - no connection")
@@ -747,7 +772,7 @@ func TestOAuthComplete(t *testing.T) {
 	stateProps["action"] = model.OAUTH_ACTION_EMAIL_TO_SSO
 	delete(stateProps, "team_id")
 	stateProps["redirect_to"] = utils.Cfg.GitLabSettings.AuthEndpoint
-	stateProps["hash"] = model.HashPassword(utils.Cfg.GitLabSettings.Id)
+	stateProps["hash"] = utils.HashSha256(utils.Cfg.GitLabSettings.Id)
 	stateProps["redirect_to"] = "/oauth/authorize"
 	state = base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {

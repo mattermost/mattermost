@@ -36,6 +36,7 @@ export default class SearchBar extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.searchMentions = this.searchMentions.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
 
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
@@ -74,17 +75,8 @@ export default class SearchBar extends React.Component {
             if (!Utils.areObjectsEqual(newState, this.state)) {
                 this.setState(newState);
             }
-            if (doSearch && newState && newState.searchTerm.length) {
-                performSearch(
-                    newState.searchTerm,
-                    isMentionSearch,
-                    () => {
-                        this.handleSearchOnSuccess();
-                    },
-                    () => {
-                        this.handleSearchOnError();
-                    }
-                );
+            if (doSearch) {
+                this.handleSearch(newState.searchTerm, isMentionSearch);
             }
         }
     }
@@ -114,6 +106,10 @@ export default class SearchBar extends React.Component {
             type: ActionTypes.RECEIVED_POST_SELECTED,
             postId: null
         });
+    }
+
+    handleKeyDown() {
+        // This is just to prevent a JS error
     }
 
     handleChange(e) {
@@ -329,6 +325,7 @@ export default class SearchBar extends React.Component {
                         onFocus={this.handleUserFocus}
                         onBlur={this.handleUserBlur}
                         onChange={this.handleChange}
+                        onKeyDown={this.handleKeyDown}
                         listComponent={SearchSuggestionList}
                         providers={this.suggestionProviders}
                         type='search'

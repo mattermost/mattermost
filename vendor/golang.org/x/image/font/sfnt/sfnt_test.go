@@ -11,35 +11,42 @@ import (
 	"path/filepath"
 	"testing"
 
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/gobold"
+	"golang.org/x/image/font/gofont/gomono"
 	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/math/fixed"
 )
 
+func pt(x, y fixed.Int26_6) fixed.Point26_6 {
+	return fixed.Point26_6{X: x, Y: y}
+}
+
 func moveTo(xa, ya fixed.Int26_6) Segment {
 	return Segment{
 		Op:   SegmentOpMoveTo,
-		Args: [6]fixed.Int26_6{xa, ya},
+		Args: [3]fixed.Point26_6{pt(xa, ya)},
 	}
 }
 
 func lineTo(xa, ya fixed.Int26_6) Segment {
 	return Segment{
 		Op:   SegmentOpLineTo,
-		Args: [6]fixed.Int26_6{xa, ya},
+		Args: [3]fixed.Point26_6{pt(xa, ya)},
 	}
 }
 
 func quadTo(xa, ya, xb, yb fixed.Int26_6) Segment {
 	return Segment{
 		Op:   SegmentOpQuadTo,
-		Args: [6]fixed.Int26_6{xa, ya, xb, yb},
+		Args: [3]fixed.Point26_6{pt(xa, ya), pt(xb, yb)},
 	}
 }
 
 func cubeTo(xa, ya, xb, yb, xc, yc fixed.Int26_6) Segment {
 	return Segment{
 		Op:   SegmentOpCubeTo,
-		Args: [6]fixed.Int26_6{xa, ya, xb, yb, xc, yc},
+		Args: [3]fixed.Point26_6{pt(xa, ya), pt(xb, yb), pt(xc, yc)},
 	}
 }
 
@@ -54,6 +61,16 @@ func transform(txx, txy, tyx, tyy int16, dx, dy fixed.Int26_6, s Segment) Segmen
 }
 
 func checkSegmentsEqual(got, want []Segment) error {
+	// Flip got's Y axis. The test cases' coordinates are given with the Y axis
+	// increasing up, as that is what the ttx tool gives, and is the model for
+	// the underlying font format. The Go API returns coordinates with the Y
+	// axis increasing down, the same as the standard graphics libraries.
+	for i := range got {
+		for j := range got[i].Args {
+			got[i].Args[j].Y *= -1
+		}
+	}
+
 	if len(got) != len(want) {
 		return fmt.Errorf("got %d elements, want %d\noverall:\ngot  %v\nwant %v",
 			len(got), len(want), got, want)
@@ -64,7 +81,42 @@ func checkSegmentsEqual(got, want []Segment) error {
 				i, g, w, got, want)
 		}
 	}
-	return nil
+
+	// Check that every contour is closed.
+	if len(got) == 0 {
+		return nil
+	}
+	if got[0].Op != SegmentOpMoveTo {
+		return fmt.Errorf("segments do not start with a moveTo")
+	}
+	var (
+		first, last fixed.Point26_6
+		firstI      int
+	)
+	checkClosed := func(lastI int) error {
+		if first != last {
+			return fmt.Errorf("segments[%d:%d] not closed:\nfirst %v\nlast  %v", firstI, lastI, first, last)
+		}
+		return nil
+	}
+	for i, g := range got {
+		switch g.Op {
+		case SegmentOpMoveTo:
+			if i != 0 {
+				if err := checkClosed(i); err != nil {
+					return err
+				}
+			}
+			firstI, first, last = i, g.Args[0], g.Args[0]
+		case SegmentOpLineTo:
+			last = g.Args[0]
+		case SegmentOpQuadTo:
+			last = g.Args[1]
+		case SegmentOpCubeTo:
+			last = g.Args[2]
+		}
+	}
+	return checkClosed(len(got))
 }
 
 func TestTrueTypeParse(t *testing.T) {
@@ -95,6 +147,132 @@ func testTrueType(t *testing.T, f *Font) {
 	}
 }
 
+func fontData(name string) []byte {
+	switch name {
+	case "gobold":
+		return gobold.TTF
+	case "gomono":
+		return gomono.TTF
+	case "goregular":
+		return goregular.TTF
+	}
+	panic("unreachable")
+}
+
+func TestBounds(t *testing.T) {
+	testCases := map[string]fixed.Rectangle26_6{
+		"gobold": {
+			Min: fixed.Point26_6{
+				X: -452,
+				Y: -2193,
+			},
+			Max: fixed.Point26_6{
+				X: 2190,
+				Y: 432,
+			},
+		},
+		"gomono": {
+			Min: fixed.Point26_6{
+				X: 0,
+				Y: -2227,
+			},
+			Max: fixed.Point26_6{
+				X: 1229,
+				Y: 432,
+			},
+		},
+		"goregular": {
+			Min: fixed.Point26_6{
+				X: -440,
+				Y: -2118,
+			},
+			Max: fixed.Point26_6{
+				X: 2160,
+				Y: 543,
+			},
+		},
+	}
+
+	var b Buffer
+	for name, want := range testCases {
+		f, err := Parse(fontData(name))
+		if err != nil {
+			t.Errorf("Parse(%q): %v", name, err)
+			continue
+		}
+		ppem := fixed.Int26_6(f.UnitsPerEm())
+
+		got, err := f.Bounds(&b, ppem, font.HintingNone)
+		if err != nil {
+			t.Errorf("name=%q: Bounds: %v", name, err)
+			continue
+		}
+		if got != want {
+			t.Errorf("name=%q: Bounds: got %v, want %v", name, got, want)
+			continue
+		}
+	}
+}
+
+func TestGlyphAdvance(t *testing.T) {
+	testCases := map[string][]struct {
+		r    rune
+		want fixed.Int26_6
+	}{
+		"gobold": {
+			{' ', 569},
+			{'A', 1479},
+			{'Á', 1479},
+			{'Æ', 2048},
+			{'i', 592},
+			{'x', 1139},
+		},
+		"gomono": {
+			{' ', 1229},
+			{'A', 1229},
+			{'Á', 1229},
+			{'Æ', 1229},
+			{'i', 1229},
+			{'x', 1229},
+		},
+		"goregular": {
+			{' ', 569},
+			{'A', 1366},
+			{'Á', 1366},
+			{'Æ', 2048},
+			{'i', 505},
+			{'x', 1024},
+		},
+	}
+
+	var b Buffer
+	for name, testCases1 := range testCases {
+		f, err := Parse(fontData(name))
+		if err != nil {
+			t.Errorf("Parse(%q): %v", name, err)
+			continue
+		}
+		ppem := fixed.Int26_6(f.UnitsPerEm())
+
+		for _, tc := range testCases1 {
+			x, err := f.GlyphIndex(&b, tc.r)
+			if err != nil {
+				t.Errorf("name=%q, r=%q: GlyphIndex: %v", name, tc.r, err)
+				continue
+			}
+			got, err := f.GlyphAdvance(&b, x, ppem, font.HintingNone)
+			if err != nil {
+				t.Errorf("name=%q, r=%q: GlyphAdvance: %v", name, tc.r, err)
+				continue
+			}
+			if got != tc.want {
+				t.Errorf("name=%q, r=%q: GlyphAdvance: got %d, want %d", name, tc.r, got, tc.want)
+				continue
+			}
+		}
+	}
+}
+
 func TestGoRegularGlyphIndex(t *testing.T) {
 	f, err := Parse(goregular.TTF)
 	if err != nil {
@@ -116,25 +294,23 @@ func TestGoRegularGlyphIndex(t *testing.T) {
 		// The actual values are ad hoc, and result from whatever tools the
 		// Bigelow & Holmes type foundry used and the order in which they
 		// crafted the glyphs. They may change over time as newer versions of
-		// the font are released. In practice, though, running this test with
-		// coverage analysis suggests that it covers both the zero and non-zero
-		// cmapEntry16.offset cases for a format-4 cmap table.
+		// the font are released.
 
-		{'\u0020', 3},   // U+0020 SPACE
-		{'\u0021', 4},   // U+0021 EXCLAMATION MARK
-		{'\u0022', 5},   // U+0022 QUOTATION MARK
-		{'\u0023', 6},   // U+0023 NUMBER SIGN
-		{'\u0024', 223}, // U+0024 DOLLAR SIGN
-		{'\u0025', 7},   // U+0025 PERCENT SIGN
-		{'\u0026', 8},   // U+0026 AMPERSAND
-		{'\u0027', 9},   // U+0027 APOSTROPHE
+		{'\u0020', 3},  // U+0020 SPACE
+		{'\u0021', 4},  // U+0021 EXCLAMATION MARK
+		{'\u0022', 5},  // U+0022 QUOTATION MARK
+		{'\u0023', 6},  // U+0023 NUMBER SIGN
+		{'\u0024', 7},  // U+0024 DOLLAR SIGN
+		{'\u0025', 8},  // U+0025 PERCENT SIGN
+		{'\u0026', 9},  // U+0026 AMPERSAND
+		{'\u0027', 10}, // U+0027 APOSTROPHE
 
-		{'\u03bd', 423}, // U+03BD GREEK SMALL LETTER NU
-		{'\u03be', 424}, // U+03BE GREEK SMALL LETTER XI
-		{'\u03bf', 438}, // U+03BF GREEK SMALL LETTER OMICRON
-		{'\u03c0', 208}, // U+03C0 GREEK SMALL LETTER PI
-		{'\u03c1', 425}, // U+03C1 GREEK SMALL LETTER RHO
-		{'\u03c2', 426}, // U+03C2 GREEK SMALL LETTER FINAL SIGMA
+		{'\u03bd', 396}, // U+03BD GREEK SMALL LETTER NU
+		{'\u03be', 397}, // U+03BE GREEK SMALL LETTER XI
+		{'\u03bf', 398}, // U+03BF GREEK SMALL LETTER OMICRON
+		{'\u03c0', 399}, // U+03C0 GREEK SMALL LETTER PI
+		{'\u03c1', 400}, // U+03C1 GREEK SMALL LETTER RHO
+		{'\u03c2', 401}, // U+03C2 GREEK SMALL LETTER FINAL SIGMA
 	}
 
 	var b Buffer
@@ -275,11 +451,13 @@ func TestPostScriptSegments(t *testing.T) {
 		lineTo(450, 0),
 		lineTo(450, 533),
 		lineTo(50, 533),
+		lineTo(50, 0),
 		// - contour #1
 		moveTo(100, 50),
 		lineTo(100, 483),
 		lineTo(400, 483),
 		lineTo(400, 50),
+		lineTo(100, 50),
 	}, {
 		// zero
 		// - contour #0
@@ -301,12 +479,14 @@ func TestPostScriptSegments(t *testing.T) {
 		lineTo(300, 0),
 		lineTo(300, 800),
 		lineTo(100, 800),
+		lineTo(100, 0),
 	}, {
 		// Q
 		// - contour #0
 		moveTo(657, 237),
 		lineTo(289, 387),
 		lineTo(519, 615),
+		lineTo(657, 237),
 		// - contour #1
 		moveTo(792, 169),
 		cubeTo(867, 263, 926, 502, 791, 665),
@@ -315,6 +495,7 @@ func TestPostScriptSegments(t *testing.T) {
 		cubeTo(369, -39, 641, 18, 722, 93),
 		lineTo(802, 3),
 		lineTo(864, 83),
+		lineTo(792, 169),
 	}, {
 		// uni4E2D
 		// - contour #0
@@ -329,7 +510,7 @@ func TestPostScriptSegments(t *testing.T) {
 		lineTo(331, 758),
 		lineTo(243, 752),
 		lineTo(235, 562),
-		// TODO: explicitly (not implicitly) close these contours?
+		lineTo(141, 520),
 	}}
 
 	testSegments(t, "CFFTest.otf", wants)
@@ -559,7 +740,7 @@ func TestGlyphName(t *testing.T) {
 		r    rune
 		want string
 	}{
-		{'\x00', "NULL"},
+		{'\x00', "uni0000"},
 		{'!', "exclam"},
 		{'A', "A"},
 		{'{', "braceleft"},

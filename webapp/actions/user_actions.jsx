@@ -19,6 +19,81 @@ import Client from 'client/web_client.jsx';
 import {Constants, ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {
+    getProfiles,
+    getProfilesInChannel,
+    getProfilesInTeam,
+    getProfilesWithoutTeam,
+    getProfilesByIds,
+    getMe,
+    searchProfiles,
+    autocompleteUsers as autocompleteRedux,
+    updateMe,
+    updateUserMfa,
+    checkMfa as checkMfaRedux,
+    updateUserPassword,
+    createUser,
+    login,
+    loadMe as loadMeRedux,
+    updateUserRoles as updateUserRolesRedux
+} from 'mattermost-redux/actions/users';
+
+import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
+import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/teams';
+
+export function loadMe(callback) {
+    loadMeRedux()(dispatch, getState).then(
+        () => {
+            localStorage.setItem('currentUserId', UserStore.getCurrentId());
+
+            if (callback) {
+                callback();
+            }
+        }
+    );
+}
+
+export function loadMeAndConfig(callback) {
+    loadMe(() => {
+        getClientConfig()(store.dispatch, store.getState).then(
+            (config) => {
+                global.window.mm_config = config;
+
+                if (global.window && global.window.analytics) {
+                    global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
+                        context: {
+                            ip: '0.0.0.0'
+                        },
+                        page: {
+                            path: '',
+                            referrer: '',
+                            search: '',
+                            title: '',
+                            url: ''
+                        },
+                        anonymousId: '00000000000000000000000000'
+                    });
+                }
+
+                getLicenseConfig()(store.dispatch, store.getState).then(
+                    (license) => { // eslint-disable-line max-nested-callbacks
+                        global.window.mm_license = license;
+
+                        if (callback) {
+                            callback();
+                        }
+                    }
+                );
+            }
+        );
+    });
+}
+
 export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
     Client.ldapToEmail(
         email,
@@ -38,78 +113,28 @@ export function switchFromLdapToEmail(email, password, token, ldapPassword, onSu
     );
 }
 
-export function loadProfilesAndTeamMembers(offset, limit, teamId = TeamStore.getCurrentId(), success, error) {
-    Client.getProfilesInTeam(
-        teamId,
-        offset,
-        limit,
+export function loadProfilesAndTeamMembers(page, perPage, teamId = TeamStore.getCurrentId(), success) {
+    getProfilesInTeam(teamId, page, perPage)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILES_IN_TEAM,
-                profiles: data,
-                team_id: teamId,
-                offset,
-                count: Object.keys(data).length
-            });
-
-            loadTeamMembersForProfilesMap(data, teamId, success, error);
-            loadStatusesForProfilesMap(data);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getProfilesInTeam');
+            loadTeamMembersForProfilesList(data, teamId, success);
+            loadStatusesForProfilesList(data);
         }
     );
 }
 
-export function loadProfilesAndTeamMembersAndChannelMembers(offset, limit, teamId = TeamStore.getCurrentId(), channelId = ChannelStore.getCurrentId(), success, error) {
-    Client.getProfilesInChannel(
-        channelId,
-        offset,
-        limit,
+export function loadProfilesAndTeamMembersAndChannelMembers(page, perPage, teamId = TeamStore.getCurrentId(), channelId = ChannelStore.getCurrentId(), success, error) {
+    getProfilesInChannel(channelId, page, perPage)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILES_IN_CHANNEL,
-                profiles: data,
-                channel_id: channelId,
-                offset,
-                count: Object.keys(data).length
-            });
-
-            loadTeamMembersForProfilesMap(
+            loadTeamMembersForProfilesList(
                 data,
                 teamId,
                 () => {
-                    loadChannelMembersForProfilesMap(data, channelId, success, error);
-                    loadStatusesForProfilesMap(data);
-                });
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getProfilesInChannel');
+                    loadChannelMembersForProfilesList(data, channelId, success, error);
+                    loadStatusesForProfilesList(data);
+                }
+            );
         }
     );
-}
-
-export function loadTeamMembersForProfilesMap(profiles, teamId = TeamStore.getCurrentId(), success, error) {
-    const membersToLoad = {};
-    for (const pid in profiles) {
-        if (!profiles.hasOwnProperty(pid)) {
-            continue;
-        }
-
-        if (!TeamStore.hasActiveMemberInTeam(teamId, pid)) {
-            membersToLoad[pid] = true;
-        }
-    }
-
-    const list = Object.keys(membersToLoad);
-    if (list.length === 0) {
-        if (success) {
-            success({});
-        }
-        return;
-    }
-
-    loadTeamMembersForProfiles(list, teamId, success, error);
 }
 
 export function loadTeamMembersForProfilesList(profiles, teamId = TeamStore.getCurrentId(), success, error) {
@@ -133,54 +158,26 @@ export function loadTeamMembersForProfilesList(profiles, teamId = TeamStore.getC
     loadTeamMembersForProfiles(list, teamId, success, error);
 }
 
-export function loadProfilesWithoutTeam(page, perPage, success, error) {
-    Client.getProfilesWithoutTeam(
-        page,
-        perPage,
+export function loadProfilesWithoutTeam(page, perPage, success) {
+    getProfilesWithoutTeam(page, perPage)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILES_WITHOUT_TEAM,
-                profiles: data,
-                page
-            });
-
             loadStatusesForProfilesMap(data);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getProfilesWithoutTeam');
 
-            if (error) {
-                error(err);
+            if (success) {
+                success(data);
             }
         }
     );
 }
 
 function loadTeamMembersForProfiles(userIds, teamId, success, error) {
-    Client.getTeamMembersByIds(
-        teamId,
-        userIds,
+    getTeamMembersByIds(teamId, userIds)(dispatch, getState).then(
         (data) => {
-            const memberMap = {};
-            for (let i = 0; i < data.length; i++) {
-                memberMap[data[i].user_id] = data[i];
-            }
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_IN_TEAM,
-                team_id: teamId,
-                team_members: memberMap
-            });
-
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getTeamMembersByIds');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.teams.getTeamMembers.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -248,9 +245,9 @@ function populateDMChannelsWithProfiles(userIds) {
     }
 }
 
-function populateChannelWithProfiles(channelId, userIds) {
-    for (let i = 0; i < userIds.length; i++) {
-        UserStore.saveUserIdInChannel(channelId, userIds[i]);
+function populateChannelWithProfiles(channelId, users) {
+    for (let i = 0; i < users.length; i++) {
+        UserStore.saveUserIdInChannel(channelId, users[i].id);
     }
     UserStore.emitInChannelChange();
 }
@@ -360,17 +357,9 @@ export function loadProfilesForGM() {
             });
         }
 
-        Client.getProfilesInChannel(
-            channel.id,
-            0,
-            Constants.MAX_USERS_IN_GM,
+        getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM)(dispatch, getState).then(
             (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_PROFILES,
-                    profiles: data
-                });
-
-                populateChannelWithProfiles(channel.id, Object.keys(data));
+                populateChannelWithProfiles(channel.id, data);
             }
         );
     }
@@ -420,20 +409,10 @@ export function loadProfilesForDM() {
     }
 
     if (profilesToLoad.length > 0) {
-        Client.getProfilesByIds(
-            profilesToLoad,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_PROFILES,
-                    profiles: data
-                });
-
-                // Use membersToLoad so we get all the DM profiles even if they were already loaded
+        getProfilesByIds(profilesToLoad)(dispatch, getState).then(
+            () => {
                 populateDMChannelsWithProfiles(profileIds);
             },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getProfilesByIds');
-            }
         );
     } else {
         populateDMChannelsWithProfiles(profileIds);
@@ -491,119 +470,70 @@ function onThemeSaved(teamId, theme, onSuccess) {
     onSuccess();
 }
 
-export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {}, success, error) {
-    Client.searchUsers(
-        term,
-        teamId,
-        options,
+export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {}, success) {
+    searchProfiles(term, {team_id: teamId, ...options})(dispatch, getState).then(
         (data) => {
             loadStatusesForProfilesList(data);
 
             if (success) {
                 success(data);
             }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'searchUsers');
-
-            if (error) {
-                error(err);
-            }
         }
     );
 }
 
-export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), options = {}, success, error) {
-    Client.searchUsersNotInTeam(
-        term,
-        teamId,
-        options,
+export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), options = {}, success) {
+    searchProfiles(term, {not_in_team_id: teamId, ...options})(dispatch, getState).then(
         (data) => {
             loadStatusesForProfilesList(data);
 
             if (success) {
                 success(data);
             }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'searchUsersNotInTeam');
+        }
+    );
+}
 
-            if (error) {
-                error(err);
+export function autocompleteUsersInChannel(username, channelId, success) {
+    const channel = ChannelStore.get(channelId);
+    const teamId = channel ? channel.team_id : TeamStore.getCurrentId();
+    autocompleteRedux(username, teamId, channelId)(dispatch, getState).then(
+        (data) => {
+            if (success) {
+                success(data);
             }
         }
     );
 }
 
-export function autocompleteUsersInChannel(username, channelId, success, error) {
-    Client.autocompleteUsersInChannel(
-        username,
-        channelId,
+export function autocompleteUsersInTeam(username, success) {
+    autocompleteRedux(username, TeamStore.getCurrentId())(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'autocompleteUsersInChannel');
-
-            if (error) {
-                error(err);
             }
         }
     );
 }
 
-export function autocompleteUsersInTeam(username, success, error) {
-    Client.autocompleteUsersInTeam(
-        username,
+export function autocompleteUsers(username, success) {
+    autocompleteRedux(username)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'autocompleteUsersInTeam');
-
-            if (error) {
-                error(err);
             }
         }
     );
 }
 
-export function autocompleteUsers(username, success, error) {
-    Client.autocompleteUsers(
-        username,
+export function updateUser(user, type, success, error) {
+    updateMe(user)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'autocompleteUsers');
-
-            if (error) {
-                error(err);
-            }
-        }
-    );
-}
-
-export function updateUser(username, type, success, error) {
-    Client.updateUser(
-        username,
-        type,
-        (data) => {
-            if (success) {
-                success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
-            } else {
-                AsyncClient.dispatchError(err, 'updateUser');
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -626,74 +556,55 @@ export function generateMfaSecret(success, error) {
     );
 }
 
-export function updateUserNotifyProps(data, success, error) {
-    Client.updateUserNotifyProps(
-      data,
-      () => {
-          AsyncClient.getMe();
-
-          if (success) {
-              success();
-          }
-      },
-      (err) => {
-          if (error) {
-              error(err);
-          }
-      }
+export function updateUserNotifyProps(props, success, error) {
+    updateMe({notify_props: props})(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateMe.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
     );
 }
 
 export function updateUserRoles(userId, newRoles, success, error) {
-    Client.updateUserRoles(
-        userId,
-        newRoles,
-        () => {
-            AsyncClient.getUser(
-                userId,
-                success,
-                error
-            );
-        },
-        error
+    updateUserRolesRedux(userId, newRoles)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
     );
 }
 
 export function activateMfa(code, success, error) {
-    Client.updateMfa(
-        code,
-        true,
-        () => {
-            AsyncClient.getMe();
-
-            if (success) {
-                success();
+    updateUserMfa(UserStore.getCurrentId(), true, code)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        }
     );
 }
 
 export function deactivateMfa(success, error) {
-    Client.updateMfa(
-        '',
-        false,
-        () => {
-            AsyncClient.getMe();
-
-            if (success) {
-                success();
+    updateUserMfa(UserStore.getCurrentId(), false)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        }
     );
 }
 
@@ -703,16 +614,13 @@ export function checkMfa(loginId, success, error) {
         return;
     }
 
-    Client.checkMfa(
-        loginId,
+    checkMfaRedux(loginId)(dispatch, getState).then(
         (data) => {
-            if (success) {
-                success(data && data.mfa_required === 'true');
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            if (data != null && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.checkMfa.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -735,24 +643,21 @@ export function updateActive(userId, active, success, error) {
 }
 
 export function updatePassword(userId, currentPassword, newPassword, success, error) {
-    Client.updatePassword(userId, currentPassword, newPassword,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateUserPassword(userId, currentPassword, newPassword)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function verifyEmail(uid, hid, success, error) {
+export function verifyEmail(token, success, error) {
     Client.verifyEmail(
-        uid,
-        hid,
+        token,
         (data) => {
             if (success) {
                 success(data);
@@ -766,9 +671,9 @@ export function verifyEmail(uid, hid, success, error) {
     );
 }
 
-export function resetPassword(code, password, success, error) {
+export function resetPassword(token, password, success, error) {
     Client.resetPassword(
-        code,
+        token,
         password,
         () => {
             browserHistory.push('/login?extra=' + ActionTypes.PASSWORD_CHANGE);
@@ -820,37 +725,27 @@ export function loginById(userId, password, mfaToken, success, error) {
 }
 
 export function createUserWithInvite(user, data, emailHash, inviteId, success, error) {
-    Client.createUserWithInvite(
-        user,
-        data,
-        emailHash,
-        inviteId,
-        (response) => {
-            if (success) {
-                success(response);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    createUser(user, data, emailHash, inviteId)(dispatch, getState).then(
+        (resp) => {
+            if (resp && success) {
+                success(resp);
+            } else if (resp == null && error) {
+                const serverError = getState().requests.users.create.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function webLogin(loginId, password, token, success, error) {
-    Client.webLogin(
-        loginId,
-        password,
-        token,
-        () => {
-            if (success) {
+    login(loginId, password, token)(dispatch, getState).then(
+        (ok) => {
+            if (ok && success) {
+                localStorage.setItem('currentUserId', UserStore.getCurrentId());
                 success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (!ok && error) {
+                const serverError = getState().requests.users.login.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -907,7 +802,7 @@ export function uploadProfileImage(userPicture, success, error) {
     Client.uploadProfileImage(
         userPicture,
         () => {
-            AsyncClient.getMe();
+            getMe()(dispatch, getState);
             if (success) {
                 success();
             }
@@ -920,48 +815,30 @@ export function uploadProfileImage(userPicture, success, error) {
     );
 }
 
-export function loadProfiles(offset = UserStore.getPagingOffset(), limit = Constants.PROFILE_CHUNK_SIZE, success, error) {
-    Client.getProfiles(
-        offset,
-        limit,
+export function loadProfiles(page, perPage, success) {
+    getProfiles(page, perPage)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILES,
-                profiles: data
-            });
-
             if (success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getProfiles');
-
-            if (error) {
-                error(err);
             }
         }
     );
 }
 
-export function getMissingProfiles(ids, success, error) {
+export function getMissingProfiles(ids) {
     const missingIds = ids.filter((id) => !UserStore.hasProfile(id));
 
     if (missingIds.length === 0) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(missingIds, success, error);
+    getProfilesByIds(missingIds)(dispatch, getState);
 }
 
 export function loadMyTeamMembers() {
-    Client.getMyTeamMembers((data) => {
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
-            team_members: data
-        });
-        AsyncClient.getMyTeamsUnread();
-    }, (err) => {
-        AsyncClient.dispatchError(err, 'getMyTeamMembers');
-    });
+    getMyTeamMembers()(dispatch, getState).then(
+        () => {
+            AsyncClient.getMyTeamsUnread();
+        }
+    );
 }

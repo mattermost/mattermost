@@ -1002,6 +1002,10 @@
     "translation": "이모티콘 API 경로 초기화 중"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "이모티콘 API 경로 초기화 중"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "파일 저장소가 제대로 설정되지 않았습니다. S3나 로컬 서버 파일 저장소를 설정해주세요."
   },
@@ -1684,10 +1688,6 @@
     "translation": "다른 사용자의 기본 설정을 저장할 수 없습니다."
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3608,6 +3616,10 @@
     "translation": "잘못된 리디렉트 URL"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "잘못된 범위"
   },
@@ -3702,6 +3714,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "Unable to write request"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Missing channel parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Missing team parameter"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "잘못된 파일 최대 용량 설정입니다. 0보다 큰 값이여야 합니다."
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -5186,6 +5206,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "You cannot update an existing Post"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.warn",

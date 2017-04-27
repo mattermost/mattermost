@@ -242,7 +242,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if c.Err.StatusCode == http.StatusUnauthorized {
 				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 			} else {
-				RenderWebError(c.Err, w, r)
+				utils.RenderWebError(c.Err, w, r)
 			}
 		}
 
@@ -421,31 +421,6 @@ func IsApiCall(r *http.Request) bool {
 	return strings.Index(r.URL.Path, "/api/") == 0
 }
 
-func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
-	T, _ := utils.GetTranslationsAndLocale(w, r)
-
-	title := T("api.templates.error.title", map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
-	message := err.Message
-	details := err.DetailedError
-	link := "/"
-	linkMessage := T("api.templates.error.link")
-
-	status := http.StatusTemporaryRedirect
-	if err.StatusCode != http.StatusInternalServerError {
-		status = err.StatusCode
-	}
-
-	http.Redirect(
-		w,
-		r,
-		"/error?title="+url.QueryEscape(title)+
-			"&message="+url.QueryEscape(message)+
-			"&details="+url.QueryEscape(details)+
-			"&link="+url.QueryEscape(link)+
-			"&linkmessage="+url.QueryEscape(linkMessage),
-		status)
-}
-
 func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewLocAppError("Handle404", "api.context.404.app_error", nil, "")
 	err.Translate(utils.T)
@@ -458,7 +433,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
 	} else {
-		RenderWebError(err, w, r)
+		utils.RenderWebError(err, w, r)
 	}
 }
 

@@ -38,12 +38,12 @@ func main() {
 
 ## Documentation
 
-The docs can be found at [godoc.org] [docs], as usual.
+The docs can be found at [godoc.org][docs], as usual.
 
 
 ## License
 
-[Apache 2.0] [license].
+[Apache 2.0][license].
 
 
 

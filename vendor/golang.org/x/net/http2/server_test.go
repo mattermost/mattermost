@@ -2352,7 +2352,7 @@ func TestServer_NoCrash_HandlerClose_Then_ClientClose(t *testing.T) {
 
 		// Sent when the a Handler closes while a client has
 		// indicated it's still sending DATA:
-		st.wantRSTStream(1, ErrCodeCancel)
+		st.wantRSTStream(1, ErrCodeNo)
 
 		// Now the handler has ended, so it's ended its
 		// stream, but the client hasn't closed its side

@@ -16,6 +16,10 @@ func (pt *pluralTranslation) MarshalInterface() interface{} {
 	}
 }
 
+func (pt *pluralTranslation) MarshalFlatInterface() interface{} {
+	return pt.templates
+}
+
 func (pt *pluralTranslation) ID() string {
 	return pt.id
 }

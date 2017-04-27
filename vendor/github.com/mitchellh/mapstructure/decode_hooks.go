@@ -121,6 +121,11 @@ func StringToTimeDurationHookFunc() DecodeHookFunc {
 	}
 }
 
+// WeaklyTypedHook is a DecodeHookFunc which adds support for weak typing to
+// the decoder.
+//
+// Note that this is significantly different from the WeaklyTypedInput option
+// of the DecoderConfig.
 func WeaklyTypedHook(
 	f reflect.Kind,
 	t reflect.Kind,
@@ -132,9 +137,8 @@ func WeaklyTypedHook(
 		case reflect.Bool:
 			if dataVal.Bool() {
 				return "1", nil
-			} else {
-				return "0", nil
 			}
+			return "0", nil
 		case reflect.Float32:
 			return strconv.FormatFloat(dataVal.Float(), 'f', -1, 64), nil
 		case reflect.Int:

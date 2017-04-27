@@ -70,6 +70,20 @@ func TestSaveReaction(t *testing.T) {
 		t.Fatal("should have save multiple reactions")
 	}
 
+	// saving special case
+	reaction.EmojiName = "+1"
+
+	rr, resp = Client.SaveReaction(reaction)
+	CheckNoError(t, resp)
+
+	if rr.EmojiName != reaction.EmojiName {
+		t.Fatal("EmojiName did not match")
+	}
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 3 {
+		t.Fatal("should have save multiple reactions")
+	}
+
 	reaction.PostId = GenerateTestId()
 
 	_, resp = Client.SaveReaction(reaction)
@@ -192,4 +206,147 @@ func TestGetReactions(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetReactions(postId)
 	CheckNoError(t, resp)
+}
+
+func TestDeleteReaction(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	userId := th.BasicUser.Id
+	user2Id := th.BasicUser2.Id
+	postId := th.BasicPost.Id
+
+	r1 := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: "smile",
+	}
+
+	app.SaveReactionForPost(r1)
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
+		t.Fatal("didn't save reaction correctly")
+	}
+
+	ok, resp := Client.DeleteReaction(r1)
+	CheckNoError(t, resp)
+
+	if !ok {
+		t.Fatal("should have returned true")
+	}
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {
+		t.Fatal("should have deleted reaction")
+	}
+
+	// deleting one reaction when a post has multiple reactions
+	r2 := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: "smile-",
+	}
+
+	app.SaveReactionForPost(r1)
+	app.SaveReactionForPost(r2)
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+		t.Fatal("didn't save reactions correctly")
+	}
+
+	_, resp = Client.DeleteReaction(r2)
+	CheckNoError(t, resp)
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
+		t.Fatal("should have deleted 1 reaction only")
+	}
+
+	// deleting one reaction of name +1
+	r3 := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: "+1",
+	}
+
+	app.SaveReactionForPost(r3)
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+		t.Fatal("didn't save reactions correctly")
+	}
+
+	_, resp = Client.DeleteReaction(r3)
+	CheckNoError(t, resp)
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
+		t.Fatal("should have deleted 1 reaction only")
+	}
+
+	// deleting a reaction made by another user
+	r4 := &model.Reaction{
+		UserId:    user2Id,
+		PostId:    postId,
+		EmojiName: "smile_",
+	}
+
+	th.LoginBasic2()
+	app.SaveReactionForPost(r4)
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+		t.Fatal("didn't save reaction correctly")
+	}
+
+	th.LoginBasic()
+
+	ok, resp = Client.DeleteReaction(r4)
+	CheckForbiddenStatus(t, resp)
+
+	if ok {
+		t.Fatal("should have returned false")
+	}
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+		t.Fatal("should have not deleted a reaction")
+	}
+
+	r1.PostId = GenerateTestId()
+	_, resp = Client.DeleteReaction(r1)
+	CheckForbiddenStatus(t, resp)
+
+	r1.PostId = "junk"
+
+	_, resp = Client.DeleteReaction(r1)
+	CheckBadRequestStatus(t, resp)
+
+	r1.PostId = postId
+	r1.UserId = GenerateTestId()
+
+	_, resp = Client.DeleteReaction(r1)
+	CheckForbiddenStatus(t, resp)
+
+	r1.UserId = "junk"
+
+	_, resp = Client.DeleteReaction(r1)
+	CheckBadRequestStatus(t, resp)
+
+	r1.UserId = userId
+	r1.EmojiName = ""
+
+	_, resp = Client.DeleteReaction(r1)
+	CheckNotFoundStatus(t, resp)
+
+	r1.EmojiName = strings.Repeat("a", 65)
+
+	_, resp = Client.DeleteReaction(r1)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	r1.EmojiName = "smile"
+
+	_, resp = Client.DeleteReaction(r1)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.DeleteReaction(r1)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.DeleteReaction(r4)
+	CheckNoError(t, resp)
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {
+		t.Fatal("should have deleted both reactions")
+	}
 }

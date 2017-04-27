@@ -42,6 +42,31 @@ func TestReactionIsValid(t *testing.T) {
 	}
 
 	reaction.PostId = NewId()
+	reaction.EmojiName = strings.Repeat("a", 64)
+	if err := reaction.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	reaction.EmojiName = "emoji-"
+	if err := reaction.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	reaction.EmojiName = "emoji_"
+	if err := reaction.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	reaction.EmojiName = "+1"
+	if err := reaction.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	reaction.EmojiName = "emoji:"
+	if err := reaction.IsValid(); err == nil {
+		t.Fatal(err)
+	}
+
 	reaction.EmojiName = ""
 	if err := reaction.IsValid(); err == nil {
 		t.Fatal("emoji name should be invalid")
@@ -50,11 +75,6 @@ func TestReactionIsValid(t *testing.T) {
 	reaction.EmojiName = strings.Repeat("a", 65)
 	if err := reaction.IsValid(); err == nil {
 		t.Fatal("emoji name should be invalid")
-	}
-
-	reaction.EmojiName = strings.Repeat("a", 64)
-	if err := reaction.IsValid(); err != nil {
-		t.Fatal(err)
 	}
 
 	reaction.CreateAt = 0

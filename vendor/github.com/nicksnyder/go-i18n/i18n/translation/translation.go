@@ -12,6 +12,7 @@ type Translation interface {
 	// MarshalInterface returns the object that should be used
 	// to serialize the translation.
 	MarshalInterface() interface{}
+	MarshalFlatInterface() interface{}
 	ID() string
 	Template(language.Plural) *template
 	UntranslatedCopy() Translation

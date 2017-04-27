@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -382,6 +383,17 @@ func (c *Context) RequirePostId() *Context {
 	return c
 }
 
+func (c *Context) RequireAppId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.AppId) != 26 {
+		c.SetInvalidUrlParam("app_id")
+	}
+	return c
+}
+
 func (c *Context) RequireFileId() *Context {
 	if c.Err != nil {
 		return c
@@ -457,8 +469,20 @@ func (c *Context) RequireCategory() *Context {
 		return c
 	}
 
-	if !model.IsValidAlphaNum(c.Params.Category, true) {
+	if !model.IsValidAlphaNumHyphenUnderscore(c.Params.Category, true) {
 		c.SetInvalidUrlParam("category")
+	}
+
+	return c
+}
+
+func (c *Context) RequireService() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.Service) == 0 {
+		c.SetInvalidUrlParam("service")
 	}
 
 	return c
@@ -469,8 +493,22 @@ func (c *Context) RequirePreferenceName() *Context {
 		return c
 	}
 
-	if !model.IsValidAlphaNum(c.Params.PreferenceName, true) {
+	if !model.IsValidAlphaNumHyphenUnderscore(c.Params.PreferenceName, true) {
 		c.SetInvalidUrlParam("preference_name")
+	}
+
+	return c
+}
+
+func (c *Context) RequireEmojiName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
+
+	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !validName.MatchString(c.Params.EmojiName) {
+		c.SetInvalidUrlParam("emoji_name")
 	}
 
 	return c

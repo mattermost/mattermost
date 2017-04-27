@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
@@ -95,7 +97,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 		if len(potentialOtherMentions) > 0 {
 			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
-				outOfChannelMentions := result.Data.(map[string]*model.User)
+				outOfChannelMentions := result.Data.([]*model.User)
 				go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
 			}
 		}
@@ -487,10 +489,24 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	} else {
 		msg.Badge = int(badge.Data.(int64))
 	}
+
 	msg.Type = model.PUSH_TYPE_MESSAGE
 	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
 	msg.ChannelName = channel.Name
+	msg.SenderId = post.UserId
+
+	if ou, ok := post.Props["override_username"]; ok && ou != nil {
+		msg.OverrideUsername = ou.(string)
+	}
+
+	if oi, ok := post.Props["override_icon_url"]; ok && oi != nil {
+		msg.OverrideIconUrl = oi.(string)
+	}
+
+	if fw, ok := post.Props["from_webhook"]; ok && fw != nil {
+		msg.FromWebhook = fw.(string)
+	}
 
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
@@ -592,13 +608,13 @@ func getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
 	}
 }
 
-func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, profiles map[string]*model.User) *model.AppError {
-	if len(profiles) == 0 {
+func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, users []*model.User) *model.AppError {
+	if len(users) == 0 {
 		return nil
 	}
 
 	var usernames []string
-	for _, user := range profiles {
+	for _, user := range users {
 		usernames = append(usernames, user.Username)
 	}
 	sort.Strings(usernames)
@@ -646,7 +662,12 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
-	for _, word := range strings.Fields(message) {
+	message = removeCodeFromMessage(message)
+
+	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
+		// Split on whitespace (as strings.Fields normally does) or on Markdown characters
+		return unicode.IsSpace(c) || c == '*' || c == '~'
+	}) {
 		isMention := false
 
 		if word == "@here" {
@@ -710,6 +731,27 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 	}
 
 	return mentioned, potentialOthersMentioned, hereMentioned, channelMentioned, allMentioned
+}
+
+// Matches a line containing only ``` and a potential language definition, any number of lines not containing ```,
+// and then either a line containing only ``` or the end of the text
+var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*\\`\\`\\`.*$[\\s\\S]+?(^[^\\S\n]*\\`\\`\\`$|\\z)")
+
+// Matches a backquote, either some text or any number of non-empty lines, and then a final backquote
+var inlineCodePattern = regexp.MustCompile("(?m)\\`(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`")
+
+// Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
+func removeCodeFromMessage(message string) string {
+	if strings.Contains(message, "```") {
+		message = codeBlockPattern.ReplaceAllString(message, "")
+	}
+
+	// Replace with a space to prevent cases like "user`code`name" from turning into "username"
+	if strings.Contains(message, "`") {
+		message = inlineCodePattern.ReplaceAllString(message, " ")
+	}
+
+	return message
 }
 
 // Given a map of user IDs to profiles, returns a list of mention

@@ -359,6 +359,11 @@
 }
 
 .post-create__container {
+    @include flex(0 0 auto);
+    background: $white;
+    width: 100%;
+    z-index: 1000;
+
     label {
         font-weight: normal;
     }

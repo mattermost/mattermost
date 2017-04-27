@@ -185,6 +185,14 @@ function handleEvent(msg) {
         handlePreferenceChangedEvent(msg);
         break;
 
+    case SocketEvents.PREFERENCES_CHANGED:
+        handlePreferencesChangedEvent(msg);
+        break;
+
+    case SocketEvents.PREFERENCES_DELETED:
+        handlePreferencesDeletedEvent(msg);
+        break;
+
     case SocketEvents.TYPING:
         handleUserTypingEvent(msg);
         break;
@@ -272,7 +280,6 @@ function handleLeaveTeamEvent(msg) {
 
         // if they are on the team being removed redirect them to default team
         if (TeamStore.getCurrentId() === msg.data.team_id) {
-            TeamStore.setCurrentId('');
             Client.setTeamId('');
             BrowserStore.removeGlobalItem('team');
             BrowserStore.removeGlobalItem(msg.data.team_id);
@@ -330,7 +337,6 @@ function handleUserUpdatedEvent(msg) {
     const user = msg.data.user;
     if (UserStore.getCurrentId() !== user.id) {
         UserStore.saveProfile(user);
-        UserStore.emitChange(user.id);
     }
 }
 
@@ -354,6 +360,16 @@ function handleChannelDeletedEvent(msg) {
 function handlePreferenceChangedEvent(msg) {
     const preference = JSON.parse(msg.data.preference);
     GlobalActions.emitPreferenceChangedEvent(preference);
+}
+
+function handlePreferencesChangedEvent(msg) {
+    const preferences = JSON.parse(msg.data.preferences);
+    GlobalActions.emitPreferencesChangedEvent(preferences);
+}
+
+function handlePreferencesDeletedEvent(msg) {
+    const preferences = JSON.parse(msg.data.preferences);
+    GlobalActions.emitPreferencesDeletedEvent(preferences);
 }
 
 function handleUserTypingEvent(msg) {

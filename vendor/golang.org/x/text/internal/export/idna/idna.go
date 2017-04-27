@@ -373,23 +373,20 @@ func validateRegistration(p *Profile, s string) (string, error) {
 	if !norm.NFC.IsNormalString(s) {
 		return s, &labelError{s, "V1"}
 	}
-	var err error
 	for i := 0; i < len(s); {
 		v, sz := trie.lookupString(s[i:])
-		i += sz
 		// Copy bytes not copied so far.
 		switch p.simplify(info(v).category()) {
 		// TODO: handle the NV8 defined in the Unicode idna data set to allow
 		// for strict conformance to IDNA2008.
 		case valid, deviation:
 		case disallowed, mapped, unknown, ignored:
-			if err == nil {
-				r, _ := utf8.DecodeRuneInString(s[i:])
-				err = runeError(r)
-			}
+			r, _ := utf8.DecodeRuneInString(s[i:])
+			return s, runeError(r)
 		}
+		i += sz
 	}
-	return s, err
+	return s, nil
 }
 
 func validateAndMap(p *Profile, s string) (string, error) {
@@ -408,7 +405,7 @@ func validateAndMap(p *Profile, s string) (string, error) {
 			continue
 		case disallowed:
 			if err == nil {
-				r, _ := utf8.DecodeRuneInString(s[i:])
+				r, _ := utf8.DecodeRuneInString(s[start:])
 				err = runeError(r)
 			}
 			continue

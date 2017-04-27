@@ -35,14 +35,14 @@ var (
 	errNoLastInsertId  = errors.New("no LastInsertId available after the empty statement")
 )
 
-type drv struct{}
+type Driver struct{}
 
-func (d *drv) Open(name string) (driver.Conn, error) {
+func (d *Driver) Open(name string) (driver.Conn, error) {
 	return Open(name)
 }
 
 func init() {
-	sql.Register("postgres", &drv{})
+	sql.Register("postgres", &Driver{})
 }
 
 type parameterStatus struct {

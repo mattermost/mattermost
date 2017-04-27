@@ -23,7 +23,7 @@ if (NPM_TARGET === 'test') {
 }
 
 var config = {
-    entry: ['babel-polyfill', './root.jsx', 'root.html'],
+    entry: ['babel-polyfill', 'whatwg-fetch', './root.jsx', 'root.html'],
     output: {
         path: 'dist',
         publicPath: '/static/',
@@ -33,7 +33,7 @@ var config = {
     module: {
         loaders: [
             {
-                test: /\.jsx?$/,
+                test: /\.(js|jsx)?$/,
                 loader: 'babel-loader',
                 exclude: /(node_modules|non_npm_dependencies)/,
                 query: {

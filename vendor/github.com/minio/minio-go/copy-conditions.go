@@ -41,11 +41,13 @@ type CopyConditions struct {
 	conditions []copyCondition
 }
 
-// NewCopyConditions - Instantiate new list of conditions.
+// NewCopyConditions - Instantiate new list of conditions.  This
+// function is left behind for backward compatibility. The idiomatic
+// way to set an empty set of copy conditions is,
+//    ``copyConditions := CopyConditions{}``.
+//
 func NewCopyConditions() CopyConditions {
-	return CopyConditions{
-		conditions: make([]copyCondition, 0),
-	}
+	return CopyConditions{}
 }
 
 // SetMatchETag - set match etag.

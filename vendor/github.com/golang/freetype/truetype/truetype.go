@@ -57,7 +57,8 @@ const (
 	// A 32-bit encoding consists of a most-significant 16-bit Platform ID and a
 	// least-significant 16-bit Platform Specific ID. The magic numbers are
 	// specified at https://www.microsoft.com/typography/otspec/name.htm
-	unicodeEncoding         = 0x00000003 // PID = 0 (Unicode), PSID = 3 (Unicode 2.0)
+	unicodeEncodingBMPOnly  = 0x00000003 // PID = 0 (Unicode), PSID = 3 (Unicode 2.0 BMP Only)
+	unicodeEncodingFull     = 0x00000004 // PID = 0 (Unicode), PSID = 4 (Unicode 2.0 Full Repertoire)
 	microsoftSymbolEncoding = 0x00030000 // PID = 3 (Microsoft), PSID = 0 (Symbol)
 	microsoftUCS2Encoding   = 0x00030001 // PID = 3 (Microsoft), PSID = 1 (UCS-2)
 	microsoftUCS4Encoding   = 0x0003000a // PID = 3 (Microsoft), PSID = 10 (UCS-4)
@@ -142,7 +143,7 @@ func parseSubtables(table []byte, name string, offset, size int, pred func([]byt
 		pidPsid := u32(table, offset)
 		// We prefer the Unicode cmap encoding. Failing to find that, we fall
 		// back onto the Microsoft cmap encoding.
-		if pidPsid == unicodeEncoding {
+		if pidPsid == unicodeEncodingBMPOnly || pidPsid == unicodeEncodingFull {
 			bestOffset, bestPID, ok = offset, pidPsid>>16, true
 			break
 
@@ -550,8 +551,7 @@ func parse(ttf []byte, offset int) (font *Font, err error) {
 			return
 		}
 		ttcVersion, offset := u32(ttf, offset), offset+4
-		if ttcVersion != 0x00010000 {
-			// TODO: support TTC version 2.0, once I have such a .ttc file to test with.
+		if ttcVersion != 0x00010000 && ttcVersion != 0x00020000 {
 			err = FormatError("bad TTC version")
 			return
 		}
@@ -578,14 +578,15 @@ func parse(ttf []byte, offset int) (font *Font, err error) {
 		return
 	}
 	n, offset := int(u16(ttf, offset)), offset+2
-	if len(ttf) < 16*n+12 {
+	offset += 6 // Skip the searchRange, entrySelector and rangeShift.
+	if len(ttf) < 16*n+offset {
 		err = FormatError("TTF data is too short")
 		return
 	}
 	f := new(Font)
 	// Assign the table slices.
 	for i := 0; i < n; i++ {
-		x := 16*i + 12
+		x := 16*i + offset
 		switch string(ttf[x : x+4]) {
 		case "cmap":
 			f.cmap, err = readTable(ttf, ttf[x+8:x+16])

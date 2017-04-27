@@ -75,6 +75,7 @@ func Setup() *TestHelper {
 		InitRouter()
 		wsapi.InitRouter()
 		app.StartServer()
+		api4.InitApi(false)
 		InitApi()
 		wsapi.InitApi()
 		utils.EnableDebugLogForTest()

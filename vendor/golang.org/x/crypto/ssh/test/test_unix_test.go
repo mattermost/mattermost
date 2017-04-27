@@ -266,3 +266,13 @@ func newServer(t *testing.T) *server {
 		},
 	}
 }
+
+func newTempSocket(t *testing.T) (string, func()) {
+	dir, err := ioutil.TempDir("", "socket")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deferFunc := func() { os.RemoveAll(dir) }
+	addr := filepath.Join(dir, "sock")
+	return addr, deferFunc
+}

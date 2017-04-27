@@ -89,6 +89,32 @@ func TestHeaderFieldTable(t *testing.T) {
 	}
 }
 
+func TestHeaderFieldTable_LookupMapEviction(t *testing.T) {
+	table := &headerFieldTable{}
+	table.init()
+	table.addEntry(pair("key1", "value1-1"))
+	table.addEntry(pair("key2", "value2-1"))
+	table.addEntry(pair("key1", "value1-2"))
+	table.addEntry(pair("key3", "value3-1"))
+	table.addEntry(pair("key4", "value4-1"))
+	table.addEntry(pair("key2", "value2-2"))
+
+	// evict all pairs
+	table.evictOldest(table.len())
+
+	if l := table.len(); l > 0 {
+		t.Errorf("table.len() = %d, want 0", l)
+	}
+
+	if l := len(table.byName); l > 0 {
+		t.Errorf("len(table.byName) = %d, want 0", l)
+	}
+
+	if l := len(table.byNameValue); l > 0 {
+		t.Errorf("len(table.byNameValue) = %d, want 0", l)
+	}
+}
+
 func TestStaticTable(t *testing.T) {
 	fromSpec := `
           +-------+-----------------------------+---------------+
