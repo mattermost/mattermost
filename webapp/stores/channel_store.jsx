@@ -39,6 +39,7 @@ class ChannelStoreClass extends EventEmitter {
                 this.emitChange();
             }
             if (newEntities.myMembers !== this.entities.myMembers) {
+                this.setUnreadCountsByMembers(Object.values(newEntities.myMembers));
                 this.emitChange();
             }
             if (newEntities.membersInChannel !== this.entities.membersInChannel) {
