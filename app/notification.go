@@ -665,8 +665,8 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 	message = removeCodeFromMessage(message)
 
 	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
-		// Split on whitespace (as strings.Fields normally does) or on Markdown characters
-		return unicode.IsSpace(c) || c == '*' || c == '~'
+		// Split on any whitespace or punctuation that can't be part of an at mention
+		return !(c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
 	}) {
 		isMention := false
 
@@ -698,7 +698,7 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 			// No matches were found with the string split just on whitespace so try further splitting
 			// the message on punctuation
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return model.SplitRunes[c]
+				return c == '.' || c == '-'
 			})
 
 			for _, splitWord := range splitWords {
