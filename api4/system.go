@@ -231,6 +231,14 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var clientLicense map[string]string
+
+	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		clientLicense = utils.ClientLicense
+	} else {
+		clientLicense = utils.GetSanitizedClientLicense()
+	}
+
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-	w.Write([]byte(model.MapToJson(utils.GetSanitizedClientLicense())))
+	w.Write([]byte(model.MapToJson(clientLicense)))
 }
