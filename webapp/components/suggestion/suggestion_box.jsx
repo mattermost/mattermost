@@ -139,9 +139,8 @@ export default class SuggestionBox extends React.Component {
 
         if (this.props.onItemSelected) {
             const items = SuggestionStore.getItems(this.suggestionId);
-            const selection = SuggestionStore.getSelection(this.suggestionId);
             for (const i of items) {
-                if (i.name === selection) {
+                if (i.name === term) {
                     this.props.onItemSelected(i);
                     break;
                 }
