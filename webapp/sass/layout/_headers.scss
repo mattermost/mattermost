@@ -454,11 +454,19 @@
             text-decoration: none;
 
             &:hover {
-                @include opacity(1);
+                @include opacity(0.5);
             }
 
             &:focus {
                 color: inherit;
+            }
+
+            &.active {
+                color: $primary-color;
+                @include opacity(1);
+                .icon {
+                    fill: $primary-color;
+                }
             }
         }
     }
