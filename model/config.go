@@ -153,6 +153,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
 	EnablePostSearch                         *bool
 	EnableUserTypingMessages                 *bool
+	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
 }
 
@@ -1161,6 +1162,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableUserTypingMessages == nil {
 		o.ServiceSettings.EnableUserTypingMessages = new(bool)
 		*o.ServiceSettings.EnableUserTypingMessages = true
+	}
+
+	if o.ServiceSettings.EnableUserStatuses == nil {
+		o.ServiceSettings.EnableUserStatuses = new(bool)
+		*o.ServiceSettings.EnableUserStatuses = true
 	}
 
 	if o.ServiceSettings.ClusterLogTimeoutMilliseconds == nil {
