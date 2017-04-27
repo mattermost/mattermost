@@ -22,7 +22,6 @@ export default class PostMessageView extends React.Component {
         enableFormatting: React.PropTypes.bool.isRequired,
         mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
         usernameMap: React.PropTypes.object.isRequired,
-        liteUsernameMap: React.PropTypes.object.isRequired,
         channelNamesMap: React.PropTypes.object.isRequired,
         team: React.PropTypes.object.isRequired,
         isLastPost: React.PropTypes.bool
@@ -55,10 +54,6 @@ export default class PostMessageView extends React.Component {
         }
 
         if (!Utils.areObjectsEqual(nextProps.mentionKeys, this.props.mentionKeys)) {
-            return true;
-        }
-
-        if (!Utils.areObjectsEqual(nextProps.liteUsernameMap, this.props.liteUsernameMap)) {
             return true;
         }
 
@@ -119,7 +114,7 @@ export default class PostMessageView extends React.Component {
         }
 
         const htmlFormattedText = TextFormatting.formatText(this.props.post.message, options);
-        const postMessageComponent = Utils.postMessageHtmlToComponent(htmlFormattedText, AtMentionProfile, this.props.liteUsernameMap);
+        const postMessageComponent = Utils.postMessageHtmlToComponent(htmlFormattedText, AtMentionProfile, this.props.usernameMap);
 
         return (
             <div>

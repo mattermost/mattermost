@@ -39,7 +39,6 @@ export default class PostMessageContainer extends React.Component {
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             mentionKeys,
             usernameMap: UserStore.getProfilesUsernameMap(),
-            liteUsernameMap: UserStore.getLiteProfilesUsernameMap(),
             channelNamesMap: ChannelStore.getChannelNamesMap(),
             team: TeamStore.getCurrent()
         };
@@ -77,8 +76,7 @@ export default class PostMessageContainer extends React.Component {
 
         this.setState({
             mentionKeys,
-            usernameMap: UserStore.getProfilesUsernameMap(),
-            liteUsernameMap: UserStore.getLiteProfilesUsernameMap()
+            usernameMap: UserStore.getProfilesUsernameMap()
         });
     }
 
@@ -98,7 +96,6 @@ export default class PostMessageContainer extends React.Component {
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}
                 usernameMap={this.state.usernameMap}
-                liteUsernameMap={this.state.liteUsernameMap}
                 channelNamesMap={this.state.channelNamesMap}
                 team={this.state.team}
             />
