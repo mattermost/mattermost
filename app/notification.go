@@ -694,9 +694,12 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 			isMention = true
 		}
 
-		if !isMention {
-			// No matches were found with the string split just on whitespace so try further splitting
-			// the message on punctuation
+		if isMention {
+			continue
+		}
+
+		if strings.ContainsAny(word, ".-") {
+			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
 				return c == '.' || c == '-'
 			})
@@ -727,6 +730,9 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 					potentialOthersMentioned = append(potentialOthersMentioned, username)
 				}
 			}
+		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			username := word[1:]
+			potentialOthersMentioned = append(potentialOthersMentioned, username)
 		}
 	}
 

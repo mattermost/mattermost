@@ -179,7 +179,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		"(@here(":   true,
 		")@here)":   true,
 		"-@here-":   true,
-		// "_@here_": true, // This case shouldn't mention since it would be mentioning "@here_"
+		"_@here_":   false, // This case shouldn't mention since it would be mentioning "@here_"
 		"=@here=":   true,
 		"+@here+":   true,
 		"[@here[":   true,
@@ -198,8 +198,8 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		">@here>":   true,
 		"/@here/":   true,
 		"?@here?":   true,
-		// "`@here`": true, // This case shouldn't mention since it's a code block
-		"~@here~": true,
+		"`@here`":   false, // This case shouldn't mention since it's a code block
+		"~@here~":   true,
 	}
 
 	for message, shouldMention := range cases {
