@@ -74,6 +74,10 @@ func JoinDefaultChannels(teamId string, user *model.User, channelRole string, us
 	} else {
 		offTopic := result.Data.(*model.Channel)
 
+		if offTopic.Type == model.CHANNEL_PRIVATE {
+			return err
+		}
+
 		cm := &model.ChannelMember{ChannelId: offTopic.Id, UserId: user.Id,
 			Roles: channelRole, NotifyProps: model.GetDefaultChannelNotifyProps()}
 
