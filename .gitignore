@@ -17,8 +17,7 @@ config/active.dat
 config/config.json
 
 # Enteprise imports file
-imports.go
-cmd/mattermost/imports.go
+imports/imports.go
 
 # Build Targets
 .prebuild
