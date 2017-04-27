@@ -3576,6 +3576,14 @@
     "translation": "Current working directory is %v"
   },
   {
+    "id": "model.token.is_valid.size",
+    "translation": "Invalid token."
+  },
+  {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Invalid access token"
   },
@@ -4412,6 +4420,10 @@
     "translation": "Invalid auth data"
   },
   {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 charactors due to the limitations of bcrypt."
+  },
+  {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
     "translation": "Invalid user, password and auth data cannot both be set"
   },
@@ -4590,10 +4602,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Failed to create dialect specific driver %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Failed to drop column %v"
   },
   {
     "id": "store.sql.incorrect_mac",

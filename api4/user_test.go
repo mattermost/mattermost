@@ -1413,13 +1413,6 @@ func TestResetPassword(t *testing.T) {
 		t.Fatal("should have succeeded")
 	}
 
-	var recovery *model.PasswordRecovery
-	if result := <-app.Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		recovery = result.Data.(*model.PasswordRecovery)
-	}
-
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox utils.JSONMessageHeaderInbucket
 	err := utils.RetryInbucket(5, func() error {
@@ -1431,24 +1424,36 @@ func TestResetPassword(t *testing.T) {
 		t.Log(err)
 		t.Log("No email was received, maybe due load on the server. Disabling this verification")
 	}
+
+	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Body.Text, recovery.Code) {
+				loc := strings.Index(resultsEmail.Body.Text, "token=")
+				if loc == -1 {
 					t.Log(resultsEmail.Body.Text)
-					t.Log(recovery.Code)
-					t.Fatal("Received wrong recovery code")
+					t.Fatal("Code not found in email")
 				}
+				loc += 6
+				recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TOKEN_SIZE]
 			}
 		}
 	}
 
-	_, resp = Client.ResetPassword(recovery.Code, "")
+	var recoveryToken *model.Token
+	if result := <-app.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
+		t.Log(recoveryTokenString)
+		t.Fatal(result.Err)
+	} else {
+		recoveryToken = result.Data.(*model.Token)
+	}
+
+	_, resp = Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.ResetPassword(recovery.Code, "newp")
+	_, resp = Client.ResetPassword(recoveryToken.Token, "newp")
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.ResetPassword("", "newpwd")
@@ -1458,14 +1463,14 @@ func TestResetPassword(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	code := ""
-	for i := 0; i < model.PASSWORD_RECOVERY_CODE_SIZE; i++ {
+	for i := 0; i < model.TOKEN_SIZE; i++ {
 		code += "a"
 	}
 
 	_, resp = Client.ResetPassword(code, "newpwd")
 	CheckBadRequestStatus(t, resp)
 
-	success, resp = Client.ResetPassword(recovery.Code, "newpwd")
+	success, resp = Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
@@ -1474,16 +1479,16 @@ func TestResetPassword(t *testing.T) {
 	Client.Login(user.Email, "newpwd")
 	Client.Logout()
 
-	_, resp = Client.ResetPassword(recovery.Code, "newpwd")
+	_, resp = Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 
-	authData := model.NewId()
+	/*authData := model.NewId()
 	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
 	_, resp = Client.SendPasswordResetEmail(user.Email)
-	CheckBadRequestStatus(t, resp)
+	CheckBadRequestStatus(t, resp)*/
 }
 
 func TestGetSessions(t *testing.T) {
@@ -1646,15 +1651,18 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	ruser, resp := Client.CreateUser(&user)
 
-	hashId := ruser.Id + utils.Cfg.EmailSettings.InviteSalt
-	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
+	token, err := app.CreateVerifyEmailToken(ruser.Id)
+	if err != nil {
+		t.Fatal("Unable to create email verify token")
+	}
+
+	_, resp = Client.VerifyUserEmail(token.Token)
 	CheckNoError(t, resp)
 
-	hashId = ruser.Id + GenerateTestId()
-	_, resp = Client.VerifyUserEmail(ruser.Id, hashId)
+	_, resp = Client.VerifyUserEmail(GenerateTestId())
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.VerifyUserEmail(ruser.Id, "")
+	_, resp = Client.VerifyUserEmail("")
 	CheckBadRequestStatus(t, resp)
 }
 

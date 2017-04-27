@@ -21,8 +21,7 @@ export default class DoVerifyEmail extends React.Component {
     }
     componentWillMount() {
         verifyEmail(
-            this.props.location.query.uid,
-            this.props.location.query.hid,
+            this.props.location.query.token,
             () => {
                 browserHistory.push('/login?extra=verified&email=' + encodeURIComponent(this.props.location.query.email));
             },

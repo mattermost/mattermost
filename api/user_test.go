@@ -184,7 +184,7 @@ func TestLogin(t *testing.T) {
 	props["display_name"] = rteam2.Data.(*model.Team).DisplayName
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 	data := model.MapToJson(props)
-	hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	ruser2, err := Client.CreateUserFromSignup(&user2, data, hash)
 	if err != nil {
@@ -1316,13 +1316,6 @@ func TestResetPassword(t *testing.T) {
 
 	Client.Must(Client.SendPasswordReset(user.Email))
 
-	var recovery *model.PasswordRecovery
-	if result := <-app.Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		recovery = result.Data.(*model.PasswordRecovery)
-	}
-
 	//Check if the email was send to the rigth email address and the recovery key match
 	var resultsMailbox utils.JSONMessageHeaderInbucket
 	err := utils.RetryInbucket(5, func() error {
@@ -1335,25 +1328,42 @@ func TestResetPassword(t *testing.T) {
 		t.Log("No email was received, maybe due load on the server. Disabling this verification")
 	}
 
+	var recoveryTokenString string
 	if err == nil && len(resultsMailbox) > 0 {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
 			if resultsEmail, err := utils.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
-				if !strings.Contains(resultsEmail.Body.Text, recovery.Code) {
+				loc := strings.Index(resultsEmail.Body.Text, "token=")
+				if loc == -1 {
+					t.Log(recoveryTokenString)
 					t.Log(resultsEmail.Body.Text)
-					t.Log(recovery.Code)
-					t.Fatal("Received wrong recovery code")
+					t.Fatal("Code not found in email")
 				}
+				loc += 6
+				recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TOKEN_SIZE]
+				t.Log(resultsEmail.Body.Text)
 			}
 		}
 	}
 
-	if _, err := Client.ResetPassword(recovery.Code, ""); err == nil {
+	var recoveryToken *model.Token
+	if result := <-app.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
+		t.Log(recoveryTokenString)
+		t.Fatal(result.Err)
+	} else {
+		recoveryToken = result.Data.(*model.Token)
+	}
+
+	if recoveryToken.Token != recoveryTokenString {
+		t.Fatal("Did not send the correct token. DB: "+recoveryToken.Token, " Sent: "+recoveryTokenString)
+	}
+
+	if _, err := Client.ResetPassword(recoveryToken.Token, ""); err == nil {
 		t.Fatal("Should have errored - no password")
 	}
 
-	if _, err := Client.ResetPassword(recovery.Code, "newp"); err == nil {
+	if _, err := Client.ResetPassword(recoveryToken.Token, "newp"); err == nil {
 		t.Fatal("Should have errored - password too short")
 	}
 
@@ -1366,38 +1376,26 @@ func TestResetPassword(t *testing.T) {
 	}
 
 	code := ""
-	for i := 0; i < model.PASSWORD_RECOVERY_CODE_SIZE; i++ {
+	for i := 0; i < model.TOKEN_SIZE; i++ {
 		code += "a"
 	}
 	if _, err := Client.ResetPassword(code, "newpwd1"); err == nil {
 		t.Fatal("Should have errored - bad code")
 	}
 
-	if _, err := Client.ResetPassword(recovery.Code, "newpwd1"); err != nil {
-		t.Log(recovery.Code)
+	if _, err := Client.ResetPassword(recoveryToken.Token, "newpwd1"); err != nil {
+		t.Log(recoveryToken.Token)
 		t.Fatal(err)
 	}
 
-	Client.Logout()
-	Client.Must(Client.LoginById(user.Id, "newpwd1"))
-	Client.SetTeamId(team.Id)
-
-	Client.Must(Client.SendPasswordReset(user.Email))
-
-	if result := <-app.Srv.Store.PasswordRecovery().Get(user.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		recovery = result.Data.(*model.PasswordRecovery)
-	}
-
-	authData := model.NewId()
+	/*authData := model.NewId()
 	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
 	if _, err := Client.ResetPassword(recovery.Code, "newpwd1"); err == nil {
 		t.Fatal("Should have errored - sso user")
-	}
+	}*/
 }
 
 func TestUserUpdateNotify(t *testing.T) {

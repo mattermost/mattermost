@@ -62,6 +62,7 @@ const (
 	EXIT_REMOVE_INDEX_POSTGRES       = 121
 	EXIT_REMOVE_INDEX_MYSQL          = 122
 	EXIT_REMOVE_INDEX_MISSING        = 123
+	EXIT_REMOVE_TABLE                = 134
 )
 
 type SqlStore struct {
@@ -80,7 +81,7 @@ type SqlStore struct {
 	command       CommandStore
 	preference    PreferenceStore
 	license       LicenseStore
-	recovery      PasswordRecoveryStore
+	token         TokenStore
 	emoji         EmojiStore
 	status        StatusStore
 	fileInfo      FileInfoStore
@@ -131,7 +132,7 @@ func NewSqlStore() Store {
 	sqlStore.command = NewSqlCommandStore(sqlStore)
 	sqlStore.preference = NewSqlPreferenceStore(sqlStore)
 	sqlStore.license = NewSqlLicenseStore(sqlStore)
-	sqlStore.recovery = NewSqlPasswordRecoveryStore(sqlStore)
+	sqlStore.token = NewSqlTokenStore(sqlStore)
 	sqlStore.emoji = NewSqlEmojiStore(sqlStore)
 	sqlStore.status = NewSqlStatusStore(sqlStore)
 	sqlStore.fileInfo = NewSqlFileInfoStore(sqlStore)
@@ -159,7 +160,7 @@ func NewSqlStore() Store {
 	sqlStore.command.(*SqlCommandStore).CreateIndexesIfNotExists()
 	sqlStore.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 	sqlStore.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
-	sqlStore.recovery.(*SqlPasswordRecoveryStore).CreateIndexesIfNotExists()
+	sqlStore.token.(*SqlTokenStore).CreateIndexesIfNotExists()
 	sqlStore.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
 	sqlStore.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 	sqlStore.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
@@ -388,9 +389,24 @@ func (ss *SqlStore) RemoveColumnIfExists(tableName string, columnName string) bo
 
 	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
-		l4g.Critical(utils.T("store.sql.drop_column.critical"), err)
+		l4g.Critical("Failed to drop column %v", err)
 		time.Sleep(time.Second)
 		os.Exit(EXIT_REMOVE_COLUMN)
+	}
+
+	return true
+}
+
+func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
+	if !ss.DoesTableExist(tableName) {
+		return false
+	}
+
+	_, err := ss.GetMaster().Exec("DROP TABLE " + tableName)
+	if err != nil {
+		l4g.Critical("Failed to drop table %v", err)
+		time.Sleep(time.Second)
+		os.Exit(EXIT_REMOVE_TABLE)
 	}
 
 	return true
@@ -667,8 +683,8 @@ func (ss *SqlStore) License() LicenseStore {
 	return ss.license
 }
 
-func (ss *SqlStore) PasswordRecovery() PasswordRecoveryStore {
-	return ss.recovery
+func (ss *SqlStore) Token() TokenStore {
+	return ss.token
 }
 
 func (ss *SqlStore) Emoji() EmojiStore {

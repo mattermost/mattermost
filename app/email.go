@@ -33,10 +33,10 @@ func SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL st
 	return nil
 }
 
-func SendEmailChangeVerifyEmail(userId, newUserEmail, locale, siteURL string) *model.AppError {
+func SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(newUserEmail))
+	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(newUserEmail))
 
 	subject := T("api.templates.email_change_verify_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
@@ -77,10 +77,10 @@ func SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.App
 	return nil
 }
 
-func SendVerifyEmail(userId, userEmail, locale, siteURL string) *model.AppError {
+func SendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(userEmail))
+	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(userEmail))
 
 	url, _ := url.Parse(siteURL)
 
@@ -144,7 +144,11 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 	}
 
 	if !verified {
-		link := fmt.Sprintf("%s/do_verify_email?uid=%s&hid=%s&email=%s", siteURL, userId, model.HashPassword(userId+utils.Cfg.EmailSettings.InviteSalt), url.QueryEscape(email))
+		token, err := CreateVerifyEmailToken(userId)
+		if err != nil {
+			return err
+		}
+		link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token.Token, url.QueryEscape(email))
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
@@ -175,11 +179,11 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 	return nil
 }
 
-func SendPasswordResetEmail(email string, recovery *model.PasswordRecovery, locale, siteURL string) (bool, *model.AppError) {
+func SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError) {
 
 	T := utils.GetUserTranslations(locale)
 
-	link := fmt.Sprintf("%s/reset_password_complete?code=%s", siteURL, url.QueryEscape(recovery.Code))
+	link := fmt.Sprintf("%s/reset_password_complete?token=%s", siteURL, url.QueryEscape(token.Token))
 
 	subject := T("api.templates.reset_subject",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
@@ -252,7 +256,7 @@ func SendInviteEmails(team *model.Team, senderName string, invites []string, sit
 			props["name"] = team.Name
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
 			data := model.MapToJson(props)
-			hash := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
 
 			if !utils.Cfg.EmailSettings.SendEmailNotifications {
