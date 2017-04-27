@@ -1002,6 +1002,10 @@
     "translation": "正在初始化表情符 API 路由"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "正在初始化表情符 API 路由"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "文件存储没有正确配置。请配置S3或本地文件存储服务。"
   },
@@ -1684,10 +1688,6 @@
     "translation": "不能对其他用户设置优先级"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "因网址中频道 ID 与消息 ID不符而删除反应失败"
   },
@@ -1700,8 +1700,16 @@
     "translation": "因网址中频道 ID 与消息 ID不符而获取反应失败"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "无效反应。"
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "因网址中频道 ID 与消息 ID不符而保存反应失败"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "您不能保存其他用户的反应。"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3608,6 +3616,10 @@
     "translation": "无效重定向uri"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "无效的响应类型"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "无效范围"
   },
@@ -3702,6 +3714,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "无法写入请求"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "缺少频道参数"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "缺少团队参数"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "文件设置中最大大小无效。必须是0或者正整数。"
+    "translation": "无效文件设定的最大文件大小。必须为大于零的整数。"
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -5186,6 +5206,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "您不能更新一个村庄的邮件"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "此服务器已禁用搜索。请联系您的系统管理员。"
   },
   {
     "id": "store.sql_post.search.warn",
