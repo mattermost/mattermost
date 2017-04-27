@@ -6,7 +6,7 @@ package model
 import "net/http"
 
 const (
-	TOKEN_SIZE            = 128
+	TOKEN_SIZE            = 64
 	MAX_TOKEN_EXIPRY_TIME = 1000 * 60 * 60 * 24 // 24 hour
 )
 
