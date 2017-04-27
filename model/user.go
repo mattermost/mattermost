@@ -130,6 +130,10 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
+	if len(u.Password) > 72 {
+		return InvalidUserError("password_limit", u.Id)
+	}
+
 	return nil
 }
 

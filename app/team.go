@@ -198,7 +198,7 @@ func AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
 func AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
-	if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 		return nil, model.NewLocAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "")
 	}
 
@@ -757,7 +757,7 @@ func GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		data := query.Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if !model.ComparePassword(hash, fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 

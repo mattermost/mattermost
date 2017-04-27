@@ -876,7 +876,7 @@ func TestAddTeamMember(t *testing.T) {
 	dataObject["id"] = team.Id
 
 	data := model.MapToJson(dataObject)
-	hashed := model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
 	CheckNoError(t, resp)
@@ -906,7 +906,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired data of more than 50 hours
 	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
 	data = model.MapToJson(dataObject)
-	hashed = model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
 	CheckNotFoundStatus(t, resp)
@@ -914,7 +914,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	dataObject["id"] = GenerateTestId()
 	data = model.MapToJson(dataObject)
-	hashed = model.HashPassword(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
 	CheckNotFoundStatus(t, resp)

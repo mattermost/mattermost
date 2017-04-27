@@ -43,7 +43,7 @@ class PasswordResetForm extends React.Component {
         });
 
         resetPassword(
-            this.props.location.query.code,
+            this.props.location.query.token,
             password,
             () => {
                 this.setState({error: null});

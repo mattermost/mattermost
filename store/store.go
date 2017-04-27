@@ -42,7 +42,7 @@ type Store interface {
 	Command() CommandStore
 	Preference() PreferenceStore
 	License() LicenseStore
-	PasswordRecovery() PasswordRecoveryStore
+	Token() TokenStore
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
@@ -322,11 +322,11 @@ type LicenseStore interface {
 	Get(id string) StoreChannel
 }
 
-type PasswordRecoveryStore interface {
-	SaveOrUpdate(recovery *model.PasswordRecovery) StoreChannel
-	Delete(userId string) StoreChannel
-	Get(userId string) StoreChannel
-	GetByCode(code string) StoreChannel
+type TokenStore interface {
+	Save(recovery *model.Token) StoreChannel
+	Delete(token string) StoreChannel
+	GetByToken(token string) StoreChannel
+	Cleanup()
 }
 
 type EmojiStore interface {

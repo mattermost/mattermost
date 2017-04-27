@@ -34,8 +34,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/logout", ApiAppHandler(logout)).Methods("POST")
 	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
-	BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
-	BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
+	//DEPRICATED FOR SECURITY USE APIV4 BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
+	//DEPRICATED FOR SECURITY USE APIV4 BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
 	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
 	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
 	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
@@ -767,22 +767,22 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	code := props["code"]
-	if len(code) != model.PASSWORD_RECOVERY_CODE_SIZE {
+	if len(code) != model.TOKEN_SIZE {
 		c.SetInvalidParam("resetPassword", "code")
 		return
 	}
 
 	newPassword := props["new_password"]
 
-	c.LogAudit("attempt - code=" + code)
+	c.LogAudit("attempt - token=" + code)
 
-	if err := app.ResetPasswordFromCode(code, newPassword); err != nil {
-		c.LogAudit("fail - code=" + code)
+	if err := app.ResetPasswordFromToken(code, newPassword); err != nil {
+		c.LogAudit("fail - token=" + code)
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success - code=" + code)
+	c.LogAudit("success - token=" + code)
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
@@ -992,6 +992,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
+/* Disabling for security reasons. Use apiv4
 func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
@@ -1039,7 +1040,7 @@ func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
 			go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale, utils.GetSiteURL())
 		}
 	}
-}
+}*/
 
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	secret, err := app.GenerateMfaSecret(c.Session.UserId)
