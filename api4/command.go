@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
@@ -18,12 +20,16 @@ func InitCommand() {
 
 	BaseRoutes.Commands.Handle("", ApiSessionRequired(createCommand)).Methods("POST")
 	BaseRoutes.Commands.Handle("", ApiSessionRequired(listCommands)).Methods("GET")
+	BaseRoutes.Commands.Handle("/execute", ApiSessionRequired(executeCommand)).Methods("POST")
 
 	BaseRoutes.Command.Handle("", ApiSessionRequired(updateCommand)).Methods("PUT")
 	BaseRoutes.Command.Handle("", ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
 	BaseRoutes.Team.Handle("/commands/autocomplete", ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
 	BaseRoutes.Command.Handle("/regen_token", ApiSessionRequired(regenCommandToken)).Methods("PUT")
+
+	BaseRoutes.Teams.Handle("/command_test", ApiHandler(testCommand)).Methods("POST")
+	BaseRoutes.Teams.Handle("/command_test", ApiHandler(testCommand)).Methods("GET")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -183,6 +189,44 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.CommandListToJson(commands)))
 }
 
+func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	commandArgs := model.CommandArgsFromJson(r.Body)
+	if commandArgs == nil {
+		c.SetInvalidParam("command_args")
+		return
+	}
+
+	if len(commandArgs.Command) <= 1 || strings.Index(commandArgs.Command, "/") != 0 || len(commandArgs.ChannelId) != 26 {
+		c.Err = model.NewAppError("executeCommand", "api.command.execute_command.start.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
+		return
+	}
+
+	channel, err := app.GetChannel(commandArgs.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	commandArgs.TeamId = channel.TeamId
+	commandArgs.UserId = c.Session.UserId
+	commandArgs.T = c.T
+	commandArgs.Session = c.Session
+	commandArgs.SiteURL = c.GetSiteURLHeader()
+
+	response, err := app.ExecuteCommand(commandArgs)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(response.ToJson()))
+}
+
 func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -238,4 +282,24 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp["token"] = rcmd.Token
 
 	w.Write([]byte(model.MapToJson(resp)))
+}
+
+func testCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	msg := ""
+	if r.Method == "POST" {
+		msg = msg + "\ntoken=" + r.FormValue("token")
+		msg = msg + "\nteam_domain=" + r.FormValue("team_domain")
+	} else {
+		body, _ := ioutil.ReadAll(r.Body)
+		msg = string(body)
+	}
+
+	rc := &model.CommandResponse{
+		Text:         "test command response " + msg,
+		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+	}
+
+	w.Write([]byte(rc.ToJson()))
 }

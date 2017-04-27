@@ -379,5 +379,91 @@ func TestRegenToken(t *testing.T) {
 	if token != "" {
 		t.Fatal("should not return the token")
 	}
+}
 
+func TestExecuteCommand(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "postcommand",
+	}
+
+	if _, err := app.CreateCommand(postCmd); err != nil {
+		t.Fatal("failed to create post command")
+	}
+
+	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
+	CheckNoError(t, resp)
+
+	if commandResponse == nil {
+		t.Fatal("command response should have returned")
+	}
+
+	posts, err := app.GetPostsPage(channel.Id, 0, 10)
+	if err != nil || posts == nil || len(posts.Order) != 2 {
+		t.Fatal("Test command failed to send")
+	}
+
+	getCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		Method:    model.COMMAND_METHOD_GET,
+		Trigger:   "getcommand",
+	}
+
+	if _, err := app.CreateCommand(getCmd); err != nil {
+		t.Fatal("failed to create get command")
+	}
+
+	commandResponse, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
+	CheckNoError(t, resp)
+
+	if commandResponse == nil {
+		t.Fatal("command response should have returned")
+	}
+
+	posts, err = app.GetPostsPage(channel.Id, 0, 10)
+	if err != nil || posts == nil || len(posts.Order) != 3 {
+		t.Fatal("Test command failed to send")
+	}
+
+	_, resp = Client.ExecuteCommand(channel.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "getcommand")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/junk")
+	CheckNotFoundStatus(t, resp)
+
+	otherUser := th.CreateUser()
+	Client.Login(otherUser.Email, otherUser.Password)
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
+	CheckNoError(t, resp)
 }
