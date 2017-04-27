@@ -7,8 +7,6 @@
 
 // +build amd64,!gccgo,!appengine
 
-#include "const_amd64.h"
-
 // func square(out, in *[5]uint64)
 TEXT ·square(SB),7,$0-16
 	MOVQ out+0(FP), DI
@@ -86,7 +84,7 @@ TEXT ·square(SB),7,$0-16
 	MULQ 32(SI)
 	ADDQ AX,R13
 	ADCQ DX,R14
-	MOVQ $REDMASK51,SI
+	MOVQ ·REDMASK51(SB),SI
 	SHLQ $13,R8:CX
 	ANDQ SI,CX
 	SHLQ $13,R10:R9

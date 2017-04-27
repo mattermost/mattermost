@@ -307,6 +307,8 @@ func readToNextPublicKey(packets *packet.Reader) (err error) {
 			return
 		}
 	}
+
+	panic("unreachable")
 }
 
 // ReadEntity reads an entity (public key, identities, subkeys etc) from the

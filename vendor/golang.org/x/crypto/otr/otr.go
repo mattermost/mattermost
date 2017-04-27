@@ -943,7 +943,6 @@ func (c *Conversation) processData(in []byte) (out []byte, tlvs []tlv, err error
 			t.data, tlvData, ok3 = getNBytes(tlvData, int(t.length))
 			if !ok1 || !ok2 || !ok3 {
 				err = errors.New("otr: corrupt tlv data")
-				return
 			}
 			tlvs = append(tlvs, t)
 		}
@@ -1312,12 +1311,6 @@ func (priv *PrivateKey) Import(in []byte) bool {
 		}
 
 		mpis[i] = new(big.Int).SetBytes(mpiBytes)
-	}
-
-	for _, mpi := range mpis {
-		if mpi.Sign() <= 0 {
-			return false
-		}
 	}
 
 	priv.PrivateKey.P = mpis[0]

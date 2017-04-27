@@ -97,13 +97,13 @@ awaitCopyInResponse:
 			err = parseError(r)
 		case 'Z':
 			if err == nil {
-				ci.setBad()
+				cn.bad = true
 				errorf("unexpected ReadyForQuery in response to COPY")
 			}
 			cn.processReadyForQuery(r)
 			return nil, err
 		default:
-			ci.setBad()
+			cn.bad = true
 			errorf("unknown response for copy query: %q", t)
 		}
 	}
@@ -122,7 +122,7 @@ awaitCopyInResponse:
 			cn.processReadyForQuery(r)
 			return nil, err
 		default:
-			ci.setBad()
+			cn.bad = true
 			errorf("unknown response for CopyFail: %q", t)
 		}
 	}
@@ -143,7 +143,7 @@ func (ci *copyin) resploop() {
 		var r readBuf
 		t, err := ci.cn.recvMessage(&r)
 		if err != nil {
-			ci.setBad()
+			ci.cn.bad = true
 			ci.setError(err)
 			ci.done <- true
 			return
@@ -161,25 +161,12 @@ func (ci *copyin) resploop() {
 			err := parseError(&r)
 			ci.setError(err)
 		default:
-			ci.setBad()
+			ci.cn.bad = true
 			ci.setError(fmt.Errorf("unknown response during CopyIn: %q", t))
 			ci.done <- true
 			return
 		}
 	}
-}
-
-func (ci *copyin) setBad() {
-	ci.Lock()
-	ci.cn.bad = true
-	ci.Unlock()
-}
-
-func (ci *copyin) isBad() bool {
-	ci.Lock()
-	b := ci.cn.bad
-	ci.Unlock()
-	return b
 }
 
 func (ci *copyin) isErrorSet() bool {
@@ -219,7 +206,7 @@ func (ci *copyin) Exec(v []driver.Value) (r driver.Result, err error) {
 		return nil, errCopyInClosed
 	}
 
-	if ci.isBad() {
+	if ci.cn.bad {
 		return nil, driver.ErrBadConn
 	}
 	defer ci.cn.errRecover(&err)
@@ -257,7 +244,7 @@ func (ci *copyin) Close() (err error) {
 	}
 	ci.closed = true
 
-	if ci.isBad() {
+	if ci.cn.bad {
 		return driver.ErrBadConn
 	}
 	defer ci.cn.errRecover(&err)

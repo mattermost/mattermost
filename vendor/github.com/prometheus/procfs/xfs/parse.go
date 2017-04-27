@@ -17,6 +17,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -272,6 +273,7 @@ func vnodeStats(us []uint32) (VnodeStats, error) {
 	// stats versions.  Therefore, 7 or 8 elements may appear in
 	// this slice.
 	l := len(us)
+	log.Println(l)
 	if l != 7 && l != 8 {
 		return VnodeStats{}, fmt.Errorf("incorrect number of values for XFS vnode stats: %d", l)
 	}

@@ -4,7 +4,7 @@
 
 // Package blake2s implements the BLAKE2s hash algorithm as
 // defined in RFC 7693.
-package blake2s // import "golang.org/x/crypto/blake2s"
+package blake2s
 
 import (
 	"encoding/binary"

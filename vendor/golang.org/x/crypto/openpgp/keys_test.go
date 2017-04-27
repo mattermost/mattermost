@@ -300,7 +300,7 @@ func TestNewEntityWithoutPreferredHash(t *testing.T) {
 
 	for _, identity := range entity.Identities {
 		if len(identity.SelfSignature.PreferredHash) != 0 {
-			t.Fatalf("Expected preferred hash to be empty but got length %d", len(identity.SelfSignature.PreferredHash))
+			t.Fatal("Expected preferred hash to be empty but got length %d", len(identity.SelfSignature.PreferredHash))
 		}
 	}
 }

@@ -7,8 +7,6 @@
 
 // +build amd64,!gccgo,!appengine
 
-#include "const_amd64.h"
-
 // func mul(dest, a, b *[5]uint64)
 TEXT ·mul(SB),0,$16-24
 	MOVQ dest+0(FP), DI
@@ -123,7 +121,7 @@ TEXT ·mul(SB),0,$16-24
 	MULQ 32(CX)
 	ADDQ AX,R14
 	ADCQ DX,R15
-	MOVQ $REDMASK51,SI
+	MOVQ ·REDMASK51(SB),SI
 	SHLQ $13,R9:R8
 	ANDQ SI,R8
 	SHLQ $13,R11:R10

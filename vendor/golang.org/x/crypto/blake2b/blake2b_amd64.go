@@ -6,12 +6,11 @@
 
 package blake2b
 
-func init() {
-	useSSE4 = supportsSSE4()
-}
+var useAVX2 = false
+var useSSE4 = supportSSE4()
 
 //go:noescape
-func supportsSSE4() bool
+func supportSSE4() bool
 
 //go:noescape
 func hashBlocksSSE4(h *[8]uint64, c *[2]uint64, flag uint64, blocks []byte)

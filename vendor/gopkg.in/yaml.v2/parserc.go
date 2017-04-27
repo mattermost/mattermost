@@ -166,6 +166,7 @@ func yaml_parser_state_machine(parser *yaml_parser_t, event *yaml_event_t) bool 
 	default:
 		panic("invalid parser state")
 	}
+	return false
 }
 
 // Parse the production:

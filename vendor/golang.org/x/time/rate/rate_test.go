@@ -5,13 +5,14 @@
 package rate
 
 import (
-	"context"
 	"math"
 	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 func TestLimit(t *testing.T) {

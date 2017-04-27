@@ -8,10 +8,6 @@
 
 package curve25519
 
-import (
-	"encoding/binary"
-)
-
 // This code is a port of the public domain, "ref10" implementation of
 // curve25519 from SUPERCOP 20130419 by D. J. Bernstein.
 
@@ -54,11 +50,17 @@ func feCopy(dst, src *fieldElement) {
 //
 // Preconditions: b in {0,1}.
 func feCSwap(f, g *fieldElement, b int32) {
+	var x fieldElement
 	b = -b
+	for i := range x {
+		x[i] = b & (f[i] ^ g[i])
+	}
+
 	for i := range f {
-		t := b & (f[i] ^ g[i])
-		f[i] ^= t
-		g[i] ^= t
+		f[i] ^= x[i]
+	}
+	for i := range g {
+		g[i] ^= x[i]
 	}
 }
 
@@ -73,7 +75,12 @@ func load3(in []byte) int64 {
 
 // load4 reads a 32-bit, little-endian value from in.
 func load4(in []byte) int64 {
-	return int64(binary.LittleEndian.Uint32(in))
+	var r int64
+	r = int64(in[0])
+	r |= int64(in[1]) << 8
+	r |= int64(in[2]) << 16
+	r |= int64(in[3]) << 24
+	return r
 }
 
 func feFromBytes(dst *fieldElement, src *[32]byte) {

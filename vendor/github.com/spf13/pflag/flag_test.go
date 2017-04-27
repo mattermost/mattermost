@@ -335,7 +335,7 @@ func testParse(f *FlagSet, t *testing.T) {
 
 func testParseAll(f *FlagSet, t *testing.T) {
 	if f.Parsed() {
-		t.Error("f.Parse() = true before Parse")
+		fmt.Errorf("f.Parse() = true before Parse")
 	}
 	f.BoolP("boola", "a", false, "bool value")
 	f.BoolP("boolb", "b", false, "bool2 value")
@@ -374,7 +374,7 @@ func testParseAll(f *FlagSet, t *testing.T) {
 		return nil
 	}
 	if err := f.ParseAll(args, store); err != nil {
-		t.Errorf("expected no error, got %s", err)
+		t.Errorf("expected no error, got ", err)
 	}
 	if !f.Parsed() {
 		t.Errorf("f.Parse() = false after Parse")
@@ -1003,44 +1003,4 @@ func TestPrintDefaults(t *testing.T) {
 		fmt.Println("\n" + defaultOutput)
 		t.Errorf("got %q want %q\n", got, defaultOutput)
 	}
-}
-
-func TestVisitAllFlagOrder(t *testing.T) {
-	fs := NewFlagSet("TestVisitAllFlagOrder", ContinueOnError)
-	fs.SortFlags = false
-	// https://github.com/spf13/pflag/issues/120
-	fs.SetNormalizeFunc(func(f *FlagSet, name string) NormalizedName {
-		return NormalizedName(name)
-	})
-
-	names := []string{"C", "B", "A", "D"}
-	for _, name := range names {
-		fs.Bool(name, false, "")
-	}
-
-	i := 0
-	fs.VisitAll(func(f *Flag) {
-		if names[i] != f.Name {
-			t.Errorf("Incorrect order. Expected %v, got %v", names[i], f.Name)
-		}
-		i++
-	})
-}
-
-func TestVisitFlagOrder(t *testing.T) {
-	fs := NewFlagSet("TestVisitFlagOrder", ContinueOnError)
-	fs.SortFlags = false
-	names := []string{"C", "B", "A", "D"}
-	for _, name := range names {
-		fs.Bool(name, false, "")
-		fs.Set(name, "true")
-	}
-
-	i := 0
-	fs.Visit(func(f *Flag) {
-		if names[i] != f.Name {
-			t.Errorf("Incorrect order. Expected %v, got %v", names[i], f.Name)
-		}
-		i++
-	})
 }

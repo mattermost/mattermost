@@ -1,11 +1,25 @@
 package route
 
 import (
+	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/context"
 )
+
+var (
+	mtx   = sync.RWMutex{}
+	ctxts = map[*http.Request]context.Context{}
+)
+
+// Context returns the context for the request.
+func Context(r *http.Request) context.Context {
+	mtx.RLock()
+	defer mtx.RUnlock()
+	return ctxts[r]
+}
 
 type param string
 
@@ -19,35 +33,59 @@ func WithParam(ctx context.Context, p, v string) context.Context {
 	return context.WithValue(ctx, param(p), v)
 }
 
+// ContextFunc returns a new context for a request.
+type ContextFunc func(r *http.Request) (context.Context, error)
+
 // Router wraps httprouter.Router and adds support for prefixed sub-routers
 // and per-request context injections.
 type Router struct {
 	rtr    *httprouter.Router
 	prefix string
+	ctxFn  ContextFunc
 }
 
 // New returns a new Router.
-func New() *Router {
+func New(ctxFn ContextFunc) *Router {
+	if ctxFn == nil {
+		ctxFn = func(r *http.Request) (context.Context, error) {
+			return context.Background(), nil
+		}
+	}
 	return &Router{
-		rtr: httprouter.New(),
+		rtr:   httprouter.New(),
+		ctxFn: ctxFn,
 	}
 }
 
 // WithPrefix returns a router that prefixes all registered routes with prefix.
 func (r *Router) WithPrefix(prefix string) *Router {
-	return &Router{rtr: r.rtr, prefix: r.prefix + prefix}
+	return &Router{rtr: r.rtr, prefix: r.prefix + prefix, ctxFn: r.ctxFn}
 }
 
 // handle turns a HandlerFunc into an httprouter.Handle.
 func (r *Router) handle(h http.HandlerFunc) httprouter.Handle {
 	return func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		ctx, cancel := context.WithCancel(req.Context())
+		reqCtx, err := r.ctxFn(req)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error creating request context: %v", err), http.StatusBadRequest)
+			return
+		}
+		ctx, cancel := context.WithCancel(reqCtx)
 		defer cancel()
 
 		for _, p := range params {
 			ctx = context.WithValue(ctx, param(p.Key), p.Value)
 		}
-		h(w, req.WithContext(ctx))
+
+		mtx.Lock()
+		ctxts[req] = ctx
+		mtx.Unlock()
+
+		h(w, req)
+
+		mtx.Lock()
+		delete(ctxts, req)
+		mtx.Unlock()
 	}
 }
 
@@ -94,7 +132,7 @@ func FileServe(dir string) http.HandlerFunc {
 	fs := http.FileServer(http.Dir(dir))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = Param(r.Context(), "filepath")
+		r.URL.Path = Param(Context(r), "filepath")
 		fs.ServeHTTP(w, r)
 	}
 }

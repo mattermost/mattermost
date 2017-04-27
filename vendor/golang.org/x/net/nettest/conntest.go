@@ -433,7 +433,6 @@ func resyncConn(t *testing.T, c net.Conn) {
 		}
 		if err != nil {
 			t.Errorf("unexpected Read error: %v", err)
-			break
 		}
 	}
 	if err := <-errCh; err != nil {

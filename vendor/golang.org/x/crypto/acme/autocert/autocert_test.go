@@ -5,7 +5,6 @@
 package autocert
 
 import (
-	"context"
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -23,11 +22,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"sync"
 	"testing"
 	"time"
 
 	"golang.org/x/crypto/acme"
+	"golang.org/x/net/context"
 )
 
 var discoTmpl = template.Must(template.New("disco").Parse(`{
@@ -52,42 +51,24 @@ var authzTmpl = template.Must(template.New("authz").Parse(`{
 	]
 }`))
 
-type memCache struct {
-	mu      sync.Mutex
-	keyData map[string][]byte
-}
+type memCache map[string][]byte
 
-func (m *memCache) Get(ctx context.Context, key string) ([]byte, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	v, ok := m.keyData[key]
+func (m memCache) Get(ctx context.Context, key string) ([]byte, error) {
+	v, ok := m[key]
 	if !ok {
 		return nil, ErrCacheMiss
 	}
 	return v, nil
 }
 
-func (m *memCache) Put(ctx context.Context, key string, data []byte) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	m.keyData[key] = data
+func (m memCache) Put(ctx context.Context, key string, data []byte) error {
+	m[key] = data
 	return nil
 }
 
-func (m *memCache) Delete(ctx context.Context, key string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	delete(m.keyData, key)
+func (m memCache) Delete(ctx context.Context, key string) error {
+	delete(m, key)
 	return nil
-}
-
-func newMemCache() *memCache {
-	return &memCache{
-		keyData: make(map[string][]byte),
-	}
 }
 
 func dummyCert(pub interface{}, san ...string) ([]byte, error) {
@@ -127,60 +108,10 @@ func decodePayload(v interface{}, r io.Reader) error {
 }
 
 func TestGetCertificate(t *testing.T) {
+	const domain = "example.org"
 	man := &Manager{Prompt: AcceptTOS}
 	defer man.stopRenew()
-	hello := &tls.ClientHelloInfo{ServerName: "example.org"}
-	testGetCertificate(t, man, "example.org", hello)
-}
 
-func TestGetCertificate_trailingDot(t *testing.T) {
-	man := &Manager{Prompt: AcceptTOS}
-	defer man.stopRenew()
-	hello := &tls.ClientHelloInfo{ServerName: "example.org."}
-	testGetCertificate(t, man, "example.org", hello)
-}
-
-func TestGetCertificate_ForceRSA(t *testing.T) {
-	man := &Manager{
-		Prompt:   AcceptTOS,
-		Cache:    newMemCache(),
-		ForceRSA: true,
-	}
-	defer man.stopRenew()
-	hello := &tls.ClientHelloInfo{ServerName: "example.org"}
-	testGetCertificate(t, man, "example.org", hello)
-
-	cert, err := man.cacheGet(context.Background(), "example.org")
-	if err != nil {
-		t.Fatalf("man.cacheGet: %v", err)
-	}
-	if _, ok := cert.PrivateKey.(*rsa.PrivateKey); !ok {
-		t.Errorf("cert.PrivateKey is %T; want *rsa.PrivateKey", cert.PrivateKey)
-	}
-}
-
-func TestGetCertificate_nilPrompt(t *testing.T) {
-	man := &Manager{}
-	defer man.stopRenew()
-	url, finish := startACMEServerStub(t, man, "example.org")
-	defer finish()
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	man.Client = &acme.Client{
-		Key:          key,
-		DirectoryURL: url,
-	}
-	hello := &tls.ClientHelloInfo{ServerName: "example.org"}
-	if _, err := man.GetCertificate(hello); err == nil {
-		t.Error("got certificate for example.org; wanted error")
-	}
-}
-
-// startACMEServerStub runs an ACME server
-// The domain argument is the expected domain name of a certificate request.
-func startACMEServerStub(t *testing.T, man *Manager, domain string) (url string, finish func()) {
 	// echo token-02 | shasum -a 256
 	// then divide result in 2 parts separated by dot
 	tokenCertName := "4e8eb87631187e9ff2153b56b13a4dec.13a35d002e485d60ff37354b32f665d9.token.acme.invalid"
@@ -206,7 +137,7 @@ func startACMEServerStub(t *testing.T, man *Manager, domain string) (url string,
 		// discovery
 		case "/":
 			if err := discoTmpl.Execute(w, ca.URL); err != nil {
-				t.Errorf("discoTmpl: %v", err)
+				t.Fatalf("discoTmpl: %v", err)
 			}
 		// client key registration
 		case "/new-reg":
@@ -216,7 +147,7 @@ func startACMEServerStub(t *testing.T, man *Manager, domain string) (url string,
 			w.Header().Set("location", ca.URL+"/authz/1")
 			w.WriteHeader(http.StatusCreated)
 			if err := authzTmpl.Execute(w, ca.URL); err != nil {
-				t.Errorf("authzTmpl: %v", err)
+				t.Fatalf("authzTmpl: %v", err)
 			}
 		// accept tls-sni-02 challenge
 		case "/challenge/2":
@@ -234,14 +165,11 @@ func startACMEServerStub(t *testing.T, man *Manager, domain string) (url string,
 			b, _ := base64.RawURLEncoding.DecodeString(req.CSR)
 			csr, err := x509.ParseCertificateRequest(b)
 			if err != nil {
-				t.Errorf("new-cert: CSR: %v", err)
-			}
-			if csr.Subject.CommonName != domain {
-				t.Errorf("CommonName in CSR = %q; want %q", csr.Subject.CommonName, domain)
+				t.Fatalf("new-cert: CSR: %v", err)
 			}
 			der, err := dummyCert(csr.PublicKey, domain)
 			if err != nil {
-				t.Errorf("new-cert: dummyCert: %v", err)
+				t.Fatalf("new-cert: dummyCert: %v", err)
 			}
 			chainUp := fmt.Sprintf("<%s/ca-cert>; rel=up", ca.URL)
 			w.Header().Set("link", chainUp)
@@ -251,51 +179,14 @@ func startACMEServerStub(t *testing.T, man *Manager, domain string) (url string,
 		case "/ca-cert":
 			der, err := dummyCert(nil, "ca")
 			if err != nil {
-				t.Errorf("ca-cert: dummyCert: %v", err)
+				t.Fatalf("ca-cert: dummyCert: %v", err)
 			}
 			w.Write(der)
 		default:
 			t.Errorf("unrecognized r.URL.Path: %s", r.URL.Path)
 		}
 	}))
-	finish = func() {
-		ca.Close()
-
-		// make sure token cert was removed
-		cancel := make(chan struct{})
-		done := make(chan struct{})
-		go func() {
-			defer close(done)
-			tick := time.NewTicker(100 * time.Millisecond)
-			defer tick.Stop()
-			for {
-				hello := &tls.ClientHelloInfo{ServerName: tokenCertName}
-				if _, err := man.GetCertificate(hello); err != nil {
-					return
-				}
-				select {
-				case <-tick.C:
-				case <-cancel:
-					return
-				}
-			}
-		}()
-		select {
-		case <-done:
-		case <-time.After(5 * time.Second):
-			close(cancel)
-			t.Error("token cert was not removed")
-			<-done
-		}
-	}
-	return ca.URL, finish
-}
-
-// tests man.GetCertificate flow using the provided hello argument.
-// The domain argument is the expected domain name of a certificate request.
-func testGetCertificate(t *testing.T, man *Manager, domain string, hello *tls.ClientHelloInfo) {
-	url, finish := startACMEServerStub(t, man, domain)
-	defer finish()
+	defer ca.Close()
 
 	// use EC key to run faster on 386
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -304,13 +195,14 @@ func testGetCertificate(t *testing.T, man *Manager, domain string, hello *tls.Cl
 	}
 	man.Client = &acme.Client{
 		Key:          key,
-		DirectoryURL: url,
+		DirectoryURL: ca.URL,
 	}
 
 	// simulate tls.Config.GetCertificate
 	var tlscert *tls.Certificate
 	done := make(chan struct{})
 	go func() {
+		hello := &tls.ClientHelloInfo{ServerName: domain}
 		tlscert, err = man.GetCertificate(hello)
 		close(done)
 	}()
@@ -335,10 +227,28 @@ func testGetCertificate(t *testing.T, man *Manager, domain string, hello *tls.Cl
 		t.Errorf("cert.DNSNames = %v; want %q", cert.DNSNames, domain)
 	}
 
+	// make sure token cert was removed
+	done = make(chan struct{})
+	go func() {
+		for {
+			hello := &tls.ClientHelloInfo{ServerName: tokenCertName}
+			if _, err := man.GetCertificate(hello); err != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		close(done)
+	}()
+	select {
+	case <-time.After(5 * time.Second):
+		t.Error("token cert was not removed")
+	case <-done:
+	}
 }
 
 func TestAccountKeyCache(t *testing.T) {
-	m := Manager{Cache: newMemCache()}
+	cache := make(memCache)
+	m := Manager{Cache: cache}
 	ctx := context.Background()
 	k1, err := m.accountKey(ctx)
 	if err != nil {
@@ -372,13 +282,13 @@ func TestCache(t *testing.T) {
 		PrivateKey:  privKey,
 	}
 
-	man := &Manager{Cache: newMemCache()}
+	cache := make(memCache)
+	man := &Manager{Cache: cache}
 	defer man.stopRenew()
-	ctx := context.Background()
-	if err := man.cachePut(ctx, "example.org", tlscert); err != nil {
+	if err := man.cachePut("example.org", tlscert); err != nil {
 		t.Fatalf("man.cachePut: %v", err)
 	}
-	res, err := man.cacheGet(ctx, "example.org")
+	res, err := man.cacheGet("example.org")
 	if err != nil {
 		t.Fatalf("man.cacheGet: %v", err)
 	}

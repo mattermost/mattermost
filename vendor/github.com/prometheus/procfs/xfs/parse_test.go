@@ -14,6 +14,7 @@
 package xfs_test
 
 import (
+	"log"
 	"reflect"
 	"strings"
 	"testing"
@@ -415,7 +416,9 @@ func TestParseStats(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
+		t.Logf("[%02d] test %q", i, tt.name)
+
 		var (
 			stats *xfs.Stats
 			err   error
@@ -436,6 +439,7 @@ func TestParseStats(t *testing.T) {
 		}
 
 		if want, have := tt.stats, stats; !reflect.DeepEqual(want, have) {
+			log.Printf("stats: %#v", have)
 			t.Errorf("unexpected XFS stats:\nwant:\n%v\nhave:\n%v", want, have)
 		}
 	}

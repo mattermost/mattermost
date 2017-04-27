@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-func ExampleGenManTree() {
+func ExampleCommand_GenManTree() {
 	cmd := &cobra.Command{
 		Use:   "test",
 		Short: "my test program",
@@ -20,7 +20,7 @@ func ExampleGenManTree() {
 	doc.GenManTree(cmd, header, "/tmp")
 }
 
-func ExampleGenMan() {
+func ExampleCommand_GenMan() {
 	cmd := &cobra.Command{
 		Use:   "test",
 		Short: "my test program",

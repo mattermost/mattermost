@@ -5,12 +5,13 @@
 package autocert
 
 import (
-	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 // make sure DirCache satisfies Cache interface

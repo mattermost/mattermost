@@ -61,20 +61,6 @@ func (rr *ANY) pack(msg []byte, off int, compression map[string]int, compress bo
 	return off, nil
 }
 
-func (rr *AVC) pack(msg []byte, off int, compression map[string]int, compress bool) (int, error) {
-	off, err := rr.Hdr.pack(msg, off, compression, compress)
-	if err != nil {
-		return off, err
-	}
-	headerEnd := off
-	off, err = packStringTxt(rr.Txt, msg, off)
-	if err != nil {
-		return off, err
-	}
-	rr.Header().Rdlength = uint16(off - headerEnd)
-	return off, nil
-}
-
 func (rr *CAA) pack(msg []byte, off int, compression map[string]int, compress bool) (int, error) {
 	off, err := rr.Hdr.pack(msg, off, compression, compress)
 	if err != nil {
@@ -1539,23 +1525,6 @@ func unpackANY(h RR_Header, msg []byte, off int) (RR, int, error) {
 	rdStart := off
 	_ = rdStart
 
-	return rr, off, err
-}
-
-func unpackAVC(h RR_Header, msg []byte, off int) (RR, int, error) {
-	rr := new(AVC)
-	rr.Hdr = h
-	if noRdata(h) {
-		return rr, off, nil
-	}
-	var err error
-	rdStart := off
-	_ = rdStart
-
-	rr.Txt, off, err = unpackStringTxt(msg, off)
-	if err != nil {
-		return rr, off, err
-	}
 	return rr, off, err
 }
 
@@ -3498,7 +3467,6 @@ var typeToUnpack = map[uint16]func(RR_Header, []byte, int) (RR, int, error){
 	TypeAAAA:       unpackAAAA,
 	TypeAFSDB:      unpackAFSDB,
 	TypeANY:        unpackANY,
-	TypeAVC:        unpackAVC,
 	TypeCAA:        unpackCAA,
 	TypeCDNSKEY:    unpackCDNSKEY,
 	TypeCDS:        unpackCDS,

@@ -1807,18 +1807,6 @@ func setSPF(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	return rr, nil, c1
 }
 
-func setAVC(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
-	rr := new(AVC)
-	rr.Hdr = h
-
-	s, e, c1 := endingToTxtSlice(c, "bad AVC Txt", f)
-	if e != nil {
-		return nil, e, ""
-	}
-	rr.Txt = s
-	return rr, nil, c1
-}
-
 func setTXT(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	rr := new(TXT)
 	rr.Hdr = h
@@ -2170,7 +2158,6 @@ var typeToparserFunc = map[uint16]parserFunc{
 	TypeSMIMEA:     {setSMIMEA, true},
 	TypeSOA:        {setSOA, false},
 	TypeSPF:        {setSPF, true},
-	TypeAVC:        {setAVC, true},
 	TypeSRV:        {setSRV, false},
 	TypeSSHFP:      {setSSHFP, true},
 	TypeTALINK:     {setTALINK, false},

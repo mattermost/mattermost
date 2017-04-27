@@ -499,7 +499,4 @@ func TestDebug(t *testing.T) {
 	if debugHandshake {
 		t.Error("handshake debug switched on")
 	}
-	if debugTransport {
-		t.Error("transport debug switched on")
-	}
 }

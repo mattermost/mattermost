@@ -20,20 +20,12 @@ import (
 // addr. Incoming connections will be available by calling Accept on
 // the returned net.Listener. The listener must be serviced, or the
 // SSH connection may hang.
-// N must be "tcp", "tcp4", "tcp6", or "unix".
 func (c *Client) Listen(n, addr string) (net.Listener, error) {
-	switch n {
-	case "tcp", "tcp4", "tcp6":
-		laddr, err := net.ResolveTCPAddr(n, addr)
-		if err != nil {
-			return nil, err
-		}
-		return c.ListenTCP(laddr)
-	case "unix":
-		return c.ListenUnix(addr)
-	default:
-		return nil, fmt.Errorf("ssh: unsupported protocol: %s", n)
+	laddr, err := net.ResolveTCPAddr(n, addr)
+	if err != nil {
+		return nil, err
 	}
+	return c.ListenTCP(laddr)
 }
 
 // Automatic port allocation is broken with OpenSSH before 6.0. See
@@ -124,7 +116,7 @@ func (c *Client) ListenTCP(laddr *net.TCPAddr) (net.Listener, error) {
 	}
 
 	// Register this forward, using the port number we obtained.
-	ch := c.forwards.add(laddr)
+	ch := c.forwards.add(*laddr)
 
 	return &tcpListener{laddr, c, ch}, nil
 }
@@ -139,7 +131,7 @@ type forwardList struct {
 // forwardEntry represents an established mapping of a laddr on a
 // remote ssh server to a channel connected to a tcpListener.
 type forwardEntry struct {
-	laddr net.Addr
+	laddr net.TCPAddr
 	c     chan forward
 }
 
@@ -147,16 +139,16 @@ type forwardEntry struct {
 // arguments to add/remove/lookup should be address as specified in
 // the original forward-request.
 type forward struct {
-	newCh NewChannel // the ssh client channel underlying this forward
-	raddr net.Addr   // the raddr of the incoming connection
+	newCh NewChannel   // the ssh client channel underlying this forward
+	raddr *net.TCPAddr // the raddr of the incoming connection
 }
 
-func (l *forwardList) add(addr net.Addr) chan forward {
+func (l *forwardList) add(addr net.TCPAddr) chan forward {
 	l.Lock()
 	defer l.Unlock()
 	f := forwardEntry{
-		laddr: addr,
-		c:     make(chan forward, 1),
+		addr,
+		make(chan forward, 1),
 	}
 	l.entries = append(l.entries, f)
 	return f.c
@@ -184,69 +176,44 @@ func parseTCPAddr(addr string, port uint32) (*net.TCPAddr, error) {
 
 func (l *forwardList) handleChannels(in <-chan NewChannel) {
 	for ch := range in {
-		var (
-			laddr net.Addr
-			raddr net.Addr
-			err   error
-		)
-		switch channelType := ch.ChannelType(); channelType {
-		case "forwarded-tcpip":
-			var payload forwardedTCPPayload
-			if err = Unmarshal(ch.ExtraData(), &payload); err != nil {
-				ch.Reject(ConnectionFailed, "could not parse forwarded-tcpip payload: "+err.Error())
-				continue
-			}
-
-			// RFC 4254 section 7.2 specifies that incoming
-			// addresses should list the address, in string
-			// format. It is implied that this should be an IP
-			// address, as it would be impossible to connect to it
-			// otherwise.
-			laddr, err = parseTCPAddr(payload.Addr, payload.Port)
-			if err != nil {
-				ch.Reject(ConnectionFailed, err.Error())
-				continue
-			}
-			raddr, err = parseTCPAddr(payload.OriginAddr, payload.OriginPort)
-			if err != nil {
-				ch.Reject(ConnectionFailed, err.Error())
-				continue
-			}
-
-		case "forwarded-streamlocal@openssh.com":
-			var payload forwardedStreamLocalPayload
-			if err = Unmarshal(ch.ExtraData(), &payload); err != nil {
-				ch.Reject(ConnectionFailed, "could not parse forwarded-streamlocal@openssh.com payload: "+err.Error())
-				continue
-			}
-			laddr = &net.UnixAddr{
-				Name: payload.SocketPath,
-				Net:  "unix",
-			}
-			raddr = &net.UnixAddr{
-				Name: "@",
-				Net:  "unix",
-			}
-		default:
-			panic(fmt.Errorf("ssh: unknown channel type %s", channelType))
+		var payload forwardedTCPPayload
+		if err := Unmarshal(ch.ExtraData(), &payload); err != nil {
+			ch.Reject(ConnectionFailed, "could not parse forwarded-tcpip payload: "+err.Error())
+			continue
 		}
-		if ok := l.forward(laddr, raddr, ch); !ok {
+
+		// RFC 4254 section 7.2 specifies that incoming
+		// addresses should list the address, in string
+		// format. It is implied that this should be an IP
+		// address, as it would be impossible to connect to it
+		// otherwise.
+		laddr, err := parseTCPAddr(payload.Addr, payload.Port)
+		if err != nil {
+			ch.Reject(ConnectionFailed, err.Error())
+			continue
+		}
+		raddr, err := parseTCPAddr(payload.OriginAddr, payload.OriginPort)
+		if err != nil {
+			ch.Reject(ConnectionFailed, err.Error())
+			continue
+		}
+
+		if ok := l.forward(*laddr, *raddr, ch); !ok {
 			// Section 7.2, implementations MUST reject spurious incoming
 			// connections.
 			ch.Reject(Prohibited, "no forward for address")
 			continue
 		}
-
 	}
 }
 
 // remove removes the forward entry, and the channel feeding its
 // listener.
-func (l *forwardList) remove(addr net.Addr) {
+func (l *forwardList) remove(addr net.TCPAddr) {
 	l.Lock()
 	defer l.Unlock()
 	for i, f := range l.entries {
-		if addr.Network() == f.laddr.Network() && addr.String() == f.laddr.String() {
+		if addr.IP.Equal(f.laddr.IP) && addr.Port == f.laddr.Port {
 			l.entries = append(l.entries[:i], l.entries[i+1:]...)
 			close(f.c)
 			return
@@ -264,12 +231,12 @@ func (l *forwardList) closeAll() {
 	l.entries = nil
 }
 
-func (l *forwardList) forward(laddr, raddr net.Addr, ch NewChannel) bool {
+func (l *forwardList) forward(laddr, raddr net.TCPAddr, ch NewChannel) bool {
 	l.Lock()
 	defer l.Unlock()
 	for _, f := range l.entries {
-		if laddr.Network() == f.laddr.Network() && laddr.String() == f.laddr.String() {
-			f.c <- forward{newCh: ch, raddr: raddr}
+		if laddr.IP.Equal(f.laddr.IP) && laddr.Port == f.laddr.Port {
+			f.c <- forward{ch, &raddr}
 			return true
 		}
 	}
@@ -295,7 +262,7 @@ func (l *tcpListener) Accept() (net.Conn, error) {
 	}
 	go DiscardRequests(incoming)
 
-	return &chanConn{
+	return &tcpChanConn{
 		Channel: ch,
 		laddr:   l.laddr,
 		raddr:   s.raddr,
@@ -310,7 +277,7 @@ func (l *tcpListener) Close() error {
 	}
 
 	// this also closes the listener.
-	l.conn.forwards.remove(l.laddr)
+	l.conn.forwards.remove(*l.laddr)
 	ok, _, err := l.conn.SendRequest("cancel-tcpip-forward", true, Marshal(&m))
 	if err == nil && !ok {
 		err = errors.New("ssh: cancel-tcpip-forward failed")
@@ -326,52 +293,29 @@ func (l *tcpListener) Addr() net.Addr {
 // Dial initiates a connection to the addr from the remote host.
 // The resulting connection has a zero LocalAddr() and RemoteAddr().
 func (c *Client) Dial(n, addr string) (net.Conn, error) {
-	var ch Channel
-	switch n {
-	case "tcp", "tcp4", "tcp6":
-		// Parse the address into host and numeric port.
-		host, portString, err := net.SplitHostPort(addr)
-		if err != nil {
-			return nil, err
-		}
-		port, err := strconv.ParseUint(portString, 10, 16)
-		if err != nil {
-			return nil, err
-		}
-		ch, err = c.dial(net.IPv4zero.String(), 0, host, int(port))
-		if err != nil {
-			return nil, err
-		}
-		// Use a zero address for local and remote address.
-		zeroAddr := &net.TCPAddr{
-			IP:   net.IPv4zero,
-			Port: 0,
-		}
-		return &chanConn{
-			Channel: ch,
-			laddr:   zeroAddr,
-			raddr:   zeroAddr,
-		}, nil
-	case "unix":
-		var err error
-		ch, err = c.dialStreamLocal(addr)
-		if err != nil {
-			return nil, err
-		}
-		return &chanConn{
-			Channel: ch,
-			laddr: &net.UnixAddr{
-				Name: "@",
-				Net:  "unix",
-			},
-			raddr: &net.UnixAddr{
-				Name: addr,
-				Net:  "unix",
-			},
-		}, nil
-	default:
-		return nil, fmt.Errorf("ssh: unsupported protocol: %s", n)
+	// Parse the address into host and numeric port.
+	host, portString, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
 	}
+	port, err := strconv.ParseUint(portString, 10, 16)
+	if err != nil {
+		return nil, err
+	}
+	// Use a zero address for local and remote address.
+	zeroAddr := &net.TCPAddr{
+		IP:   net.IPv4zero,
+		Port: 0,
+	}
+	ch, err := c.dial(net.IPv4zero.String(), 0, host, int(port))
+	if err != nil {
+		return nil, err
+	}
+	return &tcpChanConn{
+		Channel: ch,
+		laddr:   zeroAddr,
+		raddr:   zeroAddr,
+	}, nil
 }
 
 // DialTCP connects to the remote address raddr on the network net,
@@ -388,7 +332,7 @@ func (c *Client) DialTCP(n string, laddr, raddr *net.TCPAddr) (net.Conn, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &chanConn{
+	return &tcpChanConn{
 		Channel: ch,
 		laddr:   laddr,
 		raddr:   raddr,
@@ -422,26 +366,26 @@ type tcpChan struct {
 	Channel // the backing channel
 }
 
-// chanConn fulfills the net.Conn interface without
+// tcpChanConn fulfills the net.Conn interface without
 // the tcpChan having to hold laddr or raddr directly.
-type chanConn struct {
+type tcpChanConn struct {
 	Channel
 	laddr, raddr net.Addr
 }
 
 // LocalAddr returns the local network address.
-func (t *chanConn) LocalAddr() net.Addr {
+func (t *tcpChanConn) LocalAddr() net.Addr {
 	return t.laddr
 }
 
 // RemoteAddr returns the remote network address.
-func (t *chanConn) RemoteAddr() net.Addr {
+func (t *tcpChanConn) RemoteAddr() net.Addr {
 	return t.raddr
 }
 
 // SetDeadline sets the read and write deadlines associated
 // with the connection.
-func (t *chanConn) SetDeadline(deadline time.Time) error {
+func (t *tcpChanConn) SetDeadline(deadline time.Time) error {
 	if err := t.SetReadDeadline(deadline); err != nil {
 		return err
 	}
@@ -452,14 +396,12 @@ func (t *chanConn) SetDeadline(deadline time.Time) error {
 // A zero value for t means Read will not time out.
 // After the deadline, the error from Read will implement net.Error
 // with Timeout() == true.
-func (t *chanConn) SetReadDeadline(deadline time.Time) error {
-	// for compatibility with previous version,
-	// the error message contains "tcpChan"
+func (t *tcpChanConn) SetReadDeadline(deadline time.Time) error {
 	return errors.New("ssh: tcpChan: deadline not supported")
 }
 
 // SetWriteDeadline exists to satisfy the net.Conn interface
 // but is not implemented by this type.  It always returns an error.
-func (t *chanConn) SetWriteDeadline(deadline time.Time) error {
+func (t *tcpChanConn) SetWriteDeadline(deadline time.Time) error {
 	return errors.New("ssh: tcpChan: deadline not supported")
 }

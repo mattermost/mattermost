@@ -5,14 +5,15 @@
 package autocert
 
 import (
-	"context"
 	"crypto"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
-// renewJitter is the maximum deviation from Manager.RenewBefore.
-const renewJitter = time.Hour
+// maxRandRenew is a maximum deviation from Manager.RenewBefore.
+const maxRandRenew = time.Hour
 
 // domainRenewal tracks the state used by the periodic timers
 // renewing a single domain's cert.
@@ -64,7 +65,7 @@ func (dr *domainRenewal) renew() {
 	// TODO: rotate dr.key at some point?
 	next, err := dr.do(ctx)
 	if err != nil {
-		next = renewJitter / 2
+		next = maxRandRenew / 2
 		next += time.Duration(pseudoRand.int63n(int64(next)))
 	}
 	dr.timer = time.AfterFunc(next, dr.renew)
@@ -82,9 +83,9 @@ func (dr *domainRenewal) renew() {
 func (dr *domainRenewal) do(ctx context.Context) (time.Duration, error) {
 	// a race is likely unavoidable in a distributed environment
 	// but we try nonetheless
-	if tlscert, err := dr.m.cacheGet(ctx, dr.domain); err == nil {
+	if tlscert, err := dr.m.cacheGet(dr.domain); err == nil {
 		next := dr.next(tlscert.Leaf.NotAfter)
-		if next > dr.m.renewBefore()+renewJitter {
+		if next > dr.m.renewBefore()+maxRandRenew {
 			return next, nil
 		}
 	}
@@ -102,7 +103,7 @@ func (dr *domainRenewal) do(ctx context.Context) (time.Duration, error) {
 	if err != nil {
 		return 0, err
 	}
-	dr.m.cachePut(ctx, dr.domain, tlscert)
+	dr.m.cachePut(dr.domain, tlscert)
 	dr.m.stateMu.Lock()
 	defer dr.m.stateMu.Unlock()
 	// m.state is guaranteed to be non-nil at this point
@@ -113,7 +114,7 @@ func (dr *domainRenewal) do(ctx context.Context) (time.Duration, error) {
 func (dr *domainRenewal) next(expiry time.Time) time.Duration {
 	d := expiry.Sub(timeNow()) - dr.m.renewBefore()
 	// add a bit of randomness to renew deadline
-	n := pseudoRand.int63n(int64(renewJitter))
+	n := pseudoRand.int63n(int64(maxRandRenew))
 	d -= time.Duration(n)
 	if d < 0 {
 		return 0

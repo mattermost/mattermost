@@ -2,14 +2,14 @@ package doc
 
 import (
 	"bytes"
-	"io/ioutil"
+	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/spf13/cobra"
 )
+
+var _ = fmt.Println
+var _ = os.Stderr
 
 func TestGenMdDoc(t *testing.T) {
 	c := initializeWithRootCmd()
@@ -85,23 +85,4 @@ func TestGenMdNoTag(t *testing.T) {
 	unexpected := "Auto generated"
 	checkStringOmits(t, found, unexpected)
 
-}
-
-func TestGenMdTree(t *testing.T) {
-	cmd := &cobra.Command{
-		Use: "do [OPTIONS] arg1 arg2",
-	}
-	tmpdir, err := ioutil.TempDir("", "test-gen-md-tree")
-	if err != nil {
-		t.Fatalf("Failed to create tmpdir: %s", err.Error())
-	}
-	defer os.RemoveAll(tmpdir)
-
-	if err := GenMarkdownTree(cmd, tmpdir); err != nil {
-		t.Fatalf("GenMarkdownTree failed: %s", err.Error())
-	}
-
-	if _, err := os.Stat(filepath.Join(tmpdir, "do.md")); err != nil {
-		t.Fatalf("Expected file 'do.md' to exist")
-	}
 }

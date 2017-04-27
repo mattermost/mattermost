@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -234,10 +235,15 @@ func TestConnExecDeadlock(t *testing.T) {
 	// calls Close on the net.Conn; equivalent to a network failure
 	l.Close()
 
-	defer time.AfterFunc(10*time.Second, func() {
-		panic("timed out")
-	}).Stop()
+	var done int32 = 0
+	go func() {
+		time.Sleep(10 * time.Second)
+		if atomic.LoadInt32(&done) != 1 {
+			panic("timed out")
+		}
+	}()
 	wg.Wait()
+	atomic.StoreInt32(&done, 1)
 }
 
 // Test for ListenerConn being closed while a slow query is executing
@@ -265,11 +271,15 @@ func TestListenerConnCloseWhileQueryIsExecuting(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	defer time.AfterFunc(10*time.Second, func() {
-		panic("timed out")
-	}).Stop()
+	var done int32 = 0
+	go func() {
+		time.Sleep(10 * time.Second)
+		if atomic.LoadInt32(&done) != 1 {
+			panic("timed out")
+		}
+	}()
 	wg.Wait()
+	atomic.StoreInt32(&done, 1)
 }
 
 func TestNotifyExtra(t *testing.T) {

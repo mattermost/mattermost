@@ -6,11 +6,12 @@
 package rate
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 // Limit defines the maximum frequency of some events.

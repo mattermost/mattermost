@@ -69,10 +69,10 @@ func (t *headerFieldTable) evictOldest(n int) {
 		f := t.ents[k]
 		id := t.evictCount + uint64(k) + 1
 		if t.byName[f.Name] == id {
-			delete(t.byName, f.Name)
+			t.byName[f.Name] = 0
 		}
 		if p := (pairNameValue{f.Name, f.Value}); t.byNameValue[p] == id {
-			delete(t.byNameValue, p)
+			t.byNameValue[p] = 0
 		}
 	}
 	copy(t.ents, t.ents[n:])

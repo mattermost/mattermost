@@ -2,14 +2,14 @@ package doc
 
 import (
 	"bytes"
-	"io/ioutil"
+	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/spf13/cobra"
 )
+
+var _ = fmt.Println
+var _ = os.Stderr
 
 func TestGenYamlDoc(t *testing.T) {
 	c := initializeWithRootCmd()
@@ -85,24 +85,4 @@ func TestGenYamlNoTag(t *testing.T) {
 	unexpected := "Auto generated"
 	checkStringOmits(t, found, unexpected)
 
-}
-
-func TestGenYamlTree(t *testing.T) {
-	cmd := &cobra.Command{
-		Use: "do [OPTIONS] arg1 arg2",
-	}
-
-	tmpdir, err := ioutil.TempDir("", "test-gen-yaml-tree")
-	if err != nil {
-		t.Fatalf("Failed to create tmpdir: %s", err.Error())
-	}
-	defer os.RemoveAll(tmpdir)
-
-	if err := GenYamlTree(cmd, tmpdir); err != nil {
-		t.Fatalf("GenYamlTree failed: %s", err.Error())
-	}
-
-	if _, err := os.Stat(filepath.Join(tmpdir, "do.yaml")); err != nil {
-		t.Fatalf("Expected file 'do.yaml' to exist")
-	}
 }

@@ -5,11 +5,12 @@
 package autocert
 
 import (
-	"context"
 	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/net/context"
 )
 
 // ErrCacheMiss is returned when a certificate is not found in cache.
@@ -26,7 +27,7 @@ type Cache interface {
 	Get(ctx context.Context, key string) ([]byte, error)
 
 	// Put stores the data in the cache under the specified key.
-	// Underlying implementations may use any data storage format,
+	// Inderlying implementations may use any data storage format,
 	// as long as the reverse operation, Get, results in the original data.
 	Put(ctx context.Context, key string, data []byte) error
 
@@ -77,13 +78,12 @@ func (d DirCache) Put(ctx context.Context, name string, data []byte) error {
 		if tmp, err = d.writeTempFile(name, data); err != nil {
 			return
 		}
-		select {
-		case <-ctx.Done():
-			// Don't overwrite the file if the context was canceled.
-		default:
-			newName := filepath.Join(string(d), name)
-			err = os.Rename(tmp, newName)
+		// prevent overwriting the file if the context was cancelled
+		if ctx.Err() != nil {
+			return // no need to set err
 		}
+		name = filepath.Join(string(d), name)
+		err = os.Rename(tmp, name)
 	}()
 	select {
 	case <-ctx.Done():

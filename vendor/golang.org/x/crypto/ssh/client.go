@@ -5,7 +5,6 @@
 package ssh
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"net"
@@ -14,7 +13,7 @@ import (
 )
 
 // Client implements a traditional SSH client that supports shells,
-// subprocesses, TCP port/streamlocal forwarding and tunneled dialing.
+// subprocesses, port forwarding and tunneled dialing.
 type Client struct {
 	Conn
 
@@ -41,7 +40,7 @@ func (c *Client) HandleChannelOpen(channelType string) <-chan NewChannel {
 		return nil
 	}
 
-	ch = make(chan NewChannel, chanSize)
+	ch = make(chan NewChannel, 16)
 	c.channelHandlers[channelType] = ch
 	return ch
 }
@@ -60,7 +59,6 @@ func NewClient(c Conn, chans <-chan NewChannel, reqs <-chan *Request) *Client {
 		conn.forwards.closeAll()
 	}()
 	go conn.forwards.handleChannels(conn.HandleChannelOpen("forwarded-tcpip"))
-	go conn.forwards.handleChannels(conn.HandleChannelOpen("forwarded-streamlocal@openssh.com"))
 	return conn
 }
 
@@ -70,11 +68,6 @@ func NewClient(c Conn, chans <-chan NewChannel, reqs <-chan *Request) *Client {
 func NewClientConn(c net.Conn, addr string, config *ClientConfig) (Conn, <-chan NewChannel, <-chan *Request, error) {
 	fullConf := *config
 	fullConf.SetDefaults()
-	if fullConf.HostKeyCallback == nil {
-		c.Close()
-		return nil, nil, nil, errors.New("ssh: must specify HostKeyCallback")
-	}
-
 	conn := &connection{
 		sshConn: sshConn{conn: c},
 	}
@@ -104,11 +97,13 @@ func (c *connection) clientHandshake(dialAddress string, config *ClientConfig) e
 	c.transport = newClientTransport(
 		newTransport(c.sshConn.conn, config.Rand, true /* is client */),
 		c.clientVersion, c.serverVersion, config, dialAddress, c.sshConn.RemoteAddr())
-	if err := c.transport.waitSession(); err != nil {
+	if err := c.transport.requestInitialKeyChange(); err != nil {
 		return err
 	}
 
+	// We just did the key change, so the session ID is established.
 	c.sessionID = c.transport.getSessionID()
+
 	return c.clientAuthenticate(config)
 }
 
@@ -180,13 +175,6 @@ func Dial(network, addr string, config *ClientConfig) (*Client, error) {
 	return NewClient(c, chans, reqs), nil
 }
 
-// HostKeyCallback is the function type used for verifying server
-// keys.  A HostKeyCallback must return nil if the host key is OK, or
-// an error to reject it. It receives the hostname as passed to Dial
-// or NewClientConn. The remote address is the RemoteAddr of the
-// net.Conn underlying the the SSH connection.
-type HostKeyCallback func(hostname string, remote net.Addr, key PublicKey) error
-
 // A ClientConfig structure is used to configure a Client. It must not be
 // modified after having been passed to an SSH function.
 type ClientConfig struct {
@@ -202,12 +190,10 @@ type ClientConfig struct {
 	// be used during authentication.
 	Auth []AuthMethod
 
-	// HostKeyCallback is called during the cryptographic
-	// handshake to validate the server's host key. The client
-	// configuration must supply this callback for the connection
-	// to succeed. The functions InsecureIgnoreHostKey or
-	// FixedHostKey can be used for simplistic host key checks.
-	HostKeyCallback HostKeyCallback
+	// HostKeyCallback, if not nil, is called during the cryptographic
+	// handshake to validate the server's host key. A nil HostKeyCallback
+	// implies that all host keys are accepted.
+	HostKeyCallback func(hostname string, remote net.Addr, key PublicKey) error
 
 	// ClientVersion contains the version identification string that will
 	// be used for the connection. If empty, a reasonable default is used.
@@ -224,34 +210,4 @@ type ClientConfig struct {
 	//
 	// A Timeout of zero means no timeout.
 	Timeout time.Duration
-}
-
-// InsecureIgnoreHostKey returns a function that can be used for
-// ClientConfig.HostKeyCallback to accept any host key. It should
-// not be used for production code.
-func InsecureIgnoreHostKey() HostKeyCallback {
-	return func(hostname string, remote net.Addr, key PublicKey) error {
-		return nil
-	}
-}
-
-type fixedHostKey struct {
-	key PublicKey
-}
-
-func (f *fixedHostKey) check(hostname string, remote net.Addr, key PublicKey) error {
-	if f.key == nil {
-		return fmt.Errorf("ssh: required host key was nil")
-	}
-	if !bytes.Equal(key.Marshal(), f.key.Marshal()) {
-		return fmt.Errorf("ssh: host key mismatch")
-	}
-	return nil
-}
-
-// FixedHostKey returns a function for use in
-// ClientConfig.HostKeyCallback to accept only a specific host key.
-func FixedHostKey(key PublicKey) HostKeyCallback {
-	hk := &fixedHostKey{key}
-	return hk.check
 }

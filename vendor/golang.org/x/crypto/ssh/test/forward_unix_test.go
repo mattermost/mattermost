@@ -16,17 +16,13 @@ import (
 	"time"
 )
 
-type closeWriter interface {
-	CloseWrite() error
-}
-
-func testPortForward(t *testing.T, n, listenAddr string) {
+func TestPortForward(t *testing.T) {
 	server := newServer(t)
 	defer server.Shutdown()
 	conn := server.Dial(clientConfig())
 	defer conn.Close()
 
-	sshListener, err := conn.Listen(n, listenAddr)
+	sshListener, err := conn.Listen("tcp", "localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,14 +41,14 @@ func testPortForward(t *testing.T, n, listenAddr string) {
 	}()
 
 	forwardedAddr := sshListener.Addr().String()
-	netConn, err := net.Dial(n, forwardedAddr)
+	tcpConn, err := net.Dial("tcp", forwardedAddr)
 	if err != nil {
-		t.Fatalf("net dial failed: %v", err)
+		t.Fatalf("TCP dial failed: %v", err)
 	}
 
 	readChan := make(chan []byte)
 	go func() {
-		data, _ := ioutil.ReadAll(netConn)
+		data, _ := ioutil.ReadAll(tcpConn)
 		readChan <- data
 	}()
 
@@ -66,14 +62,14 @@ func testPortForward(t *testing.T, n, listenAddr string) {
 	for len(sent) < 1000*1000 {
 		// Send random sized chunks
 		m := rand.Intn(len(data))
-		n, err := netConn.Write(data[:m])
+		n, err := tcpConn.Write(data[:m])
 		if err != nil {
 			break
 		}
 		sent = append(sent, data[:n]...)
 	}
-	if err := netConn.(closeWriter).CloseWrite(); err != nil {
-		t.Errorf("netConn.CloseWrite: %v", err)
+	if err := tcpConn.(*net.TCPConn).CloseWrite(); err != nil {
+		t.Errorf("tcpConn.CloseWrite: %v", err)
 	}
 
 	read := <-readChan
@@ -90,29 +86,19 @@ func testPortForward(t *testing.T, n, listenAddr string) {
 	}
 
 	// Check that the forward disappeared.
-	netConn, err = net.Dial(n, forwardedAddr)
+	tcpConn, err = net.Dial("tcp", forwardedAddr)
 	if err == nil {
-		netConn.Close()
+		tcpConn.Close()
 		t.Errorf("still listening to %s after closing", forwardedAddr)
 	}
 }
 
-func TestPortForwardTCP(t *testing.T) {
-	testPortForward(t, "tcp", "localhost:0")
-}
-
-func TestPortForwardUnix(t *testing.T) {
-	addr, cleanup := newTempSocket(t)
-	defer cleanup()
-	testPortForward(t, "unix", addr)
-}
-
-func testAcceptClose(t *testing.T, n, listenAddr string) {
+func TestAcceptClose(t *testing.T) {
 	server := newServer(t)
 	defer server.Shutdown()
 	conn := server.Dial(clientConfig())
 
-	sshListener, err := conn.Listen(n, listenAddr)
+	sshListener, err := conn.Listen("tcp", "localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,23 +124,13 @@ func testAcceptClose(t *testing.T, n, listenAddr string) {
 	}
 }
 
-func TestAcceptCloseTCP(t *testing.T) {
-	testAcceptClose(t, "tcp", "localhost:0")
-}
-
-func TestAcceptCloseUnix(t *testing.T) {
-	addr, cleanup := newTempSocket(t)
-	defer cleanup()
-	testAcceptClose(t, "unix", addr)
-}
-
 // Check that listeners exit if the underlying client transport dies.
-func testPortForwardConnectionClose(t *testing.T, n, listenAddr string) {
+func TestPortForwardConnectionClose(t *testing.T) {
 	server := newServer(t)
 	defer server.Shutdown()
 	conn := server.Dial(clientConfig())
 
-	sshListener, err := conn.Listen(n, listenAddr)
+	sshListener, err := conn.Listen("tcp", "localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,14 +157,4 @@ func testPortForwardConnectionClose(t *testing.T, n, listenAddr string) {
 	case err := <-quit:
 		t.Logf("quit as expected (error %v)", err)
 	}
-}
-
-func TestPortForwardConnectionCloseTCP(t *testing.T) {
-	testPortForwardConnectionClose(t, "tcp", "localhost:0")
-}
-
-func TestPortForwardConnectionCloseUnix(t *testing.T) {
-	addr, cleanup := newTempSocket(t)
-	defer cleanup()
-	testPortForwardConnectionClose(t, "unix", addr)
 }
