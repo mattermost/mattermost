@@ -91,6 +91,14 @@ export default class Logs extends React.Component {
                         defaultMessage='Server Logs'
                     />
                 </h3>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedMessage
+                            id='admin.logs.bannerDesc'
+                            defaultMessage='To look up users by User ID, go to Reporting > Users and paste the ID into the search filter.'
+                        />
+                    </div>
+                </div>
                 <button
                     type='submit'
                     className='btn btn-primary'
