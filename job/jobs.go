@@ -7,28 +7,39 @@ import (
 	"sync"
 
 	l4g "github.com/alecthomas/log4go"
+	ejobs "github.com/mattermost/platform/einterfaces/jobs"
+	"github.com/mattermost/platform/job/testjob"
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 )
 
 type Jobs struct {
 	startOnce sync.Once
 
-	DataRetention  Job
-	SearchIndexing Job
+	DataRetention  model.Job
+	SearchIndexing model.Job
 }
 
 func InitJobs(s store.Store) *Jobs {
-	return &Jobs{
-		DataRetention:  MakeTestJob(s, "DataRetention"),
-		SearchIndexing: MakeTestJob(s, "SearchIndexing"),
+	jobs := &Jobs{
+		SearchIndexing: testjob.MakeTestJob(s, "SearchIndexing"),
 	}
+
+	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
+		jobs.DataRetention = dataRetentionInterface.MakeJob(s)
+	}
+
+	return jobs
 }
 
 func (jobs *Jobs) StartAll() *Jobs {
 	l4g.Info("Starting jobs")
 
 	jobs.startOnce.Do(func() {
-		go jobs.DataRetention.Run()
+		if jobs.DataRetention != nil {
+			go jobs.DataRetention.Run()
+		}
+
 		go jobs.SearchIndexing.Run()
 	})
 
@@ -38,7 +49,9 @@ func (jobs *Jobs) StartAll() *Jobs {
 func (jobs *Jobs) StopAll() *Jobs {
 	l4g.Info("Stopping jobs")
 
-	jobs.DataRetention.Stop()
+	if jobs.DataRetention != nil {
+		jobs.DataRetention.Stop()
+	}
 	jobs.SearchIndexing.Stop()
 
 	l4g.Info("Stopped jobs")
