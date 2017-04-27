@@ -252,7 +252,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     getChannels() {
-        return Object.values(Selectors.getMyChannels(store.getState()));
+        return Selectors.getMyChannels(store.getState());
     }
 
     getChannelById(id) {

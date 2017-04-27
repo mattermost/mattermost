@@ -35,6 +35,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {viewChannel, getChannelAndMyMember, getChannelStats} from 'mattermost-redux/actions/channels';
+import {ChannelTypes} from 'mattermost-redux/action_types';
 
 const MAX_WEBSOCKET_FAILS = 7;
 
@@ -360,6 +361,7 @@ function handleChannelDeletedEvent(msg) {
         const teamUrl = TeamStore.getCurrentTeamRelativeUrl();
         browserHistory.push(teamUrl + '/channels/' + Constants.DEFAULT_CHANNEL);
     }
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id}}, getState);
     loadChannelsForCurrentUser();
 }
 

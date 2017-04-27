@@ -490,7 +490,11 @@ func AddChannelMember(userId string, channel *model.Channel, userRequestorId str
 		return nil, err
 	}
 
-	go PostAddToChannelMessage(userRequestor, user, channel)
+	if userId == userRequestorId {
+		postJoinChannelMessage(user, channel)
+	} else {
+		go PostAddToChannelMessage(userRequestor, user, channel)
+	}
 
 	UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
 
@@ -961,7 +965,11 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 		return err
 	}
 
-	go PostRemoveFromChannelMessage(removerUserId, user, channel)
+	if userIdToRemove == removerUserId {
+		postLeaveChannelMessage(user, channel)
+	} else {
+		go PostRemoveFromChannelMessage(removerUserId, user, channel)
+	}
 
 	return nil
 }
