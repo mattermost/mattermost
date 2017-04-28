@@ -36,6 +36,7 @@ const (
 	USER_AUTH_DATA_MAX_LENGTH = 128
 	USER_NAME_MAX_LENGTH      = 64
 	USER_NAME_MIN_LENGTH      = 1
+	USER_PASSWORD_MAX_LENGTH  = 72
 )
 
 type User struct {
@@ -130,7 +131,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
-	if len(u.Password) > 72 {
+	if len(u.Password) > USER_PASSWORD_MAX_LENGTH {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
