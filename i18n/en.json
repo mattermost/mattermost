@@ -3096,6 +3096,14 @@
     "translation": "User AuthData is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_service_length.error",
     "translation": "User AuthService should not be empty if it is provided."
   },

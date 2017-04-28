@@ -1013,6 +1013,29 @@ func TestImportImportUser(t *testing.T) {
 		}
 	}
 
+	// Check Password and AuthData together.
+	data.Password = ptrStr("PasswordTest")
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed to import invalid user.")
+	}
+
+	data.AuthData = nil
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded to update valid user %v", err)
+	}
+
+	data.Password = ptrStr("")
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed to import invalid user.")
+	}
+
+	data.Password = ptrStr(strings.Repeat("0123456789", 10))
+	if err := ImportUser(&data, false); err == nil {
+		t.Fatalf("Should have failed to import invalid user.")
+	}
+
+	data.Password = ptrStr("TestPassword")
+
 	// Test team and channel memberships
 	teamName := model.NewId()
 	ImportTeam(&TeamImportData{
