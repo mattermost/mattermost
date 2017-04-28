@@ -227,14 +227,14 @@ func (c *Context) LogError(err *model.AppError) {
 	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 || err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
-		l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
-	l4g.Debug(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+	l4g.Debug(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 }
 
 func (c *Context) IsSystemAdmin() bool {
