@@ -152,6 +152,11 @@ export default class Sidebar extends React.Component {
 
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+        $('.sidebar--left').dragster({
+            drop(event, e) {
+                e.preventDefault();
+            }
+        });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -798,6 +803,7 @@ export default class Sidebar extends React.Component {
                 className='sidebar--left'
                 id='sidebar-left'
                 key='sidebar-left'
+
             >
                 <NewChannelFlow
                     show={showChannelModal}

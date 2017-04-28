@@ -143,7 +143,7 @@ class FileUpload extends React.Component {
 
     componentDidMount() {
         if (this.props.postType === 'post') {
-            this.registerDragEvents('.row.main', '.center-file-overlay');
+            this.registerDragEvents('.main-content', '.center-file-overlay');
         } else if (this.props.postType === 'comment') {
             this.registerDragEvents('.post-right__container', '.right-file-overlay');
         }

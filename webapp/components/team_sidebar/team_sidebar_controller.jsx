@@ -71,6 +71,12 @@ export default class TeamSidebar extends React.Component {
                 $('.team-wrapper').perfectScrollbar('update');
             }
         }
+
+        $('.team-sidebar').dragster({
+            drop(event, e) {
+                e.preventDefault();
+            }
+        });
     }
 
     onChange() {

@@ -6,7 +6,6 @@ import React from 'react';
 
 import * as UserAgent from 'utils/user_agent.jsx';
 import ChannelHeader from 'components/channel_header.jsx';
-import FileUploadOverlay from 'components/file_upload_overlay.jsx';
 import CreatePost from 'components/create_post.jsx';
 import PostViewCache from 'components/post_view/post_view_cache.jsx';
 
@@ -72,7 +71,6 @@ export default class ChannelView extends React.Component {
                 id='app-content'
                 className='app__content'
             >
-                <FileUploadOverlay overlayType='center'/>
                 <ChannelHeader
                     channelId={this.state.channelId}
                 />

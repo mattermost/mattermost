@@ -26,6 +26,7 @@ import ErrorBar from 'components/error_bar.jsx';
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
+import FileUploadOverlay from 'components/file_upload_overlay.jsx';
 import WebrtcSidebar from './webrtc/components/webrtc_sidebar.jsx';
 
 import WebrtcNotification from './webrtc/components/webrtc_notification.jsx';
@@ -157,23 +158,24 @@ export default class NeedsTeam extends React.Component {
             );
             content.push(this.props.team_sidebar);
             content.push(
-                this.props.sidebar
-            );
-            content.push(
-                <div
-                    key='inner-wrap'
-                    className='inner-wrap channel__wrap'
-                >
-                    <div className='row header'>
-                        <div id='navbar'>
-                            <Navbar/>
+                <div className='main-content'>
+                    <FileUploadOverlay overlayType='center'/>
+                    {this.props.sidebar}
+                    <div
+                        key='inner-wrap'
+                        className='inner-wrap channel__wrap'
+                    >
+                        <div className='row header'>
+                            <div id='navbar'>
+                                <Navbar/>
+                            </div>
                         </div>
-                    </div>
-                    <div className='row main'>
-                        {React.cloneElement(this.props.center, {
-                            user: this.props.user,
-                            team: this.state.team
-                        })}
+                        <div className='row main'>
+                            {React.cloneElement(this.props.center, {
+                                user: this.props.user,
+                                team: this.state.team
+                            })}
+                        </div>
                     </div>
                 </div>
             );

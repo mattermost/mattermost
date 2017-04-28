@@ -48,6 +48,9 @@ body {
     @include legacy-pie-clearfix;
     height: 100%;
     position: relative;
+    > .main-content {
+        height: 100%;
+    }
 }
 
 .channel-view {
