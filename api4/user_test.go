@@ -507,6 +507,12 @@ func TestAutocompleteUsers(t *testing.T) {
 		t.Fatal("should have many users")
 	}
 
+	rusers, resp = Client.AutocompleteUsersInChannel("", channelId, "", "")
+	CheckNoError(t, resp)
+	if len(rusers.Users) < 2 {
+		t.Fatal("should have many users")
+	}
+
 	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
 	CheckNoError(t, resp)
 

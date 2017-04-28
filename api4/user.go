@@ -468,25 +468,23 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 	}
 
-	if len(teamId) > 0 {
-		if len(channelId) > 0 {
-			if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
-				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-				return
-			}
-
-			result, _ := app.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
-			autocomplete.Users = result.InChannel
-			autocomplete.OutOfChannel = result.OutOfChannel
-		} else {
-			if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
-				c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-				return
-			}
-
-			result, _ := app.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
-			autocomplete.Users = result.InTeam
+	if len(channelId) > 0 {
+		if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
 		}
+
+		result, _ := app.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+		autocomplete.Users = result.InChannel
+		autocomplete.OutOfChannel = result.OutOfChannel
+	} else if len(teamId) > 0 {
+		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		result, _ := app.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+		autocomplete.Users = result.InTeam
 	} else {
 		// No permission check required
 		result, _ := app.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
