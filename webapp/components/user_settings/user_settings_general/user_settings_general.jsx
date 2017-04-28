@@ -113,7 +113,6 @@ class UserSettingsGeneralTab extends React.Component {
         this.updatePicture = this.updatePicture.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updatePosition = this.updatePosition.bind(this);
-        this.updatedCroppedPicture = this.updatedCroppedPicture.bind(this);
 
         this.state = this.setupInitialState(props);
     }
@@ -241,7 +240,7 @@ class UserSettingsGeneralTab extends React.Component {
     submitPicture(e) {
         e.preventDefault();
 
-        if (!this.state.picture) {
+        if (!this.state.pictureFile) {
             return;
         }
 
@@ -252,12 +251,12 @@ class UserSettingsGeneralTab extends React.Component {
         trackEvent('settings', 'user_settings_update', {field: 'picture'});
 
         const {formatMessage} = this.props.intl;
-        const picture = this.state.picture;
+        const file = this.state.pictureFile;
 
-        if (picture.type !== 'image/jpeg' && picture.type !== 'image/png') {
+        if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
             this.setState({clientError: formatMessage(holders.validImage)});
             return;
-        } else if (picture.size > this.state.maxFileSize) {
+        } else if (file.size > this.state.maxFileSize) {
             this.setState({clientError: formatMessage(holders.imageTooLarge)});
             return;
         }
@@ -265,7 +264,7 @@ class UserSettingsGeneralTab extends React.Component {
         this.setState({loadingPicture: true});
 
         uploadProfileImage(
-            picture,
+            file,
             () => {
                 this.updateSection('');
                 this.submitActive = false;
@@ -324,25 +323,14 @@ class UserSettingsGeneralTab extends React.Component {
         this.setState({confirmEmail: e.target.value});
     }
 
-    updatedCroppedPicture(file) {
-        if (file) {
-            this.setState({picture: file});
-
-            this.submitActive = true;
-            this.setState({clientError: null});
-        } else {
-            this.setState({picture: null});
-        }
-    }
-
     updatePicture(e) {
         if (e.target.files && e.target.files[0]) {
-            this.setState({picture: e.target.files[0]});
+            this.setState({pictureFile: e.target.files[0]});
 
             this.submitActive = true;
             this.setState({clientError: null});
         } else {
-            this.setState({picture: null});
+            this.setState({pictureFile: null});
         }
     }
 
@@ -368,7 +356,7 @@ class UserSettingsGeneralTab extends React.Component {
             originalEmail: user.email,
             email: '',
             confirmEmail: '',
-            picture: null,
+            pictureFile: null,
             loadingPicture: false,
             emailChangeInProgress: false,
             maxFileSize: global.window.mm_config.MaxFileSize
@@ -1130,11 +1118,10 @@ class UserSettingsGeneralTab extends React.Component {
                         this.updateSection('');
                         e.preventDefault();
                     }}
-                    picture={this.state.picture}
-                    pictureChange={this.updatePicture}
+                    file={this.state.pictureFile}
+                    onFileChange={this.updatePicture}
                     submitActive={this.submitActive}
                     loadingPicture={this.state.loadingPicture}
-                    imageCropChange={this.updatedCroppedPicture}
                 />
             );
         } else {

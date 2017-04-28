@@ -12,7 +12,10 @@ export default class SettingPicture extends React.Component {
         super(props);
 
         this.setPicture = this.setPicture.bind(this);
-        this.confirmImage = this.confirmImage.bind(this);
+
+        this.state = {
+            image: null
+        };
     }
 
     setPicture(file) {
@@ -20,34 +23,19 @@ export default class SettingPicture extends React.Component {
             var reader = new FileReader();
 
             reader.onload = (e) => {
-                const canvas = this.refs.profileImageCanvas;
-                const context = canvas.getContext('2d');
-                const imageObj = new Image();
-
-                imageObj.onload = () => {
-                    if (imageObj.width > imageObj.height) {
-                        const side = imageObj.height;
-                        const rem = imageObj.width - side;
-                        const startX = parseInt(rem / 2, 10);
-                        context.drawImage(imageObj, startX, 0, side, side,
-                            0, 0, canvas.width, canvas.height);
-                    } else {
-                        const side = imageObj.width;
-                        const rem = imageObj.height - side;
-                        const startY = parseInt(rem / 2, 10);
-                        context.drawImage(imageObj, 0, startY, side, side,
-                            0, 0, canvas.width, canvas.height);
-                    }
-                };
-                imageObj.src = e.target.result;
+                this.setState({
+                    image: e.target.result
+                });
             };
             reader.readAsDataURL(file);
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.picture) {
-            this.setPicture(nextProps.picture);
+        if (nextProps.file !== this.props.file) {
+            this.setState({image: null});
+
+            this.setPicture(nextProps.file);
         }
     }
 
@@ -61,14 +49,12 @@ export default class SettingPicture extends React.Component {
             serverError = <div className='form-group has-error'><label className='control-label'>{this.props.server_error}</label></div>;
         }
 
-        var img = null;
-        if (this.props.picture) {
+        let img;
+        if (this.props.file) {
             img = (
-                <canvas
-                    ref='profileImageCanvas'
-                    className='profile-img'
-                    width='256px'
-                    height='256px'
+                <div
+                    className='profile-img-preview'
+                    style={{backgroundImage: 'url(' + this.state.image + ')'}}
                 />
             );
         } else {
@@ -100,7 +86,7 @@ export default class SettingPicture extends React.Component {
             confirmButton = (
                 <a
                     className={confirmButtonClass}
-                    onClick={this.confirmImage}
+                    onClick={this.props.submit}
                 >
                     <FormattedMessage
                         id='setting_picture.save'
@@ -144,7 +130,7 @@ export default class SettingPicture extends React.Component {
                                     ref='input'
                                     accept='.jpg,.png,.bmp'
                                     type='file'
-                                    onChange={this.props.pictureChange}
+                                    onChange={this.props.onFileChange}
                                 />
                             </span>
                             {confirmButton}
@@ -164,27 +150,16 @@ export default class SettingPicture extends React.Component {
             </ul>
         );
     }
-
-    confirmImage(e) {
-        e.persist();
-        this.refs.profileImageCanvas.toBlob((blob) => {
-            blob.lastModifiedDate = new Date();
-            blob.name = 'image.jpg';
-            this.props.imageCropChange(blob);
-            this.props.submit(e);
-        }, 'image/jpeg', 0.95);
-    }
 }
 
 SettingPicture.propTypes = {
     client_error: React.PropTypes.string,
     server_error: React.PropTypes.string,
     src: React.PropTypes.string,
-    picture: React.PropTypes.object,
+    file: React.PropTypes.object,
     loadingPicture: React.PropTypes.bool,
     submitActive: React.PropTypes.bool,
     submit: React.PropTypes.func,
     title: React.PropTypes.string,
-    pictureChange: React.PropTypes.func,
-    imageCropChange: React.PropTypes.func
+    onFileChange: React.PropTypes.func
 };
