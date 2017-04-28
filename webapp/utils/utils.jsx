@@ -15,7 +15,6 @@ import * as UserAgent from 'utils/user_agent.jsx';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
-import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 
 import icon50 from 'images/icon50x50.png';
 import bing from 'images/bing.mp3';
@@ -1348,40 +1347,4 @@ export function isEmptyObject(object) {
 
 export function updateWindowDimensions(component) {
     component.setState({width: window.innerWidth, height: window.innerHeight});
-}
-
-export function postMessageHtmlToComponent(html, AtMentionComponent, usernameMap) {
-    const parser = new Parser();
-    const attrib = 'data-mention';
-    const processNodeDefinitions = new ProcessNodeDefinitions(React);
-
-    function isValidNode() {
-        return true;
-    }
-
-    const processingInstructions = [
-        {
-            replaceChildren: true,
-            shouldProcessNode: (node) => node.attribs && node.attribs[attrib] && usernameMap.hasOwnProperty(node.attribs[attrib]),
-            processNode: (node) => {
-                const username = node.attribs[attrib];
-                return atMentionComponent(AtMentionComponent, usernameMap[username], username);
-            }
-        },
-        {
-            shouldProcessNode: () => true,
-            processNode: processNodeDefinitions.processDefaultNode
-        }
-    ];
-
-    return parser.parseWithInstructions(html, isValidNode, processingInstructions);
-}
-
-function atMentionComponent(AtMentionComponent, user, username) {
-    return (
-        <AtMentionComponent
-            user={user}
-            username={username}
-        />
-    );
 }

@@ -50,21 +50,6 @@ describe('TextFormatting.AtMentions', function() {
         );
     });
 
-    it('Implied at mentions', function() {
-        // implied at mention is presented as is and non-clickable
-        assert.equal(
-            TextFormatting.autolinkAtMentions('@user', new Map(), {}),
-            '@user',
-            'should imply user exists and replace mention with token'
-        );
-
-        assert.equal(
-            TextFormatting.autolinkAtMentions('@user.', new Map(), {}),
-            '@user.',
-            'should assume username doesn\'t end in punctuation'
-        );
-    });
-
     it('Not at mentions', function() {
         assert.equal(
             TextFormatting.autolinkAtMentions('user@host', new Map(), {user: {}, host: {}}),
@@ -74,6 +59,29 @@ describe('TextFormatting.AtMentions', function() {
         assert.equal(
             TextFormatting.autolinkAtMentions('user@email.com', new Map(), {user: {}, email: {}}),
             'user@email.com'
+        );
+
+        assert.equal(
+            TextFormatting.autolinkAtMentions('@user', new Map(), {}),
+            '@user'
+        );
+
+        assert.equal(
+            TextFormatting.autolinkAtMentions('@user.', new Map(), {}),
+            '@user.',
+            'should assume username doesn\'t end in punctuation'
+        );
+
+        assert.equal(
+            TextFormatting.autolinkAtMentions('@will', new Map(), {william: {}}),
+            '@will',
+            'should return same text without token'
+        );
+
+        assert.equal(
+            TextFormatting.autolinkAtMentions('@william', new Map(), {will: {}}),
+            '@william',
+            'should return same text without token'
         );
     });
 });

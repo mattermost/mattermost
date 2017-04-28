@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 
 import AtMentionProfile from 'components/profile_popover/atmention_profile_popover.jsx';
 
@@ -90,6 +91,38 @@ export default class PostMessageView extends React.Component {
         );
     }
 
+    postMessageHtmlToComponent(html) {
+        const parser = new Parser();
+        const attrib = 'data-mention';
+        const processNodeDefinitions = new ProcessNodeDefinitions(React);
+
+        function isValidNode() {
+            return true;
+        }
+
+        const processingInstructions = [
+            {
+                replaceChildren: true,
+                shouldProcessNode: (node) => node.attribs && node.attribs[attrib] && this.props.usernameMap.hasOwnProperty(node.attribs[attrib]),
+                processNode: (node) => {
+                    const username = node.attribs[attrib];
+                    return (
+                        <AtMentionProfile
+                            user={this.props.usernameMap[username]}
+                            username={username}
+                        />
+                    );
+                }
+            },
+            {
+                shouldProcessNode: () => true,
+                processNode: processNodeDefinitions.processDefaultNode
+            }
+        ];
+
+        return parser.parseWithInstructions(html, isValidNode, processingInstructions);
+    }
+
     render() {
         if (this.props.post.state === Constants.POST_DELETED) {
             return this.renderDeletedPost();
@@ -114,7 +147,7 @@ export default class PostMessageView extends React.Component {
         }
 
         const htmlFormattedText = TextFormatting.formatText(this.props.post.message, options);
-        const postMessageComponent = Utils.postMessageHtmlToComponent(htmlFormattedText, AtMentionProfile, this.props.usernameMap);
+        const postMessageComponent = this.postMessageHtmlToComponent(htmlFormattedText);
 
         return (
             <div>

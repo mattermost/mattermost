@@ -266,16 +266,12 @@ export default class ProfilePopover extends React.Component {
     }
 
     render() {
-        const popoverProps = Object.assign({}, this.props);
-        delete popoverProps.user;
-        delete popoverProps.src;
-        delete popoverProps.status;
-        delete popoverProps.isBusy;
-        delete popoverProps.hide;
-
         return (
             <Popover
-                {...popoverProps}
+                arrowOffsetLeft={this.props.arrowOffsetLeft}
+                arrowOffsetTop={this.props.arrowOffsetTop}
+                positionLeft={this.props.positionLeft}
+                positionTop={this.props.positionTop}
                 title={'@' + this.props.user.username}
                 id='user-profile-popover'
             >
