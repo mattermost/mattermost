@@ -1,6 +1,11 @@
 @charset 'UTF-8';
 
 .modal {
+    .modal-content {
+        @include box-shadow(0 0 10px rgba($black, .5));
+        border-radius: $border-rad;
+    }
+
     .about-modal {
         .modal-content {
             .modal-header {
@@ -27,7 +32,7 @@
         }
 
         .modal-body {
-            padding: 20px 25px 5px;
+            padding: 20px 25px 10px;
         }
 
         &.large {
