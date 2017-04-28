@@ -44,7 +44,7 @@ export default class MemberListTeam extends React.Component {
         this.state = {
             users: UserStore.getProfileListInTeam(),
             teamMembers: Object.assign([], TeamStore.getMembersInTeam()),
-            total: stats.total_member_count,
+            total: stats.active_member_count,
             loading: true
         };
     }
@@ -83,7 +83,7 @@ export default class MemberListTeam extends React.Component {
 
     onStatsChange() {
         const stats = TeamStore.getCurrentStats();
-        this.setState({total: stats.total_member_count});
+        this.setState({total: stats.active_member_count});
     }
 
     nextPage(page) {
@@ -141,7 +141,7 @@ export default class MemberListTeam extends React.Component {
             for (let i = 0; i < users.length; i++) {
                 const user = users[i];
 
-                if (teamMembers[user.id]) {
+                if (teamMembers[user.id] && user.delete_at === 0) {
                     usersToDisplay.push(user);
                     actionUserProps[user.id] = {
                         teamMember: teamMembers[user.id]

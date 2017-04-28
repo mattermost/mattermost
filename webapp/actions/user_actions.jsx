@@ -629,10 +629,7 @@ export function checkMfa(loginId, success, error) {
 export function updateActive(userId, active, success, error) {
     Client.updateActive(userId, active,
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILE,
-                profile: data
-            });
+            UserStore.saveProfile(data);
 
             if (success) {
                 success(data);
