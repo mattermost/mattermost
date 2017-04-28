@@ -403,6 +403,9 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AboutLink"] = *c.SupportSettings.AboutLink
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
+	props["AdministratorsGuideLink"] = *c.SupportSettings.AdministratorsGuideLink
+	props["TroubleshootingForumLink"] = *c.SupportSettings.TroubleshootingForumLink
+	props["CommercialSupportLink"] = *c.SupportSettings.CommercialSupportLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
