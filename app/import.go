@@ -52,6 +52,7 @@ type UserImportData struct {
 	Email       *string `json:"email"`
 	AuthService *string `json:"auth_service"`
 	AuthData    *string `json:"auth_data"`
+	Password    *string `json:"password"`
 	Nickname    *string `json:"nickname"`
 	FirstName   *string `json:"first_name"`
 	LastName    *string `json:"last_name"`
@@ -429,8 +430,11 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.AuthData != nil {
 		authData = data.AuthData
 		password = ""
+	} else if data.Password != nil {
+		password = *data.Password
+		authData = nil
 	} else {
-		// If no Auth Data is specified, we must generate a password.
+		// If no AuthData or Password is specified, we must generate a password.
 		password = model.NewId()
 		authData = nil
 	}
@@ -695,8 +699,20 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_service_length.error", nil, "", http.StatusBadRequest)
 	}
 
+	if data.AuthData != nil && data.Password != nil {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_password.error", nil, "", http.StatusBadRequest)
+	}
+
 	if data.AuthData != nil && len(*data.AuthData) > model.USER_AUTH_DATA_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Password != nil && len(*data.Password) == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.pasword_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Password != nil && len(*data.Password) > model.USER_PASSWORD_MAX_LENGTH {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.password_length.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Nickname != nil && utf8.RuneCountInString(*data.Nickname) > model.USER_NICKNAME_MAX_RUNES {
