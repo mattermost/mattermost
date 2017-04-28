@@ -1747,13 +1747,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
 {"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
 
-	if err, line := BulkImport(strings.NewReader(data1), false); err != nil || line != 0 {
+	if err, line := BulkImport(strings.NewReader(data1), false, 2); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)
 	}
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	if err, line := BulkImport(strings.NewReader(data2), false); err == nil || line != 1 {
+	if err, line := BulkImport(strings.NewReader(data2), false, 2); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to invalid JSON on line 1.")
 	}
 
@@ -1762,7 +1762,7 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
-	if err, line := BulkImport(strings.NewReader(data3), false); err == nil || line != 1 {
+	if err, line := BulkImport(strings.NewReader(data3), false, 2); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to missing version line on line 1.")
 	}
 }

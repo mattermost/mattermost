@@ -19,10 +19,6 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-const (
-	BULK_IMPORT_WORKERS_COUNT = 64
-)
-
 // Import Data Models
 
 type LineImportData struct {
@@ -125,11 +121,11 @@ func bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWo
 	wg.Done()
 }
 
-func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
+func BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
 	lineNumber := 0
 
-	errorsChan := make(chan LineImportWorkerError, (2*BULK_IMPORT_WORKERS_COUNT)+1) // size chosen to ensure it never gets filled up completely.
+	errorsChan := make(chan LineImportWorkerError, (2*workers)+1) // size chosen to ensure it never gets filled up completely.
 	var wg sync.WaitGroup
 	var linesChan chan LineImportWorkerData
 	lastLineType := ""
@@ -167,8 +163,8 @@ func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
 
 					// Set up the workers and channel for this type.
 					lastLineType = line.Type
-					linesChan = make(chan LineImportWorkerData, BULK_IMPORT_WORKERS_COUNT)
-					for i := 0; i < BULK_IMPORT_WORKERS_COUNT; i++ {
+					linesChan = make(chan LineImportWorkerData, workers)
+					for i := 0; i < workers; i++ {
 						wg.Add(1)
 						go bulkImportWorker(dryRun, &wg, linesChan, errorsChan)
 					}
