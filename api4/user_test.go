@@ -797,6 +797,13 @@ func TestPatchUser(t *testing.T) {
 		t.Fatal("NotifyProps did not update properly")
 	}
 
+	patch.Username = new(string)
+	*patch.Username = th.BasicUser2.Username
+	_, resp = Client.PatchUser(user.Id, patch)
+	CheckBadRequestStatus(t, resp)
+
+	patch.Username = nil
+
 	_, resp = Client.PatchUser("junk", patch)
 	CheckBadRequestStatus(t, resp)
 
