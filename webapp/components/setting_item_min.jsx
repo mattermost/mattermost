@@ -17,9 +17,11 @@ export default class SettingItemMin extends React.Component {
                         className='theme'
                         href='#'
                         onClick={this.props.updateSection}
+                        data-type='Edit button'
                     >
                         <i className='fa fa-pencil'/>
                         <FormattedMessage
+                            data-type='Edit button'
                             id='setting_item_min.edit'
                             defaultMessage='Edit'
                         />
