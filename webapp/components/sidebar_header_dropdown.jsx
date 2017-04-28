@@ -183,6 +183,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         return (
             <li>
                 <Link
+                    id='customEmoji'
                     onClick={this.handleClick}
                     to={'/' + this.props.teamName + '/emoji'}
                 >
@@ -219,6 +220,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             inviteLink = (
                 <li>
                     <a
+                        id='sendEmailInvite'
                         href='#'
                         onClick={this.showInviteMemberModal}
                     >
@@ -249,6 +251,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                 teamLink = (
                     <li>
                         <a
+                            id='getTeamInviteLink'
                             href='#'
                             onClick={this.showGetTeamInviteLinkModal}
                         >
@@ -285,6 +288,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             teamSettings = (
                 <li>
                     <a
+                        id='teamSettings'
                         href='#'
                         data-toggle='modal'
                         data-target='#team_settings'
@@ -326,6 +330,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             integrationsLink = (
                 <li>
                     <Link
+                        id='Integrations'
                         to={'/' + this.props.teamName + '/integrations'}
                         onClick={this.handleClick}
                     >
@@ -362,6 +367,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             teams.push(
                 <li key='newTeam_li'>
                     <Link
+                        id='createTeam'
                         key='newTeam_a'
                         to='/create_team'
                         onClick={this.handleClick}
@@ -391,6 +397,7 @@ export default class SidebarHeaderDropdown extends React.Component {
             teams.push(
                 <li key='joinTeam_li'>
                     <Link
+                        id='joinAnotherTeam'
                         onClick={this.handleClick}
                         to='/select_team'
                     >
@@ -406,6 +413,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         teams.push(
             <li key='leaveTeam_li'>
                 <a
+                    id='leaveTeam'
                     href='#'
                     onClick={GlobalActions.showLeaveTeamModal}
                 >
