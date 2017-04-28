@@ -1,24 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import React, {Component, PropTypes} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import FormError from 'components/form_error.jsx';
 
 import loadingGif from 'images/load.gif';
 
-import React from 'react';
+export default class SettingPicture extends Component {
+    static propTypes = {
+        clientError: PropTypes.string,
+        serverError: PropTypes.string,
+        src: PropTypes.string,
+        file: PropTypes.object,
+        loadingPicture: PropTypes.bool,
+        submitActive: PropTypes.bool,
+        submit: PropTypes.func,
+        title: PropTypes.string,
+        onFileChange: PropTypes.func,
+        updateSection: PropTypes.func
+    };
 
-export default class SettingPicture extends React.Component {
     constructor(props) {
         super(props);
-
-        this.setPicture = this.setPicture.bind(this);
 
         this.state = {
             image: null
         };
     }
 
-    setPicture(file) {
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.file !== this.props.file) {
+            this.setState({image: null});
+
+            this.setPicture(nextProps.file);
+        }
+    }
+
+    setPicture = (file) => {
         if (file) {
             var reader = new FileReader();
 
@@ -31,24 +51,7 @@ export default class SettingPicture extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.file !== this.props.file) {
-            this.setState({image: null});
-
-            this.setPicture(nextProps.file);
-        }
-    }
-
     render() {
-        var clientError = null;
-        if (this.props.client_error) {
-            clientError = <div className='form-group has-error'><label className='control-label'>{this.props.client_error}</label></div>;
-        }
-        var serverError = null;
-        if (this.props.server_error) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.props.server_error}</label></div>;
-        }
-
         let img;
         if (this.props.file) {
             img = (
@@ -67,7 +70,7 @@ export default class SettingPicture extends React.Component {
             );
         }
 
-        var confirmButton;
+        let confirmButton;
         if (this.props.loadingPicture) {
             confirmButton = (
                 <img
@@ -76,7 +79,7 @@ export default class SettingPicture extends React.Component {
                 />
             );
         } else {
-            var confirmButtonClass = 'btn btn-sm';
+            let confirmButtonClass = 'btn btn-sm';
             if (this.props.submitActive) {
                 confirmButtonClass += ' btn-primary';
             } else {
@@ -95,18 +98,7 @@ export default class SettingPicture extends React.Component {
                 </a>
             );
         }
-        var helpText = (
-            <FormattedMessage
-                id='setting_picture.help'
-                defaultMessage='Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.'
-                values={{
-                    width: global.window.mm_config.ProfileWidth,
-                    height: global.window.mm_config.ProfileHeight
-                }}
-            />
-        );
 
-        var self = this;
         return (
             <ul className='section-max'>
                 <li className='col-xs-12 section-title'>{this.props.title}</li>
@@ -116,11 +108,17 @@ export default class SettingPicture extends React.Component {
                             {img}
                         </li>
                         <li className='setting-list-item'>
-                            {helpText}
+                            <FormattedMessage
+                                id='setting_picture.help'
+                                defaultMessage='Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.'
+                                values={{
+                                    width: global.mm_config.ProfileWidth,
+                                    height: global.mm_config.ProfileHeight
+                                }}
+                            />
                         </li>
                         <li className='setting-list-item'>
-                            {serverError}
-                            {clientError}
+                            <FormError errors={[this.props.clientError, this.props.serverError]}/>
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
                                 <FormattedMessage
                                     id='setting_picture.select'
@@ -137,7 +135,7 @@ export default class SettingPicture extends React.Component {
                             <a
                                 className='btn btn-sm theme'
                                 href='#'
-                                onClick={self.props.updateSection}
+                                onClick={this.props.updateSection}
                             >
                                 <FormattedMessage
                                     id='setting_picture.cancel'
@@ -151,15 +149,3 @@ export default class SettingPicture extends React.Component {
         );
     }
 }
-
-SettingPicture.propTypes = {
-    client_error: React.PropTypes.string,
-    server_error: React.PropTypes.string,
-    src: React.PropTypes.string,
-    file: React.PropTypes.object,
-    loadingPicture: React.PropTypes.bool,
-    submitActive: React.PropTypes.bool,
-    submit: React.PropTypes.func,
-    title: React.PropTypes.string,
-    onFileChange: React.PropTypes.func
-};
