@@ -5,13 +5,18 @@ import PostViewController from './post_view_controller.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
 
 const MAXIMUM_CACHED_VIEWS = 5;
 
 export default class PostViewCache extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            viewChannel: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -32,7 +37,7 @@ export default class PostViewCache extends React.Component {
 
     componentWillUnmount() {
         if (UserStore.getCurrentUser()) {
-            AsyncClient.viewChannel('', this.state.currentChannelId || '');
+            this.props.actions.viewChannel('', this.state.currentChannelId || '');
         }
         ChannelStore.removeChangeListener(this.onChannelChange);
     }
