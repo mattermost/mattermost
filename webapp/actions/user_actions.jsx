@@ -532,7 +532,7 @@ export function updateUser(user, type, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                const serverError = getState().requests.users.updateUser.error;
+                const serverError = getState().requests.users.updateMe.error;
                 error({id: serverError.server_error_id, ...serverError});
             }
         }
