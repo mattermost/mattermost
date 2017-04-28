@@ -5,9 +5,9 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"image"
 	"image/color"
-	"encoding/json"
 	"math/rand"
 	"strings"
 	"testing"
