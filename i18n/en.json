@@ -4421,7 +4421,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 charactors due to the limitations of bcrypt."
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
