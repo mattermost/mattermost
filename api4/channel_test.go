@@ -721,7 +721,7 @@ func TestSearchChannels(t *testing.T) {
 
 	search.Term = ""
 	_, resp = Client.SearchChannels(th.BasicTeam.Id, search)
-	CheckBadRequestStatus(t, resp)
+	CheckNoError(t, resp)
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchChannels(model.NewId(), search)

@@ -35,8 +35,8 @@ import {browserHistory} from 'react-router/es6';
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
-import {ChannelTypes} from 'mattermost-redux/action_types';
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
+import {viewChannel, getChannelStats, getChannelMember} from 'mattermost-redux/actions/channels';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -53,12 +53,12 @@ export function emitChannelClickEvent(channel) {
     }
     function switchToChannel(chan) {
         const channelMember = ChannelStore.getMyMember(chan.id);
-        const getMyChannelMemberPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
+        const getMyChannelMemberPromise = getChannelMember(chan.id, UserStore.getCurrentId())(dispatch, getState);
         const oldChannelId = ChannelStore.getCurrentId();
 
         getMyChannelMemberPromise.then(() => {
-            AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.viewChannel(chan.id, oldChannelId);
+            getChannelStats(chan.id)(dispatch, getState);
+            viewChannel(chan.id)(dispatch, getState);
             loadPosts(chan.id);
         });
 
@@ -83,11 +83,6 @@ export function emitChannelClickEvent(channel) {
             channelMember,
             prev: oldChannelId
         });
-
-        dispatch({
-            type: ChannelTypes.SELECT_CHANNEL,
-            data: chan.id
-        }, getState);
     }
 
     if (channel.fake) {
@@ -113,7 +108,7 @@ export function doFocusPost(channelId, postId, data) {
         post_list: data
     });
     loadChannelsForCurrentUser();
-    AsyncClient.getChannelStats(channelId);
+    getChannelStats(channelId)(dispatch, getState);
     loadPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
     loadPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
 }
