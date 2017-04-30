@@ -361,7 +361,7 @@
 .post-create__container {
     @include flex(0 0 auto);
     width: 100%;
-    z-index: 1000;
+    z-index: 9;
 
     label {
         font-weight: normal;
