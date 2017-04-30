@@ -482,7 +482,7 @@ export default class SystemUsersDropdown extends React.Component {
         return (
             <div className='dropdown member-drop'>
                 <a
-                    id="memberDropdown"
+                    id='memberDropdown'
                     href='#'
                     className='dropdown-toggle theme'
                     type='button'
