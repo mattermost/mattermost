@@ -2,13 +2,13 @@
 // See License.txt for license information.
 
 import UserProfile from './user_profile.jsx';
-import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
-import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
-import FileAttachmentListContainer from './file_attachment_list_container.jsx';
+import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content.jsx';
+import PostMessageContainer from 'components/post_view/post_message_view';
+import FileAttachmentListContainer from 'components/file_attachment_list';
 import ProfilePicture from 'components/profile_picture.jsx';
-import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
+import ReactionListContainer from 'components/post_view/reaction_list';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
-import PostFlagIcon from 'components/common/post_flag_icon.jsx';
+import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -211,7 +211,6 @@ export default class RhsRootPost extends React.Component {
         this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
 
         const isEphemeral = Utils.isPostEphemeral(post);
-        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
         const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var type = 'Post';
@@ -236,7 +235,7 @@ export default class RhsRootPost extends React.Component {
         let react;
         let reactOverlay;
 
-        if (!isEphemeral && !isPending && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+        if (!isEphemeral && !post.failed && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
             react = (
                 <span>
                     <a

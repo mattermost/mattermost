@@ -4884,7 +4884,7 @@ math-expression-evaluator@^1.2.14:
 
 mattermost-redux@mattermost/mattermost-redux#webapp-master:
   version "0.0.1"
-  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/dfa584b61ed9d04c167be53fe16ac6432892ece1"
+  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/30af9bdf41aeac4ca5a37817773bd8a9b8372a4a"
   dependencies:
     deep-equal "1.0.1"
     harmony-reflect "1.5.1"
@@ -6018,6 +6018,13 @@ rc@^1.1.2, rc@^1.1.7:
     ini "~1.3.0"
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
+
+react-addons-perf@^15.4.2:
+  version "15.4.2"
+  resolved "https://registry.yarnpkg.com/react-addons-perf/-/react-addons-perf-15.4.2.tgz#110bdcf5c459c4f77cb85ed634bcd3397536383b"
+  dependencies:
+    fbjs "^0.8.4"
+    object-assign "^4.1.0"
 
 react-addons-pure-render-mixin@15.5.2:
   version "15.5.2"

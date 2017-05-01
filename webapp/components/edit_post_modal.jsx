@@ -93,8 +93,7 @@ export default class EditPostModal extends React.Component {
             updatedPost,
             () => {
                 window.scrollTo(0, 0);
-            },
-            Boolean(PostStore.getFocusedPostId())  // If there is focused post we need to update that post's store too.
+            }
         );
 
         $('#edit_post').modal('hide');
