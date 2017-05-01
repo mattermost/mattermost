@@ -562,4 +562,8 @@ func Desanitize(cfg *model.Config) {
 	for i := range cfg.SqlSettings.DataSourceReplicas {
 		cfg.SqlSettings.DataSourceReplicas[i] = Cfg.SqlSettings.DataSourceReplicas[i]
 	}
+
+	for i := range cfg.SqlSettings.DataSourceSearchReplicas {
+		cfg.SqlSettings.DataSourceSearchReplicas[i] = Cfg.SqlSettings.DataSourceSearchReplicas[i]
+	}
 }
