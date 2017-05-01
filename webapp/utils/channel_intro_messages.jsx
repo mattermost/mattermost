@@ -5,14 +5,14 @@ import * as Utils from './utils.jsx';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal.jsx';
 import ToggleModalButton from 'components/toggle_modal_button.jsx';
-import UserProfile from 'components/user_profile.jsx';
+import UserProfile from 'components/profile_popover/username_profile_popover.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import Client from 'client/web_client.jsx';
-import ProfilePicture from 'components/profile_picture.jsx';
+import ProfilePicture from 'components/profile_popover/picture_profile_popover.jsx';
 
 import {showManagementOptions} from './channel_utils.jsx';
 

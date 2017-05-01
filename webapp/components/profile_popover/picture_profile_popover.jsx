@@ -1,10 +1,11 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+
 import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import React from 'react';
-import StatusIcon from './status_icon.jsx';
+import StatusIcon from 'components/status_icon.jsx';
 import {OverlayTrigger} from 'react-bootstrap';
 
 export default class ProfilePicture extends React.Component {
