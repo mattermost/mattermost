@@ -3,7 +3,7 @@
 
 import PostHeader from './post_header.jsx';
 import PostBody from './post_body.jsx';
-import ProfilePicture from 'components/profile_picture.jsx';
+import ProfilePicture from 'components/profile_popover/picture_profile_popover.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;

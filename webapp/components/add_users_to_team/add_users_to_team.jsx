@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import MultiSelect from 'components/multiselect/multiselect.jsx';
-import ProfilePicture from 'components/profile_picture.jsx';
+import ProfilePicture from 'components/profile_popover/picture_profile_popover.jsx';
 
 import {addUsersToTeam} from 'actions/team_actions.jsx';
 import {searchUsersNotInTeam} from 'actions/user_actions.jsx';

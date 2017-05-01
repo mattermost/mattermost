@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import MultiSelect from 'components/multiselect/multiselect.jsx';
-import ProfilePicture from 'components/profile_picture.jsx';
+import ProfilePicture from 'components/profile_popover/picture_profile_popover.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 import {openDirectChannelToUser, openGroupChannelToUsers} from 'actions/channel_actions.jsx';

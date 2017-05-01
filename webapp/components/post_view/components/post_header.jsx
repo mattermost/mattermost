@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserProfile from 'components/user_profile.jsx';
+import UserProfile from 'components/profile_popover/username_profile_popover.jsx';
 import PostInfo from './post_info.jsx';
 import {FormattedMessage} from 'react-intl';
 
