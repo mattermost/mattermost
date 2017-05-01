@@ -31,22 +31,29 @@ class ChannelStoreClass extends EventEmitter {
 
         store.subscribe(() => {
             const newEntities = store.getState().entities.channels;
+            let doEmit = false;
 
             if (newEntities.currentTeamId !== this.entities.currentChannelId) {
-                this.emitChange();
+                doEmit = true;
             }
             if (newEntities.channels !== this.entities.channels) {
-                this.emitChange();
+                this.setUnreadCountsByChannels(Object.values(newEntities.channels));
+                doEmit = true;
             }
             if (newEntities.myMembers !== this.entities.myMembers) {
                 this.setUnreadCountsByMembers(Object.values(newEntities.myMembers));
-                this.emitChange();
+                this.emitLastViewed();
+                doEmit = true;
             }
             if (newEntities.membersInChannel !== this.entities.membersInChannel) {
-                this.emitChange();
+                doEmit = true;
             }
             if (newEntities.stats !== this.entities.stats) {
                 this.emitStatsChange();
+            }
+
+            if (doEmit) {
+                this.emitChange();
             }
 
             this.entities = newEntities;
@@ -490,13 +497,11 @@ var ChannelStore = new ChannelStoreClass();
 
 ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
-    var currentId;
 
     switch (action.type) {
     case ActionTypes.CLICK_CHANNEL:
         ChannelStore.setCurrentId(action.id);
         ChannelStore.setPostMode(ChannelStore.POST_MODE_CHANNEL);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_FOCUSED_POST: {
@@ -509,8 +514,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
-        ChannelStore.setUnreadCountsByChannels(action.channels);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_CHANNEL:
@@ -518,41 +521,19 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (action.member) {
             ChannelStore.storeMyChannelMember(action.member);
         }
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountByChannel(action.channel.id);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS:
         ChannelStore.storeMyChannelMembersList(action.members);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountsByMembers(action.members);
-        ChannelStore.emitChange();
-        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_CHANNEL_MEMBER:
         ChannelStore.storeMyChannelMember(action.member);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountsByCurrentMembers();
-        ChannelStore.emitChange();
-        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
-        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL:
         ChannelStore.saveMembersInChannel(action.channel_id, action.channel_members);
-        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_CHANNEL_STATS:
         store.dispatch({
@@ -577,18 +558,15 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (TeamStore.getCurrentId() === teamId || teamId === '') {
             ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             ChannelStore.incrementMessages(id, markRead);
-            ChannelStore.emitChange();
         }
         break;
 
     case ActionTypes.CREATE_POST:
         ChannelStore.incrementMessages(action.post.channel_id, true);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.CREATE_COMMENT:
         ChannelStore.incrementMessages(action.post.channel_id, true);
-        ChannelStore.emitChange();
         break;
 
     default:
