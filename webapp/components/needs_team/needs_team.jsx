@@ -13,7 +13,6 @@ import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
 import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx';
 import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
@@ -23,12 +22,15 @@ const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
 import AnnouncementBar from 'components/announcement_bar';
-import SidebarRight from 'components/sidebar_right.jsx';
+import SidebarRight from 'components/sidebar_right';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
 import WebrtcSidebar from 'components/webrtc/components/webrtc_sidebar.jsx';
 
 import WebrtcNotification from 'components/webrtc/components/webrtc_notification.jsx';
+
+import store from 'stores/redux_store.jsx';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 // Modals
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
@@ -110,9 +112,6 @@ export default class NeedsTeam extends React.Component {
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChanged);
         PreferenceStore.addChangeListener(this.onPreferencesChanged);
-
-        // Emit view action
-        GlobalActions.viewLoggedIn();
 
         startPeriodicStatusUpdates();
         startPeriodicSync();
@@ -201,7 +200,7 @@ export default class NeedsTeam extends React.Component {
         if (channel == null) {
             // the permalink view is not really tied to a particular channel but still needs it
             const postId = PostStore.getFocusedPostId();
-            const post = PostStore.getEarliestPostFromPage(postId);
+            const post = getPost(store.getState(), postId);
 
             // the post take some time before being available on page load
             if (post != null) {
