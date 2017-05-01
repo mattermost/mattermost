@@ -597,7 +597,7 @@ export default class RhsComment extends React.Component {
                     container={this.refs['post_body_' + post.id]}
                     onHide={() => this.setState({showReactEmojiPicker: false})}
                     target={() => ReactDOM.findDOMNode(this.refs['rhs_reacticon_' + post.id])}
-
+                    animation={false}
                 >
                     <EmojiPicker
                         onEmojiClick={this.reactEmojiClick}
