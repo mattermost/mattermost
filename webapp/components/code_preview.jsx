@@ -118,16 +118,18 @@ export default class CodePreview extends React.Component {
                 <span className='post-code__language'>
                     {`${this.props.fileInfo.name} - ${language}`}
                 </span>
-                <code className='hljs'>
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td className='post-code__lineno'>{strlines}</td>
-                                <td dangerouslySetInnerHTML={{__html: highlighted}}/>
-                            </tr>
-                        </tbody>
-                    </table>
-                </code>
+                <div className='post-code__container'>
+                    <code className='hljs'>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td className='post-code__lineno'>{strlines}</td>
+                                    <td dangerouslySetInnerHTML={{__html: highlighted}}/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </code>
+                </div>
             </div>
         );
     }

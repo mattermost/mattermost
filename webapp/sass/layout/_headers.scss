@@ -27,6 +27,12 @@
     }
 
     .member-popover__trigger {
+        & + div {
+            display: none;
+        }
+    }
+
+    .member-popover__trigger {
         .fa {
             margin-left: 4px;
             position: relative;

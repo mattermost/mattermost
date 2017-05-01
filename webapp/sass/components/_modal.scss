@@ -275,6 +275,10 @@
                 overflow-y: visible;
             }
 
+            .post-code__container {
+                overflow: auto;
+            }
+
             .modal-image__wrapper {
                 @include border-radius(3px);
                 display: table-cell;
