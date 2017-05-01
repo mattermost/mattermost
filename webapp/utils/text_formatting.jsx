@@ -166,13 +166,8 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
         const index = tokens.size;
         const alias = `$MM_ATMENTION${index}`;
 
-        let tokenValue = `<span data-mention='${username}'><a class='mention-link' href='#'>${mention}</a></span>`;
-        if (Constants.SPECIAL_MENTIONS.indexOf(username) >= 0) {
-            tokenValue = mention;
-        }
-
         tokens.set(alias, {
-            value: tokenValue,
+            value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
             originalText: mention
         });
         return alias;
@@ -186,7 +181,8 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
             const truncated = usernameLower.substring(0, c);
             const suffix = usernameLower.substring(c);
 
-            if (mentionExists(truncated) && (c === usernameLower.length || punctuation.test(usernameLower[c]))) {
+            // If we've found a username or run out of punctuation to trim off, render it as an at mention
+            if (mentionExists(truncated) || !punctuation.test(truncated[truncated.length - 1])) {
                 const alias = addToken(truncated, '@' + truncated);
                 return prefix + alias + suffix;
             }

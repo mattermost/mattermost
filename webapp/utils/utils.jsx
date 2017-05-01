@@ -989,16 +989,12 @@ export function changeOpacity(oldColor, opacity) {
 }
 
 export function getFullName(user) {
-    if (user !== null && typeof user !== 'undefined' && typeof user === 'object') {
-        const firstName = user.hasOwnProperty('first_name') ? user.first_name : '';
-        const lastName = user.hasOwnProperty('last_name') ? user.last_name : '';
-        if (firstName && lastName) {
-            return firstName + ' ' + lastName;
-        } else if (firstName) {
-            return firstName;
-        } else if (lastName) {
-            return lastName;
-        }
+    if (user.first_name && user.last_name) {
+        return user.first_name + ' ' + user.last_name;
+    } else if (user.first_name) {
+        return user.first_name;
+    } else if (user.last_name) {
+        return user.last_name;
     }
 
     return '';
