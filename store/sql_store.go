@@ -66,33 +66,36 @@ const (
 )
 
 type SqlStore struct {
-	master        *gorp.DbMap
-	replicas      []*gorp.DbMap
-	team          TeamStore
-	channel       ChannelStore
-	post          PostStore
-	user          UserStore
-	audit         AuditStore
-	compliance    ComplianceStore
-	session       SessionStore
-	oauth         OAuthStore
-	system        SystemStore
-	webhook       WebhookStore
-	command       CommandStore
-	preference    PreferenceStore
-	license       LicenseStore
-	token         TokenStore
-	emoji         EmojiStore
-	status        StatusStore
-	fileInfo      FileInfoStore
-	reaction      ReactionStore
-	SchemaVersion string
-	rrCounter     int64
+	master         *gorp.DbMap
+	replicas       []*gorp.DbMap
+	searchReplicas []*gorp.DbMap
+	team           TeamStore
+	channel        ChannelStore
+	post           PostStore
+	user           UserStore
+	audit          AuditStore
+	compliance     ComplianceStore
+	session        SessionStore
+	oauth          OAuthStore
+	system         SystemStore
+	webhook        WebhookStore
+	command        CommandStore
+	preference     PreferenceStore
+	license        LicenseStore
+	token          TokenStore
+	emoji          EmojiStore
+	status         StatusStore
+	fileInfo       FileInfoStore
+	reaction       ReactionStore
+	SchemaVersion  string
+	rrCounter      int64
+	srCounter      int64
 }
 
 func initConnection() *SqlStore {
 	sqlStore := &SqlStore{
 		rrCounter: 0,
+		srCounter: 0,
 	}
 
 	sqlStore.master = setupConnection("master", utils.Cfg.SqlSettings.DriverName,
@@ -106,6 +109,17 @@ func initConnection() *SqlStore {
 		sqlStore.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
 		for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
 			sqlStore.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), utils.Cfg.SqlSettings.DriverName, replica,
+				utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
+				utils.Cfg.SqlSettings.Trace)
+		}
+	}
+
+	if len(utils.Cfg.SqlSettings.DataSourceSearchReplicas) == 0 {
+		sqlStore.searchReplicas = sqlStore.replicas
+	} else {
+		sqlStore.searchReplicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceSearchReplicas))
+		for i, replica := range utils.Cfg.SqlSettings.DataSourceSearchReplicas {
+			sqlStore.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), utils.Cfg.SqlSettings.DriverName, replica,
 				utils.Cfg.SqlSettings.MaxIdleConns, utils.Cfg.SqlSettings.MaxOpenConns,
 				utils.Cfg.SqlSettings.Trace)
 		}
@@ -225,6 +239,19 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 
 	count := 0
 	for _, db := range ss.replicas {
+		count = count + db.Db.Stats().OpenConnections
+	}
+
+	return count
+}
+
+func (ss *SqlStore) TotalSearchDbConnections() int {
+	if len(utils.Cfg.SqlSettings.DataSourceSearchReplicas) == 0 {
+		return 0
+	}
+
+	count := 0
+	for _, db := range ss.searchReplicas {
 		count = count + db.Db.Stats().OpenConnections
 	}
 
@@ -609,6 +636,11 @@ func IsUniqueConstraintError(err string, indexName []string) bool {
 
 func (ss *SqlStore) GetMaster() *gorp.DbMap {
 	return ss.master
+}
+
+func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
+	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
+	return ss.searchReplicas[rrNum]
 }
 
 func (ss *SqlStore) GetReplica() *gorp.DbMap {
