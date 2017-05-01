@@ -11,7 +11,7 @@ import ErrorStore from 'stores/error_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
-import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
+import {handleNewPost, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
 import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
@@ -59,7 +59,6 @@ export function emitChannelClickEvent(channel) {
         getMyChannelMemberPromise.then(() => {
             getChannelStats(chan.id)(dispatch, getState);
             viewChannel(chan.id, oldChannelId)(dispatch, getState);
-            loadPosts(chan.id);
 
             // Mark previous and next channel as read
             ChannelStore.resetCounts([chan.id, oldChannelId]);
@@ -148,8 +147,10 @@ export function emitCloseRightHandSide() {
     SearchStore.storeSearchResults(null, false, false);
     SearchStore.emitSearchChange();
 
-    PostStore.storeSelectedPostId(null);
-    PostStore.emitSelectedPostChange(false, false);
+    dispatch({
+        type: ActionTypes.SELECT_POST,
+        postId: ''
+    });
 }
 
 export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
@@ -221,13 +222,6 @@ export function emitUserPostedEvent(post) {
 export function emitUserCommentedEvent(post) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.CREATE_COMMENT,
-        post
-    });
-}
-
-export function emitPostDeletedEvent(post) {
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.POST_DELETED,
         post
     });
 }
@@ -419,11 +413,6 @@ export function loadDefaultLocale() {
     }
 
     return newLocalizationSelected(locale);
-}
-
-export function viewLoggedIn() {
-    // Clear pending posts (shouldn't have pending posts if we are loading)
-    PostStore.clearPendingPosts();
 }
 
 let lastTimeTypingSent = 0;

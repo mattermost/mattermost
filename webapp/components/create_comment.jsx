@@ -265,7 +265,6 @@ export default class CreateComment extends React.Component {
         post.channel_id = this.props.channelId;
         post.root_id = this.props.rootId;
         post.parent_id = this.props.rootId;
-        post.file_ids = this.state.fileInfos.map((info) => info.id);
         post.pending_post_id = `${userId}:${time}`;
         post.user_id = userId;
         post.create_at = time;
@@ -280,7 +279,7 @@ export default class CreateComment extends React.Component {
             });
         }
 
-        PostActions.queuePost(post, false, null,
+        PostActions.createPost(post, this.state.fileInfos, null,
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     this.showPostDeletedModal();

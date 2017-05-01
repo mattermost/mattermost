@@ -2,13 +2,13 @@
 // See License.txt for license information.
 
 import UserProfile from './user_profile.jsx';
-import FileAttachmentListContainer from './file_attachment_list_container.jsx';
-import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
-import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
+import FileAttachmentListContainer from 'components/file_attachment_list';
+import PostMessageContainer from 'components/post_view/post_message_view';
 import ProfilePicture from 'components/profile_picture.jsx';
-import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
+import ReactionListContainer from 'components/post_view/reaction_list';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
-import PostFlagIcon from 'components/common/post_flag_icon.jsx';
+import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
+import FailedPostOptions from 'components/post_view/failed_post_options';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
@@ -20,19 +20,15 @@ import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Overlay} from 'react-bootstrap';
-
-import {FormattedMessage} from 'react-intl';
 
 import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 import ReactDOM from 'react-dom';
 
-import loadingGif from 'images/load.gif';
-
-import PropTypes from 'prop-types';
-
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Link} from 'react-router/es6';
+import {Overlay} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 export default class RhsComment extends React.Component {
     constructor(props) {
@@ -167,7 +163,7 @@ export default class RhsComment extends React.Component {
     createDropdown(isSystemMessage) {
         const post = this.props.post;
 
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
+        if (post.failed) {
             return '';
         }
 
@@ -418,7 +414,6 @@ export default class RhsComment extends React.Component {
         }
 
         const isEphemeral = Utils.isPostEphemeral(post);
-        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
         const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var timestamp = this.props.currentUser.last_picture_update;
@@ -472,20 +467,12 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        let loading;
+        let failedPostOptions;
         let postClass = '';
 
-        if (post.state === Constants.POST_FAILED) {
-            postClass += ' post-fail';
-            loading = <PendingPostOptions post={this.props.post}/>;
-        } else if (post.state === Constants.POST_LOADING) {
-            postClass += ' post-waiting';
-            loading = (
-                <img
-                    className='post-loading-gif pull-right'
-                    src={loadingGif}
-                />
-            );
+        if (post.failed) {
+            postClass += ' post-failed';
+            failedPostOptions = <FailedPostOptions post={this.props.post}/>;
         }
 
         if (PostUtils.isEdited(this.props.post)) {
@@ -556,7 +543,7 @@ export default class RhsComment extends React.Component {
         let react;
         let reactOverlay;
 
-        if (!isEphemeral && !isPending && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+        if (!isEphemeral && !post.failed && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
             react = (
                 <span>
                     <a
@@ -652,7 +639,7 @@ export default class RhsComment extends React.Component {
                         </div>
                         <div className='post__body' >
                             <div className={postClass}>
-                                {loading}
+                                {failedPostOptions}
                                 <PostMessageContainer post={post}/>
                             </div>
                             {fileAttachment}
