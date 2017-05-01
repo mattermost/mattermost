@@ -31,22 +31,27 @@ class TeamStoreClass extends EventEmitter {
 
         store.subscribe(() => {
             const newEntities = store.getState().entities.teams;
+            let doEmit = false;
 
             if (newEntities.currentTeamId !== this.entities.currentTeamId) {
-                this.emitChange();
+                doEmit = true;
             }
             if (newEntities.teams !== this.entities.teams) {
-                this.emitChange();
+                doEmit = true;
             }
             if (newEntities.myMembers !== this.entities.myMembers) {
-                this.emitChange();
+                doEmit = true;
                 this.emitUnreadChange();
             }
             if (newEntities.membersInTeam !== this.entities.membersInTeam) {
-                this.emitChange();
+                doEmit = true;
             }
             if (newEntities.stats !== this.entities.stats) {
                 this.emitStatsChange();
+            }
+
+            if (doEmit) {
+                this.emitChange();
             }
 
             this.entities = newEntities;
@@ -343,6 +348,11 @@ class TeamStoreClass extends EventEmitter {
             member = Object.assign({}, member);
             member.msg_count -= (totalMsgCount - channelMember.msg_count);
             member.mention_count -= channelMember.mention_count;
+
+            store.dispatch({
+                type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
+                data: member
+            });
         }
     }
 
@@ -355,6 +365,11 @@ class TeamStoreClass extends EventEmitter {
             member = Object.assign({}, member);
             member.msg_count = (msgCount > 0) ? msgCount : 0;
             member.mention_count = (mentionCount > 0) ? mentionCount : 0;
+
+            store.dispatch({
+                type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
+                data: member
+            });
         }
     }
 
@@ -399,49 +414,38 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
     switch (action.type) {
     case ActionTypes.RECEIVED_MY_TEAM:
         TeamStore.saveMyTeam(action.team);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_TEAM:
         TeamStore.saveTeam(action.team);
-        TeamStore.emitChange();
         break;
     case ActionTypes.CREATED_TEAM:
         TeamStore.saveTeam(action.team);
         TeamStore.appendMyTeamMember(action.member);
-        TeamStore.emitChange();
         break;
     case ActionTypes.UPDATE_TEAM:
         TeamStore.saveTeam(action.team);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAMS:
         TeamStore.saveTeams(action.teams);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MY_TEAM_MEMBERS:
         TeamStore.saveMyTeamMembers(action.team_members);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MY_TEAMS_UNREAD:
         TeamStore.saveMyTeamMembersUnread(action.team_members);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_ALL_TEAM_LISTINGS:
         TeamStore.saveTeamListings(action.teams);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MEMBERS_IN_TEAM:
         TeamStore.saveMembersInTeam(action.team_id, action.team_members);
-        TeamStore.emitChange();
         break;
     case ActionTypes.RECEIVED_TEAM_STATS:
         TeamStore.saveStats(action.team_id, action.stats);
-        TeamStore.emitStatsChange();
         break;
     case ActionTypes.CLICK_CHANNEL:
         if (action.channelMember) {
             TeamStore.updateUnreadCount(action.team_id, action.total_msg_count, action.channelMember);
-            TeamStore.emitUnreadChange();
         }
         break;
     case ActionTypes.RECEIVED_POST:
@@ -453,7 +457,6 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         if (id && TeamStore.getCurrentId() !== id) {
             TeamStore.incrementMessages(id, action.post.channel_id);
             TeamStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
-            TeamStore.emitChange();
         }
         break;
     default:

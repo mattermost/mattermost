@@ -90,7 +90,7 @@ export function executeCommand(message, args, success, error) {
 export function setChannelAsRead(channelIdParam) {
     const channelId = channelIdParam || ChannelStore.getCurrentId();
     viewChannel(channelId)(dispatch, getState);
-    ChannelStore.resetCounts(channelId);
+    ChannelStore.resetCounts([channelId]);
     ChannelStore.emitChange();
     if (channelId === ChannelStore.getCurrentId()) {
         ChannelStore.emitLastViewed(Number.MAX_VALUE, false);
