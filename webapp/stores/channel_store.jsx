@@ -33,7 +33,7 @@ class ChannelStoreClass extends EventEmitter {
             const newEntities = store.getState().entities.channels;
             let doEmit = false;
 
-            if (newEntities.currentTeamId !== this.entities.currentChannelId) {
+            if (newEntities.currentChannelId !== this.entities.currentChannelId) {
                 doEmit = true;
             }
             if (newEntities.channels !== this.entities.channels) {
@@ -162,24 +162,21 @@ class ChannelStoreClass extends EventEmitter {
         });
     }
 
-    resetCounts(id) {
-        const members = Object.assign({}, this.getMyMembers());
-        for (const cmid in members) {
-            if (!members.hasOwnProperty(cmid)) {
-                continue;
+    resetCounts(ids) {
+        const membersToStore = [];
+        ids.forEach((id) => {
+            const member = this.getMyMember(id);
+            const channel = this.get(id);
+            if (member && channel) {
+                const memberToStore = {...member};
+                memberToStore.msg_count = channel.total_msg_count;
+                memberToStore.mention_count = 0;
+                membersToStore.push(memberToStore);
+                this.setUnreadCountByChannel(id);
             }
-            const member = {...members[cmid]};
-            if (member.channel_id === id) {
-                const channel = this.get(id);
-                if (channel) {
-                    member.msg_count = channel.total_msg_count;
-                    member.mention_count = 0;
-                    this.storeMyChannelMember(member);
-                    this.setUnreadCountByChannel(id);
-                }
-                break;
-            }
-        }
+        });
+
+        this.storeMyChannelMembersList(membersToStore);
     }
 
     getCurrentId() {
@@ -465,7 +462,7 @@ class ChannelStoreClass extends EventEmitter {
         });
 
         if (markRead) {
-            this.resetCounts(id);
+            this.resetCounts([id]);
         } else {
             this.unreadCounts[id].msgs++;
         }

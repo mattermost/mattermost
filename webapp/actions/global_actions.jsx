@@ -36,7 +36,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
-import {viewChannel, getChannelStats, getChannelMember} from 'mattermost-redux/actions/channels';
+import {viewChannel, getChannelStats, getMyChannelMember} from 'mattermost-redux/actions/channels';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -53,22 +53,21 @@ export function emitChannelClickEvent(channel) {
     }
     function switchToChannel(chan) {
         const channelMember = ChannelStore.getMyMember(chan.id);
-        const getMyChannelMemberPromise = getChannelMember(chan.id, UserStore.getCurrentId())(dispatch, getState);
+        const getMyChannelMemberPromise = getMyChannelMember(chan.id)(dispatch, getState);
         const oldChannelId = ChannelStore.getCurrentId();
 
         getMyChannelMemberPromise.then(() => {
             getChannelStats(chan.id)(dispatch, getState);
             viewChannel(chan.id)(dispatch, getState);
             loadPosts(chan.id);
+
+            // Mark previous and next channel as read
+            ChannelStore.resetCounts([chan.id, oldChannelId]);
         });
 
         // Subtract mentions for the team
         const {msgs, mentions} = ChannelStore.getUnreadCounts()[chan.id] || {msgs: 0, mentions: 0};
         TeamStore.subtractUnread(chan.team_id, msgs, mentions);
-
-        // Mark previous and next channel as read
-        ChannelStore.resetCounts(oldChannelId);
-        ChannelStore.resetCounts(chan.id);
 
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
 

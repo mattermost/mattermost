@@ -24,6 +24,8 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
+import * as Selectors from 'mattermost-redux/selectors/entities/users';
+
 import {
     getProfiles,
     getProfilesInChannel,
@@ -239,7 +241,8 @@ function populateDMChannelsWithProfiles(userIds) {
     for (let i = 0; i < userIds.length; i++) {
         const channelName = getDirectChannelName(currentUserId, userIds[i]);
         const channel = ChannelStore.getByName(channelName);
-        if (channel) {
+        const profilesInChannel = Selectors.getUserIdsInChannels(getState())[channel.id] || new Set();
+        if (channel && !profilesInChannel.has(userIds[i])) {
             UserStore.saveUserIdInChannel(channel.id, userIds[i]);
         }
     }
