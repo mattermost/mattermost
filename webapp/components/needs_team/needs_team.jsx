@@ -119,7 +119,7 @@ export default class NeedsTeam extends React.Component {
         window.isActive = true;
         $(window).on('focus', () => {
             this.props.actions.viewChannel(ChannelStore.getCurrentId());
-            ChannelStore.resetCounts(ChannelStore.getCurrentId());
+            ChannelStore.resetCounts([ChannelStore.getCurrentId()]);
             ChannelStore.emitChange();
 
             window.isActive = true;

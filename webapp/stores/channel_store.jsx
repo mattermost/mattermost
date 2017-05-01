@@ -31,22 +31,29 @@ class ChannelStoreClass extends EventEmitter {
 
         store.subscribe(() => {
             const newEntities = store.getState().entities.channels;
+            let doEmit = false;
 
-            if (newEntities.currentTeamId !== this.entities.currentChannelId) {
-                this.emitChange();
+            if (newEntities.currentChannelId !== this.entities.currentChannelId) {
+                doEmit = true;
             }
             if (newEntities.channels !== this.entities.channels) {
-                this.emitChange();
+                this.setUnreadCountsByChannels(Object.values(newEntities.channels));
+                doEmit = true;
             }
             if (newEntities.myMembers !== this.entities.myMembers) {
                 this.setUnreadCountsByMembers(Object.values(newEntities.myMembers));
-                this.emitChange();
+                this.emitLastViewed();
+                doEmit = true;
             }
             if (newEntities.membersInChannel !== this.entities.membersInChannel) {
-                this.emitChange();
+                doEmit = true;
             }
             if (newEntities.stats !== this.entities.stats) {
                 this.emitStatsChange();
+            }
+
+            if (doEmit) {
+                this.emitChange();
             }
 
             this.entities = newEntities;
@@ -155,24 +162,21 @@ class ChannelStoreClass extends EventEmitter {
         });
     }
 
-    resetCounts(id) {
-        const members = Object.assign({}, this.getMyMembers());
-        for (const cmid in members) {
-            if (!members.hasOwnProperty(cmid)) {
-                continue;
+    resetCounts(ids) {
+        const membersToStore = [];
+        ids.forEach((id) => {
+            const member = this.getMyMember(id);
+            const channel = this.get(id);
+            if (member && channel) {
+                const memberToStore = {...member};
+                memberToStore.msg_count = channel.total_msg_count;
+                memberToStore.mention_count = 0;
+                membersToStore.push(memberToStore);
+                this.setUnreadCountByChannel(id);
             }
-            const member = {...members[cmid]};
-            if (member.channel_id === id) {
-                const channel = this.get(id);
-                if (channel) {
-                    member.msg_count = channel.total_msg_count;
-                    member.mention_count = 0;
-                    this.storeMyChannelMember(member);
-                    this.setUnreadCountByChannel(id);
-                }
-                break;
-            }
-        }
+        });
+
+        this.storeMyChannelMembersList(membersToStore);
     }
 
     getCurrentId() {
@@ -458,7 +462,7 @@ class ChannelStoreClass extends EventEmitter {
         });
 
         if (markRead) {
-            this.resetCounts(id);
+            this.resetCounts([id]);
         } else {
             this.unreadCounts[id].msgs++;
         }
@@ -490,13 +494,11 @@ var ChannelStore = new ChannelStoreClass();
 
 ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
-    var currentId;
 
     switch (action.type) {
     case ActionTypes.CLICK_CHANNEL:
         ChannelStore.setCurrentId(action.id);
         ChannelStore.setPostMode(ChannelStore.POST_MODE_CHANNEL);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_FOCUSED_POST: {
@@ -509,8 +511,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
-        ChannelStore.setUnreadCountsByChannels(action.channels);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_CHANNEL:
@@ -518,41 +518,19 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (action.member) {
             ChannelStore.storeMyChannelMember(action.member);
         }
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountByChannel(action.channel.id);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS:
         ChannelStore.storeMyChannelMembersList(action.members);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountsByMembers(action.members);
-        ChannelStore.emitChange();
-        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_CHANNEL_MEMBER:
         ChannelStore.storeMyChannelMember(action.member);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountsByCurrentMembers();
-        ChannelStore.emitChange();
-        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
-        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL:
         ChannelStore.saveMembersInChannel(action.channel_id, action.channel_members);
-        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_CHANNEL_STATS:
         store.dispatch({
@@ -577,18 +555,15 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (TeamStore.getCurrentId() === teamId || teamId === '') {
             ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             ChannelStore.incrementMessages(id, markRead);
-            ChannelStore.emitChange();
         }
         break;
 
     case ActionTypes.CREATE_POST:
         ChannelStore.incrementMessages(action.post.channel_id, true);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.CREATE_COMMENT:
         ChannelStore.incrementMessages(action.post.channel_id, true);
-        ChannelStore.emitChange();
         break;
 
     default:
