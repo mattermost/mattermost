@@ -15,6 +15,7 @@ After a PR is submitted, a core committer applies labels and notifies product ma
 Then, one or more of the labels is applied:
  - `Awaiting PR`: Applied if the PR is awaiting another to be merged. For example, when a client PR is awaiting a server PR to be merged first. Once the PR is no longer blocked, the core committer removes the `Awaiting PR` label
  - `1: PM Review`: Applied if the PR has UI changes or functionality that PMs can test on test servers called "spinmints"
+ - `Major Change`: Applied if the PR is a major feature or affects large areas of the code base, e.g. [moving channel store and actions to Redux](https://github.com/mattermost/platform/pull/6235)
  - `Setup Test Server`: Applied if the PR is queued for PM testing
  - `Work in Progress`: Applied if the PR is unfinished and needs further work before it's ready for review
 
