@@ -733,6 +733,7 @@ export default class Sidebar extends React.Component {
         let createPublicChannelIcon = (
             <OverlayTrigger
                 delayShow={500}
+                trigger='hover'
                 placement='top'
                 overlay={createChannelTootlip}
             >
@@ -750,6 +751,7 @@ export default class Sidebar extends React.Component {
             <OverlayTrigger
                 delayShow={500}
                 placement='top'
+                trigger='hover'
                 overlay={createGroupTootlip}
             >
                 <a
