@@ -35,6 +35,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {viewChannel, getChannelAndMyMember, getChannelStats} from 'mattermost-redux/actions/channels';
+import {setServerVersion} from 'mattermost-redux/actions/general';
 import {ChannelTypes} from 'mattermost-redux/action_types';
 
 const MAX_WEBSOCKET_FAILS = 7;
@@ -390,7 +391,7 @@ function handleStatusChangedEvent(msg) {
 
 function handleHelloEvent(msg) {
     Client.serverVersion = msg.data.server_version;
-    AsyncClient.checkVersion();
+    setServerVersion(msg.data.server_version)(dispatch, getState);
 }
 
 function handleWebrtc(msg) {

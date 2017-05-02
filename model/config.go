@@ -214,6 +214,7 @@ type PasswordSettings struct {
 }
 
 type FileSettings struct {
+	EnableFileAttachments   *bool
 	MaxFileSize             *int64
 	DriverName              string
 	Directory               string
@@ -472,6 +473,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
+	}
+
+	if o.FileSettings.EnableFileAttachments == nil {
+		o.FileSettings.EnableFileAttachments = new(bool)
+		*o.FileSettings.EnableFileAttachments = true
 	}
 
 	if o.FileSettings.MaxFileSize == nil {

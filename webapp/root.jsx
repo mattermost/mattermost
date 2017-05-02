@@ -12,7 +12,6 @@ import PDFJS from 'pdfjs-dist';
 
 import * as Websockets from 'actions/websocket_actions.jsx';
 import {loadMeAndConfig} from 'actions/user_actions.jsx';
-import BrowserStore from 'stores/browser_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
@@ -86,7 +85,6 @@ function preRenderSetup(callwhendone) {
          () => {
              // Turn off to prevent getting stuck in a loop
              $(window).off('beforeunload');
-             BrowserStore.setLastServerVersion('');
              if (UserStore.getCurrentUser()) {
                  viewChannel('', ChannelStore.getCurrentId() || '')(dispatch, getState);
              }
@@ -119,6 +117,18 @@ function renderRootComponent() {
     ),
     document.getElementById('root'));
 }
+
+let serverVersion = '';
+
+store.subscribe(() => {
+    const newServerVersion = getState().entities.general.serverVersion;
+    if (serverVersion && serverVersion !== newServerVersion) {
+        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+        window.location.reload(true);
+    }
+
+    serverVersion = newServerVersion;
+});
 
 global.window.setup_root = () => {
     // Do the pre-render setup and call renderRootComponent when done

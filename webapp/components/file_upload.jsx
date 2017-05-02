@@ -132,6 +132,11 @@ class FileUpload extends React.Component {
     }
 
     handleDrop(e) {
+        if (global.window.mm_config.EnableFileAttachments === 'false') {
+            this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+            return;
+        }
+
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
@@ -163,36 +168,47 @@ class FileUpload extends React.Component {
             }
         });
 
-        $(containerSelector).dragster({
-            enter(dragsterEvent, e) {
-                var files = e.originalEvent.dataTransfer;
+        let dragsterActions = {};
+        if (global.window.mm_config.EnableFileAttachments === 'true') {
+            dragsterActions = {
+                enter(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
 
-                if (Utils.isFileTransfer(files)) {
-                    $(overlaySelector).removeClass('hidden');
+                    if (Utils.isFileTransfer(files)) {
+                        $(overlaySelector).removeClass('hidden');
+                    }
+                },
+                leave(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (Utils.isFileTransfer(files) && !overlay.hasClass('hidden')) {
+                        overlay.addClass('hidden');
+                    }
+
+                    dragTimeout.cancel();
+                },
+                over() {
+                    dragTimeout.fireAfter(OverlayTimeout);
+                },
+                drop(dragsterEvent, e) {
+                    if (!overlay.hasClass('hidden')) {
+                        overlay.addClass('hidden');
+                    }
+
+                    dragTimeout.cancel();
+
+                    self.handleDrop(e);
                 }
-            },
-            leave(dragsterEvent, e) {
-                var files = e.originalEvent.dataTransfer;
-
-                if (Utils.isFileTransfer(files) && !overlay.hasClass('hidden')) {
-                    overlay.addClass('hidden');
+            };
+        } else {
+            dragsterActions = {
+                drop(dragsterEvent, e) {
+                    self.handleDrop(e);
                 }
+            };
+        }
 
-                dragTimeout.cancel();
-            },
-            over() {
-                dragTimeout.fireAfter(OverlayTimeout);
-            },
-            drop(dragsterEvent, e) {
-                if (!overlay.hasClass('hidden')) {
-                    overlay.addClass('hidden');
-                }
-
-                dragTimeout.cancel();
-
-                self.handleDrop(e);
-            }
-        });
+        $(containerSelector).dragster(dragsterActions);
 
         this.props.onFileUploadChange();
     }
@@ -247,7 +263,12 @@ class FileUpload extends React.Component {
 
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
-        if (items) {
+        if (items && items.length > 0) {
+            if (global.window.mm_config.EnableFileAttachments === 'false') {
+                this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                return;
+            }
+
             var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(ChannelStore.getCurrentId()), items.length);
 
             if (items.length > numToUpload) {
@@ -305,6 +326,12 @@ class FileUpload extends React.Component {
     keyUpload(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
+
+            if (global.window.mm_config.EnableFileAttachments === 'false') {
+                this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                return;
+            }
+
             if ((this.props.postType === 'post' && document.activeElement.id === 'post_textbox') ||
                 (this.props.postType === 'comment' && document.activeElement.id === 'reply_textbox')) {
                 $(this.refs.fileInput).focus().trigger('click');
@@ -361,11 +388,9 @@ class FileUpload extends React.Component {
             );
         }
 
-        return (
-            <span
-                ref='input'
-                className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
-            >
+        let fileDiv;
+        if (global.window.mm_config.EnableFileAttachments === 'true') {
+            fileDiv = (
                 <div className='icon--attachment'>
                     <span
                         className='icon'
@@ -380,6 +405,15 @@ class FileUpload extends React.Component {
                         accept={accept}
                     />
                 </div>
+            );
+        }
+
+        return (
+            <span
+                ref='input'
+                className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
+            >
+                {fileDiv}
                 {emojiSpan}
             </span>
         );

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
@@ -20,6 +19,12 @@ const StatTypes = Constants.StatTypes;
 const callTracker = {};
 
 const ASYNC_CLIENT_TIMEOUT = 5000;
+
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+import {setServerVersion} from 'mattermost-redux/actions/general';
 
 export function dispatchError(err, method) {
     AppDispatcher.handleServerAction({
@@ -47,17 +52,7 @@ function isCallInProgress(callName) {
 }
 
 export function checkVersion() {
-    var serverVersion = Client.getServerVersion();
-
-    if (serverVersion !== BrowserStore.getLastServerVersion()) {
-        if (!BrowserStore.getLastServerVersion() || BrowserStore.getLastServerVersion() === '') {
-            BrowserStore.setLastServerVersion(serverVersion);
-        } else {
-            BrowserStore.setLastServerVersion(serverVersion);
-            window.location.reload(true);
-            console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
-        }
-    }
+    setServerVersion(Client.getServerVersion())(dispatch, getState);
 }
 
 export function getUser(userId, success, error) {

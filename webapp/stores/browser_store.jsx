@@ -75,14 +75,6 @@ class BrowserStoreClass {
         }
     }
 
-    getLastServerVersion() {
-        return this.getGlobalItem('last_server_version');
-    }
-
-    setLastServerVersion(version) {
-        this.setGlobalItem('last_server_version', version);
-    }
-
     signalLogout() {
         if (this.isLocalStorageSupported()) {
             // PLT-1285 store an identifier in session storage so we can catch if the logout came from this tab on IE11
@@ -144,7 +136,6 @@ class BrowserStoreClass {
     clear() {
         // persist some values through logout since they're independent of which user is logged in
         const logoutId = sessionStorage.getItem('__logout__');
-        const serverVersion = this.getLastServerVersion();
         const landingPageSeen = this.hasSeenLandingPage();
         const selectedTeams = this.getItem('selected_teams');
         const recentEmojis = localStorage.getItem(Constants.RECENT_EMOJI_KEY);
@@ -158,10 +149,6 @@ class BrowserStoreClass {
 
         if (logoutId) {
             sessionStorage.setItem('__logout__', logoutId);
-        }
-
-        if (serverVersion) {
-            this.setLastServerVersion(serverVersion);
         }
 
         if (landingPageSeen) {
