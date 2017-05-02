@@ -342,20 +342,6 @@ class TeamStoreClass extends EventEmitter {
         return false;
     }
 
-    updateUnreadCount(teamId, totalMsgCount, channelMember) {
-        let member = this.getMyTeamMembers().filter((m) => m.team_id === teamId)[0];
-        if (member) {
-            member = Object.assign({}, member);
-            member.msg_count -= (totalMsgCount - channelMember.msg_count);
-            member.mention_count -= channelMember.mention_count;
-
-            store.dispatch({
-                type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
-                data: member
-            });
-        }
-    }
-
     subtractUnread(teamId, msgs, mentions) {
         let member = this.getMyTeamMembers().filter((m) => m.team_id === teamId)[0];
         if (member) {
@@ -442,11 +428,6 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_TEAM_STATS:
         TeamStore.saveStats(action.team_id, action.stats);
-        break;
-    case ActionTypes.CLICK_CHANNEL:
-        if (action.channelMember) {
-            TeamStore.updateUnreadCount(action.team_id, action.total_msg_count, action.channelMember);
-        }
         break;
     case ActionTypes.RECEIVED_POST:
         if (action.post.type === PostTypes.JOIN_LEAVE || action.post.type === PostTypes.JOIN_CHANNEL || action.post.type === PostTypes.LEAVE_CHANNEL) {

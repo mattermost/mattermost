@@ -261,7 +261,7 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     getChannelById(id) {
-        return Selectors.getChannelsInCurrentTeam(store.getState())[id];
+        return this.get(id);
     }
 
     storeMyChannelMember(channelMember) {
