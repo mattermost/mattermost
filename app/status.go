@@ -31,6 +31,10 @@ func AddStatusCache(status *model.Status) {
 }
 
 func GetAllStatuses() map[string]*model.Status {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return map[string]*model.Status{}
+	}
+
 	userIds := statusCache.Keys()
 	statusMap := map[string]*model.Status{}
 
@@ -49,6 +53,10 @@ func GetAllStatuses() map[string]*model.Status {
 }
 
 func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return map[string]interface{}{}, nil
+	}
+
 	statusMap := map[string]interface{}{}
 	metrics := einterfaces.GetMetricsInterface()
 
@@ -92,6 +100,10 @@ func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError
 
 //GetUserStatusesByIds used by apiV4
 func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return []*model.Status{}, nil
+	}
+
 	var statusMap []*model.Status
 	metrics := einterfaces.GetMetricsInterface()
 
@@ -145,6 +157,10 @@ func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
 }
 
 func SetStatusOnline(userId string, sessionId string, manual bool) {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return
+	}
+
 	broadcast := false
 
 	var oldStatus string = model.STATUS_OFFLINE
@@ -206,6 +222,10 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 }
 
 func SetStatusOffline(userId string, manual bool) {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return
+	}
+
 	status, err := GetStatus(userId)
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
@@ -226,6 +246,10 @@ func SetStatusOffline(userId string, manual bool) {
 }
 
 func SetStatusAwayIfNeeded(userId string, manual bool) {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return
+	}
+
 	status, err := GetStatus(userId)
 
 	if err != nil {
@@ -274,6 +298,10 @@ func GetStatusFromCache(userId string) *model.Status {
 }
 
 func GetStatus(userId string) (*model.Status, *model.AppError) {
+	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+		return &model.Status{}, nil
+	}
+
 	status := GetStatusFromCache(userId)
 	if status != nil {
 		return status, nil
