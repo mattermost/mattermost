@@ -9,9 +9,13 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions.jsx';
+import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 import {reconnect} from 'actions/websocket_actions.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
+const ActionTypes = Constants.ActionTypes;
 import * as AsyncClient from 'utils/async_client.jsx';
+import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 
@@ -104,7 +108,8 @@ function preNeedsTeam(nextState, replace, callback) {
     GlobalActions.emitCloseRightHandSide();
 
     if (nextState.location.pathname.indexOf('/channels/') > -1 ||
-        nextState.location.pathname.indexOf('/pl/') > -1) {
+        nextState.location.pathname.indexOf('/pl/') > -1 ||
+        nextState.location.pathname.indexOf('/dc/') > -1) {
         AsyncClient.getMyTeamsUnread();
         fetchMyChannelsAndMembers(team.id)(dispatch, getState);
     }
@@ -147,6 +152,57 @@ function onPermalinkEnter(nextState, replace, callback) {
     );
 }
 
+function onDirectChannelByUsernameEnter(state, replace, callback) {
+    let username = state.params.username;
+    if (username.indexOf('@') > -1) {
+        username = username.slice(0, username.indexOf('@'));
+    }
+    const teammate = UserStore.getProfileByUsername(username);
+    if (teammate) {
+        directChannelToUser(teammate, state, replace, callback);
+    } else {
+        Client.getByUsername(
+            username,
+            (profile) => {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_PROFILE,
+                    profile
+                });
+                directChannelToUser(profile, state, replace, callback);
+            },
+            () => {
+                handleError(state, replace, callback);
+            }
+        );
+    }
+}
+
+function directChannelToUser(profile, state, replace, callback) {
+    openDirectChannelToUser(
+        profile.id,
+        (channel) => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_CHANNEL,
+                channel
+            });
+            GlobalActions.emitChannelClickEvent(channel);
+            callback();
+        },
+        () => {
+            handleError(state, replace, callback);
+        }
+    );
+}
+
+function handleError(state, replace, callback) {
+    if (state.params.team) {
+        replace(`/${state.params.team}/channels/${Constants.DEFAULT_CHANNEL}`);
+    } else {
+        replace('/');
+    }
+    callback();
+}
+
 export default {
     path: ':team',
     onEnter: preNeedsTeam,
@@ -180,6 +236,19 @@ export default {
                             System.import('components/team_sidebar'),
                             System.import('components/sidebar.jsx'),
                             System.import('components/permalink_view.jsx')
+                        ]).then(
+                        (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
+                        );
+                    }
+                },
+                {
+                    path: 'dc/:username',
+                    onEnter: onDirectChannelByUsernameEnter,
+                    getComponents: (location, callback) => {
+                        Promise.all([
+                            System.import('components/team_sidebar'),
+                            System.import('components/sidebar.jsx'),
+                            System.import('components/channel_view.jsx')
                         ]).then(
                         (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
                         );
