@@ -270,6 +270,7 @@ export default class SystemUsersDropdown extends React.Component {
             makeSystemAdmin = (
                 <li role='presentation'>
                     <a
+                        id='makeSystemAdmin'
                         role='menuitem'
                         href='#'
                         onClick={this.handleMakeSystemAdmin}
@@ -288,6 +289,7 @@ export default class SystemUsersDropdown extends React.Component {
             makeMember = (
                 <li role='presentation'>
                     <a
+                        id='makeMember'
                         role='menuitem'
                         href='#'
                         onClick={this.handleMakeMember}
@@ -314,6 +316,7 @@ export default class SystemUsersDropdown extends React.Component {
                     className={menuClass}
                 >
                     <a
+                        id='activate'
                         role='menuitem'
                         href='#'
                         onClick={this.handleMakeActive}
@@ -335,6 +338,7 @@ export default class SystemUsersDropdown extends React.Component {
                     className={menuClass}
                 >
                     <a
+                        id='deactivate'
                         role='menuitem'
                         href='#'
                         onClick={this.handleShowDeactivateMemberModal}
@@ -353,6 +357,7 @@ export default class SystemUsersDropdown extends React.Component {
             manageTeams = (
                 <li role='presentation'>
                     <a
+                        id='manageTeams'
                         role='menuitem'
                         href='#'
                         onClick={this.handleManageTeams}
@@ -371,6 +376,7 @@ export default class SystemUsersDropdown extends React.Component {
             mfaReset = (
                 <li role='presentation'>
                     <a
+                        id='removeMFA'
                         role='menuitem'
                         href='#'
                         onClick={this.handleResetMfa}
@@ -389,6 +395,7 @@ export default class SystemUsersDropdown extends React.Component {
             passwordReset = (
                 <li role='presentation'>
                     <a
+                        id='switchEmailPassword'
                         role='menuitem'
                         href='#'
                         onClick={this.handleResetPassword}
@@ -404,6 +411,7 @@ export default class SystemUsersDropdown extends React.Component {
             passwordReset = (
                 <li role='presentation'>
                     <a
+                        id='resetPassword'
                         role='menuitem'
                         href='#'
                         onClick={this.handleResetPassword}
@@ -474,6 +482,7 @@ export default class SystemUsersDropdown extends React.Component {
         return (
             <div className='dropdown member-drop'>
                 <a
+                    id='memberDropdown'
                     href='#'
                     className='dropdown-toggle theme'
                     type='button'

@@ -91,7 +91,10 @@ export default class ManageTeamsDropdown extends React.Component {
         let makeTeamAdmin = null;
         if (!isTeamAdmin) {
             makeTeamAdmin = (
-                <MenuItem onSelect={this.makeTeamAdmin}>
+                <MenuItem
+                    id='makeTeamAdmin'
+                    onSelect={this.makeTeamAdmin}
+                >
                     <FormattedMessage
                         id='admin.user_item.makeTeamAdmin'
                         defaultMessage='Make Team Admin'
@@ -103,7 +106,10 @@ export default class ManageTeamsDropdown extends React.Component {
         let makeMember = null;
         if (isTeamAdmin) {
             makeMember = (
-                <MenuItem onSelect={this.makeMember}>
+                <MenuItem
+                    id='makeMember'
+                    onSelect={this.makeMember}
+                >
                     <FormattedMessage
                         id='admin.user_item.makeMember'
                         defaultMessage='Make Member'
@@ -124,7 +130,10 @@ export default class ManageTeamsDropdown extends React.Component {
                 <Dropdown.Menu>
                     {makeTeamAdmin}
                     {makeMember}
-                    <MenuItem onSelect={this.removeFromTeam}>
+                    <MenuItem
+                        id='removeFromTeam'
+                        onSelect={this.removeFromTeam}
+                    >
                         <FormattedMessage
                             id='team_members_dropdown.leave_team'
                             defaultMessage='Remove from Team'
