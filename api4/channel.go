@@ -170,7 +170,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rchannel, err := app.PatchChannel(oldChannel, patch); err != nil {
+	if rchannel, err := app.PatchChannel(oldChannel, patch, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
