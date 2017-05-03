@@ -212,7 +212,7 @@ export default class StorageSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.file.enableFileAttachmentsDesc'
-                            defaultMessage='When true, allow users to attach files and images to messages. When false, disables file and image uploads on messages.'
+                            defaultMessage='When false, disable file and image uploads on messages.'
                         />
                     }
                     value={this.state.enableFileAttachments}
