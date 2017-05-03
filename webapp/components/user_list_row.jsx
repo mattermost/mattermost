@@ -57,7 +57,7 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
     } else {
         status = UserStore.getStatus(user.id);
     }
-    
+
     let userCountID = null;
     let userCountEmail = null;
     if (this.props.userCount >= 0 && this.props.userCount < 10) {
