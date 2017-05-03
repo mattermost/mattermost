@@ -112,7 +112,9 @@ export function sortChannelsByDisplayName(a, b) {
     return a.name.localeCompare(b.name, locale, {numeric: true});
 }
 
-function getChannelDisplayName(channel) {
+const MAX_CHANNEL_NAME_LENGTH = 64;
+
+export function getChannelDisplayName(channel) {
     if (channel.type !== Constants.GM_CHANNEL) {
         return channel.display_name;
     }
@@ -120,7 +122,15 @@ function getChannelDisplayName(channel) {
     const currentUser = UserStore.getCurrentUser();
 
     if (currentUser) {
-        return channel.display_name.replace(currentUser.username + ', ', '');
+        let displayName = channel.display_name;
+        if (displayName.length >= MAX_CHANNEL_NAME_LENGTH) {
+            displayName += '...';
+        }
+        displayName = displayName.replace(currentUser.username + ', ', '').replace(currentUser.username, '').trim();
+        if (displayName[displayName.length - 1] === ',') {
+            return displayName.slice(0, -1);
+        }
+        return displayName;
     }
 
     return channel.display_name;
