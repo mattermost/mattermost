@@ -6,6 +6,7 @@ import PostMessageContainer from 'components/post_view/components/post_message_c
 import UserProfile from './user_profile.jsx';
 import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from './profile_picture.jsx';
+import CommentIcon from 'components/common/comment_icon.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -200,16 +201,12 @@ export default class SearchResultsItem extends React.Component {
 
             rhsControls = (
                 <li className='col__controls'>
-                    <a
-                        href='#'
-                        className='comment-icon__container search-item__comment'
-                        onClick={this.handleFocusRHSClick}
-                    >
-                        <span
-                            className='comment-icon'
-                            dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
-                        />
-                    </a>
+                    <CommentIcon
+                        idPrefix={'searchCommentIcon'}
+                        idCount={idCount}
+                        handleCommentClick={this.handleFocusRHSClick}
+                        searchStyle={'search-item__comment'}
+                    />
                     <a
                         onClick={
                             () => {
