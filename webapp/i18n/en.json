@@ -301,7 +301,7 @@
   "admin.email.testing": "Testing...",
   "admin.false": "false",
   "admin.file.enableFileAttachments": "Enable File Attachments:",
-  "admin.file.enableFileAttachmentsDesc": "When true, allow users to attach files and images to messages. When false, disables file and image uploads on messages.",
+  "admin.file.enableFileAttachmentsDesc": "When false, disable file and image uploads on messages.",
   "admin.file_upload.chooseFile": "Choose File",
   "admin.file_upload.noFile": "No file uploaded",
   "admin.file_upload.uploadFile": "Upload",
