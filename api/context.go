@@ -357,7 +357,15 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 
+	userCookie := &http.Cookie{
+		Name:   model.SESSION_COOKIE_USER,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	}
+
 	http.SetCookie(w, cookie)
+	http.SetCookie(w, userCookie)
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {

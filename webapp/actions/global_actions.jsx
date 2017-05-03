@@ -457,7 +457,7 @@ export function clientLogout(redirectTo = '/') {
     ChannelStore.clear();
     stopPeriodicStatusUpdates();
     WebsocketActions.close();
-    localStorage.removeItem('currentUserId');
+    document.cookie = 'MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     window.location.href = redirectTo;
 }
 
