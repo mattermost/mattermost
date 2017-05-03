@@ -144,6 +144,8 @@ type FileSettings struct {
 	DriverName                 string
 	Directory                  string
 	EnablePublicLink           bool
+	UseAwsPresignedUrls        bool
+	AwsPresignedUrlTtl         int
 	PublicLinkSalt             *string
 	ThumbnailWidth             int
 	ThumbnailHeight            int

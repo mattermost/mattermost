@@ -90,6 +90,8 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
+        "UseAwsPresignedUrls": true,
+        "AwsPresignedUrlTtl": 604800,
         "PublicLinkSalt": "dkejbx8gbcuy9u97oojxp19pmakp8ycb",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,

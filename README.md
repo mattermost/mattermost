@@ -1,7 +1,13 @@
 # Mattermost Fork for Dialogue
 
-Dialogue changes are integrated on the `dialogue-master` branch.
+Dialogue changes are integrated on the `dialogue-master` branch, which is based on a fork of MatterMost v3.4. 
 
+# Documentation
+
+Note: A major API rewrite took place with MatterMost v3.5, so a good deal of documenation online is incompatible with v3.4.
+
+A snapshot of the MatterMost v3.4 docs can be found at
+[https://s3.amazonaws.com/dialoguemd-mm-v3.4-docs/index.html](https://s3.amazonaws.com/dialoguemd-mm-v3.4-docs/index.html)
 
 # Mattermost
 

@@ -263,6 +263,9 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
+	props["UseAwsPresignedUrls"] = strconv.FormatBool(c.FileSettings.UseAwsPresignedUrls)
+	props["AwsPresignedUrlTtl"] = fmt.Sprintf("%v", c.FileSettings.AwsPresignedUrlTtl)
+
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
 

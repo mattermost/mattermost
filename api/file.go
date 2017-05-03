@@ -22,10 +22,12 @@ import (
 	"strings"
 	"time"
 
+	// Using AdRoll/goamz fork here, as we require SignedURLWithArgs which isn't available in goamz/goamz
+	"github.com/AdRoll/goamz/aws"
+	"github.com/AdRoll/goamz/s3"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -497,6 +499,7 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	filename := props["filename"]
+
 	if len(filename) == 0 {
 		c.SetInvalidParam("getPublicLink", "filename")
 		return
@@ -514,13 +517,35 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cchan := Srv.Store.Channel().CheckPermissionsTo(c.TeamId, channelId, c.Session.UserId)
 
-	url := generatePublicLink(c.GetSiteURL(), c.TeamId, channelId, userId, filename)
+	var url string
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 && utils.Cfg.FileSettings.UseAwsPresignedUrls {
+		filepath := "teams/" + c.TeamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
+		url = generateAwsPresignedUrl(filepath)
+	} else {
+		url = generatePublicLink(c.GetSiteURL(), c.TeamId, channelId, userId, filename)
+	}
 
 	if !c.HasPermissionsToChannel(cchan, "getPublicLink") {
 		return
 	}
 
 	w.Write([]byte(model.StringToJson(url)))
+}
+
+func generateAwsPresignedUrl(path string) string {
+	var auth aws.Auth
+	auth.AccessKey = utils.Cfg.FileSettings.AmazonS3AccessKeyId
+	auth.SecretKey = utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+
+	s := s3.New(auth, awsRegion())
+	b := s.Bucket(utils.Cfg.FileSettings.AmazonS3Bucket)
+	expiry := time.Now().Add(time.Second * time.Duration(utils.Cfg.FileSettings.AwsPresignedUrlTtl))
+	headers := map[string][]string{
+		"response-content-disposition": {"inline"},
+	}
+	url := b.SignedURLWithArgs(path, expiry, nil, headers)
+
+	return url
 }
 
 func generatePublicLink(siteURL, teamId, channelId, userId, filename string) string {
@@ -549,14 +574,8 @@ func WriteFile(f []byte, path string) *model.AppError {
 		ext := filepath.Ext(path)
 
 		var err error
-		if model.IsFileExtImage(ext) {
-			options := s3.Options{}
-			err = bucket.Put(path, f, model.GetImageMimeType(ext), s3.Private, options)
-
-		} else {
-			options := s3.Options{}
-			err = bucket.Put(path, f, "binary/octet-stream", s3.Private, options)
-		}
+		options := s3.Options{}
+		err = bucket.Put(path, f, model.GetMimeType(ext), s3.Private, options)
 
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())

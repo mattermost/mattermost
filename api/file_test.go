@@ -7,10 +7,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/s3"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -18,6 +14,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/s3"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestUploadFile(t *testing.T) {
@@ -284,51 +285,55 @@ func TestGetPublicFile(t *testing.T) {
 		link = result.Data.(string)
 	}
 
-	// test a user that's logged in
-	if resp, err := http.Get(link); err != nil && resp.StatusCode != http.StatusOK {
-		t.Fatal("failed to get image with public link while logged in", err)
-	}
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL && utils.Cfg.FileSettings.UseAwsPresignedUrls == false {
 
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in without hash", resp.Status)
-	}
+		// test a user that's logged in
+		if resp, err := http.Get(link); err != nil && resp.StatusCode != http.StatusOK {
+			t.Fatal("failed to get image with public link while logged in", err)
+		}
 
-	utils.Cfg.FileSettings.EnablePublicLink = false
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should've failed to get image with disabled public link while logged in")
-	}
+		if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
+			t.Fatal("should've failed to get image with public link while logged in without hash", resp.Status)
+		}
 
-	utils.Cfg.FileSettings.EnablePublicLink = true
+		utils.Cfg.FileSettings.EnablePublicLink = false
+		if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
+			t.Fatal("should've failed to get image with disabled public link while logged in")
+		}
 
-	// test a user that's logged out
-	Client.Must(Client.Logout())
+		utils.Cfg.FileSettings.EnablePublicLink = true
 
-	if resp, err := http.Get(link); err != nil && resp.StatusCode != http.StatusOK {
-		t.Fatal("failed to get image with public link while not logged in", err)
-	}
+		// test a user that's logged out
+		Client.Must(Client.Logout())
 
-	if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in without hash")
-	}
+		if resp, err := http.Get(link); err != nil && resp.StatusCode != http.StatusOK {
+			t.Fatal("failed to get image with public link while not logged in", err)
+		}
 
-	utils.Cfg.FileSettings.EnablePublicLink = false
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should've failed to get image with disabled public link while not logged in")
-	}
+		if resp, err := http.Get(link[:strings.LastIndex(link, "?")]); err == nil && resp.StatusCode != http.StatusBadRequest {
+			t.Fatal("should've failed to get image with public link while not logged in without hash")
+		}
 
-	utils.Cfg.FileSettings.EnablePublicLink = true
+		utils.Cfg.FileSettings.EnablePublicLink = false
+		if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
+			t.Fatal("should've failed to get image with disabled public link while not logged in")
+		}
 
-	// test a user that's logged in after the salt has changed
-	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+		utils.Cfg.FileSettings.EnablePublicLink = true
 
-	th.LoginBasic()
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while logged in after salt changed")
-	}
+		// test a user that's logged in after the salt has changed
+		*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
 
-	Client.Must(Client.Logout())
-	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("should've failed to get image with public link while not logged in after salt changed")
+		th.LoginBasic()
+		if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+			t.Fatal("should've failed to get image with public link while logged in after salt changed")
+		}
+
+		Client.Must(Client.Logout())
+		if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
+			t.Fatal("should've failed to get image with public link while not logged in after salt changed")
+		}
+
 	}
 
 	if err := cleanupTestFile(filenames[0], th.BasicTeam.Id, channel.Id, th.BasicUser.Id); err != nil {
