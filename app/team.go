@@ -257,7 +257,6 @@ func AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *mode
 }
 
 func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) {
-
 	tm := &model.TeamMember{
 		TeamId: team.Id,
 		UserId: user.Id,
@@ -295,7 +294,6 @@ func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) 
 }
 
 func JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
-
 	if alreadyAdded, err := joinUserToTeam(team, user); err != nil {
 		return err
 	} else if alreadyAdded {
@@ -315,6 +313,11 @@ func JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) 
 
 	ClearSessionCacheForUser(user.Id)
 	InvalidateCacheForUser(user.Id)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
+	message.Add("team_id", team.Id)
+	message.Add("user_id", user.Id)
+	Publish(message)
 
 	return nil
 }
