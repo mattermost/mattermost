@@ -56,7 +56,8 @@ TESTS=.
 TE_PACKAGES=$(shell go list ./... | grep -v vendor)
 TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
 
-EE_PACKAGES=$(shell go list ./enterprise/... | grep -v vendor | tail -n +2)
+EE_PACKAGES=github.com/mattermost/platform/enterprise/cluster
+#EE_PACKAGES=$(shell go list ./enterprise/... | grep -v vendor | tail -n +2)
 EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
