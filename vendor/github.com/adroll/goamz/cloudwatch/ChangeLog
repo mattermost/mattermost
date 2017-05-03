@@ -1,0 +1,7 @@
+2013-10-21 Carlos Salguero <cfsalguero@gmail.com>
+
+* Removed Namespace from the constructor as not all AWS API method needs it 
+  and methods like ListMetrics you could need to call the method without a
+  Namespace to list all available metrics
+
+* Added ListMetrics method
