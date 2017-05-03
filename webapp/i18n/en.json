@@ -1875,6 +1875,7 @@
   "rhs_comment.permalink": "Permalink",
   "rhs_header.backToCallTooltip": "Back to Call",
   "rhs_header.backToFlaggedTooltip": "Back to Flagged Posts",
+  "rhs_header.backToPinnedTooltip": "Back to Pinned Posts",
   "rhs_header.backToResultsTooltip": "Back to Search Results",
   "rhs_header.closeSidebarTooltip": "Close Sidebar",
   "rhs_header.closeTooltip": "Close Sidebar",

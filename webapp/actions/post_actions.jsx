@@ -142,7 +142,7 @@ export function getFlaggedPosts() {
     );
 }
 
-export function getPinnedPosts(channelId) {
+export function getPinnedPosts(channelId = ChannelStore.getCurrentId()) {
     Client.getPinnedPosts(channelId,
         (data) => {
             AppDispatcher.handleServerAction({

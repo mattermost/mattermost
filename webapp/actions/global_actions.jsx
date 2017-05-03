@@ -168,7 +168,8 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
                 type: ActionTypes.RECEIVED_POST_SELECTED,
                 postId: Utils.getRootId(post),
                 from_search: SearchStore.getSearchTerm(),
-                from_flagged_posts: SearchStore.getIsFlaggedPosts()
+                from_flagged_posts: SearchStore.getIsFlaggedPosts(),
+                from_pinned_posts: SearchStore.getIsPinnedPosts()
             });
 
             AppDispatcher.handleServerAction({
