@@ -72,10 +72,16 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
             <div
                 className='more-modal__details'
             >
-                <div className='more-modal__name'>
+                <div
+                    id={Utils.createSafeId(name)}
+                    className='more-modal__name'
+                >
                     {name}
                 </div>
-                <div className={emailStyle}>
+                <div
+                    id={Utils.createSafeId(user.email)}
+                    className={emailStyle}
+                >
                     {email}
                 </div>
                 {extraInfo}
