@@ -32,6 +32,18 @@
     }
 
     .post-create__container {
+        .post-create {
+            &.post-create--attachment-disabled {
+                .post-body__cell {
+                    padding-left: 1em;
+                }
+
+                .post-create-footer {
+                    padding-left: 1em;
+                }
+            }
+        }
+
         form {
             padding: .5em 0 0;
         }
@@ -71,6 +83,10 @@
                     padding: 0;
                     top: auto;
                     width: 25px;
+
+                    .icon--emoji-picker {
+                        display: none;
+                    }
                 }
             }
 
