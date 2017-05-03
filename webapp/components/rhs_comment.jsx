@@ -360,6 +360,28 @@ export default class RhsComment extends React.Component {
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
     }
 
+    getClassName = (post, isSystemMessage) => {
+        let className = 'post post--thread';
+
+        if (this.props.currentUser.id === post.user_id) {
+            className += ' current--user';
+        }
+
+        if (isSystemMessage) {
+            className += ' post--system';
+        }
+
+        if (this.props.compactDisplay) {
+            className += 'post--compact';
+        }
+
+        if (post.is_pinned) {
+            className += ' post--pinned';
+        }
+
+        return className;
+    }
+
     render() {
         const post = this.props.post;
         const flagIcon = Constants.FLAG_ICON_SVG;
@@ -368,11 +390,6 @@ export default class RhsComment extends React.Component {
         const isEphemeral = Utils.isPostEphemeral(post);
         const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
         const isSystemMessage = PostUtils.isSystemMessage(post);
-
-        var currentUserCss = '';
-        if (this.props.currentUser.id === post.user_id) {
-            currentUserCss = 'current--user';
-        }
 
         var timestamp = this.props.currentUser.last_picture_update;
 
@@ -445,11 +462,6 @@ export default class RhsComment extends React.Component {
             postClass += ' post--edited';
         }
 
-        let systemMessageClass = '';
-        if (isSystemMessage) {
-            systemMessageClass = 'post--system';
-        }
-
         let profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
@@ -480,10 +492,7 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        let compactClass = '';
         if (this.props.compactDisplay) {
-            compactClass = 'post--compact';
-
             if (post.props && post.props.from_webhook) {
                 profilePic = (
                     <ProfilePicture
@@ -646,7 +655,7 @@ export default class RhsComment extends React.Component {
         return (
             <div
                 ref={'post_body_' + post.id}
-                className={'post post--thread ' + currentUserCss + ' ' + compactClass + ' ' + systemMessageClass}
+                className={this.getClassName(post, isSystemMessage)}
             >
                 <div className='post__content'>
                     {profilePicContainer}
