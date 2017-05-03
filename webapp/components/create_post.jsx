@@ -630,6 +630,11 @@ export default class CreatePost extends React.Component {
             );
         }
 
+        let attachmentsDisabled = '';
+        if (global.window.mm_config.EnableFileAttachments === 'false') {
+            attachmentsDisabled = ' post-create--attachment-disabled';
+        }
+
         return (
             <form
                 id='create_post'
@@ -638,7 +643,7 @@ export default class CreatePost extends React.Component {
                 className={centerClass}
                 onSubmit={this.handleSubmit}
             >
-                <div className='post-create'>
+                <div className={'post-create' + attachmentsDisabled}>
                     <div className='post-create-body'>
                         <div className='post-body__cell'>
                             <Textbox
