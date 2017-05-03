@@ -171,9 +171,9 @@ export default class RhsRootPost extends React.Component {
     }
 
     reactEmojiClick(emoji) {
+        this.setState({showRHSEmojiPicker: false});
         const emojiName = emoji.name || emoji.aliases[0];
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
-        this.setState({showRHSEmojiPicker: false});
     }
 
     render() {
@@ -245,7 +245,7 @@ export default class RhsRootPost extends React.Component {
                     container={this}
                     onHide={() => this.setState({showRHSEmojiPicker: false})}
                     target={() => ReactDOM.findDOMNode(this.refs.rhs_root_reacticon)}
-
+                    animation={false}
                 >
                     <EmojiPicker
                         onEmojiClick={this.reactEmojiClick}
