@@ -135,11 +135,12 @@ export default class SidebarRight extends React.Component {
         });
     }
 
-    onSelectedChange(fromSearch, fromFlaggedPosts) {
+    onSelectedChange(fromSearch, fromFlaggedPosts, fromPinnedPosts) {
         this.setState({
             postRightVisible: Boolean(PostStore.getSelectedPost()),
             fromSearch,
-            fromFlaggedPosts
+            fromFlaggedPosts,
+            fromPinnedPosts
         });
     }
 
@@ -230,6 +231,7 @@ export default class SidebarRight extends React.Component {
                     <RhsThread
                         fromFlaggedPosts={this.state.fromFlaggedPosts}
                         fromSearch={this.state.fromSearch}
+                        fromPinnedPosts={this.state.fromPinnedPosts}
                         isWebrtc={WebrtcStore.isBusy()}
                         isMentionSearch={this.state.isMentionSearch}
                         currentUser={this.state.currentUser}

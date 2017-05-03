@@ -410,6 +410,7 @@ export default class RhsThread extends React.Component {
                 <RhsHeaderPost
                     fromFlaggedPosts={this.props.fromFlaggedPosts}
                     fromSearch={this.props.fromSearch}
+                    fromPinnedPosts={this.props.fromPinnedPosts}
                     isWebrtc={this.props.isWebrtc}
                     isMentionSearch={this.props.isMentionSearch}
                     toggleSize={this.props.toggleSize}
@@ -472,6 +473,7 @@ RhsThread.defaultProps = {
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
     fromFlaggedPosts: React.PropTypes.bool,
+    fromPinnedPosts: React.PropTypes.bool,
     isWebrtc: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,
