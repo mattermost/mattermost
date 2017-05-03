@@ -57,6 +57,13 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
     } else {
         status = UserStore.getStatus(user.id);
     }
+    
+    let userCountID = null;
+    let userCountEmail = null;
+    if (this.props.userCount >= 0 && this.props.userCount < 10) {
+        userCountID = Utils.createSafeId('userListRowName' + this.props.userCount);
+        userCountEmail = Utils.createSafeId('userListRowEmail' + this.props.userCount);
+    }
 
     return (
         <div
@@ -73,13 +80,13 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
                 className='more-modal__details'
             >
                 <div
-                    id={Utils.createSafeId(name)}
+                    id={userCountID}
                     className='more-modal__name'
                 >
                     {name}
                 </div>
                 <div
-                    id={Utils.createSafeId(user.email)}
+                    id={userCountEmail}
                     className={emailStyle}
                 >
                     {email}
@@ -99,7 +106,8 @@ UserListRow.defaultProps = {
     extraInfo: [],
     actions: [],
     actionProps: {},
-    actionUserProps: {}
+    actionUserProps: {},
+    userCount: null
 };
 
 UserListRow.propTypes = {
@@ -107,5 +115,6 @@ UserListRow.propTypes = {
     extraInfo: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
-    actionUserProps: React.PropTypes.object
+    actionUserProps: React.PropTypes.object,
+    userCount: React.PropTypes.number
 };
