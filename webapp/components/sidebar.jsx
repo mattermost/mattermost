@@ -41,7 +41,8 @@ import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';
 
 import store from 'stores/redux_store.jsx';
-import * as Selectors from 'mattermost-redux/selectors/entities/preferences';
+import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getUsers} from 'mattermost-redux/selectors/entities/users';
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -120,14 +121,18 @@ export default class Sidebar extends React.Component {
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
         const channels = ChannelStore.getAll();
-        const preferences = Selectors.getMyPreferences(store.getState());
+        const preferences = getMyPreferences(store.getState());
+        const profiles = getUsers(store.getState());
         let displayableChannels = {};
-        if (channels !== this.oldChannels || preferences !== this.oldPreferences) {
+        if (channels !== this.oldChannels ||
+            preferences !== this.oldPreferences ||
+            profiles !== this.oldProfiles) {
             const channelsArray = channels.map((channel) => Object.assign({}, channel));
             displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
         }
         this.oldChannels = channels;
         this.oldPreferences = preferences;
+        this.oldProfiles = profiles;
 
         return {
             activeId: currentChannelId,
