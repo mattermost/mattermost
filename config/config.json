@@ -97,6 +97,7 @@
         "Symbol": false
     },
     "FileSettings": {
+        "EnableFileAttachments": true,
         "MaxFileSize": 52428800,
         "DriverName": "local",
         "Directory": "./data/",

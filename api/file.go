@@ -31,6 +31,11 @@ func InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.FileSettings.EnableFileAttachments {
+		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
 		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "")
 		c.Err.StatusCode = http.StatusRequestEntityTooLarge
@@ -181,9 +186,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool) (*model.FileInfo, *model.AppError) {
 	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		err := model.NewLocAppError("getFileInfoForRequest", "api.file.get_file_info_for_request.storage.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
-		return nil, err
+		return nil, model.NewAppError("getFileInfoForRequest", "api.file.get_info_for_request.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	params := mux.Vars(r)

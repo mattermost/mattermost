@@ -102,6 +102,15 @@ func TestUploadFile(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
 	CheckNoError(t, resp)
+
+	enableFileAttachments := *utils.Cfg.FileSettings.EnableFileAttachments
+	defer func() {
+		*utils.Cfg.FileSettings.EnableFileAttachments = enableFileAttachments
+	}()
+	*utils.Cfg.FileSettings.EnableFileAttachments = false
+
+	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
+	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetFile(t *testing.T) {
