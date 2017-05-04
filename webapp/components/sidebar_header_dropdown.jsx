@@ -499,6 +499,21 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
+        const keyboardShortcutsLink = (
+            <li>
+                <Link
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    to='https://about.mattermost.com/default-keyboard_shortcut_link/'
+                >
+                    <FormattedMessage
+                        id='navbar_dropdown.keyboardShortcuts'
+                        defaultMessage='Keyboard Shortcuts'
+                    />
+                </Link>
+            </li>
+        );
+
         const accountSettings = (
             <li>
                 <a
@@ -605,6 +620,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     {sysAdminLink}
                     {helpDivider}
                     {helpLink}
+                    {keyboardShortcutsLink}
                     {reportLink}
                     {nativeAppLink}
                     {about}
