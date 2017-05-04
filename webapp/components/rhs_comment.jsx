@@ -8,6 +8,7 @@ import PostMessageContainer from 'components/post_view/components/post_message_c
 import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
+import PostFlagIcon from 'components/common/post_flag_icon.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
@@ -19,7 +20,7 @@ import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
+import {Overlay} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -125,6 +126,10 @@ export default class RhsComment extends React.Component {
         }
 
         if (this.state.showReactEmojiPicker !== nextState.showReactEmojiPicker) {
+            return true;
+        }
+
+        if (nextProps.lastPostCount !== this.props.lastPostCount) {
             return true;
         }
 
@@ -384,8 +389,12 @@ export default class RhsComment extends React.Component {
 
     render() {
         const post = this.props.post;
-        const flagIcon = Constants.FLAG_ICON_SVG;
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
+
+        let idCount = -1;
+        if (this.props.lastPostCount >= 0 && this.props.lastPostCount < Constants.TEST_ID_COUNT) {
+            idCount = this.props.lastPostCount;
+        }
 
         const isEphemeral = Utils.isPostEphemeral(post);
         const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
@@ -523,64 +532,6 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        let flag;
-        let flagFunc;
-        let flagVisible = '';
-        let flagTooltip = (
-            <Tooltip id='flagTooltip'>
-                <FormattedMessage
-                    id='flag_post.flag'
-                    defaultMessage='Flag for follow up'
-                />
-            </Tooltip>
-        );
-        if (this.props.isFlagged) {
-            flagVisible = 'visible';
-            flag = (
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIcon}}
-                />
-            );
-            flagFunc = this.unflagPost;
-            flagTooltip = (
-                <Tooltip id='flagTooltip'>
-                    <FormattedMessage
-                        id='flag_post.unflag'
-                        defaultMessage='Unflag'
-                    />
-                </Tooltip>
-            );
-        } else {
-            flag = (
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIcon}}
-                />
-            );
-            flagFunc = this.flagPost;
-        }
-
-        let flagTrigger;
-        if (!isEphemeral) {
-            flagTrigger = (
-                <OverlayTrigger
-                    key={'commentflagtooltipkey' + flagVisible}
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={flagTooltip}
-                >
-                    <a
-                        href='#'
-                        className={'flag-icon__container ' + flagVisible}
-                        onClick={flagFunc}
-                    >
-                        {flag}
-                    </a>
-                </OverlayTrigger>
-            );
-        }
-
         let react;
         let reactOverlay;
 
@@ -668,7 +619,13 @@ export default class RhsComment extends React.Component {
                             <li className='col'>
                                 {this.renderTimeTag(post, timeOptions)}
                                 {pinnedBadge}
-                                {flagTrigger}
+                                <PostFlagIcon
+                                    idPrefix={'rhsCommentFlag'}
+                                    idCount={idCount}
+                                    postId={post.id}
+                                    isFlagged={this.props.isFlagged}
+                                    isEphemeral={isEphemeral}
+                                />
                             </li>
                             {options}
                         </ul>
@@ -689,6 +646,7 @@ export default class RhsComment extends React.Component {
 
 RhsComment.propTypes = {
     post: React.PropTypes.object,
+    lastPostCount: React.PropTypes.number,
     user: React.PropTypes.object.isRequired,
     currentUser: React.PropTypes.object.isRequired,
     compactDisplay: React.PropTypes.bool,

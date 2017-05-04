@@ -79,6 +79,7 @@ export default class PostHeader extends React.Component {
                 <li className='col'>
                     <PostInfo
                         post={post}
+                        lastPostCount={this.props.lastPostCount}
                         commentCount={this.props.commentCount}
                         handleCommentClick={this.props.handleCommentClick}
                         handleDropdownOpened={this.props.handleDropdownOpened}
@@ -105,6 +106,7 @@ PostHeader.propTypes = {
     post: React.PropTypes.object.isRequired,
     user: React.PropTypes.object,
     currentUser: React.PropTypes.object.isRequired,
+    lastPostCount: React.PropTypes.number,
     commentCount: React.PropTypes.number.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
