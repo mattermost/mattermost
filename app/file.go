@@ -84,7 +84,7 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 			return f, nil
 		}
 	} else {
-		return nil, model.NewLocAppError("ReadFile", "api.file.read_file.configured.app_error", nil, "")
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.configured.app_error", nil, "", http.StatusNotImplemented)
 	}
 }
 

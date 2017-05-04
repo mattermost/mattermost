@@ -1051,7 +1051,11 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "Unable to get info for file. Image storage is not configured."
+    "translation": "Unable to get info for file. File storage is not configured."
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "File attachments have been disabled on this server."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",

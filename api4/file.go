@@ -33,9 +33,13 @@ func InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.FileSettings.EnableFileAttachments {
+		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
-		c.Err = model.NewLocAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "")
-		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		c.Err = model.NewAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
