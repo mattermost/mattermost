@@ -553,6 +553,7 @@ func GetSession(token string) *model.Session {
 			if claims, error := jwtTokenDecode(token); error == nil {
 				if session, error := newSessionForJwtToken(token, claims); error == nil {
 					if result := <-Srv.Store.Session().Save(session); result.Err != nil {
+						l4g.Error("Store new session error: %v", result.Err)
 						return nil
 					} else {
 						session = result.Data.(*model.Session)

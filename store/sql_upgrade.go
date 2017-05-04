@@ -204,7 +204,7 @@ func UpgradeDatabaseToVersion34p(sqlStore *SqlStore) {
 func UpgradeDatabaseToVersion34p2(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_3_4_0p, VERSION_3_4_0p2) {
 
-		sqlStore.AlterColumnTypeIfExists("Sessions", "token", "varchar(4000)", "varchar(4000)")
+		sqlStore.AlterColumnTypeIfExists("Sessions", "Token", "varchar(4000)", "varchar(4000)")
 
 		saveSchemaVersion(sqlStore, VERSION_3_4_0p)
 	}
