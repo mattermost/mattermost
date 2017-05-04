@@ -13,7 +13,6 @@ import PDFJS from 'pdfjs-dist';
 import * as Websockets from 'actions/websocket_actions.jsx';
 import {loadMeAndConfig} from 'actions/user_actions.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
 
 // Import our styles
@@ -61,9 +60,7 @@ function preRenderSetup(callwhendone) {
 
     setUrl(window.location.origin);
 
-    const currentUserId = localStorage.getItem('currentUserId');
-
-    if (currentUserId) {
+    if (document.cookie.indexOf('MMUSERID=') > -1) {
         loadMeAndConfig(() => d1.resolve());
     } else {
         getClientConfig()(store.dispatch, store.getState).then(
@@ -85,7 +82,7 @@ function preRenderSetup(callwhendone) {
          () => {
              // Turn off to prevent getting stuck in a loop
              $(window).off('beforeunload');
-             if (UserStore.getCurrentUser()) {
+             if (document.cookie.indexOf('MMUSERID=') > -1) {
                  viewChannel('', ChannelStore.getCurrentId() || '')(dispatch, getState);
              }
              Websockets.close();
