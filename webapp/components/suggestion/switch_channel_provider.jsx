@@ -60,7 +60,7 @@ class SwitchChannelSuggestion extends Suggestion {
 export default class SwitchChannelProvider extends Provider {
     handlePretextChanged(suggestionId, channelPrefix) {
         if (channelPrefix) {
-            this.startNewRequest(channelPrefix);
+            this.startNewRequest(suggestionId, channelPrefix);
 
             const allChannels = ChannelStore.getAll();
             const channels = [];
