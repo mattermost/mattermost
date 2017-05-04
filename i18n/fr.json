@@ -3092,6 +3092,10 @@
     "translation": "Rôles invalides pour la liste des canaux de l'utilisateur."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "Les données d'authentification utilisateur sont trop longues."
   },
@@ -3118,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "Le surnom de l'utilisateur est trop long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -4408,6 +4416,14 @@
     "translation": "Id d'utilisateur invalide"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Jeton invalide"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Données d'authentification invalides"
   },
@@ -4442,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Pseudonyme invalide"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4590,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Échec de création du driver spécifique au dialecte %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Échec de suppression de la colonne %v"
   },
   {
     "id": "store.sql.incorrect_mac",
