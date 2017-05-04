@@ -363,6 +363,7 @@ export default class PostViewController extends React.Component {
                 <PostList
                     postList={this.state.postList}
                     profiles={this.state.profiles}
+                    channelId={this.state.channel.id}
                     channel={this.state.channel}
                     currentUser={this.state.currentUser}
                     showMoreMessagesTop={!this.state.atTop}
