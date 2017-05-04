@@ -107,7 +107,7 @@ UserListRow.defaultProps = {
     actions: [],
     actionProps: {},
     actionUserProps: {},
-    userCount: null
+    userCount: {}
 };
 
 UserListRow.propTypes = {
