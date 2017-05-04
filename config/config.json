@@ -131,7 +131,6 @@
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
         "InviteSalt": "",
-        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
