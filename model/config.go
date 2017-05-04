@@ -401,29 +401,38 @@ type WebrtcSettings struct {
 	TurnSharedKey       *string
 }
 
+type ElasticSearchSettings struct {
+	ConnectionUrl   *string
+	Username        *string
+	Password        *string
+	EnableIndexing  *bool
+	EnableSearching *bool
+}
+
 type Config struct {
-	ServiceSettings      ServiceSettings
-	TeamSettings         TeamSettings
-	SqlSettings          SqlSettings
-	LogSettings          LogSettings
-	PasswordSettings     PasswordSettings
-	FileSettings         FileSettings
-	EmailSettings        EmailSettings
-	RateLimitSettings    RateLimitSettings
-	PrivacySettings      PrivacySettings
-	SupportSettings      SupportSettings
-	GitLabSettings       SSOSettings
-	GoogleSettings       SSOSettings
-	Office365Settings    SSOSettings
-	LdapSettings         LdapSettings
-	ComplianceSettings   ComplianceSettings
-	LocalizationSettings LocalizationSettings
-	SamlSettings         SamlSettings
-	NativeAppSettings    NativeAppSettings
-	ClusterSettings      ClusterSettings
-	MetricsSettings      MetricsSettings
-	AnalyticsSettings    AnalyticsSettings
-	WebrtcSettings       WebrtcSettings
+	ServiceSettings       ServiceSettings
+	TeamSettings          TeamSettings
+	SqlSettings           SqlSettings
+	LogSettings           LogSettings
+	PasswordSettings      PasswordSettings
+	FileSettings          FileSettings
+	EmailSettings         EmailSettings
+	RateLimitSettings     RateLimitSettings
+	PrivacySettings       PrivacySettings
+	SupportSettings       SupportSettings
+	GitLabSettings        SSOSettings
+	GoogleSettings        SSOSettings
+	Office365Settings     SSOSettings
+	LdapSettings          LdapSettings
+	ComplianceSettings    ComplianceSettings
+	LocalizationSettings  LocalizationSettings
+	SamlSettings          SamlSettings
+	NativeAppSettings     NativeAppSettings
+	ClusterSettings       ClusterSettings
+	MetricsSettings       MetricsSettings
+	AnalyticsSettings     AnalyticsSettings
+	WebrtcSettings        WebrtcSettings
+	ElasticSearchSettings ElasticSearchSettings
 }
 
 func (o *Config) ToJson() string {
@@ -1209,6 +1218,31 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
 	}
 
+	if o.ElasticSearchSettings.ConnectionUrl == nil {
+		o.ElasticSearchSettings.ConnectionUrl = new(string)
+		*o.ElasticSearchSettings.ConnectionUrl = ""
+	}
+
+	if o.ElasticSearchSettings.Username == nil {
+		o.ElasticSearchSettings.Username = new(string)
+		*o.ElasticSearchSettings.Username = ""
+	}
+
+	if o.ElasticSearchSettings.Password == nil {
+		o.ElasticSearchSettings.Password = new(string)
+		*o.ElasticSearchSettings.Password = ""
+	}
+
+	if o.ElasticSearchSettings.EnableIndexing == nil {
+		o.ElasticSearchSettings.EnableIndexing = new(bool)
+		*o.ElasticSearchSettings.EnableIndexing = false
+	}
+
+	if o.ElasticSearchSettings.EnableSearching == nil {
+		o.ElasticSearchSettings.EnableSearching = new(bool)
+		*o.ElasticSearchSettings.EnableSearching = false
+	}
+
 	o.defaultWebrtcSettings()
 }
 
@@ -1440,6 +1474,24 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.time_between_user_typing.app_error", nil, "")
 	}
 
+	if *o.ElasticSearchSettings.EnableIndexing {
+		if len(*o.ElasticSearchSettings.ConnectionUrl) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "")
+		}
+
+		if len(*o.ElasticSearchSettings.Username) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.username.app_error", nil, "")
+		}
+
+		if len(*o.ElasticSearchSettings.Password) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.password.app_error", nil, "")
+		}
+	}
+
+	if *o.ElasticSearchSettings.EnableSearching && !*o.ElasticSearchSettings.EnableIndexing {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "")
+	}
+
 	return nil
 }
 
@@ -1480,6 +1532,10 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
+
+	*o.ElasticSearchSettings.ConnectionUrl = FAKE_SETTING
+	*o.ElasticSearchSettings.Username = FAKE_SETTING
+	*o.ElasticSearchSettings.Password = FAKE_SETTING
 }
 
 func (o *Config) defaultWebrtcSettings() {
