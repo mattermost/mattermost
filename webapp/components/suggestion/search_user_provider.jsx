@@ -63,7 +63,7 @@ export default class SearchUserProvider extends Provider {
         if (captured) {
             const usernamePrefix = captured[1];
 
-            this.startNewRequest(usernamePrefix);
+            this.startNewRequest(suggestionId, usernamePrefix);
 
             autocompleteUsersInTeam(
                 usernamePrefix,
