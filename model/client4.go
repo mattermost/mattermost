@@ -250,6 +250,10 @@ func (c *Client4) GetOAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) GetOpenGraphRoute() string {
+	return fmt.Sprintf("/opengraph")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -2562,5 +2566,20 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Open Graph Metadata Section
+
+// OpenGraph return the open graph metadata for a particular url if the site have the metadata
+func (c *Client4) OpenGraph(url string) (map[string]string, *Response) {
+	requestBody := make(map[string]string)
+	requestBody["url"] = url
+
+	if r, err := c.DoApiPost(c.GetOpenGraphRoute(), MapToJson(requestBody)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
 	}
 }

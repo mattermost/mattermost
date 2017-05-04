@@ -1700,6 +1700,10 @@
     "translation": "Initializing reactions api routes"
   },
   {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
+  },
+  {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
     "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
