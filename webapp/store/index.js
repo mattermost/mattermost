@@ -77,15 +77,15 @@ export default function configureStore(initialState) {
 
                     persistor.purge();
 
+                    document.cookie = 'MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                    window.location.href = '/';
+
                     store.dispatch(batchActions([
                         {
                             type: General.OFFLINE_STORE_RESET,
                             data: Object.assign({}, reduxInitialState, initialState)
                         }
                     ]));
-
-                    localStorage.removeItem('currentUserId');
-                    window.location.href = '/';
 
                     setTimeout(() => {
                         purging = false;

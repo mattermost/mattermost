@@ -51,8 +51,6 @@ import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/te
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
         () => {
-            localStorage.setItem('currentUserId', UserStore.getCurrentId());
-
             if (callback) {
                 callback();
             }
@@ -741,7 +739,6 @@ export function webLogin(loginId, password, token, success, error) {
     login(loginId, password, token)(dispatch, getState).then(
         (ok) => {
             if (ok && success) {
-                localStorage.setItem('currentUserId', UserStore.getCurrentId());
                 success();
             } else if (!ok && error) {
                 const serverError = getState().requests.users.login.error;
