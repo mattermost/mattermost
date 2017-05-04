@@ -81,9 +81,6 @@ func TestGetConfig(t *testing.T) {
 		if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.EmailSettings.PasswordResetSalt != model.FAKE_SETTING {
-			t.Fatal("did not sanitize properly")
-		}
 		if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
 			t.Fatal("did not sanitize properly")
 		}

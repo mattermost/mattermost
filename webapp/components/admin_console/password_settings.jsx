@@ -9,7 +9,6 @@ import TextSetting from './text_setting.jsx';
 import Setting from './setting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import GeneratedSetting from './generated_setting.jsx';
 
 export default class PasswordSettings extends AdminSettings {
     constructor(props) {
@@ -30,8 +29,7 @@ export default class PasswordSettings extends AdminSettings {
             passwordNumber: props.config.PasswordSettings.Number,
             passwordUppercase: props.config.PasswordSettings.Uppercase,
             passwordSymbol: props.config.PasswordSettings.Symbol,
-            maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts,
-            passwordResetSalt: props.config.EmailSettings.PasswordResetSalt
+            maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts
         });
 
         // Update sample message from config settings
@@ -73,7 +71,6 @@ export default class PasswordSettings extends AdminSettings {
         }
 
         config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts);
-        config.EmailSettings.PasswordResetSalt = this.state.passwordResetSalt;
 
         return config;
     }
@@ -85,8 +82,7 @@ export default class PasswordSettings extends AdminSettings {
             passwordNumber: config.PasswordSettings.Number,
             passwordUppercase: config.PasswordSettings.Uppercase,
             passwordSymbol: config.PasswordSettings.Symbol,
-            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts,
-            passwordResetSalt: config.EmailSettings.PasswordResetSalt
+            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts
         };
     }
 
@@ -261,30 +257,6 @@ export default class PasswordSettings extends AdminSettings {
         return (
             <SettingsGroup>
                 {passwordSettings}
-                <GeneratedSetting
-                    id='passwordResetSalt'
-                    label={
-                        <FormattedMessage
-                            id='admin.email.passwordSaltTitle'
-                            defaultMessage='Password Reset Salt:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.email.passwordSaltDescription'
-                            defaultMessage='32-character salt added to signing of password reset emails. Randomly generated on install. Click "Regenerate" to create new salt.'
-                        />
-                    }
-                    value={this.state.passwordResetSalt}
-                    onChange={this.handleChange}
-                    disabled={this.state.sendEmailNotifications}
-                    disabledText={
-                        <FormattedMessage
-                            id='admin.security.passwordResetSalt.disabled'
-                            defaultMessage='Password reset salt cannot be changed while sending emails is disabled.'
-                        />
-                    }
-                />
                 <TextSetting
                     id='maximumLoginAttempts'
                     label={

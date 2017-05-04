@@ -250,7 +250,6 @@ type EmailSettings struct {
 	SMTPPort                          string
 	ConnectionSecurity                string
 	InviteSalt                        string
-	PasswordResetSalt                 string
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
@@ -501,10 +500,6 @@ func (o *Config) SetDefaults() {
 
 	if len(o.EmailSettings.InviteSalt) == 0 {
 		o.EmailSettings.InviteSalt = NewRandomString(32)
-	}
-
-	if len(o.EmailSettings.PasswordResetSalt) == 0 {
-		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
 	}
 
 	if o.ServiceSettings.SiteURL == nil {
@@ -1288,10 +1283,6 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "")
 	}
 
-	if len(o.EmailSettings.PasswordResetSalt) < 32 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_reset_salt.app_error", nil, "")
-	}
-
 	if *o.EmailSettings.EmailBatchingBufferSize <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "")
 	}
@@ -1438,7 +1429,6 @@ func (o *Config) Sanitize() {
 	}
 
 	o.EmailSettings.InviteSalt = FAKE_SETTING
-	o.EmailSettings.PasswordResetSalt = FAKE_SETTING
 	if len(o.EmailSettings.SMTPPassword) > 0 {
 		o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}

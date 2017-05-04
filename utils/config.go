@@ -288,7 +288,7 @@ func LoadConfig(fileName string) {
 	CfgFileName = viper.ConfigFileUsed()
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
-		len(config.EmailSettings.InviteSalt) == 0 || len(config.EmailSettings.PasswordResetSalt) == 0
+		len(config.EmailSettings.InviteSalt) == 0
 
 	config.SetDefaults()
 
@@ -541,9 +541,6 @@ func Desanitize(cfg *model.Config) {
 
 	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
 		cfg.EmailSettings.InviteSalt = Cfg.EmailSettings.InviteSalt
-	}
-	if cfg.EmailSettings.PasswordResetSalt == model.FAKE_SETTING {
-		cfg.EmailSettings.PasswordResetSalt = Cfg.EmailSettings.PasswordResetSalt
 	}
 	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
 		cfg.EmailSettings.SMTPPassword = Cfg.EmailSettings.SMTPPassword
