@@ -1002,12 +1002,12 @@ func (o *Config) SetDefaults() {
 
 	if o.SamlSettings.Verify == nil {
 		o.SamlSettings.Verify = new(bool)
-		*o.SamlSettings.Verify = false
+		*o.SamlSettings.Verify = true
 	}
 
 	if o.SamlSettings.Encrypt == nil {
 		o.SamlSettings.Encrypt = new(bool)
-		*o.SamlSettings.Encrypt = false
+		*o.SamlSettings.Encrypt = true
 	}
 
 	if o.SamlSettings.IdpUrl == nil {
