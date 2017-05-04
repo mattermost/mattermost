@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"runtime"
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
@@ -17,6 +18,8 @@ func InitSystem() {
 	l4g.Debug(utils.T("api.system.init.debug"))
 
 	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
+	BaseRoutes.System.Handle("/health", ApiSessionRequired(healthCheck)).Methods("GET")
+
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(updateConfig)).Methods("PUT")
 	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
@@ -241,4 +244,21 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(model.MapToJson(clientLicense)))
+}
+
+func healthCheck(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	actualGoroutines := runtime.NumGoroutine()
+	if *utils.Cfg.ServiceSettings.GoroutineHealthThreshold <= 0 || actualGoroutines <= *utils.Cfg.ServiceSettings.GoroutineHealthThreshold {
+		ReturnStatusOK(w)
+	} else {
+		rdata := map[string]string{}
+		rdata["status"] = "unhealthy"
+		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *utils.Cfg.ServiceSettings.GoroutineHealthThreshold)
+		w.Write([]byte(model.MapToJson(rdata)))
+	}
 }

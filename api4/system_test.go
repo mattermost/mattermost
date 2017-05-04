@@ -342,5 +342,31 @@ func TestPostLog(t *testing.T) {
 	if len(logMessage) == 0 {
 		t.Fatal("should return the log message")
 	}
+}
 
+func TestHealthCheck(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	goRoutineHealthThreshold := *utils.Cfg.ServiceSettings.GoroutineHealthThreshold
+	defer func() {
+		*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold
+	}()
+
+	_, resp := Client.HealthCheck()
+	CheckForbiddenStatus(t, resp)
+
+	status, resp := th.SystemAdminClient.HealthCheck()
+	CheckNoError(t, resp)
+	if status != "OK" {
+		t.Fatal("should return OK")
+	}
+
+	*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = 10
+	status, resp = th.SystemAdminClient.HealthCheck()
+	CheckNoError(t, resp)
+	if status != "unhealthy" {
+		t.Fatal("should return unhealthy")
+	}
 }

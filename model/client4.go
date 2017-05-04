@@ -1737,7 +1737,7 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 	}
 }
 
-// General Section
+// General/System Section
 
 // GetPing will ping the server and to see if it is up and running.
 func (c *Client4) GetPing() (bool, *Response) {
@@ -1746,6 +1746,16 @@ func (c *Client4) GetPing() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// HealthCheck will return ok if the running goRoutines are below the threshold and unhealthy for above.
+func (c *Client4) HealthCheck() (string, *Response) {
+	if r, err := c.DoApiGet(c.GetSystemRoute()+"/health", ""); err != nil {
+		return "", &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body)["status"], BuildResponse(r)
 	}
 }
 

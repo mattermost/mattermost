@@ -126,6 +126,7 @@ type ServiceSettings struct {
 	ReadTimeout                              *int
 	WriteTimeout                             *int
 	MaximumLoginAttempts                     int
+	GoroutineHealthThreshold                 *int
 	GoogleDeveloperKey                       string
 	EnableOAuthServiceProvider               bool
 	EnableIncomingWebhooks                   bool
@@ -1162,6 +1163,11 @@ func (o *Config) SetDefaults() {
 	if o.RateLimitSettings.Enable == nil {
 		o.RateLimitSettings.Enable = new(bool)
 		*o.RateLimitSettings.Enable = false
+	}
+
+	if o.ServiceSettings.GoroutineHealthThreshold == nil {
+		o.ServiceSettings.GoroutineHealthThreshold = new(int)
+		*o.ServiceSettings.GoroutineHealthThreshold = -1
 	}
 
 	if o.RateLimitSettings.MaxBurst == nil {

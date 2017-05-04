@@ -6234,5 +6234,9 @@
   {
     "id": "wsapi.webrtc.init.debug",
     "translation": "Initializing webrtc WebSocket API routes"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutine is over the health threshold %v of %v"
   }
 ]
