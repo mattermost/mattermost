@@ -40,7 +40,7 @@ export default class SearchChannelProvider extends Provider {
         if (captured) {
             const channelPrefix = captured[1];
 
-            this.startNewRequest(channelPrefix);
+            this.startNewRequest(suggestionId, channelPrefix);
 
             autocompleteChannels(
                 channelPrefix,

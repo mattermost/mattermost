@@ -113,7 +113,7 @@ export default class AtMentionProvider extends Provider {
 
         const prefix = captured[1];
 
-        this.startNewRequest(prefix);
+        this.startNewRequest(suggestionId, prefix);
 
         autocompleteUsersInChannel(
             prefix,

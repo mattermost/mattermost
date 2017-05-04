@@ -75,7 +75,7 @@ export default class ChannelMentionProvider extends Provider {
 
         const prefix = captured[3];
 
-        this.startNewRequest(prefix);
+        this.startNewRequest(suggestionId, prefix);
 
         autocompleteChannels(
             prefix,
