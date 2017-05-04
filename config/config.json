@@ -221,8 +221,8 @@
     },
     "SamlSettings": {
         "Enable": false,
-        "Verify": false,
-        "Encrypt": false,
+        "Verify": true,
+        "Encrypt": true,
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
         "AssertionConsumerServiceURL": "",
