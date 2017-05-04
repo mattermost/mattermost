@@ -345,7 +345,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	}
 
 	// Should succeed now because matching CORS
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = "www.evil.com"
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = "http://www.evil.com"
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
@@ -354,7 +354,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	}
 
 	// Should fail because non-matching CORS
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = "www.good.com"
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com"
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
