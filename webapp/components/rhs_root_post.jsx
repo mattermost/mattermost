@@ -171,9 +171,30 @@ export default class RhsRootPost extends React.Component {
     }
 
     reactEmojiClick(emoji) {
+        this.setState({showRHSEmojiPicker: false});
         const emojiName = emoji.name || emoji.aliases[0];
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
-        this.setState({showRHSEmojiPicker: false});
+    }
+
+    getClassName = (post, isSystemMessage) => {
+        let className = 'post post--root post--thread';
+        if (UserStore.getCurrentId() === post.user_id) {
+            className += ' current--user';
+        }
+
+        if (isSystemMessage) {
+            className += ' post--system';
+        }
+
+        if (this.props.compactDisplay) {
+            className += 'post--compact';
+        }
+
+        if (post.is_pinned) {
+            className += ' post--pinned';
+        }
+
+        return className;
     }
 
     render() {
@@ -194,16 +215,6 @@ export default class RhsRootPost extends React.Component {
         var type = 'Post';
         if (post.root_id.length > 0) {
             type = 'Comment';
-        }
-
-        var userCss = '';
-        if (UserStore.getCurrentId() === post.user_id) {
-            userCss = 'current--user';
-        }
-
-        var systemMessageClass = '';
-        if (isSystemMessage) {
-            systemMessageClass = 'post--system';
         }
 
         var channelName;
@@ -245,7 +256,7 @@ export default class RhsRootPost extends React.Component {
                     container={this}
                     onHide={() => this.setState({showRHSEmojiPicker: false})}
                     target={() => ReactDOM.findDOMNode(this.refs.rhs_root_reacticon)}
-
+                    animation={false}
                 >
                     <EmojiPicker
                         onEmojiClick={this.reactEmojiClick}
@@ -493,11 +504,7 @@ export default class RhsRootPost extends React.Component {
             );
         }
 
-        let compactClass = '';
-        let postClass = '';
         if (this.props.compactDisplay) {
-            compactClass = 'post--compact';
-
             if (post.props && post.props.from_webhook) {
                 profilePic = (
                     <ProfilePicture
@@ -516,6 +523,7 @@ export default class RhsRootPost extends React.Component {
             }
         }
 
+        let postClass = '';
         if (PostUtils.isEdited(this.props.post)) {
             postClass += ' post--edited';
         }
@@ -581,7 +589,7 @@ export default class RhsRootPost extends React.Component {
         return (
             <div
                 id='thread--root'
-                className={'post post--root post--thread ' + userCss + ' ' + systemMessageClass + ' ' + compactClass}
+                className={this.getClassName(post, isSystemMessage)}
             >
                 <div className='post-right-channel__name'>{channelName}</div>
                 <div className='post__content'>

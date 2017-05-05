@@ -727,8 +727,17 @@
                             z-index: 5;
 
                             .modal-title {
+                                max-width: 100%;
+                                padding: 0 40px;
                                 text-align: center;
                                 width: 100%;
+
+                                > span {
+                                    display: block;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                    white-space: nowrap;
+                                }
                             }
                         }
 

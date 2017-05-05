@@ -194,6 +194,9 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function updateSection(e) {
                 this.updateSection('');
+                this.setState({
+                    notifyLevel: this.props.channelMember.notify_props.desktop
+                });
                 e.preventDefault();
             }.bind(this);
 
@@ -322,6 +325,9 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function handleUpdateSection(e) {
                 this.updateSection('');
+                this.setState({
+                    unreadLevel: this.props.channelMember.notify_props.mark_unread
+                });
                 e.preventDefault();
             }.bind(this);
 
@@ -360,6 +366,9 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function handleUpdateSection(e) {
                 this.updateSection('markUnreadLevel');
+                this.setState({
+                    unreadLevel: this.props.channelMember.notify_props.mark_unread
+                });
                 e.preventDefault();
             }.bind(this);
 
@@ -524,6 +533,9 @@ export default class ChannelNotificationsModal extends React.Component {
 
             const handleUpdateSection = function updateSection(e) {
                 this.updateSection('');
+                this.setState({
+                    pushLevel: this.props.channelMember.notify_props.push || 'default'
+                });
                 e.preventDefault();
             }.bind(this);
 

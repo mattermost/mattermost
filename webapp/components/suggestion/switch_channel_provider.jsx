@@ -12,7 +12,7 @@ import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {sortChannelsByDisplayName, buildGroupChannelName} from 'utils/channel_utils.jsx';
+import {sortChannelsByDisplayName, getChannelDisplayName} from 'utils/channel_utils.jsx';
 
 import React from 'react';
 
@@ -32,8 +32,8 @@ class SwitchChannelSuggestion extends Suggestion {
         } else if (item.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
         } else if (item.type === Constants.GM_CHANNEL) {
-            displayName = buildGroupChannelName(item.id);
-            icon = <div className='status status--group'>{UserStore.getProfileListInChannel(item.id, true).length}</div>;
+            displayName = getChannelDisplayName(item);
+            icon = <div className='status status--group'>{'G'}</div>;
         } else {
             icon = (
                 <div className='pull-left'>
@@ -60,7 +60,7 @@ class SwitchChannelSuggestion extends Suggestion {
 export default class SwitchChannelProvider extends Provider {
     handlePretextChanged(suggestionId, channelPrefix) {
         if (channelPrefix) {
-            this.startNewRequest(channelPrefix);
+            this.startNewRequest(suggestionId, channelPrefix);
 
             const allChannels = ChannelStore.getAll();
             const channels = [];
@@ -81,7 +81,7 @@ export default class SwitchChannelProvider extends Provider {
                         if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
                             const newChannel = Object.assign({}, channel);
                             if (newChannel.type === Constants.GM_CHANNEL) {
-                                newChannel.name = buildGroupChannelName(newChannel.id);
+                                newChannel.name = getChannelDisplayName(newChannel);
                             }
                             channels.push(newChannel);
                         }

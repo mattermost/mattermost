@@ -7,7 +7,6 @@ import $ from 'jquery';
 
 import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
@@ -26,9 +25,9 @@ import ErrorBar from 'components/error_bar.jsx';
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
-import WebrtcSidebar from './webrtc/components/webrtc_sidebar.jsx';
+import WebrtcSidebar from 'components/webrtc/components/webrtc_sidebar.jsx';
 
-import WebrtcNotification from './webrtc/components/webrtc_notification.jsx';
+import WebrtcNotification from 'components/webrtc/components/webrtc_notification.jsx';
 
 // Modals
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
@@ -48,6 +47,23 @@ import * as UserAgent from 'utils/user_agent.jsx';
 const UNREAD_CHECK_TIME_MILLISECONDS = 10000;
 
 export default class NeedsTeam extends React.Component {
+    static propTypes = {
+        children: React.PropTypes.oneOfType([
+            React.PropTypes.arrayOf(React.PropTypes.element),
+            React.PropTypes.element
+        ]),
+        navbar: React.PropTypes.element,
+        sidebar: React.PropTypes.element,
+        team_sidebar: React.PropTypes.element,
+        center: React.PropTypes.element,
+        params: React.PropTypes.object,
+        user: React.PropTypes.object,
+        actions: React.PropTypes.shape({
+            viewChannel: React.PropTypes.func.isRequired,
+            getMyChannelMembers: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(params) {
         super(params);
 
@@ -102,13 +118,13 @@ export default class NeedsTeam extends React.Component {
         // Set up tracking for whether the window is active
         window.isActive = true;
         $(window).on('focus', () => {
-            AsyncClient.viewChannel();
-            ChannelStore.resetCounts(ChannelStore.getCurrentId());
+            this.props.actions.viewChannel(ChannelStore.getCurrentId());
+            ChannelStore.resetCounts([ChannelStore.getCurrentId()]);
             ChannelStore.emitChange();
 
             window.isActive = true;
             if (new Date().getTime() - this.blurTime > UNREAD_CHECK_TIME_MILLISECONDS) {
-                AsyncClient.getMyChannelMembers().then(loadProfilesForSidebar);
+                this.props.actions.getMyChannelMembers(TeamStore.getCurrentId()).then(loadProfilesForSidebar);
             }
         });
 
@@ -116,7 +132,7 @@ export default class NeedsTeam extends React.Component {
             window.isActive = false;
             this.blurTime = new Date().getTime();
             if (UserStore.getCurrentUser()) {
-                AsyncClient.viewChannel('');
+                this.props.actions.viewChannel('');
             }
         });
 
@@ -216,16 +232,3 @@ export default class NeedsTeam extends React.Component {
         );
     }
 }
-
-NeedsTeam.propTypes = {
-    children: React.PropTypes.oneOfType([
-        React.PropTypes.arrayOf(React.PropTypes.element),
-        React.PropTypes.element
-    ]),
-    navbar: React.PropTypes.element,
-    sidebar: React.PropTypes.element,
-    team_sidebar: React.PropTypes.element,
-    center: React.PropTypes.element,
-    params: React.PropTypes.object,
-    user: React.PropTypes.object
-};

@@ -185,19 +185,19 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "La gestión y creación de Canales Privados está restringido a los Administradores del Sistema."
+    "translation": "La gestión y creación de Canales Privados está restringida a los Administradores del Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "La gestión y creación de Canales Privados está restringido a los Administradores de Equipo y Sistema."
+    "translation": "La gestión y creación de Canales Privados está restringida a los Administradores de Equipo y Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "La gestión y creación de Canales Públicos está restringido a los Administradores del Sistema."
+    "translation": "La gestión y creación de Canales Públicos está restringida a los Administradores del Sistema."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "La gestión y creación de Canales Públicos está restringido a los Administradores de Equipo y Sistema."
+    "translation": "La gestión y creación de Canales Públicos está restringida a los Administradores de Equipo y Sistema."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2349,7 +2349,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] Te haz unido a {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] Te has unido a {{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2525,7 +2525,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "El inicio de sesión falló porque tu cuenta ha sido desactivada. Por favor contacta a un administrador."
+    "translation": "El inicio de sesión falló porque tu cuenta ha sido desactivada.  Por favor contacta a un administrador."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -3092,6 +3092,10 @@
     "translation": "Invalid roles for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "La Contraseña y AuthData del usuario se excluyen mutuamente."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "La propiedad AuthData del usuario es demasiado larga."
   },
@@ -3118,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "La propiedad nickname del usuario es demasiado larga."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "La contraseña del usuario tiene una longitud no válida."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -4408,6 +4416,14 @@
     "translation": "Id de usuario inválido"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Expiración del token no válido"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Token no válido."
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Data de auth es inválida"
   },
@@ -4442,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Sobrenombre no es válido"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "No se puede establecer una contraseña con más de 72 caracteres debido a las limitaciones de bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4590,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Failed to create dialect specific driver %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Falla al borrar la columna %v"
   },
   {
     "id": "store.sql.incorrect_mac",

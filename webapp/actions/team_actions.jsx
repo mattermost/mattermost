@@ -2,8 +2,8 @@
 // See License.txt for license information.
 
 import TeamStore from 'stores/team_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
 import {browserHistory} from 'react-router/es6';
@@ -14,6 +14,7 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 
 import {getUser} from 'mattermost-redux/actions/users';
+import {viewChannel} from 'mattermost-redux/actions/channels';
 import {
     createTeam as createTeamRedux,
     updateTeam as updateTeamRedux,
@@ -165,7 +166,7 @@ export function inviteMembers(data, success, error) {
 }
 
 export function switchTeams(url) {
-    AsyncClient.viewChannel();
+    viewChannel(ChannelStore.getCurrentId())(dispatch, getState);
     browserHistory.push(url);
 }
 

@@ -318,10 +318,9 @@ export default class PostInfo extends React.Component {
 
     reactEmojiClick(emoji) {
         const pickerOffset = 21;
-
+        this.setState({showEmojiPicker: false, reactionPickerOffset: pickerOffset});
         const emojiName = emoji.name || emoji.aliases[0];
         PostActions.addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
-        this.setState({showEmojiPicker: false, reactionPickerOffset: pickerOffset});
     }
 
     render() {
@@ -374,7 +373,7 @@ export default class PostInfo extends React.Component {
                             container={this}
                             onHide={() => this.setState({showEmojiPicker: false})}
                             target={() => ReactDOM.findDOMNode(this.refs['reactIcon_' + post.id])}
-
+                            animation={false}
                         >
                             <EmojiPicker
                                 onEmojiClick={this.reactEmojiClick}

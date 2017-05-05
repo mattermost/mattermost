@@ -53,6 +53,7 @@ type Store interface {
 	DropAllTables()
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
+	TotalSearchDbConnections() int
 }
 
 type TeamStore interface {

@@ -113,7 +113,7 @@ export default class NewChannelModal extends React.Component {
         }
 
         if (this.props.serverError) {
-            serverError = <div className='form-group has-error'><p className='input__help error'>{this.props.serverError}</p></div>;
+            serverError = <div className='form-group has-error'><div className='col-sm-12'><p className='input__help error'>{this.props.serverError}</p></div></div>;
         }
 
         let createPublicChannelLink = (

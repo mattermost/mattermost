@@ -25,6 +25,7 @@ export default class StorageSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
+        config.FileSettings.EnableFileAttachments = this.state.enableFileAttachments;
         config.FileSettings.MaxFileSize = this.parseInt(this.state.maxFileSize) * 1024 * 1024;
         config.FileSettings.DriverName = this.state.driverName;
         config.FileSettings.Directory = this.state.directory;
@@ -39,6 +40,7 @@ export default class StorageSettings extends AdminSettings {
 
     getStateFromConfig(config) {
         return {
+            enableFileAttachments: config.FileSettings.EnableFileAttachments,
             maxFileSize: config.FileSettings.MaxFileSize / 1024 / 1024,
             driverName: config.FileSettings.DriverName,
             directory: config.FileSettings.Directory,
@@ -199,6 +201,23 @@ export default class StorageSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
+                <BooleanSetting
+                    id='enableFileAttachments'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.enableFileAttachments'
+                            defaultMessage='Enable File Attachments:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.enableFileAttachmentsDesc'
+                            defaultMessage='When false, disable file and image uploads on messages.'
+                        />
+                    }
+                    value={this.state.enableFileAttachments}
+                    onChange={this.handleChange}
+                />
                 <TextSetting
                     id='maxFileSize'
                     label={
@@ -216,6 +235,7 @@ export default class StorageSettings extends AdminSettings {
                     }
                     value={this.state.maxFileSize}
                     onChange={this.handleChange}
+                    disabled={!this.state.enableFileAttachments}
                 />
             </SettingsGroup>
         );

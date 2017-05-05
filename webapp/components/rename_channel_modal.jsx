@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import ReactDOM from 'react-dom';
+import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {cleanUpUrlable, getShortenedURL} from 'utils/url.jsx';
@@ -164,8 +165,10 @@ export class RenameChannelModal extends React.Component {
         }
 
         updateChannel(channel,
-            () => {
+            (data) => {
                 this.handleHide();
+                const team = TeamStore.get(data.team_id);
+                browserHistory.push('/' + team.name + '/channels/' + data.name);
             },
             (err) => {
                 this.setState({

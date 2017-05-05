@@ -20,6 +20,29 @@ import {Constants, Preferences, ActionTypes} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {
+    viewChannel,
+    addChannelMember,
+    removeChannelMember,
+    updateChannelMemberRoles,
+    createDirectChannel,
+    fetchMyChannelsAndMembers,
+    joinChannel as joinChannelRedux,
+    leaveChannel as leaveChannelRedux,
+    updateChannel as updateChannelRedux,
+    searchChannels,
+    updateChannelNotifyProps as updateChannelNotifyPropsRedux,
+    createChannel as createChannelRedux,
+    patchChannel,
+    getChannelMembersByIds,
+    deleteChannel as deleteChannelRedux
+} from 'mattermost-redux/actions/channels';
+
 export function goToChannel(channel) {
     if (channel.fake) {
         const user = UserStore.getProfileByUsername(channel.display_name);
@@ -66,8 +89,8 @@ export function executeCommand(message, args, success, error) {
 
 export function setChannelAsRead(channelIdParam) {
     const channelId = channelIdParam || ChannelStore.getCurrentId();
-    AsyncClient.viewChannel();
-    ChannelStore.resetCounts(channelId);
+    viewChannel(channelId)(dispatch, getState);
+    ChannelStore.resetCounts([channelId]);
     ChannelStore.emitChange();
     if (channelId === ChannelStore.getCurrentId()) {
         ChannelStore.emitLastViewed(Number.MAX_VALUE, false);
@@ -75,97 +98,52 @@ export function setChannelAsRead(channelIdParam) {
 }
 
 export function addUserToChannel(channelId, userId, success, error) {
-    Client.addChannelMember(
-        channelId,
-        userId,
+    addChannelMember(channelId, userId)(dispatch, getState).then(
         (data) => {
-            UserStore.removeProfileNotInChannel(channelId, userId);
-            const profile = UserStore.getProfile(userId);
-            if (profile) {
-                UserStore.saveProfileInChannel(channelId, profile);
-                UserStore.emitInChannelChange();
-            }
-            UserStore.emitNotInChannelChange();
-
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'addChannelMember');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.addChannelMember.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function removeUserFromChannel(channelId, userId, success, error) {
-    Client.removeChannelMember(
-        channelId,
-        userId,
+    removeChannelMember(channelId, userId)(dispatch, getState).then(
         (data) => {
-            UserStore.removeProfileInChannel(channelId, userId);
-            const profile = UserStore.getProfile(userId);
-            if (profile) {
-                UserStore.saveProfileNotInChannel(channelId, profile);
-                UserStore.emitNotInChannelChange();
-            }
-            UserStore.emitInChannelChange();
-
-            ChannelStore.removeMemberInChannel(channelId, userId);
-            ChannelStore.emitChange();
-
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'removeChannelMember');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.removeChannelMember.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function makeUserChannelAdmin(channelId, userId, success, error) {
-    Client.updateChannelMemberRoles(
-        channelId,
-        userId,
-        'channel_user channel_admin',
-        () => {
-            getChannelMembersForUserIds(channelId, [userId]);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateChannelMemberRoles(channelId, userId, 'channel_user channel_admin')(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.updateChannelMember.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function makeUserChannelMember(channelId, userId, success, error) {
-    Client.updateChannelMemberRoles(
-        channelId,
-        userId,
-        'channel_user',
-        () => {
-            getChannelMembersForUserIds(channelId, [userId]);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateChannelMemberRoles(channelId, userId, 'channel_user')(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.updateChannelMember.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -193,37 +171,15 @@ export function openDirectChannelToUser(userId, success, error) {
         return;
     }
 
-    Client.createDirectChannel(
-        userId,
+    createDirectChannel(UserStore.getCurrentId(), userId)(dispatch, getState).then(
         (data) => {
-            Client.getChannel(
-                data.id,
-                (data2) => {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_CHANNEL,
-                        channel: data2.channel,
-                        member: data2.member
-                    });
-
-                    PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
-                    loadProfilesForSidebar();
-
-                    AsyncClient.savePreference(
-                        Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-                        userId,
-                        'true'
-                    );
-
-                    if (success) {
-                        success(data2.channel, false);
-                    }
-                }
-            );
-        },
-        () => {
-            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
-            if (error) {
-                error();
+            loadProfilesForSidebar();
+            if (data && success) {
+                success(data, false);
+            } else if (data == null && error) {
+                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
+                const serverError = getState().requests.channels.createChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -283,11 +239,11 @@ export function unmarkFavorite(channelId) {
 }
 
 export function loadChannelsForCurrentUser() {
-    AsyncClient.getChannels().then(() => {
-        AsyncClient.getMyChannelMembers().then(() => {
+    fetchMyChannelsAndMembers(TeamStore.getCurrentId())(dispatch, getState).then(
+        () => {
             loadDMsAndGMsForUnreads();
-        });
-    });
+        }
+    );
 }
 
 export function loadDMsAndGMsForUnreads() {
@@ -309,214 +265,125 @@ export function loadDMsAndGMsForUnreads() {
 }
 
 export function joinChannel(channel, success, error) {
-    Client.joinChannel(
-        channel.id,
-        () => {
-            ChannelStore.removeMoreChannel(channel.id);
-            ChannelStore.storeChannel(channel);
-
-            if (success) {
-                success();
-            }
-        },
-        () => {
-            if (error) {
-                error();
+    joinChannelRedux(UserStore.getCurrentId(), null, channel.id)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.joinChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function updateChannel(channel, success, error) {
-    Client.updateChannel(
-        channel,
-        () => {
-            AsyncClient.getChannel(channel.id);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateChannelRedux(channel)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.updateChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function searchMoreChannels(term, success, error) {
-    Client.searchMoreChannels(
-        term,
+    searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.getChannels.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function autocompleteChannels(term, success, error) {
-    Client.autocompleteChannels(
-        term,
+    searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'autocompleteChannels');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.getChannels.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function updateChannelNotifyProps(data, options, success, error) {
-    Client.updateChannelNotifyProps(Object.assign({}, data, options),
-        () => {
-            const member = ChannelStore.getMyMember(data.channel_id);
-            member.notify_props = Object.assign(member.notify_props, options);
-            ChannelStore.storeMyChannelMember(member);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateChannelNotifyPropsRedux(data.user_id, data.channel_id, Object.assign({}, data, options))(dispatch, getState).then(
+        (result) => {
+            if (result && success) {
+                success(result);
+            } else if (result == null && error) {
+                const serverError = getState().requests.channels.updateChannelNotifyProps.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function createChannel(channel, success, error) {
-    Client.createChannel(
-        channel,
+    createChannelRedux(channel)(dispatch, getState).then(
         (data) => {
-            const existing = ChannelStore.getChannelById(data.id);
-            if (existing) {
-                if (success) {
-                    success({channel: existing});
-                }
-            } else {
-                Client.getChannel(
-                    data.id,
-                    (data2) => {
-                        AppDispatcher.handleServerAction({
-                            type: ActionTypes.RECEIVED_CHANNEL,
-                            channel: data2.channel,
-                            member: data2.channel
-                        });
-
-                        if (success) {
-                            success(data2);
-                        }
-                    },
-                    (err) => {
-                        AsyncClient.dispatchError(err, 'getChannel');
-
-                        if (error) {
-                            error(err);
-                        }
-                    }
-                );
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
-            } else {
-                AsyncClient.dispatchError(err, 'createChannel');
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.createChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function updateChannelPurpose(channelId, purposeValue, success, error) {
-    Client.updateChannelPurpose(
-        channelId,
-        purposeValue,
-        () => {
-            AsyncClient.getChannel(channelId);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+export function updateChannelPurpose(channelId, purpose, success, error) {
+    patchChannel(channelId, {purpose})(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.updateChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function updateChannelHeader(channelId, header, success, error) {
-    Client.updateChannelHeader(
-        channelId,
-        header,
-        (channelData) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CHANNEL,
-                channel: channelData
-            });
-
-            if (success) {
-                success(channelData);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    patchChannel(channelId, {header})(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.updateChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function getChannelMembersForUserIds(channelId, userIds, success, error) {
-    Client.getChannelMembersByIds(
-        channelId,
-        userIds,
+    getChannelMembersByIds(channelId, userIds)(dispatch, getState).then(
         (data) => {
-            const memberMap = {};
-            for (let i = 0; i < data.length; i++) {
-                memberMap[data[i].user_id] = data[i];
-            }
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL,
-                channel_id: channelId,
-                channel_members: memberMap
-            });
-
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getChannelMembersByIds');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.members.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function leaveChannel(channelId, success, error) {
-    Client.leaveChannel(channelId,
+export function leaveChannel(channelId, success) {
+    leaveChannelRedux(channelId)(dispatch, getState).then(
         () => {
-            loadChannelsForCurrentUser();
-
             if (ChannelUtils.isFavoriteChannelId(channelId)) {
                 unmarkFavorite(channelId);
             }
@@ -527,33 +394,19 @@ export function leaveChannel(channelId, success, error) {
             if (success) {
                 success();
             }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'handleLeave');
-
-            if (error) {
-                error(err);
-            }
         }
     );
 }
 
 export function deleteChannel(channelId, success, error) {
-    Client.deleteChannel(
-            channelId,
-            () => {
-                loadChannelsForCurrentUser();
-
-                if (success) {
-                    success();
-                }
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'handleDelete');
-
-                if (error) {
-                    error(err);
-                }
+    deleteChannelRedux(channelId)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.channels.members.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-        );
+        }
+    );
 }

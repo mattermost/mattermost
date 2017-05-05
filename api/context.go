@@ -185,6 +185,20 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TEMPORARY CODE FOR 3.9, REMOVE FOR 3.10
+	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil && c.Session.UserId != "" {
+		if _, err = r.Cookie(model.SESSION_COOKIE_USER); err != nil {
+			http.SetCookie(w, &http.Cookie{
+				Name:    model.SESSION_COOKIE_USER,
+				Value:   c.Session.UserId,
+				Path:    "/",
+				MaxAge:  cookie.MaxAge,
+				Expires: cookie.Expires,
+				Secure:  cookie.Secure,
+			})
+		}
+	}
+
 	if h.isApi || h.isTeamIndependent {
 		c.setTeamURL(c.GetSiteURLHeader(), false)
 		c.Path = r.URL.Path
@@ -281,14 +295,14 @@ func (c *Context) LogError(err *model.AppError) {
 	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 || err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
-		l4g.Error(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 	}
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
-	l4g.Debug(utils.T("api.context.log.error"), c.Path, err.Where, err.StatusCode,
-		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.T), err.DetailedError)
+	l4g.Debug(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 }
 
 func (c *Context) UserRequired() {
@@ -357,7 +371,15 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 
+	userCookie := &http.Cookie{
+		Name:   model.SESSION_COOKIE_USER,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	}
+
 	http.SetCookie(w, cookie)
+	http.SetCookie(w, userCookie)
 }
 
 func (c *Context) SetInvalidParam(where string, name string) {

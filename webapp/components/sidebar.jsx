@@ -5,7 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import NewChannelFlow from './new_channel_flow.jsx';
 import MoreDirectChannels from 'components/more_direct_channels';
-import MoreChannels from 'components/more_channels.jsx';
+import MoreChannels from 'components/more_channels';
 import SidebarHeader from './sidebar_header.jsx';
 import UnreadChannelIndicator from './unread_channel_indicator.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
@@ -39,6 +39,10 @@ import {browserHistory, Link} from 'react-router/es6';
 
 import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';
+
+import store from 'stores/redux_store.jsx';
+import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
+import {getUsers} from 'mattermost-redux/selectors/entities/users';
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -116,14 +120,25 @@ export default class Sidebar extends React.Component {
         const currentChannelId = ChannelStore.getCurrentId();
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
-        const allChannels = ChannelStore.getAll().map((channel) => Object.assign({}, channel));
-        const channelList = ChannelUtils.buildDisplayableChannelList(allChannels);
+        const channels = ChannelStore.getAll();
+        const preferences = getMyPreferences(store.getState());
+        const profiles = getUsers(store.getState());
+        let displayableChannels = {};
+        if (channels !== this.oldChannels ||
+            preferences !== this.oldPreferences ||
+            profiles !== this.oldProfiles) {
+            const channelsArray = channels.map((channel) => Object.assign({}, channel));
+            displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
+        }
+        this.oldChannels = channels;
+        this.oldPreferences = preferences;
+        this.oldProfiles = profiles;
 
         return {
             activeId: currentChannelId,
             members,
             teamMembers,
-            ...channelList,
+            ...displayableChannels,
             unreadCounts: JSON.parse(JSON.stringify(ChannelStore.getUnreadCounts())),
             showTutorialTip: tutorialStep === TutorialSteps.CHANNEL_POPOVER,
             currentTeam: TeamStore.getCurrent(),
@@ -733,6 +748,7 @@ export default class Sidebar extends React.Component {
         let createPublicChannelIcon = (
             <OverlayTrigger
                 delayShow={500}
+                trigger='hover'
                 placement='top'
                 overlay={createChannelTootlip}
             >
@@ -750,6 +766,7 @@ export default class Sidebar extends React.Component {
             <OverlayTrigger
                 delayShow={500}
                 placement='top'
+                trigger='hover'
                 overlay={createGroupTootlip}
             >
                 <a

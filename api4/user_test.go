@@ -507,6 +507,12 @@ func TestAutocompleteUsers(t *testing.T) {
 		t.Fatal("should have many users")
 	}
 
+	rusers, resp = Client.AutocompleteUsersInChannel("", channelId, "", "")
+	CheckNoError(t, resp)
+	if len(rusers.Users) < 2 {
+		t.Fatal("should have many users")
+	}
+
 	rusers, resp = Client.AutocompleteUsersInTeam(teamId, username, "")
 	CheckNoError(t, resp)
 
@@ -796,6 +802,13 @@ func TestPatchUser(t *testing.T) {
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
 		t.Fatal("NotifyProps did not update properly")
 	}
+
+	patch.Username = new(string)
+	*patch.Username = th.BasicUser2.Username
+	_, resp = Client.PatchUser(user.Id, patch)
+	CheckBadRequestStatus(t, resp)
+
+	patch.Username = nil
 
 	_, resp = Client.PatchUser("junk", patch)
 	CheckBadRequestStatus(t, resp)

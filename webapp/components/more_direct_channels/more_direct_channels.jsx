@@ -42,6 +42,7 @@ export default class MoreDirectChannels extends React.Component {
         this.handleExit = this.handleExit.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
+        this.handlePageChange = this.handlePageChange.bind(this);
         this.onChange = this.onChange.bind(this);
         this.search = this.search.bind(this);
         this.addValue = this.addValue.bind(this);

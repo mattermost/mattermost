@@ -25,6 +25,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 
 export function handleNewPost(post, msg) {
     let websocketMessageProps = {};
@@ -40,7 +41,7 @@ export function handleNewPost(post, msg) {
             Client.setTeamId(msg.data.team_id);
         }
 
-        AsyncClient.getChannelMember(post.channel_id, UserStore.getCurrentId()).then(() => completePostReceive(post, websocketMessageProps));
+        getMyChannelMember(post.channel_id)(dispatch, getState).then(() => completePostReceive(post, websocketMessageProps));
     }
 
     if (msg && msg.data) {
@@ -141,7 +142,7 @@ export function getFlaggedPosts() {
     );
 }
 
-export function getPinnedPosts(channelId) {
+export function getPinnedPosts(channelId = ChannelStore.getCurrentId()) {
     Client.getPinnedPosts(channelId,
         (data) => {
             AppDispatcher.handleServerAction({

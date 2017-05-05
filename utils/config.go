@@ -288,7 +288,7 @@ func LoadConfig(fileName string) {
 	CfgFileName = viper.ConfigFileUsed()
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
-		len(config.EmailSettings.InviteSalt) == 0 || len(config.EmailSettings.PasswordResetSalt) == 0
+		len(config.EmailSettings.InviteSalt) == 0
 
 	config.SetDefaults()
 
@@ -405,6 +405,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
+	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 	props["ProfileHeight"] = fmt.Sprintf("%v", c.FileSettings.ProfileHeight)
 	props["ProfileWidth"] = fmt.Sprintf("%v", c.FileSettings.ProfileWidth)
@@ -541,9 +542,6 @@ func Desanitize(cfg *model.Config) {
 	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
 		cfg.EmailSettings.InviteSalt = Cfg.EmailSettings.InviteSalt
 	}
-	if cfg.EmailSettings.PasswordResetSalt == model.FAKE_SETTING {
-		cfg.EmailSettings.PasswordResetSalt = Cfg.EmailSettings.PasswordResetSalt
-	}
 	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
 		cfg.EmailSettings.SMTPPassword = Cfg.EmailSettings.SMTPPassword
 	}
@@ -561,5 +559,9 @@ func Desanitize(cfg *model.Config) {
 
 	for i := range cfg.SqlSettings.DataSourceReplicas {
 		cfg.SqlSettings.DataSourceReplicas[i] = Cfg.SqlSettings.DataSourceReplicas[i]
+	}
+
+	for i := range cfg.SqlSettings.DataSourceSearchReplicas {
+		cfg.SqlSettings.DataSourceSearchReplicas[i] = Cfg.SqlSettings.DataSourceSearchReplicas[i]
 	}
 }

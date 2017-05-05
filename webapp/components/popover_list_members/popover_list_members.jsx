@@ -177,8 +177,7 @@ export default class PopoverListMembers extends React.Component {
                         className='more-modal__row'
                         key={'popover-member-more'}
                     >
-                        <div className='col-sm-3'/>
-                        <div className='more-modal__details'>
+                        <div className='more-modal__details text-center'>
                             <div
                                 className='more-modal__name'
                             >

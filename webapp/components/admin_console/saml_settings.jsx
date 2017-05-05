@@ -368,7 +368,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.verifyDescription'
-                            defaultMessage='When true, Mattermost verifies that the signature sent from the SAML Response matches the Service Provider Login URL'
+                            defaultMessage='When false, Mattermost will not verify that the signature sent from a SAML Response matches the Service Provider Login URL. Not recommended for production environments. For testing only.'
                         />
                     }
                     value={this.state.verify}
@@ -405,7 +405,7 @@ export default class SamlSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.saml.encryptDescription'
-                            defaultMessage='When true, Mattermost will decrypt SAML Assertions encrypted with your Service Provider Public Certificate.'
+                            defaultMessage='When false, Mattermost will not decrypt SAML Assertions encrypted with your Service Provider Public Certificate. Not recommended for production environments. For testing only.'
                         />
                     }
                     value={this.state.encrypt}

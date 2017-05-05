@@ -24,6 +24,8 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
+import * as Selectors from 'mattermost-redux/selectors/entities/users';
+
 import {
     getProfiles,
     getProfilesInChannel,
@@ -49,8 +51,6 @@ import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/te
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
         () => {
-            localStorage.setItem('currentUserId', UserStore.getCurrentId());
-
             if (callback) {
                 callback();
             }
@@ -239,7 +239,8 @@ function populateDMChannelsWithProfiles(userIds) {
     for (let i = 0; i < userIds.length; i++) {
         const channelName = getDirectChannelName(currentUserId, userIds[i]);
         const channel = ChannelStore.getByName(channelName);
-        if (channel) {
+        const profilesInChannel = Selectors.getUserIdsInChannels(getState())[channel.id] || new Set();
+        if (channel && !profilesInChannel.has(userIds[i])) {
             UserStore.saveUserIdInChannel(channel.id, userIds[i]);
         }
     }
@@ -532,7 +533,7 @@ export function updateUser(user, type, success, error) {
             if (data && success) {
                 success(data);
             } else if (data == null && error) {
-                const serverError = getState().requests.users.updateUser.error;
+                const serverError = getState().requests.users.updateMe.error;
                 error({id: serverError.server_error_id, ...serverError});
             }
         }
@@ -629,10 +630,7 @@ export function checkMfa(loginId, success, error) {
 export function updateActive(userId, active, success, error) {
     Client.updateActive(userId, active,
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_PROFILE,
-                profile: data
-            });
+            UserStore.saveProfile(data);
 
             if (success) {
                 success(data);
@@ -741,7 +739,6 @@ export function webLogin(loginId, password, token, success, error) {
     login(loginId, password, token)(dispatch, getState).then(
         (ok) => {
             if (ok && success) {
-                localStorage.setItem('currentUserId', UserStore.getCurrentId());
                 success();
             } else if (!ok && error) {
                 const serverError = getState().requests.users.login.error;

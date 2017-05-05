@@ -144,14 +144,14 @@ export default class TeamAnalytics extends React.Component {
         let userActiveGraph;
         if (stats[StatTypes.TOTAL_POSTS] === -1) {
             banner = (
-                <Banner
-                    description={
+                <div className='banner'>
+                    <div className='banner__content'>
                         <FormattedHTMLMessage
                             id='analytics.system.skippedIntensiveQueries'
                             defaultMessage="Some statistics have been omitted because they put too much load on the system to calculate. See <a href='https://docs.mattermost.com/administration/statistics.html' target='_blank'>https://docs.mattermost.com/administration/statistics.html</a> for more details."
                         />
-                    }
-                />
+                    </div>
+                </div>
             );
         } else {
             totalPostsCount = (

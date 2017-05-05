@@ -170,7 +170,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rchannel, err := app.PatchChannel(oldChannel, patch); err != nil {
+	if rchannel, err := app.PatchChannel(oldChannel, patch, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -453,11 +453,6 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.ChannelSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("channel_search")
-		return
-	}
-
-	if len(props.Term) == 0 {
-		c.SetInvalidParam("term")
 		return
 	}
 

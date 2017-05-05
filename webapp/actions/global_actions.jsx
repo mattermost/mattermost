@@ -35,8 +35,8 @@ import {browserHistory} from 'react-router/es6';
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
-import {ChannelTypes} from 'mattermost-redux/action_types';
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
+import {viewChannel, getChannelStats, getMyChannelMember} from 'mattermost-redux/actions/channels';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -53,22 +53,21 @@ export function emitChannelClickEvent(channel) {
     }
     function switchToChannel(chan) {
         const channelMember = ChannelStore.getMyMember(chan.id);
-        const getMyChannelMemberPromise = AsyncClient.getChannelMember(chan.id, UserStore.getCurrentId());
+        const getMyChannelMemberPromise = getMyChannelMember(chan.id)(dispatch, getState);
         const oldChannelId = ChannelStore.getCurrentId();
 
         getMyChannelMemberPromise.then(() => {
-            AsyncClient.getChannelStats(chan.id, true);
-            AsyncClient.viewChannel(chan.id, oldChannelId);
+            getChannelStats(chan.id)(dispatch, getState);
+            viewChannel(chan.id)(dispatch, getState);
             loadPosts(chan.id);
+
+            // Mark previous and next channel as read
+            ChannelStore.resetCounts([chan.id, oldChannelId]);
         });
 
         // Subtract mentions for the team
         const {msgs, mentions} = ChannelStore.getUnreadCounts()[chan.id] || {msgs: 0, mentions: 0};
         TeamStore.subtractUnread(chan.team_id, msgs, mentions);
-
-        // Mark previous and next channel as read
-        ChannelStore.resetCounts(oldChannelId);
-        ChannelStore.resetCounts(chan.id);
 
         BrowserStore.setGlobalItem(chan.team_id, chan.id);
 
@@ -83,11 +82,6 @@ export function emitChannelClickEvent(channel) {
             channelMember,
             prev: oldChannelId
         });
-
-        dispatch({
-            type: ChannelTypes.SELECT_CHANNEL,
-            data: chan.id
-        }, getState);
     }
 
     if (channel.fake) {
@@ -113,7 +107,7 @@ export function doFocusPost(channelId, postId, data) {
         post_list: data
     });
     loadChannelsForCurrentUser();
-    AsyncClient.getChannelStats(channelId);
+    getChannelStats(channelId)(dispatch, getState);
     loadPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
     loadPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
 }
@@ -174,7 +168,8 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
                 type: ActionTypes.RECEIVED_POST_SELECTED,
                 postId: Utils.getRootId(post),
                 from_search: SearchStore.getSearchTerm(),
-                from_flagged_posts: SearchStore.getIsFlaggedPosts()
+                from_flagged_posts: SearchStore.getIsFlaggedPosts(),
+                from_pinned_posts: SearchStore.getIsPinnedPosts()
             });
 
             AppDispatcher.handleServerAction({
@@ -462,7 +457,7 @@ export function clientLogout(redirectTo = '/') {
     ChannelStore.clear();
     stopPeriodicStatusUpdates();
     WebsocketActions.close();
-    localStorage.removeItem('currentUserId');
+    document.cookie = 'MMUSERID=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     window.location.href = redirectTo;
 }
 
