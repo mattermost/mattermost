@@ -59,9 +59,6 @@ import:
   version: v2.0.3
   subpackages:
   - store/memstore
-- package: github.com/segmentio/analytics-go
-  version: 2.1.1
-- package: github.com/rsc/letsencrypt
 - package: github.com/prometheus/client_golang
   version: v0.8.0
   subpackages:
@@ -83,10 +80,6 @@ import:
   subpackages:
   - pbutil
 - package: github.com/prometheus/procfs
-- package: github.com/spf13/cobra
-- package: github.com/spf13/pflag
-- package: github.com/dyatlov/go-opengraph
-  subpackages:
-  - opengraph
 - package: github.com/cpanato/html2text
-
+- package: gopkg.in/olivere/elastic.v5
+  version: v5.0.36
