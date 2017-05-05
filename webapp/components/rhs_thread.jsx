@@ -321,17 +321,15 @@ export default class RhsThread extends React.Component {
     }
 
     render() {
-        const postsArray = this.state.postsArray;
-        const selected = this.state.selected;
-        const profiles = this.state.profiles || {};
-        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
-        let previousPostDay = rootPostDay;
-
-        if (postsArray == null || selected == null) {
+        if (this.state.postsArray == null || this.state.selected == null) {
             return (
                 <div/>
             );
         }
+
+        const postsArray = this.state.postsArray;
+        const selected = this.state.selected;
+        const profiles = this.state.profiles || {};
 
         let profile;
         if (UserStore.getCurrentId() === selected.user_id) {
@@ -349,6 +347,9 @@ export default class RhsThread extends React.Component {
         if (this.state.statuses) {
             rootStatus = this.state.statuses[selected.user_id] || 'offline';
         }
+
+        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
+        let previousPostDay = rootPostDay;
 
         const commentsLists = [];
         for (let i = 0; i < postsArray.length; i++) {
