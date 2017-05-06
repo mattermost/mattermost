@@ -362,6 +362,7 @@ export default class PostList extends React.Component {
                     status={status}
                     isBusy={this.props.isBusy}
                     childComponentDidUpdateFunction={this.childComponentDidUpdate}
+                    getPostList={this.getPostList}
                 />
             );
 
@@ -542,6 +543,10 @@ export default class PostList extends React.Component {
 
     childComponentDidUpdate() {
         this.checkAndUpdateScrolling();
+    }
+
+    getPostList = () => {
+        return this.refs.postlist;
     }
 
     render() {

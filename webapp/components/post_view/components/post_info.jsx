@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import ReactDOM from 'react-dom';
 
 import PostTime from './post_time.jsx';
 import PostFlagIcon from 'components/common/post_flag_icon.jsx';
@@ -15,8 +14,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Overlay} from 'react-bootstrap';
-import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
 import PropTypes from 'prop-types';
 
@@ -35,7 +33,6 @@ export default class PostInfo extends React.Component {
         this.pinPost = this.pinPost.bind(this);
         this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
-        this.emojiPickerClick = this.emojiPickerClick.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -279,8 +276,16 @@ export default class PostInfo extends React.Component {
         GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
-    emojiPickerClick() {
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    toggleEmojiPicker = () => {
+        const showEmojiPicker = !this.state.showEmojiPicker;
+
+        this.setState({showEmojiPicker});
+        this.props.handleDropdownOpened(showEmojiPicker);
+    }
+
+    hideEmojiPicker = () => {
+        this.setState({showEmojiPicker: false});
+        this.props.handleDropdownOpened(false);
     }
 
     removePost() {
@@ -327,6 +332,10 @@ export default class PostInfo extends React.Component {
         PostActions.addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
     }
 
+    getDotMenu = () => {
+        return this.refs.dotMenu;
+    }
+
     render() {
         var post = this.props.post;
 
@@ -357,30 +366,21 @@ export default class PostInfo extends React.Component {
             if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
                 react = (
                     <span>
-                        <Overlay
+                        <EmojiPickerOverlay
                             show={this.state.showEmojiPicker}
-                            placement='top'
-                            rootClose={true}
-                            container={this}
-                            onHide={() => this.setState({showEmojiPicker: false})}
-                            target={() => ReactDOM.findDOMNode(this.refs['reactIcon_' + post.id])}
-                            animation={false}
-                        >
-                            <EmojiPicker
-                                onEmojiClick={this.reactEmojiClick}
-                                pickerLocation='top'
-
-                            />
-                        </Overlay>
+                            container={this.props.getPostList}
+                            target={this.getDotMenu}
+                            onHide={this.hideEmojiPicker}
+                            onEmojiClick={this.toggleEmojiPicker}
+                        />
                         <a
                             href='#'
                             className='reacticon__container'
-                            onClick={this.emojiPickerClick}
-                            ref={'reactIcon_' + post.id}
-                        ><i className='fa fa-smile-o'/>
+                            onClick={this.toggleEmojiPicker}
+                        >
+                            <i className='fa fa-smile-o'/>
                         </a>
                     </span>
-
                 );
             }
         }
@@ -397,7 +397,10 @@ export default class PostInfo extends React.Component {
 
             if (dropdown) {
                 options = (
-                    <li className='col col__reply'>
+                    <li
+                        ref='dotMenu'
+                        className='col col__reply'
+                    >
                         <div
                             className='dropdown'
                             ref='dotMenu'
@@ -456,6 +459,7 @@ PostInfo.defaultProps = {
     sameUser: false
 };
 PostInfo.propTypes = {
+<<<<<<< 5cbb3a7c1195717ca4b67b795b3f8d4a932d8dc4
     post: PropTypes.object.isRequired,
     lastPostCount: PropTypes.number,
     commentCount: PropTypes.number.isRequired,
@@ -467,4 +471,17 @@ PostInfo.propTypes = {
     compactDisplay: PropTypes.bool,
     useMilitaryTime: PropTypes.bool.isRequired,
     isFlagged: PropTypes.bool
+=======
+    post: React.PropTypes.object.isRequired,
+    commentCount: React.PropTypes.number.isRequired,
+    isLastComment: React.PropTypes.bool.isRequired,
+    handleCommentClick: React.PropTypes.func.isRequired,
+    handleDropdownOpened: React.PropTypes.func.isRequired,
+    sameUser: React.PropTypes.bool.isRequired,
+    currentUser: React.PropTypes.object.isRequired,
+    compactDisplay: React.PropTypes.bool,
+    useMilitaryTime: React.PropTypes.bool.isRequired,
+    isFlagged: React.PropTypes.bool,
+    getPostList: React.PropTypes.func.isRequired
+>>>>>>> PLT-6135 Made EmojiPicker automatically position itself above/below the [...] menu
 };
