@@ -531,6 +531,7 @@ export default class Sidebar extends React.Component {
             link = '/' + this.state.currentTeam.name + '/channels/' + channel.name;
         }
 
+        let toolTip = channel.header
         return (
             <li
                 key={channel.name}
@@ -540,6 +541,7 @@ export default class Sidebar extends React.Component {
                 <Link
                     to={link}
                     className={rowClass}
+                    title={toolTip}
                 >
                     {icon}
                     {channel.display_name}
