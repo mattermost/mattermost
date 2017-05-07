@@ -114,5 +114,6 @@ UserListRow.propTypes = {
     extraInfo: React.PropTypes.arrayOf(React.PropTypes.object),
     actions: React.PropTypes.arrayOf(React.PropTypes.func),
     actionProps: React.PropTypes.object,
-    actionUserProps: React.PropTypes.object
+    actionUserProps: React.PropTypes.object,
+    userCount: React.PropTypes.number
 };
