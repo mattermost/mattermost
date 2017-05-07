@@ -1,9 +1,10 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
 
 import (
+	"encoding/json"
 	"regexp"
 	"strings"
 )
@@ -17,6 +18,15 @@ type SearchParams struct {
 	InChannels []string
 	FromUsers  []string
 	OrTerms    bool
+}
+
+func (o *SearchParams) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}
@@ -165,7 +175,7 @@ func ParseSearchParams(text string) []*SearchParams {
 	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0) {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:      "",
-			IsHashtag:  true,
+			IsHashtag:  false,
 			InChannels: inChannels,
 			FromUsers:  fromUsers,
 		})

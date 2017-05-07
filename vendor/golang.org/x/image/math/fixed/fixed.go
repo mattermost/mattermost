@@ -167,6 +167,11 @@ func (p Point26_6) Div(k Int26_6) Point26_6 {
 	return Point26_6{p.X * 64 / k, p.Y * 64 / k}
 }
 
+// In returns whether p is in r.
+func (p Point26_6) In(r Rectangle26_6) bool {
+	return r.Min.X <= p.X && p.X < r.Max.X && r.Min.Y <= p.Y && p.Y < r.Max.Y
+}
+
 // Point52_12 is a 52.12 fixed-point coordinate pair.
 //
 // It is analogous to the image.Point type in the standard library.
@@ -192,6 +197,11 @@ func (p Point52_12) Mul(k Int52_12) Point52_12 {
 // Div returns the vector p/k.
 func (p Point52_12) Div(k Int52_12) Point52_12 {
 	return Point52_12{p.X * 4096 / k, p.Y * 4096 / k}
+}
+
+// In returns whether p is in r.
+func (p Point52_12) In(r Rectangle52_12) bool {
+	return r.Min.X <= p.X && p.X < r.Max.X && r.Min.Y <= p.Y && p.Y < r.Max.Y
 }
 
 // R returns the integer values minX, minY, maxX, maxY as a Rectangle26_6.
@@ -230,6 +240,86 @@ type Rectangle26_6 struct {
 	Min, Max Point26_6
 }
 
+// Add returns the rectangle r translated by p.
+func (r Rectangle26_6) Add(p Point26_6) Rectangle26_6 {
+	return Rectangle26_6{
+		Point26_6{r.Min.X + p.X, r.Min.Y + p.Y},
+		Point26_6{r.Max.X + p.X, r.Max.Y + p.Y},
+	}
+}
+
+// Sub returns the rectangle r translated by -p.
+func (r Rectangle26_6) Sub(p Point26_6) Rectangle26_6 {
+	return Rectangle26_6{
+		Point26_6{r.Min.X - p.X, r.Min.Y - p.Y},
+		Point26_6{r.Max.X - p.X, r.Max.Y - p.Y},
+	}
+}
+
+// Intersect returns the largest rectangle contained by both r and s. If the
+// two rectangles do not overlap then the zero rectangle will be returned.
+func (r Rectangle26_6) Intersect(s Rectangle26_6) Rectangle26_6 {
+	if r.Min.X < s.Min.X {
+		r.Min.X = s.Min.X
+	}
+	if r.Min.Y < s.Min.Y {
+		r.Min.Y = s.Min.Y
+	}
+	if r.Max.X > s.Max.X {
+		r.Max.X = s.Max.X
+	}
+	if r.Max.Y > s.Max.Y {
+		r.Max.Y = s.Max.Y
+	}
+	// Letting r0 and s0 be the values of r and s at the time that the method
+	// is called, this next line is equivalent to:
+	//
+	// if max(r0.Min.X, s0.Min.X) >= min(r0.Max.X, s0.Max.X) || likewiseForY { etc }
+	if r.Empty() {
+		return Rectangle26_6{}
+	}
+	return r
+}
+
+// Union returns the smallest rectangle that contains both r and s.
+func (r Rectangle26_6) Union(s Rectangle26_6) Rectangle26_6 {
+	if r.Empty() {
+		return s
+	}
+	if s.Empty() {
+		return r
+	}
+	if r.Min.X > s.Min.X {
+		r.Min.X = s.Min.X
+	}
+	if r.Min.Y > s.Min.Y {
+		r.Min.Y = s.Min.Y
+	}
+	if r.Max.X < s.Max.X {
+		r.Max.X = s.Max.X
+	}
+	if r.Max.Y < s.Max.Y {
+		r.Max.Y = s.Max.Y
+	}
+	return r
+}
+
+// Empty returns whether the rectangle contains no points.
+func (r Rectangle26_6) Empty() bool {
+	return r.Min.X >= r.Max.X || r.Min.Y >= r.Max.Y
+}
+
+// In returns whether every point in r is in s.
+func (r Rectangle26_6) In(s Rectangle26_6) bool {
+	if r.Empty() {
+		return true
+	}
+	// Note that r.Max is an exclusive bound for r, so that r.In(s)
+	// does not require that r.Max.In(s).
+	return s.Min.X <= r.Min.X && r.Max.X <= s.Max.X &&
+		s.Min.Y <= r.Min.Y && r.Max.Y <= s.Max.Y
+}
+
 // Rectangle52_12 is a 52.12 fixed-point coordinate rectangle. The Min bound is
 // inclusive and the Max bound is exclusive. It is well-formed if Min.X <=
 // Max.X and likewise for Y.
@@ -237,4 +327,84 @@ type Rectangle26_6 struct {
 // It is analogous to the image.Rectangle type in the standard library.
 type Rectangle52_12 struct {
 	Min, Max Point52_12
+}
+
+// Add returns the rectangle r translated by p.
+func (r Rectangle52_12) Add(p Point52_12) Rectangle52_12 {
+	return Rectangle52_12{
+		Point52_12{r.Min.X + p.X, r.Min.Y + p.Y},
+		Point52_12{r.Max.X + p.X, r.Max.Y + p.Y},
+	}
+}
+
+// Sub returns the rectangle r translated by -p.
+func (r Rectangle52_12) Sub(p Point52_12) Rectangle52_12 {
+	return Rectangle52_12{
+		Point52_12{r.Min.X - p.X, r.Min.Y - p.Y},
+		Point52_12{r.Max.X - p.X, r.Max.Y - p.Y},
+	}
+}
+
+// Intersect returns the largest rectangle contained by both r and s. If the
+// two rectangles do not overlap then the zero rectangle will be returned.
+func (r Rectangle52_12) Intersect(s Rectangle52_12) Rectangle52_12 {
+	if r.Min.X < s.Min.X {
+		r.Min.X = s.Min.X
+	}
+	if r.Min.Y < s.Min.Y {
+		r.Min.Y = s.Min.Y
+	}
+	if r.Max.X > s.Max.X {
+		r.Max.X = s.Max.X
+	}
+	if r.Max.Y > s.Max.Y {
+		r.Max.Y = s.Max.Y
+	}
+	// Letting r0 and s0 be the values of r and s at the time that the method
+	// is called, this next line is equivalent to:
+	//
+	// if max(r0.Min.X, s0.Min.X) >= min(r0.Max.X, s0.Max.X) || likewiseForY { etc }
+	if r.Empty() {
+		return Rectangle52_12{}
+	}
+	return r
+}
+
+// Union returns the smallest rectangle that contains both r and s.
+func (r Rectangle52_12) Union(s Rectangle52_12) Rectangle52_12 {
+	if r.Empty() {
+		return s
+	}
+	if s.Empty() {
+		return r
+	}
+	if r.Min.X > s.Min.X {
+		r.Min.X = s.Min.X
+	}
+	if r.Min.Y > s.Min.Y {
+		r.Min.Y = s.Min.Y
+	}
+	if r.Max.X < s.Max.X {
+		r.Max.X = s.Max.X
+	}
+	if r.Max.Y < s.Max.Y {
+		r.Max.Y = s.Max.Y
+	}
+	return r
+}
+
+// Empty returns whether the rectangle contains no points.
+func (r Rectangle52_12) Empty() bool {
+	return r.Min.X >= r.Max.X || r.Min.Y >= r.Max.Y
+}
+
+// In returns whether every point in r is in s.
+func (r Rectangle52_12) In(s Rectangle52_12) bool {
+	if r.Empty() {
+		return true
+	}
+	// Note that r.Max is an exclusive bound for r, so that r.In(s)
+	// does not require that r.Max.In(s).
+	return s.Min.X <= r.Min.X && r.Max.X <= s.Max.X &&
+		s.Min.Y <= r.Min.Y && r.Max.Y <= s.Max.Y
 }

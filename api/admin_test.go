@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -80,9 +81,6 @@ func TestGetConfig(t *testing.T) {
 		if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
 			t.Fatal("did not sanitize properly")
 		}
-		if cfg.EmailSettings.PasswordResetSalt != model.FAKE_SETTING {
-			t.Fatal("did not sanitize properly")
-		}
 		if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
 			t.Fatal("did not sanitize properly")
 		}
@@ -116,6 +114,18 @@ func TestReloadConfig(t *testing.T) {
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
+func TestInvalidateAllCache(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+
+	if _, err := th.BasicClient.InvalidateAllCaches(); err == nil {
+		t.Fatal("Shouldn't have permissions")
+	}
+
+	if _, err := th.SystemAdminClient.InvalidateAllCaches(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSaveConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
@@ -146,6 +156,22 @@ func TestRecycleDatabaseConnection(t *testing.T) {
 
 func TestEmailTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+
+	SendEmailNotifications := utils.Cfg.EmailSettings.SendEmailNotifications
+	SMTPServer := utils.Cfg.EmailSettings.SMTPServer
+	SMTPPort := utils.Cfg.EmailSettings.SMTPPort
+	FeedbackEmail := utils.Cfg.EmailSettings.FeedbackEmail
+	defer func() {
+		utils.Cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications
+		utils.Cfg.EmailSettings.SMTPServer = SMTPServer
+		utils.Cfg.EmailSettings.SMTPPort = SMTPPort
+		utils.Cfg.EmailSettings.FeedbackEmail = FeedbackEmail
+	}()
+
+	utils.Cfg.EmailSettings.SendEmailNotifications = false
+	utils.Cfg.EmailSettings.SMTPServer = ""
+	utils.Cfg.EmailSettings.SMTPPort = ""
+	utils.Cfg.EmailSettings.FeedbackEmail = ""
 
 	if _, err := th.BasicClient.TestEmail(utils.Cfg); err == nil {
 		t.Fatal("Shouldn't have permissions")
@@ -180,6 +206,12 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 		t.Fatal("Shouldn't have permissions")
 	}
 
+	maxUsersForStats := *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics
+	defer func() {
+		*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats
+	}()
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000
+
 	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "standard"); err != nil {
 		t.Fatal(err)
 	} else {
@@ -190,7 +222,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[0].Value != 3 {
+		if rows[0].Value != 4 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -210,7 +242,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 
-		if rows[2].Value != 5 {
+		if rows[2].Value != 6 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -291,18 +323,42 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 			t.Fatal()
 		}
 	}
+
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1
+
+	if result, err := th.SystemAdminClient.GetSystemAnalytics("standard"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[2].Name != "post_count" {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[2].Value != -1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
 }
 
 func TestGetPostCount(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
-	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
+	app.Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
 		map[string]interface{}{"ChannelId": th.BasicChannel.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
 	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "post_counts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
+
+	maxUsersForStats := *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics
+	defer func() {
+		*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats
+	}()
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000
 
 	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "post_counts_day"); err != nil {
 		t.Fatal(err)
@@ -314,18 +370,37 @@ func TestGetPostCount(t *testing.T) {
 			t.Fatal()
 		}
 	}
+
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1
+
+	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "post_counts_day"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Value != -1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
 }
 
 func TestUserCountsWithPostsByDay(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
-	Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
+	app.Srv.Store.(*store.SqlStore).GetMaster().Exec("UPDATE Posts SET CreateAt = :CreateAt WHERE ChannelId = :ChannelId",
 		map[string]interface{}{"ChannelId": th.BasicChannel.Id, "CreateAt": utils.MillisFromTime(utils.Yesterday())})
 
 	if _, err := th.BasicClient.GetTeamAnalytics(th.BasicTeam.Id, "user_counts_with_posts_day"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
+
+	maxUsersForStats := *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics
+	defer func() {
+		*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats
+	}()
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000
 
 	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "user_counts_with_posts_day"); err != nil {
 		t.Fatal(err)
@@ -333,6 +408,19 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 		rows := result.Data.(model.AnalyticsRows)
 
 		if rows[0].Value != 1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
+
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1
+
+	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "user_counts_with_posts_day"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Value != -1 {
 			t.Log(rows.ToJson())
 			t.Fatal()
 		}
@@ -347,6 +435,12 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 	if _, err := th.BasicClient.GetTeamAnalytics("", "extra_counts"); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
+
+	maxUsersForStats := *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics
+	defer func() {
+		*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats
+	}()
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000
 
 	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "extra_counts"); err != nil {
 		t.Fatal(err)
@@ -449,6 +543,24 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 			t.Fatal()
 		}
 	}
+
+	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1
+
+	if result, err := th.SystemAdminClient.GetSystemAnalytics("extra_counts"); err != nil {
+		t.Fatal(err)
+	} else {
+		rows := result.Data.(model.AnalyticsRows)
+
+		if rows[0].Value != -1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+
+		if rows[1].Value != -1 {
+			t.Log(rows.ToJson())
+			t.Fatal()
+		}
+	}
 }
 
 func TestAdminResetMfa(t *testing.T) {
@@ -481,7 +593,7 @@ func TestAdminResetPassword(t *testing.T) {
 	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
-	store.Must(Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
 
 	if _, err := Client.AdminResetPassword("", "newpwd1"); err == nil {
 		t.Fatal("Should have errored - empty user id")
@@ -503,7 +615,7 @@ func TestAdminResetPassword(t *testing.T) {
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: &authData, AuthService: "random"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
-	store.Must(Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(app.Srv.Store.User().VerifyEmail(user2.Id))
 
 	if _, err := Client.AdminResetPassword(user.Id, "newpwd1"); err != nil {
 		t.Fatal(err)

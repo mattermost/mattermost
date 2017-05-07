@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import SpinnerButton from 'components/spinner_button.jsx';
@@ -40,10 +40,6 @@ export default class ChannelInviteButton extends React.Component {
             this.props.channel.id,
             this.props.user.id,
             () => {
-                this.setState({
-                    addingUser: false
-                });
-
                 this.props.onInviteError(null);
             },
             (err) => {
@@ -59,6 +55,7 @@ export default class ChannelInviteButton extends React.Component {
     render() {
         return (
             <SpinnerButton
+                id='addMembers'
                 className='btn btn-sm btn-primary'
                 onClick={this.handleClick}
                 spinning={this.state.addingUser}

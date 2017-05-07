@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import * as Flux from 'flux';
@@ -32,4 +32,4 @@ const AppDispatcher = Object.assign(new Flux.Dispatcher(), {
     }
 });
 
-module.exports = AppDispatcher;
+export default AppDispatcher;

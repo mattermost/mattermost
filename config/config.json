@@ -1,6 +1,7 @@
 {
     "ServiceSettings": {
-        "SiteURL": "",
+        "SiteURL": "http://localhost:8065",
+        "LicenseFileLocation": "",
         "ListenAddress": ":8065",
         "ConnectionSecurity": "",
         "TLSCertFile": "",
@@ -11,7 +12,6 @@
         "ReadTimeout": 300,
         "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
-        "SegmentDeveloperKey": "",
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
@@ -20,11 +20,13 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
+        "EnableLinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
         "EnableMultifactorAuthentication": false,
+        "EnforceMultifactorAuthentication": false,
         "AllowCorsFrom": "",
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
@@ -34,7 +36,15 @@
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
-        "RestrictCustomEmojiCreation": "all"
+        "RestrictCustomEmojiCreation": "all",
+        "RestrictPostDelete": "all",
+        "AllowEditPost": "always",
+        "PostEditTimeLimit": 300,
+        "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
+        "EnablePostSearch": true,
+        "EnableUserTypingMessages": true,
+        "EnableUserStatuses": true,
+        "ClusterLogTimeoutMilliseconds": 2000
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -50,13 +60,20 @@
         "RestrictTeamInvite": "all",
         "RestrictPublicChannelManagement": "all",
         "RestrictPrivateChannelManagement": "all",
+        "RestrictPublicChannelCreation": "all",
+        "RestrictPrivateChannelCreation": "all",
+        "RestrictPublicChannelDeletion": "all",
+        "RestrictPrivateChannelDeletion": "all",
+        "RestrictPrivateChannelManageMembers": "all",
         "UserStatusAwayTimeout": 300,
-        "MaxChannelsPerTeam": 2000
+        "MaxChannelsPerTeam": 2000,
+        "MaxNotificationsPerChannel": 1000
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
         "DataSourceReplicas": [],
+        "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
@@ -80,6 +97,7 @@
         "Symbol": false
     },
     "FileSettings": {
+        "EnableFileAttachments": true,
         "MaxFileSize": 52428800,
         "DriverName": "local",
         "Directory": "./data/",
@@ -103,24 +121,24 @@
         "EnableSignUpWithEmail": true,
         "EnableSignInWithEmail": true,
         "EnableSignInWithUsername": true,
-        "SendEmailNotifications": false,
+        "SendEmailNotifications": true,
         "RequireEmailVerification": false,
         "FeedbackName": "",
-        "FeedbackEmail": "",
+        "FeedbackEmail": "test@example.com",
         "FeedbackOrganization": "",
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "",
-        "SMTPPort": "",
+        "SMTPServer": "dockerhost",
+        "SMTPPort": "2500",
         "ConnectionSecurity": "",
         "InviteSalt": "",
-        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
-        "EmailBatchingInterval": 30
+        "EmailBatchingInterval": 30,
+        "SkipServerCertificateVerification": false
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -184,6 +202,7 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "IdAttribute": "",
+        "PositionAttribute": "",
         "SyncIntervalMinutes": 60,
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
@@ -202,8 +221,8 @@
     },
     "SamlSettings": {
         "Enable": false,
-        "Verify": false,
-        "Encrypt": false,
+        "Verify": true,
+        "Encrypt": true,
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
         "AssertionConsumerServiceURL": "",
@@ -216,6 +235,7 @@
         "UsernameAttribute": "",
         "NicknameAttribute": "",
         "LocaleAttribute": "",
+        "PositionAttribute": "",
         "LoginButtonText": "With SAML"
     },
     "NativeAppSettings": {
@@ -227,6 +247,14 @@
         "Enable": false,
         "InterNodeListenAddress": ":8075",
         "InterNodeUrls": []
+    },
+    "MetricsSettings": {
+        "Enable": false,
+        "BlockProfileRate": 0,
+        "ListenAddress": ":8067"
+    },
+    "AnalyticsSettings": {
+        "MaxUsersForStatistics": 2500
     },
     "WebrtcSettings": {
         "Enable": false,

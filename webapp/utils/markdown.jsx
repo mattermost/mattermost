@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
@@ -8,7 +8,18 @@ import marked from 'marked';
 import katex from 'katex';
 
 function markdownImageLoaded(image) {
-    image.style.height = 'auto';
+    if (image.hasAttribute('height') && image.attributes.height.value !== 'auto') {
+        const maxHeight = parseInt(global.getComputedStyle(image).maxHeight, 10);
+
+        if (image.attributes.height.value > maxHeight) {
+            image.style.height = maxHeight + 'px';
+            image.style.width = ((maxHeight * image.attributes.width.value) / image.attributes.height.value) + 'px';
+        } else {
+            image.style.height = image.attributes.height.value + 'px';
+        }
+    } else {
+        image.style.height = 'auto';
+    }
 }
 global.markdownImageLoaded = markdownImageLoaded;
 
@@ -117,22 +128,44 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     image(href, title, text) {
-        let out = '<img src="' + href + '" alt="' + text + '"';
+        let src = href;
+        let dimensions = [];
+        const parts = href.split(' ');
+        if (parts.length > 1) {
+            const lastPart = parts.pop();
+            src = parts.join(' ');
+            if (lastPart[0] === '=') {
+                dimensions = lastPart.substr(1).split('x');
+                if (dimensions.length === 2 && dimensions[1] === '') {
+                    dimensions[1] = 'auto';
+                }
+            }
+        }
+        let out = '<img src="' + src + '" alt="' + text + '"';
         if (title) {
             out += ' title="' + title + '"';
+        }
+        if (dimensions.length > 0) {
+            out += ' width="' + dimensions[0] + '"';
+        }
+        if (dimensions.length > 1) {
+            out += ' height="' + dimensions[1] + '"';
         }
         out += ' onload="window.markdownImageLoaded(this)" onerror="window.markdownImageLoaded(this)" class="markdown-inline-img"';
         out += this.options.xhtml ? '/>' : '>';
         return out;
     }
 
-    heading(text, level, raw) {
-        const id = `${this.options.headerPrefix}${raw.toLowerCase().replace(/[^\w]+/g, '-')}`;
-        return `<h${level} id="${id}" class="markdown__heading">${text}</h${level}>`;
+    heading(text, level) {
+        return `<h${level} class="markdown__heading">${text}</h${level}>`;
     }
 
     link(href, title, text) {
         let outHref = href;
+
+        if (this.formattingOptions.linkFilter && !this.formattingOptions.linkFilter(outHref)) {
+            return text;
+        }
 
         try {
             let unescaped = unescape(href);
@@ -197,7 +230,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
     }
 
     listitem(text, bullet) {
-        const taskListReg = /^\[([ |xX])\] /;
+        const taskListReg = /^\[([ |xX])] /;
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {
@@ -222,7 +255,8 @@ export function format(text, options = {}) {
         renderer: new MattermostMarkdownRenderer(null, options),
         sanitize: true,
         gfm: true,
-        tables: true
+        tables: true,
+        mangle: false
     };
 
     return marked(text, markdownOptions);

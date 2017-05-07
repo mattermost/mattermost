@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import ViewImageModal from './view_image.jsx';
@@ -39,13 +39,18 @@ export default class FileAttachmentList extends React.Component {
         } else if (this.props.fileCount > 0) {
             for (let i = 0; i < Math.min(this.props.fileCount, Constants.MAX_DISPLAY_FILES); i++) {
                 // Add a placeholder to avoid pop-in once we get the file infos for this post
-                postFiles.push(<div className='post-image__column post-image__column--placeholder'/>);
+                postFiles.push(
+                    <div
+                        key={`fileCount-${i}`}
+                        className='post-image__column post-image__column--placeholder'
+                    />
+            );
             }
         }
 
         return (
             <div>
-                <div className='post-image__columns'>
+                <div className='post-image__columns clearfix'>
                     {postFiles}
                 </div>
                 <ViewImageModal
@@ -61,6 +66,6 @@ export default class FileAttachmentList extends React.Component {
 
 FileAttachmentList.propTypes = {
     fileCount: React.PropTypes.number.isRequired,
-    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object),
     compactDisplay: React.PropTypes.bool
 };

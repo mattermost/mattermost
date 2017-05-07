@@ -1,0 +1,48 @@
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
+package app
+
+import (
+	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
+)
+
+type LogoutProvider struct {
+}
+
+const (
+	CMD_LOGOUT = "logout"
+)
+
+func init() {
+	RegisterCommandProvider(&LogoutProvider{})
+}
+
+func (me *LogoutProvider) GetTrigger() string {
+	return CMD_LOGOUT
+}
+
+func (me *LogoutProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+	return &model.Command{
+		Trigger:          CMD_LOGOUT,
+		AutoComplete:     true,
+		AutoCompleteDesc: T("api.command_logout.desc"),
+		AutoCompleteHint: "",
+		DisplayName:      T("api.command_logout.name"),
+	}
+}
+
+func (me *LogoutProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+	FAIL := &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_logout.fail_message")}
+	SUCCESS := &model.CommandResponse{GotoLocation: "/login"}
+
+	// We can't actually remove the user's cookie from here so we just dump their session and let the browser figure it out
+	if args.Session.Id != "" {
+		if err := RevokeSessionById(args.Session.Id); err != nil {
+			return FAIL
+		}
+		return SUCCESS
+	}
+	return FAIL
+}

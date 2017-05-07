@@ -1,0 +1,225 @@
+SplineFontDB: 3.0
+FontName: glyfTest
+FullName: glyfTest
+FamilyName: glyfTest
+Weight: Book
+Copyright: Copyright 2016 The Go Authors. All rights reserved.\nUse of this font is governed by a BSD-style license that can be found at https://golang.org/LICENSE.
+Version: 001.000
+ItalicAngle: -11.25
+UnderlinePosition: -204
+UnderlineWidth: 102
+Ascent: 1638
+Descent: 410
+sfntRevision: 0x00010000
+LayerCount: 2
+Layer: 0 1 "Back"  1
+Layer: 1 1 "Fore"  0
+XUID: [1021 367 888937226 5879518]
+FSType: 8
+OS2Version: 4
+OS2_WeightWidthSlopeOnly: 0
+OS2_UseTypoMetrics: 1
+CreationTime: 1484386143
+ModificationTime: 1489831626
+PfmFamily: 17
+TTFWeight: 400
+TTFWidth: 5
+LineGap: 184
+VLineGap: 0
+Panose: 2 0 5 3 0 0 0 0 0 0
+OS2TypoAscent: 1638
+OS2TypoAOffset: 0
+OS2TypoDescent: -410
+OS2TypoDOffset: 0
+OS2TypoLinegap: 184
+OS2WinAscent: 1984
+OS2WinAOffset: 0
+OS2WinDescent: 0
+OS2WinDOffset: 0
+HheadAscent: 1984
+HheadAOffset: 0
+HheadDescent: 0
+HheadDOffset: 0
+OS2SubXSize: 1331
+OS2SubYSize: 1433
+OS2SubXOff: 55
+OS2SubYOff: 286
+OS2SupXSize: 1331
+OS2SupYSize: 1433
+OS2SupXOff: -191
+OS2SupYOff: 983
+OS2StrikeYSize: 102
+OS2StrikeYPos: 530
+OS2Vendor: 'PfEd'
+OS2CodePages: 00000001.00000000
+OS2UnicodeRanges: 00000001.00000000.00000000.00000000
+MarkAttachClasses: 1
+DEI: 91125
+ShortTable: cvt  2
+  68
+  1297
+EndShort
+ShortTable: maxp 16
+  1
+  0
+  10
+  18
+  2
+  8
+  2
+  2
+  0
+  1
+  1
+  0
+  64
+  46
+  2
+  1
+EndShort
+LangName: 1033 "" "" "Regular" "FontForge : glyfTest : 18-3-2017" "" "Version 001.000" 
+GaspTable: 1 65535 2 0
+Encoding: UnicodeBmp
+UnicodeInterp: none
+NameList: Adobe Glyph List
+DisplaySize: -24
+AntiAlias: 1
+FitToEm: 1
+WinInfo: 0 32 23
+BeginChars: 65539 10
+
+StartChar: .notdef
+Encoding: 65536 -1 0
+Width: 748
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+68 0 m 1,0,-1
+ 68 1365 l 1,1,-1
+ 612 1365 l 1,2,-1
+ 612 0 l 1,3,-1
+ 68 0 l 1,0,-1
+136 68 m 1,4,-1
+ 544 68 l 1,5,-1
+ 544 1297 l 1,6,-1
+ 136 1297 l 1,7,-1
+ 136 68 l 1,4,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: .null
+Encoding: 65537 -1 1
+Width: 0
+Flags: W
+LayerCount: 2
+EndChar
+
+StartChar: nonmarkingreturn
+Encoding: 65538 -1 2
+Width: 682
+Flags: W
+LayerCount: 2
+EndChar
+
+StartChar: zero
+Encoding: 48 48 3
+Width: 1228
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+614 1434 m 0,0,1
+ 369 1434 369 1434 369 614 c 0,2,3
+ 369 471 369 471 435 338 c 0,4,5
+ 502 205 502 205 614 205 c 0,6,7
+ 860 205 860 205 860 1024 c 0,8,9
+ 860 1167 860 1167 793 1300 c 1,10,11
+ 727 1434 727 1434 614 1434 c 0,0,1
+614 1638 m 0,12,13
+ 1024 1638 1024 1638 1024 819 c 128,-1,14
+ 1024 0 1024 0 614 0 c 0,15,16
+ 205 0 205 0 205 819 c 128,-1,17
+ 205 1638 205 1638 614 1638 c 0,12,13
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: one
+Encoding: 49 49 4
+Width: 819
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+205 0 m 1,0,-1
+ 205 1638 l 1,1,-1
+ 614 1638 l 1,2,-1
+ 614 0 l 1,3,-1
+ 205 0 l 1,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: five
+Encoding: 53 53 5
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+0 0 m 1,0,-1
+ 0 100 l 1,1,-1
+ 400 100 l 1,2,-1
+ 400 0 l 1,3,-1
+ 0 0 l 1,0,-1
+EndSplineSet
+Validated: 1
+EndChar
+
+StartChar: six
+Encoding: 54 54 6
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 1 0 0 1 111 234 2
+Validated: 1
+EndChar
+
+StartChar: seven
+Encoding: 55 55 7
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 0.5 0 0 0.5 56 117 2
+Validated: 1
+EndChar
+
+StartChar: eight
+Encoding: 56 56 8
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 1.5 0 0 0.5 56 117 2
+Validated: 1
+EndChar
+
+StartChar: nine
+Encoding: 57 57 9
+Width: 400
+Flags: W
+LayerCount: 2
+Fore
+Refer: 5 53 N 1 0 0 1 0 0 2
+Refer: 4 49 N 1.36603 0.5 0.365967 0.865967 237 258 2
+Validated: 1
+EndChar
+EndChars
+EndSplineFont

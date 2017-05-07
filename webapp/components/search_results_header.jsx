@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import Constants from 'utils/constants.jsx';
@@ -79,6 +79,16 @@ export default class SearchResultsHeader extends React.Component {
                     defaultMessage='Flagged Posts'
                 />
             );
+        } else if (this.props.isPinnedPosts) {
+            title = (
+                <FormattedMessage
+                    id='search_header.title4'
+                    defaultMessage='Pinned posts in {channelDisplayName}'
+                    values={{
+                        channelDisplayName: this.props.channelDisplayName
+                    }}
+                />
+            );
         }
 
         return (
@@ -129,7 +139,9 @@ export default class SearchResultsHeader extends React.Component {
 
 SearchResultsHeader.propTypes = {
     isMentionSearch: React.PropTypes.bool,
-    toggleSize: React.PropTypes.function,
-    shrink: React.PropTypes.function,
-    isFlaggedPosts: React.PropTypes.bool
+    toggleSize: React.PropTypes.func,
+    shrink: React.PropTypes.func,
+    isFlaggedPosts: React.PropTypes.bool,
+    isPinnedPosts: React.PropTypes.bool,
+    channelDisplayName: React.PropTypes.string.isRequired
 };

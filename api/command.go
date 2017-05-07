@@ -1,42 +1,19 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
 
 import (
-	"crypto/tls"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
-
-type CommandProvider interface {
-	GetTrigger() string
-	GetCommand(c *Context) *model.Command
-	DoCommand(c *Context, channelId string, message string) *model.CommandResponse
-}
-
-var commandProviders = make(map[string]CommandProvider)
-
-func RegisterCommandProvider(newProvider CommandProvider) {
-	commandProviders[newProvider.GetTrigger()] = newProvider
-}
-
-func GetCommandProvider(name string) CommandProvider {
-	provider, ok := commandProviders[name]
-	if ok {
-		return provider
-	}
-
-	return nil
-}
 
 func InitCommand() {
 	l4g.Debug(utils.T("api.command.init.debug"))
@@ -45,6 +22,7 @@ func InitCommand() {
 	BaseRoutes.Commands.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
 
 	BaseRoutes.Commands.Handle("/create", ApiUserRequired(createCommand)).Methods("POST")
+	BaseRoutes.Commands.Handle("/update", ApiUserRequired(updateCommand)).Methods("POST")
 	BaseRoutes.Commands.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
 	BaseRoutes.Commands.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
 	BaseRoutes.Commands.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
@@ -56,228 +34,50 @@ func InitCommand() {
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
-	commands := make([]*model.Command, 0, 32)
-	seen := make(map[string]bool)
-	for _, value := range commandProviders {
-		cpy := *value.GetCommand(c)
-		if cpy.AutoComplete && !seen[cpy.Id] {
-			cpy.Sanitize()
-			seen[cpy.Trigger] = true
-			commands = append(commands, &cpy)
-		}
-	}
-
-	if *utils.Cfg.ServiceSettings.EnableCommands {
-		if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-			teamCmds := result.Data.([]*model.Command)
-			for _, cmd := range teamCmds {
-				if cmd.AutoComplete && !seen[cmd.Id] {
-					cmd.Sanitize()
-					seen[cmd.Trigger] = true
-					commands = append(commands, cmd)
-				}
-			}
-		}
+	commands, err := app.ListAutocompleteCommands(c.TeamId, c.T)
+	if err != nil {
+		c.Err = err
+		return
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
-	command := strings.TrimSpace(props["command"])
-	channelId := strings.TrimSpace(props["channelId"])
-
-	if len(command) <= 1 || strings.Index(command, "/") != 0 {
-		c.Err = model.NewLocAppError("executeCommand", "api.command.execute_command.start.app_error", nil, "")
+	commandArgs := model.CommandArgsFromJson(r.Body)
+	if commandArgs == nil {
+		c.SetInvalidParam("executeCommand", "command_args")
 		return
 	}
 
-	if len(channelId) > 0 {
-		if !HasPermissionToChannelContext(c, channelId, model.PERMISSION_USE_SLASH_COMMANDS) {
-			return
-		}
-	}
-
-	parts := strings.Split(command, " ")
-	trigger := parts[0][1:]
-	trigger = strings.ToLower(trigger)
-	message := strings.Join(parts[1:], " ")
-	provider := GetCommandProvider(trigger)
-
-	if provider != nil {
-		response := provider.DoCommand(c, channelId, message)
-		handleResponse(c, w, response, channelId, provider.GetCommand(c), true)
+	if len(commandArgs.Command) <= 1 || strings.Index(commandArgs.Command, "/") != 0 {
+		c.Err = model.NewAppError("executeCommand", "api.command.execute_command.start.app_error", nil, "", http.StatusBadRequest)
 		return
-	} else {
+	}
 
-		if !*utils.Cfg.ServiceSettings.EnableCommands {
-			c.Err = model.NewLocAppError("executeCommand", "api.command.disabled.app_error", nil, "")
-			c.Err.StatusCode = http.StatusNotImplemented
+	if len(commandArgs.ChannelId) > 0 {
+		if !app.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+			c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 			return
 		}
-
-		chanChan := Srv.Store.Channel().Get(channelId)
-		teamChan := Srv.Store.Team().Get(c.TeamId)
-		userChan := Srv.Store.User().Get(c.Session.UserId)
-
-		if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
-			c.Err = result.Err
-			return
-		} else {
-
-			var team *model.Team
-			if tr := <-teamChan; tr.Err != nil {
-				c.Err = tr.Err
-				return
-			} else {
-				team = tr.Data.(*model.Team)
-
-			}
-
-			var user *model.User
-			if ur := <-userChan; ur.Err != nil {
-				c.Err = ur.Err
-				return
-			} else {
-				user = ur.Data.(*model.User)
-			}
-
-			var channel *model.Channel
-			if cr := <-chanChan; cr.Err != nil {
-				c.Err = cr.Err
-				return
-			} else {
-				channel = cr.Data.(*model.Channel)
-			}
-
-			teamCmds := result.Data.([]*model.Command)
-			for _, cmd := range teamCmds {
-				if trigger == cmd.Trigger {
-					l4g.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, c.Session.UserId))
-
-					p := url.Values{}
-					p.Set("token", cmd.Token)
-
-					p.Set("team_id", cmd.TeamId)
-					p.Set("team_domain", team.Name)
-
-					p.Set("channel_id", channelId)
-					p.Set("channel_name", channel.Name)
-
-					p.Set("user_id", c.Session.UserId)
-					p.Set("user_name", user.Username)
-
-					p.Set("command", "/"+trigger)
-					p.Set("text", message)
-					p.Set("response_url", "not supported yet")
-
-					method := "POST"
-					if cmd.Method == model.COMMAND_METHOD_GET {
-						method = "GET"
-					}
-
-					tr := &http.Transport{
-						TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-					}
-					client := &http.Client{Transport: tr}
-
-					req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
-					req.Header.Set("Accept", "application/json")
-					if cmd.Method == model.COMMAND_METHOD_POST {
-						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-					}
-
-					if resp, err := client.Do(req); err != nil {
-						c.Err = model.NewLocAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error())
-					} else {
-						if resp.StatusCode == http.StatusOK {
-							response := model.CommandResponseFromJson(resp.Body)
-							if response == nil {
-								c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "")
-							} else {
-								handleResponse(c, w, response, channelId, cmd, false)
-							}
-						} else {
-							defer resp.Body.Close()
-							body, _ := ioutil.ReadAll(resp.Body)
-							c.Err = model.NewLocAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body))
-						}
-					}
-
-					return
-				}
-			}
-
-		}
 	}
 
-	c.Err = model.NewLocAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "")
-}
+	commandArgs.TeamId = c.TeamId
+	commandArgs.UserId = c.Session.UserId
+	commandArgs.T = c.T
+	commandArgs.Session = c.Session
+	commandArgs.SiteURL = c.GetSiteURLHeader()
 
-func handleResponse(c *Context, w http.ResponseWriter, response *model.CommandResponse, channelId string, cmd *model.Command, builtIn bool) {
-
-	post := &model.Post{}
-	post.ChannelId = channelId
-
-	if !builtIn {
-		post.AddProp("from_webhook", "true")
-	}
-
-	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
-		if len(cmd.Username) != 0 {
-			post.AddProp("override_username", cmd.Username)
-		} else {
-			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
-		}
-	}
-
-	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
-		if len(cmd.IconURL) != 0 {
-			post.AddProp("override_icon_url", cmd.IconURL)
-		} else {
-			post.AddProp("override_icon_url", "")
-		}
-	}
-
-	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
-		post.Message = response.Text
-		post.UserId = c.Session.UserId
-		if _, err := CreatePost(c, post, true); err != nil {
-			c.Err = model.NewLocAppError("command", "api.command.execute_command.save.app_error", nil, "")
-		}
-	} else if response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL && response.Text != "" {
-		post.Message = response.Text
-		post.CreateAt = model.GetMillis()
-		post.UserId = c.Session.UserId
-		SendEphemeralPost(
-			c.TeamId,
-			c.Session.UserId,
-			post,
-		)
+	response, err := app.ExecuteCommand(commandArgs)
+	if err != nil {
+		c.Err = err
+		return
 	}
 
 	w.Write([]byte(response.ToJson()))
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewLocAppError("createCommand", "api.command.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-		c.Err = model.NewLocAppError("createCommand", "api.command.admin_only.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	c.LogAudit("attempt")
-
 	cmd := model.CommandFromJson(r.Body)
 
 	if cmd == nil {
@@ -285,77 +85,86 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd.Trigger = strings.ToLower(cmd.Trigger)
+	c.LogAudit("attempt")
+
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
 	cmd.CreatorId = c.Session.UserId
 	cmd.TeamId = c.TeamId
 
-	if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
-		c.Err = result.Err
+	rcmd, err := app.CreateCommand(cmd)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		teamCmds := result.Data.([]*model.Command)
-		for _, existingCommand := range teamCmds {
-			if cmd.Trigger == existingCommand.Trigger {
-				c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
-				return
-			}
-		}
-		for _, builtInProvider := range commandProviders {
-			builtInCommand := *builtInProvider.GetCommand(c)
-			if cmd.Trigger == builtInCommand.Trigger {
-				c.Err = model.NewLocAppError("createCommand", "api.command.duplicate_trigger.app_error", nil, "")
-				return
-			}
-		}
 	}
 
-	if result := <-Srv.Store.Command().Save(cmd); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		c.LogAudit("success")
-		rcmd := result.Data.(*model.Command)
-		w.Write([]byte(rcmd.ToJson()))
-	}
+	c.LogAudit("success")
+	w.Write([]byte(rcmd.ToJson()))
 }
 
-func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewLocAppError("listTeamCommands", "api.command.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
+func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	cmd := model.CommandFromJson(r.Body)
 
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-		c.Err = model.NewLocAppError("listTeamCommands", "api.command.admin_only.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	if result := <-Srv.Store.Command().GetByTeam(c.TeamId); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		cmds := result.Data.([]*model.Command)
-		w.Write([]byte(model.CommandListToJson(cmds)))
-	}
-}
-
-func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewLocAppError("regenCommandToken", "api.command.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-		c.Err = model.NewLocAppError("regenCommandToken", "api.command.admin_only.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+	if cmd == nil {
+		c.SetInvalidParam("updateCommand", "command")
 		return
 	}
 
 	c.LogAudit("attempt")
 
+	oldCmd, err := app.GetCommand(cmd.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.TeamId != oldCmd.TeamId {
+		c.Err = model.NewAppError("updateCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.Session.UserId, http.StatusBadRequest)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	if c.Session.UserId != oldCmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
+		return
+	}
+
+	rcmd, err := app.UpdateCommand(oldCmd, cmd)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+
+	w.Write([]byte(rcmd.ToJson()))
+}
+
+func listTeamCommands(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	cmds, err := app.ListTeamCommands(c.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.CommandListToJson(cmds)))
+}
+
+func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	id := props["id"]
@@ -364,45 +173,41 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cmd *model.Command
-	if result := <-Srv.Store.Command().Get(id); result.Err != nil {
-		c.Err = result.Err
-		return
-	} else {
-		cmd = result.Data.(*model.Command)
+	c.LogAudit("attempt")
 
-		if c.TeamId != cmd.TeamId || (c.Session.UserId != cmd.CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
-			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewLocAppError("regenToken", "api.command.regen.app_error", nil, "user_id="+c.Session.UserId)
-			return
-		}
+	cmd, err := app.GetCommand(id)
+	if err != nil {
+		c.Err = err
+		return
 	}
 
-	cmd.Token = model.NewId()
-
-	if result := <-Srv.Store.Command().Update(cmd); result.Err != nil {
-		c.Err = result.Err
+	if c.TeamId != cmd.TeamId {
+		c.Err = model.NewAppError("regenCommandToken", "api.command.team_mismatch.app_error", nil, "user_id="+c.Session.UserId, http.StatusBadRequest)
 		return
-	} else {
-		w.Write([]byte(result.Data.(*model.Command).ToJson()))
 	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	if c.Session.UserId != cmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
+		return
+	}
+
+	rcmd, err := app.RegenCommandToken(cmd)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(rcmd.ToJson()))
 }
 
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
-		c.Err = model.NewLocAppError("deleteCommand", "api.command.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
-		return
-	}
-
-	if !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-		c.Err = model.NewLocAppError("deleteCommand", "api.command.admin_only.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
-		return
-	}
-
-	c.LogAudit("attempt")
-
 	props := model.MapFromJson(r.Body)
 
 	id := props["id"]
@@ -411,18 +216,33 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-Srv.Store.Command().Get(id); result.Err != nil {
-		c.Err = result.Err
+	c.LogAudit("attempt")
+
+	cmd, err := app.GetCommand(id)
+	if err != nil {
+		c.Err = err
 		return
-	} else {
-		if c.TeamId != result.Data.(*model.Command).TeamId || (c.Session.UserId != result.Data.(*model.Command).CreatorId && !HasPermissionToCurrentTeamContext(c, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)) {
-			c.LogAudit("fail - inappropriate permissions")
-			c.Err = model.NewLocAppError("deleteCommand", "api.command.delete.app_error", nil, "user_id="+c.Session.UserId)
-			return
-		}
 	}
 
-	if err := (<-Srv.Store.Command().Delete(id, model.GetMillis())).Err; err != nil {
+	if c.TeamId != cmd.TeamId {
+		c.Err = model.NewAppError("deleteCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.Session.UserId, http.StatusBadRequest)
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		c.LogAudit("fail - inappropriate permissions")
+		return
+	}
+
+	if c.Session.UserId != cmd.CreatorId && !app.SessionHasPermissionToTeam(c.Session, cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
+		c.LogAudit("fail - inappropriate permissions")
+		return
+	}
+
+	err = app.DeleteCommand(cmd.Id)
+	if err != nil {
 		c.Err = err
 		return
 	}

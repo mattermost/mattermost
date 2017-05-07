@@ -9,10 +9,11 @@ import (
 	"crypto"
 	"crypto/dsa"
 	"crypto/ecdsa"
-	"crypto/rsa"
+	"encoding/asn1"
 	"encoding/binary"
 	"hash"
 	"io"
+	"math/big"
 	"strconv"
 	"time"
 
@@ -516,7 +517,8 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 
 	switch priv.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
-		sig.RSASignature.bytes, err = rsa.SignPKCS1v15(config.Random(), priv.PrivateKey.(*rsa.PrivateKey), sig.Hash, digest)
+		// supports both *rsa.PrivateKey and crypto.Signer
+		sig.RSASignature.bytes, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, sig.Hash)
 		sig.RSASignature.bitLength = uint16(8 * len(sig.RSASignature.bytes))
 	case PubKeyAlgoDSA:
 		dsaPriv := priv.PrivateKey.(*dsa.PrivateKey)
@@ -534,7 +536,17 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 			sig.DSASigS.bitLength = uint16(8 * len(sig.DSASigS.bytes))
 		}
 	case PubKeyAlgoECDSA:
-		r, s, err := ecdsa.Sign(config.Random(), priv.PrivateKey.(*ecdsa.PrivateKey), digest)
+		var r, s *big.Int
+		if pk, ok := priv.PrivateKey.(*ecdsa.PrivateKey); ok {
+			// direct support, avoid asn1 wrapping/unwrapping
+			r, s, err = ecdsa.Sign(config.Random(), pk, digest)
+		} else {
+			var b []byte
+			b, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, nil)
+			if err == nil {
+				r, s, err = unwrapECDSASig(b)
+			}
+		}
 		if err == nil {
 			sig.ECDSASigR = fromBig(r)
 			sig.ECDSASigS = fromBig(s)
@@ -544,6 +556,19 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 	}
 
 	return
+}
+
+// unwrapECDSASig parses the two integer components of an ASN.1-encoded ECDSA
+// signature.
+func unwrapECDSASig(b []byte) (r, s *big.Int, err error) {
+	var ecsdaSig struct {
+		R, S *big.Int
+	}
+	_, err = asn1.Unmarshal(b, &ecsdaSig)
+	if err != nil {
+		return
+	}
+	return ecsdaSig.R, ecsdaSig.S, nil
 }
 
 // SignUserId computes a signature from priv, asserting that pub is a valid

@@ -69,3 +69,110 @@ func TestAuthRequest(t *testing.T) {
 		}
 	}
 }
+
+// TestParseTemplate checks that all templates used by this package are valid
+// as they are parsed on first usage
+func TestParseTemplate(t *testing.T) {
+	if tmpl := distTmpl(); tmpl == nil {
+		t.Error("invalid template returned from distTmpl()")
+	}
+	if tmpl := pageTmpl(); tmpl == nil {
+		t.Error("invalid template returned from pageTmpl()")
+	}
+	if tmpl := eventsTmpl(); tmpl == nil {
+		t.Error("invalid template returned from eventsTmpl()")
+	}
+}
+
+func benchmarkTrace(b *testing.B, maxEvents, numEvents int) {
+	numSpans := (b.N + numEvents + 1) / numEvents
+
+	for i := 0; i < numSpans; i++ {
+		tr := New("test", "test")
+		tr.SetMaxEvents(maxEvents)
+		for j := 0; j < numEvents; j++ {
+			tr.LazyPrintf("%d", j)
+		}
+		tr.Finish()
+	}
+}
+
+func BenchmarkTrace_Default_2(b *testing.B) {
+	benchmarkTrace(b, 0, 2)
+}
+
+func BenchmarkTrace_Default_10(b *testing.B) {
+	benchmarkTrace(b, 0, 10)
+}
+
+func BenchmarkTrace_Default_100(b *testing.B) {
+	benchmarkTrace(b, 0, 100)
+}
+
+func BenchmarkTrace_Default_1000(b *testing.B) {
+	benchmarkTrace(b, 0, 1000)
+}
+
+func BenchmarkTrace_Default_10000(b *testing.B) {
+	benchmarkTrace(b, 0, 10000)
+}
+
+func BenchmarkTrace_10_2(b *testing.B) {
+	benchmarkTrace(b, 10, 2)
+}
+
+func BenchmarkTrace_10_10(b *testing.B) {
+	benchmarkTrace(b, 10, 10)
+}
+
+func BenchmarkTrace_10_100(b *testing.B) {
+	benchmarkTrace(b, 10, 100)
+}
+
+func BenchmarkTrace_10_1000(b *testing.B) {
+	benchmarkTrace(b, 10, 1000)
+}
+
+func BenchmarkTrace_10_10000(b *testing.B) {
+	benchmarkTrace(b, 10, 10000)
+}
+
+func BenchmarkTrace_100_2(b *testing.B) {
+	benchmarkTrace(b, 100, 2)
+}
+
+func BenchmarkTrace_100_10(b *testing.B) {
+	benchmarkTrace(b, 100, 10)
+}
+
+func BenchmarkTrace_100_100(b *testing.B) {
+	benchmarkTrace(b, 100, 100)
+}
+
+func BenchmarkTrace_100_1000(b *testing.B) {
+	benchmarkTrace(b, 100, 1000)
+}
+
+func BenchmarkTrace_100_10000(b *testing.B) {
+	benchmarkTrace(b, 100, 10000)
+}
+
+func BenchmarkTrace_1000_2(b *testing.B) {
+	benchmarkTrace(b, 1000, 2)
+}
+
+func BenchmarkTrace_1000_10(b *testing.B) {
+	benchmarkTrace(b, 1000, 10)
+}
+
+func BenchmarkTrace_1000_100(b *testing.B) {
+	benchmarkTrace(b, 1000, 100)
+}
+
+func BenchmarkTrace_1000_1000(b *testing.B) {
+	benchmarkTrace(b, 1000, 1000)
+}
+
+func BenchmarkTrace_1000_10000(b *testing.B) {
+	benchmarkTrace(b, 1000, 10000)
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
@@ -9,6 +9,12 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 
 import {ActionTypes} from 'utils/constants.jsx';
+
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 
 export function loadEmoji(getProfiles = true) {
     Client.listEmoji(
@@ -42,5 +48,5 @@ function loadProfilesForEmoji(emojiList) {
         return;
     }
 
-    AsyncClient.getProfilesByIds(list);
+    getProfilesByIds(list)(dispatch, getState);
 }

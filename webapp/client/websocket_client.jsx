@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 const MAX_WEBSOCKET_FAILS = 7;
@@ -8,18 +8,26 @@ const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
 export default class WebSocketClient {
     constructor() {
         this.conn = null;
+        this.connectionUrl = null;
         this.sequence = 1;
+        this.eventSequence = 0;
         this.connectFailCount = 0;
         this.eventCallback = null;
         this.responseCallbacks = {};
         this.firstConnectCallback = null;
         this.reconnectCallback = null;
+        this.missedEventCallback = null;
         this.errorCallback = null;
         this.closeCallback = null;
     }
 
-    initialize(connectionUrl, token) {
+    initialize(connectionUrl = this.connectionUrl, token) {
         if (this.conn) {
+            return;
+        }
+
+        if (connectionUrl == null) {
+            console.log('websocket must have connection url'); //eslint-disable-line no-console
             return;
         }
 
@@ -28,8 +36,11 @@ export default class WebSocketClient {
         }
 
         this.conn = new WebSocket(connectionUrl);
+        this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
+            this.eventSequence = 0;
+
             if (token) {
                 this.sendMessage('authentication_challenge', {token});
             }
@@ -101,6 +112,11 @@ export default class WebSocketClient {
                     Reflect.deleteProperty(this.responseCallbacks, msg.seq_reply);
                 }
             } else if (this.eventCallback) {
+                if (msg.seq !== this.eventSequence && this.missedEventCallback) {
+                    console.log('missed websocket event, act_seq=' + msg.seq + ' exp_seq=' + this.eventSequence); //eslint-disable-line no-console
+                    this.missedEventCallback();
+                }
+                this.eventSequence = msg.seq + 1;
                 this.eventCallback(msg);
             }
         };
@@ -116,6 +132,10 @@ export default class WebSocketClient {
 
     setReconnectCallback(callback) {
         this.reconnectCallback = callback;
+    }
+
+    setMissedEventCallback(callback) {
+        this.missedEventCallback = callback;
     }
 
     setErrorCallback(callback) {
@@ -150,7 +170,7 @@ export default class WebSocketClient {
 
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.send(JSON.stringify(msg));
-        } else if (!this.conn || this.conn.readyState === WebSocket.Closed) {
+        } else if (!this.conn || this.conn.readyState === WebSocket.CLOSED) {
             this.conn = null;
             this.initialize();
         }

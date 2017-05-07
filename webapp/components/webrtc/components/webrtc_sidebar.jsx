@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
@@ -50,6 +50,7 @@ export default class SidebarRight extends React.Component {
         $('.app__body .inner-wrap').removeClass('move--right');
         $('.app__body .inner-wrap').addClass('webrtc--show');
         $('.app__body .sidebar--left').removeClass('move--right');
+        $('.multi-teams .team-sidebar').removeClass('move--right');
         $('.app__body .webrtc').addClass('webrtc--show');
 
         //$('.sidebar--right').prepend('<div class="sidebar__overlay"></div>');

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
@@ -51,13 +51,22 @@ export default class CodePreview extends React.Component {
             async: true,
             url: props.fileUrl,
             type: 'GET',
+            dataType: 'text',
             error: this.handleReceivedError,
             success: this.handleReceivedCode
         });
     }
 
     handleReceivedCode(data) {
-        this.setState({code: data, loading: false, success: true});
+        let code = data;
+        if (data.nodeName === '#document') {
+            code = new XMLSerializer().serializeToString(data);
+        }
+        this.setState({
+            code,
+            loading: false,
+            success: true
+        });
     }
 
     handleReceivedError() {
@@ -109,16 +118,18 @@ export default class CodePreview extends React.Component {
                 <span className='post-code__language'>
                     {`${this.props.fileInfo.name} - ${language}`}
                 </span>
-                <code className='hljs'>
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td className='post-code__lineno'>{strlines}</td>
-                                <td dangerouslySetInnerHTML={{__html: highlighted}}/>
-                            </tr>
-                        </tbody>
-                    </table>
-                </code>
+                <div className='post-code__container'>
+                    <code className='hljs'>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td className='post-code__lineno'>{strlines}</td>
+                                    <td dangerouslySetInnerHTML={{__html: highlighted}}/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </code>
+                </div>
             </div>
         );
     }

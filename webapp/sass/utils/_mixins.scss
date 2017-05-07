@@ -32,68 +32,27 @@
 @mixin webrtc-button {
     .webrtc__button {
         @include border-radius(50px);
+        background: $button--ready;
         display: block;
-        height: 32px;
-        width: 32px;
+        height: 33px;
+        text-align: center;
+        width: 33px;
 
         &.on,
         &:hover {
             background: darken($button--ready, 5%);
         }
 
-        &:hover circle {
-            fill: darken($button--ready, 5%);
-        }
+        &.offline {
+            background: $video-circle-offline;
 
-        circle {
-            fill: $button--ready;
-
-            &.offline {
-                fill: $video-circle-offline;
+            &:hover {
+                background: $video-circle-offline;
             }
         }
 
-        path {
-            .on {
-                display: none;
-            }
-
-            .off {
-                display: block;
-            }
-        }
-
-        &.on {
-            path {
-                .on {
-                    display: block;
-                }
-
-                .off {
-                    display: none;
-                }
-            }
-
-            circle {
-                fill-opacity: 0;
-            }
-        }
-    }
-
-    a {
-        &[disabled] {
-            .webrtc__button {
-                &:hover {
-                    background: none;
-                    box-shadow: none;
-                }
-
-                &:hover {
-                    circle {
-                        fill: $video-circle-offline;
-                    }
-                }
-            }
+        svg {
+            fill: $white;
         }
     }
 }

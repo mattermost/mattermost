@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -79,7 +79,7 @@ export default class ClusterTable extends React.Component {
                 clusterInfo.id = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
             }
 
-            if (clusterInfo.is_alive) {
+            if (clusterInfo.is_alive > 0) {
                 status = (
                     <img
                         className='cluster-status'

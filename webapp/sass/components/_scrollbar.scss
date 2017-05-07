@@ -15,13 +15,15 @@
 }
 
 body {
-    scrollbar-3dlight-color: #7D7E94;
-    scrollbar-arrow-color: #C1C1D1;
-    scrollbar-darkshadow-color: #2D2C4D;
-    scrollbar-face-color: rgba(0, 0, 0, .1);
-    scrollbar-highlight-color: #7D7E94;
-    scrollbar-shadow-color: #2D2C4D;
-    scrollbar-track-color: rgba(0, 0, 0, .1);
+    &.app__body {
+        scrollbar-3dlight-color: #7D7E94;
+        scrollbar-arrow-color: #C1C1D1;
+        scrollbar-darkshadow-color: #2D2C4D;
+        scrollbar-face-color: rgba(0, 0, 0, .1);
+        scrollbar-highlight-color: #7D7E94;
+        scrollbar-shadow-color: #2D2C4D;
+        scrollbar-track-color: rgba(0, 0, 0, .1);
+    }
 }
 
 .scrollbar--horizontal,

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -53,6 +53,9 @@ export default class PostImageEmbed extends React.Component {
             errored: true,
             loaded: true
         });
+        if (this.props.onLinkLoadError) {
+            this.props.onLinkLoadError();
+        }
     }
 
     render() {
@@ -79,5 +82,6 @@ export default class PostImageEmbed extends React.Component {
 }
 
 PostImageEmbed.propTypes = {
-    link: React.PropTypes.string.isRequired
+    link: React.PropTypes.string.isRequired,
+    onLinkLoadError: React.PropTypes.func
 };

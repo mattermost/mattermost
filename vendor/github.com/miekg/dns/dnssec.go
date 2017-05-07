@@ -43,7 +43,7 @@ const (
 	PRIVATEOID uint8 = 254
 )
 
-// Map for algorithm names.
+// AlgorithmToString is a map of algorithm IDs to algorithm names.
 var AlgorithmToString = map[uint8]string{
 	RSAMD5:           "RSAMD5",
 	DH:               "DH",
@@ -61,10 +61,10 @@ var AlgorithmToString = map[uint8]string{
 	PRIVATEOID:       "PRIVATEOID",
 }
 
-// Map of algorithm strings.
+// StringToAlgorithm is the reverse of AlgorithmToString.
 var StringToAlgorithm = reverseInt8(AlgorithmToString)
 
-// Map of algorithm crypto hashes.
+// AlgorithmToHash is a map of algorithm crypto hash IDs to crypto.Hash's.
 var AlgorithmToHash = map[uint8]crypto.Hash{
 	RSAMD5:           crypto.MD5, // Deprecated in RFC 6725
 	RSASHA1:          crypto.SHA1,
@@ -85,7 +85,7 @@ const (
 	SHA512       // Experimental
 )
 
-// Map for hash names.
+// HashToString is a map of hash IDs to names.
 var HashToString = map[uint8]string{
 	SHA1:   "SHA1",
 	SHA256: "SHA256",
@@ -94,7 +94,7 @@ var HashToString = map[uint8]string{
 	SHA512: "SHA512",
 }
 
-// Map of hash strings.
+// StringToHash is a map of names to hash IDs.
 var StringToHash = reverseInt8(HashToString)
 
 // DNSKEY flag values.
@@ -208,9 +208,6 @@ func (k *DNSKEY) ToDS(h uint8) *DS {
 	// "|" denotes concatenation
 	// DNSKEY RDATA = Flags | Protocol | Algorithm | Public Key.
 
-	// digest buffer
-	digest := append(owner, wire...) // another copy
-
 	var hash crypto.Hash
 	switch h {
 	case SHA1:
@@ -226,7 +223,8 @@ func (k *DNSKEY) ToDS(h uint8) *DS {
 	}
 
 	s := hash.New()
-	s.Write(digest)
+	s.Write(owner)
+	s.Write(wire)
 	ds.Digest = hex.EncodeToString(s.Sum(nil))
 	return ds
 }
@@ -297,7 +295,6 @@ func (rr *RRSIG) Sign(k crypto.Signer, rrset []RR) error {
 	if err != nil {
 		return err
 	}
-	signdata = append(signdata, wire...)
 
 	hash, ok := AlgorithmToHash[rr.Algorithm]
 	if !ok {
@@ -306,6 +303,7 @@ func (rr *RRSIG) Sign(k crypto.Signer, rrset []RR) error {
 
 	h := hash.New()
 	h.Write(signdata)
+	h.Write(wire)
 
 	signature, err := sign(k, h.Sum(nil), hash, rr.Algorithm)
 	if err != nil {
@@ -415,7 +413,6 @@ func (rr *RRSIG) Verify(k *DNSKEY, rrset []RR) error {
 	if err != nil {
 		return err
 	}
-	signeddata = append(signeddata, wire...)
 
 	sigbuf := rr.sigBuf()           // Get the binary signature data
 	if rr.Algorithm == PRIVATEDNS { // PRIVATEOID
@@ -438,6 +435,7 @@ func (rr *RRSIG) Verify(k *DNSKEY, rrset []RR) error {
 
 		h := hash.New()
 		h.Write(signeddata)
+		h.Write(wire)
 		return rsa.VerifyPKCS1v15(pubkey, hash, h.Sum(nil), sigbuf)
 
 	case ECDSAP256SHA256, ECDSAP384SHA384:
@@ -452,6 +450,7 @@ func (rr *RRSIG) Verify(k *DNSKEY, rrset []RR) error {
 
 		h := hash.New()
 		h.Write(signeddata)
+		h.Write(wire)
 		if ecdsa.Verify(pubkey, h.Sum(nil), r, s) {
 			return nil
 		}
@@ -516,7 +515,7 @@ func (k *DNSKEY) publicKeyRSA() *rsa.PublicKey {
 	}
 	// Remainder
 	expo += uint64(keybuf[keyoff])
-	if expo > 2<<31 {
+	if expo > (2<<31)+1 {
 		// Larger expo than supported.
 		// println("dns: F5 primes (or larger) are not supported")
 		return nil

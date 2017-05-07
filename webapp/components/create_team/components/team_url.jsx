@@ -1,11 +1,10 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Utils from 'utils/utils.jsx';
-
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
+import * as URL from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
@@ -28,6 +27,10 @@ export default class TeamUrl extends React.Component {
         };
     }
 
+    componentDidMount() {
+        trackEvent('signup', 'signup_team_02_url');
+    }
+
     submitBack(e) {
         e.preventDefault();
         this.props.state.wizard = 'display_name';
@@ -38,30 +41,51 @@ export default class TeamUrl extends React.Component {
         e.preventDefault();
 
         const name = ReactDOM.findDOMNode(this.refs.name).value.trim();
-        const cleanedName = Utils.cleanUpUrlable(name);
+        const cleanedName = URL.cleanUpUrlable(name);
         const urlRegex = /^[a-z]+([a-z\-0-9]+|(__)?)[a-z0-9]+$/g;
 
         if (!name) {
-            this.setState({nameError: Utils.localizeMessage('create_team.team_url.required', 'This field is required')});
+            this.setState({nameError: (
+                <FormattedMessage
+                    id='create_team.team_url.required'
+                    defaultMessage='This field is required'
+                />)
+            });
             return;
         }
 
         if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            this.setState({nameError: Utils.localizeMessage('create_team.team_url.charLength', 'Name must be 4 or more characters up to a maximum of 15')});
+            this.setState({nameError: (
+                <FormattedMessage
+                    id='create_team.team_url.charLength'
+                    defaultMessage='Name must be {min} or more characters up to a maximum of {max}'
+                    values={{
+                        min: Constants.MIN_TEAMNAME_LENGTH,
+                        max: Constants.MAX_TEAMNAME_LENGTH
+                    }}
+                />)
+            });
             return;
         }
 
         if (cleanedName !== name || !urlRegex.test(name)) {
-            this.setState({nameError: Utils.localizeMessage('create_team.team_url.regex', "Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")});
-            return;
-        } else if (cleanedName.length < Constants.MIN_TEAMNAME_LENGTH || cleanedName.length > Constants.MAX_TEAMNAME_LENGTH) {
-            this.setState({nameError: Utils.localizeMessage('create_team.team_url.charLength', 'Name must be 2 or more characters up to a maximum of 15')});
+            this.setState({nameError: (
+                <FormattedMessage
+                    id='create_team.team_url.regex'
+                    defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
+                />)
+            });
             return;
         }
 
         for (let index = 0; index < Constants.RESERVED_TEAM_NAMES.length; index++) {
             if (cleanedName.indexOf(Constants.RESERVED_TEAM_NAMES[index]) === 0) {
-                this.setState({nameError: Utils.localizeMessage('create_team.team_url.taken', 'URL is taken or contains a reserved word')});
+                this.setState({nameError: (
+                    <FormattedHTMLMessage
+                        id='create_team.team_url.taken'
+                        defaultMessage='This URL <a href="https://docs.mattermost.com/help/getting-started/creating-teams.html#team-url" target="_blank">starts with a reserved word</a> or is unavailable. Please try another.'
+                    />)
+                });
                 return;
             }
         }
@@ -74,14 +98,19 @@ export default class TeamUrl extends React.Component {
         checkIfTeamExists(name,
             (foundTeam) => {
                 if (foundTeam) {
-                    this.setState({nameError: Utils.localizeMessage('create_team.team_url.unavailable', 'This URL is unavailable. Please try another.')});
+                    this.setState({nameError: (
+                        <FormattedMessage
+                            id='create_team.team_url.unavailable'
+                            defaultMessage='This URL is taken or unavailable. Please try another.'
+                        />)
+                    });
                     this.setState({isLoading: false});
                     return;
                 }
 
                 createTeam(teamSignup.team,
                     () => {
-                        track('signup', 'signup_team_08_complete');
+                        trackEvent('signup', 'signup_team_03_complete');
                     },
                     (err) => {
                         this.setState({nameError: err.message});
@@ -101,8 +130,6 @@ export default class TeamUrl extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_team_03_url');
-
         let nameError = null;
         let nameDivClass = 'form-group';
         if (this.state.nameError) {
@@ -110,7 +137,7 @@ export default class TeamUrl extends React.Component {
             nameDivClass += ' has-error';
         }
 
-        const title = `${Utils.getSiteURL()}/`;
+        const title = `${URL.getSiteURL()}/`;
         const urlTooltip = (
             <Tooltip id='urlTooltip'>{title}</Tooltip>
         );

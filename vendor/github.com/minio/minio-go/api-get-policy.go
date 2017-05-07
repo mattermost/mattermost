@@ -41,7 +41,7 @@ func (c Client) GetBucketPolicy(bucketName, objectPrefix string) (bucketPolicy p
 	return policy.GetPolicy(policyInfo.Statements, bucketName, objectPrefix), nil
 }
 
-// GetBucketPolicy - get bucket policy rules at a given path.
+// ListBucketPolicies - list all policies for a given prefix and all its children.
 func (c Client) ListBucketPolicies(bucketName, objectPrefix string) (bucketPolicies map[string]policy.BucketPolicy, err error) {
 	// Input validation.
 	if err := isValidBucketName(bucketName); err != nil {
@@ -57,7 +57,7 @@ func (c Client) ListBucketPolicies(bucketName, objectPrefix string) (bucketPolic
 	return policy.GetPolicies(policyInfo.Statements, bucketName), nil
 }
 
-// Request server for policy.
+// Request server for current bucket policy.
 func (c Client) getBucketPolicy(bucketName string, objectPrefix string) (policy.BucketAccessPolicy, error) {
 	// Get resources properly escaped and lined up before
 	// using them in http request.

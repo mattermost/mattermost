@@ -17,11 +17,8 @@
 package minio
 
 import (
-	"bytes"
-	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/xml"
 	"io"
 	"io/ioutil"
@@ -29,10 +26,11 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/minio/minio-go/pkg/s3utils"
 )
 
 // xmlDecoder provide decoded value in xml.
@@ -55,13 +53,6 @@ func sumMD5(data []byte) []byte {
 	return hash.Sum(nil)
 }
 
-// sumHMAC calculate hmac between two input byte array.
-func sumHMAC(key []byte, data []byte) []byte {
-	hash := hmac.New(sha256.New, key)
-	hash.Write(data)
-	return hash.Sum(nil)
-}
-
 // getEndpointURL - construct a new endpoint.
 func getEndpointURL(endpoint string, secure bool) (*url.URL, error) {
 	if strings.Contains(endpoint, ":") {
@@ -69,12 +60,12 @@ func getEndpointURL(endpoint string, secure bool) (*url.URL, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !isValidIP(host) && !isValidDomain(host) {
+		if !s3utils.IsValidIP(host) && !s3utils.IsValidDomain(host) {
 			msg := "Endpoint: " + endpoint + " does not follow ip address or domain name standards."
 			return nil, ErrInvalidArgument(msg)
 		}
 	} else {
-		if !isValidIP(endpoint) && !isValidDomain(endpoint) {
+		if !s3utils.IsValidIP(endpoint) && !s3utils.IsValidDomain(endpoint) {
 			msg := "Endpoint: " + endpoint + " does not follow ip address or domain name standards."
 			return nil, ErrInvalidArgument(msg)
 		}
@@ -93,43 +84,10 @@ func getEndpointURL(endpoint string, secure bool) (*url.URL, error) {
 	}
 
 	// Validate incoming endpoint URL.
-	if err := isValidEndpointURL(endpointURL.String()); err != nil {
+	if err := isValidEndpointURL(*endpointURL); err != nil {
 		return nil, err
 	}
 	return endpointURL, nil
-}
-
-// isValidDomain validates if input string is a valid domain name.
-func isValidDomain(host string) bool {
-	// See RFC 1035, RFC 3696.
-	host = strings.TrimSpace(host)
-	if len(host) == 0 || len(host) > 255 {
-		return false
-	}
-	// host cannot start or end with "-"
-	if host[len(host)-1:] == "-" || host[:1] == "-" {
-		return false
-	}
-	// host cannot start or end with "_"
-	if host[len(host)-1:] == "_" || host[:1] == "_" {
-		return false
-	}
-	// host cannot start or end with a "."
-	if host[len(host)-1:] == "." || host[:1] == "." {
-		return false
-	}
-	// All non alphanumeric characters are invalid.
-	if strings.ContainsAny(host, "`~!@#$%^&*()+={}[]|\\\"';:><?/") {
-		return false
-	}
-	// No need to regexp match, since the list is non-exhaustive.
-	// We let it valid and fail later.
-	return true
-}
-
-// isValidIP parses input string for ip address validity.
-func isValidIP(ip string) bool {
-	return net.ParseIP(ip) != nil
 }
 
 // closeResponse close non nil response with any response Body.
@@ -152,92 +110,24 @@ func closeResponse(resp *http.Response) {
 	}
 }
 
-// isVirtualHostSupported - verifies if bucketName can be part of
-// virtual host. Currently only Amazon S3 and Google Cloud Storage
-// would support this.
-func isVirtualHostSupported(endpointURL string, bucketName string) bool {
-	url, err := url.Parse(endpointURL)
-	if err != nil {
-		return false
-	}
-	// bucketName can be valid but '.' in the hostname will fail SSL
-	// certificate validation. So do not use host-style for such buckets.
-	if url.Scheme == "https" && strings.Contains(bucketName, ".") {
-		return false
-	}
-	// Return true for all other cases
-	return isAmazonEndpoint(endpointURL) || isGoogleEndpoint(endpointURL)
-}
-
-// Match if it is exactly Amazon S3 endpoint.
-func isAmazonEndpoint(endpointURL string) bool {
-	if isAmazonChinaEndpoint(endpointURL) {
-		return true
-	}
-	url, err := url.Parse(endpointURL)
-	if err != nil {
-		return false
-	}
-	if url.Host == "s3.amazonaws.com" {
-		return true
-	}
-	return false
-}
-
-// Match if it is exactly Amazon S3 China endpoint.
-// Customers who wish to use the new Beijing Region are required
-// to sign up for a separate set of account credentials unique to
-// the China (Beijing) Region. Customers with existing AWS credentials
-// will not be able to access resources in the new Region, and vice versa.
-// For more info https://aws.amazon.com/about-aws/whats-new/2013/12/18/announcing-the-aws-china-beijing-region/
-func isAmazonChinaEndpoint(endpointURL string) bool {
-	if endpointURL == "" {
-		return false
-	}
-	url, err := url.Parse(endpointURL)
-	if err != nil {
-		return false
-	}
-	if url.Host == "s3.cn-north-1.amazonaws.com.cn" {
-		return true
-	}
-	return false
-}
-
-// Match if it is exactly Google cloud storage endpoint.
-func isGoogleEndpoint(endpointURL string) bool {
-	if endpointURL == "" {
-		return false
-	}
-	url, err := url.Parse(endpointURL)
-	if err != nil {
-		return false
-	}
-	if url.Host == "storage.googleapis.com" {
-		return true
-	}
-	return false
-}
+// Sentinel URL is the default url value which is invalid.
+var sentinelURL = url.URL{}
 
 // Verify if input endpoint URL is valid.
-func isValidEndpointURL(endpointURL string) error {
-	if endpointURL == "" {
+func isValidEndpointURL(endpointURL url.URL) error {
+	if endpointURL == sentinelURL {
 		return ErrInvalidArgument("Endpoint url cannot be empty.")
 	}
-	url, err := url.Parse(endpointURL)
-	if err != nil {
+	if endpointURL.Path != "/" && endpointURL.Path != "" {
 		return ErrInvalidArgument("Endpoint url cannot have fully qualified paths.")
 	}
-	if url.Path != "/" && url.Path != "" {
-		return ErrInvalidArgument("Endpoint url cannot have fully qualified paths.")
-	}
-	if strings.Contains(endpointURL, ".amazonaws.com") {
-		if !isAmazonEndpoint(endpointURL) {
+	if strings.Contains(endpointURL.Host, ".amazonaws.com") {
+		if !s3utils.IsAmazonEndpoint(endpointURL) {
 			return ErrInvalidArgument("Amazon S3 endpoint should be 's3.amazonaws.com'.")
 		}
 	}
-	if strings.Contains(endpointURL, ".googleapis.com") {
-		if !isGoogleEndpoint(endpointURL) {
+	if strings.Contains(endpointURL.Host, ".googleapis.com") {
+		if !s3utils.IsGoogleEndpoint(endpointURL) {
 			return ErrInvalidArgument("Google Cloud Storage endpoint should be 'storage.googleapis.com'.")
 		}
 	}
@@ -260,6 +150,9 @@ func isValidExpiry(expires time.Duration) error {
 // style requests instead for such buckets.
 var validBucketName = regexp.MustCompile(`^[a-z0-9][a-z0-9\.\-]{1,61}[a-z0-9]$`)
 
+// Invalid bucket name with double dot.
+var invalidDotBucketName = regexp.MustCompile(`\.\.`)
+
 // isValidBucketName - verify bucket name in accordance with
 //  - http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html
 func isValidBucketName(bucketName string) error {
@@ -275,7 +168,7 @@ func isValidBucketName(bucketName string) error {
 	if bucketName[0] == '.' || bucketName[len(bucketName)-1] == '.' {
 		return ErrInvalidBucketName("Bucket name cannot start or end with a '.' dot.")
 	}
-	if match, _ := regexp.MatchString("\\.\\.", bucketName); match {
+	if invalidDotBucketName.MatchString(bucketName) {
 		return ErrInvalidBucketName("Bucket name cannot have successive periods.")
 	}
 	if !validBucketName.MatchString(bucketName) {
@@ -310,74 +203,25 @@ func isValidObjectPrefix(objectPrefix string) error {
 	return nil
 }
 
-//expects ascii encoded strings - from output of urlEncodePath
-func percentEncodeSlash(s string) string {
-	return strings.Replace(s, "/", "%2F", -1)
+// make a copy of http.Header
+func cloneHeader(h http.Header) http.Header {
+	h2 := make(http.Header, len(h))
+	for k, vv := range h {
+		vv2 := make([]string, len(vv))
+		copy(vv2, vv)
+		h2[k] = vv2
+	}
+	return h2
 }
 
-// queryEncode - encodes query values in their URL encoded form. In
-// addition to the percent encoding performed by urlEncodePath() used
-// here, it also percent encodes '/' (forward slash)
-func queryEncode(v url.Values) string {
-	if v == nil {
-		return ""
+// Filter relevant response headers from
+// the HEAD, GET http response. The function takes
+// a list of headers which are filtered out and
+// returned as a new http header.
+func filterHeader(header http.Header, filterKeys []string) (filteredHeader http.Header) {
+	filteredHeader = cloneHeader(header)
+	for _, key := range filterKeys {
+		filteredHeader.Del(key)
 	}
-	var buf bytes.Buffer
-	keys := make([]string, 0, len(v))
-	for k := range v {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		vs := v[k]
-		prefix := percentEncodeSlash(urlEncodePath(k)) + "="
-		for _, v := range vs {
-			if buf.Len() > 0 {
-				buf.WriteByte('&')
-			}
-			buf.WriteString(prefix)
-			buf.WriteString(percentEncodeSlash(urlEncodePath(v)))
-		}
-	}
-	return buf.String()
-}
-
-// urlEncodePath encode the strings from UTF-8 byte representations to HTML hex escape sequences
-//
-// This is necessary since regular url.Parse() and url.Encode() functions do not support UTF-8
-// non english characters cannot be parsed due to the nature in which url.Encode() is written
-//
-// This function on the other hand is a direct replacement for url.Encode() technique to support
-// pretty much every UTF-8 character.
-func urlEncodePath(pathName string) string {
-	// if object matches reserved string, no need to encode them
-	reservedNames := regexp.MustCompile("^[a-zA-Z0-9-_.~/]+$")
-	if reservedNames.MatchString(pathName) {
-		return pathName
-	}
-	var encodedPathname string
-	for _, s := range pathName {
-		if 'A' <= s && s <= 'Z' || 'a' <= s && s <= 'z' || '0' <= s && s <= '9' { // §2.3 Unreserved characters (mark)
-			encodedPathname = encodedPathname + string(s)
-			continue
-		}
-		switch s {
-		case '-', '_', '.', '~', '/': // §2.3 Unreserved characters (mark)
-			encodedPathname = encodedPathname + string(s)
-			continue
-		default:
-			len := utf8.RuneLen(s)
-			if len < 0 {
-				// if utf8 cannot convert return the same string as is
-				return pathName
-			}
-			u := make([]byte, len)
-			utf8.EncodeRune(u, s)
-			for _, r := range u {
-				hex := hex.EncodeToString([]byte{r})
-				encodedPathname = encodedPathname + "%" + strings.ToUpper(hex)
-			}
-		}
-	}
-	return encodedPathname
+	return filteredHeader
 }

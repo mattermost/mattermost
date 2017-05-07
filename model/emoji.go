@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -34,7 +34,7 @@ func (emoji *Emoji) IsValid() *AppError {
 		return NewLocAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "")
 	}
 
-	if len(emoji.Name) == 0 || len(emoji.Name) > 64 {
+	if len(emoji.Name) == 0 || len(emoji.Name) > 64 || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) {
 		return NewLocAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "")
 	}
 

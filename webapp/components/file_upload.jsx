@@ -1,10 +1,9 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
 import 'jquery-dragster/jquery.dragster.js';
 import ReactDOM from 'react-dom';
-import Client from 'client/web_client.jsx';
 import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
@@ -12,6 +11,8 @@ import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
+
+import {uploadFile} from 'actions/file_actions.jsx';
 
 const holders = defineMessages({
     limited: {
@@ -47,6 +48,8 @@ class FileUpload extends React.Component {
         this.cancelUpload = this.cancelUpload.bind(this);
         this.pasteUpload = this.pasteUpload.bind(this);
         this.keyUpload = this.keyUpload.bind(this);
+        this.handleMaxUploadReached = this.handleMaxUploadReached.bind(this);
+        this.emojiClick = this.emojiClick.bind(this);
 
         this.state = {
             requests: {}
@@ -88,13 +91,14 @@ class FileUpload extends React.Component {
             // generate a unique id that can be used by other components to refer back to this upload
             const clientId = Utils.generateId();
 
-            const request = Client.uploadFile(files[i],
-                files[i].name,
-                channelId,
-                clientId,
-                this.fileUploadSuccess.bind(this, channelId),
-                this.fileUploadFail.bind(this, clientId, channelId)
-            );
+            const request = uploadFile(
+                    files[i],
+                    files[i].name,
+                    channelId,
+                    clientId,
+                    this.fileUploadSuccess.bind(this, channelId),
+                    this.fileUploadFail.bind(this, clientId)
+                );
 
             const requests = this.state.requests;
             requests[clientId] = request;
@@ -123,9 +127,16 @@ class FileUpload extends React.Component {
 
             Utils.clearFileInput(e.target);
         }
+
+        this.props.onFileUploadChange();
     }
 
     handleDrop(e) {
+        if (global.window.mm_config.EnableFileAttachments === 'false') {
+            this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+            return;
+        }
+
         this.props.onUploadError(null);
 
         var files = e.originalEvent.dataTransfer.files;
@@ -157,36 +168,49 @@ class FileUpload extends React.Component {
             }
         });
 
-        $(containerSelector).dragster({
-            enter(dragsterEvent, e) {
-                var files = e.originalEvent.dataTransfer;
+        let dragsterActions = {};
+        if (global.window.mm_config.EnableFileAttachments === 'true') {
+            dragsterActions = {
+                enter(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
 
-                if (Utils.isFileTransfer(files)) {
-                    $(overlaySelector).removeClass('hidden');
+                    if (Utils.isFileTransfer(files)) {
+                        $(overlaySelector).removeClass('hidden');
+                    }
+                },
+                leave(dragsterEvent, e) {
+                    var files = e.originalEvent.dataTransfer;
+
+                    if (Utils.isFileTransfer(files) && !overlay.hasClass('hidden')) {
+                        overlay.addClass('hidden');
+                    }
+
+                    dragTimeout.cancel();
+                },
+                over() {
+                    dragTimeout.fireAfter(OverlayTimeout);
+                },
+                drop(dragsterEvent, e) {
+                    if (!overlay.hasClass('hidden')) {
+                        overlay.addClass('hidden');
+                    }
+
+                    dragTimeout.cancel();
+
+                    self.handleDrop(e);
                 }
-            },
-            leave(dragsterEvent, e) {
-                var files = e.originalEvent.dataTransfer;
-
-                if (Utils.isFileTransfer(files) && !overlay.hasClass('hidden')) {
-                    overlay.addClass('hidden');
+            };
+        } else {
+            dragsterActions = {
+                drop(dragsterEvent, e) {
+                    self.handleDrop(e);
                 }
+            };
+        }
 
-                dragTimeout.cancel();
-            },
-            over() {
-                dragTimeout.fireAfter(OverlayTimeout);
-            },
-            drop(dragsterEvent, e) {
-                if (!overlay.hasClass('hidden')) {
-                    overlay.addClass('hidden');
-                }
+        $(containerSelector).dragster(dragsterActions);
 
-                dragTimeout.cancel();
-
-                self.handleDrop(e);
-            }
-        });
+        this.props.onFileUploadChange();
     }
 
     componentWillUnmount() {
@@ -204,17 +228,19 @@ class FileUpload extends React.Component {
         target.off('dragenter dragleave dragover drop dragster:enter dragster:leave dragster:over dragster:drop');
     }
 
+    emojiClick() {
+        this.props.onEmojiClick();
+    }
+
     pasteUpload(e) {
-        var inputDiv = ReactDOM.findDOMNode(this.refs.input);
         const {formatMessage} = this.props.intl;
 
         if (!e.clipboardData || !e.clipboardData.items) {
             return;
         }
 
-        var textarea = $(inputDiv.parentNode.parentNode).find('.custom-textarea')[0];
-
-        if (textarea !== e.target && !$.contains(textarea, e.target)) {
+        const textarea = ReactDOM.findDOMNode(this.props.getTarget());
+        if (!textarea || !textarea.contains(e.target)) {
             return;
         }
 
@@ -237,7 +263,12 @@ class FileUpload extends React.Component {
 
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
-        if (items) {
+        if (items && items.length > 0) {
+            if (global.window.mm_config.EnableFileAttachments === 'false') {
+                this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                return;
+            }
+
             var numToUpload = Math.min(Constants.MAX_UPLOAD_FILES - this.props.getFileCount(ChannelStore.getCurrentId()), items.length);
 
             if (items.length > numToUpload) {
@@ -270,7 +301,8 @@ class FileUpload extends React.Component {
 
                 const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
 
-                const request = Client.uploadFile(file,
+                const request = uploadFile(
+                    file,
                     name,
                     channelId,
                     clientId,
@@ -284,12 +316,22 @@ class FileUpload extends React.Component {
 
                 this.props.onUploadStart([clientId], channelId);
             }
+
+            if (numToUpload > 0) {
+                this.props.onFileUploadChange();
+            }
         }
     }
 
     keyUpload(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
+
+            if (global.window.mm_config.EnableFileAttachments === 'false') {
+                this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
+                return;
+            }
+
             if ((this.props.postType === 'post' && document.activeElement.id === 'post_textbox') ||
                 (this.props.postType === 'comment' && document.activeElement.id === 'reply_textbox')) {
                 $(this.refs.fileInput).focus().trigger('click');
@@ -309,6 +351,16 @@ class FileUpload extends React.Component {
         }
     }
 
+    handleMaxUploadReached(e) {
+        e.preventDefault();
+
+        const {formatMessage} = this.props.intl;
+
+        this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
+
+        return false;
+    }
+
     render() {
         let multiple = true;
         if (UserAgent.isMobileApp()) {
@@ -322,23 +374,47 @@ class FileUpload extends React.Component {
             accept = 'image/*';
         }
 
+        const channelId = this.props.channelId || ChannelStore.getCurrentId();
+
+        const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
+
+        let emojiSpan;
+        if (this.props.emojiEnabled) {
+            emojiSpan = (
+                <span
+                    className={'fa fa-smile-o icon--emoji-picker emoji-' + this.props.navBarName}
+                    onClick={this.emojiClick}
+                />
+            );
+        }
+
+        let fileDiv;
+        if (global.window.mm_config.EnableFileAttachments === 'true') {
+            fileDiv = (
+                <div className='icon--attachment'>
+                    <span
+                        className='icon'
+                        dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
+                    />
+                    <input
+                        ref='fileInput'
+                        type='file'
+                        onChange={this.handleChange}
+                        onClick={uploadsRemaining > 0 ? this.props.onClick : this.handleMaxUploadReached}
+                        multiple={multiple}
+                        accept={accept}
+                    />
+                </div>
+            );
+        }
+
         return (
             <span
                 ref='input'
-                className='btn btn-file'
+                className={'btn btn-file' + (uploadsRemaining <= 0 ? ' btn-file__disabled' : '')}
             >
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: Constants.ATTACHMENT_ICON_SVG}}
-                />
-                <input
-                    ref='fileInput'
-                    type='file'
-                    onChange={this.handleChange}
-                    onClick={this.props.onClick}
-                    multiple={multiple}
-                    accept={accept}
-                />
+                {fileDiv}
+                {emojiSpan}
             </span>
         );
     }
@@ -348,12 +424,17 @@ FileUpload.propTypes = {
     intl: intlShape.isRequired,
     onUploadError: React.PropTypes.func,
     getFileCount: React.PropTypes.func,
+    getTarget: React.PropTypes.func.isRequired,
     onClick: React.PropTypes.func,
     onFileUpload: React.PropTypes.func,
     onUploadStart: React.PropTypes.func,
+    onFileUploadChange: React.PropTypes.func,
     onTextDrop: React.PropTypes.func,
     channelId: React.PropTypes.string,
-    postType: React.PropTypes.string
+    postType: React.PropTypes.string,
+    onEmojiClick: React.PropTypes.func,
+    navBarName: React.PropTypes.string,
+    emojiEnabled: React.PropTypes.bool
 };
 
 export default injectIntl(FileUpload, {withRef: true});

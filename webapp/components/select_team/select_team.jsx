@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import UserStore from 'stores/user_store.jsx';
@@ -7,7 +7,6 @@ import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import ErrorBar from 'components/error_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SelectTeamItem from './components/select_team_item.jsx';
 
@@ -19,11 +18,17 @@ import React from 'react';
 import logoImage from 'images/logo.png';
 
 export default class SelectTeam extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            getTeams: React.PropTypes.func.isRequired
+        }).isRequired
+    }
 
     constructor(props) {
         super(props);
         this.onTeamChange = this.onTeamChange.bind(this);
         this.handleTeamClick = this.handleTeamClick.bind(this);
+        this.teamContentsCompare = this.teamContentsCompare.bind(this);
 
         const state = this.getStateFromStores(false);
         state.loadingTeamId = '';
@@ -32,7 +37,7 @@ export default class SelectTeam extends React.Component {
 
     componentDidMount() {
         TeamStore.addChangeListener(this.onTeamChange);
-        AsyncClient.getAllTeamListings();
+        this.props.actions.getTeams(0, 200);
     }
 
     componentWillUnmount() {
@@ -56,31 +61,19 @@ export default class SelectTeam extends React.Component {
         this.setState({loadingTeamId: team.id});
     }
 
+    teamContentsCompare(teamItemA, teamItemB) {
+        return teamItemA.props.team.display_name.localeCompare(teamItemB.props.team.display_name);
+    }
+
     render() {
-        let content = null;
-        let teamContents = [];
+        let openTeamContents = [];
         const isAlreadyMember = new Map();
         const isSystemAdmin = Utils.isSystemAdmin(UserStore.getCurrentUser().roles);
-        let teamMembersCount = 0;
 
         for (const teamMember of this.state.teamMembers) {
             const teamId = teamMember.team_id;
-            const team = this.state.teams[teamId];
             isAlreadyMember[teamId] = true;
-            teamMembersCount++;
-
-            teamContents.push(
-                <SelectTeamItem
-                    key={'team_' + team.name}
-                    team={team}
-                    url={'/' + team.name + '/channels/town-square'}
-                    onTeamClick={this.handleTeamClick}
-                    loading={this.state.loadingTeamId === teamId}
-                />
-            );
         }
-
-        var openTeamContents = [];
 
         for (const id in this.state.teamListings) {
             if (this.state.teamListings.hasOwnProperty(id) && !isAlreadyMember[id]) {
@@ -97,8 +90,8 @@ export default class SelectTeam extends React.Component {
             }
         }
 
-        if (teamMembersCount === 0 && teamContents.length === 0 && openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
-            teamContents = (
+        if (openTeamContents.length === 0 && (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin)) {
+            openTeamContents = (
                 <div className='signup-team-dir-err'>
                     <div>
                         <FormattedMessage
@@ -108,8 +101,8 @@ export default class SelectTeam extends React.Component {
                     </div>
                 </div>
             );
-        } else if (teamMembersCount === 0 && teamContents.length === 0 && openTeamContents.length === 0) {
-            teamContents = (
+        } else if (openTeamContents.length === 0) {
+            openTeamContents = (
                 <div className='signup-team-dir-err'>
                     <div>
                         <FormattedMessage
@@ -119,42 +112,25 @@ export default class SelectTeam extends React.Component {
                     </div>
                 </div>
             );
-        } else if (teamContents.length === 0 && openTeamContents.length > 0) {
-            teamContents = null;
         }
 
-        if (teamContents) {
-            content = (
-                <div className='signup__content'>
-                    <h4>
-                        <FormattedMessage
-                            id='signup_team.choose'
-                            defaultMessage='Your teams:'
-                        />
-                    </h4>
-                    <div className='signup-team-all'>
-                        {teamContents}
-                    </div>
-                </div>
-            );
+        if (Array.isArray(openTeamContents)) {
+            openTeamContents = openTeamContents.sort(this.teamContentsCompare);
         }
 
-        var openContent;
-        if (openTeamContents.length > 0) {
-            openContent = (
-                <div className='signup__content'>
-                    <h4>
-                        <FormattedMessage
-                            id='signup_team.join_open'
-                            defaultMessage='Teams you can join: '
-                        />
-                    </h4>
-                    <div className='signup-team-all'>
-                        {openTeamContents}
-                    </div>
+        let openContent = (
+            <div className='signup__content'>
+                <h4>
+                    <FormattedMessage
+                        id='signup_team.join_open'
+                        defaultMessage='Teams you can join: '
+                    />
+                </h4>
+                <div className='signup-team-all'>
+                    {openTeamContents}
                 </div>
-            );
-        }
+            </div>
+        );
 
         if (!this.state.loaded) {
             openContent = <LoadingScreen/>;
@@ -171,7 +147,7 @@ export default class SelectTeam extends React.Component {
         }
 
         let teamSignUp;
-        if (isSystemAdmin || (global.window.mm_config.EnableTeamCreation === 'true' && !UserAgent.isMobileApp())) {
+        if (isSystemAdmin || global.window.mm_config.EnableTeamCreation === 'true') {
             teamSignUp = (
                 <div className='margin--extra'>
                     <Link
@@ -191,7 +167,7 @@ export default class SelectTeam extends React.Component {
         }
 
         let adminConsoleLink;
-        if (isSystemAdmin) {
+        if (isSystemAdmin && !UserAgent.isMobileApp()) {
             adminConsoleLink = (
                 <div className='margin--extra hidden-xs'>
                     <Link
@@ -219,19 +195,30 @@ export default class SelectTeam extends React.Component {
             );
         }
 
+        let headerButton;
+        if (this.state.teamMembers.length) {
+            headerButton = (
+                <Link to='/'>
+                    <span className='fa fa-chevron-left'/>
+                    <FormattedMessage id='web.header.back'/>
+                </Link>
+            );
+        } else {
+            headerButton = (
+                <a
+                    href='#'
+                    onClick={() => GlobalActions.emitUserLoggedOutEvent()}
+                >
+                    <span className='fa fa-chevron-left'/>
+                    <FormattedMessage id='web.header.logout'/>
+                </a>
+            );
+        }
         return (
             <div>
                 <ErrorBar/>
                 <div className='signup-header'>
-                    <a
-                        href='#'
-                        onClick={GlobalActions.emitUserLoggedOutEvent}
-                    >
-                        <span className='fa fa-chevron-left'/>
-                        <FormattedMessage
-                            id='navbar_dropdown.logout'
-                        />
-                    </a>
+                    {headerButton}
                 </div>
                 <div className='col-sm-12'>
                     <div className={'signup-team__container'}>
@@ -243,7 +230,6 @@ export default class SelectTeam extends React.Component {
                         <h4 className='color--light'>
                             {description}
                         </h4>
-                        {content}
                         {openContent}
                         {teamSignUp}
                         {adminConsoleLink}

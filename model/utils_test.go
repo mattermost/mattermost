@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -34,7 +34,7 @@ func TestAppError(t *testing.T) {
 		t.Fatal()
 	}
 
-	err.Error()
+	t.Log(err.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
@@ -134,6 +134,194 @@ func TestParseHashtags(t *testing.T) {
 	for input, output := range hashtags {
 		if o, _ := ParseHashtags(input); o != output {
 			t.Fatal("failed to parse hashtags from input=" + input + " expected=" + output + " actual=" + o)
+		}
+	}
+}
+
+func TestIsValidAlphaNum(t *testing.T) {
+	cases := []struct {
+		Input  string
+		Result bool
+	}{
+		{
+			Input:  "test",
+			Result: true,
+		},
+		{
+			Input:  "test-name",
+			Result: true,
+		},
+		{
+			Input:  "test--name",
+			Result: true,
+		},
+		{
+			Input:  "test__name",
+			Result: true,
+		},
+		{
+			Input:  "-",
+			Result: false,
+		},
+		{
+			Input:  "__",
+			Result: false,
+		},
+		{
+			Input:  "test-",
+			Result: false,
+		},
+		{
+			Input:  "test--",
+			Result: false,
+		},
+		{
+			Input:  "test__",
+			Result: false,
+		},
+		{
+			Input:  "test:name",
+			Result: false,
+		},
+	}
+
+	for _, tc := range cases {
+		actual := IsValidAlphaNum(tc.Input)
+		if actual != tc.Result {
+			t.Fatalf("case: %v\tshould returned: %#v", tc, tc.Result)
+		}
+	}
+}
+
+func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
+	casesWithFormat := []struct {
+		Input  string
+		Result bool
+	}{
+		{
+			Input:  "test",
+			Result: true,
+		},
+		{
+			Input:  "test-name",
+			Result: true,
+		},
+		{
+			Input:  "test--name",
+			Result: true,
+		},
+		{
+			Input:  "test__name",
+			Result: true,
+		},
+		{
+			Input:  "test_name",
+			Result: true,
+		},
+		{
+			Input:  "test_-name",
+			Result: true,
+		},
+		{
+			Input:  "-",
+			Result: false,
+		},
+		{
+			Input:  "__",
+			Result: false,
+		},
+		{
+			Input:  "test-",
+			Result: false,
+		},
+		{
+			Input:  "test--",
+			Result: false,
+		},
+		{
+			Input:  "test__",
+			Result: false,
+		},
+		{
+			Input:  "test:name",
+			Result: false,
+		},
+	}
+
+	for _, tc := range casesWithFormat {
+		actual := IsValidAlphaNumHyphenUnderscore(tc.Input, true)
+		if actual != tc.Result {
+			t.Fatalf("case: %v\tshould returned: %#v", tc, tc.Result)
+		}
+	}
+
+	casesWithoutFormat := []struct {
+		Input  string
+		Result bool
+	}{
+		{
+			Input:  "test",
+			Result: true,
+		},
+		{
+			Input:  "test-name",
+			Result: true,
+		},
+		{
+			Input:  "test--name",
+			Result: true,
+		},
+		{
+			Input:  "test__name",
+			Result: true,
+		},
+		{
+			Input:  "test_name",
+			Result: true,
+		},
+		{
+			Input:  "test_-name",
+			Result: true,
+		},
+		{
+			Input:  "-",
+			Result: true,
+		},
+		{
+			Input:  "_",
+			Result: true,
+		},
+		{
+			Input:  "test-",
+			Result: true,
+		},
+		{
+			Input:  "test--",
+			Result: true,
+		},
+		{
+			Input:  "test__",
+			Result: true,
+		},
+		{
+			Input:  ".",
+			Result: false,
+		},
+
+		{
+			Input:  "test,",
+			Result: false,
+		},
+		{
+			Input:  "test:name",
+			Result: false,
+		},
+	}
+
+	for _, tc := range casesWithoutFormat {
+		actual := IsValidAlphaNumHyphenUnderscore(tc.Input, false)
+		if actual != tc.Result {
+			t.Fatalf("case: '%v'\tshould returned: %#v", tc.Input, tc.Result)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -166,7 +166,11 @@ func TestPacketConnReadWriteMulticastICMP(t *testing.T) {
 		if _, err := p.MulticastLoopback(); err != nil {
 			t.Fatal(err)
 		}
-		cf := ipv4.FlagTTL | ipv4.FlagDst | ipv4.FlagInterface
+		cf := ipv4.FlagDst | ipv4.FlagInterface
+		if runtime.GOOS != "solaris" {
+			// Solaris never allows to modify ICMP properties.
+			cf |= ipv4.FlagTTL
+		}
 
 		for i, toggle := range []bool{true, false, true} {
 			wb, err := (&icmp.Message{

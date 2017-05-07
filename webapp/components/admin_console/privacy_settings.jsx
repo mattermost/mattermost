@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -33,12 +33,10 @@ export default class PrivacySettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.privacy'
-                    defaultMessage='Privacy'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.privacy'
+                defaultMessage='Privacy'
+            />
         );
     }
 
@@ -56,7 +54,7 @@ export default class PrivacySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.privacy.showEmailDescription'
-                            defaultMessage='When false, hides email address of users from other users in the user interface, including team owners and Team Administrators. Used when system is set up for managing teams where some users choose to keep their contact information private.'
+                            defaultMessage='When false, hides the email address of members from everyone except System Administrators.'
                         />
                     }
                     value={this.state.showEmailAddress}
@@ -73,7 +71,7 @@ export default class PrivacySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.privacy.showFullNameDescription'
-                            defaultMessage='When false, hides full name of users from other users, including team owners and Team Administrators. Username is shown in place of full name.'
+                            defaultMessage='When false, hides the full name of members from everyone except System Administrators. Username is shown in place of full name.'
                         />
                     }
                     value={this.state.showFullName}

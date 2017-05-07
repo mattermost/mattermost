@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -9,7 +9,7 @@ export default class FormError extends React.Component {
         return {
             type: React.PropTypes.node,
             error: React.PropTypes.node,
-            margin: React.PropTypes.node,
+            margin: React.PropTypes.bool,
             errors: React.PropTypes.arrayOf(React.PropTypes.node)
         };
     }

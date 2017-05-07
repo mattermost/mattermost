@@ -56,6 +56,9 @@ func (w *compressResponseWriter) Flush() {
 
 // CompressHandler gzip compresses HTTP responses for clients that support it
 // via the 'Accept-Encoding' header.
+//
+// Compressing TLS traffic may leak the page contents to an attacker if the
+// page contains user input: http://security.stackexchange.com/a/102015/12208
 func CompressHandler(h http.Handler) http.Handler {
 	return CompressHandlerLevel(h, gzip.DefaultCompression)
 }

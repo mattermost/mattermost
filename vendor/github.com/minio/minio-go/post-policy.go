@@ -149,6 +149,24 @@ func (p *PostPolicy) SetContentLengthRange(min, max int64) error {
 	return nil
 }
 
+// SetSuccessStatusAction - Sets the status success code of the object for this policy
+// based upload.
+func (p *PostPolicy) SetSuccessStatusAction(status string) error {
+	if strings.TrimSpace(status) == "" || status == "" {
+		return ErrInvalidArgument("Status is empty")
+	}
+	policyCond := policyCondition{
+		matchType: "eq",
+		condition: "$success_action_status",
+		value:     status,
+	}
+	if err := p.addNewPolicy(policyCond); err != nil {
+		return err
+	}
+	p.formData["success_action_status"] = status
+	return nil
+}
+
 // addNewPolicy - internal helper to validate adding new policies.
 func (p *PostPolicy) addNewPolicy(policyCond policyCondition) error {
 	if policyCond.matchType == "" || policyCond.condition == "" || policyCond.value == "" {

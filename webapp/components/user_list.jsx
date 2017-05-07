@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import UserListRow from './user_list_row.jsx';
@@ -8,6 +8,18 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class UserList extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.scrollToTop = this.scrollToTop.bind(this);
+    }
+
+    scrollToTop() {
+        if (this.refs.container) {
+            this.refs.container.scrollTop = 0;
+        }
+    }
+
     render() {
         const users = this.props.users;
 
@@ -31,12 +43,12 @@ export default class UserList extends React.Component {
             content = (
                 <div
                     key='no-users-found'
-                    className='no-channel-message'
+                    className='more-modal__placeholder-row'
                 >
-                    <p className='primary-message'>
+                    <p>
                         <FormattedMessage
                             id='user_list.notFound'
-                            defaultMessage='No users found :('
+                            defaultMessage='No users found'
                         />
                     </p>
                 </div>
@@ -44,7 +56,7 @@ export default class UserList extends React.Component {
         }
 
         return (
-            <div>
+            <div ref='container'>
                 {content}
             </div>
         );

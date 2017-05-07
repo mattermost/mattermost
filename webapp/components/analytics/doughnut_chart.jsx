@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
@@ -83,6 +83,6 @@ DoughnutChart.propTypes = {
     title: React.PropTypes.node,
     width: React.PropTypes.string,
     height: React.PropTypes.string,
-    data: React.PropTypes.array,
+    data: React.PropTypes.object,
     options: React.PropTypes.object
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -20,8 +20,6 @@ func InitGeneral() {
 	BaseRoutes.General.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
 	BaseRoutes.General.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
 	BaseRoutes.General.Handle("/ping", ApiAppHandler(ping)).Methods("GET")
-
-	BaseRoutes.WebSocket.Handle("ping", ApiWebSocketHandler(webSocketPing))
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -70,14 +68,4 @@ func ping(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["version"] = model.CurrentVersion
 	m["server_time"] = fmt.Sprintf("%v", model.GetMillis())
 	w.Write([]byte(model.MapToJson(m)))
-}
-
-func webSocketPing(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	data := map[string]interface{}{}
-	data["text"] = "pong"
-	data["version"] = model.CurrentVersion
-	data["server_time"] = model.GetMillis()
-	data["node_id"] = ""
-
-	return data, nil
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -15,6 +15,16 @@ func TestClusterInfoJson(t *testing.T) {
 
 	if cluster.Id != result.Id {
 		t.Fatal("Ids do not match")
+	}
+
+	cluster.SetAlive(true)
+	if !cluster.IsAlive() {
+		t.Fatal("should be live")
+	}
+
+	cluster.SetAlive(false)
+	if cluster.IsAlive() {
+		t.Fatal("should be not live")
 	}
 }
 

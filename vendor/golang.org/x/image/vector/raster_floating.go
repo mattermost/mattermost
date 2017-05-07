@@ -9,8 +9,6 @@ package vector
 
 import (
 	"math"
-
-	"golang.org/x/image/math/f32"
 )
 
 func floatingMax(x, y float32) float32 {
@@ -30,38 +28,38 @@ func floatingMin(x, y float32) float32 {
 func floatingFloor(x float32) int32 { return int32(math.Floor(float64(x))) }
 func floatingCeil(x float32) int32  { return int32(math.Ceil(float64(x))) }
 
-func (z *Rasterizer) floatingLineTo(b f32.Vec2) {
-	a := z.pen
-	z.pen = b
+func (z *Rasterizer) floatingLineTo(bx, by float32) {
+	ax, ay := z.penX, z.penY
+	z.penX, z.penY = bx, by
 	dir := float32(1)
-	if a[1] > b[1] {
-		dir, a, b = -1, b, a
+	if ay > by {
+		dir, ax, ay, bx, by = -1, bx, by, ax, ay
 	}
 	// Horizontal line segments yield no change in coverage. Almost horizontal
 	// segments would yield some change, in ideal math, but the computation
-	// further below, involving 1 / (b[1] - a[1]), is unstable in floating
-	// point math, so we treat the segment as if it was perfectly horizontal.
-	if b[1]-a[1] <= 0.000001 {
+	// further below, involving 1 / (by - ay), is unstable in floating point
+	// math, so we treat the segment as if it was perfectly horizontal.
+	if by-ay <= 0.000001 {
 		return
 	}
-	dxdy := (b[0] - a[0]) / (b[1] - a[1])
+	dxdy := (bx - ax) / (by - ay)
 
-	x := a[0]
-	y := floatingFloor(a[1])
-	yMax := floatingCeil(b[1])
+	x := ax
+	y := floatingFloor(ay)
+	yMax := floatingCeil(by)
 	if yMax > int32(z.size.Y) {
 		yMax = int32(z.size.Y)
 	}
 	width := int32(z.size.X)
 
 	for ; y < yMax; y++ {
-		dy := floatingMin(float32(y+1), b[1]) - floatingMax(float32(y), a[1])
+		dy := floatingMin(float32(y+1), by) - floatingMax(float32(y), ay)
 		xNext := x + dy*dxdy
 		if y < 0 {
 			x = xNext
 			continue
 		}
-		buf := z.area[y*width:]
+		buf := z.bufF32[y*width:]
 		d := dy * dir
 		x0, x1 := x, xNext
 		if x > xNext {
@@ -122,7 +120,7 @@ func (z *Rasterizer) floatingLineTo(b f32.Vec2) {
 	}
 }
 
-func floatingAccumulate(dst []uint8, src []float32) {
+const (
 	// almost256 scales a floating point value in the range [0, 1] to a uint8
 	// value in the range [0x00, 0xff].
 	//
@@ -136,7 +134,44 @@ func floatingAccumulate(dst []uint8, src []float32) {
 	// instead of the maximal value 0xff.
 	//
 	// math.Float32bits(almost256) is 0x437fffff.
-	const almost256 = 255.99998
+	almost256 = 255.99998
+
+	// almost65536 scales a floating point value in the range [0, 1] to a
+	// uint16 value in the range [0x0000, 0xffff].
+	//
+	// math.Float32bits(almost65536) is 0x477fffff.
+	almost65536 = almost256 * 256
+)
+
+func floatingAccumulateOpOver(dst []uint8, src []float32) {
+	// Sanity check that len(dst) >= len(src).
+	if len(dst) < len(src) {
+		return
+	}
+
+	acc := float32(0)
+	for i, v := range src {
+		acc += v
+		a := acc
+		if a < 0 {
+			a = -a
+		}
+		if a > 1 {
+			a = 1
+		}
+		// This algorithm comes from the standard library's image/draw package.
+		dstA := uint32(dst[i]) * 0x101
+		maskA := uint32(almost65536 * a)
+		outA := dstA*(0xffff-maskA)/0xffff + maskA
+		dst[i] = uint8(outA >> 8)
+	}
+}
+
+func floatingAccumulateOpSrc(dst []uint8, src []float32) {
+	// Sanity check that len(dst) >= len(src).
+	if len(dst) < len(src) {
+		return
+	}
 
 	acc := float32(0)
 	for i, v := range src {
@@ -149,5 +184,25 @@ func floatingAccumulate(dst []uint8, src []float32) {
 			a = 1
 		}
 		dst[i] = uint8(almost256 * a)
+	}
+}
+
+func floatingAccumulateMask(dst []uint32, src []float32) {
+	// Sanity check that len(dst) >= len(src).
+	if len(dst) < len(src) {
+		return
+	}
+
+	acc := float32(0)
+	for i, v := range src {
+		acc += v
+		a := acc
+		if a < 0 {
+			a = -a
+		}
+		if a > 1 {
+			a = 1
+		}
+		dst[i] = uint32(almost65536 * a)
 	}
 }

@@ -1,27 +1,33 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information
 
 import PostViewController from './post_view_controller.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 
 import React from 'react';
 
 const MAXIMUM_CACHED_VIEWS = 5;
 
 export default class PostViewCache extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            viewChannel: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
         this.onChannelChange = this.onChannelChange.bind(this);
 
+        const currentChannelId = ChannelStore.getCurrentId();
         const channel = ChannelStore.getCurrent();
 
         this.state = {
-            currentChannelId: channel.id,
-            channels: [channel]
+            currentChannelId,
+            channels: channel ? [channel] : []
         };
     }
 
@@ -31,7 +37,7 @@ export default class PostViewCache extends React.Component {
 
     componentWillUnmount() {
         if (UserStore.getCurrentUser()) {
-            AsyncClient.setActiveChannel('');
+            this.props.actions.viewChannel('', this.state.currentChannelId || '');
         }
         ChannelStore.removeChangeListener(this.onChannelChange);
     }
@@ -40,7 +46,7 @@ export default class PostViewCache extends React.Component {
         const channels = Object.assign([], this.state.channels);
         const currentChannel = ChannelStore.getCurrent();
 
-        if (currentChannel == null) {
+        if (!currentChannel) {
             return;
         }
 

@@ -1,11 +1,15 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"io"
+	"sort"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -13,11 +17,16 @@ const (
 	CHANNEL_OPEN                   = "O"
 	CHANNEL_PRIVATE                = "P"
 	CHANNEL_DIRECT                 = "D"
+	CHANNEL_GROUP                  = "G"
+	CHANNEL_GROUP_MAX_USERS        = 8
+	CHANNEL_GROUP_MIN_USERS        = 3
 	DEFAULT_CHANNEL                = "town-square"
 	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
+	CHANNEL_NAME_MIN_LENGTH        = 2
 	CHANNEL_NAME_MAX_LENGTH        = 64
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
+	CHANNEL_CACHE_SIZE             = 25000
 )
 
 type Channel struct {
@@ -37,7 +46,23 @@ type Channel struct {
 	CreatorId     string `json:"creator_id"`
 }
 
+type ChannelPatch struct {
+	DisplayName *string `json:"display_name"`
+	Name        *string `json:"name"`
+	Header      *string `json:"header"`
+	Purpose     *string `json:"purpose"`
+}
+
 func (o *Channel) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (o *ChannelPatch) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
@@ -49,6 +74,17 @@ func (o *Channel) ToJson() string {
 func ChannelFromJson(data io.Reader) *Channel {
 	decoder := json.NewDecoder(data)
 	var o Channel
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
+func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
+	decoder := json.NewDecoder(data)
+	var o ChannelPatch
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o
@@ -83,15 +119,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+o.Id)
 	}
 
-	if len(o.Name) > CHANNEL_NAME_MAX_LENGTH {
-		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "id="+o.Id)
-	}
-
 	if !IsValidChannelIdentifier(o.Name) {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id)
 	}
 
-	if !(o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE || o.Type == CHANNEL_DIRECT) {
+	if !(o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE || o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP) {
 		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id)
 	}
 
@@ -128,10 +160,60 @@ func (o *Channel) ExtraUpdated() {
 	o.ExtraUpdateAt = GetMillis()
 }
 
+func (o *Channel) IsGroupOrDirect() bool {
+	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
+}
+
+func (o *Channel) Patch(patch *ChannelPatch) {
+	if patch.DisplayName != nil {
+		o.DisplayName = *patch.DisplayName
+	}
+
+	if patch.Name != nil {
+		o.Name = *patch.Name
+	}
+
+	if patch.Header != nil {
+		o.Header = *patch.Header
+	}
+
+	if patch.Purpose != nil {
+		o.Purpose = *patch.Purpose
+	}
+}
+
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {
 		return userId2 + "__" + userId1
 	} else {
 		return userId1 + "__" + userId2
 	}
+}
+
+func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
+	usernames := make([]string, len(users))
+	for index, user := range users {
+		usernames[index] = user.Username
+	}
+
+	sort.Strings(usernames)
+
+	name := strings.Join(usernames, ", ")
+
+	if truncate && len(name) > CHANNEL_NAME_MAX_LENGTH {
+		name = name[:CHANNEL_NAME_MAX_LENGTH]
+	}
+
+	return name
+}
+
+func GetGroupNameFromUserIds(userIds []string) string {
+	sort.Strings(userIds)
+
+	h := sha1.New()
+	for _, id := range userIds {
+		io.WriteString(h, id)
+	}
+
+	return hex.EncodeToString(h.Sum(nil))
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package web
@@ -11,6 +11,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
@@ -19,7 +20,7 @@ import (
 func InitWeb() {
 	l4g.Debug(utils.T("web.init.debug"))
 
-	mainrouter := api.Srv.Router
+	mainrouter := app.Srv.Router
 
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
 		staticDir := utils.FindDir(model.CLIENT_DIR)
@@ -37,6 +38,10 @@ func InitWeb() {
 func staticHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=31556926, public")
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
 		handler.ServeHTTP(w, r)
 	})
 }
@@ -52,7 +57,6 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 		version := strings.Split(browser, "/")
 
 		if strings.HasPrefix(bname, version[0]) && strings.HasPrefix(bversion, version[1]) {
-			c.Err = model.NewLocAppError("CheckBrowserCompatability", "web.check_browser_compatibility.app_error", nil, "")
 			return false
 		}
 	}
@@ -63,6 +67,9 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckBrowserCompatability(c, r) {
+		w.Header().Set("Cache-Control", "no-store")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(c.T("web.check_browser_compatibility.app_error")))
 		return
 	}
 

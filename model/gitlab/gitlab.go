@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package oauthgitlab
@@ -62,6 +62,15 @@ func gitLabUserFromJson(data io.Reader) *GitLabUser {
 		return &glu
 	} else {
 		return nil
+	}
+}
+
+func (glu *GitLabUser) ToJson() string {
+	b, err := json.Marshal(glu)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
 	}
 }
 

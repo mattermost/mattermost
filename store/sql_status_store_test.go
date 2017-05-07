@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -12,7 +12,7 @@ import (
 func TestSqlStatusStore(t *testing.T) {
 	Setup()
 
-	status := &model.Status{model.NewId(), model.STATUS_ONLINE, false, 0, ""}
+	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 
 	if err := (<-store.Status().SaveOrUpdate(status)).Err; err != nil {
 		t.Fatal(err)
@@ -28,12 +28,12 @@ func TestSqlStatusStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	status2 := &model.Status{model.NewId(), model.STATUS_AWAY, false, 0, ""}
+	status2 := &model.Status{UserId: model.NewId(), Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	if err := (<-store.Status().SaveOrUpdate(status2)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	status3 := &model.Status{model.NewId(), model.STATUS_OFFLINE, false, 0, ""}
+	status3 := &model.Status{UserId: model.NewId(), Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	if err := (<-store.Status().SaveOrUpdate(status3)).Err; err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestSqlStatusStore(t *testing.T) {
 func TestActiveUserCount(t *testing.T) {
 	Setup()
 
-	status := &model.Status{model.NewId(), model.STATUS_ONLINE, false, model.GetMillis(), ""}
+	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	Must(store.Status().SaveOrUpdate(status))
 
 	if result := <-store.Status().GetTotalActiveUsersCount(); result.Err != nil {

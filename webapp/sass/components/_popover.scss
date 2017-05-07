@@ -17,6 +17,7 @@
     }
 
     .popover-title {
+        @include border-radius(0);
         background: alpha-color($black, .05);
         max-width: 100%;
         overflow: hidden;
@@ -30,6 +31,26 @@
         p {
             &:last-child {
                 margin-bottom: 5px;
+            }
+        }
+    }
+
+    .popover__row {
+        margin: 0 -15px 0;
+        padding: 9px 15px 0;
+
+        &.first {
+            border-top: 1px solid transparent;
+            margin-top: 9px;
+        }
+
+        > a {
+            > i {
+                margin-right: 5px;
+            }
+
+            > span {
+                text-transform: capitalize;
             }
         }
     }
@@ -63,6 +84,17 @@
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    &[disabled] {
+        color: $video-circle-offline;
+
+        &:focus,
+        &:hover {
+            color: $video-circle-offline;
+            text-decoration: none;
+        }
+    }
+
 }
 
 .search-help-popover {
@@ -191,6 +223,15 @@
     .more-modal__list {
         .more-modal__row {
             min-height: inherit;
+        }
+
+        .more-modal__details {
+            line-height: 32px;
+        }
+
+        .more-modal__actions {
+            line-height: 31px;
+            margin: 0;
         }
     }
 

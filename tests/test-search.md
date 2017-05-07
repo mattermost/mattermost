@@ -42,3 +42,7 @@ Click on the linked hashtags below, and confirm that the search results match th
 
 *#markdown* **#markdown** ~~#markdown~~
 ##### #markdown
+
+#### Accents and non-Latin characters in a hashtag:
+
+#crèmeglacée #테스트

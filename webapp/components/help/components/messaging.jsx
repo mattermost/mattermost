@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {localizeMessage} from 'utils/utils.jsx';
@@ -12,7 +12,7 @@ export default class HelpMessaging extends React.Component {
     render() {
         const message = [];
         message.push(localizeMessage('help.messaging.title', '# Messaging Basics\n_____'));
-        message.push(localizeMessage('help.messaging.write', '**Write messages** using the text input box at the bottom of Mattermost. Press **ENTER** to send a message. Use **Shift+ENTER** to create a new line without sending a message.'));
+        message.push(localizeMessage('help.messaging.write', '**Write messages** using the text input box at the bottom of Mattermost. Press ENTER to send a message. Use SHIFT+ENTER to create a new line without sending a message.'));
         message.push(localizeMessage('help.messaging.reply', '**Reply to messages** by clicking the reply arrow next to the message text.'));
         message.push('![reply arrow](https://docs.mattermost.com/_images/replyIcon.PNG)');
         message.push(localizeMessage('help.messaging.notify', '**Notify teammates** when they are needed by typing `@username`.'));

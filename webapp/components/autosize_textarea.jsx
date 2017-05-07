@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -53,11 +53,18 @@ export default class AutosizeTextarea extends React.Component {
     }
 
     render() {
+        const props = {...this.props};
+
+        Reflect.deleteProperty(props, 'onHeightChange');
+        Reflect.deleteProperty(props, 'providers');
+        Reflect.deleteProperty(props, 'channelId');
+
         const {
             value,
             placeholder,
+            id,
             ...otherProps
-        } = this.props;
+        } = props;
 
         const heightProps = {};
         if (this.height <= 0) {
@@ -71,14 +78,18 @@ export default class AutosizeTextarea extends React.Component {
             <div>
                 <textarea
                     ref='textarea'
+                    id={id + '-textarea'}
                     {...heightProps}
-                    {...this.props}
+                    {...props}
                 />
                 <div style={{height: 0, overflow: 'hidden'}}>
                     <textarea
                         ref='reference'
+                        id={id + '-reference'}
                         style={{height: 'auto', width: '100%'}}
-                        value={value || placeholder}
+                        disabled={true}
+                        value={value}
+                        placeholder={placeholder}
                         rows='1'
                         {...otherProps}
                     />

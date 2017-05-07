@@ -210,15 +210,16 @@ type createBucketConfiguration struct {
 // deleteObject container for Delete element in MultiObjects Delete XML request
 type deleteObject struct {
 	Key       string
-	VersionId string `xml:"VersionId,omitempty"`
+	VersionID string `xml:"VersionId,omitempty"`
 }
 
 // deletedObject container for Deleted element in MultiObjects Delete XML response
 type deletedObject struct {
-	Key                   string
-	VersionId             string `xml:"VersionId,omitempty"`
+	Key       string
+	VersionID string `xml:"VersionId,omitempty"`
+	// These fields are ignored.
 	DeleteMarker          bool
-	DeleteMarkerVersionId string
+	DeleteMarkerVersionID string
 }
 
 // nonDeletedObject container for Error element (failed deletion) in MultiObjects Delete XML response

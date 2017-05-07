@@ -1,11 +1,11 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {Link} from 'react-router/es6';
+import {Link, browserHistory} from 'react-router/es6';
 
 import UserStore from 'stores/user_store.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
@@ -15,7 +15,7 @@ import Constants from 'utils/constants.jsx';
 export default class ConfirmIntegration extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired,
+            team: React.PropTypes.object,
             location: React.PropTypes.object,
             loading: React.PropTypes.bool
         };
@@ -25,6 +25,7 @@ export default class ConfirmIntegration extends React.Component {
         super(props);
 
         this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
 
         const userId = UserStore.getCurrentId();
 
@@ -38,10 +39,12 @@ export default class ConfirmIntegration extends React.Component {
 
     componentDidMount() {
         IntegrationStore.addChangeListener(this.handleIntegrationChange);
+        window.addEventListener('keypress', this.handleKeyPress);
     }
 
     componentWillUnmount() {
         IntegrationStore.removeChangeListener(this.handleIntegrationChange);
+        window.removeEventListener('keypress', this.handleKeyPress);
     }
 
     handleIntegrationChange() {
@@ -51,6 +54,12 @@ export default class ConfirmIntegration extends React.Component {
             oauthApps: IntegrationStore.getOAuthApps(userId),
             loading: !IntegrationStore.hasReceivedOAuthApps(userId)
         });
+    }
+
+    handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            browserHistory.push('/' + this.props.team.name + '/integrations/' + this.state.type);
+        }
     }
 
     render() {
@@ -159,7 +168,7 @@ export default class ConfirmIntegration extends React.Component {
 
                 helpText = [];
                 helpText.push(
-                    <p>
+                    <p key='add_oauth_app.doneHelp'>
                         <FormattedHTMLMessage
                             id='add_oauth_app.doneHelp'
                             defaultMessage='Your OAuth 2.0 application has been set up. Please use the following Client ID and Client Secret when requesting authorization for your application (see <a href="https://docs.mattermost.com/developer/oauth-2-0-applications.html">documentation</a> for further details).'
@@ -167,7 +176,7 @@ export default class ConfirmIntegration extends React.Component {
                     </p>
                 );
                 helpText.push(
-                    <p>
+                    <p key='add_oauth_app.clientId'>
                         <FormattedHTMLMessage
                             id='add_oauth_app.clientId'
                             defaultMessage='<b>Client ID:</b> {id}'
@@ -186,7 +195,7 @@ export default class ConfirmIntegration extends React.Component {
                 );
 
                 helpText.push(
-                    <p>
+                    <p key='add_oauth_app.doneUrlHelp'>
                         <FormattedHTMLMessage
                             id='add_oauth_app.doneUrlHelp'
                             defaultMessage='The following are your authorized redirect URL(s).'

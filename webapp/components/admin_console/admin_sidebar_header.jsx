@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
@@ -42,7 +42,7 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.update_at}
+                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.last_picture_update}
                 />
             );
         }

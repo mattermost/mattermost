@@ -1,9 +1,10 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 
 import EmojiStore from 'stores/emoji_store.jsx';
+import DeleteEmoji from './delete_emoji_modal.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -80,15 +81,7 @@ export default class EmojiListItem extends React.Component {
         let deleteButton = null;
         if (this.props.onDelete) {
             deleteButton = (
-                <a
-                    href='#'
-                    onClick={this.handleDelete}
-                >
-                    <FormattedMessage
-                        id='emoji_list.delete'
-                        defaultMessage='Delete'
-                    />
-                </a>
+                <DeleteEmoji onDelete={this.handleDelete}/>
             );
         }
 
@@ -98,9 +91,9 @@ export default class EmojiListItem extends React.Component {
                     {':' + emoji.name + ':'}
                 </td>
                 <td className='emoji-list__image'>
-                    <img
+                    <span
                         className='emoticon'
-                        src={EmojiStore.getEmojiImageUrl(emoji)}
+                        style={{backgroundImage: 'url(' + EmojiStore.getEmojiImageUrl(emoji) + ')'}}
                     />
                 </td>
                 <td className='emoji-list__creator'>

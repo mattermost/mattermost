@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package utils
@@ -12,6 +12,8 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
@@ -112,17 +114,44 @@ func ValidateLicense(signed []byte) (bool, string) {
 	return true, string(plaintext)
 }
 
+func GetLicenseFileFromDisk(fileName string) []byte {
+	file, err := os.Open(fileName)
+	if err != nil {
+		l4g.Error("Failed to open license key from disk at %v err=%v", fileName, err.Error())
+		return nil
+	}
+	defer file.Close()
+
+	licenseBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		l4g.Error("Failed to read license key from disk at %v err=%v", fileName, err.Error())
+		return nil
+	}
+
+	return licenseBytes
+}
+
+func GetLicenseFileLocation(fileLocation string) string {
+	if fileLocation == "" {
+		return FindDir("config") + "mattermost.mattermost-license"
+	} else {
+		return fileLocation
+	}
+}
+
 func getClientLicense(l *model.License) map[string]string {
 	props := make(map[string]string)
 
 	props["IsLicensed"] = strconv.FormatBool(IsLicensed)
 
 	if IsLicensed {
+		props["Id"] = l.Id
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
 		props["SAML"] = strconv.FormatBool(*l.Features.SAML)
 		props["Cluster"] = strconv.FormatBool(*l.Features.Cluster)
+		props["Metrics"] = strconv.FormatBool(*l.Features.Metrics)
 		props["GoogleOAuth"] = strconv.FormatBool(*l.Features.GoogleOAuth)
 		props["Office365OAuth"] = strconv.FormatBool(*l.Features.Office365OAuth)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
@@ -165,9 +194,9 @@ func GetSanitizedClientLicense() map[string]string {
 	}
 
 	if IsLicensed {
+		delete(sanitizedLicense, "Id")
 		delete(sanitizedLicense, "Name")
 		delete(sanitizedLicense, "Email")
-		delete(sanitizedLicense, "Company")
 		delete(sanitizedLicense, "PhoneNumber")
 		delete(sanitizedLicense, "IssuedAt")
 		delete(sanitizedLicense, "StartsAt")

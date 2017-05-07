@@ -61,6 +61,20 @@ func (rr *ANY) pack(msg []byte, off int, compression map[string]int, compress bo
 	return off, nil
 }
 
+func (rr *AVC) pack(msg []byte, off int, compression map[string]int, compress bool) (int, error) {
+	off, err := rr.Hdr.pack(msg, off, compression, compress)
+	if err != nil {
+		return off, err
+	}
+	headerEnd := off
+	off, err = packStringTxt(rr.Txt, msg, off)
+	if err != nil {
+		return off, err
+	}
+	rr.Header().Rdlength = uint16(off - headerEnd)
+	return off, nil
+}
+
 func (rr *CAA) pack(msg []byte, off int, compression map[string]int, compress bool) (int, error) {
 	off, err := rr.Hdr.pack(msg, off, compression, compress)
 	if err != nil {
@@ -221,7 +235,7 @@ func (rr *DNAME) pack(msg []byte, off int, compression map[string]int, compress 
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.Target, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Target, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -447,7 +461,7 @@ func (rr *KX) pack(msg []byte, off int, compression map[string]int, compress boo
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Exchanger, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Exchanger, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -539,7 +553,7 @@ func (rr *LP) pack(msg []byte, off int, compression map[string]int, compress boo
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Fqdn, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Fqdn, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -679,7 +693,7 @@ func (rr *NAPTR) pack(msg []byte, off int, compression map[string]int, compress 
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Replacement, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Replacement, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -753,7 +767,7 @@ func (rr *NSAPPTR) pack(msg []byte, off int, compression map[string]int, compres
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.Ptr, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Ptr, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -767,7 +781,7 @@ func (rr *NSEC) pack(msg []byte, off int, compression map[string]int, compress b
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.NextDomain, msg, off, compression, compress)
+	off, err = PackDomainName(rr.NextDomain, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -801,10 +815,12 @@ func (rr *NSEC3) pack(msg []byte, off int, compression map[string]int, compress 
 	if err != nil {
 		return off, err
 	}
-	if rr.Salt == "-" { /* do nothing, empty salt */
-	}
-	if err != nil {
-		return off, err
+	// Only pack salt if value is not "-", i.e. empty
+	if rr.Salt != "-" {
+		off, err = packStringHex(rr.Salt, msg, off)
+		if err != nil {
+			return off, err
+		}
 	}
 	off, err = packUint8(rr.HashLength, msg, off)
 	if err != nil {
@@ -844,10 +860,12 @@ func (rr *NSEC3PARAM) pack(msg []byte, off int, compression map[string]int, comp
 	if err != nil {
 		return off, err
 	}
-	if rr.Salt == "-" { /* do nothing, empty salt */
-	}
-	if err != nil {
-		return off, err
+	// Only pack salt if value is not "-", i.e. empty
+	if rr.Salt != "-" {
+		off, err = packStringHex(rr.Salt, msg, off)
+		if err != nil {
+			return off, err
+		}
 	}
 	rr.Header().Rdlength = uint16(off - headerEnd)
 	return off, nil
@@ -905,11 +923,11 @@ func (rr *PX) pack(msg []byte, off int, compression map[string]int, compress boo
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Map822, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Map822, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Mapx400, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Mapx400, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -963,11 +981,11 @@ func (rr *RP) pack(msg []byte, off int, compression map[string]int, compress boo
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.Mbox, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Mbox, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Txt, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Txt, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -1009,7 +1027,7 @@ func (rr *RRSIG) pack(msg []byte, off int, compression map[string]int, compress 
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.SignerName, msg, off, compression, compress)
+	off, err = PackDomainName(rr.SignerName, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -1073,11 +1091,37 @@ func (rr *SIG) pack(msg []byte, off int, compression map[string]int, compress bo
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.SignerName, msg, off, compression, compress)
+	off, err = PackDomainName(rr.SignerName, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
 	off, err = packStringBase64(rr.Signature, msg, off)
+	if err != nil {
+		return off, err
+	}
+	rr.Header().Rdlength = uint16(off - headerEnd)
+	return off, nil
+}
+
+func (rr *SMIMEA) pack(msg []byte, off int, compression map[string]int, compress bool) (int, error) {
+	off, err := rr.Hdr.pack(msg, off, compression, compress)
+	if err != nil {
+		return off, err
+	}
+	headerEnd := off
+	off, err = packUint8(rr.Usage, msg, off)
+	if err != nil {
+		return off, err
+	}
+	off, err = packUint8(rr.Selector, msg, off)
+	if err != nil {
+		return off, err
+	}
+	off, err = packUint8(rr.MatchingType, msg, off)
+	if err != nil {
+		return off, err
+	}
+	off, err = packStringHex(rr.Certificate, msg, off)
 	if err != nil {
 		return off, err
 	}
@@ -1155,7 +1199,7 @@ func (rr *SRV) pack(msg []byte, off int, compression map[string]int, compress bo
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.Target, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Target, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -1217,11 +1261,11 @@ func (rr *TALINK) pack(msg []byte, off int, compression map[string]int, compress
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.PreviousName, msg, off, compression, compress)
+	off, err = PackDomainName(rr.PreviousName, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
-	off, err = PackDomainName(rr.NextName, msg, off, compression, compress)
+	off, err = PackDomainName(rr.NextName, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -1235,7 +1279,7 @@ func (rr *TKEY) pack(msg []byte, off int, compression map[string]int, compress b
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.Algorithm, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Algorithm, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -1307,7 +1351,7 @@ func (rr *TSIG) pack(msg []byte, off int, compression map[string]int, compress b
 		return off, err
 	}
 	headerEnd := off
-	off, err = PackDomainName(rr.Algorithm, msg, off, compression, compress)
+	off, err = PackDomainName(rr.Algorithm, msg, off, compression, false)
 	if err != nil {
 		return off, err
 	}
@@ -1495,6 +1539,23 @@ func unpackANY(h RR_Header, msg []byte, off int) (RR, int, error) {
 	rdStart := off
 	_ = rdStart
 
+	return rr, off, err
+}
+
+func unpackAVC(h RR_Header, msg []byte, off int) (RR, int, error) {
+	rr := new(AVC)
+	rr.Hdr = h
+	if noRdata(h) {
+		return rr, off, nil
+	}
+	var err error
+	rdStart := off
+	_ = rdStart
+
+	rr.Txt, off, err = unpackStringTxt(msg, off)
+	if err != nil {
+		return rr, off, err
+	}
 	return rr, off, err
 }
 
@@ -2907,6 +2968,44 @@ func unpackSIG(h RR_Header, msg []byte, off int) (RR, int, error) {
 	return rr, off, err
 }
 
+func unpackSMIMEA(h RR_Header, msg []byte, off int) (RR, int, error) {
+	rr := new(SMIMEA)
+	rr.Hdr = h
+	if noRdata(h) {
+		return rr, off, nil
+	}
+	var err error
+	rdStart := off
+	_ = rdStart
+
+	rr.Usage, off, err = unpackUint8(msg, off)
+	if err != nil {
+		return rr, off, err
+	}
+	if off == len(msg) {
+		return rr, off, nil
+	}
+	rr.Selector, off, err = unpackUint8(msg, off)
+	if err != nil {
+		return rr, off, err
+	}
+	if off == len(msg) {
+		return rr, off, nil
+	}
+	rr.MatchingType, off, err = unpackUint8(msg, off)
+	if err != nil {
+		return rr, off, err
+	}
+	if off == len(msg) {
+		return rr, off, nil
+	}
+	rr.Certificate, off, err = unpackStringHex(msg, off, rdStart+int(rr.Hdr.Rdlength))
+	if err != nil {
+		return rr, off, err
+	}
+	return rr, off, err
+}
+
 func unpackSOA(h RR_Header, msg []byte, off int) (RR, int, error) {
 	rr := new(SOA)
 	rr.Hdr = h
@@ -3399,6 +3498,7 @@ var typeToUnpack = map[uint16]func(RR_Header, []byte, int) (RR, int, error){
 	TypeAAAA:       unpackAAAA,
 	TypeAFSDB:      unpackAFSDB,
 	TypeANY:        unpackANY,
+	TypeAVC:        unpackAVC,
 	TypeCAA:        unpackCAA,
 	TypeCDNSKEY:    unpackCDNSKEY,
 	TypeCDS:        unpackCDS,
@@ -3447,6 +3547,7 @@ var typeToUnpack = map[uint16]func(RR_Header, []byte, int) (RR, int, error){
 	TypeRRSIG:      unpackRRSIG,
 	TypeRT:         unpackRT,
 	TypeSIG:        unpackSIG,
+	TypeSMIMEA:     unpackSMIMEA,
 	TypeSOA:        unpackSOA,
 	TypeSPF:        unpackSPF,
 	TypeSRV:        unpackSRV,

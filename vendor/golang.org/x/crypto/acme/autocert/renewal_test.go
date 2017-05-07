@@ -5,6 +5,7 @@
 package autocert
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -31,7 +32,7 @@ func TestRenewalNext(t *testing.T) {
 		expiry   time.Time
 		min, max time.Duration
 	}{
-		{now.Add(90 * 24 * time.Hour), 83*24*time.Hour - maxRandRenew, 83 * 24 * time.Hour},
+		{now.Add(90 * 24 * time.Hour), 83*24*time.Hour - renewJitter, 83 * 24 * time.Hour},
 		{now.Add(time.Hour), 0, 1},
 		{now, 0, 1},
 		{now.Add(-time.Hour), 0, 1},
@@ -111,7 +112,7 @@ func TestRenewFromCache(t *testing.T) {
 	}
 	man := &Manager{
 		Prompt:      AcceptTOS,
-		Cache:       make(memCache),
+		Cache:       newMemCache(),
 		RenewBefore: 24 * time.Hour,
 		Client: &acme.Client{
 			Key:          key,
@@ -127,7 +128,7 @@ func TestRenewFromCache(t *testing.T) {
 		t.Fatal(err)
 	}
 	tlscert := &tls.Certificate{PrivateKey: key, Certificate: [][]byte{cert}}
-	if err := man.cachePut(domain, tlscert); err != nil {
+	if err := man.cachePut(context.Background(), domain, tlscert); err != nil {
 		t.Fatal(err)
 	}
 
@@ -151,7 +152,7 @@ func TestRenewFromCache(t *testing.T) {
 
 		// ensure the new cert is cached
 		after := time.Now().Add(future)
-		tlscert, err := man.cacheGet(domain)
+		tlscert, err := man.cacheGet(context.Background(), domain)
 		if err != nil {
 			t.Fatalf("man.cacheGet: %v", err)
 		}

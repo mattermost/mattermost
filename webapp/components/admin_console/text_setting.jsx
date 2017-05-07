@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -18,7 +18,7 @@ export default class TextSetting extends React.Component {
                 React.PropTypes.number
             ]).isRequired,
             maxLength: React.PropTypes.number,
-            onChange: React.PropTypes.func.isRequired,
+            onChange: React.PropTypes.func,
             disabled: React.PropTypes.bool,
             type: React.PropTypes.oneOf([
                 'input',

@@ -117,9 +117,9 @@ return off, err
 			switch {
 			case st.Tag(i) == `dns:"-"`: // ignored
 			case st.Tag(i) == `dns:"cdomain-name"`:
-				fallthrough
-			case st.Tag(i) == `dns:"domain-name"`:
 				o("off, err = PackDomainName(rr.%s, msg, off, compression, compress)\n")
+			case st.Tag(i) == `dns:"domain-name"`:
+				o("off, err = PackDomainName(rr.%s, msg, off, compression, false)\n")
 			case st.Tag(i) == `dns:"a"`:
 				o("off, err = packDataA(rr.%s, msg, off)\n")
 			case st.Tag(i) == `dns:"aaaa"`:
@@ -139,8 +139,17 @@ return off, err
 			case st.Tag(i) == `dns:"base64"`:
 				o("off, err = packStringBase64(rr.%s, msg, off)\n")
 
-			case strings.HasPrefix(st.Tag(i), `dns:"size-hex:SaltLength`): // Hack to fix empty salt length for NSEC3
-				o("if rr.%s == \"-\" { /* do nothing, empty salt */ }\n")
+			case strings.HasPrefix(st.Tag(i), `dns:"size-hex:SaltLength`):
+				// directly write instead of using o() so we get the error check in the correct place
+				field := st.Field(i).Name()
+				fmt.Fprintf(b, `// Only pack salt if value is not "-", i.e. empty
+if rr.%s != "-" {
+  off, err = packStringHex(rr.%s, msg, off)
+  if err != nil {
+    return off, err
+  }
+}
+`, field, field)
 				continue
 			case strings.HasPrefix(st.Tag(i), `dns:"size-hex`): // size-hex can be packed just like hex
 				fallthrough

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -33,6 +33,7 @@ const (
 
 	PREFERENCE_CATEGORY_LAST     = "last"
 	PREFERENCE_NAME_LAST_CHANNEL = "channel"
+	PREFERENCE_NAME_LAST_TEAM    = "team"
 
 	PREFERENCE_CATEGORY_NOTIFICATIONS = "notifications"
 	PREFERENCE_NAME_EMAIL_INTERVAL    = "email_interval"

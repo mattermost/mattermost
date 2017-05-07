@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -6,6 +6,10 @@ package model
 import (
 	"encoding/json"
 	"io"
+)
+
+const (
+	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
 var (

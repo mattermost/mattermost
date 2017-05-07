@@ -6,9 +6,14 @@ import (
 	"runtime/debug"
 )
 
+// RecoveryHandlerLogger is an interface used by the recovering handler to print logs.
+type RecoveryHandlerLogger interface {
+	Println(...interface{})
+}
+
 type recoveryHandler struct {
 	handler    http.Handler
-	logger     *log.Logger
+	logger     RecoveryHandlerLogger
 	printStack bool
 }
 
@@ -46,7 +51,7 @@ func RecoveryHandler(opts ...RecoveryOption) func(h http.Handler) http.Handler {
 
 // RecoveryLogger is a functional option to override
 // the default logger
-func RecoveryLogger(logger *log.Logger) RecoveryOption {
+func RecoveryLogger(logger RecoveryHandlerLogger) RecoveryOption {
 	return func(h http.Handler) {
 		r := h.(*recoveryHandler)
 		r.logger = logger
@@ -73,11 +78,11 @@ func (h recoveryHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.handler.ServeHTTP(w, req)
 }
 
-func (h recoveryHandler) log(message interface{}) {
+func (h recoveryHandler) log(v ...interface{}) {
 	if h.logger != nil {
-		h.logger.Println(message)
+		h.logger.Println(v...)
 	} else {
-		log.Println(message)
+		log.Println(v...)
 	}
 
 	if h.printStack {

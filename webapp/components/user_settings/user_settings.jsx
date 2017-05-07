@@ -1,11 +1,11 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import UserStore from 'stores/user_store.jsx';
 import * as utils from 'utils/utils.jsx';
 import NotificationsTab from './user_settings_notifications.jsx';
-import SecurityTab from './user_settings_security.jsx';
-import GeneralTab from './user_settings_general.jsx';
+import SecurityTab from './user_settings_security';
+import GeneralTab from './user_settings_general';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
 

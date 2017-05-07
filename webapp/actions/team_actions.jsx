@@ -1,58 +1,196 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
-
-import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {getUser} from 'mattermost-redux/actions/users';
+import {viewChannel} from 'mattermost-redux/actions/channels';
+import {
+    createTeam as createTeamRedux,
+    updateTeam as updateTeamRedux,
+    removeUserFromTeam as removeUserFromTeamRedux,
+    getTeamStats,
+    checkIfTeamExists as checkIfTeamExistsRedux,
+    updateTeamMemberRoles as updateTeamMemberRolesRedux,
+    addUsersToTeam as addUsersToTeamRedux,
+    sendEmailInvitesToTeam,
+    getTeamsForUser as getTeamsForUserRedux,
+    getTeamMembersForUser as getTeamMembersForUserRedux
+} from 'mattermost-redux/actions/teams';
+
 export function checkIfTeamExists(teamName, onSuccess, onError) {
-    Client.findTeamByName(teamName, onSuccess, onError);
+    checkIfTeamExistsRedux(teamName)(dispatch, getState).then(
+        (exists) => {
+            if (exists != null && onSuccess) {
+                onSuccess(exists);
+            } else if (exists == null && onError) {
+                const serverError = getState().requests.teams.getTeam.error;
+                onError({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
 }
 
 export function createTeam(team, onSuccess, onError) {
-    Client.createTeam(team,
+    createTeamRedux(team)(dispatch, getState).then(
         (rteam) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.CREATED_TEAM,
-                team: rteam,
-                member: {team_id: rteam.id, user_id: UserStore.getCurrentId(), roles: 'team_admin team_user'}
-            });
-
-            browserHistory.push('/' + rteam.name + '/channels/town-square');
-
-            if (onSuccess) {
+            if (rteam && onSuccess) {
+                browserHistory.push('/' + rteam.name + '/channels/town-square');
                 onSuccess(rteam);
+            } else if (rteam == null && onError) {
+                const serverError = getState().requests.teams.createTeam.error;
+                onError({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function updateTeam(team, onSuccess, onError) {
+    updateTeamRedux(team)(dispatch, getState).then(
+        (rteam) => {
+            if (rteam && onSuccess) {
+                browserHistory.push('/' + rteam.name + '/channels/town-square');
+                onSuccess(rteam);
+            } else if (rteam == null && onError) {
+                const serverError = getState().requests.teams.updateTeam.error;
+                onError({id: serverError.server_error_id, ...serverError});
             }
         },
-        onError
     );
 }
 
 export function removeUserFromTeam(teamId, userId, success, error) {
-    Client.removeUserFromTeam(
-        teamId,
-        userId,
-        () => {
-            TeamStore.removeMemberInTeam(teamId, userId);
-            AsyncClient.getUser(userId);
+    removeUserFromTeamRedux(teamId, userId)(dispatch, getState).then(
+        (data) => {
+            getUser(userId)(dispatch, getState);
+            getTeamStats(teamId)(dispatch, getState);
 
-            if (success) {
+            if (data && success) {
                 success();
+            } else if (data == null && error) {
+                const serverError = getState().requests.teams.removeUserFromTeam.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        },
+    );
+}
+
+export function updateTeamMemberRoles(teamId, userId, newRoles, success, error) {
+    updateTeamMemberRolesRedux(teamId, userId, newRoles)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success();
+            } else if (data == null && error) {
+                const serverError = getState().requests.teams.updateTeamMember.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
+    Client.addUserToTeamFromInvite(
+        data,
+        hash,
+        inviteId,
+        (team) => {
+            if (success) {
+                success(team);
             }
         },
         (err) => {
-            AsyncClient.dispatchError(err, 'removeUserFromTeam');
-
             if (error) {
                 error(err);
+            }
+        }
+    );
+}
+
+export function addUsersToTeam(teamId, userIds, success, error) {
+    addUsersToTeamRedux(teamId, userIds)(dispatch, getState).then(
+        (teamMembers) => {
+            if (teamMembers && success) {
+                success(teamMembers);
+            } else if (teamMembers == null && error) {
+                const serverError = getState().requests.teams.addUserToTeam.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function getInviteInfo(inviteId, success, error) {
+    Client.getInviteInfo(
+        inviteId,
+        (inviteData) => {
+            if (success) {
+                success(inviteData);
+            }
+        },
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function inviteMembers(data, success, error) {
+    if (!data.invites) {
+        success();
+    }
+    const emails = [];
+    data.invites.forEach((i) => {
+        emails.push(i.email);
+    });
+    sendEmailInvitesToTeam(TeamStore.getCurrentId(), emails)(dispatch, getState).then(
+        (result) => {
+            if (result && success) {
+                success();
+            } else if (result == null && error) {
+                const serverError = getState().requests.teams.emailInvite.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function switchTeams(url) {
+    viewChannel(ChannelStore.getCurrentId())(dispatch, getState);
+    browserHistory.push(url);
+}
+
+export function getTeamsForUser(userId, success, error) {
+    getTeamsForUserRedux(userId)(dispatch, getState).then(
+        (result) => {
+            if (result && success) {
+                success(result);
+            } else if (result == null && error) {
+                const serverError = getState().requests.teams.getTeams.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function getTeamMembersForUser(userId, success, error) {
+    getTeamMembersForUserRedux(userId)(dispatch, getState).then(
+        (result) => {
+            if (result && success) {
+                success(result);
+            } else if (result == null && error) {
+                const serverError = getState().requests.teams.getTeamMembers.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );

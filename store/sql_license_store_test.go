@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -22,6 +22,12 @@ func TestLicenseStoreSave(t *testing.T) {
 	if err := (<-store.License().Save(&l1)).Err; err != nil {
 		t.Fatal("shouldn't fail on trying to save existing license record", err)
 	}
+
+	l1.Id = ""
+
+	if err := (<-store.License().Save(&l1)).Err; err == nil {
+		t.Fatal("should fail on invalid license", err)
+	}
 }
 
 func TestLicenseStoreGet(t *testing.T) {
@@ -39,5 +45,9 @@ func TestLicenseStoreGet(t *testing.T) {
 		if r.Data.(*model.LicenseRecord).Bytes != l1.Bytes {
 			t.Fatal("license bytes didn't match")
 		}
+	}
+
+	if err := (<-store.License().Get("missing")).Err; err == nil {
+		t.Fatal("should fail on get license", err)
 	}
 }

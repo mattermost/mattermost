@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import request from 'superagent';
@@ -144,11 +144,7 @@ export default class Client {
         }
     }
 
-    track(category, action, label, property, value) { // eslint-disable-line no-unused-vars
-        // NO-OP for inherited classes to override
-    }
-
-    trackPage() {
+    trackEvent(category, event, properties) { // eslint-disable-line no-unused-vars
         // NO-OP for inherited classes to override
     }
 
@@ -156,14 +152,16 @@ export default class Client {
         // NO-OP for inherited classes to override
     }
 
+    handleSuccess(res) { // eslint-disable-line no-unused-vars
+        // NO-OP for inherited classes to override
+    }
+
     handleResponse(methodName, successCallback, errorCallback, err, res) {
         if (res && res.header) {
-            this.serverVersion = res.header[HEADER_X_VERSION_ID];
             if (res.header[HEADER_X_VERSION_ID]) {
                 this.serverVersion = res.header[HEADER_X_VERSION_ID];
             }
 
-            this.clusterId = res.header[HEADER_X_CLUSTER_ID];
             if (res.header[HEADER_X_CLUSTER_ID]) {
                 this.clusterId = res.header[HEADER_X_CLUSTER_ID];
             }
@@ -195,18 +193,22 @@ export default class Client {
                 console.error(e); // eslint-disable-line no-console
             }
 
-            this.track('api', 'api_weberror', methodName, 'message', msg);
-
             this.handleError(err, res);
 
             if (errorCallback) {
                 errorCallback(e, err, res);
-                return;
             }
+            return;
         }
 
         if (successCallback) {
-            successCallback(res.body, res);
+            if (res && res.body !== undefined) { // eslint-disable-line no-undefined
+                successCallback(res.body, res);
+            } else {
+                console.error('Missing response body for ' + methodName); // eslint-disable-line no-console
+                successCallback('', res);
+            }
+            this.handleSuccess(res);
         }
     }
 
@@ -253,6 +255,15 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'reloadConfig', success, error));
+    }
+
+    invalidateAllCaches(success, error) {
+        return request.
+            get(`${this.getAdminRoute()}/invalidate_all_caches`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'invalidate_all_caches', success, error));
     }
 
     recycleDatabaseConnection(success, error) {
@@ -408,7 +419,7 @@ export default class Client {
             attach('license', license, license.name).
             end(this.handleResponse.bind(this, 'uploadLicenseFile', success, error));
 
-        this.track('api', 'api_license_upload');
+        this.trackEvent('api', 'api_license_upload');
     }
 
     importSlack(fileData, success, error) {
@@ -427,18 +438,6 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'exportTeam', success, error));
-    }
-
-    signupTeam(email, success, error) {
-        request.
-            post(`${this.getTeamsRoute()}/signup`).
-            set(this.defaultHeaders).
-            type('application/json').
-            accept('application/json').
-            send({email}).
-            end(this.handleResponse.bind(this, 'signupTeam', success, error));
-
-        this.track('api', 'api_teams_signup');
     }
 
     adminResetMfa(userId, success, error) {
@@ -467,7 +466,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'adminResetPassword', success, error));
 
-        this.track('api', 'api_admin_reset_password');
+        this.trackEvent('api', 'api_admin_reset_password');
     }
 
     ldapSyncNow(success, error) {
@@ -490,14 +489,13 @@ export default class Client {
 
     // Team Routes Section
 
-    createTeamFromSignup(teamSignup, success, error) {
+    getTeam(teamId, success, error) {
         request.
-            post(`${this.getTeamsRoute()}/create_from_signup`).
+            get(`${this.getTeamsRoute()}/${teamId}/me`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send(teamSignup).
-            end(this.handleResponse.bind(this, 'createTeamFromSignup', success, error));
+            end(this.handleResponse.bind(this, 'getTeam', success, error));
     }
 
     findTeamByName(teamName, success, error) {
@@ -510,6 +508,15 @@ export default class Client {
             end(this.handleResponse.bind(this, 'findTeamByName', success, error));
     }
 
+    getTeamByName(teamName, success, error) {
+        request.
+            get(`${this.getTeamsRoute()}/name/${teamName}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamByName', success, error));
+    }
+
     createTeam(team, success, error) {
         request.
             post(`${this.getTeamsRoute()}/create`).
@@ -519,7 +526,7 @@ export default class Client {
             send(team).
             end(this.handleResponse.bind(this, 'createTeam', success, error));
 
-        this.track('api', 'api_users_create', '', 'email', team.name);
+        this.trackEvent('api', 'api_teams_create');
     }
 
     updateTeam(team, success, error) {
@@ -531,7 +538,7 @@ export default class Client {
             send(team).
             end(this.handleResponse.bind(this, 'updateTeam', success, error));
 
-        this.track('api', 'api_teams_update_name');
+        this.trackEvent('api', 'api_teams_update_name', {team_id: this.getTeamId()});
     }
 
     getAllTeams(success, error) {
@@ -550,6 +557,16 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getAllTeamListings', success, error));
+    }
+
+    getTeamsForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
     }
 
     getMyTeam(success, error) {
@@ -577,6 +594,40 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getTeamMember', success, error));
+    }
+
+    getMyTeamMembers(success, error) {
+        request.
+        get(`${this.getTeamsRoute()}/members`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getMyTeamMembers', success, error));
+    }
+
+    getTeamMembersForUser(userId, success, error) {
+        // Call out to API v4 since this call doesn't exist in v3
+        request.
+            get(`${this.url}/api/v4/users/${userId}/teams/members`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getTeamsForUser', success, error));
+    }
+
+    getMyTeamsUnread(teamId, success, error) {
+        let url = `${this.getTeamsRoute()}/unread`;
+
+        if (teamId) {
+            url += `?id=${encodeURIComponent(teamId)}`;
+        }
+
+        request.
+        get(url).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getMyTeamsUnread', success, error));
     }
 
     getTeamMembersByIds(teamId, userIds, success, error) {
@@ -607,7 +658,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'inviteMembers', success, error));
 
-        this.track('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members', {team_id: this.getTeamId()});
     }
 
     addUserToTeam(teamId, userId, success, error) {
@@ -624,7 +675,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
-        this.track('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members', {team_id: nonEmptyTeamId});
     }
 
     addUserToTeamFromInvite(data, hash, inviteId, success, error) {
@@ -636,7 +687,31 @@ export default class Client {
             send({hash, data, invite_id: inviteId}).
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
-        this.track('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members');
+    }
+
+    addUsersToTeam(teamId, userIds, success, error) {
+        let nonEmptyTeamId = teamId;
+        if (nonEmptyTeamId === '') {
+            nonEmptyTeamId = this.getTeamId();
+        }
+
+        const teamMembers = userIds.map((userId) => {
+            return {
+                team_id: nonEmptyTeamId,
+                user_id: userId
+            };
+        });
+
+        request.
+            post(`${this.url}/api/v4/teams/${nonEmptyTeamId}/members/batch`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(teamMembers).
+            end(this.handleResponse.bind(this, 'addUsersToTeam', success, error));
+
+        this.trackEvent('api', 'api_teams_batch_add_members', {team_id: nonEmptyTeamId, count: teamMembers.length});
     }
 
     removeUserFromTeam(teamId, userId, success, error) {
@@ -653,7 +728,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'removeUserFromTeam', success, error));
 
-        this.track('api', 'api_teams_remove_members');
+        this.trackEvent('api', 'api_teams_remove_members', {team_id: nonEmptyTeamId});
     }
 
     getInviteInfo(inviteId, success, error) {
@@ -685,6 +760,14 @@ export default class Client {
             url += '&iid=' + encodeURIComponent(inviteId);
         }
 
+        if (emailHash) {
+            this.trackEvent('api', 'api_users_create_email');
+        } else if (inviteId) {
+            this.trackEvent('api', 'api_users_create_link');
+        } else {
+            this.trackEvent('api', 'api_users_create_spontaneous');
+        }
+
         request.
             post(url).
             set(this.defaultHeaders).
@@ -693,7 +776,7 @@ export default class Client {
             send(user).
             end(this.handleResponse.bind(this, 'createUser', success, error));
 
-        this.track('api', 'api_users_create', '', 'email', user.email);
+        this.trackEvent('api', 'api_users_create');
     }
 
     updateUser(user, type, success, error) {
@@ -706,9 +789,9 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateUser', success, error));
 
         if (type) {
-            this.track('api', 'api_users_update_' + type);
+            this.trackEvent('api', 'api_users_update_' + type);
         } else {
-            this.track('api', 'api_users_update');
+            this.trackEvent('api', 'api_users_update');
         }
     }
 
@@ -726,7 +809,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updatePassword', success, error));
 
-        this.track('api', 'api_users_newpassword');
+        this.trackEvent('api', 'api_users_newpassword');
     }
 
     updateUserNotifyProps(notifyProps, success, error) {
@@ -738,7 +821,7 @@ export default class Client {
             send(notifyProps).
             end(this.handleResponse.bind(this, 'updateUserNotifyProps', success, error));
 
-        this.track('api', 'api_users_update_notification_settings');
+        this.trackEvent('api', 'api_users_update_notification_settings');
     }
 
     updateUserRoles(userId, newRoles, success, error) {
@@ -754,7 +837,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateUserRoles', success, error));
 
-        this.track('api', 'api_users_update_user_roles');
+        this.trackEvent('api', 'api_users_update_roles');
     }
 
     updateTeamMemberRoles(teamId, userId, newRoles, success, error) {
@@ -771,7 +854,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateTeamMemberRoles', success, error));
 
-        this.track('api', 'api_teams_update_member_roles');
+        this.trackEvent('api', 'api_teams_update_member_roles', {team_id: teamId});
     }
 
     updateActive(userId, active, success, error) {
@@ -787,7 +870,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateActive', success, error));
 
-        this.track('api', 'api_users_update_active');
+        this.trackEvent('api', 'api_users_update_active');
     }
 
     sendPasswordReset(email, success, error) {
@@ -802,7 +885,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'sendPasswordReset', success, error));
 
-        this.track('api', 'api_users_send_password_reset');
+        this.trackEvent('api', 'api_users_send_password_reset');
     }
 
     resetPassword(code, newPassword, success, error) {
@@ -818,24 +901,19 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'resetPassword', success, error));
 
-        this.track('api', 'api_users_reset_password');
+        this.trackEvent('api', 'api_users_reset_password');
     }
 
-    emailToOAuth(email, password, service, success, error) {
-        var data = {};
-        data.password = password;
-        data.email = email;
-        data.service = service;
-
+    emailToOAuth(email, password, token, service, success, error) {
         request.
             post(`${this.getUsersRoute()}/claim/email_to_oauth`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send(data).
+            send({password, email, token, service}).
             end(this.handleResponse.bind(this, 'emailToOAuth', success, error));
 
-        this.track('api', 'api_users_email_to_oauth');
+        this.trackEvent('api', 'api_users_email_to_oauth');
     }
 
     oauthToEmail(email, password, success, error) {
@@ -851,15 +929,16 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'oauthToEmail', success, error));
 
-        this.track('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_oauth_to_email');
     }
 
-    emailToLdap(email, password, ldapId, ldapPassword, success, error) {
+    emailToLdap(email, password, token, ldapId, ldapPassword, success, error) {
         var data = {};
         data.email_password = password;
         data.email = email;
         data.ldap_id = ldapId;
         data.ldap_password = ldapPassword;
+        data.token = token;
 
         request.
             post(`${this.getUsersRoute()}/claim/email_to_ldap`).
@@ -869,14 +948,15 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'emailToLdap', success, error));
 
-        this.track('api', 'api_users_email_to_ldap');
+        this.trackEvent('api', 'api_users_email_to_ldap');
     }
 
-    ldapToEmail(email, emailPassword, ldapPassword, success, error) {
+    ldapToEmail(email, emailPassword, token, ldapPassword, success, error) {
         var data = {};
         data.email = email;
         data.ldap_password = ldapPassword;
         data.email_password = emailPassword;
+        data.token = token;
 
         request.
             post(`${this.getUsersRoute()}/claim/ldap_to_email`).
@@ -886,7 +966,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'ldapToEmail', success, error));
 
-        this.track('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_ldap_to_email');
     }
 
     getInitialLoad(success, error) {
@@ -916,22 +996,41 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getUser', success, error));
     }
 
+    getByUsername(userName, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/name/${userName}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getByUsername', success, error));
+    }
+
+    getByEmail(email, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/email/${email}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getByEmail', success, error));
+    }
+
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 
-        this.track('api', 'api_users_login', '', 'login_id', loginId);
+        this.trackEvent('api', 'api_users_login');
     }
 
     loginById(id, password, mfaToken, success, error) {
         this.doLogin({id, password, token: mfaToken}, success, error);
 
-        this.track('api', 'api_users_login', '', 'id', id);
+        this.trackEvent('api', 'api_users_login');
     }
 
     loginByLdap(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken, ldap_only: 'true'}, success, error);
 
-        this.track('api', 'api_users_login', '', 'login_id', loginId);
+        this.trackEvent('api', 'api_users_login');
+        this.trackEvent('api', 'api_users_login_ldap');
     }
 
     doLogin(outgoingData, success, error) {
@@ -971,7 +1070,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'logout', success, error));
 
-        this.track('api', 'api_users_logout');
+        this.trackEvent('api', 'api_users_logout');
     }
 
     checkMfa(loginId, success, error) {
@@ -987,7 +1086,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'checkMfa', success, error));
 
-        this.track('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_oauth_to_email');
     }
 
     generateMfaSecret(success, error) {
@@ -1043,6 +1142,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
+
+        this.trackEvent('api', 'api_profiles_get');
     }
 
     getProfilesInTeam(teamId, offset, limit, success, error) {
@@ -1052,6 +1153,31 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInTeam', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_in_team', {team_id: teamId});
+    }
+
+    getProfilesNotInTeam(teamId, offset, limit, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?not_in_team=${this.getTeamId()}&page=${offset}&per_page=${limit}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesNotInTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_not_in_team', {team_id: teamId});
     }
 
     getProfilesInChannel(channelId, offset, limit, success, error) {
@@ -1061,6 +1187,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInChannel', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getProfilesNotInChannel(channelId, offset, limit, success, error) {
@@ -1070,6 +1198,31 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_not_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
+    }
+
+    getProfilesWithoutTeam(page, perPage, success, error) {
+        // Super hacky, but this option only exists in api v4
+        function wrappedSuccess(data, res) {
+            // Convert the profile list provided by api v4 to a map to match similar v3 calls
+            const profiles = {};
+
+            for (const profile of data) {
+                profiles[profile.id] = profile;
+            }
+
+            success(profiles, res);
+        }
+
+        request.
+            get(`${this.url}/api/v4/users?without_team=1&page=${page}&per_page=${perPage}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getProfilesWithoutTeam', wrappedSuccess, error));
+
+        this.trackEvent('api', 'api_profiles_get_without_team');
     }
 
     getProfilesByIds(userIds, success, error) {
@@ -1080,6 +1233,8 @@ export default class Client {
             accept('application/json').
             send(userIds).
             end(this.handleResponse.bind(this, 'getProfilesByIds', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_by_ids');
     }
 
     searchUsers(term, teamId, options, success, error) {
@@ -1092,18 +1247,40 @@ export default class Client {
             end(this.handleResponse.bind(this, 'searchUsers', success, error));
     }
 
+    searchUsersNotInTeam(term, teamId, options, success, error) {
+        // Note that this is calling an APIv4 Endpoint since no APIv3 equivalent exists.
+        request.
+            post(`${this.url}/api/v4/users/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term, not_in_team_id: teamId, ...options}).
+            end(this.handleResponse.bind(this, 'searchUsersNotInTeam', success, error));
+
+        this.trackEvent('api', 'api_search_users_not_in_team', {team_id: teamId});
+    }
+
     autocompleteUsersInChannel(term, channelId, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/users/autocomplete?term=${encodeURIComponent(term)}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'autocompleteUsers', success, error));
+            end(this.handleResponse.bind(this, 'autocompleteUsersInChannel', success, error));
     }
 
     autocompleteUsersInTeam(term, success, error) {
         request.
             get(`${this.getTeamNeededRoute()}/users/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteUsersInTeam', success, error));
+    }
+
+    autocompleteUsers(term, success, error) {
+        request.
+            get(`${this.getUsersRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1129,6 +1306,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getStatuses', success, error));
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.8 - use viewChannel instead
     setActiveChannel(id, success, error) {
         request.
             post(`${this.getUsersRoute()}/status/set_active_channel`).
@@ -1137,21 +1315,23 @@ export default class Client {
             accept('application/json').
             send({channel_id: id}).
             end(this.handleResponse.bind(this, 'setActiveChannel', success, error));
+
+        this.trackEvent('api', 'api_channels_set_active', {channel_id: id});
     }
 
-    verifyEmail(uid, hid, success, error) {
+    verifyEmail(token, success, error) {
         request.
-            post(`${this.getUsersRoute()}/verify_email`).
+            post(`${this.url}/api/v4/users/email/verify`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({uid, hid}).
+            send({token}).
             end(this.handleResponse.bind(this, 'verifyEmail', success, error));
     }
 
     resendVerification(email, success, error) {
         request.
-            post(`${this.getUsersRoute()}/resend_verification`).
+            post(`${this.url}/api/v4/users/email/verify/send`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
@@ -1181,7 +1361,17 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
 
-        this.track('api', 'api_users_update_profile_picture');
+        this.trackEvent('api', 'api_users_update_profile_picture');
+    }
+
+    getProfilePictureUrl(id, lastPictureUpdate) {
+        let url = `${this.getUsersRoute()}/${id}/image`;
+
+        if (lastPictureUpdate) {
+            url += `?time=${lastPictureUpdate}`;
+        }
+
+        return url;
     }
 
     // Channel Routes Section
@@ -1195,7 +1385,7 @@ export default class Client {
             send(channel).
             end(this.handleResponse.bind(this, 'createChannel', success, error));
 
-        this.track('api', 'api_channels_create', channel.type, 'name', channel.name);
+        this.trackEvent('api', 'api_channels_create', {team_id: this.getTeamId()});
     }
 
     createDirectChannel(userId, success, error) {
@@ -1206,6 +1396,18 @@ export default class Client {
             accept('application/json').
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'createDirectChannel', success, error));
+
+        this.trackEvent('api', 'api_channels_create_direct', {team_id: this.getTeamId()});
+    }
+
+    createGroupChannel(userIds, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/create_group`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'createGroupChannel', success, error));
     }
 
     updateChannel(channel, success, error) {
@@ -1217,7 +1419,7 @@ export default class Client {
             send(channel).
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
-        this.track('api', 'api_channels_update');
+        this.trackEvent('api', 'api_channels_update', {team_id: this.getTeamId(), channel_id: channel.id});
     }
 
     updateChannelHeader(channelId, header, success, error) {
@@ -1234,7 +1436,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
-        this.track('api', 'api_channels_header');
+        this.trackEvent('api', 'api_channels_header', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelPurpose(channelId, purpose, success, error) {
@@ -1251,7 +1453,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateChannelPurpose', success, error));
 
-        this.track('api', 'api_channels_purpose');
+        this.trackEvent('api', 'api_channels_purpose', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelNotifyProps(data, success, error) {
@@ -1272,7 +1474,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'leaveChannel', success, error));
 
-        this.track('api', 'api_channels_leave');
+        this.trackEvent('api', 'api_channels_leave', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     joinChannel(channelId, success, error) {
@@ -1283,7 +1485,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'joinChannel', success, error));
 
-        this.track('api', 'api_channels_join');
+        this.trackEvent('api', 'api_channels_join', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     joinChannelByName(name, success, error) {
@@ -1294,7 +1496,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'joinChannelByName', success, error));
 
-        this.track('api', 'api_channels_join_name');
+        this.trackEvent('api', 'api_channels_join_name', {team_id: this.getTeamId()});
     }
 
     deleteChannel(channelId, success, error) {
@@ -1305,9 +1507,20 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'deleteChannel', success, error));
 
-        this.track('api', 'api_channels_delete');
+        this.trackEvent('api', 'api_channels_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
+    viewChannel(channelId, prevChannelId = '', time = 0, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/view`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({channel_id: channelId, prev_channel_id: prevChannelId, time}).
+            end(this.handleResponse.bind(this, 'viewChannel', success, error));
+    }
+
+    // SCHEDULED FOR DEPRECATION IN 3.8 - use viewChannel instead
     updateLastViewedAt(channelId, active, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/update_last_viewed_at`).
@@ -1318,6 +1531,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateLastViewedAt', success, error));
     }
 
+    // SCHEDULED FOR DEPRECATION IN 3.8
     setLastViewedAt(channelId, lastViewedAt, success, error) {
         request.
         post(`${this.getChannelNeededRoute(channelId)}/set_last_viewed_at`).
@@ -1345,16 +1559,37 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getChannel', success, error));
 
-        this.track('api', 'api_channel_get');
+        this.trackEvent('api', 'api_channel_get', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
-    getMoreChannels(success, error) {
+    getMoreChannelsPage(offset, limit, success, error) {
         request.
-            get(`${this.getChannelsRoute()}/more`).
+            get(`${this.getChannelsRoute()}/more/${offset}/${limit}`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+            end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
+
+        this.trackEvent('api', 'api_channels_more_page', {team_id: this.getTeamId()});
+    }
+
+    searchMoreChannels(term, success, error) {
+        request.
+            post(`${this.getChannelsRoute()}/more/search`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({term}).
+            end(this.handleResponse.bind(this, 'searchMoreChannels', success, error));
+    }
+
+    autocompleteChannels(term, success, error) {
+        request.
+            get(`${this.getChannelsRoute()}/autocomplete?term=${encodeURIComponent(term)}`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'autocompleteChannels', success, error));
     }
 
     getChannelCounts(success, error) {
@@ -1375,6 +1610,24 @@ export default class Client {
         end(this.handleResponse.bind(this, 'getMyChannelMembers', success, error));
     }
 
+    getMyChannelMembersForTeam(teamId, success, error) {
+        request.
+        get(`${this.getTeamsRoute()}/${teamId}/channels/members`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getMyChannelMembersForTeam', success, error));
+    }
+
+    getChannelByName(channelName, success, error) {
+        request.
+        get(`${this.getChannelsRoute()}/name/${channelName}`).
+        set(this.defaultHeaders).
+        type('application/json').
+        accept('application/json').
+        end(this.handleResponse.bind(this, 'getChannelByName', success, error));
+    }
+
     getChannelStats(channelId, success, error) {
         request.
             get(`${this.getChannelNeededRoute(channelId)}/stats`).
@@ -1393,6 +1646,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannelMember', success, error));
     }
 
+    getChannelMembersByIds(channelId, userIds, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/members/ids`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(userIds).
+            end(this.handleResponse.bind(this, 'getChannelMembersByIds', success, error));
+    }
+
     addChannelMember(channelId, userId, success, error) {
         request.
             post(`${this.getChannelNeededRoute(channelId)}/add`).
@@ -1402,7 +1665,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'addChannelMember', success, error));
 
-        this.track('api', 'api_channels_add_member');
+        this.trackEvent('api', 'api_channels_add_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     removeChannelMember(channelId, userId, success, error) {
@@ -1414,7 +1677,22 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'removeChannelMember', success, error));
 
-        this.track('api', 'api_channels_remove_member');
+        this.trackEvent('api', 'api_channels_remove_member', {team_id: this.getTeamId(), channel_id: channelId});
+    }
+
+    updateChannelMemberRoles(channelId, userId, newRoles, success, error) {
+        var data = {
+            user_id: userId,
+            new_roles: newRoles
+        };
+
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/update_member_roles`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(data).
+            end(this.handleResponse.bind(this, 'updateChannelMemberRoles', success, error));
     }
 
     // Routes for Commands
@@ -1428,16 +1706,16 @@ export default class Client {
             end(this.handleResponse.bind(this, 'listCommands', success, error));
     }
 
-    executeCommand(channelId, command, suggest, success, error) {
+    executeCommand(command, commandArgs, success, error) {
         request.
             post(`${this.getCommandsRoute()}/execute`).
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send({channelId, command, suggest: String(suggest)}).
+            send({command, ...commandArgs}).
             end(this.handleResponse.bind(this, 'executeCommand', success, error));
 
-        this.track('api', 'api_integrations_used');
+        this.trackEvent('api', 'api_integrations_used');
     }
 
     addCommand(command, success, error) {
@@ -1449,7 +1727,19 @@ export default class Client {
             send(command).
             end(this.handleResponse.bind(this, 'addCommand', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created');
+    }
+
+    editCommand(command, success, error) {
+        request.
+            post(`${this.getCommandsRoute()}/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(command).
+            end(this.handleResponse.bind(this, 'editCommand', success, error));
+
+        this.trackEvent('api', 'api_integrations_created');
     }
 
     deleteCommand(commandId, success, error) {
@@ -1461,7 +1751,7 @@ export default class Client {
             send({id: commandId}).
             end(this.handleResponse.bind(this, 'deleteCommand', success, error));
 
-        this.track('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted');
     }
 
     listTeamCommands(success, error) {
@@ -1491,17 +1781,13 @@ export default class Client {
             set(this.defaultHeaders).
             type('application/json').
             accept('application/json').
-            send(post).
+            send({...post, create_at: 0}).
             end(this.handleResponse.bind(this, 'createPost', success, error));
 
-        this.track('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
+        this.trackEvent('api', 'api_posts_create', {team_id: this.getTeamId(), channel_id: post.channel_id});
 
-        if (post.message.match(/\s#./)) {
-            this.track('api', 'api_posts_hashtag');
-        }
-
-        if (post.message.match(/\s@./)) {
-            this.track('api', 'api_posts_mentions');
+        if (post.parent_id != null && post.parent_id !== '') {
+            this.trackEvent('api', 'api_posts_replied', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
     }
 
@@ -1514,6 +1800,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPermalinkTmp', success, error));
+
+        this.trackEvent('api', 'api_channels_permalink', {team_id: this.getTeamId()});
     }
 
     getPostById(postId, success, error) {
@@ -1543,7 +1831,7 @@ export default class Client {
             send(post).
             end(this.handleResponse.bind(this, 'updatePost', success, error));
 
-        this.track('api', 'api_posts_update');
+        this.trackEvent('api', 'api_posts_update', {team_id: this.getTeamId(), channel_id: post.channel_id});
     }
 
     deletePost(channelId, postId, success, error) {
@@ -1554,7 +1842,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'deletePost', success, error));
 
-        this.track('api', 'api_posts_delete');
+        this.trackEvent('api', 'api_posts_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     search(terms, isOrSearch, success, error) {
@@ -1570,7 +1858,7 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'search', success, error));
 
-        this.track('api', 'api_posts_search');
+        this.trackEvent('api', 'api_posts_search', {team_id: this.getTeamId()});
     }
 
     getPostsPage(channelId, offset, limit, success, error) {
@@ -1598,6 +1886,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsBefore', success, error));
+
+        this.trackEvent('api', 'api_posts_get_before', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getPostsAfter(channelId, postId, offset, numPost, success, error) {
@@ -1607,6 +1897,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsAfter', success, error));
+
+        this.trackEvent('api', 'api_posts_get_after', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getFlaggedPosts(offset, limit, success, error) {
@@ -1616,6 +1908,17 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
+
+        this.trackEvent('api', 'api_posts_get_flagged', {team_id: this.getTeamId()});
+    }
+
+    getPinnedPosts(channelId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/pinned`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'getPinnedPosts', success, error));
     }
 
     getFileInfosForPost(channelId, postId, success, error) {
@@ -1627,9 +1930,21 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getFileInfosForPost', success, error));
     }
 
+    getOpenGraphMetadata(url, success, error) {
+        request.
+            post(`${this.getBaseRoute()}/get_opengraph_metadata`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send({url}).
+            end(this.handleResponse.bind(this, 'getOpenGraphMetadata', success, error));
+    }
+
     // Routes for Files
 
     uploadFile(file, filename, channelId, clientId, success, error) {
+        this.trackEvent('api', 'api_files_upload', {team_id: this.getTeamId(), channel_id: channelId});
+
         return request.
             post(`${this.getTeamFilesRoute()}/upload`).
             set(this.defaultHeaders).
@@ -1696,7 +2011,7 @@ export default class Client {
             send(app).
             end(this.handleResponse.bind(this, 'registerOAuthApp', success, error));
 
-        this.track('api', 'api_apps_register');
+        this.trackEvent('api', 'api_apps_register');
     }
 
     allowOAuth2(responseType, clientId, redirectUri, state, scope, success, error) {
@@ -1731,6 +2046,8 @@ export default class Client {
         accept('application/json').
         send({id}).
         end(this.handleResponse.bind(this, 'deleteOAuthApp', success, error));
+
+        this.trackEvent('api', 'api_apps_delete');
     }
 
     getOAuthAppInfo(id, success, error) {
@@ -1784,7 +2101,19 @@ export default class Client {
             send(hook).
             end(this.handleResponse.bind(this, 'addIncomingHook', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
+    }
+
+    updateIncomingHook(hook, success, error) {
+        request.
+            post(`${this.getHooksRoute()}/incoming/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(hook).
+            end(this.handleResponse.bind(this, 'updateIncomingHook', success, error));
+
+        this.trackEvent('api', 'api_integrations_updated', {team_id: this.getTeamId()});
     }
 
     deleteIncomingHook(hookId, success, error) {
@@ -1796,7 +2125,7 @@ export default class Client {
             send({id: hookId}).
             end(this.handleResponse.bind(this, 'deleteIncomingHook', success, error));
 
-        this.track('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
     listIncomingHooks(success, error) {
@@ -1817,7 +2146,19 @@ export default class Client {
             send(hook).
             end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
 
-        this.track('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
+    }
+
+    updateOutgoingHook(hook, success, error) {
+        request.
+            post(`${this.getHooksRoute()}/outgoing/update`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(hook).
+            end(this.handleResponse.bind(this, 'updateOutgoingHook', success, error));
+
+        this.trackEvent('api', 'api_integrations_updated', {team_id: this.getTeamId()});
     }
 
     deleteOutgoingHook(hookId, success, error) {
@@ -1829,7 +2170,7 @@ export default class Client {
             send({id: hookId}).
             end(this.handleResponse.bind(this, 'deleteOutgoingHook', success, error));
 
-        this.track('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
     listOutgoingHooks(success, error) {
@@ -1910,15 +2251,20 @@ export default class Client {
             attach('image', image, image.name).
             field('emoji', JSON.stringify(emoji)).
             end(this.handleResponse.bind(this, 'addEmoji', success, error));
+
+        this.trackEvent('api', 'api_emoji_custom_add');
     }
 
     deleteEmoji(id, success, error) {
         request.
             post(`${this.getEmojiRoute()}/delete`).
             set(this.defaultHeaders).
+            type('application/json').
             accept('application/json').
             send({id}).
             end(this.handleResponse.bind(this, 'deleteEmoji', success, error));
+
+        this.trackEvent('api', 'api_emoji_custom_delete');
     }
 
     getCustomEmojiImageUrl(id) {
@@ -1936,11 +2282,11 @@ export default class Client {
 
     removeCertificateFile(filename, success, error) {
         request.
-        post(`${this.getAdminRoute()}/remove_certificate`).
-        set(this.defaultHeaders).
-        accept('application/json').
-        send({filename}).
-        end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
+            post(`${this.getAdminRoute()}/remove_certificate`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send({filename}).
+            end(this.handleResponse.bind(this, 'removeCertificateFile', success, error));
     }
 
     samlCertificateStatus(success, error) {
@@ -1952,8 +2298,64 @@ export default class Client {
             if (err) {
                 return error(err);
             }
+
+            if (!res.body) {
+                console.error('Missing response body for samlCertificateStatus'); // eslint-disable-line no-console
+            }
+
             return success(res.body);
         });
+    }
+
+    pinPost(channelId, postId, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/pin`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send().
+            end(this.handleResponse.bind(this, 'pinPost', success, error));
+    }
+
+    unpinPost(channelId, postId, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/unpin`).
+            set(this.defaultHeaders).
+            accept('application/json').
+            send().
+            end(this.handleResponse.bind(this, 'unpinPost', success, error));
+    }
+
+    saveReaction(channelId, reaction, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/save`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(reaction).
+            end(this.handleResponse.bind(this, 'saveReaction', success, error));
+
+        this.trackEvent('api', 'api_reactions_save', {team_id: this.getTeamId(), channel_id: channelId, post_id: reaction.post_id});
+    }
+
+    deleteReaction(channelId, reaction, success, error) {
+        request.
+            post(`${this.getChannelNeededRoute(channelId)}/posts/${reaction.post_id}/reactions/delete`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            send(reaction).
+            end(this.handleResponse.bind(this, 'deleteReaction', success, error));
+
+        this.trackEvent('api', 'api_reactions_delete', {team_id: this.getTeamId(), channel_id: channelId, post_id: reaction.post_id});
+    }
+
+    listReactions(channelId, postId, success, error) {
+        request.
+            get(`${this.getChannelNeededRoute(channelId)}/posts/${postId}/reactions`).
+            set(this.defaultHeaders).
+            type('application/json').
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'listReactions', success, error));
     }
 
     webrtcToken(success, error) {

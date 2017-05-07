@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AudioVideoPreview from './audio_video_preview.jsx';
@@ -180,12 +180,11 @@ export default class ViewImageModal extends React.Component {
         if (this.state.loaded[this.state.imgId]) {
             const fileType = Utils.getFileType(fileInfo.extension);
 
-            if (fileType === 'image') {
+            if (fileType === 'image' || fileType === 'svg') {
                 content = (
                     <ImagePreview
                         fileInfo={fileInfo}
                         fileUrl={fileUrl}
-                        maxHeight={this.state.imgHeight}
                     />
                 );
             } else if (fileType === 'video' || fileType === 'audio') {
@@ -193,7 +192,6 @@ export default class ViewImageModal extends React.Component {
                     <AudioVideoPreview
                         fileInfo={fileInfo}
                         fileUrl={fileUrl}
-                        maxHeight={this.state.imgHeight}
                     />
                 );
             } else if (PDFPreview.supports(fileInfo)) {
@@ -344,7 +342,7 @@ LoadingImagePreview.propTypes = {
     loading: React.PropTypes.string
 };
 
-function ImagePreview({fileInfo, fileUrl, maxHeight}) {
+function ImagePreview({fileInfo, fileUrl}) {
     let previewUrl;
     if (fileInfo.has_preview_image) {
         previewUrl = FileStore.getFilePreviewUrl(fileInfo.id);
@@ -359,16 +357,12 @@ function ImagePreview({fileInfo, fileUrl, maxHeight}) {
             rel='noopener noreferrer'
             download={true}
         >
-            <img
-                style={{maxHeight}}
-                src={previewUrl}
-            />
+            <img src={previewUrl}/>
         </a>
     );
 }
 
 ImagePreview.propTypes = {
     fileInfo: React.PropTypes.object.isRequired,
-    fileUrl: React.PropTypes.string.isRequired,
-    maxHeight: React.PropTypes.number.isRequired
+    fileUrl: React.PropTypes.string.isRequired
 };

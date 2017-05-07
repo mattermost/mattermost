@@ -28,7 +28,7 @@ func TestResize(t *testing.T) {
 			&image.NRGBA{
 				Rect:   image.Rect(0, 0, 1, 1),
 				Stride: 1 * 4,
-				Pix:    []uint8{0x40, 0x40, 0x40, 0xc0},
+				Pix:    []uint8{0x55, 0x55, 0x55, 0xc0},
 			},
 		},
 		{
@@ -108,9 +108,9 @@ func TestResize(t *testing.T) {
 				Rect:   image.Rect(0, 0, 4, 4),
 				Stride: 4 * 4,
 				Pix: []uint8{
-					0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x40, 0xbf, 0x00, 0x00, 0xbf, 0xff, 0x00, 0x00, 0xff,
-					0x00, 0x40, 0x00, 0x40, 0x30, 0x30, 0x10, 0x70, 0x8f, 0x10, 0x30, 0xcf, 0xbf, 0x00, 0x40, 0xff,
-					0x00, 0xbf, 0x00, 0xbf, 0x10, 0x8f, 0x30, 0xcf, 0x30, 0x30, 0x8f, 0xef, 0x40, 0x00, 0xbf, 0xff,
+					0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x40, 0xff, 0x00, 0x00, 0xbf, 0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0x40, 0x6e, 0x6d, 0x25, 0x70, 0xb0, 0x14, 0x3b, 0xcf, 0xbf, 0x00, 0x40, 0xff,
+					0x00, 0xff, 0x00, 0xbf, 0x14, 0xb0, 0x3b, 0xcf, 0x33, 0x33, 0x99, 0xef, 0x40, 0x00, 0xbf, 0xff,
 					0x00, 0xff, 0x00, 0xff, 0x00, 0xbf, 0x40, 0xff, 0x00, 0x40, 0xbf, 0xff, 0x00, 0x00, 0xff, 0xff,
 				},
 			},
@@ -158,7 +158,7 @@ func TestResize(t *testing.T) {
 	for _, d := range td {
 		got := Resize(d.src, d.w, d.h, d.f)
 		want := d.want
-		if !compareNRGBA(got, want, 1) {
+		if !compareNRGBA(got, want, 0) {
 			t.Errorf("test [%s] failed: %#v", d.desc, got)
 		}
 	}
@@ -201,6 +201,28 @@ func TestResize(t *testing.T) {
 	}
 }
 
+func TestResizeGolden(t *testing.T) {
+	src, err := Open("testdata/lena_512.png")
+	if err != nil {
+		t.Errorf("Open: %v", err)
+	}
+	for name, filter := range map[string]ResampleFilter{
+		"out_resize_nearest.png": NearestNeighbor,
+		"out_resize_linear.png":  Linear,
+		"out_resize_catrom.png":  CatmullRom,
+		"out_resize_lanczos.png": Lanczos,
+	} {
+		got := Resize(src, 128, 0, filter)
+		want, err := Open("testdata/" + name)
+		if err != nil {
+			t.Errorf("Open: %v", err)
+		}
+		if !compareNRGBA(got, toNRGBA(want), 0) {
+			t.Errorf("resulting image differs from golden: %s", name)
+		}
+	}
+}
+
 func TestFit(t *testing.T) {
 	td := []struct {
 		desc string
@@ -224,7 +246,7 @@ func TestFit(t *testing.T) {
 			&image.NRGBA{
 				Rect:   image.Rect(0, 0, 1, 1),
 				Stride: 1 * 4,
-				Pix:    []uint8{0x40, 0x40, 0x40, 0xc0},
+				Pix:    []uint8{0x55, 0x55, 0x55, 0xc0},
 			},
 		},
 		{
@@ -242,7 +264,7 @@ func TestFit(t *testing.T) {
 			&image.NRGBA{
 				Rect:   image.Rect(0, 0, 1, 1),
 				Stride: 1 * 4,
-				Pix:    []uint8{0x40, 0x40, 0x40, 0xc0},
+				Pix:    []uint8{0x55, 0x55, 0x55, 0xc0},
 			},
 		},
 		{
@@ -512,7 +534,7 @@ func TestThumbnail(t *testing.T) {
 			&image.NRGBA{
 				Rect:   image.Rect(0, 0, 1, 1),
 				Stride: 1 * 4,
-				Pix:    []uint8{0x40, 0x40, 0x40, 0xc0},
+				Pix:    []uint8{0x55, 0x55, 0x55, 0xc0},
 			},
 		},
 		{
@@ -534,7 +556,7 @@ func TestThumbnail(t *testing.T) {
 			&image.NRGBA{
 				Rect:   image.Rect(0, 0, 1, 1),
 				Stride: 1 * 4,
-				Pix:    []uint8{0x40, 0x40, 0x40, 0xc0},
+				Pix:    []uint8{0x55, 0x55, 0x55, 0xc0},
 			},
 		},
 		{
@@ -566,5 +588,41 @@ func TestThumbnail(t *testing.T) {
 		if !compareNRGBA(got, want, 0) {
 			t.Errorf("test [%s] failed: %#v", d.desc, got)
 		}
+	}
+}
+
+func BenchmarkResizeLanczosUp(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_128.png", 512, Lanczos)
+}
+
+func BenchmarkResizeLinearUp(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_128.png", 512, Linear)
+}
+
+func BenchmarkResizeNearestNeighborUp(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_128.png", 512, NearestNeighbor)
+}
+
+func BenchmarkResizeLanczosDown(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_512.png", 128, Lanczos)
+}
+
+func BenchmarkResizeLinearDown(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_512.png", 128, Linear)
+}
+
+func BenchmarkResizeNearestNeighborDown(b *testing.B) {
+	benchmarkResize(b, "testdata/lena_512.png", 128, NearestNeighbor)
+}
+
+func benchmarkResize(b *testing.B, filename string, size int, f ResampleFilter) {
+	b.StopTimer()
+	img, err := Open(filename)
+	if err != nil {
+		b.Fatalf("Open: %v", err)
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		Resize(img, size, size, f)
 	}
 }

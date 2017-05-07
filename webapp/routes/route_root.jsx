@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import * as RouteUtils from 'routes/route_utils.jsx';
@@ -6,6 +6,7 @@ import * as RouteUtils from 'routes/route_utils.jsx';
 import Root from 'components/root.jsx';
 
 import claimAccountRoute from 'routes/route_claim.jsx';
+import mfaRoute from 'routes/route_mfa.jsx';
 import createTeamRoute from 'routes/route_create_team.jsx';
 import teamRoute from 'routes/route_team.jsx';
 import helpRoute from 'routes/route_help.jsx';
@@ -13,6 +14,8 @@ import helpRoute from 'routes/route_help.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+
+import {browserHistory} from 'react-router/es6';
 
 function preLogin(nextState, replace, callback) {
     // redirect to the mobile landing page if the user hasn't seen it before
@@ -28,6 +31,11 @@ function preLogin(nextState, replace, callback) {
 }
 
 function preLoggedIn(nextState, replace, callback) {
+    if (RouteUtils.checkIfMFARequired(nextState)) {
+        browserHistory.push('/mfa/setup');
+        return;
+    }
+
     ErrorStore.clearLastError();
     callback();
 }
@@ -141,7 +149,7 @@ export default {
                                     {
                                         path: 'select_team',
                                         getComponents: (location, callback) => {
-                                            System.import('components/select_team/select_team.jsx').then(RouteUtils.importComponentSuccess(callback));
+                                            System.import('components/select_team').then(RouteUtils.importComponentSuccess(callback));
                                         }
                                     },
                                     {
@@ -154,7 +162,8 @@ export default {
                                 ]
                             )
                         },
-                        teamRoute
+                        teamRoute,
+                        mfaRoute
                     ]
                 )
             },

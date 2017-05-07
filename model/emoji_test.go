@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -56,8 +56,28 @@ func TestEmojiIsValid(t *testing.T) {
 		t.Fatal()
 	}
 
+	emoji.Name = ""
+	if err := emoji.IsValid(); err == nil {
+		t.Fatal(err)
+	}
+
 	emoji.Name = strings.Repeat("1", 64)
 	if err := emoji.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	emoji.Name = "name-"
+	if err := emoji.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	emoji.Name = "name_"
+	if err := emoji.IsValid(); err != nil {
+		t.Fatal(err)
+	}
+
+	emoji.Name = "name:"
+	if err := emoji.IsValid(); err == nil {
 		t.Fatal(err)
 	}
 }

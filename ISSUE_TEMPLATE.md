@@ -1,7 +1,7 @@
-For feature requests, please see: http://www.mattermost.org/feature-requests/.  
+For feature requests, please see: http://www.mattermost.org/feature-requests/.
 For troubleshooting questions, please post on the forums: http://forum.mattermost.org/.
 
-For issues with the product, please follow the steps at http://www.mattermost.org/filing-issues/ and post here in the following format: 
+For issues with the product, please follow the steps at http://www.mattermost.org/filing-issues/ and post here in the following format:
 
 #### Summary
 Issue in one concise sentence

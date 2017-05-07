@@ -21,6 +21,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/minio/minio-go/pkg/s3utils"
 )
 
 // BucketExists verify if bucket exists and you have permission to access it.
@@ -47,6 +49,31 @@ func (c Client) BucketExists(bucketName string) (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+// List of header keys to be filtered, usually
+// from all S3 API http responses.
+var defaultFilterKeys = []string{
+	"Transfer-Encoding",
+	"Accept-Ranges",
+	"Date",
+	"Server",
+	"Vary",
+	"x-amz-request-id",
+	"x-amz-id-2",
+	// Add new headers to be ignored.
+}
+
+// Extract only necessary metadata header key/values by
+// filtering them out with a list of custom header keys.
+func extractObjMetadata(header http.Header) http.Header {
+	filterKeys := append([]string{
+		"ETag",
+		"Content-Length",
+		"Last-Modified",
+		"Content-Type",
+	}, defaultFilterKeys...)
+	return filterHeader(header, filterKeys)
 }
 
 // StatObject verifies if object exists and you have permission to access.
@@ -78,17 +105,21 @@ func (c Client) StatObject(bucketName, objectName string) (ObjectInfo, error) {
 	md5sum := strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
 	md5sum = strings.TrimSuffix(md5sum, "\"")
 
-	// Parse content length.
-	size, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
-	if err != nil {
-		return ObjectInfo{}, ErrorResponse{
-			Code:       "InternalError",
-			Message:    "Content-Length is invalid. " + reportIssue,
-			BucketName: bucketName,
-			Key:        objectName,
-			RequestID:  resp.Header.Get("x-amz-request-id"),
-			HostID:     resp.Header.Get("x-amz-id-2"),
-			Region:     resp.Header.Get("x-amz-bucket-region"),
+	// Content-Length is not valid for Google Cloud Storage, do not verify.
+	var size int64 = -1
+	if !s3utils.IsGoogleEndpoint(c.endpointURL) {
+		// Parse content length.
+		size, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+		if err != nil {
+			return ObjectInfo{}, ErrorResponse{
+				Code:       "InternalError",
+				Message:    "Content-Length is invalid. " + reportIssue,
+				BucketName: bucketName,
+				Key:        objectName,
+				RequestID:  resp.Header.Get("x-amz-request-id"),
+				HostID:     resp.Header.Get("x-amz-id-2"),
+				Region:     resp.Header.Get("x-amz-bucket-region"),
+			}
 		}
 	}
 	// Parse Last-Modified has http time format.
@@ -109,12 +140,19 @@ func (c Client) StatObject(bucketName, objectName string) (ObjectInfo, error) {
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
+
+	// Extract only the relevant header keys describing the object.
+	// following function filters out a list of standard set of keys
+	// which are not part of object metadata.
+	metadata := extractObjMetadata(resp.Header)
+
 	// Save object metadata info.
-	var objectStat ObjectInfo
-	objectStat.ETag = md5sum
-	objectStat.Key = objectName
-	objectStat.Size = size
-	objectStat.LastModified = date
-	objectStat.ContentType = contentType
-	return objectStat, nil
+	return ObjectInfo{
+		ETag:         md5sum,
+		Key:          objectName,
+		Size:         size,
+		LastModified: date,
+		ContentType:  contentType,
+		Metadata:     metadata,
+	}, nil
 }

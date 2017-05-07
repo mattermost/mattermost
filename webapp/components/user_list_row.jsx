@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import ProfilePicture from 'components/profile_picture.jsx';
@@ -64,7 +64,7 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
             className='more-modal__row'
         >
             <ProfilePicture
-                src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.update_at}`}
+                src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.last_picture_update}`}
                 status={status}
                 width='32'
                 height='32'

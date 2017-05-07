@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 /*
@@ -82,7 +82,7 @@ export function isAndroidWeb() {
 // Returns true if and only if the user is using a Mattermost mobile app. This will return false if the user is using the
 // web browser on a mobile device.
 export function isMobileApp() {
-    return userAgent.indexOf('iPhone') !== -1 && userAgent.indexOf('Safari') === -1 && userAgent.indexOf('CriOS') === -1;
+    return isMobile() && !isIosWeb() && !isAndroidWeb();
 }
 
 // Returns true if and only if the user is using Mattermost from either the mobile app or the web browser on a mobile device.

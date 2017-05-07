@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -43,12 +43,10 @@ export default class WebhookSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.integrations.custom'
-                    defaultMessage='Custom Integrations'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.integrations.custom'
+                defaultMessage='Custom Integrations'
+            />
         );
     }
 

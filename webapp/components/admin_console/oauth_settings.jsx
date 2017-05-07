@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import * as Utils from 'utils/utils.jsx';
@@ -111,12 +111,10 @@ export default class OAuthSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.authentication.oauth'
-                    defaultMessage='OAuth 2.0'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.authentication.oauth'
+                defaultMessage='OAuth 2.0'
+            />
         );
     }
 
@@ -385,7 +383,7 @@ export default class OAuthSettings extends AdminSettings {
             helpText = (
                 <FormattedHTMLMessage
                     id='admin.google.EnableHtmlDesc'
-                    defaultMessage='<ol><li><a href="https://accounts.google.com/login">Log in</a> to your Google account.</li><li>Go to <a href="https://console.developers.google.com">https://console.developers.google.com</a>, click <strong>Credentials</strong> in the left hand sidebar and enter "Mattermost - your-company-name" as the <strong>Project Name</strong>, then click <strong>Create</strong>.</li><li>Click the <strong>OAuth consent screen</strong> header and enter "Mattermost" as the <strong>Product name shown to users</strong>, then click <strong>Save</strong>.</li><li>Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.</li><li>Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>your-mattermost-url/signup/google/complete</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.</li><li>Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.</li><li>Finally, go to <a href="https://console.developers.google.com/apis/api/plus/overview">Google+ API</a> and click <strong>Enable</strong>. This might take a few minutes to propagate through Google`s systems.</li></ol>'
+                    defaultMessage='<ol><li><a target="_blank" href="https://accounts.google.com/login">Log in</a> to your Google account.</li><li>Go to <a target="_blank" href="https://console.developers.google.com">https://console.developers.google.com</a>, click <strong>Credentials</strong> in the left hand sidebar and enter "Mattermost - your-company-name" as the <strong>Project Name</strong>, then click <strong>Create</strong>.</li><li>Click the <strong>OAuth consent screen</strong> header and enter "Mattermost" as the <strong>Product name shown to users</strong>, then click <strong>Save</strong>.</li><li>Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.</li><li>Under <strong>Restrictions</strong> and <strong>Authorized redirect URIs</strong> enter <strong>your-mattermost-url/signup/google/complete</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.</li><li>Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.</li><li>Finally, go to <a target="_blank" href="https://console.developers.google.com/apis/api/plus/overview">Google+ API</a> and click <strong>Enable</strong>. This might take a few minutes to propagate through Google`s systems.</li></ol>'
                 />
             );
         } else if (this.state.oauthType === Constants.OFFICE365_SERVICE) {
@@ -393,7 +391,7 @@ export default class OAuthSettings extends AdminSettings {
             helpText = (
                 <FormattedHTMLMessage
                     id='admin.office365.EnableHtmlDesc'
-                    defaultMessage='<ol><li><a href="https://login.microsoftonline.com/">Log in</a> to your Microsoft or Office 365 account. Make sure it`s the account on the same <a href="https://msdn.microsoft.com/en-us/library/azure/jj573650.aspx#Anchor_0">tenant</a> that you would like users to log in with.</li><li>Go to <a href="https://apps.dev.microsoft.com">https://apps.dev.microsoft.com</a>, click <strong>Go to app list</strong> > <strong>Add an app</strong> and use "Mattermost - your-company-name" as the <strong>Application Name</strong>.</li><li>Under <strong>Application Secrets</strong>, click <strong>Generate New Password</strong> and paste it to the <strong>Application Secret Password</strong> field below.</li><li>Under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.</li><li>Finally, click <strong>Save</strong> and then paste the <strong>Application ID</strong> below.</li></ol>'
+                    defaultMessage='<ol><li><a target="_blank" href="https://login.microsoftonline.com/">Log in</a> to your Microsoft or Office 365 account. Make sure it`s the account on the same <a target="_blank" href="https://msdn.microsoft.com/en-us/library/azure/jj573650.aspx#Anchor_0">tenant</a> that you would like users to log in with.</li><li>Go to <a target="_blank" href="https://apps.dev.microsoft.com">https://apps.dev.microsoft.com</a>, click <strong>Go to app list</strong> > <strong>Add an app</strong> and use "Mattermost - your-company-name" as the <strong>Application Name</strong>.</li><li>Under <strong>Application Secrets</strong>, click <strong>Generate New Password</strong> and paste it to the <strong>Application Secret Password</strong> field below.</li><li>Under <strong>Platforms</strong>, click <strong>Add Platform</strong>, choose <strong>Web</strong> and enter <strong>your-mattermost-url/signup/office365/complete</strong> (example: http://localhost:8065/signup/office365/complete) under <strong>Redirect URIs</strong>. Also uncheck <strong>Allow Implicit Flow</strong>.</li><li>Finally, click <strong>Save</strong> and then paste the <strong>Application ID</strong> below.</li></ol>'
                 />
             );
         }

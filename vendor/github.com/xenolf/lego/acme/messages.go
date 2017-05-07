@@ -13,17 +13,10 @@ type directory struct {
 	RevokeCertURL string `json:"revoke-cert"`
 }
 
-type recoveryKeyMessage struct {
-	Length int             `json:"length,omitempty"`
-	Client jose.JsonWebKey `json:"client,omitempty"`
-	Server jose.JsonWebKey `json:"client,omitempty"`
-}
-
 type registrationMessage struct {
 	Resource string   `json:"resource"`
 	Contact  []string `json:"contact"`
 	Delete   bool     `json:"delete,omitempty"`
-	//	RecoveryKey recoveryKeyMessage `json:"recoveryKey,omitempty"`
 }
 
 // Registration is returned by the ACME server after the registration
@@ -36,7 +29,6 @@ type Registration struct {
 	Agreement      string          `json:"agreement,omitempty"`
 	Authorizations string          `json:"authorizations,omitempty"`
 	Certificates   string          `json:"certificates,omitempty"`
-	//	RecoveryKey    recoveryKeyMessage `json:"recoveryKey,omitempty"`
 }
 
 // RegistrationResource represents all important informations about a registration
@@ -102,16 +94,17 @@ type revokeCertMessage struct {
 }
 
 // CertificateResource represents a CA issued certificate.
-// PrivateKey and Certificate are both already PEM encoded
-// and can be directly written to disk. Certificate may
-// be a certificate bundle, depending on the options supplied
-// to create it.
+// PrivateKey, Certificate and IssuerCertificate are all
+// already PEM encoded and can be directly written to disk.
+// Certificate may be a certificate bundle, depending on the
+// options supplied to create it.
 type CertificateResource struct {
-	Domain        string `json:"domain"`
-	CertURL       string `json:"certUrl"`
-	CertStableURL string `json:"certStableUrl"`
-	AccountRef    string `json:"accountRef,omitempty"`
-	PrivateKey    []byte `json:"-"`
-	Certificate   []byte `json:"-"`
-	CSR           []byte `json:"-"`
+	Domain            string `json:"domain"`
+	CertURL           string `json:"certUrl"`
+	CertStableURL     string `json:"certStableUrl"`
+	AccountRef        string `json:"accountRef,omitempty"`
+	PrivateKey        []byte `json:"-"`
+	Certificate       []byte `json:"-"`
+	IssuerCertificate []byte `json:"-"`
+	CSR               []byte `json:"-"`
 }

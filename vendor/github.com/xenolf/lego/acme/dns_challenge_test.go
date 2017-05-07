@@ -85,6 +85,15 @@ var checkAuthoritativeNssTestsErr = []struct {
 	},
 }
 
+var checkResolvConfServersTests = []struct {
+	fixture  string
+	expected []string
+	defaults []string
+}{
+	{"testdata/resolv.conf.1", []string{"10.200.3.249:53", "10.200.3.250:5353", "[2001:4860:4860::8844]:53", "[10.0.0.1]:5353"}, []string{"127.0.0.1:53"}},
+	{"testdata/resolv.conf.nonexistant", []string{"127.0.0.1:53"}, []string{"127.0.0.1:53"}},
+}
+
 func TestDNSValidServerResponse(t *testing.T) {
 	PreCheckDNS = func(fqdn, value string) (bool, error) {
 		return true, nil
@@ -180,6 +189,18 @@ func TestCheckAuthoritativeNssErr(t *testing.T) {
 		if !strings.Contains(err.Error(), tt.error) {
 			t.Errorf("#%s: expected %q (error); got %q", tt.fqdn, tt.error, err)
 			continue
+		}
+	}
+}
+
+func TestResolveConfServers(t *testing.T) {
+	for _, tt := range checkResolvConfServersTests {
+		result := getNameservers(tt.fixture, tt.defaults)
+
+		sort.Strings(result)
+		sort.Strings(tt.expected)
+		if !reflect.DeepEqual(result, tt.expected) {
+			t.Errorf("#%s: expected %q; got %q", tt.fixture, tt.expected, result)
 		}
 	}
 }

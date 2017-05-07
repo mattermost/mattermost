@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -11,9 +11,11 @@ import (
 type UserSearch struct {
 	Term           string `json:"term"`
 	TeamId         string `json:"team_id"`
+	NotInTeamId    string `json:"not_in_team_id"`
 	InChannelId    string `json:"in_channel_id"`
 	NotInChannelId string `json:"not_in_channel_id"`
 	AllowInactive  bool   `json:"allow_inactive"`
+	WithoutTeam    bool   `json:"without_team"`
 }
 
 // ToJson convert a User to a json string

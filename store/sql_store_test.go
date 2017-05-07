@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -25,10 +25,18 @@ func Setup() {
 }
 
 func TestSqlStore1(t *testing.T) {
+	utils.TranslationsPreInit()
 	utils.LoadConfig("config.json")
 	utils.Cfg.SqlSettings.Trace = true
 
 	store := NewSqlStore()
+	store.Close()
+
+	utils.Cfg.SqlSettings.DataSourceReplicas = []string{utils.Cfg.SqlSettings.DataSource}
+
+	store = NewSqlStore()
+	store.TotalMasterDbConnections()
+	store.TotalReadDbConnections()
 	store.Close()
 
 	utils.LoadConfig("config.json")
@@ -116,5 +124,53 @@ func TestAlertDbCmds(t *testing.T) {
 
 	if sqlStore.DoesColumnExist("Systems", "Test1") {
 		t.Fatal("Column should not exist")
+	}
+}
+
+func TestCreateIndexIfNotExists(t *testing.T) {
+	Setup()
+
+	sqlStore := store.(*SqlStore)
+
+	defer sqlStore.RemoveColumnIfExists("Systems", "Test")
+	if !sqlStore.CreateColumnIfNotExists("Systems", "Test", "VARCHAR(50)", "VARCHAR(50)", "") {
+		t.Fatal("Failed to create test column")
+	}
+
+	defer sqlStore.RemoveIndexIfExists("idx_systems_create_index_test", "Systems")
+	if !sqlStore.CreateIndexIfNotExists("idx_systems_create_index_test", "Systems", "Test") {
+		t.Fatal("Should've created test index")
+	}
+
+	if sqlStore.CreateIndexIfNotExists("idx_systems_create_index_test", "Systems", "Test") {
+		t.Fatal("Shouldn't have created index that already exists")
+	}
+}
+
+func TestRemoveIndexIfExists(t *testing.T) {
+	Setup()
+
+	sqlStore := store.(*SqlStore)
+
+	defer sqlStore.RemoveColumnIfExists("Systems", "Test")
+	if !sqlStore.CreateColumnIfNotExists("Systems", "Test", "VARCHAR(50)", "VARCHAR(50)", "") {
+		t.Fatal("Failed to create test column")
+	}
+
+	if sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems") {
+		t.Fatal("Should've failed to remove index that doesn't exist")
+	}
+
+	defer sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems")
+	if !sqlStore.CreateIndexIfNotExists("idx_systems_remove_index_test", "Systems", "Test") {
+		t.Fatal("Should've created test index")
+	}
+
+	if !sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems") {
+		t.Fatal("Should've removed index that exists")
+	}
+
+	if sqlStore.RemoveIndexIfExists("idx_systems_remove_index_test", "Systems") {
+		t.Fatal("Should've failed to remove index that was already removed")
 	}
 }

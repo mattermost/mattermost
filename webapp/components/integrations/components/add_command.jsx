@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -19,7 +19,7 @@ const REQUEST_GET = 'G';
 export default class AddCommand extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object
         };
     }
 
@@ -513,7 +513,7 @@ export default class AddCommand extends React.Component {
                                     className='form-control'
                                     value={this.state.username}
                                     onChange={this.updateUsername}
-                                    placholder={Utils.localizeMessage('add_command.username.placeholder', 'Username')}
+                                    placeholder={Utils.localizeMessage('add_command.username.placeholder', 'Username')}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage

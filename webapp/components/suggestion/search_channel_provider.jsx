@@ -1,13 +1,18 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import Suggestion from './suggestion.jsx';
+import Provider from './provider.jsx';
+
+import {autocompleteChannels} from 'actions/channel_actions.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import Constants from 'utils/constants.jsx';
-import SuggestionStore from 'stores/suggestion_store.jsx';
 
-import Suggestion from './suggestion.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+import {Constants, ActionTypes} from 'utils/constants.jsx';
+import {sortChannelsByDisplayName} from 'utils/channel_utils.jsx';
+
+import React from 'react';
 
 class SearchChannelSuggestion extends Suggestion {
     render() {
@@ -29,38 +34,58 @@ class SearchChannelSuggestion extends Suggestion {
     }
 }
 
-export default class SearchChannelProvider {
+export default class SearchChannelProvider extends Provider {
     handlePretextChanged(suggestionId, pretext) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
         if (captured) {
             const channelPrefix = captured[1];
 
-            const channels = ChannelStore.getAll();
-            const publicChannels = [];
-            const privateChannels = [];
+            this.startNewRequest(suggestionId, channelPrefix);
 
-            for (const id of Object.keys(channels)) {
-                const channel = channels[id];
-
-                // don't show direct channels
-                if (channel.type !== Constants.DM_CHANNEL && channel.name.startsWith(channelPrefix)) {
-                    if (channel.type === Constants.OPEN_CHANNEL) {
-                        publicChannels.push(channel);
-                    } else {
-                        privateChannels.push(channel);
+            autocompleteChannels(
+                channelPrefix,
+                (data) => {
+                    if (this.shouldCancelDispatch(channelPrefix)) {
+                        return;
                     }
+
+                    const publicChannels = data;
+
+                    const localChannels = ChannelStore.getAll();
+                    let privateChannels = [];
+
+                    for (const id of Object.keys(localChannels)) {
+                        const channel = localChannels[id];
+                        if (channel.name.startsWith(channelPrefix) && channel.type === Constants.PRIVATE_CHANNEL) {
+                            privateChannels.push(channel);
+                        }
+                    }
+
+                    let filteredPublicChannels = [];
+                    publicChannels.forEach((item) => {
+                        if (item.name.startsWith(channelPrefix)) {
+                            filteredPublicChannels.push(item);
+                        }
+                    });
+
+                    privateChannels = privateChannels.sort(sortChannelsByDisplayName);
+                    filteredPublicChannels = filteredPublicChannels.sort(sortChannelsByDisplayName);
+
+                    const channels = filteredPublicChannels.concat(privateChannels);
+                    const channelNames = channels.map((channel) => channel.name);
+
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                        id: suggestionId,
+                        matchedPretext: channelPrefix,
+                        terms: channelNames,
+                        items: channels,
+                        component: SearchChannelSuggestion
+                    });
                 }
-            }
-
-            publicChannels.sort((a, b) => a.name.localeCompare(b.name));
-            const publicChannelNames = publicChannels.map((channel) => channel.name);
-
-            privateChannels.sort((a, b) => a.name.localeCompare(b.name));
-            const privateChannelNames = privateChannels.map((channel) => channel.name);
-
-            SuggestionStore.clearSuggestions(suggestionId);
-            SuggestionStore.addSuggestions(suggestionId, publicChannelNames, publicChannels, SearchChannelSuggestion, channelPrefix);
-            SuggestionStore.addSuggestions(suggestionId, privateChannelNames, privateChannels, SearchChannelSuggestion, channelPrefix);
+            );
         }
+
+        return Boolean(captured);
     }
 }

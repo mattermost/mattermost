@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -21,6 +21,7 @@ type AccessData struct {
 	RefreshToken string `json:"refresh_token"`
 	RedirectUri  string `json:"redirect_uri"`
 	ExpiresAt    int64  `json:"expires_at"`
+	Scope        string `json:"scope"`
 }
 
 type AccessResponse struct {
@@ -51,7 +52,7 @@ func (ad *AccessData) IsValid() *AppError {
 		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.refresh_token.app_error", nil, "")
 	}
 
-	if len(ad.RedirectUri) > 256 {
+	if len(ad.RedirectUri) == 0 || len(ad.RedirectUri) > 256 || !IsValidHttpUrl(ad.RedirectUri) {
 		return NewLocAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "")
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import * as TextFormatting from './text_formatting.jsx';
@@ -123,9 +123,9 @@ hlJS.registerLanguage('yaml', hljsYaml);
 const HighlightedLanguages = Constants.HighlightedLanguages;
 
 export function highlight(lang, code) {
-    const language = lang.toLowerCase();
+    const language = getLanguageFromNameOrAlias(lang);
 
-    if (HighlightedLanguages[language]) {
+    if (language) {
         try {
             return hlJS.highlight(language, code).value;
         } catch (e) {
@@ -147,13 +147,25 @@ export function getLanguageFromFileExtension(extension) {
 }
 
 export function canHighlight(language) {
-    return Boolean(HighlightedLanguages[language.toLowerCase()]);
+    return Boolean(getLanguageFromNameOrAlias(language));
 }
 
 export function getLanguageName(language) {
     if (canHighlight(language)) {
-        return HighlightedLanguages[language.toLowerCase()].name;
+        return HighlightedLanguages[getLanguageFromNameOrAlias(language)].name;
     }
 
     return '';
+}
+
+function getLanguageFromNameOrAlias(name) {
+    const langName = name.toLowerCase();
+    if (HighlightedLanguages[langName]) {
+        return langName;
+    }
+
+    return Object.keys(HighlightedLanguages).find((key) => {
+        const aliases = HighlightedLanguages[key].aliases;
+        return aliases && aliases.find((a) => a === langName);
+    });
 }

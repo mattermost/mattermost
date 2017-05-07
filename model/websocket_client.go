@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -8,9 +8,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	SOCKET_MAX_MESSAGE_SIZE_KB = 8 * 1024 // 8KB
+)
+
 type WebSocketClient struct {
 	Url             string          // The location of the server like "ws://localhost:8065"
 	ApiUrl          string          // The api location of the server like "ws://localhost:8065/api/v3"
+	ConnectUrl      string          // The websocket URL to connect to like "ws://localhost:8065/api/v3/path/to/websocket"
 	Conn            *websocket.Conn // The WebSocket connection
 	AuthToken       string          // The token used to open the WebSocket
 	Sequence        int64           // The ever-incrementing sequence attached to each WebSocket action
@@ -22,14 +27,40 @@ type WebSocketClient struct {
 // NewWebSocketClient constructs a new WebSocket client with convienence
 // methods for talking to the server.
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/users/websocket", nil)
+	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
 	if err != nil {
 		return nil, NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
 	}
 
 	client := &WebSocketClient{
 		url,
+		url + API_URL_SUFFIX_V3,
+		url + API_URL_SUFFIX_V3 + "/users/websocket",
+		conn,
+		authToken,
+		1,
+		make(chan *WebSocketEvent, 100),
+		make(chan *WebSocketResponse, 100),
+		nil,
+	}
+
+	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+
+	return client, nil
+}
+
+// NewWebSocketClient4 constructs a new WebSocket client with convienence
+// methods for talking to the server. Uses the v4 endpoint.
+func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
+	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
+	if err != nil {
+		return nil, NewLocAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+	}
+
+	client := &WebSocketClient{
+		url,
 		url + API_URL_SUFFIX,
+		url + API_URL_SUFFIX + "/websocket",
 		conn,
 		authToken,
 		1,
@@ -45,9 +76,9 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 
 func (wsc *WebSocketClient) Connect() *AppError {
 	var err error
-	wsc.Conn, _, err = websocket.DefaultDialer.Dial(wsc.ApiUrl+"/users/websocket", nil)
+	wsc.Conn, _, err = websocket.DefaultDialer.Dial(wsc.ConnectUrl, nil)
 	if err != nil {
-		return NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+		return NewLocAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, err.Error())
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)

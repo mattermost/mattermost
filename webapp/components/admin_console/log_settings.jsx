@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -49,12 +49,10 @@ export default class LogSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.general.log'
-                    defaultMessage='Logging'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.general.log'
+                defaultMessage='Logging'
+            />
         );
     }
 
@@ -114,7 +112,7 @@ export default class LogSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.log.fileDescription'
-                            defaultMessage='Typically set to true in production.  When true, log files are written to the log file specified in file location field below.'
+                            defaultMessage='Typically set to true in production. When true, logged events are written to the mattermost.log file in the directory specified in the File Log Directory field. The logs are rotated at 10,000 lines and archived to a file in the same directory, and given a name with a datestamp and serial number. For example, mattermost.2017-03-31.001.'
                         />
                     }
                     value={this.state.enableFile}
@@ -151,7 +149,7 @@ export default class LogSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.log.locationDescription'
-                            defaultMessage='File to which log files are written. If blank, will be set to ./logs/mattermost, which writes logs to mattermost.log. Log rotation is enabled and every 10,000 lines of log information is written to new files stored in the same directory, for example mattermost.2015-09-23.001, mattermost.2015-09-23.002, and so forth.'
+                            defaultMessage='The location of the log files. If blank, they are stored in the ./logs directory. The path that you set must exist and Mattermost must have write permissions in it.'
                         />
                     }
                     value={this.state.fileLocation}

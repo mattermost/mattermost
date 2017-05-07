@@ -1,11 +1,13 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package utils
 
 import (
-	"github.com/mattermost/platform/model"
+	"net/http"
 	"strings"
+
+	"github.com/mattermost/platform/model"
 )
 
 func IsPasswordValid(password string) *model.AppError {
@@ -57,7 +59,7 @@ func IsPasswordValid(password string) *model.AppError {
 	}
 
 	if isError {
-		return model.NewLocAppError("User.IsValid", id+".app_error", map[string]interface{}{"Min": min}, "")
+		return model.NewAppError("User.IsValid", id+".app_error", map[string]interface{}{"Min": min}, "", http.StatusBadRequest)
 	}
 
 	return nil

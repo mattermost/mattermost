@@ -3,7 +3,6 @@ language: go
 
 os:
 - linux
-- osx 
 
 env:
 - ARCH=x86_64
@@ -12,12 +11,9 @@ env:
 go:
 - 1.5.3
 - 1.6
+- 1.7.4
 
 script:
 - diff -au <(gofmt -d .) <(printf "")
 - go vet ./...
 - go test -short -race -v ./...
-
-notifications:
-  slack:
-    secure: HrOX2k6F/sEl6Rr4m5vHOdJCIwV42be0kz1Jy/WSMvrl/fQ8YkldKviLeWh4aWt1kclsYhNQ4FqGML+RIZYsdOqej4fAw9Vi5pZkI1MzPJq0UjrtMqkqzvD90eDGQYCKwaXjEIN8cohwJeb6X0B0HKAd9sqJW5GH5SwnhH5WWP8=

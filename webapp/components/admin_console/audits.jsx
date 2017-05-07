@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import LoadingScreen from '../loading_screen.jsx';
@@ -76,7 +76,7 @@ export default class Audits extends React.Component {
                 <ComplianceReports/>
 
                 <div className='panel audit-panel'>
-                    <h3>
+                    <h3 className='admin-console-header'>
                         <FormattedMessage
                             id='admin.audits.title'
                             defaultMessage='User Activity Logs'

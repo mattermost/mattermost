@@ -2,7 +2,7 @@
 
 .channel-header {
     .search-bar__container {
-        padding: 0 9px 0 3px;
+        padding: 0 7px 0 3px;
     }
 }
 
@@ -13,18 +13,6 @@
 
 .icon--rotate {
     @include animation(spin .7s infinite linear);
-}
-
-.search__clear {
-    @include single-transition(all, .2s, linear);
-    @include translateX(60px);
-    cursor: pointer;
-    display: none;
-    line-height: 45px;
-    margin-right: 13px;
-    position: absolute;
-    right: 0;
-    z-index: 5;
 }
 
 .search-item-snippet {
@@ -63,6 +51,18 @@
     top: 15px;
 }
 
+.sidebar__search-clear {
+    @include opacity(.5);
+    color: $dark-gray;
+    width: 40px;
+    margin-right: 20px;
+    position: absolute;
+    top: 12px;
+    right: 0;
+    cursor: pointer;
+    visibility: hidden;
+}
+
 .search__form {
     position: relative;
 
@@ -74,7 +74,10 @@
     }
 
     .sidebar--right & {
-        width: 100%;
+        width: 300px;
+        float: left;
+        margin-left: 17px;
+        margin-right: 9px;
     }
 
     .search-bar {

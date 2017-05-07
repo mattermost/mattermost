@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -64,7 +64,7 @@ class UserTypingStoreClass extends EventEmitter {
                 Reflect.deleteProperty(this.typingUsers, loc);
             }
             this.emitChange();
-        }, Constants.UPDATE_TYPING_MS);
+        }, parseInt(window.mm_config.TimeBetweenUserTypingUpdatesMilliseconds, 10));
         this.emitChange();
     }
 

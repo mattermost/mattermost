@@ -1,32 +1,53 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import PostHeader from './post_header.jsx';
-import PostBody from './post_body.jsx';
+import React, {Component, PropTypes} from 'react';
+
 import ProfilePicture from 'components/profile_picture.jsx';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
-
-import * as Utils from 'utils/utils.jsx';
-import * as PostUtils from 'utils/post_utils.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
-import React from 'react';
+import Constants, {ActionTypes} from 'utils/constants.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
+import * as Utils from 'utils/utils.jsx';
 
-export default class Post extends React.Component {
+import PostBody from './post_body.jsx';
+import PostHeader from './post_header.jsx';
+
+export default class Post extends Component {
+    static propTypes = {
+        post: PropTypes.object.isRequired,
+        parentPost: PropTypes.object,
+        user: PropTypes.object,
+        sameUser: PropTypes.bool,
+        sameRoot: PropTypes.bool,
+        hideProfilePic: PropTypes.bool,
+        isLastPost: PropTypes.bool,
+        isLastComment: PropTypes.bool,
+        shouldHighlight: PropTypes.bool,
+        displayNameType: PropTypes.string,
+        currentUser: PropTypes.object.isRequired,
+        center: PropTypes.bool,
+        compactDisplay: PropTypes.bool,
+        previewCollapsed: PropTypes.string,
+        commentCount: PropTypes.number,
+        isCommentMention: PropTypes.bool,
+        useMilitaryTime: PropTypes.bool.isRequired,
+        isFlagged: PropTypes.bool,
+        status: PropTypes.string,
+        isBusy: PropTypes.bool,
+        childComponentDidUpdateFunction: PropTypes.func
+    };
+
     constructor(props) {
         super(props);
-
-        this.handleCommentClick = this.handleCommentClick.bind(this);
-        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
-        this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
 
         this.state = {
             dropdownOpened: false
         };
     }
-    handleCommentClick(e) {
+
+    handleCommentClick = (e) => {
         e.preventDefault();
 
         AppDispatcher.handleServerAction({
@@ -39,12 +60,14 @@ export default class Post extends React.Component {
             results: null
         });
     }
-    handleDropdownOpened(opened) {
+
+    handleDropdownOpened = (opened) => {
         this.setState({
             dropdownOpened: opened
         });
     }
-    forceUpdateInfo() {
+
+    forceUpdateInfo = () => {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
     }
@@ -116,26 +139,17 @@ export default class Post extends React.Component {
 
         return false;
     }
-    render() {
-        const post = this.props.post;
-        const parentPost = this.props.parentPost;
-        const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
 
-        if (!post.props) {
-            post.props = {};
-        }
+    getClassName = (post, isSystemMessage, fromWebhook) => {
+        let className = 'post';
 
-        let type = 'Post';
-        if (post.root_id && post.root_id.length > 0) {
-            type = 'Comment';
-        }
-
-        let hideControls = '';
         if (post.state === Constants.POST_DELETED || post.state === Constants.POST_FAILED) {
-            hideControls = 'post--hide-controls';
+            className += ' post--hide-controls';
         }
 
-        const commentCount = this.props.commentCount;
+        if (this.props.shouldHighlight) {
+            className += ' post--highlight';
+        }
 
         let rootUser;
         if (this.props.sameRoot) {
@@ -145,15 +159,8 @@ export default class Post extends React.Component {
         }
 
         let currentUserCss = '';
-        if (this.props.currentUser.id === post.user_id && !post.props.from_webhook && !PostUtils.isSystemMessage(post)) {
+        if (this.props.currentUser.id === post.user_id && !fromWebhook && !isSystemMessage) {
             currentUserCss = 'current--user';
-        }
-
-        let timestamp = 0;
-        if (!this.props.user || this.props.user.update_at == null) {
-            timestamp = this.props.currentUser.update_at;
-        } else {
-            timestamp = this.props.user.update_at;
         }
 
         let sameUserClass = '';
@@ -161,38 +168,74 @@ export default class Post extends React.Component {
             sameUserClass = 'same--user';
         }
 
-        let shouldHighlightClass = '';
-        if (this.props.shouldHighlight) {
-            shouldHighlightClass = 'post--highlight';
-        }
-
         let postType = '';
-        if (type !== 'Post') {
+        if (post.root_id && post.root_id.length > 0) {
             postType = 'post--comment';
-        } else if (commentCount > 0) {
+        } else if (this.props.commentCount > 0) {
             postType = 'post--root';
             sameUserClass = '';
             rootUser = '';
         }
 
-        let systemMessageClass = '';
-        if (PostUtils.isSystemMessage(post)) {
-            systemMessageClass = 'post--system';
+        if (isSystemMessage) {
+            className += ' post--system';
             sameUserClass = '';
             currentUserCss = '';
             postType = '';
             rootUser = '';
         }
 
+        if (this.props.compactDisplay) {
+            className += ' post--compact';
+        }
+
+        if (this.state.dropdownOpened) {
+            className += ' post--hovered';
+        }
+
+        if (post.is_pinned) {
+            className += ' post--pinned';
+        }
+
+        return className + ' ' + sameUserClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss;
+    }
+
+    render() {
+        const post = this.props.post;
+        const parentPost = this.props.parentPost;
+        const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
+
+        const isSystemMessage = PostUtils.isSystemMessage(post);
+        const fromWebhook = post.props && post.props.from_webhook === 'true';
+
+        let timestamp = 0;
+        if (!this.props.user || this.props.user.last_picture_update == null) {
+            timestamp = this.props.currentUser.last_picture_update;
+        } else {
+            timestamp = this.props.user.last_picture_update;
+        }
+
+        let status = this.props.status;
+        if (fromWebhook) {
+            status = null;
+        }
+
         let profilePic = (
             <ProfilePicture
                 src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
-                status={this.props.status}
+                status={status}
                 user={this.props.user}
+                isBusy={this.props.isBusy}
             />
         );
 
-        if (PostUtils.isSystemMessage(post)) {
+        if (fromWebhook) {
+            profilePic = (
+                <ProfilePicture
+                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                />
+            );
+        } else if (isSystemMessage) {
             profilePic = (
                 <span
                     className='icon'
@@ -206,31 +249,37 @@ export default class Post extends React.Component {
             centerClass = 'center';
         }
 
-        let compactClass = '';
         if (this.props.compactDisplay) {
-            compactClass = 'post--compact';
-
-            profilePic = (
-                <ProfilePicture
-                    src=''
-                    status={this.props.status}
-                    user={this.props.user}
-                />
-            );
+            if (post.props && post.props.from_webhook) {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                        status={status}
+                        isBusy={this.props.isBusy}
+                        user={this.props.user}
+                    />
+                );
+            } else {
+                profilePic = (
+                    <ProfilePicture
+                        src=''
+                        status={status}
+                    />
+                );
+            }
         }
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
 
-        let dropdownOpenedClass = '';
-        if (this.state.dropdownOpened) {
-            dropdownOpenedClass = 'post--hovered';
-        }
-
         return (
-            <div>
+            <div
+                ref={(div) => {
+                    this.domNode = div;
+                }}
+            >
                 <div
                     id={'post_' + post.id}
-                    className={'post ' + sameUserClass + ' ' + compactClass + ' ' + rootUser + ' ' + postType + ' ' + currentUserCss + ' ' + shouldHighlightClass + ' ' + systemMessageClass + ' ' + hideControls + ' ' + dropdownOpenedClass}
+                    className={this.getClassName(this.props.post, isSystemMessage, fromWebhook)}
                 >
                     <div className={'post__content ' + centerClass}>
                         {profilePicContainer}
@@ -239,7 +288,7 @@ export default class Post extends React.Component {
                                 ref='header'
                                 post={post}
                                 sameRoot={this.props.sameRoot}
-                                commentCount={commentCount}
+                                commentCount={this.props.commentCount}
                                 handleCommentClick={this.handleCommentClick}
                                 handleDropdownOpened={this.handleDropdownOpened}
                                 isLastComment={this.props.isLastComment}
@@ -255,12 +304,15 @@ export default class Post extends React.Component {
                             />
                             <PostBody
                                 post={post}
+                                currentUser={this.props.currentUser}
                                 sameRoot={this.props.sameRoot}
+                                isLastPost={this.props.isLastPost}
                                 parentPost={parentPost}
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}
                                 previewCollapsed={this.props.previewCollapsed}
                                 isCommentMention={this.props.isCommentMention}
+                                childComponentDidUpdateFunction={this.props.childComponentDidUpdateFunction}
                             />
                         </div>
                     </div>
@@ -269,25 +321,3 @@ export default class Post extends React.Component {
         );
     }
 }
-
-Post.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    parentPost: React.PropTypes.object,
-    user: React.PropTypes.object,
-    sameUser: React.PropTypes.bool,
-    sameRoot: React.PropTypes.bool,
-    hideProfilePic: React.PropTypes.bool,
-    isLastComment: React.PropTypes.bool,
-    shouldHighlight: React.PropTypes.bool,
-    displayNameType: React.PropTypes.string,
-    currentUser: React.PropTypes.object.isRequired,
-    center: React.PropTypes.bool,
-    compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string,
-    commentCount: React.PropTypes.number,
-    isCommentMention: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string,
-    isBusy: React.PropTypes.bool
-};

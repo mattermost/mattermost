@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -27,12 +27,32 @@ func TestAccessIsValid(t *testing.T) {
 	ad := AccessData{}
 
 	if err := ad.IsValid(); err == nil {
-		t.Fatal("should have failed")
+		t.Fatal()
+	}
+
+	ad.ClientId = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Client Id")
+	}
+
+	ad.ClientId = ""
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Client Id")
 	}
 
 	ad.ClientId = NewId()
 	if err := ad.IsValid(); err == nil {
-		t.Fatal("should have failed")
+		t.Fatal()
+	}
+
+	ad.UserId = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed User Id")
+	}
+
+	ad.UserId = ""
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed User Id")
 	}
 
 	ad.UserId = NewId()
@@ -40,7 +60,37 @@ func TestAccessIsValid(t *testing.T) {
 		t.Fatal("should have failed")
 	}
 
+	ad.Token = NewRandomString(22)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Token")
+	}
+
 	ad.Token = NewId()
+	if err := ad.IsValid(); err == nil {
+		t.Fatal()
+	}
+
+	ad.RefreshToken = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Refresh Token")
+	}
+
+	ad.RefreshToken = NewId()
+	if err := ad.IsValid(); err == nil {
+		t.Fatal()
+	}
+
+	ad.RedirectUri = ""
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed Redirect URI not set")
+	}
+
+	ad.RedirectUri = NewRandomString(28)
+	if err := ad.IsValid(); err == nil {
+		t.Fatal("Should have failed invalid URL")
+	}
+
+	ad.RedirectUri = "http://example.com"
 	if err := ad.IsValid(); err != nil {
 		t.Fatal(err)
 	}

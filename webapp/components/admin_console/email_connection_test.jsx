@@ -1,17 +1,19 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
+
+import {testEmail} from 'actions/admin_actions.jsx';
 
 export default class EmailConnectionTestButton extends React.Component {
     static get propTypes() {
         return {
             config: React.PropTypes.object.isRequired,
+            getConfigFromState: React.PropTypes.func.isRequired,
             disabled: React.PropTypes.bool.isRequired
         };
     }
@@ -37,8 +39,11 @@ export default class EmailConnectionTestButton extends React.Component {
             fail: null
         });
 
-        Client.testEmail(
-            this.props.config,
+        const config = JSON.parse(JSON.stringify(this.props.config));
+        this.props.getConfigFromState(config);
+
+        testEmail(
+            config,
             () => {
                 this.setState({
                     testing: false,

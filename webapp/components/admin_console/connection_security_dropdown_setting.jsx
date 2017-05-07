@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -18,7 +18,7 @@ const SECTION_NONE = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityNoneDescription'
-                defaultMessage='Mattermost will connect over an unsecure connection.'
+                defaultMessage='Mattermost will connect over an insecure connection.'
             />
         </td>
     </tr>
@@ -35,7 +35,7 @@ const SECTION_PLAIN = (
         <td>
             <FormattedMessage
                 id='admin.connectionSecurityPlainDescription'
-                defaultMessage='Mattermost will connect and authenticate over an unsecure connection.'
+                defaultMessage='Mattermost will connect and authenticate over an insecure connection.'
             />
         </td>
     </tr>

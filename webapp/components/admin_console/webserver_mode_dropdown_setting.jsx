@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -75,7 +75,7 @@ export default class WebserverModeDropdownSetting extends React.Component {
                 values={[
                     {value: 'gzip', text: Utils.localizeMessage('admin.webserverModeGzip', 'gzip')},
                     {value: 'uncompressed', text: Utils.localizeMessage('admin.webserverModeUncompressed', 'Uncompressed')},
-                    {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDiabled', 'Disabled')}
+                    {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDisabled', 'Disabled')}
                 ]}
                 label={
                     <FormattedMessage

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -62,11 +62,19 @@ class ErrorStoreClass extends EventEmitter {
         BrowserStore.setGlobalItem('last_error_conn', count);
     }
 
-    clearLastError() {
+    clearError(message) {
+        const lastError = this.getLastError();
+
+        if (lastError && lastError.message === message) {
+            this.clearLastError(true);
+        }
+    }
+
+    clearLastError(force) {
         var lastError = this.getLastError();
 
         // preview message can only be cleared by clearNotificationError
-        if (lastError && lastError.notification) {
+        if (!force && lastError && lastError.notification) {
             return;
         }
 

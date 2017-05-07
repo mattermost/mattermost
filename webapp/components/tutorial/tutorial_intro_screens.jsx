@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import UserStore from 'stores/user_store.jsx';
@@ -6,6 +6,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import {Constants, Preferences} from 'utils/constants.jsx';
 
@@ -31,10 +32,23 @@ export default class TutorialIntroScreens extends React.Component {
         this.handleNext = this.handleNext.bind(this);
         this.createScreen = this.createScreen.bind(this);
         this.createCircles = this.createCircles.bind(this);
+        this.skipTutorial = this.skipTutorial.bind(this);
 
         this.state = {currentScreen: 0};
     }
     handleNext() {
+        switch (this.state.currentScreen) {
+        case 0:
+            trackEvent('tutorial', 'tutorial_screen_1_welcome_to_mattermost_next');
+            break;
+        case 1:
+            trackEvent('tutorial', 'tutorial_screen_2_how_mattermost_works_next');
+            break;
+        case 2:
+            trackEvent('tutorial', 'tutorial_screen_3_youre_all_set_next');
+            break;
+        }
+
         if (this.state.currentScreen < 2) {
             this.setState({currentScreen: this.state.currentScreen + 1});
             return;
@@ -52,6 +66,18 @@ export default class TutorialIntroScreens extends React.Component {
     }
     skipTutorial(e) {
         e.preventDefault();
+
+        switch (this.state.currentScreen) {
+        case 0:
+            trackEvent('tutorial', 'tutorial_screen_1_welcome_to_mattermost_skip');
+            break;
+        case 1:
+            trackEvent('tutorial', 'tutorial_screen_2_how_mattermost_works_skip');
+            break;
+        case 2:
+            trackEvent('tutorial', 'tutorial_screen_3_youre_all_set_skip');
+            break;
+        }
 
         AsyncClient.savePreference(
             Preferences.TUTORIAL_STEP,
@@ -136,7 +162,7 @@ export default class TutorialIntroScreens extends React.Component {
                 <FormattedHTMLMessage
                     id='tutorial_intro.screenTwo'
                     defaultMessage='<h3>How Mattermost works:</h3>
-                    <p>Communication happens in public discussion channels, private groups and direct messages.</p>
+                    <p>Communication happens in public discussion channels, private channels and direct messages.</p>
                     <p>Everything is archived and searchable from any web-enabled desktop, laptop or phone.</p>'
                 />
                 {appDownloadLink}

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -190,7 +190,7 @@ func (s SqlStatusStore) ResetAll() StoreChannel {
 	go func() {
 		result := StoreResult{}
 
-		if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = 0", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
+		if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
 			result.Err = model.NewLocAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "")
 		}
 

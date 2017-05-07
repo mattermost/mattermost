@@ -26,8 +26,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 
 	"github.com/minio/minio-go/pkg/policy"
+	"github.com/minio/minio-go/pkg/s3signer"
 )
 
 /// Bucket operations
@@ -89,11 +91,8 @@ func (c Client) makeBucketRequest(bucketName string, location string) (*http.Req
 	// is the preferred method here. The final location of the
 	// 'bucket' is provided through XML LocationConstraint data with
 	// the request.
-	targetURL, err := url.Parse(c.endpointURL)
-	if err != nil {
-		return nil, err
-	}
-	targetURL.Path = "/" + bucketName + "/"
+	targetURL := c.endpointURL
+	targetURL.Path = path.Join(bucketName, "") + "/"
 
 	// get a new HTTP request for the method.
 	req, err := http.NewRequest("PUT", targetURL.String(), nil)
@@ -133,9 +132,9 @@ func (c Client) makeBucketRequest(bucketName string, location string) (*http.Req
 	if c.signature.isV4() {
 		// Signature calculated for MakeBucket request should be for 'us-east-1',
 		// regardless of the bucket's location constraint.
-		req = signV4(*req, c.accessKeyID, c.secretAccessKey, "us-east-1")
+		req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, "us-east-1")
 	} else if c.signature.isV2() {
-		req = signV2(*req, c.accessKeyID, c.secretAccessKey)
+		req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
 	}
 
 	// Return signed request.

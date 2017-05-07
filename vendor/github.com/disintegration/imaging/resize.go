@@ -5,17 +5,12 @@ import (
 	"math"
 )
 
-type iwpair struct {
-	i int
-	w int32
+type indexWeight struct {
+	index  int
+	weight float64
 }
 
-type pweights struct {
-	iwpairs []iwpair
-	wsum    int32
-}
-
-func precomputeWeights(dstSize, srcSize int, filter ResampleFilter) []pweights {
+func precomputeWeights(dstSize, srcSize int, filter ResampleFilter) [][]indexWeight {
 	du := float64(srcSize) / float64(dstSize)
 	scale := du
 	if scale < 1.0 {
@@ -23,7 +18,7 @@ func precomputeWeights(dstSize, srcSize int, filter ResampleFilter) []pweights {
 	}
 	ru := math.Ceil(scale * filter.Support)
 
-	out := make([]pweights, dstSize)
+	out := make([][]indexWeight, dstSize)
 
 	for v := 0; v < dstSize; v++ {
 		fu := (float64(v)+0.5)*du - 0.5
@@ -37,15 +32,19 @@ func precomputeWeights(dstSize, srcSize int, filter ResampleFilter) []pweights {
 			endu = srcSize - 1
 		}
 
-		wsum := int32(0)
+		var sum float64
 		for u := startu; u <= endu; u++ {
-			w := int32(0xff * filter.Kernel((float64(u)-fu)/scale))
+			w := filter.Kernel((float64(u) - fu) / scale)
 			if w != 0 {
-				wsum += w
-				out[v].iwpairs = append(out[v].iwpairs, iwpair{u, w})
+				sum += w
+				out[v] = append(out[v], indexWeight{index: u, weight: w})
 			}
 		}
-		out[v].wsum = wsum
+		if sum != 0 {
+			for i := range out[v] {
+				out[v][i].weight /= sum
+			}
+		}
 	}
 
 	return out
@@ -127,21 +126,26 @@ func resizeHorizontal(src *image.NRGBA, width int, filter ResampleFilter) *image
 
 	parallel(dstH, func(partStart, partEnd int) {
 		for dstY := partStart; dstY < partEnd; dstY++ {
+			i0 := dstY * src.Stride
+			j0 := dstY * dst.Stride
 			for dstX := 0; dstX < dstW; dstX++ {
-				var c [4]int32
-				for _, iw := range weights[dstX].iwpairs {
-					i := dstY*src.Stride + iw.i*4
-					c[0] += int32(src.Pix[i+0]) * iw.w
-					c[1] += int32(src.Pix[i+1]) * iw.w
-					c[2] += int32(src.Pix[i+2]) * iw.w
-					c[3] += int32(src.Pix[i+3]) * iw.w
+				var r, g, b, a float64
+				for _, w := range weights[dstX] {
+					i := i0 + w.index*4
+					aw := float64(src.Pix[i+3]) * w.weight
+					r += float64(src.Pix[i+0]) * aw
+					g += float64(src.Pix[i+1]) * aw
+					b += float64(src.Pix[i+2]) * aw
+					a += aw
 				}
-				j := dstY*dst.Stride + dstX*4
-				sum := weights[dstX].wsum
-				dst.Pix[j+0] = clampint32(int32(float32(c[0])/float32(sum) + 0.5))
-				dst.Pix[j+1] = clampint32(int32(float32(c[1])/float32(sum) + 0.5))
-				dst.Pix[j+2] = clampint32(int32(float32(c[2])/float32(sum) + 0.5))
-				dst.Pix[j+3] = clampint32(int32(float32(c[3])/float32(sum) + 0.5))
+				if a != 0 {
+					aInv := 1 / a
+					j := j0 + dstX*4
+					dst.Pix[j+0] = clamp(r * aInv)
+					dst.Pix[j+1] = clamp(g * aInv)
+					dst.Pix[j+2] = clamp(b * aInv)
+					dst.Pix[j+3] = clamp(a)
+				}
 			}
 		}
 	})
@@ -162,32 +166,33 @@ func resizeVertical(src *image.NRGBA, height int, filter ResampleFilter) *image.
 	weights := precomputeWeights(dstH, srcH, filter)
 
 	parallel(dstW, func(partStart, partEnd int) {
-
 		for dstX := partStart; dstX < partEnd; dstX++ {
 			for dstY := 0; dstY < dstH; dstY++ {
-				var c [4]int32
-				for _, iw := range weights[dstY].iwpairs {
-					i := iw.i*src.Stride + dstX*4
-					c[0] += int32(src.Pix[i+0]) * iw.w
-					c[1] += int32(src.Pix[i+1]) * iw.w
-					c[2] += int32(src.Pix[i+2]) * iw.w
-					c[3] += int32(src.Pix[i+3]) * iw.w
+				var r, g, b, a float64
+				for _, w := range weights[dstY] {
+					i := w.index*src.Stride + dstX*4
+					aw := float64(src.Pix[i+3]) * w.weight
+					r += float64(src.Pix[i+0]) * aw
+					g += float64(src.Pix[i+1]) * aw
+					b += float64(src.Pix[i+2]) * aw
+					a += aw
 				}
-				j := dstY*dst.Stride + dstX*4
-				sum := weights[dstY].wsum
-				dst.Pix[j+0] = clampint32(int32(float32(c[0])/float32(sum) + 0.5))
-				dst.Pix[j+1] = clampint32(int32(float32(c[1])/float32(sum) + 0.5))
-				dst.Pix[j+2] = clampint32(int32(float32(c[2])/float32(sum) + 0.5))
-				dst.Pix[j+3] = clampint32(int32(float32(c[3])/float32(sum) + 0.5))
+				if a != 0 {
+					aInv := 1 / a
+					j := dstY*dst.Stride + dstX*4
+					dst.Pix[j+0] = clamp(r * aInv)
+					dst.Pix[j+1] = clamp(g * aInv)
+					dst.Pix[j+2] = clamp(b * aInv)
+					dst.Pix[j+3] = clamp(a)
+				}
 			}
 		}
-
 	})
 
 	return dst
 }
 
-// fast nearest-neighbor resize, no filtering
+// resizeNearest is a fast nearest-neighbor resize, no filtering.
 func resizeNearest(src *image.NRGBA, width, height int) *image.NRGBA {
 	dstW, dstH := width, height
 
@@ -203,13 +208,16 @@ func resizeNearest(src *image.NRGBA, width, height int) *image.NRGBA {
 	parallel(dstH, func(partStart, partEnd int) {
 
 		for dstY := partStart; dstY < partEnd; dstY++ {
-			fy := (float64(dstY)+0.5)*dy - 0.5
+			srcY := int((float64(dstY) + 0.5) * dy)
+			if srcY > srcH-1 {
+				srcY = srcH - 1
+			}
 
 			for dstX := 0; dstX < dstW; dstX++ {
-				fx := (float64(dstX)+0.5)*dx - 0.5
-
-				srcX := int(math.Min(math.Max(math.Floor(fx+0.5), 0.0), float64(srcW)))
-				srcY := int(math.Min(math.Max(math.Floor(fy+0.5), 0.0), float64(srcH)))
+				srcX := int((float64(dstX) + 0.5) * dx)
+				if srcX > srcW-1 {
+					srcX = srcW - 1
+				}
 
 				srcOff := srcY*src.Stride + srcX*4
 				dstOff := dstY*dst.Stride + dstX*4
@@ -324,7 +332,7 @@ func Thumbnail(img image.Image, width, height int, filter ResampleFilter) *image
 	return Fill(img, width, height, Center, filter)
 }
 
-// Resample filter struct. It can be used to make custom filters.
+// ResampleFilter is a resampling filter struct. It can be used to define custom filters.
 //
 // Supported resample filters: NearestNeighbor, Box, Linear, Hermite, MitchellNetravali,
 // CatmullRom, BSpline, Gaussian, Lanczos, Hann, Hamming, Blackman, Bartlett, Welch, Cosine.
@@ -359,7 +367,7 @@ type ResampleFilter struct {
 	Kernel  func(float64) float64
 }
 
-// Nearest-neighbor filter, no anti-aliasing.
+// NearestNeighbor is a nearest-neighbor filter (no anti-aliasing).
 var NearestNeighbor ResampleFilter
 
 // Box filter (averaging pixels).
@@ -371,37 +379,37 @@ var Linear ResampleFilter
 // Hermite cubic spline filter (BC-spline; B=0; C=0).
 var Hermite ResampleFilter
 
-// Mitchell-Netravali cubic filter (BC-spline; B=1/3; C=1/3).
+// MitchellNetravali is Mitchell-Netravali cubic filter (BC-spline; B=1/3; C=1/3).
 var MitchellNetravali ResampleFilter
 
-// Catmull-Rom - sharp cubic filter (BC-spline; B=0; C=0.5).
+// CatmullRom is a Catmull-Rom - sharp cubic filter (BC-spline; B=0; C=0.5).
 var CatmullRom ResampleFilter
 
-// Cubic B-spline - smooth cubic filter (BC-spline; B=1; C=0).
+// BSpline is a smooth cubic filter (BC-spline; B=1; C=0).
 var BSpline ResampleFilter
 
-// Gaussian Blurring Filter.
+// Gaussian is a Gaussian blurring Filter.
 var Gaussian ResampleFilter
 
-// Bartlett-windowed sinc filter (3 lobes).
+// Bartlett is a Bartlett-windowed sinc filter (3 lobes).
 var Bartlett ResampleFilter
 
 // Lanczos filter (3 lobes).
 var Lanczos ResampleFilter
 
-// Hann-windowed sinc filter (3 lobes).
+// Hann is a Hann-windowed sinc filter (3 lobes).
 var Hann ResampleFilter
 
-// Hamming-windowed sinc filter (3 lobes).
+// Hamming is a Hamming-windowed sinc filter (3 lobes).
 var Hamming ResampleFilter
 
-// Blackman-windowed sinc filter (3 lobes).
+// Blackman is a Blackman-windowed sinc filter (3 lobes).
 var Blackman ResampleFilter
 
-// Welch-windowed sinc filter (parabolic window, 3 lobes).
+// Welch is a Welch-windowed sinc filter (parabolic window, 3 lobes).
 var Welch ResampleFilter
 
-// Cosine-windowed sinc filter (3 lobes).
+// Cosine is a Cosine-windowed sinc filter (3 lobes).
 var Cosine ResampleFilter
 
 func bcspline(x, b, c float64) float64 {

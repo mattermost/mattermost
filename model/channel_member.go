@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -17,6 +17,14 @@ const (
 	CHANNEL_MARK_UNREAD_ALL     = "all"
 	CHANNEL_MARK_UNREAD_MENTION = "mention"
 )
+
+type ChannelUnread struct {
+	TeamId       string    `json:"team_id"`
+	ChannelId    string    `json:"channel_id"`
+	MsgCount     int64     `json:"msg_count"`
+	MentionCount int64     `json:"mention_count"`
+	NotifyProps  StringMap `json:"-"`
+}
 
 type ChannelMember struct {
 	ChannelId    string    `json:"channel_id"`
@@ -39,9 +47,29 @@ func (o *ChannelMembers) ToJson() string {
 	}
 }
 
+func (o *ChannelUnread) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 func ChannelMembersFromJson(data io.Reader) *ChannelMembers {
 	decoder := json.NewDecoder(data)
 	var o ChannelMembers
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
+func ChannelUnreadFromJson(data io.Reader) *ChannelUnread {
+	decoder := json.NewDecoder(data)
+	var o ChannelUnread
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o
@@ -80,16 +108,30 @@ func (o *ChannelMember) IsValid() *AppError {
 		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.user_id.app_error", nil, "")
 	}
 
-	notifyLevel := o.NotifyProps["desktop"]
+	notifyLevel := o.NotifyProps[DESKTOP_NOTIFY_PROP]
 	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
 		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error",
 			nil, "notify_level="+notifyLevel)
 	}
 
-	markUnreadLevel := o.NotifyProps["mark_unread"]
+	markUnreadLevel := o.NotifyProps[MARK_UNREAD_NOTIFY_PROP]
 	if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
 		return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.unread_level.app_error",
 			nil, "mark_unread_level="+markUnreadLevel)
+	}
+
+	if pushLevel, ok := o.NotifyProps[PUSH_NOTIFY_PROP]; ok {
+		if len(pushLevel) > 20 || !IsChannelNotifyLevelValid(pushLevel) {
+			return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.push_level.app_error",
+				nil, "push_notification_level="+pushLevel)
+		}
+	}
+
+	if sendEmail, ok := o.NotifyProps[EMAIL_NOTIFY_PROP]; ok {
+		if len(sendEmail) > 20 || !IsSendEmailValid(sendEmail) {
+			return NewLocAppError("ChannelMember.IsValid", "model.channel_member.is_valid.email_value.app_error",
+				nil, "push_notification_level="+sendEmail)
+		}
 	}
 
 	return nil
@@ -118,9 +160,15 @@ func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
 	return markUnreadLevel == CHANNEL_MARK_UNREAD_ALL || markUnreadLevel == CHANNEL_MARK_UNREAD_MENTION
 }
 
+func IsSendEmailValid(sendEmail string) bool {
+	return sendEmail == CHANNEL_NOTIFY_DEFAULT || sendEmail == "true" || sendEmail == "false"
+}
+
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
-		"desktop":     CHANNEL_NOTIFY_DEFAULT,
-		"mark_unread": CHANNEL_MARK_UNREAD_ALL,
+		DESKTOP_NOTIFY_PROP:     CHANNEL_NOTIFY_DEFAULT,
+		MARK_UNREAD_NOTIFY_PROP: CHANNEL_MARK_UNREAD_ALL,
+		PUSH_NOTIFY_PROP:        CHANNEL_NOTIFY_DEFAULT,
+		EMAIL_NOTIFY_PROP:       CHANNEL_NOTIFY_DEFAULT,
 	}
 }

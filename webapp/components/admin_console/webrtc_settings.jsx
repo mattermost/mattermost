@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -15,21 +15,8 @@ export default class WebrtcSettings extends AdminSettings {
     constructor(props) {
         super(props);
 
-        this.canSave = this.canSave.bind(this);
-        this.handleAgreeChange = this.handleAgreeChange.bind(this);
-
         this.getConfigFromState = this.getConfigFromState.bind(this);
         this.renderSettings = this.renderSettings.bind(this);
-    }
-
-    canSave() {
-        return !this.state.enableWebrtc || this.state.agree;
-    }
-
-    handleAgreeChange(e) {
-        this.setState({
-            agree: e.target.checked
-        });
     }
 
     getConfigFromState(config) {
@@ -57,42 +44,20 @@ export default class WebrtcSettings extends AdminSettings {
             stunURI: settings.StunURI,
             turnURI: settings.TurnURI,
             turnUsername: settings.TurnUsername,
-            turnSharedKey: settings.TurnSharedKey,
-            agree: settings.Enable
+            turnSharedKey: settings.TurnSharedKey
         };
     }
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.integrations.webrtc'
-                    defaultMessage='Mattermost WebRTC (Beta)'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.integrations.webrtc'
+                defaultMessage='Mattermost WebRTC (Beta)'
+            />
         );
     }
 
     renderSettings() {
-        const tosCheckbox = (
-            <div className='form-group'>
-                <div className='col-sm-4'/>
-                <div className='col-sm-8'>
-                    <input
-                        type='checkbox'
-                        ref='agree'
-                        checked={this.state.agree}
-                        onChange={this.handleAgreeChange}
-                        disabled={!this.state.enableWebrtc}
-                    />
-                    <FormattedHTMLMessage
-                        id='admin.webrtc.agree'
-                        defaultMessage=' I understand and accept the Mattermost Hosted WebRTC Service <a href="https://about.mattermost.com/webrtc-terms/" target="_blank">Terms of Service</a> and <a href="https://about.mattermost.com/webrtc-privacy/" target="_blank">Privacy Policy</a>.'
-                    />
-                </div>
-            </div>
-        );
-
         return (
             <SettingsGroup>
                 <BooleanSetting
@@ -112,13 +77,12 @@ export default class WebrtcSettings extends AdminSettings {
                     value={this.state.enableWebrtc}
                     onChange={this.handleChange}
                 />
-                {tosCheckbox}
                 <TextSetting
                     id='gatewayWebsocketUrl'
                     label={
                         <FormattedMessage
                             id='admin.webrtc.gatewayWebsocketUrlTitle'
-                            defaultMessage='Gateway Websocket URL:'
+                            defaultMessage='Gateway WebSocket URL:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.webrtc.gatewayWebsocketUrlExample', 'Ex "wss://webrtc.mattermost.com:8189"')}
@@ -126,7 +90,7 @@ export default class WebrtcSettings extends AdminSettings {
                         <FormattedMessage
                             id='admin.webrtc.gatewayWebsocketUrlDescription'
                             defaultMessage='Enter wss://<mattermost-webrtc-gateway-url>:<port>. Make sure you use WS or WSS in your URL depending on your server configuration.
-                            This is the websocket used to signal and establish communication between the peers.'
+                            This is the WebSocket used to signal and establish communication between the peers.'
                         />
                     }
                     value={this.state.gatewayWebsocketUrl}

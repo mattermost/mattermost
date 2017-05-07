@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import Constants from 'utils/constants.jsx';
@@ -96,5 +96,5 @@ export default class WebrtcHeader extends React.Component {
 WebrtcHeader.propTypes = {
     username: React.PropTypes.string.isRequired,
     onClose: React.PropTypes.func.isRequired,
-    toggleSize: React.PropTypes.function
+    toggleSize: React.PropTypes.func
 };

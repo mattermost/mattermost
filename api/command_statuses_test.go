@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -22,12 +22,12 @@ func commandAndTest(t *testing.T, th *TestHelper, status string) {
 	channel := th.BasicChannel
 	user := th.BasicUser
 
-	r1 := Client.Must(Client.Command(channel.Id, "/"+status, false)).Data.(*model.CommandResponse)
+	r1 := Client.Must(Client.Command(channel.Id, "/"+status)).Data.(*model.CommandResponse)
 	if r1 == nil {
 		t.Fatal("Command failed to execute")
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 
 	statuses := Client.Must(Client.GetStatuses()).Data.(map[string]string)
 

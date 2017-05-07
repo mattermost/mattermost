@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -51,16 +51,14 @@ export default class ClusterSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.advance.cluster'
-                    defaultMessage='High Availability (Beta)'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.advance.cluster'
+                defaultMessage='High Availability'
+            />
         );
     }
 
-    overrideHandleChange = (id, value) => {
+    overrideHandleChange(id, value) {
         this.setState({
             showWarning: true
         });

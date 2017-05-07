@@ -1,17 +1,22 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import {Link} from 'react-router';
 import {FormattedMessage} from 'react-intl';
+
+import DeleteIntegration from './delete_integration.jsx';
 
 export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
+            team: React.PropTypes.object.isRequired,
             command: React.PropTypes.object.isRequired,
             onRegenToken: React.PropTypes.func.isRequired,
             onDelete: React.PropTypes.func.isRequired,
             filter: React.PropTypes.string,
-            creator: React.PropTypes.object.isRequired
+            creator: React.PropTypes.object.isRequired,
+            canChange: React.PropTypes.bool.isRequired
         };
     }
 
@@ -30,9 +35,7 @@ export default class InstalledCommand extends React.Component {
         this.props.onRegenToken(this.props.command);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.command);
     }
 
@@ -82,6 +85,35 @@ export default class InstalledCommand extends React.Component {
             trigger += ' ' + command.auto_complete_hint;
         }
 
+        let actions = null;
+        if (this.props.canChange) {
+            actions = (
+                <div className='item-actions'>
+                    <a
+                        href='#'
+                        onClick={this.handleRegenToken}
+                    >
+                        <FormattedMessage
+                            id='installed_integrations.regenToken'
+                            defaultMessage='Regenerate Token'
+                        />
+                    </a>
+                    {' - '}
+                    <Link to={`/${this.props.team.name}/integrations/commands/edit?id=${command.id}`}>
+                        <FormattedMessage
+                            id='installed_integrations.edit'
+                            defaultMessage='Edit'
+                        />
+                    </Link>
+                    {' - '}
+                    <DeleteIntegration
+                        messageId='installed_commands.delete.confirm'
+                        onDelete={this.handleDelete}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className='backstage-list__item'>
                 <div className='item-details'>
@@ -118,27 +150,7 @@ export default class InstalledCommand extends React.Component {
                         </span>
                     </div>
                 </div>
-                <div className='item-actions'>
-                    <a
-                        href='#'
-                        onClick={this.handleRegenToken}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.regenToken'
-                            defaultMessage='Regenerate Token'
-                        />
-                    </a>
-                    {' - '}
-                    <a
-                        href='#'
-                        onClick={this.handleDelete}
-                    >
-                        <FormattedMessage
-                            id='installed_integrations.delete'
-                            defaultMessage='Delete'
-                        />
-                    </a>
-                </div>
+                {actions}
             </div>
         );
     }

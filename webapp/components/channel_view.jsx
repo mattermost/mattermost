@@ -1,13 +1,14 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
 import React from 'react';
 
+import * as UserAgent from 'utils/user_agent.jsx';
 import ChannelHeader from 'components/channel_header.jsx';
 import FileUploadOverlay from 'components/file_upload_overlay.jsx';
 import CreatePost from 'components/create_post.jsx';
-import PostViewCache from 'components/post_view/post_view_cache.jsx';
+import PostViewCache from 'components/post_view';
 
 import ChannelStore from 'stores/channel_store.jsx';
 
@@ -40,6 +41,11 @@ export default class ChannelView extends React.Component {
         ChannelStore.addChangeListener(this.updateState);
 
         $('body').addClass('app__body');
+
+        // IE Detection
+        if (UserAgent.isInternetExplorer()) {
+            $('body').addClass('browser--ie');
+        }
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.updateState);

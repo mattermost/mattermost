@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -14,7 +14,7 @@ import SpinnerButton from 'components/spinner_button.jsx';
 export default class AddOAuthApp extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired
+            team: React.PropTypes.object
         };
     }
 

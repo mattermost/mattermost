@@ -7,6 +7,31 @@ servers that can prove control over the given domain's DNS records or the
 servers pointed at by those records.
 
 
+Warning
+
+Like any other random code you find on the internet, this package should not
+be relied upon in important, production systems without thorough testing to
+ensure that it meets your needs.
+
+In the long term you should be using
+https://golang.org/x/crypto/acme/autocert instead of this package. Send
+improvements there, not here.
+
+This is a package that I wrote for my own personal web sites (swtch.com,
+rsc.io) in a hurry when my paid-for SSL certificate was expiring. It has no
+tests, has barely been used, and there is some anecdotal evidence that it
+does not properly renew certificates in a timely fashion, so servers that
+run for more than 3 months may run into trouble. I don't run this code
+anymore: to simplify maintenance, I moved the sites off of Ubuntu VMs and
+onto Google App Engine, configured with inexpensive long-term certificates
+purchased from cheapsslsecurity.com.
+
+This package was interesting primarily as an example of how simple the API
+for using LetsEncrypt.org could be made, in contrast to the low-level
+implementations that existed at the time. In that respect, it helped inform
+the design of the golang.org/x/crypto/acme/autocert package.
+
+
 Quick Start
 
 A complete HTTP/HTTPS web server using TLS certificates from

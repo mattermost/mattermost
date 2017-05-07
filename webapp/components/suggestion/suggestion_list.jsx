@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
@@ -10,6 +10,16 @@ import {FormattedMessage} from 'react-intl';
 import React from 'react';
 
 export default class SuggestionList extends React.Component {
+    static propTypes = {
+        suggestionId: React.PropTypes.string.isRequired,
+        location: React.PropTypes.string,
+        renderDividers: React.PropTypes.bool
+    };
+
+    static defaultProps = {
+        renderDividers: false
+    };
+
     constructor(props) {
         super(props);
 
@@ -65,7 +75,7 @@ export default class SuggestionList extends React.Component {
 
     scrollToItem(term) {
         const content = this.getContent();
-        if (!content) {
+        if (!content || content.length === 0) {
             return;
         }
 
@@ -153,13 +163,3 @@ export default class SuggestionList extends React.Component {
         );
     }
 }
-
-SuggestionList.propTypes = {
-    suggestionId: React.PropTypes.string.isRequired,
-    location: React.PropTypes.string,
-    renderDividers: React.PropTypes.bool
-};
-
-SuggestionList.defaultProps = {
-    renderDividers: false
-};

@@ -26,17 +26,18 @@ http://godoc.org/github.com/disintegration/imaging
 A few usage examples can be found below. See the documentation for the full list of supported functions. 
 
 ### Image resizing
+
 ```go
-// resize srcImage to size = 128x128px using the Lanczos filter
+// Resize srcImage to size = 128x128px using the Lanczos filter.
 dstImage128 := imaging.Resize(srcImage, 128, 128, imaging.Lanczos)
 
-// resize srcImage to width = 800px preserving the aspect ratio
+// Resize srcImage to width = 800px preserving the aspect ratio.
 dstImage800 := imaging.Resize(srcImage, 800, 0, imaging.Lanczos)
 
-// scale down srcImage to fit the 800x600px bounding box
+// Scale down srcImage to fit the 800x600px bounding box.
 dstImageFit := imaging.Fit(srcImage, 800, 600, imaging.Lanczos)
 
-// resize and crop the srcImage to fill the 100x100px area
+// Resize and crop the srcImage to fill the 100x100px area.
 dstImageFill := imaging.Fill(srcImage, 100, 100, imaging.Center, imaging.Lanczos)
 ```
 
@@ -53,146 +54,138 @@ The full list of supported filters:  NearestNeighbor, Box, Linear, Hermite, Mitc
 
 **Resampling filters comparison**
 
-Original image. Will be resized from 512x512px to 128x128px. 
+The original image.
 
-![srcImage](http://disintegration.github.io/imaging/in_lena_bw_512.png)
+![srcImage](testdata/lena_512.png)
 
-Filter | Resize result
----|---
-`imaging.NearestNeighbor` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_nearest.png) 
-`imaging.Box` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_box.png)
-`imaging.Linear` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_linear.png)
-`imaging.MitchellNetravali` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_mitchell.png)
-`imaging.CatmullRom` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_catrom.png)
-`imaging.Gaussian` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_gaussian.png)
-`imaging.Lanczos` | ![dstImage](http://disintegration.github.io/imaging/out_resize_down_lanczos.png)
+The same image resized from 512x512px to 128x128px using different resampling filters.
+From faster (lower quality) to slower (higher quality):
 
-**Resize functions comparison**
+Filter                    | Resize result
+--------------------------|---------------------------------------------
+`imaging.NearestNeighbor` | ![dstImage](testdata/out_resize_nearest.png) 
+`imaging.Linear`          | ![dstImage](testdata/out_resize_linear.png)
+`imaging.CatmullRom`      | ![dstImage](testdata/out_resize_catrom.png)
+`imaging.Lanczos`         | ![dstImage](testdata/out_resize_lanczos.png)
 
-Original image:
-
-![srcImage](http://disintegration.github.io/imaging/in.jpg)
-
-Resize the image to width=100px and height=100px:
-
-```go
-dstImage := imaging.Resize(srcImage, 100, 100, imaging.Lanczos)
-```
-![dstImage](http://disintegration.github.io/imaging/out-comp-resize.jpg) 
-
-Resize the image to width=100px preserving the aspect ratio:
-
-```go
-dstImage := imaging.Resize(srcImage, 100, 0, imaging.Lanczos)
-```
-![dstImage](http://disintegration.github.io/imaging/out-comp-fit.jpg) 
-
-Resize the image to fit the 100x100px boundng box preserving the aspect ratio:
-
-```go
-dstImage := imaging.Fit(srcImage, 100, 100, imaging.Lanczos)
-```
-![dstImage](http://disintegration.github.io/imaging/out-comp-fit.jpg) 
-
-Resize and crop the image with a center anchor point to fill the 100x100px area:
-
-```go
-dstImage := imaging.Fill(srcImage, 100, 100, imaging.Center, imaging.Lanczos)
-```
-![dstImage](http://disintegration.github.io/imaging/out-comp-fill.jpg) 
 
 ### Gaussian Blur
+
 ```go
 dstImage := imaging.Blur(srcImage, 0.5)
 ```
 
 Sigma parameter allows to control the strength of the blurring effect.
 
-Original image | Sigma = 0.5 | Sigma = 1.5
----|---|---
-![srcImage](http://disintegration.github.io/imaging/in_lena_bw_128.png) | ![dstImage](http://disintegration.github.io/imaging/out_blur_0.5.png) | ![dstImage](http://disintegration.github.io/imaging/out_blur_1.5.png)
+Original image                     | Sigma = 0.5                            | Sigma = 1.5
+-----------------------------------|----------------------------------------|---------------------------------------
+![srcImage](testdata/lena_128.png) | ![dstImage](testdata/out_blur_0.5.png) | ![dstImage](testdata/out_blur_1.5.png)
 
 ### Sharpening
+
 ```go
 dstImage := imaging.Sharpen(srcImage, 0.5)
 ```
 
-Uses gaussian function internally. Sigma parameter allows to control the strength of the sharpening effect.
+`Sharpen` uses gaussian function internally. Sigma parameter allows to control the strength of the sharpening effect.
 
-Original image | Sigma = 0.5 | Sigma = 1.5
----|---|---
-![srcImage](http://disintegration.github.io/imaging/in_lena_bw_128.png) | ![dstImage](http://disintegration.github.io/imaging/out_sharpen_0.5.png) | ![dstImage](http://disintegration.github.io/imaging/out_sharpen_1.5.png)
+Original image                     | Sigma = 0.5                               | Sigma = 1.5
+-----------------------------------|-------------------------------------------|------------------------------------------
+![srcImage](testdata/lena_128.png) | ![dstImage](testdata/out_sharpen_0.5.png) | ![dstImage](testdata/out_sharpen_1.5.png)
 
 ### Gamma correction
+
 ```go
 dstImage := imaging.AdjustGamma(srcImage, 0.75)
 ```
 
-Original image | Gamma = 0.75 | Gamma = 1.25
----|---|---
-![srcImage](http://disintegration.github.io/imaging/in_lena_bw_128.png) | ![dstImage](http://disintegration.github.io/imaging/out_gamma_0.75.png) | ![dstImage](http://disintegration.github.io/imaging/out_gamma_1.25.png)
+Original image                     | Gamma = 0.75                             | Gamma = 1.25
+-----------------------------------|------------------------------------------|-----------------------------------------
+![srcImage](testdata/lena_128.png) | ![dstImage](testdata/out_gamma_0.75.png) | ![dstImage](testdata/out_gamma_1.25.png)
 
 ### Contrast adjustment
+
 ```go
 dstImage := imaging.AdjustContrast(srcImage, 20)
 ```
 
-Original image | Contrast = 20 | Contrast = -20
----|---|---
-![srcImage](http://disintegration.github.io/imaging/in_lena_bw_128.png) | ![dstImage](http://disintegration.github.io/imaging/out_contrast_p20.png) | ![dstImage](http://disintegration.github.io/imaging/out_contrast_m20.png)
+Original image                     | Contrast = 10                              | Contrast = -10
+-----------------------------------|--------------------------------------------|-------------------------------------------
+![srcImage](testdata/lena_128.png) | ![dstImage](testdata/out_contrast_p10.png) | ![dstImage](testdata/out_contrast_m10.png)
 
 ### Brightness adjustment
+
 ```go
 dstImage := imaging.AdjustBrightness(srcImage, 20)
 ```
 
-Original image | Brightness = 20 | Brightness = -20
----|---|---
-![srcImage](http://disintegration.github.io/imaging/in_lena_bw_128.png) | ![dstImage](http://disintegration.github.io/imaging/out_brightness_p20.png) | ![dstImage](http://disintegration.github.io/imaging/out_brightness_m20.png)
+Original image                     | Brightness = 10                              | Brightness = -10
+-----------------------------------|----------------------------------------------|---------------------------------------------
+![srcImage](testdata/lena_128.png) | ![dstImage](testdata/out_brightness_p10.png) | ![dstImage](testdata/out_brightness_m10.png)
 
-
-### Complete code example
-Here is the code example that loads several images, makes thumbnails of them
-and combines them together side-by-side.
+## Example code
 
 ```go
 package main
 
 import (
-    "image"
-    "image/color"
-    
-    "github.com/disintegration/imaging"
+	"image"
+	"image/color"
+	"log"
+
+	"github.com/disintegration/imaging"
 )
 
 func main() {
+	// Open the test image.
+	src, err := imaging.Open("testdata/lena_512.png")
+	if err != nil {
+		log.Fatalf("Open failed: %v", err)
+	}
 
-    // input files
-    files := []string{"01.jpg", "02.jpg", "03.jpg"}
+	// Crop the original image to 350x350px size using the center anchor.
+	src = imaging.CropAnchor(src, 350, 350, imaging.Center)
 
-    // load images and make 100x100 thumbnails of them
-    var thumbnails []image.Image
-    for _, file := range files {
-        img, err := imaging.Open(file)
-        if err != nil {
-            panic(err)
-        }
-        thumb := imaging.Thumbnail(img, 100, 100, imaging.CatmullRom)
-        thumbnails = append(thumbnails, thumb)
-    }
+	// Resize the cropped image to width = 256px preserving the aspect ratio.
+	src = imaging.Resize(src, 256, 0, imaging.Lanczos)
 
-    // create a new blank image
-    dst := imaging.New(100*len(thumbnails), 100, color.NRGBA{0, 0, 0, 0})
+	// Create a blurred version of the image.
+	img1 := imaging.Blur(src, 2)
 
-    // paste thumbnails into the new image side by side
-    for i, thumb := range thumbnails {
-        dst = imaging.Paste(dst, thumb, image.Pt(i*100, 0))
-    }
+	// Create a grayscale version of the image with higher contrast and sharpness.
+	img2 := imaging.Grayscale(src)
+	img2 = imaging.AdjustContrast(img2, 20)
+	img2 = imaging.Sharpen(img2, 2)
 
-    // save the combined image to file
-    err := imaging.Save(dst, "dst.jpg")
-    if err != nil {
-        panic(err)
-    }
+	// Create an inverted version of the image.
+	img3 := imaging.Invert(src)
+
+	// Create an embossed version of the image using a convolution filter.
+	img4 := imaging.Convolve3x3(
+		src,
+		[9]float64{
+			-1, -1, 0,
+			-1, 1, 1,
+			0, 1, 1,
+		},
+		nil,
+	)
+
+	// Create a new image and paste the four produced images into it.
+	dst := imaging.New(512, 512, color.NRGBA{0, 0, 0, 0})
+	dst = imaging.Paste(dst, img1, image.Pt(0, 0))
+	dst = imaging.Paste(dst, img2, image.Pt(0, 256))
+	dst = imaging.Paste(dst, img3, image.Pt(256, 0))
+	dst = imaging.Paste(dst, img4, image.Pt(256, 256))
+
+	// Save the resulting image using JPEG format.
+	err = imaging.Save(dst, "testdata/out_example.jpg")
+	if err != nil {
+		log.Fatalf("Save failed: %v", err)
+	}
 }
 ```
+
+Output:
+
+![dstImage](testdata/out_example.jpg)

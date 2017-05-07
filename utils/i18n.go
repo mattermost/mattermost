@@ -12,6 +12,7 @@ import (
 )
 
 var T i18n.TranslateFunc
+var TDefault i18n.TranslateFunc
 var locales map[string]string = make(map[string]string)
 var settings model.LocalizationSettings
 
@@ -20,6 +21,7 @@ var settings model.LocalizationSettings
 func TranslationsPreInit() {
 	InitTranslationsWithDir("i18n")
 	T = TfuncWithFallback("en")
+	TDefault = TfuncWithFallback("en")
 }
 
 func InitTranslations(localizationSettings model.LocalizationSettings) {
@@ -92,6 +94,10 @@ func GetTranslationsAndLocale(w http.ResponseWriter, r *http.Request) (i18n.Tran
 
 	translations := TfuncWithFallback(model.DEFAULT_LOCALE)
 	return translations, model.DEFAULT_LOCALE
+}
+
+func GetSupportedLocales() map[string]string {
+	return locales
 }
 
 func TfuncWithFallback(pref string) i18n.TranslateFunc {

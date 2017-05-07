@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import Autolinker from 'autolinker';
@@ -11,7 +11,7 @@ import XRegExp from 'xregexp';
 
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
 // http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
-const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
+const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3]/;
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,
 // @mentions and ~channels to links by taking a user's message and returning a string of formatted html. Also takes
@@ -30,6 +30,10 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 //      links to the relevant channel.
 // - team - The current team.
 export function formatText(text, inputOptions) {
+    if (!text || typeof text !== 'string') {
+        return '';
+    }
+
     let output = text;
 
     const options = Object.assign({}, inputOptions);
@@ -127,7 +131,7 @@ function autolinkEmails(text, tokens) {
         }
 
         const index = tokens.size;
-        const alias = `MM_EMAIL${index}`;
+        const alias = `$MM_EMAIL${index}`;
 
         tokens.set(alias, {
             value: `<a class="theme" href="${url}">${linkText}</a>`,
@@ -160,7 +164,7 @@ export function autolinkAtMentions(text, tokens, usernameMap) {
 
     function addToken(username, mention) {
         const index = tokens.size;
-        const alias = `MM_ATMENTION${index}`;
+        const alias = `$MM_ATMENTION${index}`;
 
         tokens.set(alias, {
             value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
@@ -199,7 +203,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
     function addToken(channelName, mention, displayName) {
         const index = tokens.size;
-        const alias = `MM_CHANNELMENTION${index}`;
+        const alias = `$MM_CHANNELMENTION${index}`;
         let href = '#';
         if (team) {
             href = '/' + team.name + '/channels/' + channelName;
@@ -249,7 +253,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 }
 
 export function escapeRegex(text) {
-    return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 function highlightCurrentMentions(text, tokens, mentionKeys = []) {
@@ -260,7 +264,7 @@ function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     for (const [alias, token] of tokens) {
         if (mentionKeys.indexOf(token.originalText) !== -1) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `MM_SELFMENTION${index}`;
+            const newAlias = `$MM_SELFMENTION${index}`;
 
             newTokens.set(newAlias, {
                 value: `<span class='mention--highlight'>${alias}</span>`,
@@ -278,7 +282,7 @@ function highlightCurrentMentions(text, tokens, mentionKeys = []) {
     // look for self mentions in the text
     function replaceCurrentMentionWithToken(fullMatch, prefix, mention) {
         const index = tokens.size;
-        const alias = `MM_SELFMENTION${index}`;
+        const alias = `$MM_SELFMENTION${index}`;
 
         tokens.set(alias, {
             value: `<span class='mention--highlight'>${mention}</span>`,
@@ -306,7 +310,7 @@ function autolinkHashtags(text, tokens) {
     for (const [alias, token] of tokens) {
         if (token.originalText.lastIndexOf('#', 0) === 0) {
             const index = tokens.size + newTokens.size;
-            const newAlias = `MM_HASHTAG${index}`;
+            const newAlias = `$MM_HASHTAG${index}`;
 
             newTokens.set(newAlias, {
                 value: `<a class='mention-link' href='#' data-hashtag='${token.originalText}'>${token.originalText}</a>`,
@@ -326,7 +330,7 @@ function autolinkHashtags(text, tokens) {
     // look for hashtags in the text
     function replaceHashtagWithToken(fullMatch, prefix, originalText) {
         const index = tokens.size;
-        const alias = `MM_HASHTAG${index}`;
+        const alias = `$MM_HASHTAG${index}`;
 
         if (text.length < Constants.MIN_HASHTAG_LINK_LENGTH + 1) {
             // too short to be a hashtag
@@ -342,7 +346,7 @@ function autolinkHashtags(text, tokens) {
         return prefix + alias;
     }
 
-    return output.replace(/(^|\W)(#[a-zA-ZäöüÄÖÜß][a-zA-Z0-9äöüÄÖÜß.\-_]*)\b/g, replaceHashtagWithToken);
+    return output.replace(XRegExp.cache('(^|\\W)(#\\pL[\\pL\\d\\-_.]*[\\pL\\d])', 'g'), replaceHashtagWithToken);
 }
 
 const puncStart = XRegExp.cache('^[^\\pL\\d\\s#]+');
@@ -386,7 +390,7 @@ function parseSearchTerms(searchTerm) {
             termString = termString.substring(captured[0].length);
 
             // break the text up into words based on how the server splits them in SqlPostStore.SearchPosts and then discard empty terms
-            terms.push(...captured[0].split(/[ <>+\(\)~@]/).filter((term) => Boolean(term)));
+            terms.push(...captured[0].split(/[ <>+()~@]/).filter((term) => Boolean(term)));
             continue;
         }
 
@@ -395,7 +399,13 @@ function parseSearchTerms(searchTerm) {
     }
 
     // remove punctuation from each term
-    terms = terms.map((term) => term.replace(puncStart, '').replace(puncEnd, ''));
+    terms = terms.map((term) => {
+        term.replace(puncStart, '');
+        if (term.charAt(term.length - 1) !== '*') {
+            term.replace(puncEnd, '');
+        }
+        return term;
+    });
 
     return terms;
 }
@@ -427,7 +437,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
 
     function replaceSearchTermWithToken(match, prefix, word) {
         const index = tokens.size;
-        const alias = `MM_SEARCHTERM${index}`;
+        const alias = `$MM_SEARCHTERM${index}`;
 
         tokens.set(alias, {
             value: `<span class='search-highlight'>${word}</span>`,
@@ -443,7 +453,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
         for (const [alias, token] of tokens) {
             if (pattern.test(token.originalText)) {
                 const index = tokens.size + newTokens.size;
-                const newAlias = `MM_SEARCHTERM${index}`;
+                const newAlias = `$MM_SEARCHTERM${index}`;
 
                 newTokens.set(newAlias, {
                     value: `<span class='search-highlight'>${alias}</span>`,
@@ -452,6 +462,11 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
 
                 output = output.replace(alias, newAlias);
             }
+
+            // The pattern regexes are global, so calling pattern.test() above alters their
+            // state. Reset lastIndex to 0 between calls to test() to ensure it returns the
+            // same result every time it is called with the same value of token.originalText.
+            pattern.lastIndex = 0;
         }
 
         // the new tokens are stashed in a separate map since we can't add objects to a map during iteration

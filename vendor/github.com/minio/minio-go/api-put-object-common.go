@@ -44,18 +44,17 @@ func isReadAt(reader io.Reader) (ok bool) {
 }
 
 // shouldUploadPart - verify if part should be uploaded.
-func shouldUploadPart(objPart objectPart, objectParts map[int]objectPart) bool {
+func shouldUploadPart(objPart objectPart, uploadReq uploadPartReq) bool {
 	// If part not found should upload the part.
-	uploadedPart, found := objectParts[objPart.PartNumber]
-	if !found {
+	if uploadReq.Part == nil {
 		return true
 	}
 	// if size mismatches should upload the part.
-	if objPart.Size != uploadedPart.Size {
+	if objPart.Size != uploadReq.Part.Size {
 		return true
 	}
 	// if md5sum mismatches should upload the part.
-	if objPart.ETag != uploadedPart.ETag {
+	if objPart.ETag != uploadReq.Part.ETag {
 		return true
 	}
 	return false
@@ -68,7 +67,7 @@ func shouldUploadPart(objPart objectPart, objectParts map[int]objectPart) bool {
 // object storage it will have the following parameters as constants.
 //
 //  maxPartsCount - 10000
-//  minPartSize - 5MiB
+//  minPartSize - 64MiB
 //  maxMultipartPutObjectSize - 5TiB
 //
 func optimalPartInfo(objectSize int64) (totalPartsCount int, partSize int64, lastPartSize int64, err error) {
@@ -167,37 +166,64 @@ func hashCopyN(hashAlgorithms map[string]hash.Hash, hashSums map[string][]byte, 
 
 // getUploadID - fetch upload id if already present for an object name
 // or initiate a new request to fetch a new upload id.
-func (c Client) getUploadID(bucketName, objectName, contentType string) (uploadID string, isNew bool, err error) {
+func (c Client) newUploadID(bucketName, objectName string, metaData map[string][]string) (uploadID string, err error) {
 	// Input validation.
 	if err := isValidBucketName(bucketName); err != nil {
-		return "", false, err
+		return "", err
 	}
 	if err := isValidObjectName(objectName); err != nil {
-		return "", false, err
+		return "", err
 	}
 
-	// Set content Type to default if empty string.
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	// Find upload id for previous upload for an object.
-	uploadID, err = c.findUploadID(bucketName, objectName)
+	// Initiate multipart upload for an object.
+	initMultipartUploadResult, err := c.initiateMultipartUpload(bucketName, objectName, metaData)
 	if err != nil {
-		return "", false, err
+		return "", err
 	}
+	return initMultipartUploadResult.UploadID, nil
+}
+
+// getMpartUploadSession returns the upload id and the uploaded parts to continue a previous upload session
+// or initiate a new multipart session if no current one found
+func (c Client) getMpartUploadSession(bucketName, objectName string, metaData map[string][]string) (string, map[int]objectPart, error) {
+	// A map of all uploaded parts.
+	var partsInfo map[int]objectPart
+	var err error
+
+	uploadID, err := c.findUploadID(bucketName, objectName)
+	if err != nil {
+		return "", nil, err
+	}
+
 	if uploadID == "" {
-		// Initiate multipart upload for an object.
-		initMultipartUploadResult, err := c.initiateMultipartUpload(bucketName, objectName, contentType)
+		// Initiates a new multipart request
+		uploadID, err = c.newUploadID(bucketName, objectName, metaData)
 		if err != nil {
-			return "", false, err
+			return "", nil, err
 		}
-		// Save the new upload id.
-		uploadID = initMultipartUploadResult.UploadID
-		// Indicate that this is a new upload id.
-		isNew = true
+	} else {
+		// Fetch previously upload parts and maximum part size.
+		partsInfo, err = c.listObjectParts(bucketName, objectName, uploadID)
+		if err != nil {
+			// When the server returns NoSuchUpload even if its previouls acknowleged the existance of the upload id,
+			// initiate a new multipart upload
+			if respErr, ok := err.(ErrorResponse); ok && respErr.Code == "NoSuchUpload" {
+				uploadID, err = c.newUploadID(bucketName, objectName, metaData)
+				if err != nil {
+					return "", nil, err
+				}
+			} else {
+				return "", nil, err
+			}
+		}
 	}
-	return uploadID, isNew, nil
+
+	// Allocate partsInfo if not done yet
+	if partsInfo == nil {
+		partsInfo = make(map[int]objectPart)
+	}
+
+	return uploadID, partsInfo, nil
 }
 
 // computeHash - Calculates hashes for an input read Seeker.

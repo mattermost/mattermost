@@ -1,8 +1,9 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import UserProfile from 'components/user_profile.jsx';
 import PostInfo from './post_info.jsx';
+import {FormattedMessage} from 'react-intl';
 
 import * as PostUtils from 'utils/post_utils.jsx';
 
@@ -40,6 +41,14 @@ export default class PostHeader extends React.Component {
                         disablePopover={true}
                     />
                 );
+            } else {
+                userProfile = (
+                    <UserProfile
+                        user={this.props.user}
+                        displayNameType={this.props.displayNameType}
+                        disablePopover={true}
+                    />
+                );
             }
 
             botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
@@ -47,7 +56,12 @@ export default class PostHeader extends React.Component {
             userProfile = (
                 <UserProfile
                     user={{}}
-                    overwriteName={Constants.SYSTEM_MESSAGE_PROFILE_NAME}
+                    overwriteName={
+                        <FormattedMessage
+                            id='post_info.system'
+                            defaultMessage='System'
+                        />
+                    }
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
                 />
@@ -68,7 +82,6 @@ export default class PostHeader extends React.Component {
                         commentCount={this.props.commentCount}
                         handleCommentClick={this.props.handleCommentClick}
                         handleDropdownOpened={this.props.handleDropdownOpened}
-                        allowReply={!isSystemMessage}
                         isLastComment={this.props.isLastComment}
                         sameUser={this.props.sameUser}
                         currentUser={this.props.currentUser}

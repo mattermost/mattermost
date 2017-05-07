@@ -16,8 +16,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParseEncodings(t *testing.T) {
+const (
+	smallTestBody = "aaabbcaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbccc"
+	testBody      = "aaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbcccaaabbbccc"
+)
 
+func TestParseEncodings(t *testing.T) {
 	examples := map[string]codings{
 
 		// Examples from RFC 2616
@@ -39,8 +43,6 @@ func TestParseEncodings(t *testing.T) {
 }
 
 func TestGzipHandler(t *testing.T) {
-	testBody := "aaabbbccc"
-
 	// This just exists to provide something for GzipHandler to wrap.
 	handler := newTestHandler(testBody)
 
@@ -80,7 +82,6 @@ func TestGzipHandler(t *testing.T) {
 }
 
 func TestNewGzipLevelHandler(t *testing.T) {
-	testBody := "aaabbbccc"
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, testBody)
@@ -102,7 +103,6 @@ func TestNewGzipLevelHandler(t *testing.T) {
 		assert.Equal(t, "gzip", res.Header.Get("Content-Encoding"))
 		assert.Equal(t, "Accept-Encoding", res.Header.Get("Vary"))
 		assert.Equal(t, gzipStrLevel(testBody, lvl), resp.Body.Bytes())
-
 	}
 }
 
@@ -135,7 +135,7 @@ func TestGzipHandlerNoBody(t *testing.T) {
 		{http.StatusNoContent, "", 0},
 		{http.StatusNotModified, "", 0},
 		// Body is going to get gzip'd no matter what.
-		{http.StatusOK, "gzip", 23},
+		{http.StatusOK, "", 0},
 	}
 
 	for num, test := range tests {
@@ -170,7 +170,7 @@ func TestGzipHandlerNoBody(t *testing.T) {
 }
 
 func TestGzipHandlerContentLength(t *testing.T) {
-	b := []byte("testtesttesttesttesttesttesttesttesttesttesttesttest")
+	b := []byte(testBody)
 	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Length", strconv.Itoa(len(b)))
 		w.Write(b)
@@ -213,6 +213,86 @@ func TestGzipHandlerContentLength(t *testing.T) {
 	assert.Len(t, body, l)
 	assert.Equal(t, "gzip", res.Header.Get("Content-Encoding"))
 	assert.NotEqual(t, b, body)
+}
+
+func TestGzipHandlerMinSizeMustBePositive(t *testing.T) {
+	_, err := NewGzipLevelAndMinSize(gzip.DefaultCompression, -1)
+	assert.Error(t, err)
+}
+
+func TestGzipHandlerMinSize(t *testing.T) {
+	responseLength := 0
+	b := []byte{'x'}
+
+	wrapper, _ := NewGzipLevelAndMinSize(gzip.DefaultCompression, 128)
+	handler := wrapper(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			// Write responses one byte at a time to ensure that the flush
+			// mechanism, if used, is working properly.
+			for i := 0; i < responseLength; i++ {
+				n, err := w.Write(b)
+				assert.Equal(t, 1, n)
+				assert.Nil(t, err)
+			}
+		},
+	))
+
+	r, _ := http.NewRequest("GET", "/whatever", &bytes.Buffer{})
+	r.Header.Add("Accept-Encoding", "gzip")
+
+	// Short response is not compressed
+	responseLength = 127
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+	if w.Result().Header.Get(contentEncoding) == "gzip" {
+		t.Error("Expected uncompressed response, got compressed")
+	}
+
+	// Long response is not compressed
+	responseLength = 128
+	w = httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+	if w.Result().Header.Get(contentEncoding) != "gzip" {
+		t.Error("Expected compressed response, got uncompressed")
+	}
+}
+
+func TestGzipDoubleClose(t *testing.T) {
+	// reset the pool for the default compression so we can make sure duplicates
+	// aren't added back by double close
+	addLevelPool(gzip.DefaultCompression)
+
+	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// call close here and it'll get called again interally by
+		// NewGzipLevelHandler's handler defer
+		w.Write([]byte("test"))
+		w.(io.Closer).Close()
+	}))
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("Accept-Encoding", "gzip")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	// the second close shouldn't have added the same writer
+	// so we pull out 2 writers from the pool and make sure they're different
+	w1 := gzipWriterPools[poolIndex(gzip.DefaultCompression)].Get()
+	w2 := gzipWriterPools[poolIndex(gzip.DefaultCompression)].Get()
+	// assert.NotEqual looks at the value and not the address, so we use regular ==
+	assert.False(t, w1 == w2)
+}
+
+func TestStatusCodes(t *testing.T) {
+	handler := GzipHandler(http.NotFoundHandler())
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("Accept-Encoding", "gzip")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	result := w.Result()
+	if result.StatusCode != 404 {
+		t.Errorf("StatusCode should have been 404 but was %d", result.StatusCode)
+	}
 }
 
 // --------------------------------------------------------------------

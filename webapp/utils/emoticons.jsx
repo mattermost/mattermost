@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import EmojiStore from 'stores/emoji_store.jsx';
@@ -12,7 +12,7 @@ export const emoticonPatterns = {
     smile: /(^|\s)(:-?d)(?=$|\s)/gi, // :D
     stuck_out_tongue_closed_eyes: /(^|\s)(x-d)(?=$|\s)/gi, // x-d
     stuck_out_tongue: /(^|\s)(:-?p)(?=$|\s)/gi, // :p
-    rage: /(^|\s)(:-?[\[@])(?=$|\s)/g, // :@
+    rage: /(^|\s)(:-?[[@])(?=$|\s)/g, // :@
     slightly_frowning_face: /(^|\s)(:-?\()(?=$|\s)/g, // :(
     cry: /(^|\s)(:['’]-?\(|:&#x27;\(|:&#39;\()(?=$|\s)/g, // :`(
     confused: /(^|\s)(:-?\/)(?=$|\s)/g, // :/
@@ -23,7 +23,7 @@ export const emoticonPatterns = {
     heart: /(^|\s)(<3|&lt;3)(?=$|\s)/g, // <3
     broken_heart: /(^|\s)(<\/3|&lt;&#x2F;3)(?=$|\s)/g, // </3
     thumbsup: /(^|\s)(:\+1:)(?=$|\s)/g, // :+1:
-    thumbsdown: /(^|\s)(:\-1:)(?=$|\s)/g // :-1:
+    thumbsdown: /(^|\s)(:-1:)(?=$|\s)/g // :-1:
 };
 
 export function handleEmoticons(text, tokens, emojis) {
@@ -31,14 +31,14 @@ export function handleEmoticons(text, tokens, emojis) {
 
     function replaceEmoticonWithToken(fullMatch, prefix, matchText, name) {
         const index = tokens.size;
-        const alias = `MM_EMOTICON${index}`;
+        const alias = `$MM_EMOTICON${index}`;
 
         if (emojis.has(name)) {
             const path = EmojiStore.getEmojiImageUrl(emojis.get(name));
 
             // we have an image path so we found a matching emoticon
             tokens.set(alias, {
-                value: `<img align="absmiddle" alt="${matchText}" class="emoticon" src="${path}" title="${matchText}" />`,
+                value: `<span alt="${matchText}" class="emoticon" title="${matchText}" style="background-image:url(${path})"></span>`,
                 originalText: fullMatch
             });
 

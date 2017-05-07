@@ -1,19 +1,44 @@
-mux
+gorilla/mux
 ===
 [![GoDoc](https://godoc.org/github.com/gorilla/mux?status.svg)](https://godoc.org/github.com/gorilla/mux)
 [![Build Status](https://travis-ci.org/gorilla/mux.svg?branch=master)](https://travis-ci.org/gorilla/mux)
 
+![Gorilla Logo](http://www.gorillatoolkit.org/static/images/gorilla-icon-64.png)
+
 http://www.gorillatoolkit.org/pkg/mux
 
-Package `gorilla/mux` implements a request router and dispatcher.
+Package `gorilla/mux` implements a request router and dispatcher for matching incoming requests to
+their respective handler.
 
 The name mux stands for "HTTP request multiplexer". Like the standard `http.ServeMux`, `mux.Router` matches incoming requests against a list of registered routes and calls a handler for the route that matches the URL or other conditions. The main features are:
 
+* It implements the `http.Handler` interface so it is compatible with the standard `http.ServeMux`.
 * Requests can be matched based on URL host, path, path prefix, schemes, header and query values, HTTP methods or using custom matchers.
 * URL hosts and paths can have variables with an optional regular expression.
 * Registered URLs can be built, or "reversed", which helps maintaining references to resources.
 * Routes can be used as subrouters: nested routes are only tested if the parent route matches. This is useful to define groups of routes that share common conditions like a host, a path prefix or other repeated attributes. As a bonus, this optimizes request matching.
-* It implements the `http.Handler` interface so it is compatible with the standard `http.ServeMux`.
+
+---
+
+* [Install](#install)
+* [Examples](#examples)
+* [Matching Routes](#matching-routes)
+* [Listing Routes](#listing-routes)
+* [Static Files](#static-files)
+* [Registered URLs](#registered-urls)
+* [Full Example](#full-example)
+
+---
+
+## Install
+
+With a [correctly configured](https://golang.org/doc/install#testing) Go toolchain:
+
+```sh
+go get -u github.com/gorilla/mux
+```
+
+## Examples
 
 Let's start registering a couple of URL paths and handlers:
 
@@ -41,11 +66,16 @@ r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler)
 The names are used to create a map of route variables which can be retrieved calling `mux.Vars()`:
 
 ```go
-vars := mux.Vars(request)
-category := vars["category"]
+func ArticlesCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Category: %v\n", vars["category"])
+}
 ```
 
 And this is all you need to know about the basic usage. More advanced options are explained below.
+
+### Matching Routes
 
 Routes can also be restricted to a domain or subdomain. Just define a host pattern to be matched. They can also have variables:
 
@@ -118,7 +148,7 @@ Then register routes in the subrouter:
 ```go
 s.HandleFunc("/products/", ProductsHandler)
 s.HandleFunc("/products/{key}", ProductHandler)
-s.HandleFunc("/articles/{category}/{id:[0-9]+}"), ArticleHandler)
+s.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler)
 ```
 
 The three URL paths we registered above will only be tested if the domain is `www.example.com`, because the subrouter is tested first. This is not only convenient, but also optimizes request matching. You can create subrouters combining any attribute matchers accepted by a route.
@@ -137,6 +167,73 @@ s.HandleFunc("/{key}/", ProductHandler)
 // "/products/{key}/details"
 s.HandleFunc("/{key}/details", ProductDetailsHandler)
 ```
+
+### Listing Routes
+
+Routes on a mux can be listed using the Router.Walk method—useful for generating documentation:
+
+```go
+package main
+
+import (
+    "fmt"
+    "net/http"
+
+    "github.com/gorilla/mux"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+    return
+}
+
+func main() {
+    r := mux.NewRouter()
+    r.HandleFunc("/", handler)
+    r.HandleFunc("/products", handler)
+    r.HandleFunc("/articles", handler)
+    r.HandleFunc("/articles/{id}", handler)
+    r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+        t, err := route.GetPathTemplate()
+        if err != nil {
+            return err
+        }
+        fmt.Println(t)
+        return nil
+    })
+    http.Handle("/", r)
+}
+```
+
+### Static Files
+
+Note that the path provided to `PathPrefix()` represents a "wildcard": calling
+`PathPrefix("/static/").Handler(...)` means that the handler will be passed any
+request that matches "/static/*". This makes it easy to serve static files with mux:
+
+```go
+func main() {
+	var dir string
+
+	flag.StringVar(&dir, "dir", ".", "the directory to serve files from. Defaults to the current dir")
+	flag.Parse()
+	r := mux.NewRouter()
+
+	// This will serve files under http://localhost:8000/static/<filename>
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
+
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         "127.0.0.1:8000",
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
+}
+```
+
+### Registered URLs
 
 Now let's see how to build registered URLs.
 
@@ -219,7 +316,7 @@ package main
 
 import (
 	"net/http"
-
+	"log"
 	"github.com/gorilla/mux"
 )
 
@@ -233,7 +330,7 @@ func main() {
 	r.HandleFunc("/", YourHandler)
 
 	// Bind to a port and pass our router in
-	http.ListenAndServe(":8000", r)
+	log.Fatal(http.ListenAndServe(":8000", r))
 }
 ```
 

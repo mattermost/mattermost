@@ -1,20 +1,16 @@
 @charset 'UTF-8';
 
-.webrtc__user-profile {
-    @include webrtc-button;
-    text-align: center;
-
-    #webrtc-btn {
-        display: inherit;
-    }
-}
-
 .webrtc__header {
     @include webrtc-button;
     float: left;
     margin-right: 10px;
     position: relative;
     top: 13px;
+
+    svg {
+        position: relative;
+        width: 20px;
+    }
 }
 
 .webrtc__notification--rhs {
@@ -108,7 +104,6 @@
     pointer-events: none;
     position: relative;
     text-align: center;
-    transition: all 1s;
     width: 100%;
 
     #main-video video {
@@ -132,7 +127,7 @@
         &.full {
             background: $black;
             border: none;
-            height: 80%;
+            height: 100%;
             max-width: 100% !important;
             right: 0;
             top: 0;
@@ -310,7 +305,7 @@
 
 .sidebar--right--expanded {
     #videos {
-        height: 100%;
+        height: calc(100% - 90px);
         position: absolute;
 
         #main-video {
@@ -324,7 +319,7 @@
     }
 
     .webrtc-buttons {
-        bottom: 5px;
+        bottom: 15px;
         position: absolute;
         width: 100%;
     }
@@ -337,5 +332,10 @@
 
     #videos.small {
         position: relative;
+    }
+
+    .search__form {
+        margin-left: 5px;
+        width: calc(100% - 80px);
     }
 }

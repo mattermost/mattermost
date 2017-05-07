@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
@@ -53,14 +53,19 @@ export default class AdvancedSettingsDisplay extends React.Component {
             )
         };
 
+        const webrtcEnabled = global.mm_config.EnableWebrtc === 'true';
+        const linkPreviewsEnabled = global.mm_config.EnableLinkPreviews === 'true';
+
+        if (!webrtcEnabled) {
+            preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'WEBRTC_PREVIEW');
+        }
+
+        if (!linkPreviewsEnabled) {
+            preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'EMBED_PREVIEW');
+        }
+
         let enabledFeatures = 0;
         for (const [name, value] of advancedSettings) {
-            const webrtcEnabled = global.mm_config.EnableWebrtc === 'true';
-
-            if (!webrtcEnabled) {
-                preReleaseFeaturesKeys = preReleaseFeaturesKeys.filter((f) => f !== 'WEBRTC_PREVIEW');
-            }
-
             for (const key of preReleaseFeaturesKeys) {
                 const feature = PreReleaseFeatures[key];
 
@@ -175,11 +180,12 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             defaultMessage='Enable Post Formatting'
                         />
                     }
-                    inputs={
-                        <div>
+                    inputs={[
+                        <div key='formattingSetting'>
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='postFormattingOn'
                                         type='radio'
                                         name='formatting'
                                         checked={this.state.settings.formatting !== 'false'}
@@ -195,6 +201,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             <div className='radio'>
                                 <label>
                                     <input
+                                        id='postFormattingOff'
                                         type='radio'
                                         name='formatting'
                                         checked={this.state.settings.formatting === 'false'}
@@ -215,7 +222,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 />
                             </div>
                         </div>
-                    }
+                    ]}
                     submit={() => this.handleSubmit('formatting')}
                     server_error={this.state.serverError}
                     updateSection={(e) => {
@@ -251,11 +258,12 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 defaultMessage='Enable Join/Leave Messages'
                             />
                         }
-                        inputs={
-                            <div>
+                        inputs={[
+                            <div key='joinLeaveSetting'>
                                 <div className='radio'>
                                     <label>
                                         <input
+                                            id='joinLeaveOn'
                                             type='radio'
                                             name='join_leave'
                                             checked={this.state.settings.join_leave !== 'false'}
@@ -271,6 +279,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                 <div className='radio'>
                                     <label>
                                         <input
+                                            id='joinLeaveOff'
                                             type='radio'
                                             name='join_leave'
                                             checked={this.state.settings.join_leave === 'false'}
@@ -291,7 +300,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                                     />
                                 </div>
                             </div>
-                        }
+                        ]}
                         submit={() => this.handleSubmit('join_leave')}
                         server_error={this.state.serverError}
                         updateSection={(e) => {
@@ -332,7 +341,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             return (
                 <FormattedMessage
                     id='user.settings.advance.embed_preview'
-                    defaultMessage='Show experimental previews of link content, when available'
+                    defaultMessage='For the first web link in a message, display a preview of website content below the message, if available'
                 />
             );
         case 'WEBRTC_PREVIEW':
@@ -340,6 +349,13 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 <FormattedMessage
                     id='user.settings.advance.webrtc_preview'
                     defaultMessage='Enable the ability to make and receive one-on-one WebRTC calls'
+                />
+            );
+        case 'EMOJI_PICKER_PREVIEW':
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.emojipicker'
+                    defaultMessage='Enable emoji picker for reactions and message input box'
                 />
             );
         default:
@@ -362,6 +378,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='ctrlSendOn'
                                 type='radio'
                                 name='sendOnCtrlEnter'
                                 checked={ctrlSendActive[0]}
@@ -377,6 +394,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='ctrlSendOff'
                                 type='radio'
                                 name='sendOnCtrlEnter'
                                 checked={ctrlSendActive[1]}
@@ -393,7 +411,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         <br/>
                         <FormattedMessage
                             id='user.settings.advance.sendDesc'
-                            defaultMessage="If enabled 'Enter' inserts a new line and 'Ctrl + Enter' submits the message."
+                            defaultMessage='If enabled ENTER inserts a new line and CTRL+ENTER submits the message.'
                         />
                     </div>
                 </div>
@@ -403,7 +421,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     title={
                         <FormattedMessage
                             id='user.settings.advance.sendTitle'
-                            defaultMessage='Send messages on Ctrl + Enter'
+                            defaultMessage='Send messages on CTRL+ENTER'
                         />
                     }
                     inputs={inputs}
@@ -421,7 +439,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     title={
                         <FormattedMessage
                             id='user.settings.advance.sendTitle'
-                            defaultMessage='Send messages on Ctrl + Enter'
+                            defaultMessage='Send messages on CTRL+ENTER'
                         />
                     }
                     describe={this.renderOnOffLabel(this.state.settings.send_on_ctrl_enter)}
@@ -459,6 +477,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             <div className='checkbox'>
                                 <label>
                                     <input
+                                        id={'advancedPreviewFeatures' + feature.label}
                                         type='checkbox'
                                         checked={this.state.settings[Constants.FeatureTogglePrefix + feature.label] === 'true'}
                                         onChange={(e) => {
@@ -519,6 +538,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
             <div>
                 <div className='modal-header'>
                     <button
+                        id='closeButton'
                         type='button'
                         className='close'
                         data-dismiss='modal'

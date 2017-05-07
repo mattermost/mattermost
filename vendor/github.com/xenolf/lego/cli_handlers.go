@@ -15,20 +15,8 @@ import (
 
 	"github.com/urfave/cli"
 	"github.com/xenolf/lego/acme"
-	"github.com/xenolf/lego/providers/dns/cloudflare"
-	"github.com/xenolf/lego/providers/dns/digitalocean"
-	"github.com/xenolf/lego/providers/dns/dnsimple"
-	"github.com/xenolf/lego/providers/dns/dnsmadeeasy"
-	"github.com/xenolf/lego/providers/dns/dyn"
-	"github.com/xenolf/lego/providers/dns/gandi"
-	"github.com/xenolf/lego/providers/dns/googlecloud"
-	"github.com/xenolf/lego/providers/dns/linode"
-	"github.com/xenolf/lego/providers/dns/namecheap"
-	"github.com/xenolf/lego/providers/dns/ovh"
-	"github.com/xenolf/lego/providers/dns/pdns"
-	"github.com/xenolf/lego/providers/dns/rfc2136"
-	"github.com/xenolf/lego/providers/dns/route53"
-	"github.com/xenolf/lego/providers/dns/vultr"
+	"github.com/xenolf/lego/providers/dns"
+	"github.com/xenolf/lego/providers/http/memcached"
 	"github.com/xenolf/lego/providers/http/webroot"
 )
 
@@ -99,6 +87,18 @@ func setup(c *cli.Context) (*Configuration, *Account, *acme.Client) {
 		// infer that the user also wants to exclude all other challenges
 		client.ExcludeChallenges([]acme.Challenge{acme.DNS01, acme.TLSSNI01})
 	}
+	if c.GlobalIsSet("memcached-host") {
+		provider, err := memcached.NewMemcachedProvider(c.GlobalStringSlice("memcached-host"))
+		if err != nil {
+			logger().Fatal(err)
+		}
+
+		client.SetChallengeProvider(acme.HTTP01, provider)
+
+		// --memcached-host=foo:11211 indicates that the user specifically want to do a HTTP challenge
+		// infer that the user also wants to exclude all other challenges
+		client.ExcludeChallenges([]acme.Challenge{acme.DNS01, acme.TLSSNI01})
+	}
 	if c.GlobalIsSet("http") {
 		if strings.Index(c.GlobalString("http"), ":") == -1 {
 			logger().Fatalf("The --http switch only accepts interface:port or :port for its argument.")
@@ -114,41 +114,7 @@ func setup(c *cli.Context) (*Configuration, *Account, *acme.Client) {
 	}
 
 	if c.GlobalIsSet("dns") {
-		var err error
-		var provider acme.ChallengeProvider
-		switch c.GlobalString("dns") {
-		case "cloudflare":
-			provider, err = cloudflare.NewDNSProvider()
-		case "digitalocean":
-			provider, err = digitalocean.NewDNSProvider()
-		case "dnsimple":
-			provider, err = dnsimple.NewDNSProvider()
-		case "dnsmadeeasy":
-			provider, err = dnsmadeeasy.NewDNSProvider()
-		case "dyn":
-			provider, err = dyn.NewDNSProvider()
-		case "gandi":
-			provider, err = gandi.NewDNSProvider()
-		case "gcloud":
-			provider, err = googlecloud.NewDNSProvider()
-		case "linode":
-			provider, err = linode.NewDNSProvider()
-		case "manual":
-			provider, err = acme.NewDNSProviderManual()
-		case "namecheap":
-			provider, err = namecheap.NewDNSProvider()
-		case "route53":
-			provider, err = route53.NewDNSProvider()
-		case "rfc2136":
-			provider, err = rfc2136.NewDNSProvider()
-		case "vultr":
-			provider, err = vultr.NewDNSProvider()
-		case "ovh":
-			provider, err = ovh.NewDNSProvider()
-		case "pdns":
-			provider, err = pdns.NewDNSProvider()
-		}
-
+    provider, err := dns.NewDNSChallengeProviderByName(c.GlobalString("dns"))
 		if err != nil {
 			logger().Fatal(err)
 		}
@@ -170,10 +136,18 @@ func saveCertRes(certRes acme.CertificateResource, conf *Configuration) {
 	privOut := path.Join(conf.CertPath(), certRes.Domain+".key")
 	pemOut := path.Join(conf.CertPath(), certRes.Domain+".pem")
 	metaOut := path.Join(conf.CertPath(), certRes.Domain+".json")
+	issuerOut := path.Join(conf.CertPath(), certRes.Domain+".issuer.crt")
 
 	err := ioutil.WriteFile(certOut, certRes.Certificate, 0600)
 	if err != nil {
 		logger().Fatalf("Unable to save Certificate for domain %s\n\t%s", certRes.Domain, err.Error())
+	}
+
+	if certRes.IssuerCertificate != nil {
+		err = ioutil.WriteFile(issuerOut, certRes.IssuerCertificate, 0600)
+		if err != nil {
+			logger().Fatalf("Unable to save IssuerCertificate for domain %s\n\t%s", certRes.Domain, err.Error())
+		}
 	}
 
 	if certRes.PrivateKey != nil {
@@ -320,7 +294,7 @@ func run(c *cli.Context) error {
 
 	if hasDomains {
 		// obtain a certificate, generating a new private key
-		cert, failures = client.ObtainCertificate(c.GlobalStringSlice("domains"), !c.Bool("no-bundle"), nil)
+		cert, failures = client.ObtainCertificate(c.GlobalStringSlice("domains"), !c.Bool("no-bundle"), nil, c.Bool("must-staple"))
 	} else {
 		// read the CSR
 		csr, err := readCSRFile(c.GlobalString("csr"))
@@ -433,7 +407,7 @@ func renew(c *cli.Context) error {
 
 	certRes.Certificate = certBytes
 
-	newCert, err := client.RenewCertificate(certRes, !c.Bool("no-bundle"))
+	newCert, err := client.RenewCertificate(certRes, !c.Bool("no-bundle"), c.Bool("must-staple"))
 	if err != nil {
 		logger().Fatalf("%s", err.Error())
 	}

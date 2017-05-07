@@ -1,10 +1,12 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
+
+import ErrorStore from 'stores/error_store.jsx';
+import {uploadLicenseFile, removeLicenseFile} from 'actions/admin_actions.jsx';
 
 import {injectIntl, intlShape, defineMessages, FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -54,7 +56,8 @@ class LicenseSettings extends React.Component {
 
         $('#upload-button').button('loading');
 
-        Client.uploadLicenseFile(file,
+        uploadLicenseFile(
+            file,
             () => {
                 Utils.clearFileInput(element[0]);
                 $('#upload-button').button('reset');
@@ -74,10 +77,11 @@ class LicenseSettings extends React.Component {
 
         $('#remove-button').button('loading');
 
-        Client.removeLicenseFile(
+        removeLicenseFile(
             () => {
                 $('#remove-button').button('reset');
                 this.setState({fileSelected: false, fileName: null, serverError: null});
+                ErrorStore.clearLastError(true);
                 window.location.reload(true);
             },
             (error) => {
@@ -219,7 +223,7 @@ class LicenseSettings extends React.Component {
 
         return (
             <div className='wrapper--fixed'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='admin.license.title'
                         defaultMessage='Edition and License'

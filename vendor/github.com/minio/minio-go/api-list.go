@@ -482,6 +482,7 @@ func (c Client) listIncompleteUploads(bucketName, objectPrefix string, recursive
 						objectMultipartStatCh <- ObjectMultipartInfo{
 							Err: err,
 						}
+						continue
 					}
 				}
 				select {

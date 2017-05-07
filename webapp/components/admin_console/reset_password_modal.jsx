@@ -1,15 +1,27 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'client/web_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Modal} from 'react-bootstrap';
 
-import {injectIntl, intlShape, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
+
+import {adminResetPassword} from 'actions/admin_actions.jsx';
 
 import React from 'react';
 
-class ResetPasswordModal extends React.Component {
+export default class ResetPasswordModal extends React.Component {
+    static propTypes = {
+        user: React.PropTypes.object,
+        show: React.PropTypes.bool.isRequired,
+        onModalSubmit: React.PropTypes.func,
+        onModalDismissed: React.PropTypes.func
+    };
+
+    static defaultProps = {
+        show: false
+    };
+
     constructor(props) {
         super(props);
 
@@ -32,7 +44,7 @@ class ResetPasswordModal extends React.Component {
         }
         this.setState({serverError: null});
 
-        Client.adminResetPassword(
+        adminResetPassword(
             this.props.user.id,
             password,
             () => {
@@ -60,7 +72,7 @@ class ResetPasswordModal extends React.Component {
 
         if (this.state.serverError) {
             urlClass += ' has-error';
-            serverError = <div className='form-group has-error'><p className='input__help error'>{this.state.serverError}</p></div>;
+            serverError = <div className='has-error'><p className='input__help error'>{this.state.serverError}</p></div>;
         }
 
         let title;
@@ -149,18 +161,3 @@ class ResetPasswordModal extends React.Component {
         );
     }
 }
-
-ResetPasswordModal.defaultProps = {
-    show: false
-};
-
-ResetPasswordModal.propTypes = {
-    intl: intlShape.isRequired,
-    user: React.PropTypes.object,
-    team: React.PropTypes.object,
-    show: React.PropTypes.bool.isRequired,
-    onModalSubmit: React.PropTypes.func,
-    onModalDismissed: React.PropTypes.func
-};
-
-export default injectIntl(ResetPasswordModal);

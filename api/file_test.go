@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package api
@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -59,7 +60,7 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	var info *model.FileInfo
-	if result := <-Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
+	if result := <-app.Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		info = result.Data.(*model.FileInfo)
@@ -96,6 +97,18 @@ func TestUploadFile(t *testing.T) {
 	if info.PreviewPath != expectedPreviewPath {
 		t.Logf("file preview is saved in %v", info.PreviewPath)
 		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
+	}
+
+	enableFileAttachments := *utils.Cfg.FileSettings.EnableFileAttachments
+	defer func() {
+		*utils.Cfg.FileSettings.EnableFileAttachments = enableFileAttachments
+	}()
+	*utils.Cfg.FileSettings.EnableFileAttachments = false
+
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else if _, err = Client.UploadPostAttachment(data, channel.Id, "test.png"); err == nil {
+		t.Fatal("should have errored")
 	}
 
 	// Wait a bit for files to ready
@@ -154,7 +167,7 @@ func TestGetFileInfo(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get file info for this file if they're not in the channel for it
 	if _, err := Client.GetFileInfo(fileId); err == nil {
@@ -170,7 +183,7 @@ func TestGetFileInfo(t *testing.T) {
 		t.Fatal("other user got incorrect file")
 	}
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -223,7 +236,7 @@ func TestGetFile(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get file for this file if they're not in the channel for it
 	if _, err := Client.GetFile(fileId); err == nil {
@@ -252,7 +265,7 @@ func TestGetFile(t *testing.T) {
 		body.Close()
 	}
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -292,7 +305,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get thumbnail for this file if they're not in the channel for it
 	if _, err := Client.GetFileThumbnail(fileId); err == nil {
@@ -308,7 +321,7 @@ func TestGetFileThumbnail(t *testing.T) {
 		body.Close()
 	}
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -348,7 +361,7 @@ func TestGetFilePreview(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// Other user shouldn't be able to get preview for this file if they're not in the channel for it
 	if _, err := Client.GetFilePreview(fileId); err == nil {
@@ -364,7 +377,7 @@ func TestGetFilePreview(t *testing.T) {
 		body.Close()
 	}
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -397,7 +410,7 @@ func TestGetPublicFile(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	link := Client.MustGeneric(Client.GetPublicLink(fileId)).(string)
 
@@ -405,6 +418,7 @@ func TestGetPublicFile(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	if resp, err := http.Get(link); err != nil || resp.StatusCode != http.StatusOK {
+		t.Log(link)
 		t.Fatal("failed to get image with public link", err)
 	}
 
@@ -430,7 +444,7 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link after salt changed")
 	}
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -463,7 +477,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// reconstruct old style of link
 	siteURL := *utils.Cfg.ServiceSettings.SiteURL
@@ -501,14 +515,14 @@ func TestGetPublicFileOld(t *testing.T) {
 		t.Fatal("should've failed to get image with public link after salt changed")
 	}
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename string) string {
-	hash := generatePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
-	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX, teamId, channelId, userId, filename, hash)
+	hash := app.GeneratePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX_V3, teamId, channelId, userId, filename, hash)
 }
 
 func TestGetPublicLink(t *testing.T) {
@@ -540,7 +554,7 @@ func TestGetPublicLink(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	utils.Cfg.FileSettings.EnablePublicLink = false
 
@@ -575,31 +589,8 @@ func TestGetPublicLink(t *testing.T) {
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	if err := cleanupTestFile(store.Must(Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestGeneratePublicLinkHash(t *testing.T) {
-	filename1 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
-	filename2 := model.NewId() + "/" + model.NewRandomString(16) + ".txt"
-	salt1 := model.NewRandomString(32)
-	salt2 := model.NewRandomString(32)
-
-	hash1 := generatePublicLinkHash(filename1, salt1)
-	hash2 := generatePublicLinkHash(filename2, salt1)
-	hash3 := generatePublicLinkHash(filename1, salt2)
-
-	if hash1 != generatePublicLinkHash(filename1, salt1) {
-		t.Fatal("hash should be equal for the same file name and salt")
-	}
-
-	if hash1 == hash2 {
-		t.Fatal("hashes for different files should not be equal")
-	}
-
-	if hash1 == hash3 {
-		t.Fatal("hashes for the same file with different salts should not be equal")
 	}
 }
 
@@ -631,7 +622,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	}
 
 	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
-	post1 := store.Must(Srv.Store.Post().Save(&model.Post{
+	post1 := store.Must(app.Srv.Store.Post().Save(&model.Post{
 		UserId:    user1.Id,
 		ChannelId: channel1.Id,
 		Message:   "test",
@@ -732,19 +723,19 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	}
 
 	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
-	post1 := store.Must(Srv.Store.Post().Save(&model.Post{
+	post1 := store.Must(app.Srv.Store.Post().Save(&model.Post{
 		UserId:    user1.Id,
 		ChannelId: channel1.Id,
 		Message:   "test",
 		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
 	})).(*model.Post)
 
-	if teamId := findTeamIdForFilename(post1, post1.Filenames[0]); teamId != team1.Id {
+	if teamId := app.FindTeamIdForFilename(post1, post1.Filenames[0]); teamId != team1.Id {
 		t.Fatal("file should've been found under team1")
 	}
 
 	Client.SetTeamId(team2.Id)
-	post2 := store.Must(Srv.Store.Post().Save(&model.Post{
+	post2 := store.Must(app.Srv.Store.Post().Save(&model.Post{
 		UserId:    user1.Id,
 		ChannelId: channel2.Id,
 		Message:   "test",
@@ -752,7 +743,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	})).(*model.Post)
 	Client.SetTeamId(team1.Id)
 
-	if teamId := findTeamIdForFilename(post2, post2.Filenames[0]); teamId != team2.Id {
+	if teamId := app.FindTeamIdForFilename(post2, post2.Filenames[0]); teamId != team2.Id {
 		t.Fatal("file should've been found under team2")
 	}
 }
@@ -781,20 +772,20 @@ func TestGetInfoForFilename(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
-		path = store.Must(Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).Path
-		thumbnailPath = store.Must(Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).ThumbnailPath
-		previewPath = store.Must(Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).PreviewPath
+		path = store.Must(app.Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).Path
+		thumbnailPath = store.Must(app.Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).ThumbnailPath
+		previewPath = store.Must(app.Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).PreviewPath
 	}
 
 	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
-	post1 := store.Must(Srv.Store.Post().Save(&model.Post{
+	post1 := store.Must(app.Srv.Store.Post().Save(&model.Post{
 		UserId:    user1.Id,
 		ChannelId: channel1.Id,
 		Message:   "test",
 		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
 	})).(*model.Post)
 
-	if info := getInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
+	if info := app.GetInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
 		t.Fatal("info shouldn't be nil")
 	} else if info.Id == "" {
 		t.Fatal("info.Id shouldn't be empty")

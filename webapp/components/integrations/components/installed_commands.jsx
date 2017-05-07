@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
@@ -13,10 +13,12 @@ import {FormattedMessage} from 'react-intl';
 export default class InstalledCommands extends React.Component {
     static get propTypes() {
         return {
-            team: React.propTypes.object.isRequired,
-            users: React.propTypes.object.isRequired,
-            commands: React.propTypes.array.isRequired,
-            loading: React.propTypes.bool.isRequired
+            team: React.PropTypes.object,
+            user: React.PropTypes.object,
+            users: React.PropTypes.object,
+            commands: React.PropTypes.array,
+            loading: React.PropTypes.bool,
+            isAdmin: React.PropTypes.bool
         };
     }
 
@@ -35,15 +37,33 @@ export default class InstalledCommands extends React.Component {
         AsyncClient.deleteCommand(command.id);
     }
 
+    commandCompare(a, b) {
+        let nameA = a.display_name;
+        if (!nameA) {
+            nameA = Utils.localizeMessage('installed_commands.unnamed_command', 'Unnamed Slash Command');
+        }
+
+        let nameB = b.display_name;
+        if (!nameB) {
+            nameB = Utils.localizeMessage('installed_commands.unnamed_command', 'Unnamed Slash Command');
+        }
+
+        return nameA.localeCompare(nameB);
+    }
+
     render() {
-        const commands = this.props.commands.map((command) => {
+        const commands = this.props.commands.sort(this.commandCompare).map((command) => {
+            const canChange = this.props.isAdmin || this.props.user.id === command.creator_id;
+
             return (
                 <InstalledCommand
                     key={command.id}
+                    team={this.props.team}
                     command={command}
                     onRegenToken={this.regenCommandToken}
                     onDelete={this.deleteCommand}
                     creator={this.props.users[command.creator_id] || {}}
+                    canChange={canChange}
                 />
             );
         });

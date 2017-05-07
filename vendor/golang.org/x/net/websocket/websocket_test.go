@@ -6,6 +6,7 @@ package websocket
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"log"
@@ -357,6 +358,26 @@ func TestDialConfigBadVersion(t *testing.T) {
 	}
 }
 
+func TestDialConfigWithDialer(t *testing.T) {
+	once.Do(startServer)
+	config := newConfig(t, "/echo")
+	config.Dialer = &net.Dialer{
+		Deadline: time.Now().Add(-time.Minute),
+	}
+	_, err := DialConfig(config)
+	dialerr, ok := err.(*DialError)
+	if !ok {
+		t.Fatalf("DialError expected, got %#v", err)
+	}
+	neterr, ok := dialerr.Err.(*net.OpError)
+	if !ok {
+		t.Fatalf("net.OpError error expected, got %#v", dialerr.Err)
+	}
+	if !neterr.Timeout() {
+		t.Fatalf("expected timeout error, got %#v", neterr)
+	}
+}
+
 func TestSmallBuffer(t *testing.T) {
 	// http://code.google.com/p/go/issues/detail?id=1145
 	// Read should be able to handle reading a fragment of a frame.
@@ -584,4 +605,61 @@ func TestCtrlAndData(t *testing.T) {
 			t.Fatalf("#%d: got %v; want %v", i, b[:n], data)
 		}
 	}
+}
+
+func TestCodec_ReceiveLimited(t *testing.T) {
+	const limit = 2048
+	var payloads [][]byte
+	for _, size := range []int{
+		1024,
+		2048,
+		4096, // receive of this message would be interrupted due to limit
+		2048, // this one is to make sure next receive recovers discarding leftovers
+	} {
+		b := make([]byte, size)
+		rand.Read(b)
+		payloads = append(payloads, b)
+	}
+	handlerDone := make(chan struct{})
+	limitedHandler := func(ws *Conn) {
+		defer close(handlerDone)
+		ws.MaxPayloadBytes = limit
+		defer ws.Close()
+		for i, p := range payloads {
+			t.Logf("payload #%d (size %d, exceeds limit: %v)", i, len(p), len(p) > limit)
+			var recv []byte
+			err := Message.Receive(ws, &recv)
+			switch err {
+			case nil:
+			case ErrFrameTooLarge:
+				if len(p) <= limit {
+					t.Fatalf("unexpected frame size limit: expected %d bytes of payload having limit at %d", len(p), limit)
+				}
+				continue
+			default:
+				t.Fatalf("unexpected error: %v (want either nil or ErrFrameTooLarge)", err)
+			}
+			if len(recv) > limit {
+				t.Fatalf("received %d bytes of payload having limit at %d", len(recv), limit)
+			}
+			if !bytes.Equal(p, recv) {
+				t.Fatalf("received payload differs:\ngot:\t%v\nwant:\t%v", recv, p)
+			}
+		}
+	}
+	server := httptest.NewServer(Handler(limitedHandler))
+	defer server.CloseClientConnections()
+	defer server.Close()
+	addr := server.Listener.Addr().String()
+	ws, err := Dial("ws://"+addr+"/", "", "http://localhost/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ws.Close()
+	for i, p := range payloads {
+		if err := Message.Send(ws, p); err != nil {
+			t.Fatalf("payload #%d (size %d): %v", i, len(p), err)
+		}
+	}
+	<-handlerDone
 }

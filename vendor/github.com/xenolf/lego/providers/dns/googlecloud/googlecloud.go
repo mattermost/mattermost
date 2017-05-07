@@ -68,6 +68,16 @@ func (c *DNSProvider) Present(domain, token, keyAuth string) error {
 		Additions: []*dns.ResourceRecordSet{rec},
 	}
 
+	// Look for existing records.
+	list, err := c.client.ResourceRecordSets.List(c.project, zone).Name(fqdn).Type("TXT").Do()
+	if err != nil {
+		return err
+	}
+	if len(list.Rrsets) > 0 {
+		// Attempt to delete the existing records when adding our new one.
+		change.Deletions = list.Rrsets
+	}
+
 	chg, err := c.client.Changes.Create(c.project, zone, change).Do()
 	if err != nil {
 		return err

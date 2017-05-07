@@ -1,9 +1,10 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from 'utils/constants.jsx';
-
 import LocalizationStore from 'stores/localization_store.jsx';
+
+const LICENSE_EXPIRY_NOTIFICATION = 1000 * 60 * 60 * 24 * 60; // 60 days
+const LICENSE_GRACE_PERIOD = 1000 * 60 * 60 * 24 * 15; // 15 days
 
 export function isLicenseExpiring() {
     if (window.mm_license.IsLicensed !== 'true') {
@@ -11,7 +12,7 @@ export function isLicenseExpiring() {
     }
 
     const timeDiff = parseInt(global.window.mm_license.ExpiresAt, 10) - Date.now();
-    return timeDiff <= Constants.LICENSE_EXPIRY_NOTIFICATION;
+    return timeDiff <= LICENSE_EXPIRY_NOTIFICATION;
 }
 
 export function isLicenseExpired() {
@@ -29,7 +30,7 @@ export function isLicensePastGracePeriod() {
     }
 
     const timeDiff = Date.now() - parseInt(global.window.mm_license.ExpiresAt, 10);
-    return timeDiff > Constants.LICENSE_GRACE_PERIOD;
+    return timeDiff > LICENSE_GRACE_PERIOD;
 }
 
 export function displayExpiryDate() {

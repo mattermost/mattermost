@@ -1,14 +1,14 @@
-// Copyright 2012 The Go Authors.  All rights reserved.
+// Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build darwin dragonfly freebsd netbsd openbsd windows
+// +build darwin dragonfly freebsd netbsd openbsd solaris windows
 
 package ipv4
 
 import "net"
 
-func setIPMreqInterface(mreq *sysIPMreq, ifi *net.Interface) error {
+func setIPMreqInterface(mreq *ipMreq, ifi *net.Interface) error {
 	if ifi == nil {
 		return nil
 	}

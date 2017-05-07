@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -10,7 +10,7 @@ import * as Utils from 'utils/utils.jsx';
 import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import {Preferences, TutorialSteps} from 'utils/constants.jsx';
+import {Preferences, TutorialSteps, Constants} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
 export default class SidebarHeader extends React.Component {
@@ -59,7 +59,7 @@ export default class SidebarHeader extends React.Component {
             profilePicture = (
                 <img
                     className='user__picture'
-                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.update_at}
+                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.last_picture_update}
                 />
             );
         }
@@ -69,27 +69,35 @@ export default class SidebarHeader extends React.Component {
             tutorialTip = createMenuTip(this.toggleDropdown);
         }
 
+        let teamNameWithToolTip = null;
+        if (this.props.teamDescription === '') {
+            teamNameWithToolTip = (
+                <div className='team__name'>{this.props.teamDisplayName}</div>
+            );
+        } else {
+            teamNameWithToolTip = (
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='bottom'
+                    overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDescription}</Tooltip>}
+                    ref='descriptionOverlay'
+                >
+                    <div className='team__name'>{this.props.teamDisplayName}</div>
+                </OverlayTrigger>
+            );
+        }
+
         return (
             <div className='team__header theme'>
                 {tutorialTip}
-                <a
-                    href='#'
-                    onClick={this.toggleDropdown}
-                >
+                <div>
                     {profilePicture}
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
-                        <OverlayTrigger
-                            trigger={['hover', 'focus']}
-                            delayShow={1000}
-                            placement='bottom'
-                            overlay={<Tooltip id='team-name__tooltip'>{this.props.teamDisplayName}</Tooltip>}
-                            ref='descriptionOverlay'
-                        >
-                            <div className='team__name'>{this.props.teamDisplayName}</div>
-                        </OverlayTrigger>
+                        {teamNameWithToolTip}
                     </div>
-                </a>
+                </div>
                 <SidebarHeaderDropdown
                     ref='dropdown'
                     teamType={this.props.teamType}
@@ -104,10 +112,12 @@ export default class SidebarHeader extends React.Component {
 
 SidebarHeader.defaultProps = {
     teamDisplayName: '',
+    teamDescription: '',
     teamType: ''
 };
 SidebarHeader.propTypes = {
     teamDisplayName: React.PropTypes.string,
+    teamDescription: React.PropTypes.string,
     teamName: React.PropTypes.string,
     teamType: React.PropTypes.string,
     currentUser: React.PropTypes.object

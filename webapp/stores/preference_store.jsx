@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import Constants from 'utils/constants.jsx';
@@ -8,6 +8,10 @@ import EventEmitter from 'events';
 
 const CHANGE_EVENT = 'change';
 
+import store from 'stores/redux_store.jsx';
+import * as Selectors from 'mattermost-redux/selectors/entities/preferences';
+import {PreferenceTypes} from 'mattermost-redux/action_types';
+
 class PreferenceStore extends EventEmitter {
     constructor() {
         super();
@@ -16,6 +20,23 @@ class PreferenceStore extends EventEmitter {
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
 
         this.preferences = new Map();
+        this.entities = Selectors.getMyPreferences(store.getState());
+        Object.keys(this.entities).forEach((key) => {
+            this.preferences.set(key, this.entities[key].value);
+        });
+
+        store.subscribe(() => {
+            const newEntities = Selectors.getMyPreferences(store.getState());
+            if (this.entities !== newEntities) {
+                this.preferences = new Map();
+                Object.keys(newEntities).forEach((key) => {
+                    this.preferences.set(key, newEntities[key].value);
+                });
+                this.emitChange();
+            }
+
+            this.entities = newEntities;
+        });
 
         this.setMaxListeners(600);
     }
@@ -79,21 +100,24 @@ class PreferenceStore extends EventEmitter {
     }
 
     setPreference(category, name, value) {
-        this.preferences.set(this.getKey(category, name), value);
+        store.dispatch({
+            type: PreferenceTypes.RECEIVED_PREFERENCES,
+            data: [{category, name, value}]
+        });
     }
 
     setPreferencesFromServer(newPreferences) {
-        for (const preference of newPreferences) {
-            this.setPreference(preference.category, preference.name, preference.value);
-        }
+        store.dispatch({
+            type: PreferenceTypes.RECEIVED_PREFERENCES,
+            data: newPreferences
+        });
     }
 
     deletePreference(preference) {
-        this.preferences.delete(this.getKey(preference.category, preference.name));
-    }
-
-    clear() {
-        this.preferences.clear();
+        store.dispatch({
+            type: PreferenceTypes.DELETED_PREFERENCES,
+            data: [preference]
+        });
     }
 
     emitChange(category) {
@@ -139,6 +163,9 @@ class PreferenceStore extends EventEmitter {
                 this.deletePreference(preference);
             }
             this.emitChange();
+            break;
+        case ActionTypes.CLICK_CHANNEL:
+            this.setPreference(action.team_id, 'channel', action.id);
             break;
         }
     }

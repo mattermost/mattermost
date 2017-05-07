@@ -23,7 +23,7 @@
     .input__help {
         @include opacity(.8);
         color: inherit;
-        margin: 10px 0 0 10px;
+        margin: 10px 0 0 0;
         word-break: break-word;
 
         &.dark {
@@ -57,6 +57,31 @@
 .form-group {
     &.form-group--small {
         margin-bottom: 10px;
+    }
+}
+
+.has-error {
+    .help-block,
+    .radio,
+    .checkbox,
+    .radio-inline,
+    .checkbox-inline {
+        color: $red;
+    }
+
+    .form__label {
+        &.control-label {
+            color: inherit !important;
+        }
+    }
+
+    &.radio,
+    &.checkbox,
+    &.radio-inline,
+    &.checkbox-inline {
+        label {
+            color: $red;
+        }
     }
 }
 

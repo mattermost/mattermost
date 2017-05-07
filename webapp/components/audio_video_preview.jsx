@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import $ from 'jquery';
@@ -94,7 +94,6 @@ export default class AudioVideoPreview extends React.Component {
             <video
                 key={this.props.fileInfo.id}
                 ref='video'
-                style={{maxHeight: this.props.maxHeight}}
                 data-setup='{}'
                 controls='controls'
                 width={width}
@@ -111,6 +110,5 @@ export default class AudioVideoPreview extends React.Component {
 
 AudioVideoPreview.propTypes = {
     fileInfo: React.PropTypes.object.isRequired,
-    fileUrl: React.PropTypes.string.isRequired,
-    maxHeight: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]).isRequired
+    fileUrl: React.PropTypes.string.isRequired
 };

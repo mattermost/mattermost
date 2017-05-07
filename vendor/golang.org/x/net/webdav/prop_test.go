@@ -12,13 +12,16 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 func TestMemPS(t *testing.T) {
+	ctx := context.Background()
 	// calcProps calculates the getlastmodified and getetag DAV: property
 	// values in pstats for resource name in file-system fs.
 	calcProps := func(name string, fs FileSystem, ls LockSystem, pstats []Propstat) error {
-		fi, err := fs.Stat(name)
+		fi, err := fs.Stat(ctx, name)
 		if err != nil {
 			return err
 		}
@@ -32,7 +35,7 @@ func TestMemPS(t *testing.T) {
 					if fi.IsDir() {
 						continue
 					}
-					etag, err := findETag(fs, ls, name, fi)
+					etag, err := findETag(ctx, fs, ls, name, fi)
 					if err != nil {
 						return err
 					}
@@ -519,7 +522,7 @@ func TestMemPS(t *testing.T) {
 			var propstats []Propstat
 			switch op.op {
 			case "propname":
-				pnames, err := propnames(fs, ls, op.name)
+				pnames, err := propnames(ctx, fs, ls, op.name)
 				if err != nil {
 					t.Errorf("%s: got error %v, want nil", desc, err)
 					continue
@@ -531,11 +534,11 @@ func TestMemPS(t *testing.T) {
 				}
 				continue
 			case "allprop":
-				propstats, err = allprop(fs, ls, op.name, op.pnames)
+				propstats, err = allprop(ctx, fs, ls, op.name, op.pnames)
 			case "propfind":
-				propstats, err = props(fs, ls, op.name, op.pnames)
+				propstats, err = props(ctx, fs, ls, op.name, op.pnames)
 			case "proppatch":
-				propstats, err = patch(fs, ls, op.name, op.patches)
+				propstats, err = patch(ctx, fs, ls, op.name, op.patches)
 			default:
 				t.Fatalf("%s: %s not implemented", desc, op.op)
 			}
@@ -588,8 +591,8 @@ type noDeadPropsFS struct {
 	FileSystem
 }
 
-func (fs noDeadPropsFS) OpenFile(name string, flag int, perm os.FileMode) (File, error) {
-	f, err := fs.FileSystem.OpenFile(name, flag, perm)
+func (fs noDeadPropsFS) OpenFile(ctx context.Context, name string, flag int, perm os.FileMode) (File, error) {
+	f, err := fs.FileSystem.OpenFile(ctx, name, flag, perm)
 	if err != nil {
 		return nil, err
 	}

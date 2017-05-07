@@ -1,13 +1,9 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
-
-const notSupportedParams = {
-    title: Utils.localizeMessage('error.not_supported.title', 'Browser not supported'),
-    message: Utils.localizeMessage('error.not_supported.message', 'Private browsing is not supported')
-};
+import {Constants, ErrorPageTypes} from 'utils/constants.jsx';
 
 function getPrefix() {
     if (global.window.mm_current_user_id) {
@@ -79,14 +75,6 @@ class BrowserStoreClass {
         }
     }
 
-    getLastServerVersion() {
-        return this.getGlobalItem('last_server_version');
-    }
-
-    setLastServerVersion(version) {
-        this.setGlobalItem('last_server_version', version);
-    }
-
     signalLogout() {
         if (this.isLocalStorageSupported()) {
             // PLT-1285 store an identifier in session storage so we can catch if the logout came from this tab on IE11
@@ -148,19 +136,19 @@ class BrowserStoreClass {
     clear() {
         // persist some values through logout since they're independent of which user is logged in
         const logoutId = sessionStorage.getItem('__logout__');
-        const serverVersion = this.getLastServerVersion();
         const landingPageSeen = this.hasSeenLandingPage();
         const selectedTeams = this.getItem('selected_teams');
+        const recentEmojis = localStorage.getItem(Constants.RECENT_EMOJI_KEY);
 
         sessionStorage.clear();
         localStorage.clear();
 
-        if (logoutId) {
-            sessionStorage.setItem('__logout__', logoutId);
+        if (recentEmojis) {
+            localStorage.setItem(Constants.RECENT_EMOJI_KEY, recentEmojis);
         }
 
-        if (serverVersion) {
-            this.setLastServerVersion(serverVersion);
+        if (logoutId) {
+            sessionStorage.setItem('__logout__', logoutId);
         }
 
         if (landingPageSeen) {
@@ -194,7 +182,7 @@ class BrowserStoreClass {
             sessionStorage.removeItem('__testSession__');
         } catch (e) {
             // Session storage not usable, website is unusable
-            browserHistory.push(window.location.origin + '/error?title=' + notSupportedParams.title + '&message=' + notSupportedParams.message);
+            browserHistory.push('/error?type=' + ErrorPageTypes.LOCAL_STORAGE);
         }
 
         this.hasCheckedLocalStorage = true;
@@ -203,7 +191,11 @@ class BrowserStoreClass {
     }
 
     hasSeenLandingPage() {
-        return JSON.parse(sessionStorage.getItem('__landingPageSeen__'));
+        if (this.isLocalStorageSupported()) {
+            return JSON.parse(sessionStorage.getItem('__landingPageSeen__'));
+        }
+
+        return true;
     }
 
     setLandingPageSeen(landingPageSeen) {

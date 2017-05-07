@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -6,11 +6,9 @@ import AdminSettings from './admin_settings.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
-import BooleanSetting from './boolean_setting.jsx';
 import Setting from './setting.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
-import GeneratedSetting from './generated_setting.jsx';
 
 export default class PasswordSettings extends AdminSettings {
     constructor(props) {
@@ -31,9 +29,7 @@ export default class PasswordSettings extends AdminSettings {
             passwordNumber: props.config.PasswordSettings.Number,
             passwordUppercase: props.config.PasswordSettings.Uppercase,
             passwordSymbol: props.config.PasswordSettings.Symbol,
-            maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts,
-            enableMultifactorAuthentication: props.config.ServiceSettings.EnableMultifactorAuthentication,
-            passwordResetSalt: props.config.EmailSettings.PasswordResetSalt
+            maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts
         });
 
         // Update sample message from config settings
@@ -41,23 +37,24 @@ export default class PasswordSettings extends AdminSettings {
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
             let sampleErrorMsgId = 'user.settings.security.passwordError';
             if (props.config.PasswordSettings.Lowercase) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
+                sampleErrorMsgId += 'Lowercase';
             }
             if (props.config.PasswordSettings.Uppercase) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Uppercase';
+                sampleErrorMsgId += 'Uppercase';
             }
             if (props.config.PasswordSettings.Number) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Number';
+                sampleErrorMsgId += 'Number';
             }
             if (props.config.PasswordSettings.Symbol) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Symbol';
+                sampleErrorMsgId += 'Symbol';
             }
             this.sampleErrorMsg = (
                 <FormattedMessage
                     id={sampleErrorMsgId}
-                    default='Your password must be at least {min} characters.'
+                    default='Your password must contain between {min} and {max} characters.'
                     values={{
-                        min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH)
+                        min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
+                        max: Constants.MAX_PASSWORD_LENGTH
                     }}
                 />
             );
@@ -74,10 +71,6 @@ export default class PasswordSettings extends AdminSettings {
         }
 
         config.ServiceSettings.MaximumLoginAttempts = this.parseIntNonZero(this.state.maximumLoginAttempts);
-        config.EmailSettings.PasswordResetSalt = this.state.passwordResetSalt;
-        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true') {
-            config.ServiceSettings.EnableMultifactorAuthentication = this.state.enableMultifactorAuthentication;
-        }
 
         return config;
     }
@@ -89,9 +82,7 @@ export default class PasswordSettings extends AdminSettings {
             passwordNumber: config.PasswordSettings.Number,
             passwordUppercase: config.PasswordSettings.Uppercase,
             passwordSymbol: config.PasswordSettings.Symbol,
-            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts,
-            enableMultifactorAuthentication: config.ServiceSettings.EnableMultifactorAuthentication,
-            passwordResetSalt: config.EmailSettings.PasswordResetSalt
+            maximumLoginAttempts: config.ServiceSettings.MaximumLoginAttempts
         };
     }
 
@@ -107,23 +98,24 @@ export default class PasswordSettings extends AdminSettings {
             }
             let sampleErrorMsgId = 'user.settings.security.passwordError';
             if (this.refs.lowercase.checked) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Lowercase';
+                sampleErrorMsgId += 'Lowercase';
             }
             if (this.refs.uppercase.checked) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Uppercase';
+                sampleErrorMsgId += 'Uppercase';
             }
             if (this.refs.number.checked) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Number';
+                sampleErrorMsgId += 'Number';
             }
             if (this.refs.symbol.checked) {
-                sampleErrorMsgId = sampleErrorMsgId + 'Symbol';
+                sampleErrorMsgId += 'Symbol';
             }
             return (
                 <FormattedMessage
                     id={sampleErrorMsgId}
-                    default='Your password must be at least {min} characters.'
+                    default='Your password must contain between {min} and {max} characters.'
                     values={{
-                        min: (minLength || Constants.MIN_PASSWORD_LENGTH)
+                        min: (minLength || Constants.MIN_PASSWORD_LENGTH),
+                        max: Constants.MAX_PASSWORD_LENGTH
                     }}
                 />
             );
@@ -144,39 +136,14 @@ export default class PasswordSettings extends AdminSettings {
 
     renderTitle() {
         return (
-            <h3>
-                <FormattedMessage
-                    id='admin.security.password'
-                    defaultMessage='Password'
-                />
-            </h3>
+            <FormattedMessage
+                id='admin.security.password'
+                defaultMessage='Password'
+            />
         );
     }
 
     renderSettings() {
-        let mfaSetting = null;
-        if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.MFA === 'true') {
-            mfaSetting = (
-                <BooleanSetting
-                    id='enableMultifactorAuthentication'
-                    label={
-                        <FormattedMessage
-                            id='admin.service.mfaTitle'
-                            defaultMessage='Enable Multi-factor Authentication:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.service.mfaDesc'
-                            defaultMessage='When true, users will be given the option to add multi-factor authentication to their account. They will need a smartphone and an authenticator app such as Google Authenticator.'
-                        />
-                    }
-                    value={this.state.enableMultifactorAuthentication}
-                    onChange={this.handleChange}
-                />
-            );
-        }
-
         let passwordSettings = null;
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_license.PasswordRequirements === 'true') {
             passwordSettings = (
@@ -290,30 +257,6 @@ export default class PasswordSettings extends AdminSettings {
         return (
             <SettingsGroup>
                 {passwordSettings}
-                <GeneratedSetting
-                    id='passwordResetSalt'
-                    label={
-                        <FormattedMessage
-                            id='admin.email.passwordSaltTitle'
-                            defaultMessage='Password Reset Salt:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.email.passwordSaltDescription'
-                            defaultMessage='32-character salt added to signing of password reset emails. Randomly generated on install. Click "Regenerate" to create new salt.'
-                        />
-                    }
-                    value={this.state.passwordResetSalt}
-                    onChange={this.handleChange}
-                    disabled={this.state.sendEmailNotifications}
-                    disabledText={
-                        <FormattedMessage
-                            id='admin.security.passwordResetSalt.disabled'
-                            defaultMessage='Password reset salt cannot be changed while sending emails is disabled.'
-                        />
-                    }
-                />
                 <TextSetting
                     id='maximumLoginAttempts'
                     label={
@@ -332,7 +275,6 @@ export default class PasswordSettings extends AdminSettings {
                     value={this.state.maximumLoginAttempts}
                     onChange={this.handleChange}
                 />
-                {mfaSetting}
             </SettingsGroup>
         );
     }

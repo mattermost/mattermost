@@ -15,7 +15,6 @@
     }
 
     .authorized-apps__wrapper {
-        background-color: #fff;
         padding: 10px 0;
     }
 
@@ -81,6 +80,10 @@
 
         label {
             font-weight: 600;
+
+            &.has-error {
+                font-weight: normal;
+            }
         }
 
         .no-padding--left {
@@ -88,6 +91,14 @@
         }
 
         .profile-img {
+            height: 128px;
+            width: 128px;
+        }
+
+        .profile-img-preview {
+            background-position: 50% 50%;
+            background-size: cover;
+            border-radius: 100%;
             height: 128px;
             width: 128px;
         }
@@ -236,12 +247,12 @@
                     }
 
                     .theme-elements__header {
-                        border-bottom: 1px solid #ccc;
+                        border-bottom: 1px solid;
                         cursor: pointer;
                         font-size: em(13.5px);
                         font-weight: 600;
                         margin: 10px 20px 0 0;
-                        padding: 5px 0 10px;
+                        padding: 1px 0 10px;
 
                         .fa-minus {
                             display: none;
@@ -270,6 +281,10 @@
                         display: none;
                         margin: 0 20px 0 0;
                         padding: 20px 0 0 20px;
+
+                        &.open {
+                            display: block;
+                        }
                     }
 
                     .custom-label {

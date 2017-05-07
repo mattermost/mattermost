@@ -1,0 +1,342 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/AboutBuildModal should match snapshot for enterprise edition 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "modals": Array [],
+    }
+  }
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    aria-label="Close"
+    bsClass="modal-header"
+    closeButton={true}
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      <FormattedMessage
+        defaultMessage="About Mattermost"
+        id="about.title"
+        values={Object {}}
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="about-modal__content"
+    >
+      <div
+        className="about-modal__logo"
+      >
+        <span
+          className="icon"
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='0 0 500 500' style='enable-background:new 0 0 500 500;' xml:space='preserve'> <style type='text/css'> .st0{fill-rule:evenodd;clip-rule:evenodd;fill:#222222;} </style> <g id='XMLID_1_'> <g id='XMLID_3_'> <path id='XMLID_4_' class='st0' d='M396.9,47.7l2.6,53.1c43,47.5,60,114.8,38.6,178.1c-32,94.4-137.4,144.1-235.4,110.9 S51.1,253.1,83,158.7C104.5,95.2,159.2,52,222.5,40.5l34.2-40.4C150-2.8,49.3,63.4,13.3,169.9C-31,300.6,39.1,442.5,169.9,486.7 s272.6-25.8,316.9-156.6C522.7,223.9,483.1,110.3,396.9,47.7z'/> </g> <path id='XMLID_2_' class='st0' d='M335.6,204.3l-1.8-74.2l-1.5-42.7l-1-37c0,0,0.2-17.8-0.4-22c-0.1-0.9-0.4-1.6-0.7-2.2 c0-0.1-0.1-0.2-0.1-0.3c0-0.1-0.1-0.2-0.1-0.2c-0.7-1.2-1.8-2.1-3.1-2.6c-1.4-0.5-2.9-0.4-4.2,0.2c0,0-0.1,0-0.1,0 c-0.2,0.1-0.3,0.1-0.4,0.2c-0.6,0.3-1.2,0.7-1.8,1.3c-3,3-13.7,17.2-13.7,17.2l-23.2,28.8l-27.1,33l-46.5,57.8 c0,0-21.3,26.6-16.6,59.4s29.1,48.7,48,55.1c18.9,6.4,48,8.5,71.6-14.7C336.4,238.4,335.6,204.3,335.6,204.3z'/> </g> </svg>",
+            }
+          }
+        />
+      </div>
+      <div>
+        <h3
+          className="about-modal__title"
+        >
+          Mattermost
+           
+          <FormattedMessage
+            defaultMessage="Enterprise Edition"
+            id="about.teamEditiont1"
+            values={Object {}}
+          />
+        </h3>
+        <p
+          className="about-modal__subtitle padding-bottom"
+        >
+          <FormattedMessage
+            defaultMessage="Modern communication from behind your firewall."
+            id="about.enterpriseEditionSt"
+            values={Object {}}
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div>
+            <FormattedMessage
+              defaultMessage="Version:"
+              id="about.version"
+              values={Object {}}
+            />
+            <span
+              id="versionString"
+            >
+               3.6.0  (3.6.2)
+            </span>
+          </div>
+          <div>
+            <FormattedMessage
+              defaultMessage="Database:"
+              id="about.database"
+              values={Object {}}
+            />
+             Postgres
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__footer"
+    >
+      <div>
+        <FormattedMessage
+          defaultMessage="Learn more about Enterprise Edition at "
+          id="about.enterpriseEditionLearn"
+          values={Object {}}
+        />
+        <a
+          href="http://about.mattermost.com/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          about.mattermost.com
+        </a>
+      </div>
+      <div
+        className="form-group about-modal__copyright"
+      >
+        <FormattedMessage
+          defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
+          id="about.copyright"
+          values={
+            Object {
+              "currentYear": 2017,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="about-modal__hash form-group padding-top x2"
+    >
+      <p>
+        <FormattedMessage
+          defaultMessage="Build Hash:"
+          id="about.hash"
+          values={Object {}}
+        />
+         
+        abcdef1234567890
+        <br />
+        <FormattedMessage
+          defaultMessage="EE Build Hash:"
+          id="about.hashee"
+          values={Object {}}
+        />
+         
+        0123456789abcdef
+      </p>
+      <p>
+        <FormattedMessage
+          defaultMessage="Build Date:"
+          id="about.date"
+          values={Object {}}
+        />
+         
+        21 January 2017
+      </p>
+    </div>
+  </ModalBody>
+</Modal>
+`;
+
+exports[`components/AboutBuildModal should match snapshot for team edition 1`] = `
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="about-modal"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  keyboard={true}
+  manager={
+    ModalManager {
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "modals": Array [],
+    }
+  }
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    aria-label="Close"
+    bsClass="modal-header"
+    closeButton={true}
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h4"
+    >
+      <FormattedMessage
+        defaultMessage="About Mattermost"
+        id="about.title"
+        values={Object {}}
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <div
+      className="about-modal__content"
+    >
+      <div
+        className="about-modal__logo"
+      >
+        <span
+          className="icon"
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "<svg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px'viewBox='0 0 500 500' style='enable-background:new 0 0 500 500;' xml:space='preserve'> <style type='text/css'> .st0{fill-rule:evenodd;clip-rule:evenodd;fill:#222222;} </style> <g id='XMLID_1_'> <g id='XMLID_3_'> <path id='XMLID_4_' class='st0' d='M396.9,47.7l2.6,53.1c43,47.5,60,114.8,38.6,178.1c-32,94.4-137.4,144.1-235.4,110.9 S51.1,253.1,83,158.7C104.5,95.2,159.2,52,222.5,40.5l34.2-40.4C150-2.8,49.3,63.4,13.3,169.9C-31,300.6,39.1,442.5,169.9,486.7 s272.6-25.8,316.9-156.6C522.7,223.9,483.1,110.3,396.9,47.7z'/> </g> <path id='XMLID_2_' class='st0' d='M335.6,204.3l-1.8-74.2l-1.5-42.7l-1-37c0,0,0.2-17.8-0.4-22c-0.1-0.9-0.4-1.6-0.7-2.2 c0-0.1-0.1-0.2-0.1-0.3c0-0.1-0.1-0.2-0.1-0.2c-0.7-1.2-1.8-2.1-3.1-2.6c-1.4-0.5-2.9-0.4-4.2,0.2c0,0-0.1,0-0.1,0 c-0.2,0.1-0.3,0.1-0.4,0.2c-0.6,0.3-1.2,0.7-1.8,1.3c-3,3-13.7,17.2-13.7,17.2l-23.2,28.8l-27.1,33l-46.5,57.8 c0,0-21.3,26.6-16.6,59.4s29.1,48.7,48,55.1c18.9,6.4,48,8.5,71.6-14.7C336.4,238.4,335.6,204.3,335.6,204.3z'/> </g> </svg>",
+            }
+          }
+        />
+      </div>
+      <div>
+        <h3
+          className="about-modal__title"
+        >
+          Mattermost
+           
+          <FormattedMessage
+            defaultMessage="Team Edition"
+            id="about.teamEditiont0"
+            values={Object {}}
+          />
+        </h3>
+        <p
+          className="about-modal__subtitle padding-bottom"
+        >
+          <FormattedMessage
+            defaultMessage="All your team communication in one place, instantly searchable and accessible anywhere."
+            id="about.teamEditionSt"
+            values={Object {}}
+          />
+        </p>
+        <div
+          className="form-group less"
+        >
+          <div>
+            <FormattedMessage
+              defaultMessage="Version:"
+              id="about.version"
+              values={Object {}}
+            />
+            <span
+              id="versionString"
+            >
+               3.6.0  (3.6.2)
+            </span>
+          </div>
+          <div>
+            <FormattedMessage
+              defaultMessage="Database:"
+              id="about.database"
+              values={Object {}}
+            />
+             Postgres
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="about-modal__footer"
+    >
+      <div>
+        <FormattedMessage
+          defaultMessage="Join the Mattermost community at "
+          id="about.teamEditionLearn"
+          values={Object {}}
+        />
+        <a
+          href="http://www.mattermost.org/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          mattermost.org
+        </a>
+      </div>
+      <div
+        className="form-group about-modal__copyright"
+      >
+        <FormattedMessage
+          defaultMessage="Copyright 2015 - {currentYear} Mattermost, Inc. All rights reserved"
+          id="about.copyright"
+          values={
+            Object {
+              "currentYear": 2017,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="about-modal__hash form-group padding-top x2"
+    >
+      <p>
+        <FormattedMessage
+          defaultMessage="Build Hash:"
+          id="about.hash"
+          values={Object {}}
+        />
+         
+        abcdef1234567890
+        <br />
+        <FormattedMessage
+          defaultMessage="EE Build Hash:"
+          id="about.hashee"
+          values={Object {}}
+        />
+         
+      </p>
+      <p>
+        <FormattedMessage
+          defaultMessage="Build Date:"
+          id="about.date"
+          values={Object {}}
+        />
+         
+        21 January 2017
+      </p>
+    </div>
+  </ModalBody>
+</Modal>
+`;

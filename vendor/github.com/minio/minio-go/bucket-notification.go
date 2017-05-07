@@ -84,7 +84,7 @@ func (arn Arn) String() string {
 // NotificationConfig - represents one single notification configuration
 // such as topic, queue or lambda configuration.
 type NotificationConfig struct {
-	Id     string                  `xml:"Id,omitempty"`
+	ID     string                  `xml:"Id,omitempty"`
 	Arn    Arn                     `xml:"-"`
 	Events []NotificationEventType `xml:"Event"`
 	Filter *Filter                 `xml:"Filter,omitempty"`

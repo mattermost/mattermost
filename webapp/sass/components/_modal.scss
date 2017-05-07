@@ -12,7 +12,6 @@
 
     .modal-body {
         max-height: calc(90vh - 62px);
-        overflow: auto;
         padding: 20px 15px;
     }
 
@@ -24,12 +23,23 @@
             min-height: 8em;
         }
 
-        .suggestion-list {
-            bottom: -149px;
-        }
-
         .suggestion-list__content {
             max-height: 150px;
+        }
+
+        .edit-post-footer {
+            font-size: 13px;
+            position: relative;
+            display: inline-block;
+
+            .post-error {
+                position: relative;
+                font-weight: normal;
+                margin-bottom: 0;
+                font-size: .85em;
+                @include opacity(.55);
+                top: 3px;
+            }
         }
     }
 
@@ -125,6 +135,7 @@
         }
 
         .modal-dialog {
+            margin-bottom: 0;
             margin-left: auto;
             margin-right: auto;
             max-width: 95%;
@@ -159,6 +170,10 @@
                 float: left;
                 font-size: 17px;
                 line-height: 27px;
+                max-width: calc(100% - 80px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
 
                 .name {
                     color: $white;
@@ -237,19 +252,6 @@
             top: 0;
         }
 
-        &.more-channel__modal {
-            .modal-body {
-                overflow-x: hidden;
-                padding: 10px 0 15px;
-            }
-
-            .channel-count {
-                @include opacity(.8);
-                float: right;
-                margin-top: 5px;
-            }
-        }
-
         .modal-image {
             height: 100%;
             margin: 0 auto;
@@ -271,6 +273,10 @@
                 max-width: 90vw;
                 overflow-x: hidden;
                 overflow-y: visible;
+            }
+
+            .post-code__container {
+                overflow: auto;
             }
 
             .modal-image__wrapper {
@@ -343,7 +349,7 @@
                 }
 
                 img {
-                    max-height: 100%;
+                    max-height: calc(100vh - 200px);
                     max-width: 100%;
                 }
 
@@ -449,9 +455,23 @@
                 }
             }
         }
+
+        &.more-channel__modal {
+            .modal-body {
+                overflow-x: hidden;
+                padding: 10px 0 15px;
+            }
+
+            .channel-count {
+                @include opacity(.8);
+                float: right;
+                margin-top: 5px;
+            }
+        }
     }
 
     .more-modal {
+
         .user-list {
             margin-top: 10px;
             overflow-x: hidden;
@@ -465,8 +485,12 @@
         }
 
         .filter-row {
-            @include clearfix;
             margin: 5px 0 10px;
+            width: 300px;
+
+            &.filter-row--full {
+                width: 100%;
+            }
         }
 
         .member-count {
@@ -502,46 +526,24 @@
 
 }
 
-
-.status-wrapper {
-    display: inline-block;
-    height: 32px;
-    position: relative;
-
-    &:after {
-        border-radius: 100%;
-        bottom: -2px;
-        content: '';
-        display: block;
-        height: 8px;
-        position: absolute;
-        right: 0;
-        width: 8px;
-    }
-
-    &.status-offline {
-        &:after {
-            background: #D3D3D3;
-        }
-    }
-}
-
 .more-modal__list {
     display: flex;
     flex-direction: column;
-    overflow: auto;
+
+    .browser--ie & {
+        flex: 20;
+    }
+
+    > div {
+        min-height: 100%;
+        overflow: auto;
+    }
 
     .popover & {
         font-size: .95em;
 
         .more-modal__row {
             padding: 5px 10px;
-
-            .status-wrapper {
-                &:after {
-                    bottom: 0;
-                }
-            }
         }
 
         .more-modal__name {
@@ -555,12 +557,6 @@
         flex-shrink: 0;
         margin-top: 2px;
         max-width: none;
-
-        .status-wrapper {
-            &:after {
-                bottom: 3px;
-            }
-        }
     }
 
     .more-modal__details {
@@ -574,6 +570,7 @@
     .more-modal__actions {
         flex-grow: 0;
         flex-shrink: 0;
+        margin: 5px 0;
         padding-left: 20px;
     }
 
@@ -596,8 +593,29 @@
     .more-modal__row {
         border-bottom: 1px solid $light-gray;
         display: flex;
-        min-height: 50px;
-        padding: 8px 15px;
+        padding: 10px 15px;
+
+        &.clickable {
+            cursor: pointer;
+        }
+
+        &:hover {
+            .more-modal__actions--round {
+                opacity: .5;
+            }
+        }
+    }
+
+    .more-modal__placeholder-row {
+        padding: 10px 15px;
+    }
+
+    .more-modal__actions--round {
+        height: 32px;
+        line-height: 32px;
+        opacity: 0;
+        text-align: center;
+        width: 32px;
     }
 
     p {
@@ -618,16 +636,16 @@
 .filtered-user-list {
     display: flex;
     flex-direction: column;
+    height: calc(90vh - 120px);
     width: 100%;
 
-    .filter-row {
-        flex-grow: 0;
-        flex-shrink: 0;
+    > div {
+        flex: 1 1 auto;
     }
 
-    .user-list {
-        flex-grow: 1;
-        flex-shrink: 1;
+    .more-modal__list {
+        flex-grow: 500;
+        height: 1px;
     }
 
     .filter-button {
@@ -637,9 +655,6 @@
     }
 
     .filter-controls {
-        @include clearfix;
-        flex-grow: 0;
-        flex-shrink: 0;
         padding: 1em 1.5em 0;
 
         .filter-control__next {

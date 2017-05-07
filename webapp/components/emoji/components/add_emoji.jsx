@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -14,13 +14,13 @@ import SpinnerButton from 'components/spinner_button.jsx';
 
 export default class AddEmoji extends React.Component {
     static propTypes = {
-        team: React.PropTypes.object.isRequired,
-        user: React.PropTypes.object.isRequired
-    }
+        team: React.PropTypes.object,
+        user: React.PropTypes.object
+    };
 
     static contextTypes = {
         router: React.PropTypes.object.isRequired
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -85,7 +85,7 @@ export default class AddEmoji extends React.Component {
             });
 
             return;
-        } else if (EmojiStore.getSystemEmojis().has(emoji.name)) {
+        } else if (EmojiStore.hasSystemEmoji(emoji.name)) {
             this.setState({
                 saving: false,
                 error: (
@@ -186,9 +186,9 @@ export default class AddEmoji extends React.Component {
                             defaultMessage='This is a sentence with {image} in it.'
                             values={{
                                 image: (
-                                    <img
+                                    <span
                                         className='emoticon'
-                                        src={this.state.imageUrl}
+                                        style={{backgroundImage: 'url(' + this.state.imageUrl + ')'}}
                                     />
                                 )
                             }}

@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
@@ -21,14 +21,33 @@ export default class LineChart extends React.Component {
         this.initChart();
     }
 
+    componentWillUpdate(nextProps) {
+        const willHaveData = nextProps.data && nextProps.data.labels.length > 0;
+        const hasChart = Boolean(this.chart);
+
+        if (!willHaveData && hasChart) {
+            // Clean up the rendered chart before we render and destroy its context
+            this.chart.destroy();
+            this.chart = null;
+        }
+    }
+
     componentDidUpdate(prevProps) {
-        if (!Utils.areObjectsEqual(prevProps.data, this.props.data) || !Utils.areObjectsEqual(prevProps.options, this.props.options)) {
-            this.initChart(true);
+        if (Utils.areObjectsEqual(prevProps.data, this.props.data) && Utils.areObjectsEqual(prevProps.options, this.props.options)) {
+            return;
+        }
+
+        const hasData = this.props.data && this.props.data.labels.length > 0;
+        const hasChart = Boolean(this.chart);
+
+        if (hasData) {
+            // Update the rendered chart or initialize it as necessary
+            this.initChart(hasChart);
         }
     }
 
     componentWillUnmount() {
-        if (this.chart && this.refs.canvas) {
+        if (this.chart) {
             this.chart.destroy();
         }
     }
@@ -37,9 +56,11 @@ export default class LineChart extends React.Component {
         if (!this.refs.canvas) {
             return;
         }
+
         var el = ReactDOM.findDOMNode(this.refs.canvas);
         var ctx = el.getContext('2d');
-        this.chart = new Chart(ctx, {type: 'line', data: this.props.data, options: this.props.options || {}}); //eslint-disable-line new-cap
+        this.chart = new Chart(ctx, {type: 'line', data: this.props.data, options: this.props.options || {}}); // eslint-disable-line new-cap
+
         if (update) {
             this.chart.update();
         }

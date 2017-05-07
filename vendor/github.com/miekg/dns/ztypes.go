@@ -14,6 +14,7 @@ var TypeToRR = map[uint16]func() RR{
 	TypeAAAA:       func() RR { return new(AAAA) },
 	TypeAFSDB:      func() RR { return new(AFSDB) },
 	TypeANY:        func() RR { return new(ANY) },
+	TypeAVC:        func() RR { return new(AVC) },
 	TypeCAA:        func() RR { return new(CAA) },
 	TypeCDNSKEY:    func() RR { return new(CDNSKEY) },
 	TypeCDS:        func() RR { return new(CDS) },
@@ -62,6 +63,7 @@ var TypeToRR = map[uint16]func() RR{
 	TypeRRSIG:      func() RR { return new(RRSIG) },
 	TypeRT:         func() RR { return new(RT) },
 	TypeSIG:        func() RR { return new(SIG) },
+	TypeSMIMEA:     func() RR { return new(SMIMEA) },
 	TypeSOA:        func() RR { return new(SOA) },
 	TypeSPF:        func() RR { return new(SPF) },
 	TypeSRV:        func() RR { return new(SRV) },
@@ -85,6 +87,7 @@ var TypeToString = map[uint16]string{
 	TypeAFSDB:      "AFSDB",
 	TypeANY:        "ANY",
 	TypeATMA:       "ATMA",
+	TypeAVC:        "AVC",
 	TypeAXFR:       "AXFR",
 	TypeCAA:        "CAA",
 	TypeCDNSKEY:    "CDNSKEY",
@@ -141,6 +144,7 @@ var TypeToString = map[uint16]string{
 	TypeRT:         "RT",
 	TypeReserved:   "Reserved",
 	TypeSIG:        "SIG",
+	TypeSMIMEA:     "SMIMEA",
 	TypeSOA:        "SOA",
 	TypeSPF:        "SPF",
 	TypeSRV:        "SRV",
@@ -164,6 +168,7 @@ func (rr *A) Header() *RR_Header          { return &rr.Hdr }
 func (rr *AAAA) Header() *RR_Header       { return &rr.Hdr }
 func (rr *AFSDB) Header() *RR_Header      { return &rr.Hdr }
 func (rr *ANY) Header() *RR_Header        { return &rr.Hdr }
+func (rr *AVC) Header() *RR_Header        { return &rr.Hdr }
 func (rr *CAA) Header() *RR_Header        { return &rr.Hdr }
 func (rr *CDNSKEY) Header() *RR_Header    { return &rr.Hdr }
 func (rr *CDS) Header() *RR_Header        { return &rr.Hdr }
@@ -213,6 +218,7 @@ func (rr *RP) Header() *RR_Header         { return &rr.Hdr }
 func (rr *RRSIG) Header() *RR_Header      { return &rr.Hdr }
 func (rr *RT) Header() *RR_Header         { return &rr.Hdr }
 func (rr *SIG) Header() *RR_Header        { return &rr.Hdr }
+func (rr *SMIMEA) Header() *RR_Header     { return &rr.Hdr }
 func (rr *SOA) Header() *RR_Header        { return &rr.Hdr }
 func (rr *SPF) Header() *RR_Header        { return &rr.Hdr }
 func (rr *SRV) Header() *RR_Header        { return &rr.Hdr }
@@ -249,9 +255,16 @@ func (rr *ANY) len() int {
 	l := rr.Hdr.len()
 	return l
 }
+func (rr *AVC) len() int {
+	l := rr.Hdr.len()
+	for _, x := range rr.Txt {
+		l += len(x) + 1
+	}
+	return l
+}
 func (rr *CAA) len() int {
 	l := rr.Hdr.len()
-	l += 1 // Flag
+	l++ // Flag
 	l += len(rr.Tag) + 1
 	l += len(rr.Value)
 	return l
@@ -260,7 +273,7 @@ func (rr *CERT) len() int {
 	l := rr.Hdr.len()
 	l += 2 // Type
 	l += 2 // KeyTag
-	l += 1 // Algorithm
+	l++    // Algorithm
 	l += base64.StdEncoding.DecodedLen(len(rr.Certificate))
 	return l
 }
@@ -282,16 +295,16 @@ func (rr *DNAME) len() int {
 func (rr *DNSKEY) len() int {
 	l := rr.Hdr.len()
 	l += 2 // Flags
-	l += 1 // Protocol
-	l += 1 // Algorithm
+	l++    // Protocol
+	l++    // Algorithm
 	l += base64.StdEncoding.DecodedLen(len(rr.PublicKey))
 	return l
 }
 func (rr *DS) len() int {
 	l := rr.Hdr.len()
 	l += 2 // KeyTag
-	l += 1 // Algorithm
-	l += 1 // DigestType
+	l++    // Algorithm
+	l++    // DigestType
 	l += len(rr.Digest)/2 + 1
 	return l
 }
@@ -330,8 +343,8 @@ func (rr *HINFO) len() int {
 }
 func (rr *HIP) len() int {
 	l := rr.Hdr.len()
-	l += 1 // HitLength
-	l += 1 // PublicKeyAlgorithm
+	l++    // HitLength
+	l++    // PublicKeyAlgorithm
 	l += 2 // PublicKeyLength
 	l += len(rr.Hit)/2 + 1
 	l += base64.StdEncoding.DecodedLen(len(rr.PublicKey))
@@ -360,10 +373,10 @@ func (rr *L64) len() int {
 }
 func (rr *LOC) len() int {
 	l := rr.Hdr.len()
-	l += 1 // Version
-	l += 1 // Size
-	l += 1 // HorizPre
-	l += 1 // VertPre
+	l++    // Version
+	l++    // Size
+	l++    // HorizPre
+	l++    // VertPre
 	l += 4 // Latitude
 	l += 4 // Longitude
 	l += 4 // Altitude
@@ -452,10 +465,10 @@ func (rr *NSAPPTR) len() int {
 }
 func (rr *NSEC3PARAM) len() int {
 	l := rr.Hdr.len()
-	l += 1 // Hash
-	l += 1 // Flags
+	l++    // Hash
+	l++    // Flags
 	l += 2 // Iterations
-	l += 1 // SaltLength
+	l++    // SaltLength
 	l += len(rr.Salt)/2 + 1
 	return l
 }
@@ -484,8 +497,8 @@ func (rr *RFC3597) len() int {
 func (rr *RKEY) len() int {
 	l := rr.Hdr.len()
 	l += 2 // Flags
-	l += 1 // Protocol
-	l += 1 // Algorithm
+	l++    // Protocol
+	l++    // Algorithm
 	l += base64.StdEncoding.DecodedLen(len(rr.PublicKey))
 	return l
 }
@@ -498,8 +511,8 @@ func (rr *RP) len() int {
 func (rr *RRSIG) len() int {
 	l := rr.Hdr.len()
 	l += 2 // TypeCovered
-	l += 1 // Algorithm
-	l += 1 // Labels
+	l++    // Algorithm
+	l++    // Labels
 	l += 4 // OrigTtl
 	l += 4 // Expiration
 	l += 4 // Inception
@@ -512,6 +525,14 @@ func (rr *RT) len() int {
 	l := rr.Hdr.len()
 	l += 2 // Preference
 	l += len(rr.Host) + 1
+	return l
+}
+func (rr *SMIMEA) len() int {
+	l := rr.Hdr.len()
+	l++ // Usage
+	l++ // Selector
+	l++ // MatchingType
+	l += len(rr.Certificate)/2 + 1
 	return l
 }
 func (rr *SOA) len() int {
@@ -542,16 +563,16 @@ func (rr *SRV) len() int {
 }
 func (rr *SSHFP) len() int {
 	l := rr.Hdr.len()
-	l += 1 // Algorithm
-	l += 1 // Type
+	l++ // Algorithm
+	l++ // Type
 	l += len(rr.FingerPrint)/2 + 1
 	return l
 }
 func (rr *TA) len() int {
 	l := rr.Hdr.len()
 	l += 2 // KeyTag
-	l += 1 // Algorithm
-	l += 1 // DigestType
+	l++    // Algorithm
+	l++    // DigestType
 	l += len(rr.Digest)/2 + 1
 	return l
 }
@@ -576,9 +597,9 @@ func (rr *TKEY) len() int {
 }
 func (rr *TLSA) len() int {
 	l := rr.Hdr.len()
-	l += 1 // Usage
-	l += 1 // Selector
-	l += 1 // MatchingType
+	l++ // Usage
+	l++ // Selector
+	l++ // MatchingType
 	l += len(rr.Certificate)/2 + 1
 	return l
 }
@@ -637,6 +658,11 @@ func (rr *AFSDB) copy() RR {
 }
 func (rr *ANY) copy() RR {
 	return &ANY{*rr.Hdr.copyHeader()}
+}
+func (rr *AVC) copy() RR {
+	Txt := make([]string, len(rr.Txt))
+	copy(Txt, rr.Txt)
+	return &AVC{*rr.Hdr.copyHeader(), Txt}
 }
 func (rr *CAA) copy() RR {
 	return &CAA{*rr.Hdr.copyHeader(), rr.Flag, rr.Tag, rr.Value}
@@ -779,6 +805,9 @@ func (rr *RRSIG) copy() RR {
 }
 func (rr *RT) copy() RR {
 	return &RT{*rr.Hdr.copyHeader(), rr.Preference, rr.Host}
+}
+func (rr *SMIMEA) copy() RR {
+	return &SMIMEA{*rr.Hdr.copyHeader(), rr.Usage, rr.Selector, rr.MatchingType, rr.Certificate}
 }
 func (rr *SOA) copy() RR {
 	return &SOA{*rr.Hdr.copyHeader(), rr.Ns, rr.Mbox, rr.Serial, rr.Refresh, rr.Retry, rr.Expire, rr.Minttl}

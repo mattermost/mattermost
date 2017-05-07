@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AdminStore from 'stores/admin_store.jsx';
@@ -24,6 +24,14 @@ export default class Logs extends React.Component {
     componentDidMount() {
         AdminStore.addLogChangeListener(this.onLogListenerChange);
         AsyncClient.getLogs();
+        this.refs.logPanel.focus();
+    }
+
+    componentDidUpdate() {
+        // Scroll Down to get the latest logs
+        var node = this.refs.logPanel;
+        node.scrollTop = node.scrollHeight;
+        node.focus();
     }
 
     componentWillUnmount() {
@@ -77,12 +85,20 @@ export default class Logs extends React.Component {
 
         return (
             <div className='panel'>
-                <h3>
+                <h3 className='admin-console-header'>
                     <FormattedMessage
                         id='admin.logs.title'
                         defaultMessage='Server Logs'
                     />
                 </h3>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedMessage
+                            id='admin.logs.bannerDesc'
+                            defaultMessage='To look up users by User ID, go to Reporting > Users and paste the ID into the search filter.'
+                        />
+                    </div>
+                </div>
                 <button
                     type='submit'
                     className='btn btn-primary'
@@ -93,7 +109,11 @@ export default class Logs extends React.Component {
                         defaultMessage='Reload'
                     />
                 </button>
-                <div className='log__panel'>
+                <div
+                    tabIndex='-1'
+                    ref='logPanel'
+                    className='log__panel'
+                >
                     {content}
                 </div>
             </div>

@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import SuggestionList from './suggestion/suggestion_list.jsx';
@@ -24,6 +24,7 @@ export default class SwitchChannelModal extends React.Component {
         super();
 
         this.onChange = this.onChange.bind(this);
+        this.onItemSelected = this.onItemSelected.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
         this.onExited = this.onExited.bind(this);
@@ -63,6 +64,7 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     onExited() {
+        this.selected = null;
         setTimeout(() => {
             $('#post_textbox').get(0).focus();
         });
@@ -70,6 +72,11 @@ export default class SwitchChannelModal extends React.Component {
 
     onChange(e) {
         this.setState({text: e.target.value});
+        this.selected = null;
+    }
+
+    onItemSelected(item) {
+        this.selected = item;
     }
 
     handleKeyDown(e) {
@@ -82,17 +89,23 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleSubmit() {
-        const name = this.state.text.trim();
         let channel = null;
 
-        // TODO: Replace this hack with something reasonable
-        if (name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) > 0) {
-            const dmUsername = name.substr(0, name.indexOf(Utils.localizeMessage('channel_switch_modal.dm', '(Direct Message)')) - 1);
-            const user = UserStore.getProfileByUsername(dmUsername);
+        if (!this.selected) {
+            if (this.state.text !== '') {
+                this.setState({
+                    error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+                });
+            }
+            return;
+        }
+
+        if (this.selected.type === Constants.DM_CHANNEL) {
+            const user = UserStore.getProfileByUsername(this.selected.name);
 
             if (user) {
                 openDirectChannelToUser(
-                    user,
+                    user.id,
                     (ch) => {
                         channel = ch;
                         this.switchToChannel(channel);
@@ -104,7 +117,7 @@ export default class SwitchChannelModal extends React.Component {
                 );
             }
         } else {
-            channel = ChannelStore.getByName(this.state.text.trim());
+            channel = ChannelStore.get(this.selected.id);
             this.switchToChannel(channel);
         }
     }
@@ -115,7 +128,7 @@ export default class SwitchChannelModal extends React.Component {
             this.onHide();
         } else if (this.state.text !== '') {
             this.setState({
-                error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+                error: Utils.localizeMessage('channel_switch_modal.failed_to_open', 'Failed to open channel.')
             });
         }
     }
@@ -124,7 +137,7 @@ export default class SwitchChannelModal extends React.Component {
         const message = this.state.error;
         return (
             <Modal
-                className='modal-browse-channel'
+                dialogClassName='channel-switch-modal'
                 ref='modal'
                 show={this.props.show}
                 onHide={this.onHide}
@@ -155,10 +168,10 @@ export default class SwitchChannelModal extends React.Component {
                         onChange={this.onChange}
                         value={this.state.text}
                         onKeyDown={this.handleKeyDown}
+                        onItemSelected={this.onItemSelected}
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
-                        preventDefaultSubmit={false}
                         listStyle='bottom'
                     />
                 </Modal.Body>

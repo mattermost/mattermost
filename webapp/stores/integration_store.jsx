@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
@@ -53,6 +53,20 @@ class IntegrationStore extends EventEmitter {
         const incomingWebhooks = this.getIncomingWebhooks(teamId);
 
         incomingWebhooks.push(incomingWebhook);
+
+        this.setIncomingWebhooks(teamId, incomingWebhooks);
+    }
+
+    updateIncomingWebhook(incomingWebhook) {
+        const teamId = incomingWebhook.team_id;
+        const incomingWebhooks = this.getIncomingWebhooks(teamId);
+
+        for (let i = 0; i < incomingWebhooks.length; i++) {
+            if (incomingWebhooks[i].id === incomingWebhook.id) {
+                incomingWebhooks[i] = incomingWebhook;
+                break;
+            }
+        }
 
         this.setIncomingWebhooks(teamId, incomingWebhooks);
     }
@@ -198,6 +212,10 @@ class IntegrationStore extends EventEmitter {
             break;
         case ActionTypes.RECEIVED_INCOMING_WEBHOOK:
             this.addIncomingWebhook(action.incomingWebhook);
+            this.emitChange();
+            break;
+        case ActionTypes.UPDATED_INCOMING_WEBHOOK:
+            this.updateIncomingWebhook(action.incomingWebhook);
             this.emitChange();
             break;
         case ActionTypes.REMOVED_INCOMING_WEBHOOK:

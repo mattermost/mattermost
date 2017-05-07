@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
@@ -10,11 +10,21 @@ export default class ConfirmModal extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleConfirm = this.handleConfirm.bind(this);
+        this.handleKeypress = this.handleKeypress.bind(this);
     }
 
-    handleConfirm() {
-        this.props.onConfirm();
+    componentDidMount() {
+        document.addEventListener('keypress', this.handleKeypress);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keypress', this.handleKeypress);
+    }
+
+    handleKeypress(e) {
+        if (e.key === 'Enter' && this.props.show) {
+            this.props.onConfirm();
+        }
     }
 
     render() {
@@ -43,7 +53,7 @@ export default class ConfirmModal extends React.Component {
                     </button>
                     <button
                         type='button'
-                        className='btn btn-primary'
+                        className={this.props.confirmButtonClass}
                         onClick={this.props.onConfirm}
                     >
                         {this.props.confirmButton}
@@ -57,12 +67,14 @@ export default class ConfirmModal extends React.Component {
 ConfirmModal.defaultProps = {
     title: '',
     message: '',
+    confirmButtonClass: 'btn btn-primary',
     confirmButton: ''
 };
 ConfirmModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     title: React.PropTypes.node,
     message: React.PropTypes.node,
+    confirmButtonClass: React.PropTypes.string,
     confirmButton: React.PropTypes.node,
     onConfirm: React.PropTypes.func.isRequired,
     onCancel: React.PropTypes.func.isRequired

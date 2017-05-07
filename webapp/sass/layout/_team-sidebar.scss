@@ -1,0 +1,121 @@
+.multi-teams {
+    .team-sidebar {
+        height: 100%;
+        left: 0;
+        position: fixed;
+        text-align: center;
+        width: 65px;
+        z-index: 5;
+
+        .team-wrapper {
+            -webkit-overflow-scrolling: touch;
+            background-color: alpha-color($black, .2);
+            height: 100%;
+            overflow: auto;
+            padding-top: 15px;
+
+            .team-container {
+                display: table;
+                margin-bottom: 10px;
+                position: relative;
+                text-align: center;
+                width: 100%;
+
+                a {
+                    display: block;
+                    margin-left: 11px;
+                    text-decoration: none;
+                }
+
+                .team-btn {
+                    @include border-radius(2px);
+                    background-color: alpha-color($black, .3);
+                    border: 1px solid alpha-color($white, .2);
+                    display: table-cell;
+                    font-size: 12px;
+                    font-weight: bold;
+                    padding: 4px 5px;
+                    position: relative;
+                    text-align: center;
+                    vertical-align: top;
+                    width: 40px;
+
+                    .team-btn__initials {
+                        text-align: left;
+                    }
+
+                    .team-btn__content {
+                        bottom: 4px;
+                        font-size: 8.5px;
+                        font-weight: normal;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        width: 31px;
+                    }
+
+                    .badge {
+                        font-size: 10px;
+                        position: absolute;
+                        right: -6px;
+                        top: -3px;
+                    }
+
+                    &.team-btn__add {
+                        height: 39px;
+                        vertical-align: middle;
+                    }
+                }
+
+                &.active {
+                    .team-btn {
+                        background-color: transparent;
+                        border-color: $white;
+                    }
+                }
+
+                &.active:before {
+                    background: $black;
+                    content: '';
+                    height: 100%;
+                    left: 0;
+                    position: absolute;
+                    top: 0;
+                    width: 5px;
+                }
+
+                &.unread:before {
+                    background: $black;
+                    border-radius: 50%;
+                    content: '';
+                    height: 5px;
+                    left: 0;
+                    position: absolute;
+                    top: 18px;
+                    width: 5px;
+                }
+
+                a.team-disabled {
+                    @include opacity(.5);
+                    cursor: not-allowed;
+                }
+            }
+
+            .team-container a:hover {
+                text-decoration: none;
+            }
+        }
+    }
+
+    .sidebar--left {
+        left: 65px;
+
+        .nav-pills__unread-indicator {
+            left: 80px;
+        }
+    }
+
+    .app__content {
+        margin-left: 285px;
+    }
+}

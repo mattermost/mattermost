@@ -1,9 +1,10 @@
-// Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/go-gorp/gorp"
@@ -42,6 +43,7 @@ func NewSqlOAuthStore(sqlStore *SqlStore) OAuthStore {
 		tableAccess.ColMap("Token").SetMaxSize(26)
 		tableAccess.ColMap("RefreshToken").SetMaxSize(26)
 		tableAccess.ColMap("RedirectUri").SetMaxSize(256)
+		tableAccess.ColMap("Scope").SetMaxSize(128)
 		tableAccess.SetUniqueTogether("ClientId", "UserId")
 	}
 
@@ -138,9 +140,9 @@ func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 		result := StoreResult{}
 
 		if obj, err := as.GetReplica().Get(model.OAuthApp{}, id); err != nil {
-			result.Err = model.NewLocAppError("SqlOAuthStore.GetApp", "store.sql_oauth.get_app.finding.app_error", nil, "app_id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlOAuthStore.GetApp", "store.sql_oauth.get_app.finding.app_error", nil, "app_id="+id+", "+err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
-			result.Err = model.NewLocAppError("SqlOAuthStore.GetApp", "store.sql_oauth.get_app.find.app_error", nil, "app_id="+id)
+			result.Err = model.NewAppError("SqlOAuthStore.GetApp", "store.sql_oauth.get_app.find.app_error", nil, "app_id="+id, http.StatusNotFound)
 		} else {
 			result.Data = obj.(*model.OAuthApp)
 		}
@@ -153,7 +155,7 @@ func (as SqlOAuthStore) GetApp(id string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
+func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -162,8 +164,8 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 
 		var apps []*model.OAuthApp
 
-		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlOAuthStore.GetAppByUser", "store.sql_oauth.get_app_by_user.find.app_error", nil, "user_id="+userId+", "+err.Error())
+		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps WHERE CreatorId = :UserId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlOAuthStore.GetAppByUser", "store.sql_oauth.get_app_by_user.find.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = apps
@@ -175,7 +177,7 @@ func (as SqlOAuthStore) GetAppByUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetApps() StoreChannel {
+func (as SqlOAuthStore) GetApps(offset, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel, 1)
 
@@ -184,8 +186,8 @@ func (as SqlOAuthStore) GetApps() StoreChannel {
 
 		var apps []*model.OAuthApp
 
-		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps"); err != nil {
-			result.Err = model.NewLocAppError("SqlOAuthStore.GetAppByUser", "store.sql_oauth.get_apps.find.app_error", nil, "err="+err.Error())
+		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlOAuthStore.GetAppByUser", "store.sql_oauth.get_apps.find.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = apps
@@ -197,7 +199,7 @@ func (as SqlOAuthStore) GetApps() StoreChannel {
 	return storeChannel
 }
 
-func (as SqlOAuthStore) GetAuthorizedApps(userId string) StoreChannel {
+func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -207,8 +209,8 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string) StoreChannel {
 
 		if _, err := as.GetReplica().Select(&apps,
 			`SELECT o.* FROM OAuthApps AS o INNER JOIN
-			Preferences AS p ON p.Name=o.Id AND p.UserId=:UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewLocAppError("SqlOAuthStore.GetAuthorizedApps", "store.sql_oauth.get_apps.find.app_error", nil, "err="+err.Error())
+			Preferences AS p ON p.Name=o.Id AND p.UserId=:UserId LIMIT :Limit OFFSET :Offset`, map[string]interface{}{"UserId": userId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlOAuthStore.GetAuthorizedApps", "store.sql_oauth.get_apps.find.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = apps
@@ -386,6 +388,12 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) StoreChan
 
 	go func() {
 		result := StoreResult{}
+
+		if result.Err = accessData.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
 
 		if _, err := as.GetMaster().Exec("UPDATE OAuthAccessData SET Token = :Token, ExpiresAt = :ExpiresAt WHERE ClientId = :ClientId AND UserID = :UserId",
 			map[string]interface{}{"Token": accessData.Token, "ExpiresAt": accessData.ExpiresAt, "ClientId": accessData.ClientId, "UserId": accessData.UserId}); err != nil {

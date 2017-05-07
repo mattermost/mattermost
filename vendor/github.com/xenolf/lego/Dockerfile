@@ -7,7 +7,7 @@ RUN apk update && apk add ca-certificates go git && \
     go get -u github.com/xenolf/lego && \
     cd /go/src/github.com/xenolf/lego && \
     go build -o /usr/bin/lego . && \
-    apk del ca-certificates go git && \
+    apk del go git && \
     rm -rf /var/cache/apk/* && \
     rm -rf /go
 

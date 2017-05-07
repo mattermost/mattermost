@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package store
@@ -114,7 +114,19 @@ func TestFileInfoGetForPost(t *testing.T) {
 		infos[i] = Must(store.FileInfo().Save(info)).(*model.FileInfo)
 	}
 
-	if result := <-store.FileInfo().GetForPost(postId); result.Err != nil {
+	if result := <-store.FileInfo().GetForPost(postId, true, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
+		t.Fatal("should've returned exactly 2 file infos")
+	}
+
+	if result := <-store.FileInfo().GetForPost(postId, false, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
+		t.Fatal("should've returned exactly 2 file infos")
+	}
+
+	if result := <-store.FileInfo().GetForPost(postId, true, true); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if returned := result.Data.([]*model.FileInfo); len(returned) != 2 {
 		t.Fatal("should've returned exactly 2 file infos")
@@ -157,7 +169,7 @@ func TestFileInfoAttachToPost(t *testing.T) {
 		info2 = Must(store.FileInfo().Get(info2.Id)).(*model.FileInfo)
 	}
 
-	if result := <-store.FileInfo().GetForPost(postId); result.Err != nil {
+	if result := <-store.FileInfo().GetForPost(postId, true, false); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if infos := result.Data.([]*model.FileInfo); len(infos) != 2 {
 		t.Fatal("should've returned exactly 2 file infos")
@@ -202,7 +214,7 @@ func TestFileInfoDeleteForPost(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 
-	if infos := Must(store.FileInfo().GetForPost(postId)).([]*model.FileInfo); len(infos) != 0 {
+	if infos := Must(store.FileInfo().GetForPost(postId, true, false)).([]*model.FileInfo); len(infos) != 0 {
 		t.Fatal("shouldn't have returned any file infos")
 	}
 }

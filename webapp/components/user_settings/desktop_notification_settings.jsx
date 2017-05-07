@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import SettingItemMin from 'components/setting_item_min.jsx';
@@ -74,6 +74,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='soundOn'
                                     type='radio'
                                     name='notificationSounds'
                                     checked={soundRadio[0]}
@@ -89,6 +90,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <div className='radio'>
                             <label>
                                 <input
+                                    id='soundOff'
                                     type='radio'
                                     name='notificationSounds'
                                     checked={soundRadio[1]}
@@ -105,7 +107,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='user.settings.notifications.sounds_info'
-                                defaultMessage='Notification sounds are available on IE11, Edge, Safari and Chrome.'
+                                defaultMessage='Notification sounds are available on IE11, Edge, Safari, Chrome and Mattermost Desktop Apps.'
                             />
                         </span>
                     </div>
@@ -136,6 +138,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDuration3'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[0]}
@@ -154,6 +157,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDuration5'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[1]}
@@ -172,6 +176,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDuration10'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[2]}
@@ -189,6 +194,7 @@ export default class DesktopNotificationSettings extends React.Component {
                     <div className='radio'>
                         <label>
                             <input
+                                id='soundDurationUnlimited'
                                 type='radio'
                                 name='desktopDuration'
                                 checked={durationRadio[3]}
@@ -207,7 +213,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.desktop.durationInfo'
-                        defaultMessage='Sets how long desktop notifications will remain on screen.'
+                        defaultMessage='Sets how long desktop notifications will remain on screen when using Firefox or Chrome. Desktop notifications in Edge and Safari can only stay on screen for a maximum of 5 seconds.'
                     />
                 </span>
             );
@@ -225,6 +231,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <div className='radio'>
                     <label>
                         <input
+                            id='desktopNotificationAllActivity'
                             type='radio'
                             name='desktopNotificationLevel'
                             checked={activityRadio[0]}
@@ -240,6 +247,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <div className='radio'>
                     <label>
                         <input
+                            id='desktopNotificationMentions'
                             type='radio'
                             name='desktopNotificationLevel'
                             checked={activityRadio[1]}
@@ -255,6 +263,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <div className='radio'>
                     <label>
                         <input
+                            id='desktopNotificationNever'
                             type='radio'
                             name='desktopNotificationLevel'
                             checked={activityRadio[2]}
@@ -270,7 +279,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 <span>
                     <FormattedMessage
                         id='user.settings.notifications.info'
-                        defaultMessage='Desktop notifications are available on Firefox, Safari, and Chrome.'
+                        defaultMessage='Desktop notifications are available on Edge, Firefox, Safari, Chrome and Mattermost Desktop Apps.'
                     />
                 </span>
                 {soundSection}

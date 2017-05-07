@@ -61,7 +61,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "ログファイルの読み込み中にエラーになりました"
+    "translation": "ログファイルの読み込み中にエラーが発生しました"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
@@ -148,6 +148,10 @@
     "translation": "権限を確認するユーザーを取得できません。"
   },
   {
+    "id": "api.brand.init.debug",
+    "translation": "ブランドAPIルートを初期化しています"
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%vは、%vによってチャンネルに追加されました"
   },
@@ -181,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "非公開グループの作成と管理は、システム管理者しかできません。"
+    "translation": "非公開チャンネルの作成と管理は、システム管理者のみが行えます。"
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "非公開グループの作成と管理は、チーム管理者かシステム管理者しかできません。"
+    "translation": "非公開チャンネルの作成と管理は、チーム管理者かシステム管理者のみが行えます。"
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -217,7 +221,15 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "他のユーザーIDが不正です"
+    "translation": "ダイレクトチャンネル作成のユーザーIDが不正です"
+  },
+  {
+    "id": "api.channel.create_group.bad_size.app_error",
+    "translation": "グループメッセージチャンネルは３〜８ユーザーでなければなりません"
+  },
+  {
+    "id": "api.channel.create_group.bad_user.app_error",
+    "translation": "指定されたユーザーの一人が存在しません"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -276,6 +288,10 @@
     "translation": "チャンネルAPIルートを初期化しています"
   },
   {
+    "id": "api.channel.join_channel.already_deleted.app_error",
+    "translation": "チャンネルは既に削除されています"
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "あなたには必要な権限が付与されていません"
   },
@@ -293,15 +309,27 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開グループを削除しましょう。"
+    "translation": "あなたが最後のメンバーです。脱退する代わりに非公開チャンネルを削除しましょう。"
   },
   {
     "id": "api.channel.leave.left",
     "translation": "%vがチャンネルから脱退しました。"
   },
   {
-    "id": "api.channel.post_update_channel_header_message_and_forget.join_leave.error",
-    "translation": "参加/脱退のメッセージを投稿できませんでした %v"
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "表示名更新メッセージを投稿できませんでした"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
+    "translation": "チャンネル表示名を更新する際にユーザーを取得できませんでした"
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
+    "translation": "%sがチャンネル表示名を %s から %s に更新しました"
+  },
+  {
+    "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
+    "translation": "チャンネルヘッダー更新メッセージを投稿できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -309,7 +337,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "チャンネルのヘッダー更新メッセージ%vを保存する際にユーザーを取得できませんでした"
+    "translation": "チャンネルヘッダーを更新する際にユーザーを取得できませんでした"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -321,7 +349,11 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "参加/脱退のメッセージ%vを投稿できませんでした"
+    "translation": "参加/脱退のメッセージを投稿できませんでした"
+  },
+  {
+    "id": "api.channel.remove.default.app_error",
+    "translation": "デフォルトのチャンネル{{.Channel}}から脱退することはできません"
   },
   {
     "id": "api.channel.remove_member.permissions.app_error",
@@ -356,8 +388,12 @@
     "translation": "デフォルトのチャンネル{{.Channel}}に不正な更新をしようとしました"
   },
   {
-    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.errord",
+    "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
     "translation": "未読数を取得できませんでした user_id=%v and channel_id=%v, err=%v"
+  },
+  {
+    "id": "api.cluster.init.debug",
+    "translation": "クラスターAPIルートを初期化しています"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -365,7 +401,7 @@
   },
   {
     "id": "api.command.delete.app_error",
-    "translation": "削除コマンドに必要な権限が付与されていません"
+    "translation": "コマンドの削除に必要な権限が付与されていません"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -440,6 +476,14 @@
     "translation": "コマンドトークンを再生成するために必要な権限が付与されていません"
   },
   {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "他チームのコマンドは更新できません"
+  },
+  {
+    "id": "api.command.update.app_error",
+    "translation": "コマンドの更新に必要な権限が付与されていません"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "離席状態に設定します"
   },
@@ -458,6 +502,10 @@
   {
     "id": "api.command_collapse.name",
     "translation": "折りたたみ"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "画像のリンクはデフォルトで折りたたまれます"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -480,6 +528,10 @@
     "translation": "'メッセージ' [遅延秒数]"
   },
   {
+    "id": "api.command_echo.message.app_error",
+    "translation": "/echo コマンドはメッセージを指定しなくてはいけません。"
+  },
+  {
     "id": "api.command_echo.name",
     "translation": "エコー"
   },
@@ -490,6 +542,10 @@
   {
     "id": "api.command_expand.name",
     "translation": "展開"
+  },
+  {
+    "id": "api.command_expand.success",
+    "translation": "画像リンクはデフォルトで展開されます"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -534,10 +590,6 @@
   {
     "id": "api.command_logout.name",
     "translation": "ログアウト"
-  },
-  {
-    "id": "api.command_logout.success_message",
-    "translation": "ログアウト中です…"
   },
   {
     "id": "api.command_me.desc",
@@ -608,44 +660,144 @@
     "translation": "あなたはオンライン状態です"
   },
   {
-    "id": "api.command_shortcuts.browser",
-    "translation": "#### 内蔵ブラウザーコマンド\n\nALT+左: 履歴の前のチャンネル\nALT+右: 履歴の次のチャンネル\nCTRL+プラス: フォントを大きくする(ズームイン)\nCTRL+マイナス: フォントを小さくする(ズームアウト)\nSHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\nSHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "id": "api.command_shortcuts.browser.channel_next",
+    "translation": "{{.ChannelNextCmd}}: 履歴の次のチャンネル\n"
   },
   {
-    "id": "api.command_shortcuts.browser_mac",
-    "translation": "#### 内蔵ブラウザーコマンド\n\nCMD+[: 履歴の前のチャンネル\nCMD+]: 履歴の次のチャンネル\nCMD+プラス: フォントを大きくする(ズームイン)\nCMD+マイナス: フォントを小さくする(ズームアウト)\nSHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\nSHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\nSHIFT+ENTER (入力欄で): 改行する\n"
+    "id": "api.command_shortcuts.browser.channel_next.cmd",
+    "translation": "ALT+右"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
+    "translation": "CMD+]"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev",
+    "translation": "{{.ChannelPrevCmd}}: 履歴の前のチャンネル\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd",
+    "translation": "ALT+左"
+  },
+  {
+    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
+    "translation": "CMD+["
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_decrease",
+    "translation": "{{.CmdOrCtrl}}+マイナス: フォントを小さくする(ズームアウト)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.font_increase",
+    "translation": "{{.CmdOrCtrl}}+プラス: フォントを大きくする(ズームイン)\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.header",
+    "translation": "#### 内蔵ブラウザーコマンド\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_next",
+    "translation": "SHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.highlight_prev",
+    "translation": "SHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\n"
+  },
+  {
+    "id": "api.command_shortcuts.browser.newline",
+    "translation": "SHIFT+ENTER (入力欄で): 改行する\n"
+  },
+  {
+    "id": "api.command_shortcuts.cmd",
+    "translation": "CMD"
+  },
+  {
+    "id": "api.command_shortcuts.ctrl",
+    "translation": "CTRL"
   },
   {
     "id": "api.command_shortcuts.desc",
     "translation": "キーボードショートカットのリストを表示する"
   },
   {
-    "id": "api.command_shortcuts.files",
-    "translation": "#### ファイル\n\nCTRL+U: ファイルをアップロードする\n\n"
+    "id": "api.command_shortcuts.files.header",
+    "translation": "#### ファイル\n\n"
   },
   {
-    "id": "api.command_shortcuts.files_mac",
-    "translation": "#### ファイル\n\nCMD+U: ファイルをアップロードする\n\n"
+    "id": "api.command_shortcuts.files.upload",
+    "translation": "{{.CmdOrCtrl}}+U: ファイルをアップロードする\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs",
-    "translation": "#### メッセージ\n\nAlt+[メッセージ上でクリック]: 現在のチャンネルで、そのメッセージを最古の未読のメッセージにする\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCTRL+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCTRL+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "id": "api.command_shortcuts.header",
+    "translation": "### キーボードショートカット\n\n"
   },
   {
-    "id": "api.command_shortcuts.msgs_mac",
-    "translation": "#### メッセージ\n\nAlt+[メッセージ上でクリック]: 現在のチャンネルで、そのメッセージを最古の未読のメッセージにする\nESC: 現在のチャンネルの全てのメッセージを既読にする\nCMD+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\nCMD+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\nUP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n@[文字]+TAB: [文字]で始まる@usernameを自動補完する\n:[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+    "id": "api.command_shortcuts.msgs.comp_channel",
+    "translation": "~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_emoji",
+    "translation": ":[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.comp_username",
+    "translation": "@[文字]+TAB: [文字]で始まる @ユーザー名 を自動補完する\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.edit",
+    "translation": "UP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.header",
+    "translation": "#### メッセージ\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.mark_as_read",
+    "translation": "ESC: 現在のチャンネルの全てのメッセージを既読にする\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_next",
+    "translation": "{{.CmdOrCtrl}}+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reprint_prev",
+    "translation": "{{.CmdOrCtrl}}+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
   },
   {
-    "id": "api.command_shortcuts.nav",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\nCTRL+K: 高速チャンネル切り替えダイアログボックスを開く\nCTRL+SHIFT+A: アカウント設定を開く\nCTRL+SHIFT+M: 最近の自分についての投稿を開く\n\n"
+    "id": "api.command_shortcuts.nav.header",
+    "translation": "#### 移動\n\n"
   },
   {
-    "id": "api.command_shortcuts.nav_mac",
-    "translation": "### キーボードショートカット\n\n#### 移動\n\nALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\nALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\nALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\nCMD+K: 高速チャンネル切り替えダイアログボックスを開く\nCMD+SHIFT+A: アカウント設定を開く\nCMD+SHIFT+M: 最近の自分についての投稿を開く\n\n"
+    "id": "api.command_shortcuts.nav.next",
+    "translation": "ALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.prev",
+    "translation": "ALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.recent_mentions",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+M: 最近の自分についての投稿を開く\n\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.settings",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+A: アカウント設定を開く\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: 高速チャンネル切り替えダイアログボックスを開く\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_next",
+    "translation": "ALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.unread_prev",
+    "translation": "ALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\n"
   },
   {
     "id": "api.command_shrug.desc",
@@ -660,12 +812,28 @@
     "translation": "shrug"
   },
   {
+    "id": "api.compliance.init.debug",
+    "translation": "コンプライアンスAPIルートを初期化しています"
+  },
+  {
+    "id": "api.config.client.old_format.app_error",
+    "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
   {
+    "id": "api.context.invalid_body_param.app_error",
+    "translation": "リクエストボディの{{.Name}}が存在しないか不正です"
+  },
+  {
     "id": "api.context.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
+  },
+  {
+    "id": "api.context.invalid_session.error",
+    "translation": "無効なセッション err=%v"
   },
   {
     "id": "api.context.invalid_team_url.debug",
@@ -673,7 +841,15 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "不正なセッショントークンです token=%v、err=%v"
+    "translation": "無効なセッショントークン={{.Token}}, err={{.Error}}"
+  },
+  {
+    "id": "api.context.invalid_url_param.app_error",
+    "translation": "リクエストURLの{{.Name}}が存在しないか不正です"
+  },
+  {
+    "id": "api.context.invalidate_all_caches",
+    "translation": "全てのキャッシュを破棄しています"
   },
   {
     "id": "api.context.last_activity_at.error",
@@ -682,6 +858,14 @@
   {
     "id": "api.context.log.error",
     "translation": "%v:%v code=%v rid=%v uid=%v ip=%v %v [詳細: %v]"
+  },
+  {
+    "id": "api.context.mfa_required.app_error",
+    "translation": "このサーバーでは多要素認証が必要です。"
+  },
+  {
+    "id": "api.context.missing_teamid.app_error",
+    "translation": "チームIDが見付かりません"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -702,6 +886,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "詳細不明なエラーが発生しました。サポートに問い合わせしてください。"
+  },
+  {
+    "id": "api.deprecated.init.debug",
+    "translation": "非推奨APIルートを初期化しています"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -734,6 +922,10 @@
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
     "translation": "投稿へ行く"
+  },
+  {
+    "id": "api.email_batching.render_batched_post.group_message",
+    "translation": "グループメッセージ"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -783,7 +975,11 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "絵文字を作成できません。画像サイズは64KB未満でなければなりません。"
+    "translation": "絵文字を作成できません。画像サイズは1MB未満でなければなりません。"
+  },
+  {
+    "id": "api.emoji.delete.delete_reactions.app_error",
+    "translation": "絵文字名 %v の絵文字を削除する際にリアクションを削除できません"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -806,6 +1002,10 @@
     "translation": "絵文字APIルートを初期化しています"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "絵文字APIルートを初期化しています"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
   },
@@ -814,8 +1014,20 @@
     "translation": "絵文字を作成できません。ファイルはPNGまたはJPEG、GIFにしてください。"
   },
   {
-    "id": "api.emoji.upload.large_image.app_error",
-    "translation": "絵文字を作成できません。画像は128x128ピクセル以内である必要があります。"
+    "id": "api.emoji.upload.large_image.decode_error",
+    "translation": "絵文字を作成できません。画像をデコードする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.encode_error",
+    "translation": "絵文字を作成できません。画像をエンコードする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_decode_error",
+    "translation": "絵文字を作成できません。GIF画像をデコードする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.emoji.upload.large_image.gif_encode_error",
+    "translation": "絵文字を作成できません。GIF画像をエンコードする際にエラーが発生しました。"
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
@@ -826,8 +1038,8 @@
     "translation": "公開リンクが不正です"
   },
   {
-    "id": "api.file.get_file_preview.no_thumbnail.app_error",
-    "translation": "このファイルにはプレビュー画像がありません"
+    "id": "api.file.get_file_preview.no_preview.app_error",
+    "translation": "ファイルにプレビュー画像がありません"
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
@@ -859,7 +1071,7 @@
   },
   {
     "id": "api.file.handle_images_forget.decode.error",
-    "translation": "画像をデコードできません  err=%v"
+    "translation": "画像をデコードできません err=%v"
   },
   {
     "id": "api.file.handle_images_forget.encode_jpeg.error",
@@ -982,8 +1194,12 @@
     "translation": "ローカルサーバーストレージからの読み込みに失敗しました"
   },
   {
+    "id": "api.file.upload_file.bad_parse.app_error",
+    "translation": "ファイルをアップロードできません。ヘッダーを解析できません。"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
+    "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1014,6 +1230,10 @@
     "translation": "全般APIルートを初期化しています"
   },
   {
+    "id": "api.import.import_post.attach_files.error",
+    "translation": "投稿へのファイル添付エラー。 postId=%v, fileIds=%v, message=%v"
+  },
+  {
     "id": "api.import.import_post.saving.debug",
     "translation": "投稿の保存エラー user=%v, message=%v"
   },
@@ -1032,6 +1252,14 @@
   {
     "id": "api.import.import_user.set_email.error",
     "translation": "電子メールを確認済みに設定できませんでした err=%v"
+  },
+  {
+    "id": "api.incoming_webhook.disabled.app_errror",
+    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.ldap.init.debug",
+    "translation": "LDAP APIルートを初期化しています"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1068,6 +1296,10 @@
   {
     "id": "api.license.add_license.unique_users.app_error",
     "translation": "あなたのシステムは{{.Count}}の重複のないユーザーが使ってます。このライセンスは{{.Users}}ユーザーのみサポートしています。重複のないユーザー数は、電子メールアドレスによって決められます。全ユーザー数は、サイトリポート->統計を見るを参照してください。"
+  },
+  {
+    "id": "api.license.client.old_format.app_error",
+    "translation": "クライアントのライセンスで新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
   },
   {
     "id": "api.license.init.debug",
@@ -1255,7 +1487,7 @@
   },
   {
     "id": "api.post.delete_flagged_post.app_error.warn",
-    "translation": "投稿を削除する際に、フラッグの付いた投稿の設定を削除できません。err=%v"
+    "translation": "投稿を削除する際に、フラグの付いた投稿の設定を削除できません。err=%v"
   },
   {
     "id": "api.post.delete_post.permissions.app_error",
@@ -1264,6 +1496,18 @@
   {
     "id": "api.post.delete_post_files.app_error.warn",
     "translation": "投稿のファイルを削除する際にエラーが発生しました post_id=%v, err=%v"
+  },
+  {
+    "id": "api.post.disabled_all",
+    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@allは無効化されています。"
+  },
+  {
+    "id": "api.post.disabled_channel",
+    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@channelは無効化されています。"
+  },
+  {
+    "id": "api.post.disabled_here",
+    "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@hereは無効化されています。"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1292,24 +1536,8 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
-    "id": "api.post.handle_post_events_and_forget.channel.error",
-    "translation": "チャンネルを取得できませんでした channel_id=%s, err=%v"
-  },
-  {
     "id": "api.post.handle_post_events_and_forget.members.error",
     "translation": "チャンネルの参加者が取得できませんでした channel_id=%v err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.profiles.error",
-    "translation": "ユーザーのプロフィールを取得できませんでした team_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.team.error",
-    "translation": "チームが取得できませんでした team_id=%s, err=%v"
-  },
-  {
-    "id": "api.post.handle_post_events_and_forget.user.error",
-    "translation": "ユーザーが取得できませんでした user_id=%s, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1320,16 +1548,16 @@
     "translation": "POSTイベントが失敗しました err=%s"
   },
   {
-    "id": "api.post.handle_webhook_events_and_forget.getting.error",
-    "translation": "チームによるウェブフックに失敗しました err=%v"
+    "id": "api.post.init.debug",
+    "translation": "投稿APIルートを初期化しています"
   },
   {
-    "id": "api.post.init.debug",
-    "translation": "POST APIルートを初期化しています"
+    "id": "api.post.link_preview_disabled.app_error",
+    "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_2_members.error",
-    "translation": "ダイレクトチャンネルの2人のメンバーを取得できませんでした channel_id=%v"
+    "translation": "ダイレクトチャンネルの2人のメンバーを取得できませんでした channel_id={{.ChannelId}}"
   },
   {
     "id": "api.post.make_direct_channel_visible.get_members.error",
@@ -1344,20 +1572,16 @@
     "translation": "ダイレクトチャンネルの設定を更新できませんでした user_id=%v other_user_id=%v err=%v"
   },
   {
-    "id": "api.post.notification.here.warn",
-    "translation": "@here を使って、オンラインのユーザーへ通知を送ることができませんでした。err=%v"
-  },
-  {
     "id": "api.post.notification.member_profile.warn",
     "translation": "チャンネルメンバーのプロフィールを取得できませんでした user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "%vへのプッシュ通知をクリアーしています(channel_id %v)"
+    "id": "api.post.send_notifications.user_id.debug",
+    "translation": "その投稿の作成者がチャンネルにいないため、通知は送信されませんでした post_id=%v channel_id=%v user_id=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.comment_thread.error",
-    "translation": "通知内のコメントスレッドの投稿を取得できませんでした root_post_id=%v、err=%v"
+    "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
+    "translation": "%vへのプッシュ通知をクリアーしています(channel_id %v)"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -1405,23 +1629,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
-    "translation": "プッシュ通知を送れませんでした device_id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.send.error",
-    "translation": "あなたについての投稿を知らせる電子メールの送信できませんでした email=%v err=%v"
+    "translation": "プッシュ通知を送信出来ませんでした device_id={{.DeviceId}}, err={{.Error}}"
   },
   {
     "id": "api.post.send_notifications_and_forget.sent",
     "translation": "{{.Prefix}} {{.Filenames}}を送信しました"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.sessions.error",
-    "translation": "通知でセッションの取得に失敗しました id=%v, err=%v"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.user_id.error",
-    "translation": "GetProfilesで見付けられないuser_idを投稿します user_id=%v"
   },
   {
     "id": "api.post.update_mention_count_and_forget.update_error",
@@ -1436,8 +1648,16 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.post.update_post.permissions_denied.app_error",
+    "translation": "投稿を編集する機能は無効になっています。詳細はシステム管理者に問い合わせてください。"
+  },
+  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "既に削除されたIDです id={{.PostId}}"
+  },
+  {
+    "id": "api.post.update_post.permissions_time_limit.app_error",
+    "translation": "投稿を編集する機能は {{.timeLimit}} 秒間のみ有効です。詳細はシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1468,8 +1688,32 @@
     "translation": "他のユーザーの設定は変更できません"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
+    "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
+    "translation": "チャンネルIDがURL内の投稿IDと一致しないためリアクションを削除できませんでした"
+  },
+  {
+    "id": "api.reaction.init.debug",
+    "translation": "リアクションAPIルートを初期化しています"
+  },
+  {
+    "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
+    "translation": "チャンネルIDがURL内の投稿IDと一致しないためリアクションを取得できませんでした"
+  },
+  {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "リアクションが正しくありません。"
+  },
+  {
+    "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
+    "translation": "チャンネルIDがURL内の投稿IDと一致しないためリアクションを保存できませんでした"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "他のユーザーのリアクションを保存することはできません。"
+  },
+  {
+    "id": "api.reaction.send_reaction_event.post.app_error",
+    "translation": "リアクションに対するウェブソケットイベントを送信する際に、投稿を取得することができませんでした"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -1520,6 +1764,14 @@
     "translation": "サーバーを停止しています…"
   },
   {
+    "id": "api.slackimport.slack_add_bot_user.email_pwd",
+    "translation": "Slack Bot/Integration投稿インポートユーザー: 電子メール, パスワード: {{.Email}}, {{.Password}}\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.unable_import",
+    "translation": "Slack Bot/Integration投稿インポートユーザーをインポートできませんでした: {{.Username}}\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_channels.added",
     "translation": "\r\n チャンネルが追加されました \r\n"
   },
@@ -1533,7 +1785,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack Importer: チャンネルをインポートできませんでした: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1548,12 +1800,20 @@
     "translation": "Slack botの投稿はまだインポートされていません"
   },
   {
+    "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
+    "translation": "Slack Importer: botインポートユーザーが存在しないためbotメッセージをインポートしませんでした。"
+  },
+  {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
     "translation": "ファイルコメントが定義されていません"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
     "translation": "ユーザーなしのメッセージ"
+  },
+  {
+    "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
+    "translation": "Slack Importer: 項目BotIdが欠けていたためbotメッセージをインポートしませんでした。"
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1596,6 +1856,18 @@
     "translation": "既に存在するユーザーとマージしました: {{.Email}}, {{.Username}}\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing_failed",
+    "translation": "既存のアカウント{{.Email}}, {{.Username}} とユーザーをマージしようとしましたが、このチームにユーザーを追加できませんでした。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address",
+    "translation": "ユーザー {{.Username}} はSlackエクスポートで電子メールアドレスが設定されていません。プレイスホルダーの {{.Email}} を利用してください。システムにログインした時、そのユーザーは電子メールアドレスを更新する必要があります。\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.missing_email_address.warn",
+    "translation": "ユーザー {{.Username}} はSlackエクスポートで電子メールアドレスが設定されていません。プレイスホルダーの {{.Email}} を利用してください。システムにログインした時、そのユーザーは電子メールアドレスを更新する必要があります。"
+  },
+  {
     "id": "api.slackimport.slack_add_users.unable_import",
     "translation": "ユーザーをインポートできません: {{.Username}}\r\n"
   },
@@ -1610,6 +1882,10 @@
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
     "translation": "Slackユーザー{{.UserID}} {{.Username}}の@mensionに一致する正規表現のコンパイルに失敗しました。"
+  },
+  {
+    "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
+    "translation": "Slack Importer: botインポートユーザーを非活性にできませんでした。"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1652,6 +1928,26 @@
     "translation": "Slackの投稿を読み込み中にエラーが発生しました。しかしインポートは継続できます。"
   },
   {
+    "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}} の表示名が長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}}のヘッダーが長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}}の名前が長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
+    "translation": "Slack Importer: チャンネル {{.ChannelName}}の目的が長すぎます。インポートの際に切り詰められます。"
+  },
+  {
+    "id": "api.status.init.debug",
+    "translation": "状態APIルートを初期化しています"
+  },
+  {
     "id": "api.status.init.debug",
     "translation": "状態APIルートを初期化しています"
   },
@@ -1662,6 +1958,22 @@
   {
     "id": "api.status.save_status.error",
     "translation": "状態を保存できませんでした user_id=%v、err=%v"
+  },
+  {
+    "id": "api.status.user_not_found.app_error",
+    "translation": "ユーザーが見付かりません"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_data.app_error",
+    "translation": "不正なデータです。"
+  },
+  {
+    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
+    "translation": "不正な招待IDです。この招待IDに一致するチームはありません。"
+  },
+  {
+    "id": "api.team.add_user_to_team.missing_parameter.app_error",
+    "translation": "チームにユーザーを追加するにはパラメーターが必要です。"
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -1717,7 +2029,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "ファイルサイズが分かりません"
+    "translation": "不正なリクエスト: ファイルサイズ項目が存在しません。"
   },
   {
     "id": "api.team.init.debug",
@@ -1788,8 +2100,12 @@
     "translation": "あなたには必要な権限が付与されていません"
   },
   {
+    "id": "api.templates.channel_name.group",
+    "translation": "グループメッセージ"
+  },
+  {
     "id": "api.templates.email_change_body.info",
-    "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたがこの変更をしていない場合には、システム管理者に問い合わせてください。"
+    "translation": "あなたの{{.TeamDisplayName}}用の電子メールアドレスが{{.NewEmail}}に変更されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1797,7 +2113,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "{{.TeamDisplayName}}用に電子メールアドレスが変更されました"
+    "translation": "[{{ .SiteName }}] あなたの電子メールアドレスが変更されました"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1813,7 +2129,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "{{.TeamDisplayName}}用の電子メールアドレスを確認する"
+    "translation": "[{{ .SiteName }}] 新しい電子メールアドレスを確認してください"
   },
   {
     "id": "api.templates.email_footer",
@@ -1869,7 +2185,27 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "{{ .SenderName }}が{{.SiteName}}の{{ .TeamDisplayName }}に参加するように招待しています。"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} があなたを {{ .TeamDisplayName }} チームに招待しました"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "{{ .SiteURL }}のあなたのアカウントに多要素認証が追加されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "多要素認証が追加されました"
+  },
+  {
+    "id": "api.templates.mfa_change_subject",
+    "translation": "[{{ .SiteName }}] あなたの多要素認証が更新されました"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "{{ .SiteURL }}のあなたのアカウントから多要素認証が削除されました。<br>あなたが変更したのでなければ、システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "多要素認証が削除されました"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -1881,7 +2217,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "{{ .SiteName }}の{{.TeamDisplayName}}のパスワードが更新されました。"
+    "translation": "[{{ .SiteName }}] あなたのパスワードが更新されました"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1897,7 +2233,11 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SenderDisplayName}}の投稿した{{.TeamDisplayName}}の{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{.SenderDisplayName}}からの{{.SubjectText}} 日付: {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "api.templates.post_subject_in_group_message",
+    "translation": "{{ .SenderDisplayName}} からの新しいグループメッセージ 日付: {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1913,7 +2253,11 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "パスワードを初期化する"
+    "translation": "[{{ .SiteName }}] あなたのパスワードをリセットしました"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "{{ .SiteName }}のサインイン方法を{{.Method}}に更新しました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -1922,6 +2266,10 @@
   {
     "id": "api.templates.signin_change_email.body.title",
     "translation": "サインイン方法を更新しました"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] {{ .SiteName }}のサインイン方法が更新されました"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -1940,16 +2288,8 @@
     "translation": "{{ .SiteName }}チームのセットアップ"
   },
   {
-    "id": "api.templates.singin_change_email.body.info",
-    "translation": "{{ .SiteName }}のサインイン方法は{{.Method}}に更新されました。<br>あなたが変更したのでなければ、システム管理者へ問い合わせてください。"
-  },
-  {
-    "id": "api.templates.singin_change_email.subject",
-    "translation": "{{ .SiteName }}へのあなたのサインイン方法を更新しました"
-  },
-  {
     "id": "api.templates.upgrade_30_body.info",
-    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>重複していたアカウントが更新されました</h3>利用しているMattermostサーバーがバージョン3.0に更新され、1つのアカウントで複数のチームを利用できるようになりました。<br/><br/>サーバー上の他のアカウントと同じメールアドレス・ユーザー名が使用されていることを検知したため、このメールでお知らせしています。<br/><br/>アカウントは次の通りに更新されました: <br/><br/>{{if .EmailChanged }}- メールアドレスが重複していた`/{{.TeamName}}`チームのアカウントのメールアドレスは`{{.Email}}`に変更されました。 メールアドレスとパスワードをログインに使用している場合は、この新しいメールアドレスを使用してください。<br/><br/>{{end}}{{if .UsernameChanged }}- ユーザー名が重複していた`/{{.TeamName}}`チームのアカウントのユーザー名は`{{.Username}}`に変更されました。<br/><br/>{{end}} 推奨される操作: <br/><br/>重複していたアカウントを利用してチームへログインし、メインのアカウントをチームと公開チャンネル、利用を続ける非公開グループに追加することを推奨します。<br/><br/>メインのアカウントで全ての公開チャンネルと非公開グループの履歴を閲覧することが出来ます。ダイレクトメッセージの履歴は、重複していたアカウントでログインすることで閲覧することが出来ます。<br/><br/>追加情報: <br/><br/>Mattermost 3.0への更新に関する情報は、次のURLよりご確認ください: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
+    "translation": "<h3 style='font-weight: normal; margin-top: 10px;'>重複していたアカウントが更新されました</h3>利用しているMattermostサーバーがバージョン3.0に更新され、1つのアカウントを複数のチームで利用できるようになりました。<br/><br/>サーバー上の他のアカウントと同じメールアドレス・ユーザー名が使用されていることを検知したため、このメールでお知らせしています。<br/><br/>アカウントは次の通りに更新されました: <br/><br/>{{if .EmailChanged }}- メールアドレスが重複していた`/{{.TeamName}}`チームのアカウントのメールアドレスは`{{.Email}}`に変更されました。 メールアドレスとパスワードをログインに使用している場合は、この新しいメールアドレスを使用してください。<br/><br/>{{end}}{{if .UsernameChanged }}- ユーザー名が重複していた`/{{.TeamName}}`チームのアカウントのユーザー名は`{{.Username}}`に変更されました。<br/><br/>{{end}} 推奨される操作: <br/><br/>重複していたアカウントを利用してチームへログインし、メインのアカウントをチームとチャンネルに追加することを推奨します。<br/><br/>メインのアカウントで全てのチャンネルの履歴を閲覧することが出来ます。ダイレクトメッセージの履歴は、重複していたアカウントでログインすることで閲覧することが出来ます。<br/><br/>追加情報: <br/><br/>Mattermost 3.0への更新に関する情報は、次のURLよりご確認ください: <a href='http://www.mattermost.org/upgrading-to-mattermost-3-0/'>http://www.mattermost.org/upgrading-to-mattermost-3-0/</a><br/><br/>"
   },
   {
     "id": "api.templates.upgrade_30_subject.info",
@@ -1965,7 +2305,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "{{.TeamDisplayName}}用にユーザー名が変更されました"
+    "translation": "[{{ .SiteName }}] あなたのユーザー名が変更されました"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2009,15 +2349,15 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "{{ .ServerURL }}に参加しました"
+    "translation": "[{{ .SiteName }}] {{ .ServerURL }}に参加しました"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFAはこのアカウントタイプでは使用できません"
+    "translation": "多要素認証はこのアカウントタイプでは使用できません"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "ユーザーのダイレクトチャンネルの設定に追加できませんでした user_id=%s, team_id=%s, err=%v"
+    "translation": "ユーザーにダイレクトチャンネルの設定を追加できませんでした user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2057,11 +2397,11 @@
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "不正なMFAトークンです。"
+    "translation": "不正な多要素認証トークンです。"
   },
   {
     "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "MFAは設定されていないか、このサーバーではサポートされていません"
+    "translation": "多要素認証は設定されていないか、このサーバーではサポートされていません"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2112,6 +2452,10 @@
     "translation": "あなたの指定した電子メールアドレスのドメインは許可されていません。システム管理者に連絡するか他の電子メールアドレスで利用登録してください。"
   },
   {
+    "id": "api.user.create_user.disabled.app_error",
+    "translation": "ユーザーの作成は無効です。"
+  },
+  {
     "id": "api.user.create_user.joining.error",
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
   },
@@ -2153,7 +2497,7 @@
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "このサーバーでは、MFAは設定されていないか利用できません"
+    "translation": "このサーバーでは、多要素認証は設定されていないか利用できません"
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
@@ -2181,7 +2525,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "あなたのアカウントは無効化されています。システム管理者に連絡してください。"
+    "translation": "あなたのアカウントが無効化されているためログインできませんでした。  システム管理者に連絡してください。"
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -2189,7 +2533,7 @@
   },
   {
     "id": "api.user.login.not_provided.app_error",
-    "translation": "ユーザーIDまたはチーム名と電子メールアドレスの組み合わせを指定しなくてはいけません"
+    "translation": "ユーザーIDまたはチーム名と電子メールのいずれかを入力しなければなりません"
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2269,19 +2613,19 @@
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
-    "translation": "電子メールアドレス変更の確認の電子メールを送信できませんでした err=%v"
+    "translation": "電子メールアドレス変更通知の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "ユーザー名変更の確認の電子メールを送信しました err=%v"
+    "translation": "ユーザー名変更通知の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした err=%v"
+    "translation": "電子メールアドレス変更確認の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "パスワード更新の電子メールを送信できませんでした err=%v"
+    "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
@@ -2297,15 +2641,15 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "パスワード更新の電子メールを送信できませんでした err=%v"
+    "translation": "パスワード更新の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "確認の電子メールを送信できませんでした err=%v"
+    "translation": "確認の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "歓迎の電子メールを送信できませんでした err=%v"
+    "translation": "歓迎の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
@@ -2317,7 +2661,11 @@
   },
   {
     "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "MFAはこのサーバーで設定されていないか利用できません"
+    "translation": "多要素認証はこのサーバーで設定されていないか利用できません"
+  },
+  {
+    "id": "api.user.update_oauth_user_attrs.get_user.app_error",
+    "translation": "{{.Service}}ユーザーオブジェクトからユーザーを取得できませんでした"
   },
   {
     "id": "api.user.update_password.context.app_error",
@@ -2440,10 +2788,6 @@
     "translation": "teamId=%v用のチームハブを停止しています"
   },
   {
-    "id": "api.webhook.create_incoming.disabled.app_errror",
-    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
-  },
-  {
     "id": "api.webhook.create_outgoing.disabled.app_error",
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
@@ -2464,11 +2808,11 @@
     "translation": "trigger_wordsまたはchannel_idを設定してください"
   },
   {
-    "id": "api.webhook.delete_incoming.disabled.app_errror",
+    "id": "api.webhook.delete_incoming.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.webhook.delete_incoming.permissions.app_errror",
+    "id": "api.webhook.delete_incoming.permissions.app_error",
     "translation": "内向きのウェブフックを削除するのに十分な権限が付与されていません"
   },
   {
@@ -2478,14 +2822,6 @@
   {
     "id": "api.webhook.delete_outgoing.permissions.app_error",
     "translation": "外向きのウェブフックを削除するのに十分な権限が付与されていません"
-  },
-  {
-    "id": "api.webhook.get_incoming.disabled.app_error",
-    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
-  },
-  {
-    "id": "api.webhook.get_outgoing.disabled.app_error",
-    "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
     "id": "api.webhook.incoming.debug",
@@ -2500,24 +2836,352 @@
     "translation": "ウェブフックAPIルートを初期化しています"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.disabled.app_error",
+    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
+    "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.team_mismatch.app_error",
+    "translation": "他チームのウェブフックは更新できません"
+  },
+  {
+    "id": "api.webhook.update_incoming.disabled.app_error",
+    "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.webhook.update_incoming.permissions.app_error",
+    "translation": "内向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.disabled.app_error",
     "translation": "外向きのウェブフックはシステム管理者によって無効にされています。"
   },
   {
-    "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "外向きのウェブフックトークンを再生成するのに十分な権限が付与されていません"
+    "id": "api.webhook.update_outgoing.intersect.app_error",
+    "translation": "同一のチャンネルからの外向きのウェブフックには、同一のトリガーワード/コールバックURLを指定できません。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.not_open.app_error",
+    "translation": "外向きのウェブフックは、公開チャンネルに対してのみ更新できます。"
+  },
+  {
+    "id": "api.webhook.update_outgoing.permissions.app_error",
+    "translation": "外向きのウェブフックを更新するのに十分な権限が付与されていません"
+  },
+  {
+    "id": "api.webhook.update_outgoing.triggers.app_error",
+    "translation": "trigger_wordsまたはchannel_idを設定してください"
+  },
+  {
+    "id": "api.webrtc.disabled.app_error",
+    "translation": "WebRTCはこのサーバーでは有効化されていません。"
   },
   {
     "id": "api.webrtc.init.debug",
     "translation": "WebRTC APIルートを初期化しています"
   },
   {
-    "id": "api.webrtc.not_available.app_error",
-    "translation": "WebRTCはこのサーバーでは利用できません。"
+    "id": "api.webrtc.register_token.app_error",
+    "translation": "WebRTCトークンを登録する際にエラーが発生しました"
+  },
+  {
+    "id": "api.websocket.invalid_session.error",
+    "translation": "無効なセッション err=%v"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "不正な{{.Name}}パラメーターです"
+  },
+  {
+    "id": "app.channel.create_channel.no_team_id.app_error",
+    "translation": "チャンネルを作成するにはチームIDを指定しなければなりません"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.post.error",
+    "translation": "チャンネルの目的メッセージを投稿できませんでした"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.removed",
+    "translation": "%sがチャンネルヘッダーを削除しました(これまでは%sでした)"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
+    "translation": "チャンネルの目的メッセージ %v を更新する際にユーザーを取得できませんでした"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_from",
+    "translation": "%s がチャンネルの目的を %s から %s に更新しました"
+  },
+  {
+    "id": "app.channel.post_update_channel_purpose_message.updated_to",
+    "translation": "%s がチャンネルの目的を %s に更新しました"
+  },
+  {
+    "id": "app.import.bulk_import.file_scan.error",
+    "translation": "インポートデータファイルの読み込み中にエラーが発生しました。"
+  },
+  {
+    "id": "app.import.bulk_import.json_decode.error",
+    "translation": "JSONをデコードできませんでした。"
+  },
+  {
+    "id": "app.import.import_channel.team_not_found.error",
+    "translation": "チャンネルのインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
+  },
+  {
+    "id": "app.import.import_line.null_channel.error",
+    "translation": "インポートデータに \"channel\" という型がありましたが、そのチャンネルのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_post.error",
+    "translation": "インポートデータに \"post\" という型がありましたが、その投稿のオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_team.error",
+    "translation": "インポートデータに \"team\" という型がありましたが、そのチームのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_user.error",
+    "translation": "インポートデータに \"user\" という型がありましたが、そのユーザーのオブジェクトはnullです。"
+  },
+  {
+    "id": "app.import.import_line.unknown_line_type.error",
+    "translation": "インポートデータに不明な型 \"{{.Type}}\"がありました。"
+  },
+  {
+    "id": "app.import.import_post.channel_not_found.error",
+    "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.ChannelName}}\" のチャンネルが見つかりません。"
+  },
+  {
+    "id": "app.import.import_post.team_not_found.error",
+    "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
+  },
+  {
+    "id": "app.import.import_post.user_not_found.error",
+    "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.Username}}\" のユーザーが見つかりません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.create_at_zero.error",
+    "translation": "チャンネル作成日時には0を設定できません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_length.error",
+    "translation": "チャンネルの表示名の長さが制限を超えています。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.display_name_missing.error",
+    "translation": "必須のチャンネル設定値 display_name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.header_length.error",
+    "translation": "チャンネルヘッダーが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_characters.error",
+    "translation": "チャンネル名が不正な文字を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_length.error",
+    "translation": "チャンネル名が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.name_missing.error",
+    "translation": "必須のチャンネル設定値 name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.purpose_length.error",
+    "translation": "チャンネルの目的が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.team_missing.error",
+    "translation": "必須のチャンネル設定値 team が存在しません。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_invalid.error",
+    "translation": "チャンネルの種類が不正です。"
+  },
+  {
+    "id": "app.import.validate_channel_import_data.type_missing.error",
+    "translation": "必須のチャンネル設定値 type が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.channel_missing.error",
+    "translation": "必須の投稿設定値 Channel が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_missing.error",
+    "translation": "必須の投稿設定値 create_at が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.create_at_zero.error",
+    "translation": "投稿の作成日には0を設定できません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_length.error",
+    "translation": "投稿メッセージ設定値が許可された最大長を超えています。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.message_missing.error",
+    "translation": "必須の投稿設定値 Message が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.team_missing.error",
+    "translation": "必須の投稿設定値 Team が存在しません。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "必須の投稿設定値 User が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.allowed_domains_length.error",
+    "translation": "チームの許可されたドメインが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.create_at_zero.error",
+    "translation": "チームの作成日時には0を設定できません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "チームの説明が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_length.error",
+    "translation": "チームの表示名の長さが制限を超えています。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.display_name_missing.error",
+    "translation": "必須のチーム設定値 display_name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "チーム名が不正な文字を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "チーム名が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "必須のチーム設定値 name が存在しません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "チーム名が予約語を含んでいます。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "チームの種類が正しくありません。"
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "必須のチーム設定値 type が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
+    "translation": "ユーザーのチャンネルメンバーシップにチャンネル名が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
+    "translation": "ユーザーのチャンネルメンバーシップのデスクトップ通知設定が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
+    "translation": "ユーザーのチャンネルメンバーシップの未読マーク設定が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
+    "translation": "ユーザーのチャネルメンバーシップの役割が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "ユーザーの認証データとパスワードが相互に排他的です。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_length.error",
+    "translation": "ユーザーの認証データが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_service_length.error",
+    "translation": "ユーザーの認証サービス設定を指定する場合、空ではいけません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "ユーザーの電子メールの長さが不正です。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "必須のユーザー設定値 email が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "ユーザーの名前（ファーストネーム）が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "ユーザーの姓（ラストネーム）が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "ユーザーのニックネームが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "ユーザーのパスワードの長さが不正です。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.position_length.error",
+    "translation": "ユーザーの役職が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.roles_invalid.error",
+    "translation": "ユーザーの役割が正しくありません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_invalid.error",
+    "translation": "ユーザー名が正しくありません。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.username_missing.error",
+    "translation": "必須のユーザー設定値 uername が存在しません。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
+    "translation": "ユーザーのチームメンバーシップの役割が不正です。"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
+    "translation": "ユーザーのチームメンバーシップにチーム名が存在しません。"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.description",
+    "translation": "新しいグループメッセージチャンネルを作成できるようにする"
+  },
+  {
+    "id": "authentication.permissions.create_group_channel.name",
+    "translation": "グループメッセージを作成する"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.description",
+    "translation": "新しいチームを作成できるようにする"
+  },
+  {
+    "id": "authentication.permissions.create_team_roles.name",
+    "translation": "チームを作成する"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.description",
+    "translation": "チームメンバーの役割を変更できるようにする"
+  },
+  {
+    "id": "authentication.permissions.manage_team_roles.name",
+    "translation": "チームの役割を管理する"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.description",
+    "translation": "公開チャンネルを読めるようにする"
+  },
+  {
+    "id": "authentication.permissions.read_public_channel.name",
+    "translation": "公開チャンネルを読む"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -2632,6 +3296,10 @@
     "translation": "カスタム絵文字の制限機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
   {
+    "id": "ent.ldap.create_fail",
+    "translation": "LDAPユーザーを作成できません。"
+  },
+  {
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAPが無効化されている、またはライセンスがAD/LDAPをサポートしていません。"
   },
@@ -2688,24 +3356,32 @@
     "translation": "不正なAD/LDAPフィルターです"
   },
   {
+    "id": "ent.metrics.starting.info",
+    "translation": "メトリクスとプロファイリングのサーバーは%vで接続待ちです"
+  },
+  {
+    "id": "ent.metrics.stopping.info",
+    "translation": "メトリクスとプロファイリングのサーバーは%vで停止しています"
+  },
+  {
     "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "MFAトークンを認証できません"
+    "translation": "多要素認証トークンを認証できません"
   },
   {
     "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "不正なMFAトークンです"
+    "translation": "不正な多要素認証トークンです"
   },
   {
     "id": "ent.mfa.activate.save_active.app_erro",
-    "translation": "ユーザーのMFAの活動状態を更新できませんでした"
+    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
     "id": "ent.mfa.deactivate.save_active.app_erro",
-    "translation": "ユーザーのMFAの活動状態を更新できませんでした"
+    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "MFAの秘密情報をクリアーできません"
+    "translation": "多要素認証の秘密情報をクリアーできません"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
@@ -2713,7 +3389,7 @@
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "MFAの秘密情報を保存できません"
+    "translation": "多要素認証の秘密情報を保存できません"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -2721,7 +3397,7 @@
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "MFAトークンを認証できません"
+    "translation": "多要素認証トークンを認証できません"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -2804,18 +3480,6 @@
     "translation": "既存のSAMLユーザーをアップデートすることはできません。ログインは有効です。err=%v"
   },
   {
-    "id": "ent.webrtc.disabled.app_error",
-    "translation": "WebRTCはこのサーバーでは有効化されていません。"
-  },
-  {
-    "id": "ent.webrtc.license_disable.app_error",
-    "translation": "あなたのライセンスではMattermost WebRTCを使うことはできません"
-  },
-  {
-    "id": "ent.webrtc.register_token.app_error",
-    "translation": "WebRTCトークンを登録する際にエラーが発生しました"
-  },
-  {
     "id": "error.generic.link_message",
     "translation": "Mattermostに戻る"
   },
@@ -2840,22 +3504,6 @@
     "translation": "ページが見付かりません"
   },
   {
-    "id": "leave_team_modal.desc",
-    "translation": "全ての公開チャンネルと非公開グループから脱退します。  チームが非公開な場合、再度参加することはできません。  実行してよろしいですか?"
-  },
-  {
-    "id": "leave_team_modal.no",
-    "translation": "いいえ"
-  },
-  {
-    "id": "leave_team_modal.title",
-    "translation": "チームから脱退しますか?"
-  },
-  {
-    "id": "leave_team_modal.yes",
-    "translation": "はい"
-  },
-  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "チャンネルが見付かりません: %v、%vではありませんか"
   },
@@ -2877,7 +3525,7 @@
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
-    "translation": "URLにUIDがありません"
+    "translation": "URLにuidがありません"
   },
   {
     "id": "manaultesting.test_autolink.info",
@@ -2905,7 +3553,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "有効なライセンスが見付かりません"
+    "translation": "エンタープライズ版の機能を利用するには https://mattermost.com から取得できるライセンスキーが必要です。"
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -2976,6 +3624,10 @@
     "translation": "不正な転送URLです"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "不正なレスポンス形式"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "不正なスコープです"
   },
@@ -3032,8 +3684,16 @@
     "translation": "不正なチャンネルIDです"
   },
   {
+    "id": "model.channel_member.is_valid.email_value.app_error",
+    "translation": "電子メール通知の設定値が不正です"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "不正な通知レベルです"
+  },
+  {
+    "id": "model.channel_member.is_valid.push_level.app_error",
+    "translation": "プッシュ通知のレベルが不正です"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -3064,8 +3724,52 @@
     "translation": "リクエストを書き込めません"
   },
   {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "チャンネルパラメーターがありません"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "チームパラメータがありません"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "認証トークンが一致しません"
+  },
+  {
+    "id": "model.client.read_file.app_error",
+    "translation": "ファイルを読み込む際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.set_profile_user.no_file.app_error",
+    "translation": "リクエストの'image'以下にファイルがありません"
+  },
+  {
+    "id": "model.client.set_profile_user.writer.app_error",
+    "translation": "リクエストを書き込めません"
+  },
+  {
+    "id": "model.client.upload_post_attachment.channel_id.app_error",
+    "translation": "チャンネルIDをマルチパートフォームに書き込む際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file.app_error",
+    "translation": "ファイルをマルチパートフォームに書き込む際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.upload_post_attachment.file_size.app_error",
+    "translation": "ファイルサイズをマルチパートフォームに書き込む際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.upload_post_attachment.import_from.app_error",
+    "translation": "インポート元をマルチパートフォームに書き出す際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.upload_post_attachment.writer.app_error",
+    "translation": "マルチパートライターをクローズする際にエラーが発生しました"
+  },
+  {
+    "id": "model.client.upload_saml_cert.app_error",
+    "translation": "リクエストからSAML証明書のマルチパートを作成する際にエラーになりました"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3141,7 +3845,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "クラスタリングが有効化されている場合、電子メールのバッチ処理は有効化できません"
+    "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -3273,7 +3977,11 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "ファイル設定の最大ファイルサイズが不正です。ゼロ以上の数を指定してください。"
+    "translation": "ファイル設定の最大ファイルサイズが不正です。0より大きい値にしてください。"
+  },
+  {
+    "id": "model.config.is_valid.max_notify_per_channel.app_error",
+    "translation": "チーム設定のチャンネル毎の最大通知数が不正です。  正の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -3364,6 +4072,10 @@
     "translation": "SQL設定の最大稼働接続数が不正です。正の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.time_between_user_typing.app_error",
+    "translation": "ユーザー入力の更新間隔は1000ミリ秒未満に設定しないでください。"
+  },
+  {
     "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
     "translation": "WebRTCゲートウェイ管理者秘密情報を設定してください。"
   },
@@ -3377,7 +4089,7 @@
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URIは、stun:から始まる有効なURIにしてください"
+    "translation": "WebRTC STUN URIは、stun:で始まる有効なURLにしてください"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
@@ -3593,7 +4305,7 @@
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "親IDが設定されている場合は、正しいルートIDを設定してください"
+    "translation": "親IDが設定されている場合、無効なルートIDが設定されていなければなりません"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -3628,6 +4340,22 @@
     "translation": "値が長過ぎます"
   },
   {
+    "id": "model.reaction.is_valid.create_at.app_error",
+    "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.reaction.is_valid.emoji_name.app_error",
+    "translation": "不正な絵文字名です"
+  },
+  {
+    "id": "model.reaction.is_valid.post_id.app_error",
+    "translation": "不正な投稿IDです"
+  },
+  {
+    "id": "model.reaction.is_valid.user_id.app_error",
+    "translation": "不正なユーザーIDです"
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "名前は2文字以上の小文字の英数字にしてください"
   },
@@ -3638,6 +4366,10 @@
   {
     "id": "model.team.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.team.is_valid.description.app_error",
+    "translation": "不正な説明です"
   },
   {
     "id": "model.team.is_valid.domains.app_error",
@@ -3684,6 +4416,14 @@
     "translation": "不正なユーザーIDです"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "不正なトークンの有効期限"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "不正なトークンです。"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "不正な認証データです"
   },
@@ -3718,6 +4458,14 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "不正なニックネームです"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "cryptの制限により72文字以上のパスワードを設定できません"
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "不正な役職: 35文字以上にはできません"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -3864,10 +4612,6 @@
     "translation": "方言特有のドライバー%vが作成できませんでした"
   },
   {
-    "id": "store.sql.drop_column.critical",
-    "translation": "列%vを削除できませんでした"
-  },
-  {
     "id": "store.sql.incorrect_mac",
     "translation": "与えられたciphertextに対するMACが正しくありません"
   },
@@ -3956,6 +4700,10 @@
     "translation": "監査データを保存する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
+    "translation": "削除済みのチャンネル形式数を取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.analytics_type_count.app_error",
     "translation": "チャンネル形式数を取得できませんでした"
   },
@@ -4012,6 +4760,22 @@
     "translation": "チャンネルが見付かりませんでした"
   },
   {
+    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "translation": "チャンネルが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "translation": "チャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
+    "translation": "削除されたチャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
+    "translation": "その名前を持つ削除されたチャンネルは存在しません"
+  },
+  {
     "id": "store.sql_channel.get_extra_members.app_error",
     "translation": "チャンネルメンバーに関する追加の情報を取得できませんでした"
   },
@@ -4025,7 +4789,7 @@
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "そのユーザーIDとチャンネルIDに合致するチャンネルのメンバーが見付かりません"
+    "translation": "そのユーザーIDとチャンネルIDに合致するチャンネルのメンバーが見付かりませんでした"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
@@ -4040,12 +4804,28 @@
     "translation": "チャンネルのメンバーが取得できませんでした"
   },
   {
+    "id": "store.sql_channel.get_members_by_ids.app_error",
+    "translation": "チャンネルのメンバーが取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.get_more_channels.get.app_error",
     "translation": "チャンネルが見付かりませんでした"
   },
   {
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "公開チャンネルが取得できませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_unread.app_error",
+    "translation": "チャンネルの未読メッセージを取得できませんでした"
+  },
+  {
     "id": "store.sql_channel.increment_mention_count.app_error",
     "translation": "あなたについての投稿数を集計できませんでした"
+  },
+  {
+    "id": "store.sql_channel.permanent_delete.app_error",
+    "translation": "チャンネルを削除できませんでした"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
@@ -4054,6 +4834,10 @@
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "チャンネルのメンバーを削除できません"
+  },
+  {
+    "id": "store.sql_channel.pinned_posts.app_error",
+    "translation": "ピン止めされた投稿が見付かりません"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -4081,7 +4865,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "このURLは他のチャンネルで使用済みです"
+    "translation": "その名前を持つチャンネルは既に同じチームに存在します"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4126,6 +4910,10 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "チャンネルのメンバーを保存できませんでした"
+  },
+  {
+    "id": "store.sql_channel.search.app_error",
+    "translation": "チャンネルを検索する際にエラーが発生しました"
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
@@ -4392,6 +5180,10 @@
     "translation": "チャンネルの親に当たる投稿を取得できませんでした"
   },
   {
+    "id": "store.sql_post.get_posts_created_att.app_error",
+    "translation": "チャンネルの投稿を取得できませんでした"
+  },
+  {
     "id": "store.sql_post.get_posts_since.app_error",
     "translation": "チャンネルの投稿を取得できませんでした"
   },
@@ -4400,12 +5192,20 @@
     "translation": "チャンネルの投稿を取得できませんでした"
   },
   {
+    "id": "store.sql_post.overwrite.app_error",
+    "translation": "投稿の上書きができませんでした"
+  },
+  {
     "id": "store.sql_post.permanent_delete.app_error",
     "translation": "投稿を削除できませんでした"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
     "translation": "ユーザーのコメントを削除できませんでした"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "translation": "チャンネルの投稿を削除できませんでした"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -4424,8 +5224,12 @@
     "translation": "既存の投稿は更新できません。"
   },
   {
-    "id": "store.sql_post.search.app_error",
-    "translation": "投稿を検索する際にエラーが発生しました"
+    "id": "store.sql_post.search.disabled",
+    "translation": "このサーバーでは検索が無効になっています。システム管理者に問い合わせてください。"
+  },
+  {
+    "id": "store.sql_post.search.warn",
+    "translation": "投稿検索時のクエリエラー: %v"
   },
   {
     "id": "store.sql_post.update.app_error",
@@ -4490,6 +5294,46 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "設定を更新できませんでした"
+  },
+  {
+    "id": "store.sql_reaction.delete.begin.app_error",
+    "translation": "リアクションの削除中はトランザクションを開けません"
+  },
+  {
+    "id": "store.sql_reaction.delete.commit.app_error",
+    "translation": "リアクションの削除中はトランザクションをコミットできません"
+  },
+  {
+    "id": "store.sql_reaction.delete.save.app_error",
+    "translation": "リアクションを削除できません"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
+    "translation": "指定された絵文字名のリアクションは削除できません"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
+    "translation": "指定された絵文字名のリアクションを取得できません"
+  },
+  {
+    "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
+    "translation": "リアクションの削除中にPost.HasReactionsは更新できません post_id=%v, error=%v"
+  },
+  {
+    "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "投稿に対するリアクションを取得できません"
+  },
+  {
+    "id": "store.sql_reaction.save.begin.app_error",
+    "translation": "リアクションの保存中はトランザクションを開けません"
+  },
+  {
+    "id": "store.sql_reaction.save.commit.app_error",
+    "translation": "リアクションの保存中はトランザクションをコミットできません"
+  },
+  {
+    "id": "store.sql_reaction.save.save.app_error",
+    "translation": "リアクションを保存できません"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -4641,7 +5485,7 @@
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "そのユーザーIDとチームIDに合致するチームのメンバーが見付かりません"
+    "translation": "そのユーザーIDとチームIDに合致するチームのメンバーが見付かりませんでした"
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
@@ -4660,6 +5504,10 @@
     "translation": "チームを検索中に問題が発生しました"
   },
   {
+    "id": "store.sql_team.get_unread.app_error",
+    "translation": "チームの未読メッセージを取得できませんでした"
+  },
+  {
     "id": "store.sql_team.permanent_delete.app_error",
     "translation": "既存のチームを削除できませんでした"
   },
@@ -4673,7 +5521,7 @@
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "そのドメインを持つチームは既に存在しています"
+    "translation": "その名前を持つチームは既に存在しています"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
@@ -4681,11 +5529,19 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "そのIDを持つチャンネルのメンバーは既に存在します"
+    "translation": "そのIDを持つチームのメンバーは既に存在します"
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
     "translation": "チャンネルのメンバーを保存できませんでした"
+  },
+  {
+    "id": "store.sql_team.search_all_team.app_error",
+    "translation": "チームを検索する際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_team.search_open_team.app_error",
+    "translation": "公開されているチームを検索する際にエラーが発生しました"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -4706,6 +5562,14 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "チーム名を更新できませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "無効なユーザー数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "システム管理者数を取得できませんでした"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
@@ -4769,7 +5633,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "このチームの電子メールアドレスに合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
+    "translation": "ユーザーが見付かりませんでした。"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -4869,11 +5733,11 @@
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "ユーザーのMFAの活動状態を更新できませんでした"
+    "translation": "ユーザーの多要素認証の活動状態を更新できませんでした"
   },
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "ユーザーのMFA秘密情報を更新する際にエラーが発生しました"
+    "translation": "ユーザーの多要素認証秘密情報を更新する際にエラーが発生しました"
   },
   {
     "id": "store.sql_user.update_password.app_error",
@@ -4948,6 +5812,10 @@
     "translation": "既存のOutgoingWebhookを上書きできませんでした"
   },
   {
+    "id": "store.sql_webhooks.update_incoming.app_error",
+    "translation": "内向きのウェブフックを更新できませんでした"
+  },
+  {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "ウェブフックを更新できませんでした"
   },
@@ -4974,6 +5842,18 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "ファイルを{{.Filename}}に保存中にエラーが発生しました"
+  },
+  {
+    "id": "utils.config.supported_client_locale.app_error",
+    "translation": "mattermostの設定ファイルをロードできませんでした:  DefaultClientLocale はサポートされているロケールでなければなりません"
+  },
+  {
+    "id": "utils.config.supported_server_locale.app_error",
+    "translation": "mattermostの設定ファイルをロードできませんでした:  DefaultServerLocale はサポートされているロケールでなければなりません"
+  },
+  {
+    "id": "utils.config.validate_locale.app_error",
+    "translation": "mattermostの設定ファイルをロードできませんでした:  AvailableLocales はDefaultClientLocaleを含んでいなければなりません"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
@@ -5069,7 +5949,7 @@
   },
   {
     "id": "web.check_browser_compatibility.app_error",
-    "translation": "あなたの使用中のブラウザーはサポートされていません。以下のブラウザーを使ってください。Google Chrome 21以降、Internet Explorer 11以降、Firefox 14以降、Safari 9以降"
+    "translation": "あなたの使用中のブラウザーはサポートされていません。以下のブラウザーを使用してください。Google Chrome 21以降、Internet Explorer 11以降、Firefox 14以降、Safari 9以降"
   },
   {
     "id": "web.claim_account.team.error",
@@ -5112,6 +5992,10 @@
     "translation": "戻る"
   },
   {
+    "id": "web.incoming_webhook.attachment.app_error",
+    "translation": "最大添付サイズは{{.Max}}文字ですが、受け取ったサイズは{{.Actual}}です。"
+  },
+  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "チャンネルが見付かりません"
   },
@@ -5134,6 +6018,10 @@
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "テキストは指定されていません"
+  },
+  {
+    "id": "web.incoming_webhook.text.length.app_error",
+    "translation": "最大文字数は{{.Max}}文字ですが、受け取ったサイズは{{.Actual}}です"
   },
   {
     "id": "web.incoming_webhook.user.app_error",
@@ -5226,5 +6114,21 @@
   {
     "id": "web.watcher_fail.error",
     "translation": "ウォッチャーにディレクトリーを追加できませんでした %v"
+  },
+  {
+    "id": "wsapi.status.init.debug",
+    "translation": "状態ウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "wsapi.system.init.debug",
+    "translation": "システムウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "wsapi.user.init.debug",
+    "translation": "ユーザーウェブソケットAPIルートを初期化しています"
+  },
+  {
+    "id": "wsapi.webrtc.init.debug",
+    "translation": "WebRTCウェブソケットAPIルートを初期化しています"
   }
 ]
