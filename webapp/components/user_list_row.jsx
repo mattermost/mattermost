@@ -85,7 +85,10 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
                 >
                     {name}
                 </div>
-                <div className={emailStyle}>
+                <div
+                    id={userCountEmail}
+                    className={emailStyle}
+                >
                     {email}
                 </div>
                 {extraInfo}
