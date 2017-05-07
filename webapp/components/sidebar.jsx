@@ -509,6 +509,7 @@ export default class Sidebar extends React.Component {
         const channelMember = members[channel.id];
         const unreadCount = this.state.unreadCounts[channel.id] || {msgs: 0, mentions: 0};
         let msgCount;
+        let toolTip;
 
         let linkClass = '';
         if (channel.id === activeId) {
@@ -553,9 +554,8 @@ export default class Sidebar extends React.Component {
             rowClass += ' has-badge';
         }
 
-        let displayName = channel.display_name;
-
         var icon = null;
+        toolTip = channel.header;
         if (channel.type === Constants.OPEN_CHANNEL) {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
         } else if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -613,7 +613,6 @@ export default class Sidebar extends React.Component {
             link = '/' + this.state.currentTeam.name + '/channels/' + channel.name;
         }
 
-        const toolTip = channel.header
         return (
             <li
                 key={channel.name}
