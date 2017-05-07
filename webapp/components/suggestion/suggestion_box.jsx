@@ -70,7 +70,12 @@ export default class SuggestionBox extends React.Component {
         /**
          * Function called when an item is selected
          */
-        onItemSelected: PropTypes.func
+        onItemSelected: PropTypes.func,
+
+        /**
+         * Function called when @mention is clicked
+         */
+        popoverMentionKeyClick: PropTypes.bool
     }
 
     static defaultProps = {
@@ -85,6 +90,7 @@ export default class SuggestionBox extends React.Component {
 
         this.handleBlur = this.handleBlur.bind(this);
 
+        this.handlePopoverMentionKeyClick = this.handlePopoverMentionKeyClick.bind(this);
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleCompositionStart = this.handleCompositionStart.bind(this);
@@ -102,10 +108,16 @@ export default class SuggestionBox extends React.Component {
     }
 
     componentDidMount() {
+        if (this.props.popoverMentionKeyClick) {
+            SuggestionStore.addPopoverMentionKeyClickListener(this.handlePopoverMentionKeyClick);
+        }
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
 
     componentWillUnmount() {
+        if (this.props.popoverMentionKeyClick) {
+            SuggestionStore.removePopoverMentionKeyClickListener(this.handlePopoverMentionKeyClick);
+        }
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
@@ -177,6 +189,17 @@ export default class SuggestionBox extends React.Component {
 
     handleCompositionEnd() {
         this.composing = false;
+    }
+
+    handlePopoverMentionKeyClick(mentionKey) {
+        let insertText = '@' + mentionKey;
+
+        // if the current text does not end with a whitespace, then insert a space
+        if (this.refs.textbox.value && (/[^\s]$/).test(this.refs.textbox.value)) {
+            insertText = ' ' + insertText;
+        }
+
+        this.handleCompleteWord(insertText, '');
     }
 
     handleCompleteWord(term, matchedPretext) {
@@ -288,6 +311,7 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
         Reflect.deleteProperty(props, 'onItemSelected');
         Reflect.deleteProperty(props, 'completeOnTab');
+        Reflect.deleteProperty(props, 'popoverMentionKeyClick');
 
         const childProps = {
             ref: 'textbox',

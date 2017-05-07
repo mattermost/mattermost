@@ -24,6 +24,7 @@ export default class ProfilePopover extends React.Component {
 
         this.initWebrtc = this.initWebrtc.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
+        this.handleUsernameButtonClick = this.handleUsernameButtonClick.bind(this);
         this.state = {
             currentUserId: UserStore.getCurrentId(),
             loadingDMChannel: -1
@@ -101,6 +102,18 @@ export default class ProfilePopover extends React.Component {
             GlobalActions.emitCloseRightHandSide();
             WebrtcActions.initWebrtc(this.props.user.id, true);
         }
+    }
+
+    handleUsernameButtonClick(e) {
+        e.preventDefault();
+
+        if (!this.props.user) {
+            return;
+        }
+        if (this.props.hide) {
+            this.props.hide();
+        }
+        GlobalActions.emitPopoverMentionKeyClick(this.props.user.username);
     }
 
     render() {
@@ -250,7 +263,11 @@ export default class ProfilePopover extends React.Component {
         return (
             <Popover
                 {...popoverProps}
-                title={'@' + this.props.user.username}
+                title={(
+                    <a onClick={this.handleUsernameButtonClick}>
+                        {`@${this.props.user.username}`}
+                    </a>
+                )}
                 id='user-profile-popover'
             >
                 {dataContent}

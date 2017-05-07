@@ -577,3 +577,10 @@ export function postListScrollChange(forceScrollToBottom = false) {
         value: forceScrollToBottom
     });
 }
+
+export function emitPopoverMentionKeyClick(mentionKey) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.POPOVER_MENTION_KEY_CLICK,
+        mentionKey
+    });
+}
