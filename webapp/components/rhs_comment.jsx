@@ -7,7 +7,7 @@ import PendingPostOptions from 'components/post_view/components/pending_post_opt
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
-import RhsDropdown from 'components/rhs_dropdown.jsx';
+import DotMenu from 'components/common/dot_menu.jsx';
 import PostFlagIcon from 'components/common/post_flag_icon.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -19,7 +19,6 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
-import DelayedAction from 'utils/delayed_action.jsx';
 import {Overlay} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
@@ -45,10 +44,6 @@ export default class RhsComment extends React.Component {
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
         this.emojiPickerClick = this.emojiPickerClick.bind(this);
 
-        this.canEdit = false;
-        this.canDelete = false;
-        this.editDisableAction = new DelayedAction(this.handleEditDisable);
-
         this.state = {
             currentTeamDisplayName: TeamStore.getCurrent().name,
             width: '',
@@ -73,10 +68,6 @@ export default class RhsComment extends React.Component {
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
-    }
-
-    handleEditDisable() {
-        this.canEdit = false;
     }
 
     removePost() {
@@ -154,170 +145,6 @@ export default class RhsComment extends React.Component {
     unpinPost(e) {
         e.preventDefault();
         unpinPost(this.props.post.channel_id, this.props.post.id);
-    }
-
-    createDropdown(isSystemMessage) {
-        const post = this.props.post;
-
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
-            return '';
-        }
-
-        this.canDelete = PostUtils.canDeletePost(post);
-        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
-
-        var dropdownContents = [];
-
-        if (Utils.isMobile()) {
-            if (this.props.isFlagged) {
-                dropdownContents.push(
-                    <li
-                        key='mobileFlag'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.unflagPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.mobile.unflag'
-                                defaultMessage='Unflag'
-                            />
-                        </a>
-                    </li>
-                );
-            } else {
-                dropdownContents.push(
-                    <li
-                        key='mobileFlag'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.flagPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.mobile.flag'
-                                defaultMessage='Flag'
-                            />
-                        </a>
-                    </li>
-                );
-            }
-        }
-
-        if (!isSystemMessage) {
-            dropdownContents.push(
-                <li
-                    key='rhs-root-permalink'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.handlePermalink}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.permalink'
-                            defaultMessage='Permalink'
-                        />
-                    </a>
-                </li>
-            );
-
-            if (post.is_pinned) {
-                dropdownContents.push(
-                    <li
-                        key='rhs-comment-unpin'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.unpinPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.unpin'
-                                defaultMessage='Un-pin from channel'
-                            />
-                        </a>
-                    </li>
-                );
-            } else {
-                dropdownContents.push(
-                    <li
-                        key='rhs-comment-pin'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.pinPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.pin'
-                                defaultMessage='Pin to channel'
-                            />
-                        </a>
-                    </li>
-                );
-            }
-        }
-
-        if (this.canDelete) {
-            dropdownContents.push(
-                <li
-                    role='presentation'
-                    key='delete-button'
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        onClick={(e) => {
-                            e.preventDefault();
-                            GlobalActions.showDeletePostModal(post, 0);
-                        }}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.del'
-                            defaultMessage='Delete'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        if (this.canEdit) {
-            dropdownContents.push(
-                <li
-                    role='presentation'
-                    key='edit-button'
-                    className={this.canEdit ? '' : 'hide'}
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        data-toggle='modal'
-                        data-target='#edit_post'
-                        data-refocusid='#reply_textbox'
-                        data-title={Utils.localizeMessage('rhs_comment.comment', 'Comment')}
-                        data-message={post.message}
-                        data-postid={post.id}
-                        data-channelid={post.channel_id}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.edit'
-                            defaultMessage='Edit'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        if (dropdownContents.length === 0) {
-            return '';
-        }
-
-        return (
-            <RhsDropdown dropdownContents={dropdownContents}/>
-        );
     }
 
     timeTag(post, timeOptions) {
@@ -576,10 +403,19 @@ export default class RhsComment extends React.Component {
                 </li>
             );
         } else if (!isSystemMessage) {
+            const dotMenu = (
+                <DotMenu
+                    idPrefix='rhs'
+                    idCount={idCount}
+                    post={this.props.post}
+                    isFlagged={this.props.isFlagged}
+                />
+            );
+
             options = (
                 <li className='col col__reply'>
                     {reactOverlay}
-                    {this.createDropdown(isSystemMessage)}
+                    {dotMenu}
                     {react}
                 </li>
             );

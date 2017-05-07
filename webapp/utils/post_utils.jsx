@@ -9,7 +9,7 @@ import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 export function isSystemMessage(post) {
-    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
+    return post.type && post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0;
 }
 
 export function isFromWebhook(post) {
