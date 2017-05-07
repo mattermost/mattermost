@@ -554,6 +554,8 @@ export default class Sidebar extends React.Component {
             rowClass += ' has-badge';
         }
 
+        let displayName = channel.display_name;
+
         var icon = null;
         toolTip = channel.header;
         if (channel.type === Constants.OPEN_CHANNEL) {
@@ -564,6 +566,7 @@ export default class Sidebar extends React.Component {
             displayName = ChannelUtils.buildGroupChannelName(channel.id);
             icon = <div className='status status--group'>{UserStore.getProfileListInChannel(channel.id, true).length}</div>;
         } else {
+            toolTip = channel.display_name;
             // set up status icon for direct message channels (status is null for other channel types)
             icon = (
                 <StatusIcon
@@ -613,7 +616,6 @@ export default class Sidebar extends React.Component {
             link = '/' + this.state.currentTeam.name + '/channels/' + channel.name;
         }
 
-        let toolTip = channel.header
         return (
             <li
                 key={channel.name}
@@ -625,7 +627,6 @@ export default class Sidebar extends React.Component {
                     className={rowClass}
                     title={toolTip}
                     onClick={this.trackChannelSelectedEvent}
-                    title={toolTip}
                 >
                     {icon}
                     {displayName}
