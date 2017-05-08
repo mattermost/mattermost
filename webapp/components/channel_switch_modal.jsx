@@ -31,6 +31,7 @@ export default class SwitchChannelModal extends React.Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.switchToChannel = this.switchToChannel.bind(this);
+        this.suggestionsChange = this.suggestionsChange.bind(this);
 
         this.suggestionProviders = [new SwitchChannelProvider()];
 
@@ -51,14 +52,16 @@ export default class SwitchChannelModal extends React.Component {
     onShow() {
         this.setState({
             text: '',
-            error: ''
+            error: '',
+            suggestionsHidden: false
         });
     }
 
     onHide() {
         this.setState({
             text: '',
-            error: ''
+            error: '',
+            suggestionsHidden: true
         });
         this.props.onHide();
     }
@@ -80,9 +83,6 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleKeyDown(e) {
-        this.setState({
-            error: ''
-        });
         if (e.keyCode === Constants.KeyCodes.ENTER) {
             this.handleSubmit();
         }
@@ -133,6 +133,21 @@ export default class SwitchChannelModal extends React.Component {
         }
     }
 
+    suggestionsChange(suggestions) {
+        if (this.state.suggestionsHidden) {
+            return;
+        }
+        if (!suggestions || !suggestions.terms || !suggestions.terms.length) {
+            this.setState({
+                error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+            });
+        } else {
+            this.setState({
+                error: ''
+            });
+        }
+    }
+
     render() {
         const message = this.state.error;
         return (
@@ -172,6 +187,7 @@ export default class SwitchChannelModal extends React.Component {
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
+                        onSuggestionsChange={this.suggestionsChange}
                         listStyle='bottom'
                     />
                 </Modal.Body>
@@ -209,4 +225,3 @@ SwitchChannelModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired
 };
-

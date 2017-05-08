@@ -16,7 +16,12 @@ export default class SuggestionBox extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            showList: true
+        };
+
         this.handleBlur = this.handleBlur.bind(this);
+        this.handleFocus = this.handleFocus.bind(this);
 
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -25,10 +30,12 @@ export default class SuggestionBox extends React.Component {
         this.handleCompositionEnd = this.handleCompositionEnd.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handlePretextChanged = this.handlePretextChanged.bind(this);
+        this.handleSuggestionsChanged = this.handleSuggestionsChanged.bind(this);
         this.blur = this.blur.bind(this);
 
         this.suggestionId = Utils.generateId();
         SuggestionStore.registerSuggestionBox(this.suggestionId);
+        SuggestionStore.addSuggestionsChangedListener(this.suggestionId, this.handleSuggestionsChanged);
 
         // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
         this.composing = false;
@@ -46,6 +53,12 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
     }
 
+    handleSuggestionsChanged() {
+        if (this.props.onSuggestionsChange) {
+            this.props.onSuggestionsChange(SuggestionStore.getSuggestions(this.suggestionId));
+        }
+    }
+
     getTextbox() {
         if (this.props.type === 'textarea') {
             return this.refs.textbox.getDOMNode();
@@ -61,14 +74,24 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleBlur() {
-        setTimeout(() => {
-            // Delay this slightly so that we don't clear the suggestions before we run click handlers on SuggestionList
-            GlobalActions.emitClearSuggestions(this.suggestionId);
-        }, 200);
+        // setTimeout(() => {
+        //     // Delay this slightly so that we don't clear the suggestions before we run click handlers on SuggestionList
+        //     GlobalActions.emitClearSuggestions(this.suggestionId);
+        // }, 200);
+
+        this.setState({
+            showList: false
+        });
 
         if (this.props.onBlur) {
             this.props.onBlur();
         }
+    }
+
+    handleFocus() {
+        this.setState({
+            showList: true
+        });
     }
 
     handleChange(e) {
@@ -186,13 +209,8 @@ export default class SuggestionBox extends React.Component {
     }
 
     handlePretextChanged(pretext) {
-        let handled = false;
         for (const provider of this.props.providers) {
-            handled = provider.handlePretextChanged(this.suggestionId, pretext) || handled;
-        }
-
-        if (!handled) {
-            SuggestionStore.clearSuggestions(this.suggestionId);
+            provider.handlePretextChanged(this.suggestionId, pretext);
         }
     }
 
@@ -212,10 +230,12 @@ export default class SuggestionBox extends React.Component {
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'onItemSelected');
+        Reflect.deleteProperty(props, 'onSuggestionsChange');
 
         const childProps = {
             ref: 'textbox',
             onBlur: this.handleBlur,
+            onFocus: this.handleFocus,
             onInput: this.handleChange,
             onCompositionStart: this.handleCompositionStart,
             onCompositionUpdate: this.handleCompositionUpdate,
@@ -252,14 +272,19 @@ export default class SuggestionBox extends React.Component {
         // This needs to be upper case so React doesn't think it's an html tag
         const SuggestionListComponent = listComponent;
 
+        let suggestionsList = null;
+        if (this.state.showList) {
+            suggestionsList = (<SuggestionListComponent
+                suggestionId={this.suggestionId}
+                location={listStyle}
+                renderDividers={renderDividers}
+                               />);
+        }
+
         return (
             <div ref='container'>
                 {textbox}
-                <SuggestionListComponent
-                    suggestionId={this.suggestionId}
-                    location={listStyle}
-                    renderDividers={renderDividers}
-                />
+                {suggestionsList}
             </div>
         );
     }
@@ -296,5 +321,6 @@ SuggestionBox.propTypes = {
     onBlur: React.PropTypes.func,
     onChange: React.PropTypes.func,
     onKeyDown: React.PropTypes.func,
-    onItemSelected: React.PropTypes.func
+    onItemSelected: React.PropTypes.func,
+    onSuggestionsChange: React.PropTypes.func
 };
