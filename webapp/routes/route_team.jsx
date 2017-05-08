@@ -109,7 +109,7 @@ function preNeedsTeam(nextState, replace, callback) {
 
     if (nextState.location.pathname.indexOf('/channels/') > -1 ||
         nextState.location.pathname.indexOf('/pl/') > -1 ||
-        nextState.location.pathname.indexOf('/dc/') > -1) {
+        nextState.location.pathname.indexOf('/messages/') > -1) {
         AsyncClient.getMyTeamsUnread();
         fetchMyChannelsAndMembers(team.id)(dispatch, getState);
     }
@@ -152,28 +152,34 @@ function onPermalinkEnter(nextState, replace, callback) {
     );
 }
 
-function onDirectChannelByUsernameEnter(state, replace, callback) {
-    let username = state.params.username;
-    if (username.indexOf('@') > -1) {
-        username = username.slice(0, username.indexOf('@'));
-    }
-    const teammate = UserStore.getProfileByUsername(username);
-    if (teammate) {
-        directChannelToUser(teammate, state, replace, callback);
+function onChannelByIdentifierEnter(state, replace, callback) {
+    if (state.params.identifier.indexOf('@') === -1) {
+        handleError(state, replace, callback);
     } else {
-        Client.getByUsername(
-            username,
-            (profile) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_PROFILE,
-                    profile
-                });
-                directChannelToUser(profile, state, replace, callback);
-            },
-            () => {
-                handleError(state, replace, callback);
-            }
-        );
+        let username = state.params.identifier;
+        if (username.indexOf('@') === 0) {
+            username = username.slice(1, username.length);
+        } else if (username.indexOf('@') > 0) {
+            username = username.slice(0, username.indexOf('@'));
+        }
+        const teammate = UserStore.getProfileByUsername(username);
+        if (teammate) {
+            directChannelToUser(teammate, state, replace, callback);
+        } else {
+            Client.getByUsername(
+                username,
+                (profile) => {
+                    AppDispatcher.handleServerAction({
+                        type: ActionTypes.RECEIVED_PROFILE,
+                        profile
+                    });
+                    directChannelToUser(profile, state, replace, callback);
+                },
+                () => {
+                    handleError(state, replace, callback);
+                }
+            );
+        }
     }
 }
 
@@ -242,8 +248,8 @@ export default {
                     }
                 },
                 {
-                    path: 'dc/:username',
-                    onEnter: onDirectChannelByUsernameEnter,
+                    path: 'messages/:identifier',
+                    onEnter: onChannelByIdentifierEnter,
                     getComponents: (location, callback) => {
                         Promise.all([
                             System.import('components/team_sidebar'),
