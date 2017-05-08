@@ -82,7 +82,6 @@
     "node-sass": "4.5.3",
     "raw-loader": "0.5.1",
     "react-addons-test-utils": "15.5.1",
-    "react-outside-event": "1.2.5",
     "remote-redux-devtools": "0.5.10",
     "remote-redux-devtools-on-debugger": "0.7.1",
     "sass-loader": "6.0.5",
