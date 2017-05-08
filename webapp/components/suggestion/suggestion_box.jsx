@@ -74,10 +74,6 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleBlur() {
-        // setTimeout(() => {
-        //     // Delay this slightly so that we don't clear the suggestions before we run click handlers on SuggestionList
-        //     GlobalActions.emitClearSuggestions(this.suggestionId);
-        // }, 200);
 
         this.setState({
             showList: false

@@ -52,16 +52,14 @@ export default class SwitchChannelModal extends React.Component {
     onShow() {
         this.setState({
             text: '',
-            error: '',
-            suggestionsHidden: false
+            error: ''
         });
     }
 
     onHide() {
         this.setState({
             text: '',
-            error: '',
-            suggestionsHidden: true
+            error: ''
         });
         this.props.onHide();
     }
@@ -134,9 +132,6 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     suggestionsChange(suggestions) {
-        if (this.state.suggestionsHidden) {
-            return;
-        }
         if (!suggestions || !suggestions.terms || !suggestions.terms.length) {
             this.setState({
                 error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
