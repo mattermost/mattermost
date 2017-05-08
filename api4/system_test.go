@@ -67,6 +67,9 @@ func TestGetConfig(t *testing.T) {
 	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
+	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
+		t.Fatal("did not sanitize properly")
+	}
 }
 
 func TestReloadConfig(t *testing.T) {
