@@ -402,12 +402,12 @@ export function newLocalizationSelected(locale) {
 }
 
 export function loadDefaultLocale() {
-    const defaultLocale = global.window.mm_config.DefaultClientLocale;
-    let locale = global.window.mm_user ? global.window.mm_user.locale || defaultLocale : defaultLocale;
+    let locale = global.window.mm_config.DefaultClientLocale;
 
     if (!I18n.getLanguageInfo(locale)) {
         locale = 'en';
     }
+
     return newLocalizationSelected(locale);
 }
 
