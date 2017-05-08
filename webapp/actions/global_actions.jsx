@@ -379,7 +379,7 @@ export function newLocalizationSelected(locale) {
             translations: en
         });
     } else {
-        const localeInfo = I18n.getLanguageInfo(locale) || I18n.getLanguageInfo(global.window.mm_config.DefaultClientLocale);
+        const localeInfo = I18n.getLanguageInfo(locale);
 
         Client.getTranslations(
             localeInfo.url,
@@ -398,6 +398,16 @@ export function newLocalizationSelected(locale) {
                 AsyncClient.dispatchError(err, 'getTranslations');
             }
         );
+    }
+}
+
+export function loadCurrentLocale() {
+    const user = UserStore.getCurrentUser();
+
+    if (user && user.locale) {
+        newLocalizationSelected(user.locale);
+    } else {
+        loadDefaultLocale();
     }
 }
 
