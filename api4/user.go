@@ -41,8 +41,8 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/email/verify/send", ApiHandler(sendVerificationEmail)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/mfa", ApiHandler(checkUserMfa)).Methods("POST")
-	BaseRoutes.User.Handle("/mfa", ApiSessionRequired(updateUserMfa)).Methods("PUT")
-	BaseRoutes.User.Handle("/mfa/generate", ApiSessionRequired(generateMfaSecret)).Methods("POST")
+	BaseRoutes.User.Handle("/mfa", ApiSessionRequiredMfa(updateUserMfa)).Methods("PUT")
+	BaseRoutes.User.Handle("/mfa/generate", ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	BaseRoutes.Users.Handle("/login", ApiHandler(login)).Methods("POST")
 	BaseRoutes.Users.Handle("/login/switch", ApiHandler(switchAccountType)).Methods("POST")
