@@ -74,7 +74,6 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleBlur() {
-
         this.setState({
             showList: false
         });
