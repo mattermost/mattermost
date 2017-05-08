@@ -17,7 +17,7 @@
         white-space: nowrap;
 
         .fa {
-            font-size: 16px;
+            font-size: 19px;
         }
     }
 
@@ -27,14 +27,22 @@
     }
 
     .member-popover__trigger {
+        & + div {
+            display: none;
+        }
+    }
+
+    .member-popover__trigger {
         .fa {
             margin-left: 4px;
+            position: relative;
+            top: 2px;
         }
     }
 
     .pinned-posts-button svg {
         position: relative;
-        top: 2px;
+        top: 5px;
     }
 
     &.alt {
@@ -44,8 +52,8 @@
             font-weight: normal !important;
 
             &.header-list__right {
-                white-space: nowrap;
                 padding-right: 4px;
+                white-space: nowrap;
             }
         }
 
@@ -419,7 +427,7 @@
         font-size: 22px;
         height: 30px;
         line-height: 26px;
-        margin-right: 3px;
+        margin-right: 1px;
         text-align: center;
         width: 30px;
 

@@ -656,12 +656,11 @@ describe('Client.User', function() {
             TestHelper.basicClient().enableLogErrorsToConsole(false); // Disabling since this unit test causes an error
             TestHelper.basicClient().verifyEmail(
                 'junk',
-                'junk',
                 function() {
                     done.fail(new Error('should be invalid'));
                 },
                 function(err) {
-                    expect(err.id).toBe('api.context.invalid_param.app_error');
+                    expect(err.id).toBe('api.context.invalid_body_param.app_error');
                     done();
                 }
             );

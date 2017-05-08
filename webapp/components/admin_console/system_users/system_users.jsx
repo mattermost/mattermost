@@ -16,12 +16,15 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {getAllTeams, getStandardAnalytics, getTeamStats, getUser} from 'utils/async_client.jsx';
+import {getStandardAnalytics} from 'utils/async_client.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import {convertTeamMapToList} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SystemUsersList from './system_users_list.jsx';
+
+import store from 'stores/redux_store.jsx';
+import {searchProfiles, searchProfilesInTeam} from 'mattermost-redux/selectors/entities/users';
 
 const ALL_USERS = '';
 const NO_TEAM = 'no_team';
@@ -30,6 +33,14 @@ const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
 export default class SystemUsers extends React.Component {
+    static propTypes = {
+        actions: React.PropTypes.shape({
+            getTeams: React.PropTypes.func.isRequired,
+            getTeamStats: React.PropTypes.func.isRequired,
+            getUser: React.PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -73,7 +84,7 @@ export default class SystemUsers extends React.Component {
         UserStore.addWithoutTeamChangeListener(this.updateUsersFromStore);
 
         this.loadDataForTeam(this.state.teamId);
-        getAllTeams();
+        this.props.actions.getTeams(0, 1000);
     }
 
     componentWillUpdate(nextProps, nextState) {
@@ -120,25 +131,18 @@ export default class SystemUsers extends React.Component {
 
     updateUsersFromStore(teamId = this.state.teamId, term = this.state.term) {
         if (term) {
-            if (teamId === this.state.teamId) {
-                // Search results aren't in the store, so manually update the users in them
-                const users = [...this.state.users];
-
-                for (let i = 0; i < users.length; i++) {
-                    const user = users[i];
-
-                    if (UserStore.hasProfile(user.id)) {
-                        users[i] = UserStore.getProfile(user.id);
-                    }
-                }
-
-                this.setState({
-                    users
-                });
+            let users;
+            if (teamId) {
+                users = searchProfilesInTeam(store.getState(), teamId, term);
             } else {
-                this.doSearch(teamId, term, true);
+                users = searchProfiles(store.getState(), term);
             }
 
+            if (users.length === 0 && UserStore.hasProfile(term)) {
+                users = [UserStore.getProfile(term)];
+            }
+
+            this.setState({users});
             return;
         }
 
@@ -159,7 +163,7 @@ export default class SystemUsers extends React.Component {
             loadProfilesWithoutTeam(0, Constants.PROFILE_CHUNK_SIZE, this.loadComplete);
         } else {
             loadProfilesAndTeamMembers(0, Constants.PROFILE_CHUNK_SIZE, teamId, this.loadComplete);
-            getTeamStats(teamId);
+            this.props.actions.getTeamStats(teamId);
         }
     }
 
@@ -179,11 +183,11 @@ export default class SystemUsers extends React.Component {
         // Paging isn't supported while searching
 
         if (this.state.teamId === ALL_USERS) {
-            loadProfiles((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE, this.loadComplete);
+            loadProfiles(page, USERS_PER_PAGE, this.loadComplete);
         } else if (this.state.teamId === NO_TEAM) {
             loadProfilesWithoutTeam(page + 1, USERS_PER_PAGE, this.loadComplete);
         } else {
-            loadProfilesAndTeamMembers((page + 1) * USERS_PER_PAGE, USERS_PER_PAGE, this.state.teamId, this.loadComplete);
+            loadProfilesAndTeamMembers(page + 1, USERS_PER_PAGE, this.state.teamId, this.loadComplete);
         }
     }
 
@@ -204,11 +208,9 @@ export default class SystemUsers extends React.Component {
 
     doSearch(teamId, term, now = false) {
         clearTimeout(this.searchTimeoutId);
+        this.term = term;
 
-        this.setState({
-            loading: true,
-            users: []
-        });
+        this.setState({loading: true});
 
         const options = {
             [UserSearchOptions.ALLOW_INACTIVE]: true
@@ -217,74 +219,45 @@ export default class SystemUsers extends React.Component {
             options[UserSearchOptions.WITHOUT_TEAM] = true;
         }
 
-        const searchTimeoutId = setTimeout(
+        this.searchTimeoutId = setTimeout(
             () => {
                 searchUsers(
                     term,
                     teamId,
                     options,
                     (users) => {
-                        if (searchTimeoutId !== this.searchTimeoutId) {
-                            return;
-                        }
-
-                        if (users.length > 0) {
-                            this.setState({
-                                loading: false,
-                                users
-                            });
-                        } else if (term.length === USER_ID_LENGTH) {
+                        if (users.length === 0 && term.length === USER_ID_LENGTH) {
                             // This term didn't match any users name, but it does look like it might be a user's ID
-                            this.getUserById(term, searchTimeoutId);
+                            this.getUserById(term);
                         } else {
-                            this.setState({
-                                loading: false
-                            });
+                            this.setState({loading: false});
                         }
                     },
                     () => {
-                        this.setState({
-                            loading: false
-                        });
+                        this.setState({loading: false});
                     }
                 );
             },
             now ? 0 : Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
-
-        this.searchTimeoutId = searchTimeoutId;
     }
 
-    getUserById(id, searchTimeoutId) {
+    getUserById(id) {
         if (UserStore.hasProfile(id)) {
-            this.setState({
-                loading: false,
-                users: [UserStore.getProfile(id)]
-            });
-
+            this.setState({loading: false});
             return;
         }
 
-        getUser(
+        this.props.actions.getUser(
             id,
-            (user) => {
-                if (searchTimeoutId !== this.searchTimeoutId) {
-                    return;
-                }
-
+            () => {
                 this.setState({
-                    loading: false,
-                    users: [user]
+                    loading: false
                 });
             },
             () => {
-                if (searchTimeoutId !== this.searchTimeoutId) {
-                    return;
-                }
-
                 this.setState({
-                    loading: false,
-                    users: []
+                    loading: false
                 });
             }
         );

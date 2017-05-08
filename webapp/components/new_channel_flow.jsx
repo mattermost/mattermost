@@ -3,7 +3,6 @@
 
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import {cleanUpUrlable} from 'utils/url.jsx';
 
 import NewChannelModal from './new_channel_modal.jsx';
@@ -68,9 +67,8 @@ export default class NewChannelFlow extends React.Component {
             return;
         }
 
-        const cu = UserStore.getCurrentUser();
         const channel = {
-            team_id: cu.team_id,
+            team_id: TeamStore.getCurrentId(),
             name: this.state.channelName,
             display_name: this.state.channelDisplayName,
             purpose: this.state.channelPurpose,
@@ -82,7 +80,7 @@ export default class NewChannelFlow extends React.Component {
             channel,
             (data) => {
                 this.doOnModalExited = () => {
-                    browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + data.channel.name);
+                    browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + data.name);
                 };
 
                 this.props.onModalDismissed();

@@ -39,6 +39,7 @@ func TestSendNotifications(t *testing.T) {
 func TestGetExplicitMentions(t *testing.T) {
 	id1 := model.NewId()
 	id2 := model.NewId()
+	id3 := model.NewId()
 
 	// not mentioning anybody
 	message := "this is a message"
@@ -113,6 +114,51 @@ func TestGetExplicitMentions(t *testing.T) {
 	if mentions, potential, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || len(potential) != 1 {
 		t.Fatal("should've mentioned user and have a potential not in channel")
 	}
+
+	// words in inline code shouldn't trigger mentions
+	message = "`this shouldn't mention @channel at all`"
+	keywords = map[string][]string{}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 {
+		t.Fatal("@channel in inline code shouldn't cause a mention")
+	}
+
+	// words in code blocks shouldn't trigger mentions
+	message = "```\nthis shouldn't mention @channel at all\n```"
+	keywords = map[string][]string{}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 {
+		t.Fatal("@channel in code block shouldn't cause a mention")
+	}
+
+	// Markdown-formatted text that isn't code should trigger mentions
+	message = "*@aaa @bbb @ccc*"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
+		t.Fatal("should've mentioned all 3 users", mentions)
+	}
+
+	message = "**@aaa @bbb @ccc**"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
+		t.Fatal("should've mentioned all 3 users")
+	}
+
+	message = "~~@aaa @bbb @ccc~~"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
+		t.Fatal("should've mentioned all 3 users")
+	}
+
+	message = "### @aaa"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned aaa")
+	}
+
+	message = "> @aaa"
+	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned aaa")
+	}
 }
 
 func TestGetExplicitMentionsAtHere(t *testing.T) {
@@ -122,40 +168,38 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		"here":      false,
 		"@here":     true,
 		" @here ":   true,
-		"\t@here\t": true,
 		"\n@here\n": true,
-		// "!@here!": true,
-		// "@@here@": true,
-		// "#@here#": true,
-		// "$@here$": true,
-		// "%@here%": true,
-		// "^@here^": true,
-		// "&@here&": true,
-		// "*@here*": true,
-		"(@here(": true,
-		")@here)": true,
-		// "-@here-": true,
-		// "_@here_": true,
-		// "=@here=": true,
+		"!@here!":   true,
+		"#@here#":   true,
+		"$@here$":   true,
+		"%@here%":   true,
+		"^@here^":   true,
+		"&@here&":   true,
+		"*@here*":   true,
+		"(@here(":   true,
+		")@here)":   true,
+		"-@here-":   true,
+		"_@here_":   false, // This case shouldn't mention since it would be mentioning "@here_"
+		"=@here=":   true,
 		"+@here+":   true,
 		"[@here[":   true,
 		"{@here{":   true,
 		"]@here]":   true,
 		"}@here}":   true,
 		"\\@here\\": true,
-		// "|@here|": true,
-		";@here;": true,
-		":@here:": true,
-		// "'@here'": true,
-		// "\"@here\"": true,
-		",@here,": true,
-		"<@here<": true,
-		".@here.": true,
-		">@here>": true,
-		"/@here/": true,
-		"?@here?": true,
-		// "`@here`": true,
-		// "~@here~": true,
+		"|@here|":   true,
+		";@here;":   true,
+		":@here:":   true,
+		"'@here'":   true,
+		"\"@here\"": true,
+		",@here,":   true,
+		"<@here<":   true,
+		".@here.":   true,
+		">@here>":   true,
+		"/@here/":   true,
+		"?@here?":   true,
+		"`@here`":   false, // This case shouldn't mention since it's a code block
+		"~@here~":   true,
 	}
 
 	for message, shouldMention := range cases {
@@ -174,6 +218,140 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		t.Fatal("should've mentioned @user with \"@here @user\"")
 	} else if len(potential) > 1 {
 		t.Fatal("should've potential mentions for @potential")
+	}
+}
+
+func TestRemoveCodeFromMessage(t *testing.T) {
+	input := "this is regular text"
+	expected := input
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with\n```\na code block\n```\nin it"
+	expected = "this is text with\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with\n```javascript\na JS code block\n```\nin it"
+	expected = "this is text with\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with\n```java script?\na JS code block\n```\nin it"
+	expected = "this is text with\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with an empty\n```\n\n\n\n```\nin it"
+	expected = "this is text with an empty\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with\n```\ntwo\n```\ncode\n```\nblocks\n```\nin it"
+	expected = "this is text with\n\ncode\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with indented\n  ```\ncode\n  ```\nin it"
+	expected = "this is text with indented\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text ending with\n```\nan unfinished code block"
+	expected = "this is text ending with\n"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `code` in a sentence"
+	expected = "this is   in a sentence"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `two` things of `code` in a sentence"
+	expected = "this is   things of   in a sentence"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `code with spaces` in a sentence"
+	expected = "this is   in a sentence"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `code\nacross multiple` lines"
+	expected = "this is   lines"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `code\non\nmany\ndifferent` lines"
+	expected = "this is   lines"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `\ncode on its own line\n` across multiple lines"
+	expected = "this is   across multiple lines"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `\n    some more code    \n` across multiple lines"
+	expected = "this is   across multiple lines"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `\ncode` on its own line"
+	expected = "this is   on its own line"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `code\n` on its own line"
+	expected = "this is   on its own line"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is *italics mixed with `code in a way that has the code` take precedence*"
+	expected = "this is *italics mixed with   take precedence*"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is code within a wo` `rd for some reason"
+	expected = "this is code within a wo rd for some reason"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `not\n\ncode` because it has a blank line"
+	expected = input
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is `not\n    \ncode` because it has line with only whitespace"
+	expected = input
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is just `` two backquotes"
+	expected = input
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}
 }
 

@@ -97,7 +97,7 @@
   },
   {
     "id": "api.admin.test_email.missing_server",
-    "translation": "SMTP Server wird benötigt"
+    "translation": "SMTP-Server wird benötigt"
   },
   {
     "id": "api.admin.test_email.reenter_password",
@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-Mail Einstellungen überprüfen"
+    "translation": "Mattermost - E-Mail-Einstellungen überprüfen"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -333,7 +333,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "Die Kanalüberschrift %s wurde entfernt (vorher: %s)"
+    "translation": "Die Kanalüberschrift wurde von %s entfernt (vorher: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
@@ -421,15 +421,15 @@
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Befehl mit dem Trigger '{{.Trigger}}' gibt einen leeren Wert zurück"
+    "translation": "Befehl mit dem Auslöser '{{.Trigger}}' gibt einen leeren Wert zurück"
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Befehl mit dem Trigger '{{.Trigger}}' gibt den Wert {{.Status}} zurück"
+    "translation": "Befehl mit dem Auslöser '{{.Trigger}}' gibt den Wert {{.Status}} zurück"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Befehl mit dem Trigger '{{.Trigger}}' konnte nicht gefunden werden"
+    "translation": "Befehl mit dem Auslöser '{{.Trigger}}' konnte nicht gefunden werden"
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -437,7 +437,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Der Befehls-Trigger konnte nicht gefunden werden"
+    "translation": "Der Befehlsauslöser konnte nicht gefunden werden"
   },
   {
     "id": "api.command.init.debug",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Es ist ein Fehler beim Versenden der E-Mail Einladung(en) aufgetreten"
+    "translation": "Es ist ein Fehler beim Versenden der E-Mail-Einladung(en) aufgetreten"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "E-Mail Einladung(en) versendet"
+    "translation": "E-Mail-Einladung(en) versendet"
   },
   {
     "id": "api.command.regen.app_error",
@@ -841,7 +841,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Ungültige Sitzung  token={{.Token}}, err={{.Error}}"
+    "translation": "Ungültige Sitzung token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -996,6 +996,10 @@
   {
     "id": "api.emoji.get_image.read.app_error",
     "translation": "Die Bilddatei für das Emoji kann nicht gelesen werden."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Initialisiere Emoji-API-Routen"
   },
   {
     "id": "api.emoji.init.debug",
@@ -1307,7 +1311,7 @@
   },
   {
     "id": "api.oauth.allow_oauth.bad_client.app_error",
-    "translation": "Ungültige Anfrage - Fehlerhafte client_id"
+    "translation": "Ungültige Anfrage: Fehlerhafte client_id"
   },
   {
     "id": "api.oauth.allow_oauth.bad_redirect.app_error",
@@ -1684,10 +1688,6 @@
     "translation": "Konnte die Einstellungen für den anderen Benutzer nicht setzen"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Fehler beim Löschen der Reaktion da Kanal ID nicht der Nachrichten-ID in der URL entspricht"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Konnte Reaktionen nicht abrufen da Kanal ID nicht der Nachrichten-OD der URL entspricht"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaktion ist nicht gültig."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Konnte Reaktion nicht speichern da Kanal ID nicht der Nachrichten-ID der URL entspricht"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Sie können keine Reaktion für den anderen Nutzer sichern."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -2069,7 +2077,7 @@
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
-    "translation": "Team permanent löschen? %v id=%v"
+    "translation": "Versuche Team permanent zu löschen %v id=%v"
   },
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
@@ -2785,7 +2793,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
-    "translation": "Ausgehende Webhooks desselben Kanals können nicht dieselben Triggerwörter/Callback-URLs haben."
+    "translation": "Ausgehende Webhooks desselben Kanals können nicht dieselben Auslösewörter/Callback-URLs haben."
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
@@ -2849,7 +2857,7 @@
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
-    "translation": "Ausgehende Webhooks desselben Kanals können nicht dieselben Triggerwörter/Callback-URLs haben."
+    "translation": "Ausgehende Webhooks desselben Kanals können nicht dieselben Auslösewörter/Callback-URLs haben."
   },
   {
     "id": "api.webhook.update_outgoing.not_open.app_error",
@@ -3084,6 +3092,10 @@
     "translation": "Ungültige Rollen für die Kanalmitgliedschaft des Benutzers."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "Benutzer AuthData ist zu lang."
   },
@@ -3110,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "Benutzer nickname ist zu lang."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3608,6 +3624,10 @@
     "translation": "Ungültige Umleitungsadresse"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Ungültiger Antworttyp"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "Ungültiger scope"
   },
@@ -3704,6 +3724,14 @@
     "translation": "Problem beim Schreiben der Anfrage"
   },
   {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Fehlender Kanal-Parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Fehelender Team-Parameter"
+  },
+  {
     "id": "model.client.login.app_error",
     "translation": "Authentifizierungstoken stimmten nicht überein"
   },
@@ -3773,7 +3801,7 @@
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Ungültiger Trigger"
+    "translation": "Ungültiger Auslöser"
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
@@ -3781,7 +3809,7 @@
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "Ungültige Adresse"
+    "translation": "Ungültige URL"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -3949,7 +3977,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Ungültige maximale Dateigröße in Dateieinstellungen. Muss 0 oder eine positive Zahl sein."
+    "translation": "Ungültige maximale Dateigröße für Datei-Einstellungen. Muss eine ganze Zahl größer als Null sein."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4001,7 +4029,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "SAML SSO URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "SAML-SSO-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -4145,7 +4173,7 @@
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
-    "translation": "Callback URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Callback-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
@@ -4169,7 +4197,7 @@
   },
   {
     "id": "model.oauth.is_valid.icon_url.app_error",
-    "translation": "Icon URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Icon-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
@@ -4213,7 +4241,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
-    "translation": "Ungültige Trigger Wörter"
+    "translation": "Ungültige Auslösewörter"
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -4229,7 +4257,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
-    "translation": "Ungültige Trigger Wörter"
+    "translation": "Ungültige Auslösewörter"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4388,6 +4416,14 @@
     "translation": "Ungültige Benutzer ID"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Ungültiger token"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Ungültige Auth Daten"
   },
@@ -4422,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Ungültiger Nickname"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4570,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Fehler beim Erstellen des dialektspezifischen Treibers %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Fehler beim Drop der Spalte %v"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5186,6 +5222,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "Sie können keine existierende Nachricht aktualisieren"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Suchen wurde auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "store.sql_post.search.warn",

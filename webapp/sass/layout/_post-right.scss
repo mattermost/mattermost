@@ -11,12 +11,6 @@
 
     .post-right-comments-container {
         position: relative;
-
-        .post {
-            &:first-child {
-                padding-top: 15px;
-            }
-        }
     }
 
 
@@ -39,9 +33,14 @@
             .col__reply {
                 background: transparent !important;
                 border: none !important;
+                right: 5px;
                 text-align: right;
                 top: 0;
             }
+        }
+
+        .post__img {
+            width: 43px;
         }
 
         .post__body {

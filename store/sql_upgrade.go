@@ -15,16 +15,17 @@ import (
 )
 
 const (
-	VERSION_3_9_0 = "3.9.0"
-	VERSION_3_8_0 = "3.8.0"
-	VERSION_3_7_0 = "3.7.0"
-	VERSION_3_6_0 = "3.6.0"
-	VERSION_3_5_0 = "3.5.0"
-	VERSION_3_4_0 = "3.4.0"
-	VERSION_3_3_0 = "3.3.0"
-	VERSION_3_2_0 = "3.2.0"
-	VERSION_3_1_0 = "3.1.0"
-	VERSION_3_0_0 = "3.0.0"
+	VERSION_3_10_0 = "3.10.0"
+	VERSION_3_9_0  = "3.9.0"
+	VERSION_3_8_0  = "3.8.0"
+	VERSION_3_7_0  = "3.7.0"
+	VERSION_3_6_0  = "3.6.0"
+	VERSION_3_5_0  = "3.5.0"
+	VERSION_3_4_0  = "3.4.0"
+	VERSION_3_3_0  = "3.3.0"
+	VERSION_3_2_0  = "3.2.0"
+	VERSION_3_1_0  = "3.1.0"
+	VERSION_3_0_0  = "3.0.0"
 )
 
 const (
@@ -45,6 +46,7 @@ func UpgradeDatabase(sqlStore *SqlStore) {
 	UpgradeDatabaseToVersion37(sqlStore)
 	UpgradeDatabaseToVersion38(sqlStore)
 	UpgradeDatabaseToVersion39(sqlStore)
+	UpgradeDatabaseToVersion310(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -255,10 +257,18 @@ func UpgradeDatabaseToVersion38(sqlStore *SqlStore) {
 }
 
 func UpgradeDatabaseToVersion39(sqlStore *SqlStore) {
-	// TODO: Uncomment following condition when version 3.9.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_8_0, VERSION_3_9_0) {
-	sqlStore.CreateColumnIfNotExists("OAuthAccessData", "Scope", "varchar(128)", "varchar(128)", model.DEFAULT_SCOPE)
+	if shouldPerformUpgrade(sqlStore, VERSION_3_8_0, VERSION_3_9_0) {
+		sqlStore.CreateColumnIfNotExists("OAuthAccessData", "Scope", "varchar(128)", "varchar(128)", model.DEFAULT_SCOPE)
+		sqlStore.RemoveTableIfExists("PasswordRecovery")
 
-	//	saveSchemaVersion(sqlStore, VERSION_3_9_0)
+		saveSchemaVersion(sqlStore, VERSION_3_9_0)
+	}
+}
+
+func UpgradeDatabaseToVersion310(sqlStore *SqlStore) {
+	// TODO: Uncomment following condition when version 3.10.0 is released
+	//if shouldPerformUpgrade(sqlStore, VERSION_3_9_0, VERSION_3_10_0) {
+
+	//	saveSchemaVersion(sqlStore, VERSION_3_10_0)
 	//}
 }

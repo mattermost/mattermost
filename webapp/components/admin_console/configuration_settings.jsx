@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import ErrorStore from 'stores/error_store.jsx';
 
+import {ErrorBarTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
@@ -67,10 +68,8 @@ export default class ConfigurationSettings extends AdminSettings {
     }
 
     handleSaved(newConfig) {
-        const lastError = ErrorStore.getLastError();
-
-        if (lastError && lastError.message === 'error_bar.site_url' && newConfig.ServiceSettings.SiteURL) {
-            ErrorStore.clearLastError(true);
+        if (newConfig.ServiceSettings.SiteURL) {
+            ErrorStore.clearError(ErrorBarTypes.SITE_URL);
         }
     }
 

@@ -1002,6 +1002,10 @@
     "translation": "絵文字APIルートを初期化しています"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "絵文字APIルートを初期化しています"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
   },
@@ -1684,10 +1688,6 @@
     "translation": "他のユーザーの設定は変更できません"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "チャンネルIDがURL内の投稿IDと一致しないためリアクションを削除できませんでした"
   },
@@ -1700,8 +1700,16 @@
     "translation": "チャンネルIDがURL内の投稿IDと一致しないためリアクションを取得できませんでした"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "リアクションが正しくありません。"
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "チャンネルIDがURL内の投稿IDと一致しないためリアクションを保存できませんでした"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "他のユーザーのリアクションを保存することはできません。"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -2517,7 +2525,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "あなたのアカウントは無効化されています。システム管理者に連絡してください。"
+    "translation": "あなたのアカウントが無効化されているためログインできませんでした。  システム管理者に連絡してください。"
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -3084,6 +3092,10 @@
     "translation": "ユーザーのチャネルメンバーシップの役割が不正です。"
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "ユーザーの認証データとパスワードが相互に排他的です。"
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "ユーザーの認証データが長すぎます。"
   },
@@ -3110,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "ユーザーのニックネームが長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "ユーザーのパスワードの長さが不正です。"
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3608,6 +3624,10 @@
     "translation": "不正な転送URLです"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "不正なレスポンス形式"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "不正なスコープです"
   },
@@ -3702,6 +3722,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "リクエストを書き込めません"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "チャンネルパラメーターがありません"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "チームパラメータがありません"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3977,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "ファイル設定の最大ファイルサイズが不正です。ゼロ以上の数を指定してください。"
+    "translation": "ファイル設定の最大ファイルサイズが不正です。0より大きい値にしてください。"
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4388,6 +4416,14 @@
     "translation": "不正なユーザーIDです"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "不正なトークンの有効期限"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "不正なトークンです。"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "不正な認証データです"
   },
@@ -4422,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "不正なニックネームです"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "cryptの制限により72文字以上のパスワードを設定できません"
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4570,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "方言特有のドライバー%vが作成できませんでした"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "列%vを削除できませんでした"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5186,6 +5222,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "既存の投稿は更新できません。"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "このサーバーでは検索が無効になっています。システム管理者に問い合わせてください。"
   },
   {
     "id": "store.sql_post.search.warn",

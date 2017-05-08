@@ -153,6 +153,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
 	EnablePostSearch                         *bool
 	EnableUserTypingMessages                 *bool
+	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
 }
 
@@ -183,13 +184,14 @@ type SSOSettings struct {
 }
 
 type SqlSettings struct {
-	DriverName         string
-	DataSource         string
-	DataSourceReplicas []string
-	MaxIdleConns       int
-	MaxOpenConns       int
-	Trace              bool
-	AtRestEncryptKey   string
+	DriverName               string
+	DataSource               string
+	DataSourceReplicas       []string
+	DataSourceSearchReplicas []string
+	MaxIdleConns             int
+	MaxOpenConns             int
+	Trace                    bool
+	AtRestEncryptKey         string
 }
 
 type LogSettings struct {
@@ -212,6 +214,7 @@ type PasswordSettings struct {
 }
 
 type FileSettings struct {
+	EnableFileAttachments   *bool
 	MaxFileSize             *int64
 	DriverName              string
 	Directory               string
@@ -247,7 +250,6 @@ type EmailSettings struct {
 	SMTPPort                          string
 	ConnectionSecurity                string
 	InviteSalt                        string
-	PasswordResetSalt                 string
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
@@ -472,6 +474,11 @@ func (o *Config) SetDefaults() {
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
 	}
 
+	if o.FileSettings.EnableFileAttachments == nil {
+		o.FileSettings.EnableFileAttachments = new(bool)
+		*o.FileSettings.EnableFileAttachments = true
+	}
+
 	if o.FileSettings.MaxFileSize == nil {
 		o.FileSettings.MaxFileSize = new(int64)
 		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
@@ -487,12 +494,12 @@ func (o *Config) SetDefaults() {
 		o.FileSettings.InitialFont = "luximbi.ttf"
 	}
 
-	if len(o.EmailSettings.InviteSalt) == 0 {
-		o.EmailSettings.InviteSalt = NewRandomString(32)
+	if o.FileSettings.Directory == "" {
+		o.FileSettings.Directory = "./data/"
 	}
 
-	if len(o.EmailSettings.PasswordResetSalt) == 0 {
-		o.EmailSettings.PasswordResetSalt = NewRandomString(32)
+	if len(o.EmailSettings.InviteSalt) == 0 {
+		o.EmailSettings.InviteSalt = NewRandomString(32)
 	}
 
 	if o.ServiceSettings.SiteURL == nil {
@@ -996,12 +1003,12 @@ func (o *Config) SetDefaults() {
 
 	if o.SamlSettings.Verify == nil {
 		o.SamlSettings.Verify = new(bool)
-		*o.SamlSettings.Verify = false
+		*o.SamlSettings.Verify = true
 	}
 
 	if o.SamlSettings.Encrypt == nil {
 		o.SamlSettings.Encrypt = new(bool)
-		*o.SamlSettings.Encrypt = false
+		*o.SamlSettings.Encrypt = true
 	}
 
 	if o.SamlSettings.IdpUrl == nil {
@@ -1159,6 +1166,11 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.EnableUserTypingMessages = true
 	}
 
+	if o.ServiceSettings.EnableUserStatuses == nil {
+		o.ServiceSettings.EnableUserStatuses = new(bool)
+		*o.ServiceSettings.EnableUserStatuses = true
+	}
+
 	if o.ServiceSettings.ClusterLogTimeoutMilliseconds == nil {
 		o.ServiceSettings.ClusterLogTimeoutMilliseconds = new(int)
 		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
@@ -1269,10 +1281,6 @@ func (o *Config) IsValid() *AppError {
 
 	if len(o.EmailSettings.InviteSalt) < 32 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "")
-	}
-
-	if len(o.EmailSettings.PasswordResetSalt) < 32 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_reset_salt.app_error", nil, "")
 	}
 
 	if *o.EmailSettings.EmailBatchingBufferSize <= 0 {
@@ -1421,7 +1429,6 @@ func (o *Config) Sanitize() {
 	}
 
 	o.EmailSettings.InviteSalt = FAKE_SETTING
-	o.EmailSettings.PasswordResetSalt = FAKE_SETTING
 	if len(o.EmailSettings.SMTPPassword) > 0 {
 		o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
@@ -1435,6 +1442,10 @@ func (o *Config) Sanitize() {
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
+	}
+
+	for i := range o.SqlSettings.DataSourceSearchReplicas {
+		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 }
 

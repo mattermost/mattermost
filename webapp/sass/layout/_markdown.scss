@@ -1,11 +1,36 @@
 @charset 'UTF-8';
 
+h1 {
+    font-size: 28px;
+}
+
+h2 {
+    font-size: 25px;
+}
+
+h3 {
+    font-size: 22px;
+}
+
+h4 {
+    font-size: 19px;
+}
+
+h5 {
+    font-size: 15px;
+}
+
+h6 {
+    font-size: 1em;
+}
+
 .markdown__link {
 }
 
 .markdown__heading {
     font-weight: 700;
     line-height: 1.5;
+    margin: 10px 0;
 }
 
 .markdown__paragraph-inline {
@@ -19,8 +44,9 @@
 #post-list {
     .markdown-inline-img {
         -moz-force-broken-image-icon: 1;
-        height: 500px;
+        margin: 5px 0;
         max-height: 500px;
+        max-width: 500px;
     }
 }
 
@@ -67,7 +93,7 @@
     padding: 4px 10px 5px;
     position: absolute;
     right: 0;
-    top: 5;
+    top: 5px;
     z-index: 5;
 }
 

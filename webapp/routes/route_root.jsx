@@ -149,7 +149,7 @@ export default {
                                     {
                                         path: 'select_team',
                                         getComponents: (location, callback) => {
-                                            System.import('components/select_team/select_team.jsx').then(RouteUtils.importComponentSuccess(callback));
+                                            System.import('components/select_team').then(RouteUtils.importComponentSuccess(callback));
                                         }
                                     },
                                     {

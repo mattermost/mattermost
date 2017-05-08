@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Создание и управление Публичными Каналами возможно только Системными Администраторами."
+    "translation": "Создание и управление Приватными Каналами доступно только Системным Администраторам."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Создание и управление Публичными Каналами возможно Командой и Системными Администраторами."
+    "translation": "Создание и управление Приватными Каналами доступно Команде и Системным Администраторам."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вы единственный оставшийся участник, попробуйте удалить Приватную Группу вместо того, чтобы покинуть."
+    "translation": "Вы единственный оставшийся участник, попробуйте удалить Приватный Канал вместо того, чтобы выйти."
   },
   {
     "id": "api.channel.leave.left",
@@ -817,7 +817,7 @@
   },
   {
     "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
   },
   {
     "id": "api.context.404.app_error",
@@ -925,7 +925,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Групповые сообщения"
+    "translation": "Групповые Сообщения"
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -996,6 +996,10 @@
   {
     "id": "api.emoji.get_image.read.app_error",
     "translation": "Не удалось прочитать файл изображения для эмодзи."
+  },
+  {
+    "id": "api.emoji.init.debug",
+    "translation": "Инициализация API эмодзи"
   },
   {
     "id": "api.emoji.init.debug",
@@ -1295,7 +1299,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+    "translation": "Новый формат пользовательской лицензии пока не поддерживается. Пожалуйста, укажите format=old в строке запроса. "
   },
   {
     "id": "api.license.init.debug",
@@ -1533,7 +1537,7 @@
   },
   {
     "id": "api.post.handle_post_events_and_forget.members.error",
-    "translation": "Не удалось получить членов канала channel_id=%v, err=%v"
+    "translation": "Не удалось получить участников канала channel_id=%v, err=%v"
   },
   {
     "id": "api.post.handle_webhook_events_and_forget.create_post.error",
@@ -1684,10 +1688,6 @@
     "translation": "Не удалось установить настройки для другого пользователя"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Не удалось удалить реакцию, так как в адресе идентификатор канала не совпал с идентификатором сообщения"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Не удалось получить реакции, так как в адресе идентификатор канала не совпал с идентификатором сообщения"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Не удалось сохранить реакцию, так как в адресе идентификатор канала не совпал с идентификатором сообщения"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -1965,7 +1973,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "Для добавления пользователя в команду требуется указать параметр."
   },
   {
     "id": "api.team.create_team.email_disabled.app_error",
@@ -2037,7 +2045,7 @@
   },
   {
     "id": "api.team.invite_members.member",
-    "translation": "член"
+    "translation": "участник"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2085,7 +2093,7 @@
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Указанный пользователь не является членом указанной группы."
+    "translation": "Указанный пользователь не является участником указанной группы."
   },
   {
     "id": "api.team.update_team.permissions.app_error",
@@ -3084,6 +3092,10 @@
     "translation": "Не правильные роли в «Участие пользователей на каналах»"
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "Структура AuthData пользователя слишком большая."
   },
@@ -3110,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "Псевдоним пользователя слишком длинный."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3608,6 +3624,10 @@
     "translation": "Недопустимый адрес редиректа"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "Недопустимая область"
   },
@@ -3702,6 +3722,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "Не удалось записать запрос"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Missing channel parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Missing team parameter"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3977,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Неверный максимальный размер файла в настройках файлов. Число должно быть неотрицательным."
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4388,6 +4416,14 @@
     "translation": "Некорректный идентификатор пользователя"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Недопустимый маркер"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Некорректные данные авторизации"
   },
@@ -4422,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Некорректное прозвище пользователя"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4570,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Не удалось найти SQL диалект драйвера %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Неудачная попытка удалить колонку %v"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5188,6 +5224,10 @@
     "translation": "Вы не можете обновить существующий Пост"
   },
   {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+  },
+  {
     "id": "store.sql_post.search.warn",
     "translation": "Ошибка запроса поиска сообщений: %v"
   },
@@ -5473,7 +5513,7 @@
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Мы не можем удалить члена команды"
+    "translation": "Мы не можем удалить участника команды"
   },
   {
     "id": "store.sql_team.save.app_error",

@@ -8,7 +8,7 @@ import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 import {getInviteInfo} from 'actions/team_actions.jsx';
-import {loginById, createUserWithInvite} from 'actions/user_actions.jsx';
+import {loadMe, loginById, createUserWithInvite} from 'actions/user_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -108,7 +108,7 @@ export default class SignupEmail extends React.Component {
     }
 
     finishSignup() {
-        GlobalActions.emitInitialLoad(
+        loadMe(
             () => {
                 const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();
@@ -132,7 +132,7 @@ export default class SignupEmail extends React.Component {
                     BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                 }
 
-                GlobalActions.emitInitialLoad(
+                loadMe(
                     () => {
                         const query = this.props.location.query;
                         if (query.redirect_to) {
@@ -333,6 +333,7 @@ export default class SignupEmail extends React.Component {
                         </strong></h5>
                         <div className={emailDivStyle}>
                             <input
+                                id='email'
                                 type='email'
                                 ref='email'
                                 className='form-control'
@@ -357,6 +358,7 @@ export default class SignupEmail extends React.Component {
                         </strong></h5>
                         <div className={nameDivStyle}>
                             <input
+                                id='name'
                                 type='text'
                                 ref='name'
                                 className='form-control'
@@ -378,6 +380,7 @@ export default class SignupEmail extends React.Component {
                         </strong></h5>
                         <div className={passwordDivStyle}>
                             <input
+                                id='password'
                                 type='password'
                                 ref='password'
                                 className='form-control'
@@ -390,6 +393,7 @@ export default class SignupEmail extends React.Component {
                     </div>
                     <p className='margin--extra'>
                         <button
+                            id='createAccountButton'
                             type='submit'
                             onClick={this.handleSubmit}
                             className='btn-primary btn'

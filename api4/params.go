@@ -105,7 +105,7 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	}
 
 	if val, ok := props["service"]; ok {
-		params.Category = val
+		params.Service = val
 	}
 
 	if val, ok := props["preference_name"]; ok {

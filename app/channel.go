@@ -289,9 +289,36 @@ func RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	}
 }
 
-func PatchChannel(channel *model.Channel, patch *model.ChannelPatch) (*model.Channel, *model.AppError) {
+func PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError) {
+	oldChannelDisplayName := channel.DisplayName
+	oldChannelHeader := channel.Header
+	oldChannelPurpose := channel.Purpose
+
 	channel.Patch(patch)
-	return UpdateChannel(channel)
+	channel, err := UpdateChannel(channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if oldChannelDisplayName != channel.DisplayName {
+		if err := PostUpdateChannelDisplayNameMessage(userId, channel.Id, channel.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
+	if channel.Header != oldChannelHeader {
+		if err := PostUpdateChannelHeaderMessage(userId, channel.Id, channel.TeamId, oldChannelHeader, channel.Header); err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
+	if channel.Purpose != oldChannelPurpose {
+		if err := PostUpdateChannelPurposeMessage(userId, channel.Id, channel.TeamId, oldChannelPurpose, channel.Purpose); err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
+	return channel, err
 }
 
 func UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -498,7 +525,11 @@ func AddChannelMember(userId string, channel *model.Channel, userRequestorId str
 		return nil, err
 	}
 
-	go PostAddToChannelMessage(userRequestor, user, channel)
+	if userId == userRequestorId {
+		postJoinChannelMessage(user, channel)
+	} else {
+		go PostAddToChannelMessage(userRequestor, user, channel)
+	}
 
 	UpdateChannelLastViewedAt([]string{channel.Id}, userRequestor.Id)
 
@@ -969,7 +1000,11 @@ func RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel 
 		return err
 	}
 
-	go PostRemoveFromChannelMessage(removerUserId, user, channel)
+	if userIdToRemove == removerUserId {
+		postLeaveChannelMessage(user, channel)
+	} else {
+		go PostRemoveFromChannelMessage(removerUserId, user, channel)
+	}
 
 	return nil
 }

@@ -122,7 +122,7 @@ class SearchStoreClass extends EventEmitter {
 
     togglePinPost(postId, isPinned) {
         const results = this.getSearchResults();
-        if (results == null) {
+        if (results == null || results.posts == null) {
             return;
         }
 

@@ -1002,6 +1002,10 @@
     "translation": "Initialiseer emoji API routes"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Initialiseer emoji API routes"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "Bestand opslag is niet goed geconfigureerd. Configureer S3 of lokale bestandsopslag."
   },
@@ -1684,10 +1688,6 @@
     "translation": "Kan de voorkeuren voor een andere gebruiker niet zetten"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to delete reaction because channel ID does not match post ID in the URL"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Failed to get reactions because channel ID does not match post ID in the URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Failed to save reaction because channel ID does not match post ID in the URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3084,6 +3092,10 @@
     "translation": "Invalid roles for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
   },
@@ -3110,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "User nickname is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3608,6 +3624,10 @@
     "translation": "Ongeldige doorverwijzing uri"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "Ongeldige omgeving"
   },
@@ -3702,6 +3722,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "Fout bij het schrijven van verzoek"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Missing channel parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Missing team parameter"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3977,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Ongeldige maximale bestandsgrootte voor bestands-instellingen. Moet nul of groter zijn."
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4388,6 +4416,14 @@
     "translation": "Ongeldige gebruikers id"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Ongeldig token"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Ongeldige auth data"
   },
@@ -4422,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Ongeldige bijnaam"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4570,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Fout bij het maken van dialect specifiek stuurprogramma %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Fout bij het verwijderen van kolom %v"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5186,6 +5222,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "Een bestaand bericht kan niet bijwerkt worden"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.warn",

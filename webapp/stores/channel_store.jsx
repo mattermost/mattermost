@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -17,21 +17,51 @@ const CHANGE_EVENT = 'change';
 const STATS_EVENT = 'stats';
 const LAST_VIEVED_EVENT = 'last_viewed';
 
+import store from 'stores/redux_store.jsx';
+import * as Selectors from 'mattermost-redux/selectors/entities/channels';
+import {ChannelTypes, UserTypes} from 'mattermost-redux/action_types';
+
 class ChannelStoreClass extends EventEmitter {
     constructor(props) {
         super(props);
         this.setMaxListeners(600);
         this.clear();
+
+        this.entities = store.getState().entities.channels;
+
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.channels;
+            let doEmit = false;
+
+            if (newEntities.currentChannelId !== this.entities.currentChannelId) {
+                doEmit = true;
+            }
+            if (newEntities.channels !== this.entities.channels) {
+                this.setUnreadCountsByChannels(Object.values(newEntities.channels));
+                doEmit = true;
+            }
+            if (newEntities.myMembers !== this.entities.myMembers) {
+                this.setUnreadCountsByMembers(Object.values(newEntities.myMembers));
+                this.emitLastViewed();
+                doEmit = true;
+            }
+            if (newEntities.membersInChannel !== this.entities.membersInChannel) {
+                doEmit = true;
+            }
+            if (newEntities.stats !== this.entities.stats) {
+                this.emitStatsChange();
+            }
+
+            if (doEmit) {
+                this.emitChange();
+            }
+
+            this.entities = newEntities;
+        });
     }
 
     clear() {
-        this.currentId = null;
         this.postMode = this.POST_MODE_CHANNEL;
-        this.channels = [];
-        this.members_in_channel = {};
-        this.myChannelMembers = {};
-        this.moreChannels = {};
-        this.stats = {};
         this.unreadCounts = {};
     }
 
@@ -126,26 +156,31 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     setCurrentId(id) {
-        this.currentId = id;
+        store.dispatch({
+            type: ChannelTypes.SELECT_CHANNEL,
+            data: id
+        });
     }
 
-    resetCounts(id) {
-        const cm = this.myChannelMembers;
-        for (const cmid in cm) {
-            if (cm[cmid].channel_id === id) {
-                const channel = this.get(id);
-                if (channel) {
-                    cm[cmid].msg_count = channel.total_msg_count;
-                    cm[cmid].mention_count = 0;
-                    this.setUnreadCountByChannel(id);
-                }
-                break;
+    resetCounts(ids) {
+        const membersToStore = [];
+        ids.forEach((id) => {
+            const member = this.getMyMember(id);
+            const channel = this.get(id);
+            if (member && channel) {
+                const memberToStore = {...member};
+                memberToStore.msg_count = channel.total_msg_count;
+                memberToStore.mention_count = 0;
+                membersToStore.push(memberToStore);
+                this.setUnreadCountByChannel(id);
             }
-        }
+        });
+
+        this.storeMyChannelMembersList(membersToStore);
     }
 
     getCurrentId() {
-        return this.currentId;
+        return Selectors.getCurrentChannelId(store.getState());
     }
 
     getCurrent() {
@@ -176,7 +211,7 @@ class ChannelStoreClass extends EventEmitter {
         let stats;
 
         if (channelId) {
-            stats = this.stats[channelId];
+            stats = Selectors.getAllChannelStats(store.getState())[channelId];
         }
 
         if (stats) {
@@ -214,54 +249,67 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storeChannels(channels) {
-        this.channels = channels;
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS,
+            data: channels,
+            teamId: channels[0].team_id
+        });
     }
 
     getChannels() {
-        return this.channels;
+        return Selectors.getMyChannels(store.getState());
     }
 
     getChannelById(id) {
-        return this.channels.filter((c) => c.id === id)[0];
+        return this.get(id);
     }
 
     storeMyChannelMember(channelMember) {
-        const members = Object.assign({}, this.getMyMembers());
-        members[channelMember.channel_id] = channelMember;
-        this.storeMyChannelMembers(members);
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+            data: channelMember
+        });
     }
 
     storeMyChannelMembers(channelMembers) {
-        this.myChannelMembers = channelMembers;
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+            data: Object.values(channelMembers)
+        });
     }
 
     storeMyChannelMembersList(channelMembers) {
-        channelMembers.forEach((m) => {
-            this.myChannelMembers[m.channel_id] = m;
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBERS,
+            data: channelMembers
         });
     }
 
     getMyMembers() {
-        return this.myChannelMembers;
+        return Selectors.getMyChannelMemberships(store.getState());
     }
 
     saveMembersInChannel(channelId = this.getCurrentId(), members) {
-        const oldMembers = this.members_in_channel[channelId] || {};
-        this.members_in_channel[channelId] = Object.assign({}, oldMembers, members);
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL_MEMBERS,
+            data: Object.values(members)
+        });
     }
 
     removeMemberInChannel(channelId = this.getCurrentId(), userId) {
-        if (this.members_in_channel[channelId]) {
-            Reflect.deleteProperty(this.members_in_channel[channelId], userId);
-        }
+        store.dispatch({
+            type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
+            data: {id: channelId, user_id: userId}
+        });
     }
 
     getMembersInChannel(channelId = this.getCurrentId()) {
-        return Object.assign({}, this.members_in_channel[channelId]) || {};
+        return Selectors.getChannelMembersInChannels(store.getState())[channelId] || {};
     }
 
     hasActiveMemberInChannel(channelId = this.getCurrentId(), userId) {
-        if (this.members_in_channel[channelId] && this.members_in_channel[channelId][userId]) {
+        const members = this.getMembersInChannel(channelId);
+        if (members && members[userId]) {
             return true;
         }
 
@@ -269,33 +317,24 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     storeMoreChannels(channels, teamId = TeamStore.getCurrentId()) {
-        const newChannels = {};
-        for (let i = 0; i < channels.length; i++) {
-            newChannels[channels[i].id] = channels[i];
-        }
-        this.moreChannels[teamId] = Object.assign({}, this.moreChannels[teamId], newChannels);
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS,
+            data: channels,
+            teamId
+        });
     }
 
-    removeMoreChannel(channelId, teamId = TeamStore.getCurrentId()) {
-        Reflect.deleteProperty(this.moreChannels[teamId], channelId);
+    getMoreChannels() {
+        const channels = Selectors.getOtherChannels(store.getState());
+        const channelMap = {};
+        channels.forEach((c) => {
+            channelMap[c.id] = c;
+        });
+        return channelMap;
     }
 
-    getMoreChannels(teamId = TeamStore.getCurrentId()) {
-        return Object.assign({}, this.moreChannels[teamId]);
-    }
-
-    getMoreChannelsList(teamId = TeamStore.getCurrentId()) {
-        const teamChannels = this.moreChannels[teamId] || {};
-
-        if (!ChannelUtils) {
-            ChannelUtils = require('utils/channel_utils.jsx'); //eslint-disable-line global-require
-        }
-
-        return Object.keys(teamChannels).map((cid) => teamChannels[cid]).sort(ChannelUtils.sortChannelsByDisplayName);
-    }
-
-    storeStats(stats) {
-        this.stats = stats;
+    getMoreChannelsList() {
+        return Selectors.getOtherChannels(store.getState());
     }
 
     isDefault(channel) {
@@ -317,8 +356,8 @@ class ChannelStoreClass extends EventEmitter {
     }
 
     setUnreadCountsByCurrentMembers() {
-        Object.keys(this.myChannelMembers).forEach((key) => {
-            this.setUnreadCountByChannel(this.myChannelMembers[key].channel_id);
+        Object.keys(this.getMyMembers()).forEach((key) => {
+            this.setUnreadCountByChannel(this.getMyMember(key).channel_id);
         });
     }
 
@@ -415,10 +454,15 @@ class ChannelStoreClass extends EventEmitter {
             return;
         }
 
-        this.get(id).total_msg_count++;
+        const channel = {...this.get(id)};
+        channel.total_msg_count++;
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL,
+            data: channel
+        });
 
         if (markRead) {
-            this.resetCounts(id);
+            this.resetCounts([id]);
         } else {
             this.unreadCounts[id].msgs++;
         }
@@ -436,7 +480,12 @@ class ChannelStoreClass extends EventEmitter {
 
         if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
             this.unreadCounts[id].mentions++;
-            this.getMyMember(id).mention_count++;
+            const member = {...this.getMyMember(id)};
+            member.mention_count++;
+            store.dispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+                data: member
+            });
         }
     }
 }
@@ -445,13 +494,11 @@ var ChannelStore = new ChannelStoreClass();
 
 ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
-    var currentId;
 
     switch (action.type) {
     case ActionTypes.CLICK_CHANNEL:
         ChannelStore.setCurrentId(action.id);
         ChannelStore.setPostMode(ChannelStore.POST_MODE_CHANNEL);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_FOCUSED_POST: {
@@ -464,8 +511,6 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
 
     case ActionTypes.RECEIVED_CHANNELS:
         ChannelStore.storeChannels(action.channels);
-        ChannelStore.setUnreadCountsByChannels(action.channels);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_CHANNEL:
@@ -473,47 +518,25 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (action.member) {
             ChannelStore.storeMyChannelMember(action.member);
         }
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountByChannel(action.channel.id);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.RECEIVED_MY_CHANNEL_MEMBERS:
         ChannelStore.storeMyChannelMembersList(action.members);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountsByMembers(action.members);
-        ChannelStore.emitChange();
-        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_CHANNEL_MEMBER:
         ChannelStore.storeMyChannelMember(action.member);
-        currentId = ChannelStore.getCurrentId();
-        if (currentId && window.isActive) {
-            ChannelStore.resetCounts(currentId);
-        }
-        ChannelStore.setUnreadCountsByCurrentMembers();
-        ChannelStore.emitChange();
-        ChannelStore.emitLastViewed();
         break;
     case ActionTypes.RECEIVED_MORE_CHANNELS:
         ChannelStore.storeMoreChannels(action.channels);
-        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_MEMBERS_IN_CHANNEL:
         ChannelStore.saveMembersInChannel(action.channel_id, action.channel_members);
-        ChannelStore.emitChange();
         break;
     case ActionTypes.RECEIVED_CHANNEL_STATS:
-        var stats = Object.assign({}, ChannelStore.getStats());
-        stats[action.stats.channel_id] = action.stats;
-        ChannelStore.storeStats(stats);
-        ChannelStore.emitStatsChange();
+        store.dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL_STATS,
+            data: action.stats
+        });
         break;
 
     case ActionTypes.RECEIVED_POST:
@@ -532,18 +555,15 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         if (TeamStore.getCurrentId() === teamId || teamId === '') {
             ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
             ChannelStore.incrementMessages(id, markRead);
-            ChannelStore.emitChange();
         }
         break;
 
     case ActionTypes.CREATE_POST:
         ChannelStore.incrementMessages(action.post.channel_id, true);
-        ChannelStore.emitChange();
         break;
 
     case ActionTypes.CREATE_COMMENT:
         ChannelStore.incrementMessages(action.post.channel_id, true);
-        ChannelStore.emitChange();
         break;
 
     default:

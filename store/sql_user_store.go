@@ -183,9 +183,9 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) StoreCha
 
 			if count, err := us.GetMaster().Update(user); err != nil {
 				if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique"}) {
-					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
 				} else if IsUniqueConstraintError(err.Error(), []string{"Username", "users_username_key", "idx_users_username_unique"}) {
-					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.username_taken.app_error", nil, "user_id="+user.Id+", "+err.Error())
+					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.username_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
 				} else {
 					result.Err = model.NewLocAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error())
 				}
@@ -729,20 +729,19 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string)
 			idQuery += ":username" + strconv.Itoa(index)
 		}
 
-		props["TeamId"] = teamId
+		var query string
+		if teamId == "" {
+			query = `SELECT * FROM Users WHERE Username IN (` + idQuery + `)`
+		} else {
+			query = `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
+				Users.Id = TeamMembers.UserId AND Users.Username IN (` + idQuery + `) AND TeamMembers.TeamId = :TeamId `
+			props["TeamId"] = teamId
+		}
 
-		if _, err := us.GetReplica().Select(&users, `SELECT Users.* FROM Users INNER JOIN TeamMembers ON
-			Users.Id = TeamMembers.UserId AND Users.Username IN (`+idQuery+`) AND TeamMembers.TeamId = :TeamId `, props); err != nil {
+		if _, err := us.GetReplica().Select(&users, query, props); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesByUsernames", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
-			userMap := make(map[string]*model.User)
-
-			for _, u := range users {
-				u.Sanitize(map[string]bool{})
-				userMap[u.Id] = u
-			}
-
-			result.Data = userMap
+			result.Data = users
 		}
 
 		storeChannel <- result
@@ -815,7 +814,8 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 		if allowFromCache {
 			for _, userId := range userIds {
 				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
-					u := cacheItem.(*model.User)
+					u := &model.User{}
+					*u = *cacheItem.(*model.User)
 					users = append(users, u)
 				} else {
 					remainingUserIds = append(remainingUserIds, userId)
@@ -856,7 +856,9 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 			for _, u := range users {
 				u.Sanitize(map[string]bool{})
 
-				profileByIdsCache.AddWithExpiresInSecs(u.Id, u, PROFILE_BY_IDS_CACHE_SEC)
+				cpy := &model.User{}
+				*cpy = *u
+				profileByIdsCache.AddWithExpiresInSecs(cpy.Id, cpy, PROFILE_BY_IDS_CACHE_SEC)
 			}
 
 			result.Data = users

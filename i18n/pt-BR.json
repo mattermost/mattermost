@@ -1002,6 +1002,10 @@
     "translation": "Inicializando as rotas de API emoji"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Inicializando as rotas de API emoji"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "O armazenamento de arquivos não está configurado corretamente. Por favor, configure o S3 ou o armazenamento de arquivos no servidor local."
   },
@@ -1684,10 +1688,6 @@
     "translation": "Não foi possível ajustar as preferências para o outro usuário"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "Falha ao deletar a reação devido ao ID do canal não corresponder com o ID do post na URL"
   },
@@ -1700,8 +1700,16 @@
     "translation": "Falha ao obter as reações devido ao ID do canal não corresponder com o ID do post na URL"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Esta reação não é válida."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "Falha ao salvar a reação devido ao ID do canal não corresponder com o ID do post na URL"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "Você não pode salvar a reação de outro usuário."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -2517,7 +2525,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Login falhou devido a sua conta estar inativa.  Por favor entre em contado com um administrador."
+    "translation": "Login falhou devido a sua conta ter sido desativada.  Por favor entre em contado com um administrador."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -3084,6 +3092,10 @@
     "translation": "Função inválida em Usuário Membro do Canal."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData e Password são mutuamente exclusivos."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "O AuthData do usuário é muito longo."
   },
@@ -3110,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "O apelido do usuário é muito longo."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "Senha do Usuário tem comprimento inválido."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3608,6 +3624,10 @@
     "translation": "Uri de redirecionamento inválida"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Tipo de resposta inválida"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "Escopo inválido"
   },
@@ -3702,6 +3722,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "Não foi possível escrever o pedido"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Falta o parâmetro channel"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Falta o parâmetro team"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3977,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Tamanho máximo do arquivo inválido nas configurações de arquivo. Deve ser zero ou um número positivo."
+    "translation": "Tamanho máximo de arquivo inválido nas configurações de arquivo. Deve ser um número inteiro maior que zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4388,6 +4416,14 @@
     "translation": "Id de usuário inválido"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Token inválido expirado"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Token inválido."
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Dados de autenticação inválido"
   },
@@ -4422,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Apelido inválido"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Não é possível definir uma senha com mais de 72 caracteres devido a limitações do bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4570,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Falha ao criar driver de dialeto específico %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Falha ao deletar a coluna %v"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5186,6 +5222,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "Você não pode atualizar um Post"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Pesquisas foram desabilitadas neste servidor. Por favor entre em contato o Administrador do Sistema."
   },
   {
     "id": "store.sql_post.search.warn",

@@ -7,6 +7,7 @@ const fr = require('!!file-loader?name=i18n/[name].[hash].[ext]!./fr.json');
 const ja = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ja.json');
 const ko = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ko.json');
 const nl = require('!!file-loader?name=i18n/[name].[hash].[ext]!./nl.json');
+const pl = require('!!file-loader?name=i18n/[name].[hash].[ext]!./pl.json');
 const pt_BR = require('!!file-loader?name=i18n/[name].[hash].[ext]!./pt-BR.json'); //eslint-disable-line camelcase
 const ru = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ru.json');
 const zh_TW = require('!!file-loader?name=i18n/[name].[hash].[ext]!./zh-TW.json'); //eslint-disable-line camelcase
@@ -20,6 +21,7 @@ import frLocaleData from 'react-intl/locale-data/fr';
 import jaLocaleData from 'react-intl/locale-data/ja';
 import koLocaleData from 'react-intl/locale-data/ko';
 import nlLocaleData from 'react-intl/locale-data/nl';
+import plLocaleData from 'react-intl/locale-data/pl';
 import ptLocaleData from 'react-intl/locale-data/pt';
 import ruLocaleData from 'react-intl/locale-data/ru';
 import zhLocaleData from 'react-intl/locale-data/zh';
@@ -53,13 +55,13 @@ const languages = {
     ja: {
         value: 'ja',
         name: '日本語',
-        order: 10,
+        order: 11,
         url: ja
     },
     ko: {
         value: 'ko',
         name: '한국어 (Alpha)',
-        order: 7,
+        order: 8,
         url: ko
     },
     nl: {
@@ -68,28 +70,34 @@ const languages = {
         order: 4,
         url: nl
     },
+    pl: {
+        value: 'pl',
+        name: 'Polski (Beta)',
+        order: 5,
+        url: pl
+    },
     'pt-BR': {
         value: 'pt-BR',
         name: 'Português (Brasil)',
-        order: 5,
+        order: 6,
         url: pt_BR
     },
     ru: {
         value: 'ru',
         name: 'Pусский (Beta)',
-        order: 6,
+        order: 7,
         url: ru
     },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體)',
-        order: 9,
+        order: 10,
         url: zh_TW
     },
     'zh-CN': {
         value: 'zh-CN',
         name: '中文 (简体)',
-        order: 8,
+        order: 9,
         url: zh_CN
     }
 };
@@ -145,6 +153,7 @@ export function safariFix(callback) {
         'intl/locale-data/jsonp/ja.js',
         'intl/locale-data/jsonp/ko.js',
         'intl/locale-data/jsonp/nl.js',
+        'intl/locale-data/jsonp/pl.js',
         'intl/locale-data/jsonp/pt.js',
         'intl/locale-data/jsonp/ru.js',
         'intl/locale-data/jsonp/zh.js'
@@ -157,6 +166,7 @@ export function safariFix(callback) {
         require('intl/locale-data/jsonp/ja.js');
         require('intl/locale-data/jsonp/ko.js');
         require('intl/locale-data/jsonp/nl.js');
+        require('intl/locale-data/jsonp/pl.js');
         require('intl/locale-data/jsonp/pt.js');
         require('intl/locale-data/jsonp/ru.js');
         require('intl/locale-data/jsonp/zh.js');
@@ -172,6 +182,7 @@ export function doAddLocaleData() {
     addLocaleData(jaLocaleData);
     addLocaleData(koLocaleData);
     addLocaleData(nlLocaleData);
+    addLocaleData(plLocaleData);
     addLocaleData(ptLocaleData);
     addLocaleData(ruLocaleData);
     addLocaleData(zhLocaleData);

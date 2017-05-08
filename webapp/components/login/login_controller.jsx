@@ -209,19 +209,15 @@ export default class LoginController extends React.Component {
     }
 
     finishSignin(team) {
-        GlobalActions.emitInitialLoad(
-            () => {
-                const query = this.props.location.query;
-                GlobalActions.loadDefaultLocale();
-                if (query.redirect_to) {
-                    browserHistory.push(query.redirect_to);
-                } else if (team) {
-                    browserHistory.push(`/${team.name}`);
-                } else {
-                    GlobalActions.redirectUserToDefaultTeam();
-                }
-            }
-        );
+        const query = this.props.location.query;
+        GlobalActions.loadDefaultLocale();
+        if (query.redirect_to) {
+            browserHistory.push(query.redirect_to);
+        } else if (team) {
+            browserHistory.push(`/${team.name}`);
+        } else {
+            GlobalActions.redirectUserToDefaultTeam();
+        }
     }
 
     handleLoginIdChange(e) {
@@ -437,6 +433,7 @@ export default class LoginController extends React.Component {
                             defaultMessage="Don't have an account? "
                         />
                         <Link
+                            id='signup'
                             to={'/signup_user_complete' + this.props.location.search}
                             className='signup-team-login'
                         >

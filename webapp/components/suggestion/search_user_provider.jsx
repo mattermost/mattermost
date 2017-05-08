@@ -63,7 +63,7 @@ export default class SearchUserProvider extends Provider {
         if (captured) {
             const usernamePrefix = captured[1];
 
-            this.startNewRequest(usernamePrefix);
+            this.startNewRequest(suggestionId, usernamePrefix);
 
             autocompleteUsersInTeam(
                 usernamePrefix,
@@ -72,7 +72,7 @@ export default class SearchUserProvider extends Provider {
                         return;
                     }
 
-                    const users = data.in_team;
+                    const users = Object.assign([], data.users);
                     const mentions = users.map((user) => user.username);
 
                     AppDispatcher.handleServerAction({

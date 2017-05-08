@@ -1002,6 +1002,10 @@
     "translation": "正在初始化繪文字 API 路徑"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "正在初始化繪文字 API 路徑"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
   },
@@ -1684,10 +1688,6 @@
     "translation": "無法為其他使用調整偏好設定"
   },
   {
-    "id": "api.preference.save_preferences.set_details.app_error",
-    "translation": "session.user_id={{.SessionUserId}}, preference.user_id={{.PreferenceUserId}}"
-  },
-  {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
     "translation": "由於URL中的頻道 ID 與文章 ID 不相符，刪除互動失敗"
   },
@@ -1700,8 +1700,16 @@
     "translation": "由於URL中的頻道 ID 與文章 ID 不相符，讀取互動失敗"
   },
   {
+    "id": "api.reaction.save_reaction.invalid.app_error",
+    "translation": "Reaction is not valid."
+  },
+  {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
     "translation": "由於URL中的頻道 ID 與文章 ID 不相符，儲存互動失敗"
+  },
+  {
+    "id": "api.reaction.save_reaction.user_id.app_error",
+    "translation": "You cannot save reaction for the other user."
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -3084,6 +3092,10 @@
     "translation": "使用者頻道資料的角色為無效資料。"
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "使用者認證資料過長。"
   },
@@ -3110,6 +3122,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "使用者暱稱過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3608,6 +3624,10 @@
     "translation": "無效的重新導向網址"
   },
   {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
+  },
+  {
     "id": "model.authorize.is_valid.scope.app_error",
     "translation": "無效的範圍"
   },
@@ -3702,6 +3722,14 @@
   {
     "id": "model.client.create_emoji.writer.app_error",
     "translation": "無法寫入要求"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
+    "translation": "Missing channel parameter"
+  },
+  {
+    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
+    "translation": "Missing team parameter"
   },
   {
     "id": "model.client.login.app_error",
@@ -3949,7 +3977,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "檔案設定中的最大大小無效。必須為0或者正數。"
+    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4388,6 +4416,14 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "無效的 Token"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "無效的驗證資料"
   },
@@ -4422,6 +4458,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "無效的暱稱"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4570,10 +4610,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "建立 SQL 方言專屬驅動 %v 失敗"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "刪除欄位 %v 失敗"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5186,6 +5222,10 @@
   {
     "id": "store.sql_post.save.existing.app_error",
     "translation": "無法更新已存在的訊息"
+  },
+  {
+    "id": "store.sql_post.search.disabled",
+    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.warn",

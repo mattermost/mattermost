@@ -607,6 +607,16 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	}
 }
 
+// GetUsersByUsernames returns a list of users based on the provided usernames.
+func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/usernames", ArrayToJson(usernames)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/search", search.ToJson()); err != nil {
@@ -741,8 +751,8 @@ func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
 }
 
 // ResetPassword uses a recovery code to update reset a user's password.
-func (c *Client4) ResetPassword(code, newPassword string) (bool, *Response) {
-	requestBody := map[string]string{"code": code, "new_password": newPassword}
+func (c *Client4) ResetPassword(token, newPassword string) (bool, *Response) {
+	requestBody := map[string]string{"token": token, "new_password": newPassword}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/password/reset", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
@@ -811,9 +821,9 @@ func (c *Client4) GetUserAudits(userId string, page int, perPage int, etag strin
 	}
 }
 
-// VerifyUserEmail will verify a user's email using user id and hash strings.
-func (c *Client4) VerifyUserEmail(userId, hashId string) (bool, *Response) {
-	requestBody := map[string]string{"user_id": userId, "hash_id": hashId}
+// VerifyUserEmail will verify a user's email using the supplied token.
+func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
+	requestBody := map[string]string{"token": token}
 	if r, err := c.DoApiPost(c.GetUsersRoute()+"/email/verify", MapToJson(requestBody)); err != nil {
 		return false, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
@@ -2386,6 +2396,17 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	} else {
 		defer closeBody(r)
 		return CommandListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ExecuteCommand executes a given command.
+func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
+	commandArgs := &CommandArgs{ChannelId: channelId, Command: command}
+	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CommandResponseFromJson(r.Body), BuildResponse(r)
 	}
 }
 

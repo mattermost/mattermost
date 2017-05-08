@@ -444,10 +444,6 @@
     "translation": "Initializing command API routes"
   },
   {
-    "id": "api.emoji.init.debug",
-    "translation": "Initializing emoji API routes"
-  },
-  {
     "id": "api.command.invite_people.desc",
     "translation": "Send an email invite to your Mattermost team"
   },
@@ -1006,6 +1002,10 @@
     "translation": "Initializing emoji API routes"
   },
   {
+    "id": "api.emoji.init.debug",
+    "translation": "Initializing emoji API routes"
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -1051,7 +1051,11 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "Unable to get info for file. Image storage is not configured."
+    "translation": "Unable to get info for file. File storage is not configured."
+  },
+  {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "File attachments have been disabled on this server."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -3092,6 +3096,10 @@
     "translation": "Invalid roles for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_password.error",
+    "translation": "User AuthData and Password are mutually exclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
   },
@@ -3118,6 +3126,10 @@
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
     "translation": "User nickname is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.pasword_length.error",
+    "translation": "User Password has invalid length."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3612,12 +3624,12 @@
     "translation": "Expires in must be set"
   },
   {
-    "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
-  },
-  {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri"
+  },
+  {
+    "id": "model.authorize.is_valid.response_type.app_error",
+    "translation": "Invalid response type"
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
@@ -4408,6 +4420,14 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.token.is_valid.expiry",
+    "translation": "Invalid token expiry"
+  },
+  {
+    "id": "model.token.is_valid.size",
+    "translation": "Invalid token."
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Invalid auth data"
   },
@@ -4442,6 +4462,10 @@
   {
     "id": "model.user.is_valid.nickname.app_error",
     "translation": "Invalid nickname"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4590,10 +4614,6 @@
   {
     "id": "store.sql.dialect_driver.panic",
     "translation": "Failed to create dialect specific driver %v"
-  },
-  {
-    "id": "store.sql.drop_column.critical",
-    "translation": "Failed to drop column %v"
   },
   {
     "id": "store.sql.incorrect_mac",
@@ -5208,12 +5228,12 @@
     "translation": "You cannot update an existing Post"
   },
   {
-    "id": "store.sql_post.search.warn",
-    "translation": "Query error searching posts: %v"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+  },
+  {
+    "id": "store.sql_post.search.warn",
+    "translation": "Query error searching posts: %v"
   },
   {
     "id": "store.sql_post.update.app_error",

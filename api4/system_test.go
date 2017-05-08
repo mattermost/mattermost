@@ -49,9 +49,6 @@ func TestGetConfig(t *testing.T) {
 	if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.EmailSettings.PasswordResetSalt != model.FAKE_SETTING {
-		t.Fatal("did not sanitize properly")
-	}
 	if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
@@ -65,6 +62,9 @@ func TestGetConfig(t *testing.T) {
 		t.Fatal("did not sanitize properly")
 	}
 	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
+		t.Fatal("did not sanitize properly")
+	}
+	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
 }
@@ -179,6 +179,13 @@ func TestGetOldClientLicense(t *testing.T) {
 
 	if _, err := Client.DoApiGet("/license/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
 		t.Fatal("should have errored with 400")
+	}
+
+	license, resp = th.SystemAdminClient.GetOldClientLicense("")
+	CheckNoError(t, resp)
+
+	if len(license["IsLicensed"]) == 0 {
+		t.Fatal("license not returned correctly")
 	}
 }
 

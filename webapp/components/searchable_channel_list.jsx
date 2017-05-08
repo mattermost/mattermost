@@ -7,6 +7,7 @@ import * as UserAgent from 'utils/user_agent.jsx';
 
 import $ from 'jquery';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {localizeMessage} from 'utils/utils.jsx';
 import {FormattedMessage} from 'react-intl';
 
@@ -99,11 +100,13 @@ export default class SearchableChannelList extends React.Component {
         this.setState({page: this.state.page + 1, nextDisabled: true});
         this.nextTimeoutId = setTimeout(() => this.setState({nextDisabled: false}), NEXT_BUTTON_TIMEOUT_MILLISECONDS);
         this.props.nextPage(this.state.page + 1);
+        $(ReactDOM.findDOMNode(this.refs.channelListScroll)).scrollTop(0);
     }
 
     previousPage(e) {
         e.preventDefault();
         this.setState({page: this.state.page - 1});
+        $(ReactDOM.findDOMNode(this.refs.channelListScroll)).scrollTop(0);
     }
 
     doSearch() {
@@ -186,7 +189,7 @@ export default class SearchableChannelList extends React.Component {
                     ref='channelList'
                     className='more-modal__list'
                 >
-                    <div>
+                    <div ref='channelListScroll'>
                         {listContent}
                     </div>
                 </div>

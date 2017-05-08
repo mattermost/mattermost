@@ -321,17 +321,15 @@ export default class RhsThread extends React.Component {
     }
 
     render() {
-        const postsArray = this.state.postsArray;
-        const selected = this.state.selected;
-        const profiles = this.state.profiles || {};
-        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
-        let previousPostDay = rootPostDay;
-
-        if (postsArray == null || selected == null) {
+        if (this.state.postsArray == null || this.state.selected == null) {
             return (
                 <div/>
             );
         }
+
+        const postsArray = this.state.postsArray;
+        const selected = this.state.selected;
+        const profiles = this.state.profiles || {};
 
         let profile;
         if (UserStore.getCurrentId() === selected.user_id) {
@@ -349,6 +347,9 @@ export default class RhsThread extends React.Component {
         if (this.state.statuses) {
             rootStatus = this.state.statuses[selected.user_id] || 'offline';
         }
+
+        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
+        let previousPostDay = rootPostDay;
 
         const commentsLists = [];
         for (let i = 0; i < postsArray.length; i++) {
@@ -410,6 +411,7 @@ export default class RhsThread extends React.Component {
                 <RhsHeaderPost
                     fromFlaggedPosts={this.props.fromFlaggedPosts}
                     fromSearch={this.props.fromSearch}
+                    fromPinnedPosts={this.props.fromPinnedPosts}
                     isWebrtc={this.props.isWebrtc}
                     isMentionSearch={this.props.isMentionSearch}
                     toggleSize={this.props.toggleSize}
@@ -472,6 +474,7 @@ RhsThread.defaultProps = {
 RhsThread.propTypes = {
     fromSearch: React.PropTypes.string,
     fromFlaggedPosts: React.PropTypes.bool,
+    fromPinnedPosts: React.PropTypes.bool,
     isWebrtc: React.PropTypes.bool,
     isMentionSearch: React.PropTypes.bool,
     currentUser: React.PropTypes.object.isRequired,

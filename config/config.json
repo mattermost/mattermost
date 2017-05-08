@@ -43,6 +43,7 @@
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
+        "EnableUserStatuses": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
     "TeamSettings": {
@@ -72,6 +73,7 @@
         "DriverName": "mysql",
         "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
         "DataSourceReplicas": [],
+        "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
@@ -95,6 +97,7 @@
         "Symbol": false
     },
     "FileSettings": {
+        "EnableFileAttachments": true,
         "MaxFileSize": 52428800,
         "DriverName": "local",
         "Directory": "./data/",
@@ -129,7 +132,6 @@
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
         "InviteSalt": "",
-        "PasswordResetSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -219,8 +221,8 @@
     },
     "SamlSettings": {
         "Enable": false,
-        "Verify": false,
-        "Encrypt": false,
+        "Verify": true,
+        "Encrypt": true,
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
         "AssertionConsumerServiceURL": "",

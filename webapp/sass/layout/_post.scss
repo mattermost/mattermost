@@ -167,7 +167,7 @@
     text-align: center;
     top: 0;
     width: 100%;
-    z-index: 6;
+    z-index: 11;
 
     .overlay__indent {
         @include clearfix;
@@ -359,6 +359,10 @@
 }
 
 .post-create__container {
+    @include flex(0 0 auto);
+    width: 100%;
+    z-index: 9;
+
     label {
         font-weight: normal;
     }
@@ -642,6 +646,7 @@
         .comment-icon__container,
         .post__reply,
         .post__remove,
+        .reacticon__container,
         .permalink-icon {
             visibility: visible;
         }
@@ -899,6 +904,24 @@
     }
 
     &.same--root {
+        &.post--pinned {
+            h1,
+            h2 {
+                &:first-child {
+                    margin-top: 15px;
+                }
+            }
+
+            h3,
+            h4,
+            h5,
+            h6 {
+                &:first-child {
+                    margin-top: 20px;
+                }
+            }
+        }
+
         &.same--user {
             padding: 0 .5em 0 1em;
 

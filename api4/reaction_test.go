@@ -70,6 +70,20 @@ func TestSaveReaction(t *testing.T) {
 		t.Fatal("should have save multiple reactions")
 	}
 
+	// saving special case
+	reaction.EmojiName = "+1"
+
+	rr, resp = Client.SaveReaction(reaction)
+	CheckNoError(t, resp)
+
+	if rr.EmojiName != reaction.EmojiName {
+		t.Fatal("EmojiName did not match")
+	}
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 3 {
+		t.Fatal("should have save multiple reactions")
+	}
+
 	reaction.PostId = GenerateTestId()
 
 	_, resp = Client.SaveReaction(reaction)
@@ -244,22 +258,41 @@ func TestDeleteReaction(t *testing.T) {
 		t.Fatal("should have deleted 1 reaction only")
 	}
 
-	// deleting a reaction made by another user
+	// deleting one reaction of name +1
 	r3 := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: "+1",
+	}
+
+	app.SaveReactionForPost(r3)
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+		t.Fatal("didn't save reactions correctly")
+	}
+
+	_, resp = Client.DeleteReaction(r3)
+	CheckNoError(t, resp)
+
+	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
+		t.Fatal("should have deleted 1 reaction only")
+	}
+
+	// deleting a reaction made by another user
+	r4 := &model.Reaction{
 		UserId:    user2Id,
 		PostId:    postId,
 		EmojiName: "smile_",
 	}
 
 	th.LoginBasic2()
-	app.SaveReactionForPost(r3)
+	app.SaveReactionForPost(r4)
 	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
 		t.Fatal("didn't save reaction correctly")
 	}
 
 	th.LoginBasic()
 
-	ok, resp = Client.DeleteReaction(r3)
+	ok, resp = Client.DeleteReaction(r4)
 	CheckForbiddenStatus(t, resp)
 
 	if ok {
@@ -310,7 +343,7 @@ func TestDeleteReaction(t *testing.T) {
 	_, resp = th.SystemAdminClient.DeleteReaction(r1)
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.DeleteReaction(r3)
+	_, resp = th.SystemAdminClient.DeleteReaction(r4)
 	CheckNoError(t, resp)
 
 	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {

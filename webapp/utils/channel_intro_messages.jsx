@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import * as Utils from './utils.jsx';
-import ChannelInviteModal from 'components/channel_invite_modal.jsx';
+import ChannelInviteModal from 'components/channel_invite_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal.jsx';
 import ToggleModalButton from 'components/toggle_modal_button.jsx';
 import UserProfile from 'components/user_profile.jsx';

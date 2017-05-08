@@ -99,6 +99,18 @@ func TestUploadFile(t *testing.T) {
 		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
 	}
 
+	enableFileAttachments := *utils.Cfg.FileSettings.EnableFileAttachments
+	defer func() {
+		*utils.Cfg.FileSettings.EnableFileAttachments = enableFileAttachments
+	}()
+	*utils.Cfg.FileSettings.EnableFileAttachments = false
+
+	if data, err := readTestFile("test.png"); err != nil {
+		t.Fatal(err)
+	} else if _, err = Client.UploadPostAttachment(data, channel.Id, "test.png"); err == nil {
+		t.Fatal("should have errored")
+	}
+
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
