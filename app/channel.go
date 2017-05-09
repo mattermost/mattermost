@@ -720,6 +720,14 @@ func GetChannelsForUser(teamId string, userId string) (*model.ChannelList, *mode
 	}
 }
 
+func GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetDeleted(teamId, offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
 func GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	if result := <-Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit); result.Err != nil {
 		return nil, result.Err

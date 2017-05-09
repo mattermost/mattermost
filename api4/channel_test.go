@@ -489,6 +489,55 @@ func TestGetChannel(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestGetDeletedChannelsForTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	channels, resp := Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginTeamAdmin()
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 0 {
+		t.Fatal("should be no deleted channels")
+	}
+
+	// create and delete public channel
+	publicChannel1 := th.CreatePublicChannel()
+	Client.DeleteChannel(publicChannel1.Id)
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 1 {
+		t.Fatal("should be 1 deleted channel")
+	}
+
+	publicChannel2 := th.CreatePublicChannel()
+	Client.DeleteChannel(publicChannel2.Id)
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 2 {
+		t.Fatal("should be 2 deleted channels")
+	}
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 1 {
+		t.Fatal("should be one channel per page")
+	}
+
+	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(*channels) != 1 {
+		t.Fatal("should be one channel per page")
+	}
+}
+
 func TestGetPublicChannelsForTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
