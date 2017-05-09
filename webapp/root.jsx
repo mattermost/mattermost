@@ -101,6 +101,17 @@ function preRenderSetup(callwhendone) {
     } else {
         I18n.safariFix(afterIntl);
     }
+
+    // Prevent drag and drop files from navigating away from the app
+    document.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
 }
 
 function renderRootComponent() {
