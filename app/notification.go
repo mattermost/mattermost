@@ -220,23 +220,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		)
 	}
 
-	if hereNotification {
-		statuses := GetAllStatuses()
-		for _, status := range statuses {
-			if status.UserId == post.UserId {
-				continue
-			}
-
-			_, profileFound := profileMap[status.UserId]
-			_, alreadyMentioned := mentionedUserIds[status.UserId]
-
-			if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
-				mentionedUsersList = append(mentionedUsersList, status.UserId)
-				updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
-			}
-		}
-	}
-
 	// Make sure all mention updates are complete to prevent race
 	// Probably better to batch these DB updates in the future
 	// MUST be completed before push notifications send
@@ -788,6 +771,11 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 		if int64(len(profiles)) < *utils.Cfg.TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
 			keywords["@channel"] = append(keywords["@channel"], profile.Id)
 			keywords["@all"] = append(keywords["@all"], profile.Id)
+
+			status := GetStatusFromCache(profile.Id)
+			if status != nil && status.Status == model.STATUS_ONLINE {
+				keywords["@here"] = append(keywords["@here"], profile.Id)
+			}
 		}
 	}
 
