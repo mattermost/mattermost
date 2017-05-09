@@ -5903,6 +5903,10 @@
     "id": "utils.mail.connect_smtp.open_tls.app_error",
     "translation": "Failed to open TLS connection"
   },
+    {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Failed to set HELO"
+  },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Failed to authenticate on SMTP server"
@@ -5910,6 +5914,10 @@
   {
     "id": "utils.mail.new_client.open.error",
     "translation": "Failed to open a connection to SMTP server %v"
+  },
+  {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Failed to to set the HELO to SMTP server %v"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
