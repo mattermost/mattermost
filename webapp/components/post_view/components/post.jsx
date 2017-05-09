@@ -292,6 +292,7 @@ export default class Post extends Component {
                                 ref='header'
                                 post={post}
                                 sameRoot={this.props.sameRoot}
+                                lastPostCount={this.props.lastPostCount}
                                 commentCount={this.props.commentCount}
                                 handleCommentClick={this.handleCommentClick}
                                 handleDropdownOpened={this.handleDropdownOpened}
