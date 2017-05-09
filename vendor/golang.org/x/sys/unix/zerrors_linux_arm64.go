@@ -168,6 +168,7 @@ const (
 	BLKFRASET                        = 0x1264
 	BLKGETSIZE                       = 0x1260
 	BLKGETSIZE64                     = 0x80081272
+	BLKPBSZGET                       = 0x127b
 	BLKRAGET                         = 0x1263
 	BLKRASET                         = 0x1262
 	BLKROGET                         = 0x125e
@@ -450,6 +451,24 @@ const (
 	FF1                              = 0x8000
 	FFDLY                            = 0x8000
 	FLUSHO                           = 0x1000
+	FS_ENCRYPTION_MODE_AES_256_CBC   = 0x3
+	FS_ENCRYPTION_MODE_AES_256_CTS   = 0x4
+	FS_ENCRYPTION_MODE_AES_256_GCM   = 0x2
+	FS_ENCRYPTION_MODE_AES_256_XTS   = 0x1
+	FS_ENCRYPTION_MODE_INVALID       = 0x0
+	FS_IOC_GET_ENCRYPTION_POLICY     = 0x400c6615
+	FS_IOC_GET_ENCRYPTION_PWSALT     = 0x40106614
+	FS_IOC_SET_ENCRYPTION_POLICY     = 0x800c6613
+	FS_KEY_DESCRIPTOR_SIZE           = 0x8
+	FS_KEY_DESC_PREFIX               = "fscrypt:"
+	FS_KEY_DESC_PREFIX_SIZE          = 0x8
+	FS_MAX_KEY_SIZE                  = 0x40
+	FS_POLICY_FLAGS_PAD_16           = 0x2
+	FS_POLICY_FLAGS_PAD_32           = 0x3
+	FS_POLICY_FLAGS_PAD_4            = 0x0
+	FS_POLICY_FLAGS_PAD_8            = 0x1
+	FS_POLICY_FLAGS_PAD_MASK         = 0x3
+	FS_POLICY_FLAGS_VALID            = 0x3
 	F_DUPFD                          = 0x0
 	F_DUPFD_CLOEXEC                  = 0x406
 	F_EXLCK                          = 0x4
@@ -810,6 +829,7 @@ const (
 	MS_ACTIVE                        = 0x40000000
 	MS_ASYNC                         = 0x1
 	MS_BIND                          = 0x1000
+	MS_BORN                          = 0x20000000
 	MS_DIRSYNC                       = 0x80
 	MS_INVALIDATE                    = 0x2
 	MS_I_VERSION                     = 0x800000
@@ -823,6 +843,8 @@ const (
 	MS_NODEV                         = 0x4
 	MS_NODIRATIME                    = 0x800
 	MS_NOEXEC                        = 0x8
+	MS_NOREMOTELOCK                  = 0x8000000
+	MS_NOSEC                         = 0x10000000
 	MS_NOSUID                        = 0x2
 	MS_NOUSER                        = -0x80000000
 	MS_POSIXACL                      = 0x10000
@@ -839,6 +861,7 @@ const (
 	MS_SYNC                          = 0x4
 	MS_SYNCHRONOUS                   = 0x10
 	MS_UNBINDABLE                    = 0x20000
+	MS_VERBOSE                       = 0x8000
 	NAME_MAX                         = 0xff
 	NETLINK_ADD_MEMBERSHIP           = 0x1
 	NETLINK_AUDIT                    = 0x9

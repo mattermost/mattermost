@@ -543,6 +543,9 @@ func TestWaitAuthorizationInvalid(t *testing.T) {
 		if err == nil {
 			t.Error("err is nil")
 		}
+		if _, ok := err.(*AuthorizationError); !ok {
+			t.Errorf("err is %T; want *AuthorizationError", err)
+		}
 	}
 }
 

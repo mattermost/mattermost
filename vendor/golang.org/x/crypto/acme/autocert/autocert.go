@@ -244,6 +244,7 @@ func (m *Manager) cert(ctx context.Context, name string) (*tls.Certificate, erro
 }
 
 // cacheGet always returns a valid certificate, or an error otherwise.
+// If a cached certficate exists but is not valid, ErrCacheMiss is returned.
 func (m *Manager) cacheGet(ctx context.Context, domain string) (*tls.Certificate, error) {
 	if m.Cache == nil {
 		return nil, ErrCacheMiss
@@ -256,7 +257,7 @@ func (m *Manager) cacheGet(ctx context.Context, domain string) (*tls.Certificate
 	// private
 	priv, pub := pem.Decode(data)
 	if priv == nil || !strings.Contains(priv.Type, "PRIVATE") {
-		return nil, errors.New("acme/autocert: no private key found in cache")
+		return nil, ErrCacheMiss
 	}
 	privKey, err := parsePrivateKey(priv.Bytes)
 	if err != nil {
@@ -274,13 +275,14 @@ func (m *Manager) cacheGet(ctx context.Context, domain string) (*tls.Certificate
 		pubDER = append(pubDER, b.Bytes)
 	}
 	if len(pub) > 0 {
-		return nil, errors.New("acme/autocert: invalid public key")
+		// Leftover content not consumed by pem.Decode. Corrupt. Ignore.
+		return nil, ErrCacheMiss
 	}
 
 	// verify and create TLS cert
 	leaf, err := validCert(domain, pubDER, privKey)
 	if err != nil {
-		return nil, err
+		return nil, ErrCacheMiss
 	}
 	tlscert := &tls.Certificate{
 		Certificate: pubDER,
