@@ -197,7 +197,7 @@ func testCreatePostWithOutgoingHook(
 	if triggerWord != "" {
 		triggerWords = []string{triggerWord}
 	}
-	
+
 	hook = &model.OutgoingWebhook{
 		ChannelId:    channel.Id,
 		TeamId:       team.Id,
@@ -314,7 +314,7 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("failed to updates")
 	}
 
-	post2 := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
+	post2 := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_HEADER_CHANGE}
 	rpost2, resp := Client.CreatePost(post2)
 	CheckNoError(t, resp)
 

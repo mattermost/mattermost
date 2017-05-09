@@ -97,8 +97,7 @@ func (s SqlPostStore) Save(post *model.Post) StoreChannel {
 		} else {
 			time := post.UpdateAt
 
-			if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
-				post.Type != model.POST_ADD_REMOVE && post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL {
+			if !post.IsUserActivitySystemMessage() {
 				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt, TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
@@ -1349,6 +1348,32 @@ func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, limit int) Store
 			result.Data = posts
 		}
 
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetLastPostForChannel(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var post model.Post
+		query := `
+			SELECT * FROM Posts 
+			WHERE ChannelId = :channelId AND DeleteAt = 0
+			ORDER BY CreateAt DESC
+			LIMIT 1
+		`
+
+		if err := s.GetReplica().SelectOne(&post, query, map[string]interface{}{"channelId": channelId}); err != nil {
+			l4g.Error(err)
+		}
+
+		result.Data = &post
 		storeChannel <- result
 		close(storeChannel)
 	}()

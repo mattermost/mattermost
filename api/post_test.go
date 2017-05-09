@@ -394,7 +394,7 @@ func TestUpdatePost(t *testing.T) {
 		}
 	}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_HEADER_CHANGE}
 	rpost3, err := Client.CreatePost(post3)
 	if err != nil {
 		t.Fatal(err)

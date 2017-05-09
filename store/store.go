@@ -169,6 +169,7 @@ type PostStore interface {
 	Overwrite(post *model.Post) StoreChannel
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel
+	GetLastPostForChannel(channelId string) StoreChannel
 }
 
 type UserStore interface {
