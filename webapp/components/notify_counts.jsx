@@ -2,41 +2,9 @@
 // See License.txt for license information.
 
 import * as utils from 'utils/utils.jsx';
+import {getCountsStateFromStores} from 'utils/channel_utils.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-
-function getCountsStateFromStores() {
-    let mentionCount = 0;
-    let messageCount = 0;
-    const teamMembers = TeamStore.getMyTeamMembers();
-    const channels = ChannelStore.getAll();
-    const members = ChannelStore.getMyMembers();
-
-    teamMembers.forEach((member) => {
-        if (member.team_id !== TeamStore.getCurrentId()) {
-            mentionCount += (member.mention_count || 0);
-            messageCount += (member.msg_count || 0);
-        }
-    });
-
-    channels.forEach((channel) => {
-        const channelMember = members[channel.id];
-        if (channelMember == null) {
-            return;
-        }
-
-        if (channel.type === 'D') {
-            mentionCount += channel.total_msg_count - channelMember.msg_count;
-        } else if (channelMember.mention_count > 0) {
-            mentionCount += channelMember.mention_count;
-        }
-        if (channelMember.notify_props.mark_unread !== 'mention' && channel.total_msg_count - channelMember.msg_count > 0) {
-            messageCount += 1;
-        }
-    });
-
-    return {mentionCount, messageCount};
-}
 
 import React from 'react';
 
