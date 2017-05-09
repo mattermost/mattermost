@@ -271,9 +271,13 @@ func (c *Context) MfaRequired() {
 			return
 		}
 
+		// Special case to let user get themself
+		if c.Path == "/api/v4/users/me" {
+			return
+		}
+
 		if !user.MfaActive {
-			c.Err = model.NewLocAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired")
-			c.Err.StatusCode = http.StatusUnauthorized
+			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
 			return
 		}
 	}

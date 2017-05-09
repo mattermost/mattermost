@@ -742,6 +742,12 @@ export function webLogin(loginId, password, token, success, error) {
                 success();
             } else if (!ok && error) {
                 const serverError = getState().requests.users.login.error;
+                if (serverError.server_error_id === 'api.context.mfa_required.app_error') {
+                    if (success) {
+                        success();
+                    }
+                    return;
+                }
                 error({id: serverError.server_error_id, ...serverError});
             }
         }
