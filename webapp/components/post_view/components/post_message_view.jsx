@@ -22,7 +22,7 @@ export default class PostMessageView extends React.Component {
         usernameMap: React.PropTypes.object.isRequired,
         channelNamesMap: React.PropTypes.object.isRequired,
         team: React.PropTypes.object.isRequired,
-        isLastPost: React.PropTypes.bool
+        lastPostCount: React.PropTypes.number
     };
 
     shouldComponentUpdate(nextProps) {
@@ -52,6 +52,10 @@ export default class PostMessageView extends React.Component {
         }
 
         if (!Utils.areObjectsEqual(nextProps.mentionKeys, this.props.mentionKeys)) {
+            return true;
+        }
+
+        if (nextProps.lastPostCount !== this.props.lastPostCount) {
             return true;
         }
 
@@ -111,10 +115,15 @@ export default class PostMessageView extends React.Component {
             return <div>{renderedSystemMessage}</div>;
         }
 
+        let postId = null;
+        if (this.props.lastPostCount >= 0) {
+            postId = Utils.createSafeId('lastPostMessageText' + this.props.lastPostCount);
+        }
+
         return (
             <div>
                 <span
-                    id={this.props.isLastPost ? 'lastPostMessageText' : null}
+                    id={postId}
                     className='post-message__text'
                     onClick={Utils.handleFormattedTextClick}
                     dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}

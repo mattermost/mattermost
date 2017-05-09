@@ -51,6 +51,10 @@ export default class PostBody extends React.Component {
             return true;
         }
 
+        if (nextProps.lastPostCount !== this.props.lastPostCount) {
+            return true;
+        }
+
         return false;
     }
 
@@ -164,7 +168,7 @@ export default class PostBody extends React.Component {
             >
                 {loading}
                 <PostMessageContainer
-                    isLastPost={this.props.isLastPost}
+                    lastPostCount={this.props.lastPostCount}
                     post={this.props.post}
                 />
             </div>
@@ -208,7 +212,7 @@ PostBody.propTypes = {
     currentUser: React.PropTypes.object.isRequired,
     parentPost: React.PropTypes.object,
     retryPost: React.PropTypes.func,
-    isLastPost: React.PropTypes.bool,
+    lastPostCount: React.PropTypes.number,
     handleCommentClick: React.PropTypes.func.isRequired,
     compactDisplay: React.PropTypes.bool,
     previewCollapsed: React.PropTypes.string,
