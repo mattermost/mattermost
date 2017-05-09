@@ -248,6 +248,8 @@ export default class SearchBar extends React.Component {
         let mentionBtn;
         let flagBtn;
         if (this.props.showMentionFlagBtns) {
+            var mentionBtnClass = SearchStore.isMentionSearch ? 'active' : '';
+
             mentionBtn = (
                 <div
                     className='dropdown channel-header__links'
@@ -262,12 +264,15 @@ export default class SearchBar extends React.Component {
                             href='#'
                             type='button'
                             onClick={this.searchMentions}
+                            className={mentionBtnClass}
                         >
                             {'@'}
                         </a>
                     </OverlayTrigger>
                 </div>
             );
+
+            var flagBtnClass = SearchStore.isFlaggedPosts ? 'active' : '';
 
             flagBtn = (
                 <div
@@ -283,6 +288,7 @@ export default class SearchBar extends React.Component {
                             href='#'
                             type='button'
                             onClick={this.getFlagged}
+                            className={flagBtnClass}
                         >
                             <span
                                 className='icon icon__flag'
