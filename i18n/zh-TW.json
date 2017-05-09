@@ -1030,6 +1030,10 @@
     "translation": "無法建立繪文字。嘗試編碼 gif 圖片時發生錯誤。"
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "此伺服器已停用檔案附件功能。"
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "公開連結已被系統管理員停用"
   },
@@ -1701,7 +1705,7 @@
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
-    "translation": "Reaction is not valid."
+    "translation": "無效的互動。"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
@@ -1709,7 +1713,7 @@
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
-    "translation": "You cannot save reaction for the other user."
+    "translation": "無法為其他使用者儲存互動。"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
@@ -2525,7 +2529,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "登入失敗，您的帳號已被設定為停用。請向系統管理員聯繫."
+    "translation": "登入失敗，您的帳號已被設定為停用。請向系統管理員聯繫。"
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -3093,7 +3097,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "使用者認證資料與密碼為互斥欄位。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3125,7 +3129,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.pasword_length.error",
-    "translation": "User Password has invalid length."
+    "translation": "使用者密碼長度無效。"
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -3625,7 +3629,7 @@
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
+    "translation": "無效的回應類型"
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
@@ -3725,11 +3729,11 @@
   },
   {
     "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Missing channel parameter"
+    "translation": "缺少頻道參數"
   },
   {
     "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Missing team parameter"
+    "translation": "缺少團隊參數"
   },
   {
     "id": "model.client.login.app_error",
@@ -3977,7 +3981,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
+    "translation": "檔案設定的最大檔案大小無效。必須為大於零的整數。"
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4417,11 +4421,11 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Invalid token expiry"
+    "translation": "無效的 Token 失效期"
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": "無效的 Token"
+    "translation": "無效的 Token。"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -4461,7 +4465,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "由於 bcrypt 的限制，無法設定超過72字元長度的密碼。"
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5225,7 +5229,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+    "translation": "此伺服器已停用搜尋功能。請向系統管理員聯繫。"
   },
   {
     "id": "store.sql_post.search.warn",

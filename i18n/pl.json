@@ -1030,6 +1030,10 @@
     "translation": "Nie można utworzyć emoji. Wystąpił błąd podczas kodowania obrazu GIF."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "File attachments have been disabled on this server."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Linki publiczne zapisu została wyłączona przez administratora systemu."
   },
@@ -4701,7 +4705,7 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie można pobrać liczby usuniętych typów kanału"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
@@ -5009,11 +5013,11 @@
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
+    "translation": "Nie można załączyć informacji o pliku do wpisu"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
+    "translation": "Nie można usunąć informacji o pliku z wpisu "
   },
   {
     "id": "store.sql_file_info.get.app_error",
@@ -5205,7 +5209,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie można usunąć postów według kanału"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5405,7 +5409,7 @@
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Napotkaliśmy błąd zapisując audyty"
+    "translation": "Wystąpił błąd podczas pobierania wszystkich statusów online/zdala"
   },
   {
     "id": "store.sql_status.get_team_statuses.app_error",
@@ -5413,7 +5417,7 @@
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Nie odnaleziono użytkownika"
+    "translation": "Nie można porać ilości aktywnych użytkowników"
   },
   {
     "id": "store.sql_status.reset_all.app_error",
@@ -5689,15 +5693,15 @@
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "This email is already taken. Please choose another."
+    "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie można znaleźć istniejącego konta do aktualizacji"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
-    "translation": "Napotkaliśmy błąd szukając audytów"
+    "translation": "Wystąpił błąd podczas wyszukiwania konta"
   },
   {
     "id": "store.sql_user.update.updating.app_error",
@@ -5705,7 +5709,7 @@
   },
   {
     "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "This username is already taken. Please choose another."
+    "translation": "Ta nazwa użytkownika jest już zajęta. Proszę wybrać inną."
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -5869,7 +5873,7 @@
   },
   {
     "id": "utils.license.load_license.invalid.warn",
-    "translation": "No valid enterprise license found"
+    "translation": "Nie odnaleziono żadnej prawidłowej licencji"
   },
   {
     "id": "utils.license.remove_license.unable.error",
@@ -5885,7 +5889,7 @@
   },
   {
     "id": "utils.license.validate_license.not_long.error",
-    "translation": "Signed license not long enough"
+    "translation": "Licencja ma zbyt krótką długość"
   },
   {
     "id": "utils.license.validate_license.signing.error",
