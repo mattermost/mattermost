@@ -49,7 +49,7 @@ func GetSession(token string) (*model.Session, *model.AppError) {
 			session = sessionResult.Data.(*model.Session)
 
 			if session == nil || session.IsExpired() || session.Token != token {
-				return nil, model.NewLocAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": sessionResult.Err.DetailedError}, "")
+				return nil, model.NewLocAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "")
 			} else {
 				AddSessionToCache(session)
 				return session, nil
