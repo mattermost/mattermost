@@ -5,6 +5,7 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 
 import PostTime from './post_time.jsx';
+import PostFlagIcon from 'components/common/post_flag_icon.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as PostActions from 'actions/post_actions.jsx';
@@ -13,7 +14,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
+import {Overlay} from 'react-bootstrap';
 import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
 import React from 'react';
@@ -325,7 +326,11 @@ export default class PostInfo extends React.Component {
 
     render() {
         var post = this.props.post;
-        const flagIcon = Constants.FLAG_ICON_SVG;
+
+        let idCount = -1;
+        if (this.props.lastPostCount >= 0 && this.props.lastPostCount < Constants.TEST_ID_COUNT) {
+            idCount = this.props.lastPostCount;
+        }
 
         this.canDelete = PostUtils.canDeletePost(post);
         this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
@@ -420,64 +425,6 @@ export default class PostInfo extends React.Component {
             }
         }
 
-        let flag;
-        let flagFunc;
-        let flagVisible = '';
-        let flagTooltip = (
-            <Tooltip id='flagTooltip'>
-                <FormattedMessage
-                    id='flag_post.flag'
-                    defaultMessage='Flag for follow up'
-                />
-            </Tooltip>
-        );
-        if (this.props.isFlagged) {
-            flagVisible = 'visible';
-            flag = (
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIcon}}
-                />
-            );
-            flagFunc = this.unflagPost;
-            flagTooltip = (
-                <Tooltip id='flagTooltip'>
-                    <FormattedMessage
-                        id='flag_post.unflag'
-                        defaultMessage='Unflag'
-                    />
-                </Tooltip>
-            );
-        } else {
-            flag = (
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIcon}}
-                />
-            );
-            flagFunc = this.flagPost;
-        }
-
-        let flagTrigger;
-        if (!isEphemeral) {
-            flagTrigger = (
-                <OverlayTrigger
-                    key={'flagtooltipkey' + flagVisible}
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={flagTooltip}
-                >
-                    <a
-                        href='#'
-                        className={'flag-icon__container ' + flagVisible}
-                        onClick={flagFunc}
-                    >
-                        {flag}
-                    </a>
-                </OverlayTrigger>
-            );
-        }
-
         let pinnedBadge;
         if (post.is_pinned) {
             pinnedBadge = (
@@ -502,7 +449,13 @@ export default class PostInfo extends React.Component {
                     />
                     {pinnedBadge}
                     {this.state.showEmojiPicker}
-                    {flagTrigger}
+                    <PostFlagIcon
+                        idPrefix={'centerPostFlag'}
+                        idCount={idCount}
+                        postId={post.id}
+                        isFlagged={this.props.isFlagged}
+                        isEphemeral={isEphemeral}
+                    />
                 </li>
                 {options}
             </ul>
@@ -518,6 +471,7 @@ PostInfo.defaultProps = {
 };
 PostInfo.propTypes = {
     post: React.PropTypes.object.isRequired,
+    lastPostCount: React.PropTypes.number,
     commentCount: React.PropTypes.number.isRequired,
     isLastComment: React.PropTypes.bool.isRequired,
     handleCommentClick: React.PropTypes.func.isRequired,
