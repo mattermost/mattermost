@@ -181,6 +181,10 @@ function handleEvent(msg) {
         handleChannelCreatedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_UPDATED:
+        handleChannelUpdatedEvent();
+        break;
+
     case SocketEvents.CHANNEL_DELETED:
         handleChannelDeletedEvent(msg);
         break;
@@ -353,6 +357,10 @@ function handleChannelCreatedEvent(msg) {
     if (TeamStore.getCurrentId() === teamId && !ChannelStore.getChannelById(channelId)) {
         getChannelAndMyMember(channelId)(dispatch, getState);
     }
+}
+
+function handleChannelUpdatedEvent() {
+    loadChannelsForCurrentUser();
 }
 
 function handleChannelDeletedEvent(msg) {
