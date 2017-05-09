@@ -259,7 +259,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if groupChannel, err := app.CreateGroupChannel(userIds); err != nil {
+	if groupChannel, err := app.CreateGroupChannel(userIds, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -376,7 +376,7 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if channels, err := app.GetPublicChannelsForTeam(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
+	if channels, err := app.GetPublicChannelsForTeam(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
