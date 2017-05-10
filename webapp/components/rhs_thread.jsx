@@ -55,6 +55,7 @@ export default class RhsThread extends React.Component {
 
         this.onPostChange = this.onPostChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
+        this.onSelectedChange = this.onSelectedChange.bind(this);
         this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.onStatusChange = this.onStatusChange.bind(this);
@@ -64,7 +65,8 @@ export default class RhsThread extends React.Component {
         this.handleScrollStop = this.handleScrollStop.bind(this);
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
-        const state = this.getPosts();
+        const openTime = (new Date()).getTime();
+        const state = this.getPosts(openTime);
         state.windowWidth = Utils.windowWidth();
         state.windowHeight = Utils.windowHeight();
         state.profiles = JSON.parse(JSON.stringify(UserStore.getProfiles()));
@@ -77,11 +79,13 @@ export default class RhsThread extends React.Component {
         this.state = {
             ...state,
             isScrolling: false,
-            topRhsPostCreateAt: 0
+            topRhsPostCreateAt: 0,
+            openTime
         };
     }
 
     componentDidMount() {
+        PostStore.addSelectedPostChangeListener(this.onSelectedChange);
         PostStore.addSelectedPostChangeListener(this.onPostChange);
         PostStore.addChangeListener(this.onPostChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
@@ -96,6 +100,7 @@ export default class RhsThread extends React.Component {
     }
 
     componentWillUnmount() {
+        PostStore.addSelectedPostChangeListener(this.onSelectedChange);
         PostStore.removeSelectedPostChangeListener(this.onPostChange);
         PostStore.removeChangeListener(this.onPostChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -192,6 +197,12 @@ export default class RhsThread extends React.Component {
         });
     }
 
+    onSelectedChange() {
+        this.setState({
+            openTime: (new Date()).getTime()
+        });
+    }
+
     onPreferenceChange(category) {
         let previewSuffix = '';
         if (category === Preferences.CATEGORY_DISPLAY_SETTINGS) {
@@ -208,7 +219,7 @@ export default class RhsThread extends React.Component {
 
     onPostChange() {
         if (this.mounted) {
-            this.setState(this.getPosts());
+            this.setState(this.getPosts(this.state.openTime));
         }
     }
 
@@ -220,7 +231,7 @@ export default class RhsThread extends React.Component {
         this.setState({isBusy});
     }
 
-    getPosts() {
+    getPosts(openTime) {
         const selected = PostStore.getSelectedPost();
         const posts = PostStore.getSelectedPostThread();
 
@@ -229,6 +240,12 @@ export default class RhsThread extends React.Component {
         for (const id in posts) {
             if (posts.hasOwnProperty(id)) {
                 const cpost = posts[id];
+
+                // Do not show empherals created before sidebar has been opened
+                if (cpost.type === 'system_ephemeral' && cpost.create_at < openTime) {
+                    continue;
+                }
+
                 if (cpost.root_id === selected.id) {
                     postsArray.push(cpost);
                 }
