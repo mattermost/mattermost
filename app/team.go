@@ -286,10 +286,6 @@ func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) 
 		}
 	}
 
-	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return false, uua.Err
-	}
-
 	return false, nil
 }
 
@@ -298,6 +294,10 @@ func JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) 
 		return err
 	} else if alreadyAdded {
 		return nil
+	}
+
+	if uua := <-Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
+		return uua.Err
 	}
 
 	channelRole := model.ROLE_CHANNEL_USER.Id

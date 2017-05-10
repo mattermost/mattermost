@@ -408,26 +408,44 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		return nil
 	}
 
+	// We want to avoid database writes if nothing has changed.
+	hasUserChanged := false
+	hasUserRolesChanged := false
+	hasUserAuthDataChanged := false
+	hasUserEmailVerifiedChanged := false
+
 	var user *model.User
 	if result := <-Srv.Store.User().GetByUsername(*data.Username); result.Err == nil {
 		user = result.Data.(*model.User)
 	} else {
 		user = &model.User{}
+		hasUserChanged = true
 	}
 
 	user.Username = *data.Username
-	user.Email = *data.Email
+
+	if user.Email != *data.Email {
+		hasUserChanged = true
+		hasUserEmailVerifiedChanged = true // Changing the email resets email verified to false by default.
+		user.Email = *data.Email
+	}
 
 	var password string
 	var authService string
 	var authData *string
 
 	if data.AuthService != nil {
+		if user.AuthService != *data.AuthService {
+			hasUserAuthDataChanged = true
+		}
 		authService = *data.AuthService
 	}
 
 	// AuthData and Password are mutually exclusive.
 	if data.AuthData != nil {
+		if user.AuthData == nil || *user.AuthData != *data.AuthData {
+			hasUserAuthDataChanged = true
+		}
 		authData = data.AuthData
 		password = ""
 	} else if data.Password != nil {
@@ -445,36 +463,63 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	// Automatically assume all emails are verified.
 	emailVerified := true
-	user.EmailVerified = emailVerified
+	if user.EmailVerified != emailVerified {
+		user.EmailVerified = emailVerified
+		hasUserEmailVerifiedChanged = true
+	}
 
 	if data.Nickname != nil {
-		user.Nickname = *data.Nickname
+		if user.Nickname != *data.Nickname {
+			user.Nickname = *data.Nickname
+			hasUserChanged = true
+		}
 	}
 
 	if data.FirstName != nil {
-		user.FirstName = *data.FirstName
+		if user.FirstName != *data.FirstName {
+			user.FirstName = *data.FirstName
+			hasUserChanged = true
+		}
 	}
 
 	if data.LastName != nil {
-		user.LastName = *data.LastName
+		if user.LastName != *data.LastName {
+			user.LastName = *data.LastName
+			hasUserChanged = true
+		}
 	}
 
 	if data.Position != nil {
-		user.Position = *data.Position
+		if user.Position != *data.Position {
+			user.Position = *data.Position
+			hasUserChanged = true
+		}
 	}
 
 	if data.Locale != nil {
-		user.Locale = *data.Locale
+		if user.Locale != *data.Locale {
+			user.Locale = *data.Locale
+			hasUserChanged = true
+		}
 	} else {
-		user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+		if user.Locale != *utils.Cfg.LocalizationSettings.DefaultClientLocale {
+			user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+			hasUserChanged = true
+		}
 	}
 
 	var roles string
 	if data.Roles != nil {
-		roles = *data.Roles
+		if user.Roles != *data.Roles {
+			roles = *data.Roles
+			hasUserRolesChanged = true
+		}
 	} else if len(user.Roles) == 0 {
 		// Set SYSTEM_USER roles on newly created users by default.
-		roles = model.ROLE_SYSTEM_USER.Id
+		if user.Roles != model.ROLE_SYSTEM_USER.Id {
+			roles = model.ROLE_SYSTEM_USER.Id
+			hasUserRolesChanged = true
+		}
 	}
 	user.Roles = roles
 
@@ -483,24 +528,32 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			return err
 		}
 	} else {
-		if _, err := UpdateUser(user, false); err != nil {
-			return err
+		if hasUserChanged {
+			if _, err := UpdateUser(user, false); err != nil {
+				return err
+			}
 		}
-		if _, err := UpdateUserRoles(user.Id, roles); err != nil {
-			return err
+		if hasUserRolesChanged {
+			if _, err := UpdateUserRoles(user.Id, roles); err != nil {
+				return err
+			}
 		}
 		if len(password) > 0 {
 			if err := UpdatePassword(user, password); err != nil {
 				return err
 			}
 		} else {
-			if res := <-Srv.Store.User().UpdateAuthData(user.Id, authService, authData, user.Email, false); res.Err != nil {
-				return res.Err
+			if hasUserAuthDataChanged {
+				if res := <-Srv.Store.User().UpdateAuthData(user.Id, authService, authData, user.Email, false); res.Err != nil {
+					return res.Err
+				}
 			}
 		}
 		if emailVerified {
-			if err := VerifyUserEmail(user.Id); err != nil {
-				return err
+			if hasUserEmailVerifiedChanged {
+				if err := VerifyUserEmail(user.Id); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -603,13 +656,12 @@ func ImportUserTeams(username string, data *[]UserTeamImportData) *model.AppErro
 			roles = *tdata.Roles
 		}
 
-		if _, err := GetTeamMember(team.Id, user.Id); err != nil {
-			if _, err := joinUserToTeam(team, user); err != nil {
-				return err
-			}
+		if _, err := joinUserToTeam(team, user); err != nil {
+			return err
 		}
 
-		if member, err := GetTeamMember(team.Id, user.Id); err != nil {
+		var member *model.TeamMember
+		if member, err = GetTeamMember(team.Id, user.Id); err != nil {
 			return err
 		} else {
 			if member.Roles != roles {
@@ -619,7 +671,7 @@ func ImportUserTeams(username string, data *[]UserTeamImportData) *model.AppErro
 			}
 		}
 
-		if err := ImportUserChannels(user, team, tdata.Channels); err != nil {
+		if err := ImportUserChannels(user, team, member, tdata.Channels); err != nil {
 			return err
 		}
 	}
@@ -627,7 +679,7 @@ func ImportUserTeams(username string, data *[]UserTeamImportData) *model.AppErro
 	return nil
 }
 
-func ImportUserChannels(user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
+func ImportUserChannels(user *model.User, team *model.Team, teamMember *model.TeamMember, data *[]UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -649,7 +701,7 @@ func ImportUserChannels(user *model.User, team *model.Team, data *[]UserChannelI
 		var member *model.ChannelMember
 		member, err = GetChannelMember(channel.Id, user.Id)
 		if err != nil {
-			member, err = addUserToChannel(user, channel)
+			member, err = addUserToChannel(user, channel, teamMember)
 			if err != nil {
 				return err
 			}
