@@ -238,7 +238,9 @@ function handleNewPostEvent(msg) {
     posts[post.id] = post;
     loadProfilesForPosts(posts);
 
-    UserStore.setStatus(post.user_id, UserStatuses.ONLINE);
+    if (post.user_id !== UserStore.getCurrentId()) {
+        UserStore.setStatus(post.user_id, UserStatuses.ONLINE);
+    }
 }
 
 function handlePostEditEvent(msg) {
@@ -400,7 +402,9 @@ function handlePreferencesDeletedEvent(msg) {
 function handleUserTypingEvent(msg) {
     GlobalActions.emitRemoteUserTypingEvent(msg.broadcast.channel_id, msg.data.user_id, msg.data.parent_id);
 
-    UserStore.setStatus(msg.data.user_id, UserStatuses.ONLINE);
+    if (msg.data.user_id !== UserStore.getCurrentId()) {
+        UserStore.setStatus(msg.data.user_id, UserStatuses.ONLINE);
+    }
 }
 
 function handleStatusChangedEvent(msg) {
