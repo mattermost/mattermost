@@ -15,11 +15,11 @@ func NewSqlClusterDiscoveryStore(sqlStore *SqlStore) ClusterDiscoveryStore {
 	s := &sqlClusterDiscoveryStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ClusterDiscovery{}, "ClusterDiscovery").SetKeys(false, "Type", "ClusterName", "Hostname")
+		table := db.AddTableWithName(model.ClusterDiscovery{}, "ClusterDiscovery").SetKeys(false, "Id")
+		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(64)
 		table.ColMap("ClusterName").SetMaxSize(64)
-		table.ColMap("Hostname").SetMaxSize(255)
-		table.ColMap("Port").SetMaxSize(8)
+		table.ColMap("Hostname").SetMaxSize(512)
 	}
 
 	return s

@@ -8,9 +8,6 @@ import (
 )
 
 type ClusterInterface interface {
-	Start()
-	Stop()
-
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
 	GetClusterInfos() []*model.ClusterInfo

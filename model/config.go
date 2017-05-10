@@ -161,6 +161,13 @@ type ClusterSettings struct {
 	Enable                 *bool
 	InterNodeListenAddress *string
 	InterNodeUrls          []string
+
+	ClusterName           *string
+	OverrideHostname      *string
+	UseIpAddress          *bool
+	UseExperimentalGossip *bool
+	GossipPort            *int
+	Port                  *int
 }
 
 type MetricsSettings struct {
@@ -944,6 +951,36 @@ func (o *Config) SetDefaults() {
 
 	if o.ClusterSettings.InterNodeUrls == nil {
 		o.ClusterSettings.InterNodeUrls = []string{}
+	}
+
+	if o.ClusterSettings.ClusterName == nil {
+		o.ClusterSettings.ClusterName = new(string)
+		*o.ClusterSettings.ClusterName = "Cluster01" // TODO XXX FIXME - set to empty
+	}
+
+	if o.ClusterSettings.OverrideHostname == nil {
+		o.ClusterSettings.OverrideHostname = new(string)
+		*o.ClusterSettings.OverrideHostname = ""
+	}
+
+	if o.ClusterSettings.UseIpAddress == nil {
+		o.ClusterSettings.UseIpAddress = new(bool)
+		*o.ClusterSettings.UseIpAddress = false
+	}
+
+	if o.ClusterSettings.UseExperimentalGossip == nil {
+		o.ClusterSettings.UseExperimentalGossip = new(bool)
+		*o.ClusterSettings.UseExperimentalGossip = false
+	}
+
+	if o.ClusterSettings.GossipPort == nil {
+		o.ClusterSettings.GossipPort = new(int)
+		*o.ClusterSettings.GossipPort = 8074
+	}
+
+	if o.ClusterSettings.Port == nil {
+		o.ClusterSettings.Port = new(int)
+		*o.ClusterSettings.Port = 8075
 	}
 
 	if o.MetricsSettings.ListenAddress == nil {

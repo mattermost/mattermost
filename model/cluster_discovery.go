@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"os"
 )
 
 const (
@@ -18,7 +19,8 @@ type ClusterDiscovery struct {
 	Type        string `json:"type"`
 	ClusterName string `json:"cluster_name"`
 	Hostname    string `json:"hostname"`
-	Port        string `json:"port"`
+	GossipPort  int32  `json:"gossip_port"`
+	Port        int32  `json:"port"`
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
 }
@@ -32,6 +34,56 @@ func (o *ClusterDiscovery) PreSave() {
 		o.CreateAt = GetMillis()
 		o.LastPingAt = o.CreateAt
 	}
+}
+
+func (o *ClusterDiscovery) AutoFillHostname() {
+	// attempt to set the hostname from the OS
+	if len(o.Hostname) == 0 {
+		if hn, err := os.Hostname(); err == nil {
+			o.Hostname = hn
+		}
+	}
+}
+
+func (o *ClusterDiscovery) AutoFillIpAddress() {
+	// attempt to set the hostname to the first non-local IP address
+	if len(o.Hostname) == 0 {
+		ip := GetServerIpAddress()
+		if len(ip) == 0 {
+			o.Hostname = ip
+		}
+	}
+}
+
+func (o *ClusterDiscovery) IsEqual(in *ClusterDiscovery) bool {
+	if in == nil {
+		return false
+	}
+
+	if o.Type != in.Type {
+		return false
+	}
+
+	if o.ClusterName != in.ClusterName {
+		return false
+	}
+
+	if o.Hostname != in.Hostname {
+		return false
+	}
+
+	return true
+}
+
+func FilterClusterDiscovery(vs []*ClusterDiscovery, f func(*ClusterDiscovery) bool) []*ClusterDiscovery {
+	copy := make([]*ClusterDiscovery, 0)
+	for _, v := range vs {
+		if f(v) {
+			copy = append(copy, v)
+		}
+	}
+
+	return copy
 }
 
 func (o *ClusterDiscovery) IsValid() *AppError {

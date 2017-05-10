@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
@@ -21,17 +20,10 @@ type ClusterDiscoveryService struct {
 	stop chan bool
 }
 
-func NewClusterDiscoveryService(serviceType, clusterName string) *ClusterDiscoveryService {
+func NewClusterDiscoveryService() *ClusterDiscoveryService {
 	ds := &ClusterDiscoveryService{
-		ClusterDiscovery: model.ClusterDiscovery{
-			Type:        serviceType,
-			ClusterName: clusterName,
-		},
-		stop: make(chan bool),
-	}
-
-	if hostname, err := os.Hostname(); err == nil {
-		ds.Hostname = hostname
+		ClusterDiscovery: model.ClusterDiscovery{},
+		stop:             make(chan bool),
 	}
 
 	return ds
@@ -48,8 +40,6 @@ func (me *ClusterDiscoveryService) Start() {
 			if u := <-Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
 				l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to start clean for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
 			}
-		} else {
-
 		}
 	}
 
@@ -72,7 +62,6 @@ func (me *ClusterDiscoveryService) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				println("ticking")
 				if u := <-Srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); u.Err != nil {
 					l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to write ping for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
 				}
@@ -85,8 +74,4 @@ func (me *ClusterDiscoveryService) Start() {
 
 func (me *ClusterDiscoveryService) Stop() {
 	me.stop <- true
-}
-
-func GetLogsX(page, perPage int) ([]string, *model.AppError) {
-	return nil, nil
 }

@@ -14,7 +14,11 @@ import (
 func TestClusterDiscoveryService(t *testing.T) {
 	Setup()
 
-	ds := NewClusterDiscoveryService(model.CDS_TYPE_APP, "clusterA")
+	ds := NewClusterDiscoveryService()
+	ds.Type = model.CDS_TYPE_APP
+	ds.ClusterName = "ClusterA"
+	ds.AutoFillHostname()
+
 	ds.Start()
 	time.Sleep(2 * time.Second)
 
