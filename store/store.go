@@ -47,6 +47,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	JobStatus() JobStatusStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -370,4 +371,11 @@ type ReactionStore interface {
 	InvalidateCache()
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
+}
+
+type JobStatusStore interface {
+	SaveOrUpdate(status *model.JobStatus) StoreChannel
+	Get(jobType string) StoreChannel
+	GetAll() StoreChannel
+	DeleteByType(jobType string) StoreChannel
 }
