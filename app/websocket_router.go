@@ -53,7 +53,10 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		if err != nil {
 			conn.WebSocket.Close()
 		} else {
-			go SetStatusOnline(session.UserId, session.Id, false)
+			go func() {
+				SetStatusOnline(session.UserId, session.Id, false)
+				UpdateLastActivityAtIfNeeded(*session)
+			}()
 
 			conn.SessionToken = session.Token
 			conn.UserId = session.UserId
