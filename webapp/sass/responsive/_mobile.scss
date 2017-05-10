@@ -1,6 +1,12 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .member-role .member-menu,
+    .member-drop .member-menu {
+        right: 0;
+        top: 30px;
+    }
+
     .post-code {
         word-wrap: normal;
     }
