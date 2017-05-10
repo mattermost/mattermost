@@ -195,17 +195,12 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
-		achan := Srv.Store.Session().UpdateLastActivityAt(sessionId, status.LastActivityAt)
 
 		var schan store.StoreChannel
 		if broadcast {
 			schan = Srv.Store.Status().SaveOrUpdate(status)
 		} else {
 			schan = Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-		}
-
-		if result := <-achan; result.Err != nil {
-			l4g.Error(utils.T("api.status.last_activity.error"), userId, sessionId, result.Err)
 		}
 
 		if result := <-schan; result.Err != nil {
