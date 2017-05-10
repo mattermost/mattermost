@@ -493,12 +493,14 @@ export default class LoginController extends React.Component {
                     key='gitlab'
                     href={Client.getOAuthRoute() + '/gitlab/login' + this.props.location.search}
                 >
-                    <span className='icon'/>
                     <span>
-                        <FormattedMessage
-                            id='login.gitlab'
-                            defaultMessage='GitLab'
-                        />
+                        <span className='icon'/>
+                        <span>
+                            <FormattedMessage
+                                id='login.gitlab'
+                                defaultMessage='GitLab'
+                            />
+                        </span>
                     </span>
                 </a>
             );
@@ -511,12 +513,14 @@ export default class LoginController extends React.Component {
                     key='google'
                     href={Client.getOAuthRoute() + '/google/login' + this.props.location.search}
                 >
-                    <span className='icon'/>
                     <span>
-                        <FormattedMessage
-                            id='login.google'
-                            defaultMessage='Google Apps'
-                        />
+                        <span className='icon'/>
+                        <span>
+                            <FormattedMessage
+                                id='login.google'
+                                defaultMessage='Google Apps'
+                            />
+                        </span>
                     </span>
                 </a>
             );
@@ -529,12 +533,14 @@ export default class LoginController extends React.Component {
                     key='office365'
                     href={Client.getOAuthRoute() + '/office365/login' + this.props.location.search}
                 >
-                    <span className='icon'/>
                     <span>
-                        <FormattedMessage
-                            id='login.office365'
-                            defaultMessage='Office 365'
-                        />
+                        <span className='icon'/>
+                        <span>
+                            <FormattedMessage
+                                id='login.office365'
+                                defaultMessage='Office 365'
+                            />
+                        </span>
                     </span>
                 </a>
             );
@@ -547,9 +553,11 @@ export default class LoginController extends React.Component {
                     key='saml'
                     href={'/login/sso/saml' + this.props.location.search}
                 >
-                    <span className='icon fa fa-lock fa--margin-top'/>
                     <span>
-                        {global.window.mm_config.SamlLoginButtonText}
+                        <span className='icon fa fa-lock fa--margin-top'/>
+                        <span>
+                            {global.window.mm_config.SamlLoginButtonText}
+                        </span>
                     </span>
                 </a>
             );

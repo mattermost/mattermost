@@ -557,7 +557,6 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionBj) {
-        console.log(theme.mentionBj);
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
         changeCss('.app__body .sidebar--left .badge', 'background:' + theme.mentionBj);
         changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj + ' !important');
