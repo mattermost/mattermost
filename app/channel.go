@@ -435,7 +435,7 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	return nil
 }
 
-func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func addUserToChannel(user *model.User, channel *model.Channel, teamMember *model.TeamMember) (*model.ChannelMember, *model.AppError) {
 	if channel.DeleteAt > 0 {
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
 	}
@@ -444,17 +444,7 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "")
 	}
 
-	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
 	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id)
-
-	if result := <-tmchan; result.Err != nil {
-		return nil, result.Err
-	} else {
-		teamMember := result.Data.(*model.TeamMember)
-		if teamMember.DeleteAt > 0 {
-			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
-		}
-	}
 
 	if result := <-cmchan; result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
@@ -485,8 +475,19 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 }
 
 func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
+	var teamMember *model.TeamMember
 
-	newMember, err := addUserToChannel(user, channel)
+	if result := <-tmchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		teamMember = result.Data.(*model.TeamMember)
+		if teamMember.DeleteAt > 0 {
+			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
+		}
+	}
+
+	newMember, err := addUserToChannel(user, channel, teamMember)
 	if err != nil {
 		return nil, err
 	}
