@@ -451,6 +451,40 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	}
 }
 
+// CreateUserWithHash creates a user in the system based on the provided user struct and hash created.
+func (c *Client4) CreateUserWithHash(user *User, hash, data string) (*User, *Response) {
+	var query string
+	if hash != "" && data != "" {
+		query = fmt.Sprintf("?d=%v&h=%v", url.QueryEscape(data), hash)
+	} else {
+		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_hash_or_data.app_error", nil, "", http.StatusBadRequest)
+		return nil, &Response{StatusCode: err.StatusCode, Error: err}
+	}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CreateUserWithInviteId creates a user in the system based on the provided invited id.
+func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *Response) {
+	var query string
+	if inviteId != "" {
+		query = fmt.Sprintf("?iid=%v", url.QueryEscape(inviteId))
+	} else {
+		err := NewAppError("MissingInviteId", "api.user.create_user.missing_invite_id.app_error", nil, "", http.StatusBadRequest)
+		return nil, &Response{StatusCode: err.StatusCode, Error: err}
+	}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetMe returns the logged in user.
 func (c *Client4) GetMe(etag string) (*User, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(ME), etag); err != nil {
