@@ -502,7 +502,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 0 {
+	if len(channels) != 0 {
 		t.Fatal("should be no deleted channels")
 	}
 
@@ -512,7 +512,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 1 {
+	if len(channels) != 1 {
 		t.Fatal("should be 1 deleted channel")
 	}
 
@@ -521,19 +521,19 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 2 {
+	if len(channels) != 2 {
 		t.Fatal("should be 2 deleted channels")
 	}
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 1 {
+	if len(channels) != 1 {
 		t.Fatal("should be one channel per page")
 	}
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 1 {
+	if len(channels) != 1 {
 		t.Fatal("should be one channel per page")
 	}
 }
@@ -548,11 +548,11 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	channels, resp := Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 4 {
+	if len(channels) != 4 {
 		t.Fatal("wrong length")
 	}
 
-	for i, c := range *channels {
+	for i, c := range channels {
 		if c.Type != model.CHANNEL_OPEN {
 			t.Fatal("should include open channel only")
 		}
@@ -567,11 +567,11 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	privateChannel := th.CreatePrivateChannel()
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 4 {
+	if len(channels) != 4 {
 		t.Fatal("wrong length")
 	}
 
-	for _, c := range *channels {
+	for _, c := range channels {
 		if c.Type != model.CHANNEL_OPEN {
 			t.Fatal("should not include private channel")
 		}
@@ -583,19 +583,19 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 1 {
+	if len(channels) != 1 {
 		t.Fatal("should be one channel per page")
 	}
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 1 {
+	if len(channels) != 1 {
 		t.Fatal("should be one channel per page")
 	}
 
 	channels, resp = Client.GetPublicChannelsForTeam(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	if len(*channels) != 0 {
+	if len(channels) != 0 {
 		t.Fatal("should be no channel")
 	}
 
@@ -629,11 +629,11 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	channels, resp := Client.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
 
-	if len(*channels) != 1 {
+	if len(channels) != 1 {
 		t.Fatal("should return 1 channel")
 	}
 
-	if (*channels)[0].DisplayName != output[0] {
+	if (channels)[0].DisplayName != output[0] {
 		t.Fatal("missing channel")
 	}
 
@@ -646,11 +646,11 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	channels, resp = Client.GetPublicChannelsByIdsForTeam(teamId, input)
 	CheckNoError(t, resp)
 
-	if len(*channels) != 2 {
+	if len(channels) != 2 {
 		t.Fatal("should return 2 channels")
 	}
 
-	for i, c := range *channels {
+	for i, c := range channels {
 		if c.DisplayName != output[i] {
 			t.Fatal("missing channel")
 		}
@@ -689,7 +689,7 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	CheckNoError(t, resp)
 
 	found := make([]bool, 3)
-	for _, c := range *channels {
+	for _, c := range channels {
 		if c.Id == th.BasicChannel.Id {
 			found[0] = true
 		} else if c.Id == th.BasicChannel2.Id {
@@ -739,7 +739,7 @@ func TestSearchChannels(t *testing.T) {
 	CheckNoError(t, resp)
 
 	found := false
-	for _, c := range *channels {
+	for _, c := range channels {
 		if c.Type != model.CHANNEL_OPEN {
 			t.Fatal("should only return public channels")
 		}
@@ -758,7 +758,7 @@ func TestSearchChannels(t *testing.T) {
 	CheckNoError(t, resp)
 
 	found = false
-	for _, c := range *channels {
+	for _, c := range channels {
 		if c.Id == th.BasicPrivateChannel.Id {
 			found = true
 		}
