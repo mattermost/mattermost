@@ -1270,54 +1270,54 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 }
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
-func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
+func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
-func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
+func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string
-func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*ChannelList, *Response) {
+func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) ([]*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
-func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) (*ChannelList, *Response) {
+func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) ([]*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/channels", etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // SearchChannels returns the channels on a team matching the provided search term.
-func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) (*ChannelList, *Response) {
+func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
