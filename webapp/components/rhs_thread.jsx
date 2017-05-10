@@ -324,14 +324,15 @@ export default class RhsThread extends React.Component {
         const postsArray = this.state.postsArray;
         const selected = this.state.selected;
         const profiles = this.state.profiles || {};
-        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
-        let previousPostDay = rootPostDay;
 
         if (postsArray == null || selected == null) {
             return (
                 <div/>
             );
         }
+
+        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
+        let previousPostDay = rootPostDay;
 
         let profile;
         if (UserStore.getCurrentId() === selected.user_id) {
