@@ -856,6 +856,18 @@
 
             .navbar-brand {
                 white-space: nowrap;
+
+                .heading {
+                    line-height: normal;
+                    position: relative;
+                    top: 11px;
+                    vertical-align: top;
+                }
+
+                .header-dropdown__icon {
+                    top: 18px;
+                    vertical-align: top;
+                }
             }
 
             .dropdown {
