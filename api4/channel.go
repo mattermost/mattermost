@@ -482,14 +482,23 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_DELETE_PUBLIC_CHANNEL)
+	var memberCount int64
+	if memberCount, err = app.GetChannelMemberCount(c.Params.ChannelId); err != nil {
+		c.Err = err
 		return
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_DELETE_PRIVATE_CHANNEL)
-		return
+	// Allow delete if user is the only member left in channel
+	if memberCount > 1 {
+		if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_DELETE_PUBLIC_CHANNEL)
+			return
+		}
+
+		if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_DELETE_PRIVATE_CHANNEL)
+			return
+		}
 	}
 
 	err = app.DeleteChannel(channel, c.Session.UserId)
