@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"io"
 )
 
 const (
@@ -13,12 +14,14 @@ const (
 )
 
 type JobStatus struct {
+	Id                 string                 `json:"id"`
 	Type               string                 `json:"type"`
+	StartAt            int64                  `json:"start_at"`
+	LastActivityAt     int64                  `json:"last_activity_at"`
 	LastRunStartedAt   int64                  `json:"last_run_started_at"`
 	LastRunCompletedAt int64                  `json:"last_run_completed_at"`
-	LastHeartbeatAt    int64                  `json:"last_heartbeat_at"`
 	Status             string                 `json:"status"`
-	Progress           map[string]interface{} `json:"progress"`
+	Data               map[string]interface{} `json:"data"`
 }
 
 func (js *JobStatus) ToJson() string {

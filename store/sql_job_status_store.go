@@ -17,16 +17,18 @@ func NewSqlJobStatusStore(sqlStore *SqlStore) JobStatusStore {
 	s := &SqlJobStatusStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.JobStatus{}, "JobStatuses").SetKeys(false, "Type")
+		table := db.AddTableWithName(model.JobStatus{}, "JobStatuses").SetKeys(false, "Id")
+		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)
-		table.ColMap("Progress").SetMaxSize(1024)
+		table.ColMap("Status").SetMaxSize(32)
+		table.ColMap("Data").SetMaxSize(1024)
 	}
 
 	return s
 }
 
 func (jss SqlJobStatusStore) CreateIndexesIfNotExists() {
-	jss.CreateIndexIfNotExists("idx_jobstatus_type", "JobStatuses", "Type")
+	jss.CreateIndexIfNotExists("idx_jobstatuses_type", "JobStatuses", "Type")
 }
 
 func (jss SqlJobStatusStore) SaveOrUpdate(status *model.JobStatus) StoreChannel {
@@ -41,19 +43,23 @@ func (jss SqlJobStatusStore) SaveOrUpdate(status *model.JobStatus) StoreChannel 
 			FROM
 				JobStatuses
 			WHERE
-				Type = :Type`, map[string]interface{}{"Type": status.Type}); err == nil {
+				Id = :Id`, map[string]interface{}{"Id": status.Id}); err == nil {
 			if _, err := jss.GetMaster().Update(status); err != nil {
 				result.Err = model.NewLocAppError("SqlJobStatusStore.SaveOrUpdate",
-					"store.sql_job_status.update.app_error", nil, "type="+status.Type+", "+err.Error())
+					"store.sql_job_status.update.app_error", nil, "id="+status.Id+", "+err.Error())
 			}
 		} else if err == sql.ErrNoRows {
 			if err := jss.GetMaster().Insert(status); err != nil {
 				result.Err = model.NewLocAppError("SqlJobStatusStore.SaveOrUpdate",
-					"store.sql_job_status.save.app_error", nil, "type="+status.Type+", "+err.Error())
+					"store.sql_job_status.save.app_error", nil, "id="+status.Id+", "+err.Error())
 			}
 		} else {
 			result.Err = model.NewLocAppError("SqlJobStatusStore.SaveOrUpdate",
-				"store.sql_job_status.save_or_update.app_error", nil, "type="+status.Type+", "+err.Error())
+				"store.sql_job_status.save_or_update.app_error", nil, "id="+status.Id+", "+err.Error())
+		}
+
+		if result.Err == nil {
+			result.Data = status
 		}
 
 		storeChannel <- result
@@ -63,7 +69,7 @@ func (jss SqlJobStatusStore) SaveOrUpdate(status *model.JobStatus) StoreChannel 
 	return storeChannel
 }
 
-func (jss SqlJobStatusStore) Get(jobType string) StoreChannel {
+func (jss SqlJobStatusStore) Get(id string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -77,8 +83,9 @@ func (jss SqlJobStatusStore) Get(jobType string) StoreChannel {
 			FROM
 				JobStatuses
 			WHERE
-				Type = :Type`, map[string]interface{}{"Type": jobType}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStatusStore.Get", "store.sql_job_status.get.app_error", nil, "type="+jobType+", "+err.Error())
+				Id = :Id`, map[string]interface{}{"Id": id}); err != nil {
+			result.Err = model.NewLocAppError("SqlJobStatusStore.Get",
+				"store.sql_job_status.get.app_error", nil, "Id="+id+", "+err.Error())
 		} else {
 			result.Data = status
 		}
@@ -90,7 +97,7 @@ func (jss SqlJobStatusStore) Get(jobType string) StoreChannel {
 	return storeChannel
 }
 
-func (jss SqlJobStatusStore) GetAll() StoreChannel {
+func (jss SqlJobStatusStore) GetAllByType(jobType string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -102,8 +109,11 @@ func (jss SqlJobStatusStore) GetAll() StoreChannel {
 			`SELECT
 				*
 			FROM
-				JobStatuses`); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStatusStore.GetAll", "store.sql_job_status.get_all.app_error", nil, "")
+				JobStatuses
+			WHERE
+				Type = :Type`, map[string]interface{}{"Type": jobType}); err != nil {
+			result.Err = model.NewLocAppError("SqlJobStatusStore.GetAllByType",
+				"store.sql_job_status.get_all_by_type.app_error", nil, "Type="+jobType+", "+err.Error())
 		} else {
 			result.Data = statuses
 		}
@@ -115,7 +125,41 @@ func (jss SqlJobStatusStore) GetAll() StoreChannel {
 	return storeChannel
 }
 
-func (jss SqlJobStatusStore) DeleteByType(jobType string) StoreChannel {
+func (jss SqlJobStatusStore) GetAllByTypePage(jobType string, offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var statuses []*model.JobStatus
+
+		if _, err := jss.GetReplica().Select(&statuses,
+			`SELECT
+				*
+			FROM
+				JobStatuses
+			WHERE
+				Type = :Type
+			ORDER BY
+				StartAt ASC
+			LIMIT
+				:Limit
+			OFFSET
+				:Offset`, map[string]interface{}{"Type": jobType, "Limit": limit, "Offset": offset}); err != nil {
+			result.Err = model.NewLocAppError("SqlJobStatusStore.GetAllByTypePage",
+				"store.sql_job_status.get_all_by_type_page.app_error", nil, "Type="+jobType+", "+err.Error())
+		} else {
+			result.Data = statuses
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (jss SqlJobStatusStore) Delete(id string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -125,11 +169,11 @@ func (jss SqlJobStatusStore) DeleteByType(jobType string) StoreChannel {
 			`DELETE FROM
 				JobStatuses
 			WHERE
-				Type = :Type`, map[string]interface{}{"Type": jobType}); err != nil {
+				Id = :Id`, map[string]interface{}{"Id": id}); err != nil {
 			result.Err = model.NewLocAppError("SqlJobStatusStore.DeleteByType",
-				"store.sql_job_status.delete_by_type.app_error", nil, "type="+jobType+", "+err.Error())
+				"store.sql_job_status.delete.app_error", nil, "id="+id+", "+err.Error())
 		} else {
-			result.Data = jobType
+			result.Data = id
 		}
 
 		storeChannel <- result

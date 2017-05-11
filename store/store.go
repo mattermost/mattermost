@@ -375,7 +375,8 @@ type ReactionStore interface {
 
 type JobStatusStore interface {
 	SaveOrUpdate(status *model.JobStatus) StoreChannel
-	Get(jobType string) StoreChannel
-	GetAll() StoreChannel
-	DeleteByType(jobType string) StoreChannel
+	Get(id string) StoreChannel
+	GetAllByType(jobType string) StoreChannel
+	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
+	Delete(id string) StoreChannel
 }
