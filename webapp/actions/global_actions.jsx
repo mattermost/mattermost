@@ -58,7 +58,7 @@ export function emitChannelClickEvent(channel) {
 
         getMyChannelMemberPromise.then(() => {
             getChannelStats(chan.id)(dispatch, getState);
-            viewChannel(chan.id)(dispatch, getState);
+            viewChannel(chan.id, oldChannelId)(dispatch, getState);
             loadPosts(chan.id);
 
             // Mark previous and next channel as read
