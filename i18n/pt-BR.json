@@ -1030,6 +1030,10 @@
     "translation": "Não foi possível criar o emoji. Um erro ocorreu enquanto tentava codificar uma imagem GIF."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Anexo de arquivos foi desabilitado neste servidor."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Links públicos foram desabilitados pelo administrador do sistema"
   },

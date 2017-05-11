@@ -1030,6 +1030,10 @@
     "translation": "Невозможно создать смайлик. Произошла ошибка при кодирования GIF изображения."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Вложения отключены на этом сервере."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Публичные ссылки были запрещены системным администратором"
   },
@@ -1051,7 +1055,7 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
+    "translation": "Не удалось получить информацию о файле. Хранилище изображений не настроено."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -2237,7 +2241,7 @@
   },
   {
     "id": "api.templates.post_subject_in_group_message",
-    "translation": "{{.SubjectText}} в {{.TeamDisplayName}} от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "Новое групповое сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2525,7 +2529,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Вход не удался, поскольку ваша учетная запись была деактивирована. Пожалуйста, свяжитесь с администратором."
+    "translation": "Вход не удался, поскольку ваша учетная запись отключена. Пожалуйста, свяжитесь с администратором."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -2841,7 +2845,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Невозможно обновить команды через команды"
+    "translation": "Невозможно обновить вебхук для команд"
   },
   {
     "id": "api.webhook.update_incoming.disabled.app_error",
@@ -2933,7 +2937,7 @@
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": "Строка импорта данных содержит тип \"team\", но объект team равен null."
+    "translation": "Строка импорта данных содержит тип \"post\", но объект post равен null."
   },
   {
     "id": "app.import.import_line.null_team.error",
@@ -3181,7 +3185,7 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
+    "translation": "Чтение публичных каналов"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -4421,7 +4425,7 @@
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": "Недопустимый маркер"
+    "translation": "Неверный токен."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -4701,7 +4705,7 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Не удалось получить подсчет типов каналов"
+    "translation": "Не удалось получить количество удалённых каналов по типам"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",

@@ -1030,6 +1030,10 @@
     "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "File attachments have been disabled on this server."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
   },

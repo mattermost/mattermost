@@ -1030,6 +1030,10 @@
     "translation": "絵文字を作成できません。GIF画像をエンコードする際にエラーが発生しました。"
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "このサーバーではファイル添付が無効になっています。"
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "公開リンクはシステム管理者によって無効にされています"
   },
@@ -1051,7 +1055,7 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "ファイルの情報を取得できません。画像ストレージが設定されていません。"
+    "translation": "ファイルの情報を取得できません。ファイルストレージが設定されていません。"
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -4461,7 +4465,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "cryptの制限により72文字以上のパスワードを設定できません"
+    "translation": "bcryptの制限により72文字以上のパスワードを設定できません"
   },
   {
     "id": "model.user.is_valid.position.app_error",
