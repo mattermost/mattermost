@@ -9,6 +9,7 @@ import PostFlagIcon from 'components/common/post_flag_icon.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as PostActions from 'actions/post_actions.jsx';
+import CommentIcon from 'components/common/comment_icon.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
@@ -342,30 +343,13 @@ export default class PostInfo extends React.Component {
         let comments = null;
         let react = null;
         if (!isEphemeral && !isPending && !isSystemMessage) {
-            let showCommentClass;
-            let commentCountText;
-            if (this.props.commentCount >= 1) {
-                showCommentClass = ' icon--show';
-                commentCountText = this.props.commentCount;
-            } else {
-                showCommentClass = '';
-                commentCountText = '';
-            }
-
             comments = (
-                <a
-                    href='#'
-                    className={'comment-icon__container' + showCommentClass}
-                    onClick={this.props.handleCommentClick}
-                >
-                    <span
-                        className='comment-icon'
-                        dangerouslySetInnerHTML={{__html: Constants.REPLY_ICON}}
-                    />
-                    <span className='comment-count'>
-                        {commentCountText}
-                    </span>
-                </a>
+                <CommentIcon
+                    idPrefix={'commentIcon'}
+                    idCount={idCount}
+                    handleCommentClick={this.props.handleCommentClick}
+                    commentCount={this.props.commentCount}
+                />
             );
 
             if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
