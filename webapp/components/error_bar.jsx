@@ -151,7 +151,7 @@ export default class ErrorBar extends React.Component {
             message = (
                 <FormattedHTMLMessage
                     id={ErrorBarTypes.LICENSE_EXPIRING}
-                    defaultMessage='Enterprise license expires on {date}. <a href="{link}" target="_blank">Please renew.</a>'
+                    defaultMessage='Enterprise license expires on {date}. <a href="{link}" target="_blank">Please renew</a>.'
                     values={{
                         date: displayExpiryDate(),
                         link: renewalLink
@@ -162,7 +162,7 @@ export default class ErrorBar extends React.Component {
             message = (
                 <FormattedHTMLMessage
                     id={ErrorBarTypes.LICENSE_EXPIRED}
-                    defaultMessage='Enterprise license is expired and some features may be disabled. <a href="{link}" target="_blank">Please renew.</a>'
+                    defaultMessage='Enterprise license is expired and some features may be disabled. <a href="{link}" target="_blank">Please renew</a>.'
                     values={{
                         link: renewalLink
                     }}
