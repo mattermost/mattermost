@@ -49,20 +49,20 @@ export default class SidebarHeader extends React.Component {
 
     render() {
         var me = this.props.currentUser;
-        var profilePicture = null;
-
         if (!me) {
             return null;
         }
 
-        if (me.last_picture_update) {
-            profilePicture = (
-                <img
-                    className='user__picture'
-                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.last_picture_update}
-                />
-            );
+        let profilePictureSrc = Client.getUsersRoute() + '/' + me.id + '/image';
+        if (typeof me.last_picture_update === 'string') {
+            profilePictureSrc += '?time=' + me.last_picture_update;
         }
+        const profilePicture = (
+            <img
+                className='user__picture'
+                src={profilePictureSrc}
+            />
+        );
 
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
