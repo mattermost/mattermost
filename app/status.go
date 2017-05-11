@@ -209,11 +209,15 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	}
 
 	if broadcast {
-		event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-		event.Add("status", model.STATUS_ONLINE)
-		event.Add("user_id", status.UserId)
-		go Publish(event)
+		BroadcastStatus(status)
 	}
+}
+
+func BroadcastStatus(status *model.Status) {
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
+	event.Add("status", status.Status)
+	event.Add("user_id", status.UserId)
+	go Publish(event)
 }
 
 func SetStatusOffline(userId string, manual bool) {

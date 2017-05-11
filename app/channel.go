@@ -1016,9 +1016,13 @@ func GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 
 func SetActiveChannel(userId string, channelId string) *model.AppError {
 	status, err := GetStatus(userId)
+
+	oldStatus := model.STATUS_OFFLINE
+
 	if err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelId}
 	} else {
+		oldStatus = status.Status
 		status.ActiveChannel = channelId
 		if !status.Manual {
 			status.Status = model.STATUS_ONLINE
@@ -1027,6 +1031,10 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 	}
 
 	AddStatusCache(status)
+
+	if status.Status != oldStatus {
+		BroadcastStatus(status)
+	}
 
 	return nil
 }
