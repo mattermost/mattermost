@@ -216,7 +216,7 @@ func TestSendSignInChangeEmail(t *testing.T) {
 	var siteURL string = ""
 	var method string = "AD/LDAP"
 	var expectedPartialMessage string = "You updated your sign-in method on Mattermost to " + method + "."
-	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] You updated your sign-in method on " + utils.Cfg.TeamSettings.SiteName
+	var expectedSubject string = "[" + utils.Cfg.TeamSettings.SiteName + "] Your sign-in method has been updated"
 
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)

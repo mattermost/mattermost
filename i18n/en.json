@@ -49,23 +49,23 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "No file under 'certificate' in request"
+    "translation": "No file under 'certificate' in request."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Could not open certificate file"
+    "translation": "Could not open certificate file."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Could not save certificate file"
+    "translation": "Could not save certificate file."
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Error reading log file"
+    "translation": "Error reading log file."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "Custom branding is not configured or supported on this server"
+    "translation": "Custom branding is not configured or supported on this server."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initializing admin API routes"
+    "translation": "Initializing admin API routes."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Finished recycling the database connection"
+    "translation": "Finished recycling the database connection."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Attempting to recycle the database connection"
+    "translation": "Attempting to recycle the database connection."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "An error occurred while building Service Provider Metadata"
+    "translation": "An error occurred while building Service Provider Metadata."
   },
   {
     "id": "api.admin.test_email.body",
@@ -2277,7 +2277,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] You updated your sign-in method on {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2977,7 +2977,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "Channel create_at must not be 0 if provided."
+    "translation": "Channel create_at must not be zero if provided."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2985,7 +2985,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name."
+    "translation": "Missing required channel property: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -3029,7 +3029,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt must not be zero if it is provided."
+    "translation": "Post CreateAt property must not be zero if provided."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3053,7 +3053,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "Team create_at must not be 0 if provided."
+    "translation": "Team create_at must not be zero if provided."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3065,7 +3065,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Missing required team property: display_name"
+    "translation": "Missing required team property: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -3081,7 +3081,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Team name contains reserved word."
+    "translation": "Team name contains reserved words."
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
@@ -3089,7 +3089,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Missing required team property: type"
+    "translation": "Missing required team property: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
