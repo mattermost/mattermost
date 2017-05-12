@@ -3,6 +3,23 @@
 Dialogue changes are integrated on the `dialogue-master` branch.
 
 
+## deploy
+
+Copy the distribution binary to a feature specific name on S3 (for backup).
+
+```
+aws s3 cp dist/mattermost-team-linux-amd64.tar.gz s3://dialoguemd-infra-distrib/mattermost-3.4-with-xxx-linux-amd64.tar.gz
+```
+
+Copy the distribution binary to a generic name on S3 (for deploy).
+
+```
+aws s3 cp dist/mattermost-team-linux-amd64.tar.gz s3://dialoguemd-infra-distrib/mattermost-3.4-linux-amd64.tar.gz
+```
+
+Then deploy [Mattermost Service](https://github.com/dialogue/mattermost-service).
+
+
 # Mattermost
 
 Mattermost is an open source, self-hosted Slack-alternative from [https://mattermost.org](https://mattermost.org).
