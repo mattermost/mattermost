@@ -68,7 +68,7 @@ export default function PostFlagIcon(props) {
         );
     }
 
-    return '';
+    return null;
 }
 
 PostFlagIcon.propTypes = {
