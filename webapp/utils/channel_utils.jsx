@@ -5,6 +5,8 @@ const Preferences = Constants.Preferences;
 import * as Utils from 'utils/utils.jsx';
 
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import LocalizationStore from 'stores/localization_store.jsx';
 
@@ -249,6 +251,29 @@ export function buildGroupChannelName(channelId) {
     }
 
     return displayName;
+}
+
+export function getCountsStateFromStores(team = TeamStore.getCurrent(), teamMembers = TeamStore.getMyTeamMembers(), unreadCounts = ChannelStore.getUnreadCounts()) {
+    let mentionCount = 0;
+    let messageCount = 0;
+
+    teamMembers.forEach((member) => {
+        if (member.team_id !== TeamStore.getCurrentId()) {
+            mentionCount += (member.mention_count || 0);
+            messageCount += (member.msg_count || 0);
+        }
+    });
+
+    Object.keys(unreadCounts).forEach((chId) => {
+        const channel = ChannelStore.get(chId);
+
+        if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL || channel.team_id === team.id)) {
+            messageCount += unreadCounts[chId].msgs;
+            mentionCount += unreadCounts[chId].mentions;
+        }
+    });
+
+    return {mentionCount, messageCount};
 }
 
 /*

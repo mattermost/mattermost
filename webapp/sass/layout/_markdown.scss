@@ -31,6 +31,12 @@ h6 {
     font-weight: 700;
     line-height: 1.5;
     margin: 10px 0;
+
+    .emoticon {
+        min-height: 1.5em;
+        min-width: 1.5em;
+        vertical-align: top;
+    }
 }
 
 .markdown__paragraph-inline {
