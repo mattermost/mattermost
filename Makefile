@@ -533,12 +533,13 @@ govet:
 	$(GO) vet $(GOFLAGS) ./web || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) ./enterprise || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1
