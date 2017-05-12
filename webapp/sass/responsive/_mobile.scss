@@ -1677,7 +1677,61 @@
     }
 }
 
+@media screen and (max-width: 380px) {
+    #navbar {
+        .navbar-default {
+            .navbar-brand {
+                .heading {
+                    max-width: calc(100% - 160px);
+                }
+            }
+
+            .navbar-toggle {
+                &.navbar-search,
+                &.menu-toggle {
+                    line-height: normal;
+
+                    .fa {
+                        font-size: 18px;
+                        top: 1px;
+                    }
+                }
+
+                &.menu-toggle {
+                    svg {
+                        top: 2px;
+                    }
+                }
+            }
+        }
+    }
+}
+
 @media screen and (max-width: 320px) {
+    #navbar {
+        .navbar-default {
+            .navbar-brand {
+                .description {
+                    &.info-popover {
+                        margin-right: 7px;
+                    }
+                }
+            }
+
+            .navbar-toggle {
+                &.navbar-search,
+                &.menu-toggle {
+                    padding: 0 10px;
+                    width: auto;
+                }
+
+                &.menu-toggle {
+                    padding-right: 17px;
+                }
+            }
+        }
+    }
+
     .multi-teams {
         .sidebar--left {
             width: 220px;
