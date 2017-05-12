@@ -16,15 +16,15 @@ import (
 type Jobs struct {
 	startOnce sync.Once
 
-	DataRetention  model.Job
-	SearchIndexing model.Job
+	DataRetention model.Job
+	// SearchIndexing model.Job
 
 	listenerId string
 }
 
 func InitJobs(s store.Store) *Jobs {
 	jobs := &Jobs{
-		SearchIndexing: MakeTestJob(s, "SearchIndexing"),
+	// 	SearchIndexing: MakeTestJob(s, "SearchIndexing"),
 	}
 
 	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
@@ -42,7 +42,7 @@ func (jobs *Jobs) Start() *Jobs {
 			go jobs.DataRetention.Run()
 		}
 
-		go jobs.SearchIndexing.Run()
+		// go jobs.SearchIndexing.Run()
 	})
 
 	jobs.listenerId = utils.AddConfigListener(jobs.handleConfigChange)
@@ -61,14 +61,12 @@ func (jobs *Jobs) handleConfigChange(oldConfig *model.Config, newConfig *model.C
 }
 
 func (jobs *Jobs) Stop() *Jobs {
-	l4g.Info("Stopping jobs")
-
 	utils.RemoveConfigListener(jobs.listenerId)
 
 	if jobs.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
 		jobs.DataRetention.Stop()
 	}
-	jobs.SearchIndexing.Stop()
+	// jobs.SearchIndexing.Stop()
 
 	l4g.Info("Stopped jobs")
 
