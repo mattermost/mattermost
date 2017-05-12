@@ -121,7 +121,7 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	jobs := jobs.InitJobs(app.Srv.Store).StartAll()
+	jobs := jobs.InitJobs(app.Srv.Store).Start()
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
@@ -137,7 +137,7 @@ func runServer(configFileLocation string) {
 		einterfaces.GetMetricsInterface().StopServer()
 	}
 
-	jobs.StopAll()
+	jobs.Stop()
 
 	app.StopServer()
 }

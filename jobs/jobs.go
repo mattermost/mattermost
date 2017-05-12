@@ -10,6 +10,7 @@ import (
 	ejobs "github.com/mattermost/platform/einterfaces/jobs"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 type Jobs struct {
@@ -17,6 +18,8 @@ type Jobs struct {
 
 	DataRetention  model.Job
 	SearchIndexing model.Job
+
+	listenerId string
 }
 
 func InitJobs(s store.Store) *Jobs {
@@ -31,24 +34,38 @@ func InitJobs(s store.Store) *Jobs {
 	return jobs
 }
 
-func (jobs *Jobs) StartAll() *Jobs {
+func (jobs *Jobs) Start() *Jobs {
 	l4g.Info("Starting jobs")
 
 	jobs.startOnce.Do(func() {
-		if jobs.DataRetention != nil {
+		if jobs.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
 			go jobs.DataRetention.Run()
 		}
 
 		go jobs.SearchIndexing.Run()
 	})
 
+	jobs.listenerId = utils.AddConfigListener(jobs.handleConfigChange)
+
 	return jobs
 }
 
-func (jobs *Jobs) StopAll() *Jobs {
+func (jobs *Jobs) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+	if jobs.DataRetention != nil {
+		if !*oldConfig.DataRetentionSettings.Enable && *newConfig.DataRetentionSettings.Enable {
+			go jobs.DataRetention.Run()
+		} else if *oldConfig.DataRetentionSettings.Enable && !*newConfig.DataRetentionSettings.Enable {
+			jobs.DataRetention.Stop()
+		}
+	}
+}
+
+func (jobs *Jobs) Stop() *Jobs {
 	l4g.Info("Stopping jobs")
 
-	if jobs.DataRetention != nil {
+	utils.RemoveConfigListener(jobs.listenerId)
+
+	if jobs.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
 		jobs.DataRetention.Stop()
 	}
 	jobs.SearchIndexing.Stop()
