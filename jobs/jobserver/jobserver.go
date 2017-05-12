@@ -9,14 +9,14 @@ import (
 	"syscall"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/job"
+	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 
 	_ "github.com/mattermost/platform/imports"
 )
 
-var Srv job.JobServer
+var Srv jobs.JobServer
 
 func main() {
 	// Initialize
@@ -30,8 +30,8 @@ func main() {
 
 	// Run jobs
 	l4g.Info("Starting Mattermost job server")
-	Srv.Jobs = job.InitJobs(Srv.Store)
-	Srv.Jobs.StartAll()
+	Srv.Jobs = jobs.InitJobs(Srv.Store)
+	Srv.Jobs.Start()
 
 	var signalChan chan os.Signal = make(chan os.Signal)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -40,7 +40,7 @@ func main() {
 	// Cleanup anything that isn't handled by a defer statement
 	l4g.Info("Stopping Mattermost job server")
 
-	Srv.Jobs.StopAll()
+	Srv.Jobs.Stop()
 
 	l4g.Info("Stopped Mattermost job server")
 }

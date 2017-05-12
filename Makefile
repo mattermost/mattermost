@@ -339,15 +339,15 @@ build-job-server: build-job-server-linux build-job-server-mac build-job-server-w
 
 build-job-server-linux: .prebuild prepare-enterprise
 	@echo Build mattermost job server for Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
+	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
 
 build-job-server-osx: .prebuild prepare-enterprise
 	@echo Build mattermost job server for OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
+	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
 
 build-job-server-windows: .prebuild prepare-enterprise
 	@echo Build mattermost job server for Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./job/jobserver
+	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
 
 package: build build-client
 	@ echo Packaging mattermost
@@ -482,6 +482,10 @@ restart: restart-server restart-client
 restart-server: | stop-server run-server
 
 restart-client: | stop-client run-client
+
+run-job-server:
+	@echo Running job server for development
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver/jobserver.go
 
 clean: stop-docker
 	@echo Cleaning
