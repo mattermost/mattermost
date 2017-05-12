@@ -28,6 +28,9 @@ import {
     getTeamMembersForUser as getTeamMembersForUserRedux
 } from 'mattermost-redux/actions/teams';
 
+import {TeamTypes} from 'mattermost-redux/action_types';
+import {batchActions} from 'redux-batched-actions';
+
 export function checkIfTeamExists(teamName, onSuccess, onError) {
     checkIfTeamExistsRedux(teamName)(dispatch, getState).then(
         (exists) => {
@@ -104,6 +107,26 @@ export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
         hash,
         inviteId,
         (team) => {
+            const member = {
+                team_id: team.id,
+                user_id: getState().entities.users.currentUserId,
+                roles: 'team_user',
+                delete_at: 0,
+                msg_count: 0,
+                mention_count: 0
+            };
+
+            dispatch(batchActions([
+                {
+                    type: TeamTypes.RECEIVED_TEAMS_LIST,
+                    data: [team]
+                },
+                {
+                    type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
+                    data: member
+                }
+            ]));
+
             if (success) {
                 success(team);
             }

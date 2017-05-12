@@ -1030,6 +1030,10 @@
     "translation": "无法创建表情符。编码 GIF 图片时遇到错误。"
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "文件附件已在此服务器禁用。"
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "系统管理员禁用了公开的链接"
   },
@@ -3125,7 +3129,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.pasword_length.error",
-    "translation": "User Password has invalid length."
+    "translation": "无效的用户密码长度。"
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -4417,11 +4421,11 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Invalid token expiry"
+    "translation": "无效的令牌过期"
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": "无效的令牌"
+    "translation": "无效的令牌。"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -4461,7 +4465,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "因 bcrypt 限制，密码不能设置超过 72 个字符。"
   },
   {
     "id": "model.user.is_valid.position.app_error",

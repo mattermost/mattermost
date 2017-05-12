@@ -20,8 +20,8 @@ export default class Root extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            locale: 'en',
-            translations: null
+            locale: LocalizationStore.getLocale(),
+            translations: LocalizationStore.getTranslations()
         };
 
         this.localizationChanged = this.localizationChanged.bind(this);
@@ -113,7 +113,7 @@ export default class Root extends React.Component {
         LocalizationStore.addChangeListener(this.localizationChanged);
 
         // Get our localizaiton
-        GlobalActions.loadDefaultLocale();
+        GlobalActions.loadCurrentLocale();
     }
 
     componentWillUnmount() {

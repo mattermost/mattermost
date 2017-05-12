@@ -58,7 +58,7 @@ export function emitChannelClickEvent(channel) {
 
         getMyChannelMemberPromise.then(() => {
             getChannelStats(chan.id)(dispatch, getState);
-            viewChannel(chan.id)(dispatch, getState);
+            viewChannel(chan.id, oldChannelId)(dispatch, getState);
             loadPosts(chan.id);
 
             // Mark previous and next channel as read
@@ -379,7 +379,7 @@ export function newLocalizationSelected(locale) {
             translations: en
         });
     } else {
-        const localeInfo = I18n.getLanguageInfo(locale) || I18n.getLanguageInfo(global.window.mm_config.DefaultClientLocale);
+        const localeInfo = I18n.getLanguageInfo(locale);
 
         Client.getTranslations(
             localeInfo.url,
@@ -401,13 +401,23 @@ export function newLocalizationSelected(locale) {
     }
 }
 
+export function loadCurrentLocale() {
+    const user = UserStore.getCurrentUser();
+
+    if (user && user.locale) {
+        newLocalizationSelected(user.locale);
+    } else {
+        loadDefaultLocale();
+    }
+}
+
 export function loadDefaultLocale() {
-    const defaultLocale = global.window.mm_config.DefaultClientLocale;
-    let locale = global.window.mm_user ? global.window.mm_user.locale || defaultLocale : defaultLocale;
+    let locale = global.window.mm_config.DefaultClientLocale;
 
     if (!I18n.getLanguageInfo(locale)) {
         locale = 'en';
     }
+
     return newLocalizationSelected(locale);
 }
 
