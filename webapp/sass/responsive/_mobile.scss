@@ -1,6 +1,12 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .member-role .member-menu,
+    .member-drop .member-menu {
+        right: 0;
+        top: 30px;
+    }
+
     .post-code {
         word-wrap: normal;
     }
@@ -109,9 +115,10 @@
             font-weight: 200;
             height: 30px;
             left: 50%;
-            line-height: 27px;
+            line-height: 0;
             margin-left: -15px;
             opacity: 1;
+            padding-top: 13px;
             position: fixed;
             text-align: center;
             text-shadow: none;
@@ -856,6 +863,18 @@
 
             .navbar-brand {
                 white-space: nowrap;
+
+                .heading {
+                    line-height: normal;
+                    position: relative;
+                    top: 11px;
+                    vertical-align: top;
+                }
+
+                .header-dropdown__icon {
+                    top: 18px;
+                    vertical-align: top;
+                }
             }
 
             .dropdown {
@@ -892,9 +911,10 @@
                     font-weight: 200;
                     height: 30px;
                     left: 50%;
-                    line-height: 27px;
+                    line-height: 0;
                     margin-left: -15px;
                     opacity: 1;
+                    padding-top: 13px;
                     position: fixed;
                     text-align: center;
                     text-shadow: none;
@@ -1734,7 +1754,7 @@
     }
 }
 
-@media screen and (max-width: 320px) and (max-height: 560px) {
+@media screen and (max-width: 380px) and (max-height: 580px) {
     #navbar {
         .navbar-default {
             .dropdown-menu {
@@ -1743,7 +1763,8 @@
                 > li {
                     > a {
                         border: none;
-                        line-height: 28px;
+                        font-size: 13px;
+                        line-height: 27px;
                     }
                 }
             }
@@ -1751,16 +1772,19 @@
     }
 }
 
+
+
 // on iOS, allow clicks within an input's label to actually propagate through to the input itself,
 // but still allow clicks to a elements to go trough
 // http://stackoverflow.com/a/34810294/6325807
 label {
-  span {
-    pointer-events: none;
-  }
-  span a {
-    pointer-events: all;
-  }
+    span {
+        pointer-events: none;
+    }
+
+    span a {
+        pointer-events: all;
+    }
 }
 
 @media screen and (-webkit-min-device-pixel-ratio: 0) {

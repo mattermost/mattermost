@@ -133,14 +133,11 @@ export function getLanguages() {
 }
 
 export function getLanguageInfo(locale) {
-    if (!availableLanguages) {
-        setAvailableLanguages();
-    }
-    return availableLanguages[locale];
+    return getAllLanguages()[locale];
 }
 
 export function isLanguageAvailable(locale) {
-    return Boolean(availableLanguages[locale]);
+    return Boolean(getLanguages()[locale]);
 }
 
 export function safariFix(callback) {

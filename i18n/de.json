@@ -1030,6 +1030,10 @@
     "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Umwandeln des GIF auf."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Dateianhänge wurden auf diesem Server deaktiviert."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Öffentliche Verlinkungen wurden vom Systemadministrator deaktiviert"
   },
@@ -1051,7 +1055,7 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "Die Datei kann nicht hochgeladen werden. Ein Fotospeicherort ist nicht eingerichtet."
+    "translation": "Die Datei kann nicht hochgeladen werden. Ein Dateispeicherort ist nicht eingerichtet."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -2525,7 +2529,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Anmeldung nicht möglich, weil Ihr Account inaktiv ist.  Bitte wenden Sie sich an einen Administrator."
+    "translation": "Anmeldung nicht möglich, weil Ihr Account deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -3093,7 +3097,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "User AuthData und Passwort schließen sich gegenseitig aus."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3125,7 +3129,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.pasword_length.error",
-    "translation": "User Password has invalid length."
+    "translation": "Benutzerpasswort hat ungültige Länge."
   },
   {
     "id": "app.import.validate_user_import_data.position_length.error",
@@ -4417,11 +4421,11 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Invalid token expiry"
+    "translation": "Ungültiges Token-Ablaufdatum"
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": "Ungültiger token"
+    "translation": "Ungültiger Token."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -4461,7 +4465,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "Aufgrund der Einschränkungen von bcrypt ist es ist nicht möglich, ein Passwort mit mehr als 72 Zeichen zu setzen."
   },
   {
     "id": "model.user.is_valid.position.app_error",

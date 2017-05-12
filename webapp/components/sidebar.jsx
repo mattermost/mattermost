@@ -90,28 +90,8 @@ export default class Sidebar extends React.Component {
     }
 
     getTotalUnreadCount() {
-        let msgs = 0;
-        let mentions = 0;
-        const unreadCounts = this.state.unreadCounts;
-        const teamMembers = this.state.teamMembers;
-
-        teamMembers.forEach((member) => {
-            if (member.team_id !== this.state.currentTeam.id) {
-                msgs += member.msg_count || 0;
-                mentions += member.mention_count || 0;
-            }
-        });
-
-        Object.keys(unreadCounts).forEach((chId) => {
-            const channel = ChannelStore.get(chId);
-
-            if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL || channel.team_id === this.state.currentTeam.id)) {
-                msgs += unreadCounts[chId].msgs;
-                mentions += unreadCounts[chId].mentions;
-            }
-        });
-
-        return {msgs, mentions};
+        const unreads = ChannelUtils.getCountsStateFromStores(this.state.currentTeam, this.state.teamMembers, this.state.unreadCounts);
+        return {msgs: unreads.messageCount, mentions: unreads.mentionCount};
     }
 
     getStateFromStores() {

@@ -34,9 +34,10 @@ import {browserHistory} from 'react-router/es6';
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+import {batchActions} from 'redux-batched-actions';
 import {viewChannel, getChannelAndMyMember, getChannelStats} from 'mattermost-redux/actions/channels';
 import {setServerVersion} from 'mattermost-redux/actions/general';
-import {ChannelTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, TeamTypes, UserTypes} from 'mattermost-redux/action_types';
 
 const MAX_WEBSOCKET_FAILS = 7;
 
@@ -237,7 +238,9 @@ function handleNewPostEvent(msg) {
     posts[post.id] = post;
     loadProfilesForPosts(posts);
 
-    UserStore.setStatus(post.user_id, UserStatuses.ONLINE);
+    if (post.user_id !== UserStore.getCurrentId()) {
+        UserStore.setStatus(post.user_id, UserStatuses.ONLINE);
+    }
 }
 
 function handlePostEditEvent(msg) {
@@ -294,6 +297,18 @@ function handleLeaveTeamEvent(msg) {
                 GlobalActions.redirectUserToDefaultTeam();
             }
         }
+
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM,
+                data: {user_id: msg.data.user_id},
+                id: msg.data.team_id
+            },
+            {
+                type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
+                data: {team_id: msg.data.team_id, user_id: msg.data.user_id}
+            }
+        ]));
     } else {
         UserStore.removeProfileFromTeam(msg.data.team_id, msg.data.user_id);
         TeamStore.removeMemberInTeam(msg.data.team_id, msg.data.user_id);
@@ -334,6 +349,11 @@ function handleUserRemovedEvent(msg) {
             BrowserStore.setItem('channel-removed-state', sentState);
             $('#removed_from_channel').modal('show');
         }
+
+        dispatch({
+            type: ChannelTypes.LEAVE_CHANNEL,
+            data: {id: msg.data.channel_id, user_id: msg.broadcast.user_id}
+        });
     } else if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         getChannelStats(ChannelStore.getCurrentId())(dispatch, getState);
     }
@@ -382,7 +402,9 @@ function handlePreferencesDeletedEvent(msg) {
 function handleUserTypingEvent(msg) {
     GlobalActions.emitRemoteUserTypingEvent(msg.broadcast.channel_id, msg.data.user_id, msg.data.parent_id);
 
-    UserStore.setStatus(msg.data.user_id, UserStatuses.ONLINE);
+    if (msg.data.user_id !== UserStore.getCurrentId()) {
+        UserStore.setStatus(msg.data.user_id, UserStatuses.ONLINE);
+    }
 }
 
 function handleStatusChangedEvent(msg) {

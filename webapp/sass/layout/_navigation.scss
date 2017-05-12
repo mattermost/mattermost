@@ -41,6 +41,14 @@
             width: 43px;
             z-index: 5;
 
+            > span {
+                > svg {
+                    position: relative;
+                    top: 13px;
+                    vertical-align: top;
+                }
+            }
+
             .icon-bar {
                 background: $white;
                 width: 21px;
@@ -49,7 +57,8 @@
             .icon-search {
                 font-size: 17px;
                 position: relative;
-                top: -2px;
+                top: 11px;
+                vertical-align: top;
             }
 
             .icon--white {
@@ -93,7 +102,7 @@
             .description {
                 color: $white;
                 display: inline-block;
-                margin-right: .5em;
+                margin-right: 1em;
 
                 &.info-popover {
                     @include background-size(100% 100%);

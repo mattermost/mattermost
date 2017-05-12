@@ -218,7 +218,7 @@ func WaitForChannelMembership(channelId string, userId string) {
 	}
 }
 
-func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -259,6 +259,10 @@ func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 
 			if result := <-Srv.Store.Channel().SaveMember(cm); result.Err != nil {
 				return nil, result.Err
+			}
+
+			if user.Id == creatorId {
+				WaitForChannelMembership(group.Id, creatorId)
 			}
 
 			InvalidateCacheForUser(user.Id)
@@ -1021,9 +1025,13 @@ func GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 
 func SetActiveChannel(userId string, channelId string) *model.AppError {
 	status, err := GetStatus(userId)
+
+	oldStatus := model.STATUS_OFFLINE
+
 	if err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelId}
 	} else {
+		oldStatus = status.Status
 		status.ActiveChannel = channelId
 		if !status.Manual {
 			status.Status = model.STATUS_ONLINE
@@ -1032,6 +1040,10 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 	}
 
 	AddStatusCache(status)
+
+	if status.Status != oldStatus {
+		BroadcastStatus(status)
+	}
 
 	return nil
 }
