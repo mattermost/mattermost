@@ -50,6 +50,22 @@ func SetSiteURL(url string) {
 	siteURL = strings.TrimRight(url, "/")
 }
 
+var cfgListeners = map[string]func(*model.Config, *model.Config){}
+
+// Registers a function with a given to be called when the config is reloaded and may have changed. The function
+// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
+// for the listener that can later be used to remove it.
+func AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	id := model.NewId()
+	cfgListeners[id] = listener
+	return id
+}
+
+// Removes a listener function by the unique ID returned when AddConfigListener was called
+func RemoveConfigListener(id string) {
+	delete(cfgListeners, id)
+}
+
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("./config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("./config/" + fileName)
@@ -264,6 +280,9 @@ func LoadConfig(fileName string) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
+	// Cfg should never be null
+	oldConfig := *Cfg
+
 	fileNameWithExtension := filepath.Base(fileName)
 	fileExtension := filepath.Ext(fileNameWithExtension)
 	fileDir := filepath.Dir(fileName)
@@ -354,6 +373,10 @@ func LoadConfig(fileName string) {
 
 	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
+
+	for _, listener := range cfgListeners {
+		listener(&oldConfig, &config)
+	}
 }
 
 func RegenerateClientConfig() {
