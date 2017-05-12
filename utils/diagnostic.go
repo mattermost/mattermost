@@ -108,7 +108,9 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
-		"enable_public_links": Cfg.FileSettings.EnablePublicLink,
+		"enable_public_links":    Cfg.FileSettings.EnablePublicLink,
+		"use_aws_presigned_urls": Cfg.FileSettings.UseAwsPresignedUrls,
+		"aws_presigned_url_ttl":  Cfg.FileSettings.AwsPresignedUrlTtl,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{

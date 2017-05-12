@@ -27,7 +27,7 @@ func GetInfoForBytes(filename string, data []byte) (*FileInfo, *AppError) {
 	extension := filepath.Ext(filename)
 	isImage := IsFileExtImage(extension)
 	if isImage {
-		mimeType = GetImageMimeType(extension)
+		mimeType = GetMimeType(extension)
 	} else {
 		mimeType = mime.TypeByExtension(extension)
 	}

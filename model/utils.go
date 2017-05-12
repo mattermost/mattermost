@@ -369,13 +369,12 @@ func IsFileExtImage(ext string) bool {
 	return false
 }
 
-func GetImageMimeType(ext string) string {
+func GetMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if len(IMAGE_MIME_TYPES[ext]) == 0 {
-		return "image"
-	} else {
-		return IMAGE_MIME_TYPES[ext]
+	if len(MIME_TYPES[ext]) == 0 {
+		return "binary/octet-stream"
 	}
+	return MIME_TYPES[ext]
 }
 
 func ClearMentionTags(post string) string {
