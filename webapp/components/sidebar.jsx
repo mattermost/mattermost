@@ -872,6 +872,7 @@ export default class Sidebar extends React.Component {
                         {publicChannelItems}
                         <li>
                             <a
+                                id='sidebarChannelsMore'
                                 href='#'
                                 className='nav-more'
                                 onClick={this.showMoreChannelsModal}
