@@ -671,7 +671,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker-react', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker-bottom', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker, .app__body .emoji-picker-react, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker, .app__body .emoji-picker-react, .app__body .emoji-picker-react-rhs-comment, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
