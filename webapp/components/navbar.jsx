@@ -894,7 +894,7 @@ export default class Navbar extends React.Component {
         const searchButton = (
             <button
                 type='button'
-                className='navbar-toggle pull-right'
+                className='navbar-toggle navbar-search pull-right'
                 onClick={this.showSearch}
             >
                 <span className='fa fa-search icon-search icon--white'/>
