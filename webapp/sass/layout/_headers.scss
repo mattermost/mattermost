@@ -349,14 +349,14 @@
             @include border-radius(36px);
             float: left;
             height: 36px;
-            margin-right: 6px;
             width: 36px;
         }
 
         .header__info {
             @include clearfix;
+            @include flex-grow(1);
             color: $white;
-            padding-left: 2px;
+            padding-left: 8px;
             position: relative;
             z-index: 1;
         }

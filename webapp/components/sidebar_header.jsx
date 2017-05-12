@@ -5,9 +5,11 @@ import React from 'react';
 
 import Client from 'client/web_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
+import StatusIcon from './status_icon.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {Preferences, TutorialSteps, Constants} from 'utils/constants.jsx';
@@ -19,26 +21,50 @@ export default class SidebarHeader extends React.Component {
 
         this.toggleDropdown = this.toggleDropdown.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
+        this.onStatusChange = this.onStatusChange.bind(this);
 
         this.state = this.getStateFromStores();
     }
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        UserStore.addStatusesChangeListener(this.onStatusChange);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        UserStore.removeStatusesChangeListener(this.onStatusChange);
+    }
+
+    getPreferences() {
+        if (!this.props.currentUser) {
+            return {};
+        }
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, this.props.currentUser.id, 999);
+        const showTutorialTip = tutorialStep === TutorialSteps.MENU_POPOVER && !Utils.isMobile();
+
+        return {showTutorialTip};
+    }
+
+    getCurrentUserStatus() {
+        if (!this.props.currentUser) {
+            return null;
+        }
+        return UserStore.getStatus(this.props.currentUser.id);
     }
 
     getStateFromStores() {
-        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, this.props.currentUser.id, 999);
-
-        return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && !Utils.isMobile()};
+        const preferences = this.getPreferences();
+        const status = this.getCurrentUserStatus();
+        return {...preferences, status};
     }
 
     onPreferenceChange() {
-        this.setState(this.getStateFromStores());
+        this.setState(this.getPreferences());
+    }
+
+    onStatusChange() {
+        this.setState({status: this.getCurrentUserStatus()});
     }
 
     toggleDropdown(e) {
@@ -63,6 +89,7 @@ export default class SidebarHeader extends React.Component {
                 src={profilePictureSrc}
             />
         );
+        const {status} = this.state;
 
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
@@ -91,8 +118,13 @@ export default class SidebarHeader extends React.Component {
         return (
             <div className='team__header theme'>
                 {tutorialTip}
-                <div>
-                    {profilePicture}
+                <div style={{display: 'flex'}}>
+                    <div className='status-wrapper'>
+                        {profilePicture}
+                        <StatusIcon
+                            status={status}
+                        />
+                    </div>
                     <div className='header__info'>
                         <div className='user__name'>{'@' + me.username}</div>
                         {teamNameWithToolTip}
