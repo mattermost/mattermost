@@ -35,6 +35,8 @@ type ApiParams struct {
 	EmojiName      string
 	Category       string
 	Service        string
+	JobId          string
+	JobType        string
 	Page           int
 	PerPage        int
 }
@@ -114,6 +116,14 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["emoji_name"]; ok {
 		params.EmojiName = val
+	}
+
+	if val, ok := props["job_id"]; ok {
+		params.JobId = val
+	}
+
+	if val, ok := props["job_type"]; ok {
+		params.JobType = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {

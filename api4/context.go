@@ -540,3 +540,27 @@ func (c *Context) RequireCommandId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireJobId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	l4g.Error("job_id=" + c.Params.JobId)
+	if len(c.Params.JobId) != 26 {
+		c.SetInvalidUrlParam("job_id")
+	}
+	return c
+}
+
+func (c *Context) RequireJobType() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	l4g.Error("job_type=" + c.Params.JobType)
+	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
+		c.SetInvalidUrlParam("job_type")
+	}
+	return c
+}

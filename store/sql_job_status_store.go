@@ -5,6 +5,7 @@ package store
 
 import (
 	"database/sql"
+	"net/http"
 
 	"github.com/mattermost/platform/model"
 )
@@ -84,8 +85,13 @@ func (jss SqlJobStatusStore) Get(id string) StoreChannel {
 				JobStatuses
 			WHERE
 				Id = :Id`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStatusStore.Get",
-				"store.sql_job_status.get.app_error", nil, "Id="+id+", "+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err = model.NewAppError("SqlJobStatusStore.Get",
+					"store.sql_job_status.get.app_error", nil, "Id="+id+", "+err.Error(), http.StatusNotFound)
+			} else {
+				result.Err = model.NewAppError("SqlJobStatusStore.Get",
+					"store.sql_job_status.get.app_error", nil, "Id="+id+", "+err.Error(), http.StatusInternalServerError)
+			}
 		} else {
 			result.Data = status
 		}
