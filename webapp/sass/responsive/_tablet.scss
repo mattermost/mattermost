@@ -126,6 +126,7 @@
     .sidebar--right {
         @include single-transition(all, .35s, ease);
         @include translateX(100%);
+        z-index: 10;
 
         &.move--left,
         &.webrtc--show {
