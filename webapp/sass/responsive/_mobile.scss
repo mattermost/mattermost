@@ -1685,24 +1685,6 @@
                     max-width: calc(100% - 160px);
                 }
             }
-
-            .navbar-toggle {
-                &.navbar-search,
-                &.menu-toggle {
-                    line-height: normal;
-
-                    .fa {
-                        font-size: 18px;
-                        top: 1px;
-                    }
-                }
-
-                &.menu-toggle {
-                    svg {
-                        top: 2px;
-                    }
-                }
-            }
         }
     }
 }
