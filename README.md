@@ -11,6 +11,13 @@ A snapshot of the MatterMost v3.4 docs can be found at
 
 ## deploy
 
+Build the distribution:
+
+```
+make dist
+```
+
+
 Copy the distribution binary to a feature specific name on S3 (for backup).
 
 ```
