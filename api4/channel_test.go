@@ -1055,6 +1055,16 @@ func TestDeleteChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.DeleteChannel(privateChannel7.Id)
 	CheckNoError(t, resp)
+
+	// last member of a channel should be able to delete it regardless of required permissions
+	publicChannel6 = th.CreateChannelWithClient(th.Client, model.CHANNEL_OPEN)
+	privateChannel7 = th.CreateChannelWithClient(th.Client, model.CHANNEL_PRIVATE)
+
+	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	CheckNoError(t, resp)
+
+	_, resp = Client.DeleteChannel(privateChannel7.Id)
+	CheckNoError(t, resp)
 }
 
 func TestGetChannelByName(t *testing.T) {

@@ -215,7 +215,9 @@
             display: inline-block;
             height: 18px;
             margin-right: 8px;
+            position: relative;
             text-align: center;
+            top: -1px;
             width: 18px;
         }
 
@@ -231,15 +233,23 @@
             text-align: left;
             width: 200px;
 
+            > span {
+                position: relative;
+                top: 11px;
+                vertical-align: top;
+
+                > span {
+                    display: inline-block;
+                    line-height: normal;
+                    vertical-align: top;
+                }
+            }
+
             &.gitlab {
                 background: #554488;
 
                 &:hover {
                     background: darken(#554488, 10%);
-                }
-
-                span {
-                    vertical-align: middle;
                 }
 
                 .icon {
@@ -254,10 +264,6 @@
                     background: darken(#dd4b39, 10%);
                 }
 
-                span {
-                    vertical-align: middle;
-                }
-
                 .icon {
                     background-image: url('../images/googleLogo.png');
                 }
@@ -268,10 +274,6 @@
 
                 &:hover {
                     background: darken(#0079d6, 10%);
-                }
-
-                span {
-                    vertical-align: middle;
                 }
 
                 .icon {
@@ -285,10 +287,6 @@
                 &:hover {
                     background: darken(#3AA1CF, 10%);
                 }
-
-                span {
-                    vertical-align: middle;
-                }
             }
 
             &.email {
@@ -297,10 +295,6 @@
                 &:hover {
                     background: $primary-color--hover;
                 }
-
-                span {
-                    vertical-align: middle;
-                }
             }
 
             &.saml {
@@ -308,10 +302,6 @@
 
                 &:hover {
                     background: darken(#34a28b, 10%);
-                }
-
-                span {
-                    vertical-align: middle;
                 }
             }
 

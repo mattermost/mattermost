@@ -5,7 +5,9 @@
     border-left: none;
     font-size: 14px;
     line-height: 56px;
+    position: relative;
     width: 100%;
+    z-index: 5;
 
     .member-popover__trigger,
     .pinned-posts-button {
