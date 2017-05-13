@@ -79,7 +79,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.privacyDesc'
-                            defaultMessage='Link to Privacy Policy available to users on desktop and on mobile. Leaving this blank will hide the option to display a notice.'
+                            defaultMessage='Link to Privacy Policy available to users on desktop and on mobile. Leaving this field blank will hide the option to display a notice.'
                         />
                     }
                     value={this.state.privacyPolicyLink}
@@ -96,7 +96,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.aboutDesc'
-                            defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Defaults to Mattermost information page.'
+                            defaultMessage='Link to About page for more information on your Mattermost deployment, for example its purpose and audience within your organization. Leave this field blank to hide the link in the login and sign-up pages.'
                         />
                     }
                     value={this.state.aboutLink}
@@ -113,7 +113,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.helpDesc'
-                            defaultMessage='Link to help documentation from team site main menu. Typically not changed unless your organization chooses to create custom documentation.'
+                            defaultMessage='Link to help documentation from the Main Menu. Typically not changed unless your organization chooses to create custom documentation. Leave this field blank to hide the option from the Main Menu.'
                         />
                     }
                     value={this.state.helpLink}
@@ -130,7 +130,7 @@ export default class LegalAndSupportSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.support.problemDesc'
-                            defaultMessage='Link to help documentation from team site main menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues.'
+                            defaultMessage='Link to help documentation from the Main Menu. By default this points to the peer-to-peer troubleshooting forum where users can search for, find and request help with technical issues. Leave this field blank to hide the option from the Main Menu.'
                         />
                     }
                     value={this.state.reportAProblemLink}
