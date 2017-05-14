@@ -91,25 +91,11 @@ func (c Client) FPutObject(bucketName, objectName, filePath, contentType string)
 		return c.putObjectNoChecksum(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	}
 
-	// NOTE: S3 doesn't allow anonymous multipart requests.
-	if s3utils.IsAmazonEndpoint(c.endpointURL) && c.anonymous {
-		if fileSize > int64(maxSinglePutObjectSize) {
-			return 0, ErrorResponse{
-				Code:       "NotImplemented",
-				Message:    fmt.Sprintf("For anonymous requests Content-Length cannot be %d.", fileSize),
-				Key:        objectName,
-				BucketName: bucketName,
-			}
-		}
-		// Do not compute MD5 for anonymous requests to Amazon
-		// S3. Uploads up to 5GiB in size.
-		return c.putObjectNoChecksum(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
-	}
-
 	// Small object upload is initiated for uploads for input data size smaller than 5MiB.
 	if fileSize < minPartSize && fileSize >= 0 {
 		return c.putObjectSingle(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	}
+
 	// Upload all large objects as multipart.
 	n, err = c.putObjectMultipartFromFile(bucketName, objectName, fileReader, fileSize, objMetadata, nil)
 	if err != nil {
@@ -187,7 +173,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 	close(uploadPartsCh)
 
 	// Use three 'workers' to upload parts in parallel.
-	for w := 1; w <= 3; w++ {
+	for w := 1; w <= totalWorkers; w++ {
 		go func() {
 			// Deal with each part as it comes through the channel.
 			for uploadReq := range uploadPartsCh {
@@ -228,7 +214,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 				}
 
 				// Create the part to be uploaded.
-				verifyObjPart := objectPart{
+				verifyObjPart := ObjectPart{
 					ETag:       hex.EncodeToString(hashSums["md5"]),
 					PartNumber: uploadReq.PartNum,
 					Size:       partSize,
@@ -242,7 +228,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 				// Verify if part should be uploaded.
 				if shouldUploadPart(verifyObjPart, uploadReq) {
 					// Proceed to upload the part.
-					var objPart objectPart
+					var objPart ObjectPart
 					objPart, err = c.uploadPart(bucketName, objectName, uploadID, sectionReader, uploadReq.PartNum, hashSums["md5"], hashSums["sha256"], prtSize)
 					if err != nil {
 						uploadedPartsCh <- uploadedPartRes{
@@ -285,7 +271,7 @@ func (c Client) putObjectMultipartFromFile(bucketName, objectName string, fileRe
 			}
 		}
 		// Store the part to be completed.
-		complMultipartUpload.Parts = append(complMultipartUpload.Parts, completePart{
+		complMultipartUpload.Parts = append(complMultipartUpload.Parts, CompletePart{
 			ETag:       part.ETag,
 			PartNumber: part.PartNumber,
 		})

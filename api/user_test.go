@@ -696,7 +696,7 @@ func TestUserCreateImage(t *testing.T) {
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		s3Clnt, err := s3.NewV2(endpoint, accessKey, secretKey, secure)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -800,7 +800,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 			secure := *utils.Cfg.FileSettings.AmazonS3SSL
-			s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+			s3Clnt, err := s3.NewV2(endpoint, accessKey, secretKey, secure)
 			if err != nil {
 				t.Fatal(err)
 			}

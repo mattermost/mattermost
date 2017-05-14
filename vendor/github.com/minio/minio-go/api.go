@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -71,6 +72,12 @@ type Client struct {
 	isTraceEnabled bool
 	traceOutput    io.Writer
 
+	// S3 specific accelerated endpoint.
+	s3AccelerateEndpoint string
+
+	// Region endpoint
+	region string
+
 	// Random seed.
 	random *rand.Rand
 }
@@ -78,7 +85,7 @@ type Client struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "2.0.3"
+	libraryVersion = "2.1.0"
 )
 
 // User Agent should always following the below style.
@@ -97,6 +104,7 @@ func NewV2(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*
 	if err != nil {
 		return nil, err
 	}
+
 	// Set to use signature version '2'.
 	clnt.signature = SignatureV2
 	return clnt, nil
@@ -109,26 +117,40 @@ func NewV4(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*
 	if err != nil {
 		return nil, err
 	}
+
 	// Set to use signature version '4'.
 	clnt.signature = SignatureV4
 	return clnt, nil
 }
 
-// New - instantiate minio client Client, adds automatic verification
-// of signature.
-func New(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
+// New - instantiate minio client Client, adds automatic verification of signature.
+func New(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
+	return NewWithRegion(endpoint, accessKeyID, secretAccessKey, secure, "")
+}
+
+// NewWithRegion - instantiate minio client, with region configured. Unlike New(),
+// NewWithRegion avoids bucket-location lookup operations and it is slightly faster.
+// Use this function when if your application deals with single region.
+func NewWithRegion(endpoint, accessKeyID, secretAccessKey string, secure bool, region string) (*Client, error) {
 	clnt, err := privateNew(endpoint, accessKeyID, secretAccessKey, secure)
 	if err != nil {
 		return nil, err
 	}
+
 	// Google cloud storage should be set to signature V2, force it if not.
 	if s3utils.IsGoogleEndpoint(clnt.endpointURL) {
 		clnt.signature = SignatureV2
 	}
+
 	// If Amazon S3 set to signature v2.n
 	if s3utils.IsAmazonEndpoint(clnt.endpointURL) {
 		clnt.signature = SignatureV4
 	}
+
+	// Sets custom region, if region is empty bucket location cache is used automatically.
+	clnt.region = region
+
+	// Success..
 	return clnt, nil
 }
 
@@ -138,8 +160,7 @@ type lockedRandSource struct {
 	src rand.Source
 }
 
-// Int63 returns a non-negative pseudo-random 63-bit integer as an
-// int64.
+// Int63 returns a non-negative pseudo-random 63-bit integer as an int64.
 func (r *lockedRandSource) Int63() (n int64) {
 	r.lk.Lock()
 	n = r.src.Int63()
@@ -178,9 +199,6 @@ func privateNew(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Cl
 	clnt := new(Client)
 	clnt.accessKeyID = accessKeyID
 	clnt.secretAccessKey = secretAccessKey
-	if clnt.accessKeyID == "" || clnt.secretAccessKey == "" {
-		clnt.anonymous = true
-	}
 
 	// Remember whether we are using https or not
 	clnt.secure = secure
@@ -206,8 +224,7 @@ func privateNew(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Cl
 
 // SetAppInfo - add application details to user agent.
 func (c *Client) SetAppInfo(appName string, appVersion string) {
-	// if app name and version is not set, we do not a new user
-	// agent.
+	// if app name and version not set, we do not set a new user agent.
 	if appName != "" && appVersion != "" {
 		c.appInfo = struct {
 			appName    string
@@ -258,8 +275,18 @@ func (c *Client) TraceOff() {
 	c.isTraceEnabled = false
 }
 
-// requestMetadata - is container for all the values to make a
-// request.
+// SetS3TransferAccelerate - turns s3 accelerated endpoint on or off for all your
+// requests. This feature is only specific to S3 for all other endpoints this
+// function does nothing. To read further details on s3 transfer acceleration
+// please vist -
+// http://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html
+func (c *Client) SetS3TransferAccelerate(accelerateEndpoint string) {
+	if s3utils.IsAmazonEndpoint(c.endpointURL) {
+		c.s3AccelerateEndpoint = accelerateEndpoint
+	}
+}
+
+// requestMetadata - is container for all the values to make a request.
 type requestMetadata struct {
 	// If set newRequest presigns the URL.
 	presignURL bool
@@ -287,8 +314,7 @@ var regSign = regexp.MustCompile("Signature=([[0-9a-f]+)")
 
 // Filter out signature value from Authorization header.
 func (c Client) filterSignature(req *http.Request) {
-	// For anonymous requests, no need to filter.
-	if c.anonymous {
+	if _, ok := req.Header["Authorization"]; !ok {
 		return
 	}
 	// Handle if Signature V2.
@@ -399,7 +425,7 @@ func (c Client) do(req *http.Request) (*http.Response, error) {
 				return nil, &url.Error{
 					Op:  urlErr.Op,
 					URL: urlErr.URL,
-					Err: fmt.Errorf("Connection closed by foreign host %s. Retry again.", urlErr.URL),
+					Err: errors.New("Connection closed by foreign host " + urlErr.URL + ". Retry again."),
 				}
 			}
 			return nil, err
@@ -448,9 +474,13 @@ func (c Client) executeMethod(method string, metadata requestMetadata) (res *htt
 	if metadata.contentBody != nil {
 		// Check if body is seekable then it is retryable.
 		bodySeeker, isRetryable = metadata.contentBody.(io.Seeker)
+		switch bodySeeker {
+		case os.Stdin, os.Stdout, os.Stderr:
+			isRetryable = false
+		}
 	}
 
-	// Create a done channel to control 'ListObjects' go routine.
+	// Create a done channel to control 'newRetryTimer' go routine.
 	doneCh := make(chan struct{}, 1)
 
 	// Indicate to our routine to exit cleanly upon return.
@@ -459,7 +489,7 @@ func (c Client) executeMethod(method string, metadata requestMetadata) (res *htt
 	// Blank indentifier is kept here on purpose since 'range' without
 	// blank identifiers is only supported since go1.4
 	// https://golang.org/doc/go1.4#forrange.
-	for _ = range c.newRetryTimer(MaxRetry, time.Second, time.Second*30, MaxJitter, doneCh) {
+	for _ = range c.newRetryTimer(MaxRetry, DefaultRetryUnit, DefaultRetryCap, MaxJitter, doneCh) {
 		// Retry executes the following function body if request has an
 		// error until maxRetries have been exhausted, retry attempts are
 		// performed after waiting for a given period of time in a
@@ -508,15 +538,22 @@ func (c Client) executeMethod(method string, metadata requestMetadata) (res *htt
 		if err != nil {
 			return nil, err
 		}
+
 		// Save the body.
 		errBodySeeker := bytes.NewReader(errBodyBytes)
 		res.Body = ioutil.NopCloser(errBodySeeker)
 
 		// For errors verify if its retryable otherwise fail quickly.
 		errResponse := ToErrorResponse(httpRespToErrorResponse(res, metadata.bucketName, metadata.objectName))
-		// Bucket region if set in error response, we can retry the
-		// request with the new region.
-		if errResponse.Region != "" {
+
+		// Save the body back again.
+		errBodySeeker.Seek(0, 0) // Seek back to starting point.
+		res.Body = ioutil.NopCloser(errBodySeeker)
+
+		// Bucket region if set in error response and the error
+		// code dictates invalid region, we can retry the request
+		// with the new region.
+		if errResponse.Code == "InvalidRegion" && errResponse.Region != "" {
 			c.bucketLocCache.Set(metadata.bucketName, errResponse.Region)
 			continue // Retry.
 		}
@@ -530,10 +567,6 @@ func (c Client) executeMethod(method string, metadata requestMetadata) (res *htt
 		if isHTTPStatusRetryable(res.StatusCode) {
 			continue // Retry.
 		}
-
-		// Save the body back again.
-		errBodySeeker.Seek(0, 0) // Seek back to starting point.
-		res.Body = ioutil.NopCloser(errBodySeeker)
 
 		// For all other cases break out of the retry loop.
 		break
@@ -576,37 +609,27 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 	}
 
 	// Initialize a new HTTP request for the method.
-	req, err = http.NewRequest(method, targetURL.String(), nil)
+	req, err = http.NewRequest(method, targetURL.String(), metadata.contentBody)
 	if err != nil {
 		return nil, err
 	}
 
+	// Anonymous request.
+	anonymous := c.accessKeyID == "" || c.secretAccessKey == ""
+
 	// Generate presign url if needed, return right here.
 	if metadata.expires != 0 && metadata.presignURL {
-		if c.anonymous {
+		if anonymous {
 			return nil, ErrInvalidArgument("Requests cannot be presigned with anonymous credentials.")
 		}
 		if c.signature.isV2() {
 			// Presign URL with signature v2.
 			req = s3signer.PreSignV2(*req, c.accessKeyID, c.secretAccessKey, metadata.expires)
-		} else {
+		} else if c.signature.isV4() {
 			// Presign URL with signature v4.
 			req = s3signer.PreSignV4(*req, c.accessKeyID, c.secretAccessKey, location, metadata.expires)
 		}
 		return req, nil
-	}
-
-	// Set content body if available.
-	if metadata.contentBody != nil {
-		req.Body = ioutil.NopCloser(metadata.contentBody)
-	}
-
-	// FIXEM: Enable this when Google Cloud Storage properly supports 100-continue.
-	// Skip setting 'expect' header for Google Cloud Storage, there
-	// are some known issues - https://github.com/restic/restic/issues/520
-	if !s3utils.IsGoogleEndpoint(c.endpointURL) {
-		// Set 'Expect' header for the request.
-		req.Header.Set("Expect", "100-continue")
 	}
 
 	// Set 'User-Agent' header for the request.
@@ -622,37 +645,32 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		req.ContentLength = metadata.contentLength
 	}
 
-	// Set sha256 sum only for non anonymous credentials.
-	if !c.anonymous {
-		// set sha256 sum for signature calculation only with
-		// signature version '4'.
-		if c.signature.isV4() {
-			shaHeader := unsignedPayload
-			if !c.secure {
-				if metadata.contentSHA256Bytes == nil {
-					shaHeader = hex.EncodeToString(sum256([]byte{}))
-				} else {
-					shaHeader = hex.EncodeToString(metadata.contentSHA256Bytes)
-				}
-			}
-			req.Header.Set("X-Amz-Content-Sha256", shaHeader)
-		}
-	}
-
 	// set md5Sum for content protection.
 	if metadata.contentMD5Bytes != nil {
 		req.Header.Set("Content-Md5", base64.StdEncoding.EncodeToString(metadata.contentMD5Bytes))
 	}
 
-	// Sign the request for all authenticated requests.
-	if !c.anonymous {
-		if c.signature.isV2() {
-			// Add signature version '2' authorization header.
-			req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
-		} else if c.signature.isV4() {
-			// Add signature version '4' authorization header.
-			req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, location)
+	if anonymous {
+		return req, nil
+	} // Sign the request for all authenticated requests.
+
+	switch {
+	case c.signature.isV2():
+		// Add signature version '2' authorization header.
+		req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
+	case c.signature.isStreamingV4() && method == "PUT":
+		req = s3signer.StreamingSignV4(req, c.accessKeyID,
+			c.secretAccessKey, location, metadata.contentLength, time.Now().UTC())
+	default:
+		// Set sha256 sum for signature calculation only with signature version '4'.
+		shaHeader := unsignedPayload
+		if len(metadata.contentSHA256Bytes) > 0 {
+			shaHeader = hex.EncodeToString(metadata.contentSHA256Bytes)
 		}
+		req.Header.Set("X-Amz-Content-Sha256", shaHeader)
+
+		// Add signature version '4' authorization header.
+		req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, location)
 	}
 
 	// Return request.
@@ -672,9 +690,22 @@ func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, que
 	host := c.endpointURL.Host
 	// For Amazon S3 endpoint, try to fetch location based endpoint.
 	if s3utils.IsAmazonEndpoint(c.endpointURL) {
-		// Fetch new host based on the bucket location.
-		host = getS3Endpoint(bucketLocation)
+		if c.s3AccelerateEndpoint != "" && bucketName != "" {
+			// http://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html
+			// Disable transfer acceleration for non-compliant bucket names.
+			if strings.Contains(bucketName, ".") {
+				return nil, ErrTransferAccelerationBucket(bucketName)
+			}
+			// If transfer acceleration is requested set new host.
+			// For more details about enabling transfer acceleration read here.
+			// http://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html
+			host = c.s3AccelerateEndpoint
+		} else {
+			// Fetch new host based on the bucket location.
+			host = getS3Endpoint(bucketLocation)
+		}
 	}
+
 	// Save scheme.
 	scheme := c.endpointURL.Scheme
 
