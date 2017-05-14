@@ -1,7 +1,7 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2016 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package main
 
 import (
 	"log"
-	"time"
+	"os"
 
 	"github.com/minio/minio-go"
 )
@@ -39,29 +39,45 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Enable trace.
-	// s3Client.TraceOn(os.Stderr)
-
-	// All following conditions are allowed and can be combined together.
-
-	// Set copy conditions.
-	var copyConds = minio.CopyConditions{}
-	// Set modified condition, copy object modified since 2014 April.
-	copyConds.SetModified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
-
-	// Set unmodified condition, copy object unmodified since 2014 April.
-	// copyConds.SetUnmodified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
-
-	// Set matching ETag condition, copy object which matches the following ETag.
-	// copyConds.SetMatchETag("31624deb84149d2f8ef9c385918b653a")
-
-	// Set matching ETag except condition, copy object which does not match the following ETag.
-	// copyConds.SetMatchETagExcept("31624deb84149d2f8ef9c385918b653a")
-
-	// Initiate copy object.
-	err = s3Client.CopyObject("my-bucketname", "my-objectname", "/my-sourcebucketname/my-sourceobjectname", copyConds)
+	// Open a local file that we will upload
+	file, err := os.Open("my-testfile")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println("Copied source object /my-sourcebucketname/my-sourceobjectname to destination /my-bucketname/my-objectname Successfully.")
+	defer file.Close()
+
+	//// Build an asymmetric key from private and public files
+	//
+	// privateKey, err := ioutil.ReadFile("private.key")
+	// if err != nil {
+	//	t.Fatal(err)
+	// }
+	//
+	// publicKey, err := ioutil.ReadFile("public.key")
+	// if err != nil {
+	//	t.Fatal(err)
+	// }
+	//
+	// asymmetricKey, err := NewAsymmetricKey(privateKey, publicKey)
+	// if err != nil {
+	//	t.Fatal(err)
+	// }
+	////
+
+	// Build a symmetric key
+	symmetricKey := minio.NewSymmetricKey([]byte("my-secret-key-00"))
+
+	// Build encryption materials which will encrypt uploaded data
+	cbcMaterials, err := minio.NewCBCSecureMaterials(symmetricKey)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Encrypt file content and upload to the server
+	n, err := s3Client.PutEncryptedObject("my-bucketname", "my-objectname", file, cbcMaterials, nil, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("Uploaded", "my-objectname", " of size: ", n, "Successfully.")
 }

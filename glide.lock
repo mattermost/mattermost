@@ -1,5 +1,5 @@
-hash: 193ce14426dc6d4ae2da1c1aad08389a157529f829ed12948095239e18e045a5
-updated: 2017-03-30T22:26:27.084209918-07:00
+hash: b742b7d3199560c5df215d170e4fe6dae7fb02452b33895232a0bb643843dc09
+updated: 2017-05-14T02:20:08.49460303-07:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -81,8 +81,9 @@ imports:
 - name: github.com/miekg/dns
   version: b54e1be39a9c14cd0bcea6df97eb15b3ec5e8cde
 - name: github.com/minio/minio-go
-  version: 52cc94e879db78c2e2c6e160869df943137ec4cd
+  version: 2f03abaa07d8bc57faef16cda7655ea62a7e0bed
   subpackages:
+  - pkg/encrypt
   - pkg/policy
   - pkg/s3signer
   - pkg/s3utils

@@ -1,7 +1,7 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015, 2016 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2016 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,41 +20,35 @@ package main
 
 import (
 	"log"
+	"os"
 
-	"github.com/minio/minio-go"
+	minio "github.com/minio/minio-go"
 )
 
 func main() {
-	// Note: YOUR-ACCESSKEYID, YOUR-SECRETACCESSKEY and my-bucketname are
-	// dummy values, please replace them with original values.
+	// Note: YOUR-ACCESSKEYID, YOUR-SECRETACCESSKEY, my-testfile, my-bucketname and
+	// my-objectname are dummy values, please replace them with original values.
 
 	// Requests are always secure (HTTPS) by default. Set secure=false to enable insecure (HTTP) access.
 	// This boolean value is the last argument for New().
 
 	// New returns an Amazon S3 compatible client object. API compatibility (v2 or v4) is automatically
 	// determined based on the Endpoint value.
-	minioClient, err := minio.New("play.minio.io:9000", "YOUR-ACCESS", "YOUR-SECRET", true)
+	s3Client, err := minio.New("s3.amazonaws.com", "YOUR-ACCESSKEYID", "YOUR-SECRETACCESSKEY", true)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	// s3Client.TraceOn(os.Stderr)
-
-	// Create a done channel to control 'ListenBucketNotification' go routine.
-	doneCh := make(chan struct{})
-
-	// Indicate to our routine to exit cleanly upon return.
-	defer close(doneCh)
-
-	// Listen for bucket notifications on "mybucket" filtered by prefix, suffix and events.
-	for notificationInfo := range minioClient.ListenBucketNotification("YOUR-BUCKET", "PREFIX", "SUFFIX", []string{
-		"s3:ObjectCreated:*",
-		"s3:ObjectAccessed:*",
-		"s3:ObjectRemoved:*",
-	}, doneCh) {
-		if notificationInfo.Err != nil {
-			log.Fatalln(notificationInfo.Err)
-		}
-		log.Println(notificationInfo)
+	object, err := os.Open("my-testfile")
+	if err != nil {
+		log.Fatalln(err)
 	}
+	defer object.Close()
+
+	n, err := s3Client.PutObjectStreaming("my-bucketname", "my-objectname", object)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Println("Uploaded", "my-objectname", " of size: ", n, "Successfully.")
 }

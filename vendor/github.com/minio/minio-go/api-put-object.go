@@ -125,7 +125,7 @@ func getReaderSize(reader io.Reader) (size int64, err error) {
 
 // completedParts is a collection of parts sortable by their part numbers.
 // used for sorting the uploaded parts before completing the multipart request.
-type completedParts []completePart
+type completedParts []CompletePart
 
 func (a completedParts) Len() int           { return len(a) }
 func (a completedParts) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
@@ -143,7 +143,6 @@ func (a completedParts) Less(i, j int) bool { return a[i].PartNumber < a[j].Part
 // NOTE: Google Cloud Storage does not implement Amazon S3 Compatible multipart PUT.
 // So we fall back to single PUT operation with the maximum limit of 5GiB.
 //
-// NOTE: For anonymous requests Amazon S3 doesn't allow multipart upload. So we fall back to single PUT operation.
 func (c Client) PutObject(bucketName, objectName string, reader io.Reader, contentType string) (n int64, err error) {
 	return c.PutObjectWithProgress(bucketName, objectName, reader, contentType, nil)
 }
@@ -230,10 +229,8 @@ func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader,
 		reader = tmpFile
 	}
 	// Return error if its not io.EOF.
-	if err != nil {
-		if err != io.EOF {
-			return 0, err
-		}
+	if err != nil && err != io.EOF {
+		return 0, err
 	}
 	// Execute put object.
 	st, err := c.putObjectDo(bucketName, objectName, reader, hashSums["md5"], hashSums["sha256"], size, metaData)
