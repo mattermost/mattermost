@@ -11,8 +11,6 @@ import:
   - opengraph
 - package: github.com/fsnotify/fsnotify
   version: v1.4.2
-- package: github.com/go-gorp/gorp
-  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
   version: v2.5.0
 - package: github.com/go-sql-driver/mysql
@@ -25,6 +23,8 @@ import:
 - package: github.com/gorilla/websocket
   version: v1.1.0
 - package: github.com/lib/pq
+- package: github.com/mattermost/gorp
+  version: 264455541e08d3b5ec89f605e9695823d5bec606
 - package: github.com/mattermost/rsc
   subpackages:
   - qr

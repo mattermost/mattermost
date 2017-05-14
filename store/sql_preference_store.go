@@ -5,7 +5,7 @@ package store
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/go-gorp/gorp"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )

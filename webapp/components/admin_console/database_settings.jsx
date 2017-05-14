@@ -29,6 +29,7 @@ export default class DatabaseSettings extends AdminSettings {
         config.SqlSettings.MaxOpenConns = this.parseIntNonZero(this.state.maxOpenConns);
         config.SqlSettings.AtRestEncryptKey = this.state.atRestEncryptKey;
         config.SqlSettings.Trace = this.state.trace;
+        config.SqlSettings.ConnectionTimeout = this.parseIntNonZero(this.state.connectionTimeout);
 
         return config;
     }
@@ -40,7 +41,8 @@ export default class DatabaseSettings extends AdminSettings {
             maxIdleConns: config.SqlSettings.MaxIdleConns,
             maxOpenConns: config.SqlSettings.MaxOpenConns,
             atRestEncryptKey: config.SqlSettings.AtRestEncryptKey,
-            trace: config.SqlSettings.Trace
+            trace: config.SqlSettings.Trace,
+            connectionTimeout: config.SqlSettings.ConnectionTimeout
         };
     }
 
@@ -126,6 +128,24 @@ export default class DatabaseSettings extends AdminSettings {
                         />
                     }
                     value={this.state.maxOpenConns}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='connectionTimeout'
+                    label={
+                        <FormattedMessage
+                            id='admin.sql.connectionTimeoutTitle'
+                            defaultMessage='Connection Timeout:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.sql.connectionTimeoutExample', 'Ex "30"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.sql.connectionTimeoutDescription'
+                            defaultMessage='The number of seconds a query can be executing for before being cancelled.'
+                        />
+                    }
+                    value={this.state.connectionTimeout}
                     onChange={this.handleChange}
                 />
                 <GeneratedSetting

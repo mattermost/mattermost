@@ -84,6 +84,8 @@ imports:
   version: 2704adc878c21e1329f46f6e56a1c387d788ff94
   subpackages:
   - oid
+- name: github.com/mattermost/gorp
+  version: 264455541e08d3b5ec89f605e9695823d5bec606
 - name: github.com/magiconair/properties
   version: 51463bfca2576e06c62a8504b5c0f06d61312647
 - name: github.com/mattermost/rsc
