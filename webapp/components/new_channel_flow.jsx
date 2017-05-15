@@ -5,7 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import {cleanUpUrlable} from 'utils/url.jsx';
 
-import NewChannelModal from './new_channel_modal.jsx';
+import NewChannelModal from 'components/new_channel_modal';
 import ChangeURLModal from './change_url_modal.jsx';
 
 import {FormattedMessage} from 'react-intl';
