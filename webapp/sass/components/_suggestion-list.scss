@@ -4,6 +4,11 @@
     @extend %popover-box-shadow;
     width: 100%;
     z-index: 100;
+    &.list-hide {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
 }
 
 .suggestion-list--top {

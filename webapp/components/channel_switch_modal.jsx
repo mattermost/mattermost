@@ -131,7 +131,16 @@ export default class SwitchChannelModal extends React.Component {
         }
     }
 
-    suggestionsChange(suggestions) {
+    suggestionsChange(suggestions, options) {
+        if (suggestions.pretext === '') {
+            this.setState({
+                error: ''
+            });
+            return;
+        }
+        if (options && options.pretextChanged) {
+            return;
+        }
         if (!suggestions || !suggestions.terms || !suggestions.terms.length) {
             this.setState({
                 error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
@@ -187,7 +196,7 @@ export default class SwitchChannelModal extends React.Component {
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <div className='modal__error'>
+                    <div className='modal__info'>
                         {message}
                     </div>
                     <button

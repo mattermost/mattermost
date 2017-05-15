@@ -53,9 +53,9 @@ export default class SuggestionBox extends React.Component {
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
     }
 
-    handleSuggestionsChanged() {
+    handleSuggestionsChanged(options) {
         if (this.props.onSuggestionsChange) {
-            this.props.onSuggestionsChange(SuggestionStore.getSuggestions(this.suggestionId));
+            this.props.onSuggestionsChange(SuggestionStore.getSuggestions(this.suggestionId), options);
         }
     }
 
@@ -73,14 +73,18 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
-    handleBlur() {
+    hideList() {
         this.setState({
             showList: false
         });
+    }
 
+    handleBlur() {
         if (this.props.onBlur) {
             this.props.onBlur();
         }
+
+        setTimeout(this.hideList.bind(this), 100);
     }
 
     handleFocus() {
@@ -267,14 +271,17 @@ export default class SuggestionBox extends React.Component {
         // This needs to be upper case so React doesn't think it's an html tag
         const SuggestionListComponent = listComponent;
 
-        let suggestionsList = null;
-        if (this.state.showList) {
-            suggestionsList = (<SuggestionListComponent
-                suggestionId={this.suggestionId}
-                location={listStyle}
-                renderDividers={renderDividers}
-                               />);
+        let listClass = '';
+        if (!this.state.showList) {
+            listClass = 'list-hide';
         }
+
+        const suggestionsList = (<SuggestionListComponent
+            suggestionId={this.suggestionId}
+            location={listStyle}
+            renderDividers={renderDividers}
+            className={listClass}
+                                 />);
 
         return (
             <div ref='container'>
