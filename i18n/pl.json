@@ -1031,7 +1031,7 @@
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": "File attachments have been disabled on this server."
+    "translation": "Dodawanie załączników na tym serwerze jest zablokowane."
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",

@@ -1704,6 +1704,7 @@
   "mobile.file_upload.camera": "Zrób Zdjęcie lub nagraj Film",
   "mobile.file_upload.library": "Biblioteka Zdjęć",
   "mobile.file_upload.more": "Więcej",
+  "mobile.help.title": "Pomoc",
   "mobile.intro_messages.DM": "To początek historii wiadomości z użytkownikiem {teammate}. Bezpośrednie wiadomości i wysłane w nich pliki, nie są widoczne dla osób spoza tego obszaru.",
   "mobile.intro_messages.default_message": "To jest pierwszy kanał który zobaczą członkowie zespołu po zarejestrowaniu się - używaj go do publikowania informacji, o których wszyscy muszą wiedzieć.",
   "mobile.intro_messages.default_welcome": "Witaj w {name}!",

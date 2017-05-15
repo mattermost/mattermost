@@ -1704,6 +1704,7 @@
   "mobile.file_upload.camera": "照相或錄影",
   "mobile.file_upload.library": "相簿",
   "mobile.file_upload.more": "更多",
+  "mobile.help.title": "說明",
   "mobile.intro_messages.DM": "這是跟{teammate}之間直接訊息的起頭。直接訊息跟在這邊分享的檔案除了在此處以外的人都看不到。",
   "mobile.intro_messages.default_message": "這將是團隊成員註冊後第一個看到的頻道，請利用它張貼所有人都應該知道的事項。",
   "mobile.intro_messages.default_welcome": "歡迎來到{name}！",
