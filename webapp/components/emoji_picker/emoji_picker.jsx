@@ -3,11 +3,9 @@
 
 import React from 'react';
 
-import $ from 'jquery';
 import * as Emoji from 'utils/emoji.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 import ReactOutsideEvent from 'react-outside-event';
 import {FormattedMessage} from 'react-intl';
@@ -110,11 +108,11 @@ class EmojiPicker extends React.Component {
     }
 
     handleScroll() {
-        const items = $(ReactDOM.findDOMNode(this.refs.items));
-
-        const contentTop = items.scrollTop();
-        const contentTopPadding = parseInt(items.css('padding-top'), 10);
-        const scrollPct = (contentTop / (items[0].scrollHeight - items[0].clientHeight)) * 100.0;
+        const items = this.refs.items;
+        const contentTop = items.scrollTop;
+        const itemsPaddingTop = getComputedStyle(items).paddingTop;
+        const contentTopPadding = parseInt(itemsPaddingTop, 10);
+        const scrollPct = (contentTop / (items.scrollHeight - items.clientHeight)) * 100.0;
 
         if (scrollPct > 99.0) {
             this.setState({category: 'custom'});
@@ -122,9 +120,12 @@ class EmojiPicker extends React.Component {
         }
 
         for (const category of CATEGORIES) {
-            const header = $(ReactDOM.findDOMNode(this.refs[category]));
-            const headerBottomMargin = parseInt(header.css('margin-bottom'), 10) + parseInt(header.css('padding-bottom'), 10);
-            const headerBottom = header[0].offsetTop + header.height() + headerBottomMargin;
+            const header = this.refs[category];
+            const headerStyle = getComputedStyle(header);
+            const headerBottomMargin = parseInt(headerStyle.marginBottom, 10);
+            const headerBottomPadding = parseInt(headerStyle.paddingBottom, 10);
+            const headerBottomSpace = headerBottomMargin + headerBottomPadding;
+            const headerBottom = header.offsetTop + header.offsetHeight + headerBottomSpace;
 
             // If category is the first one visible, highlight it in the bar at the top
             if (headerBottom - contentTopPadding >= contentTop) {
