@@ -7,6 +7,8 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import Constants from 'utils/constants.jsx';
+
 export default class UserList extends React.Component {
     constructor(props) {
         super(props);
@@ -36,7 +38,7 @@ export default class UserList extends React.Component {
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                         actionUserProps={this.props.actionUserProps[user.id]}
-                        userCount={(index >= 0 && index < 10) ? index : -1}
+                        userCount={(index >= 0 && index < Constants.TEST_ID_COUNT) ? index : -1}
                     />
                 );
             });
