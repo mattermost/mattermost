@@ -142,6 +142,7 @@ export default class MoreChannels extends React.Component {
 
         let createNewChannelButton = (
             <button
+                id='createNewChannel'
                 type='button'
                 className='btn btn-primary channel-create-btn'
                 onClick={this.props.handleNewChannel}
