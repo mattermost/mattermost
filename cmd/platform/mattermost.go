@@ -59,7 +59,9 @@ var resetCmd = &cobra.Command{
 }
 
 func resetCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
