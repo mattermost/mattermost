@@ -13,7 +13,7 @@ import Client from 'client/web_client.jsx';
 import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
-export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps}) {
+export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps, userCount}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
     let name = user.username;
