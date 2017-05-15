@@ -79,7 +79,7 @@ func FindConfigFile(fileName string) string {
 }
 
 func FindDir(dir string) string {
-	fileName := "."
+	fileName := ""
 	if _, err := os.Stat("./" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("./" + dir + "/")
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
@@ -88,7 +88,7 @@ func FindDir(dir string) string {
 		fileName, _ = filepath.Abs("../../" + dir + "/")
 	}
 
-	return fileName + "/"
+	return fileName
 }
 
 func DisableDebugLogForTest() {
@@ -258,19 +258,17 @@ func DisableConfigWatch() {
 	}
 }
 
-func InitAndLoadConfig(filename string) (err string) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Sprintf("%v", r)
-		}
-	}()
-	TranslationsPreInit()
+func InitAndLoadConfig(filename string) error {
+	if err := TranslationsPreInit(); err != nil {
+		return err
+	}
+
 	EnableConfigFromEnviromentVars()
 	LoadConfig(filename)
 	InitializeConfigWatch()
 	EnableConfigWatch()
 
-	return ""
+	return nil
 }
 
 // LoadConfig will try to search around for the corresponding config file.

@@ -12,14 +12,18 @@ func initDBCommandContextCobra(cmd *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-	initDBCommandContext(config)
+
+	if err := initDBCommandContext(config); err != nil {
+		// Returning an error just prints the usage message, so actually panic
+		panic(err)
+	}
 
 	return nil
 }
 
 func initDBCommandContext(configFileLocation string) {
-	if errstr := utils.InitAndLoadConfig(configFileLocation); errstr != "" {
-		return
+	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
+		return err
 	}
 
 	utils.ConfigureCmdLineLog()
@@ -29,4 +33,6 @@ func initDBCommandContext(configFileLocation string) {
 	if model.BuildEnterpriseReady == "true" {
 		app.LoadLicense()
 	}
+
+	return nil
 }
