@@ -1704,6 +1704,7 @@
   "mobile.file_upload.camera": "Take Photo or Video",
   "mobile.file_upload.library": "Photo Library",
   "mobile.file_upload.more": "더 보기",
+  "mobile.help.title": "도움말",
   "mobile.intro_messages.DM": "{teammate}와 개인 메시지의 시작입니다.<br />개인 메시지나 여기서 공유된 파일들은 외부에서 보여지지 않습니다.",
   "mobile.intro_messages.default_message": "This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.",
   "mobile.intro_messages.default_welcome": "Welcome to {name}!",

@@ -3097,7 +3097,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "用户的 AuthData 和密码是互斥的。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",

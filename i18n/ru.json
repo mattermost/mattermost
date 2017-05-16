@@ -3157,11 +3157,11 @@
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Ability to create new group message channels"
+    "translation": "Возможность создания новых групповых каналов сообщений"
   },
   {
     "id": "authentication.permissions.create_group_channel.name",
-    "translation": "Create Group Message"
+    "translation": "Создать Групповое Сообщение"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3181,7 +3181,7 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
+    "translation": "Возможность чтения публичных каналов"
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
@@ -3629,7 +3629,7 @@
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
+    "translation": "Неправильный тип отклика"
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",

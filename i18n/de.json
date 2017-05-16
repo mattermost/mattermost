@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.add_member.user_adding.app_error",
-    "translation": "Der hinzuzufügende Benutzer konnte nicht gefunden werden"
+    "translation": "Der hinzufügende Benutzer konnte nicht gefunden werden"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -269,7 +269,7 @@
   },
   {
     "id": "api.channel.get_channel_counts.app_error",
-    "translation": "Die Anzahl der Kanäle konnte aus der Datenbank nicht ermittelt werden"
+    "translation": "Die Anzahl der Kanäle konnte nicht aus der Datenbank ermittelt werden"
   },
   {
     "id": "api.channel.get_channel_extra_info.deleted.app_error",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Fehler beim Abrufen des Nutzers während des Aktualisierens des DisplayName-Feldes"
+    "translation": "Fehler beim Abrufen des Nutzers während der Aktualisierung des DisplayName-Feldes"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -445,7 +445,7 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Eine E-Mail-Einladung an Ihr Mattermost-Team senden"
+    "translation": "Eine E-Mail-Einladung zu Ihrem Mattermost-Team senden"
   },
   {
     "id": "api.command.invite_people.email_off",
@@ -473,7 +473,7 @@
   },
   {
     "id": "api.command.regen.app_error",
-    "translation": "Ungültige Berechtigungen um das Befehls-Tokens zu regenerieren"
+    "translation": "Ungültige Berechtigungen um den Befehls-Token zu regenerieren"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -609,11 +609,11 @@
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "Es ist ein Fehler beim Erstellen der Direktnachricht auf."
+    "translation": "Es ist ein Fehler beim Erstellen der Direktnachricht aufgetreten."
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Es trat ein Fehler beim Benachrichtigen des Benutzers auf."
+    "translation": "Es ist ein Fehler beim Benachrichtigen des Benutzers aufgetreten."
   },
   {
     "id": "api.command_msg.hint",
@@ -621,7 +621,7 @@
   },
   {
     "id": "api.command_msg.list.app_error",
-    "translation": "Es trat ein Fehler beim Auflisten der Benutzer auf."
+    "translation": "Es ist ein Fehler beim Auflisten der Benutzer aufgetreten."
   },
   {
     "id": "api.command_msg.missing.app_error",
@@ -729,7 +729,7 @@
   },
   {
     "id": "api.command_shortcuts.header",
-    "translation": "### Tastenkombinationen\n\n"
+    "translation": "### Tastaturkürzel\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs.comp_channel",
@@ -765,7 +765,7 @@
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "Tastenkürzel"
+    "translation": "Tastaturkürzel"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -821,7 +821,7 @@
   },
   {
     "id": "api.context.404.app_error",
-    "translation": "Entschuldigung, wir können die Seite nicht finden."
+    "translation": "Entschuldigung, wir konnten die Seite nicht finden."
   },
   {
     "id": "api.context.invalid_body_param.app_error",
@@ -975,7 +975,7 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild darf maximal 1 MB groß sein."
+    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild muss kleiner als 1 MB sein."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",

@@ -1704,6 +1704,7 @@
   "mobile.file_upload.camera": "Sacar Foto o Vídeo",
   "mobile.file_upload.library": "Librería de Fotos",
   "mobile.file_upload.more": "Más",
+  "mobile.help.title": "Ayuda",
   "mobile.intro_messages.DM": "Este es el inicio de tu historial de mensajes directos con {teammate}.Los mensajes directos y archivos que se comparten aquí no son mostrados a personas fuera de esta área.",
   "mobile.intro_messages.default_message": "Es es el primer canal que tus compañeros ven cuando se registran - puedes utilizarlo para enviar mensajes que todos deben leer.",
   "mobile.intro_messages.default_welcome": "¡Bienvenido a {name}!",

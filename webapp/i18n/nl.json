@@ -1704,6 +1704,7 @@
   "mobile.file_upload.camera": "Take Photo or Video",
   "mobile.file_upload.library": "Photo Library",
   "mobile.file_upload.more": "Meer",
+  "mobile.help.title": "Help",
   "mobile.intro_messages.DM": "Dit is de start van uw privé berichten historiek met teamlid {teammate}.<br /> Privé berichten en bestanden die hier gedeeld worden zijn niet zichtbaar voor anderen.",
   "mobile.intro_messages.default_message": "This is the first channel teammates see when they sign up - use it for posting updates everyone needs to know.",
   "mobile.intro_messages.default_welcome": "Welcome to {name}!",
