@@ -14,7 +14,7 @@ A snapshot of the MatterMost v3.4 docs can be found at
 Build the distribution:
 
 ```
-make dist
+make package
 ```
 
 
