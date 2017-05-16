@@ -161,16 +161,14 @@ type ServiceSettings struct {
 }
 
 type ClusterSettings struct {
-	Enable                 *bool
-	InterNodeListenAddress *string
-	InterNodeUrls          []string
-
+	Enable                *bool
 	ClusterName           *string
 	OverrideHostname      *string
 	UseIpAddress          *bool
 	UseExperimentalGossip *bool
+	ReadOnlyConfig        *bool
 	GossipPort            *int
-	Port                  *int
+	StreamingPort         *int
 }
 
 type MetricsSettings struct {
@@ -980,23 +978,14 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.PostEditTimeLimit = 300
 	}
 
-	if o.ClusterSettings.InterNodeListenAddress == nil {
-		o.ClusterSettings.InterNodeListenAddress = new(string)
-		*o.ClusterSettings.InterNodeListenAddress = ":8075"
-	}
-
 	if o.ClusterSettings.Enable == nil {
 		o.ClusterSettings.Enable = new(bool)
 		*o.ClusterSettings.Enable = false
 	}
 
-	if o.ClusterSettings.InterNodeUrls == nil {
-		o.ClusterSettings.InterNodeUrls = []string{}
-	}
-
 	if o.ClusterSettings.ClusterName == nil {
 		o.ClusterSettings.ClusterName = new(string)
-		*o.ClusterSettings.ClusterName = "Cluster01" // TODO XXX FIXME - set to empty
+		*o.ClusterSettings.ClusterName = ""
 	}
 
 	if o.ClusterSettings.OverrideHostname == nil {
@@ -1014,14 +1003,19 @@ func (o *Config) SetDefaults() {
 		*o.ClusterSettings.UseExperimentalGossip = false
 	}
 
+	if o.ClusterSettings.ReadOnlyConfig == nil {
+		o.ClusterSettings.ReadOnlyConfig = new(bool)
+		*o.ClusterSettings.ReadOnlyConfig = true
+	}
+
 	if o.ClusterSettings.GossipPort == nil {
 		o.ClusterSettings.GossipPort = new(int)
 		*o.ClusterSettings.GossipPort = 8074
 	}
 
-	if o.ClusterSettings.Port == nil {
-		o.ClusterSettings.Port = new(int)
-		*o.ClusterSettings.Port = 8075
+	if o.ClusterSettings.StreamingPort == nil {
+		o.ClusterSettings.StreamingPort = new(int)
+		*o.ClusterSettings.StreamingPort = 8075
 	}
 
 	if o.MetricsSettings.ListenAddress == nil {

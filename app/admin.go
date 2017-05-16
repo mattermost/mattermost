@@ -148,7 +148,7 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 		return err
 	}
 
-	if *utils.Cfg.ClusterSettings.Enable {
+	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
 		return model.NewLocAppError("saveConfig", "ent.cluster.save_config.error", nil, "")
 	}
 

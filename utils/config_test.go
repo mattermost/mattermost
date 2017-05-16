@@ -65,7 +65,7 @@ func TestRedirectStdLog(t *testing.T) {
 	LoadConfig("config.json")
 	InitTranslations(Cfg.LocalizationSettings)
 
-	log := NewRedirectStdLog("test")
+	log := NewRedirectStdLog("test", false)
 
 	log.Println("[DEBUG] this is a message")
 	log.Println("[DEBG] this is a message")

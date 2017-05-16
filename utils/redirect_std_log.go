@@ -13,17 +13,19 @@ import (
 )
 
 type RedirectStdLog struct {
-	reader *os.File
-	writer *os.File
-	system string
+	reader      *os.File
+	writer      *os.File
+	system      string
+	ignoreDebug bool
 }
 
-func NewRedirectStdLog(system string) *log.Logger {
+func NewRedirectStdLog(system string, ignoreDebug bool) *log.Logger {
 	r, w, _ := os.Pipe()
 	logger := &RedirectStdLog{
-		reader: r,
-		writer: w,
-		system: system,
+		reader:      r,
+		writer:      w,
+		system:      system,
+		ignoreDebug: ignoreDebug,
 	}
 
 	go func(l *RedirectStdLog) {
@@ -31,9 +33,9 @@ func NewRedirectStdLog(system string) *log.Logger {
 		for scanner.Scan() {
 			line := scanner.Text()
 
-			if strings.Index(line, "[DEBUG]") == 0 {
+			if strings.Index(line, "[DEBUG]") == 0 && !ignoreDebug {
 				l4g.Debug("%v%v", system, line[7:])
-			} else if strings.Index(line, "[DEBG]") == 0 {
+			} else if strings.Index(line, "[DEBG]") == 0 && !ignoreDebug {
 				l4g.Debug("%v%v", system, line[6:])
 			} else if strings.Index(line, "[WARN]") == 0 {
 				l4g.Info("%v%v", system, line[6:])
