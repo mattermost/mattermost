@@ -38,6 +38,7 @@ export default class UserList extends React.Component {
                         actions={this.props.actions}
                         actionProps={this.props.actionProps}
                         actionUserProps={this.props.actionUserProps[user.id]}
+                        userCount={(index >= 0 && index < Constants.TEST_ID_COUNT) ? index : -1}
                     />
                 );
             });
