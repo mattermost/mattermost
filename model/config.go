@@ -995,7 +995,7 @@ func (o *Config) SetDefaults() {
 
 	if o.ClusterSettings.UseIpAddress == nil {
 		o.ClusterSettings.UseIpAddress = new(bool)
-		*o.ClusterSettings.UseIpAddress = false
+		*o.ClusterSettings.UseIpAddress = true
 	}
 
 	if o.ClusterSettings.UseExperimentalGossip == nil {

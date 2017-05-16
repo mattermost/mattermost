@@ -20,20 +20,21 @@ export default class ClusterSettings extends AdminSettings {
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
         this.renderSettings = this.renderSettings.bind(this);
+        this.overrideHandleChange = this.overrideHandleChange.bind(this);
     }
 
     getConfigFromState(config) {
         config.ClusterSettings.Enable = this.state.enable;
         config.ClusterSettings.InterNodeListenAddress = this.state.interNodeListenAddress;
 
-        config.ClusterSettings.InterNodeUrls = this.state.interNodeUrls.split(',');
-        config.ClusterSettings.InterNodeUrls = config.ClusterSettings.InterNodeUrls.map((url) => {
-            return url.trim();
-        });
+        // config.ClusterSettings.InterNodeUrls = this.state.interNodeUrls.split(',');
+        // config.ClusterSettings.InterNodeUrls = config.ClusterSettings.InterNodeUrls.map((url) => {
+        //     return url.trim();
+        // });
 
-        if (config.ClusterSettings.InterNodeUrls.length === 1 && config.ClusterSettings.InterNodeUrls[0] === '') {
-            config.ClusterSettings.InterNodeUrls = [];
-        }
+        // if (config.ClusterSettings.InterNodeUrls.length === 1 && config.ClusterSettings.InterNodeUrls[0] === '') {
+        //     config.ClusterSettings.InterNodeUrls = [];
+        // }
 
         return config;
     }
@@ -41,10 +42,10 @@ export default class ClusterSettings extends AdminSettings {
     getStateFromConfig(config) {
         const settings = config.ClusterSettings;
 
+        // interNodeUrls: settings.InterNodeUrls.join(', '),
+        // interNodeListenAddress: settings.InterNodeListenAddress,
         return {
             enable: settings.Enable,
-            interNodeUrls: settings.InterNodeUrls.join(', '),
-            interNodeListenAddress: settings.InterNodeListenAddress,
             showWarning: false
         };
     }
@@ -100,7 +101,7 @@ export default class ClusterSettings extends AdminSettings {
                     className='alert alert-warning'
                 >
                     <i className='fa fa-warning'/>
-                    <FormattedMessage
+                    <FormattedHTMLMessage
                         id='admin.cluster.should_not_change'
                         defaultMessage='WARNING: These settings may not sync with the other servers in the cluster. High Availability inter-node communication will not start until you modify the config.json to be identical on all servers and restart Mattermost. Please see the <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> on how to add or remove a server from the cluster. If you are accessing the System Console through a load balancer and experiencing issues, please see the Troubleshooting Guide in our <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a>.'
                     />
@@ -120,7 +121,7 @@ export default class ClusterSettings extends AdminSettings {
                 <p>
                     <FormattedMessage
                         id='admin.cluster.noteDescription'
-                        defaultMessage='Changing properties in this section will require a server restart before taking effect. When High Availability mode is enabled, the System Console is set to read-only and can only be changed from the configuration file.'
+                        defaultMessage='Changing properties in this section will require a server restart before taking effect. When High Availability mode is enabled, the System Console is set to read-only and can only be changed from the configuration file unless ReadOnlyConfig is disabled in the configuration file.'
                     />
                 </p>
                 {warning}
@@ -140,7 +141,6 @@ export default class ClusterSettings extends AdminSettings {
                     }
                     value={this.state.enable}
                     onChange={this.overrideHandleChange}
-                    disabled={true}
                 />
                 <TextSetting
                     id='interNodeListenAddress'
