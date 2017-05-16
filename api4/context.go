@@ -546,7 +546,6 @@ func (c *Context) RequireJobId() *Context {
 		return c
 	}
 
-	l4g.Error("job_id=" + c.Params.JobId)
 	if len(c.Params.JobId) != 26 {
 		c.SetInvalidUrlParam("job_id")
 	}
@@ -558,7 +557,6 @@ func (c *Context) RequireJobType() *Context {
 		return c
 	}
 
-	l4g.Error("job_type=" + c.Params.JobType)
 	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
 		c.SetInvalidUrlParam("job_type")
 	}

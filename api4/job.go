@@ -12,7 +12,7 @@ import (
 )
 
 func InitJob() {
-	l4g.Error("Initializing post API routes")
+	l4g.Info("Initializing job API routes")
 
 	BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}/statuses", ApiSessionRequired(getJobStatusesByType)).Methods("GET")
 	BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", ApiSessionRequired(getJobStatus)).Methods("GET")
