@@ -84,10 +84,14 @@ func InvalidateAllCaches() *model.AppError {
 	InvalidateAllCachesSkipSend()
 
 	if einterfaces.GetClusterInterface() != nil {
-		err := einterfaces.GetClusterInterface().InvalidateAllCaches()
-		if err != nil {
-			return err
+
+		msg := &model.ClusterMessage{
+			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
+			SendType:         model.CLUSTER_SEND_RELIABLE,
+			WaitForAllToSend: true,
 		}
+
+		einterfaces.GetClusterInterface().SendClusterMessage(msg)
 	}
 
 	return nil

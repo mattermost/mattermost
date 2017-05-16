@@ -10,6 +10,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
+	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/mssola/user_agent"
@@ -57,6 +58,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	infos := app.GetClusterStatus()
+	w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
 	w.Write([]byte(model.ClusterInfosToJson(infos)))
 }
 

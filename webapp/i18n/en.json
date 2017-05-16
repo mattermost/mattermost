@@ -164,7 +164,7 @@
   "admin.cluster.status_table.id": "Node ID",
   "admin.cluster.status_table.reload": " Reload Cluster Status",
   "admin.cluster.status_table.status": "Status",
-  "admin.cluster.status_table.url": "Inter-Node URL",
+  "admin.cluster.status_table.url": "Gossip Address",
   "admin.cluster.status_table.version": "Version",
   "admin.cluster.unknown": "unknown",
   "admin.compliance.directoryDescription": "Directory to which compliance reports are written. If blank, will be set to ./data/.",

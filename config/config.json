@@ -244,13 +244,13 @@
         "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
     },
     "ClusterSettings": {
-        "Enable": true,
+        "Enable": false,
         "InterNodeListenAddress": ":8075",
         "InterNodeUrls": [],
-        "ClusterName": "Cluster01",
+        "ClusterName": "TestName",
         "OverrideHostname": "",
-        "UseIpAddress": false,
-        "UseExperimentalGossip": false,
+        "UseIpAddress": true,
+        "UseExperimentalGossip": true,
         "GossipPort": 8074,
         "Port": 8075
     },

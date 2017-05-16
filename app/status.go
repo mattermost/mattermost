@@ -26,7 +26,12 @@ func AddStatusCache(status *model.Status) {
 	AddStatusCacheSkipClusterSend(status)
 
 	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().UpdateStatus(status)
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     status.ToJson(),
+		}
+		einterfaces.GetClusterInterface().SendClusterMessage(msg)
 	}
 }
 

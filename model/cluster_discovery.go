@@ -48,10 +48,7 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 func (o *ClusterDiscovery) AutoFillIpAddress() {
 	// attempt to set the hostname to the first non-local IP address
 	if len(o.Hostname) == 0 {
-		ip := GetServerIpAddress()
-		if len(ip) == 0 {
-			o.Hostname = ip
-		}
+		o.Hostname = GetServerIpAddress()
 	}
 }
 

@@ -75,34 +75,20 @@ export default class ClusterTable extends React.Component {
                 clusterInfo.config_hash = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
             }
 
-            if (clusterInfo.id === '') {
-                clusterInfo.id = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
-            }
-
-            if (clusterInfo.is_alive > 0) {
-                status = (
-                    <img
-                        className='cluster-status'
-                        src={statusGreen}
-                    />
-                );
-            } else {
-                status = (
-                    <img
-                        className='cluster-status'
-                        src={statusRed}
-                    />
-                );
-            }
+            status = (
+                <img
+                    className='cluster-status'
+                    src={statusGreen}
+                />
+            );
 
             return (
-                <tr key={clusterInfo.id}>
+                <tr key={clusterInfo.ipaddress}>
                     <td style={{whiteSpace: 'nowrap'}}>{status}</td>
                     <td style={{whiteSpace: 'nowrap'}}>{clusterInfo.hostname}</td>
                     <td style={{whiteSpace: 'nowrap'}}>{versionMismatch} {clusterInfo.version}</td>
                     <td style={{whiteSpace: 'nowrap'}}><div className='config-hash'>{configMismatch} {clusterInfo.config_hash}</div></td>
-                    <td style={{whiteSpace: 'nowrap'}}>{clusterInfo.internode_url}</td>
-                    <td style={{whiteSpace: 'nowrap'}}><div className='config-hash'>{clusterInfo.id}</div></td>
+                    <td style={{whiteSpace: 'nowrap'}}>{clusterInfo.ipaddress}</td>
                 </tr>
             );
         });
@@ -158,13 +144,7 @@ export default class ClusterTable extends React.Component {
                             <th>
                                 <FormattedMessage
                                     id='admin.cluster.status_table.url'
-                                    defaultMessage='Inter-Node URL'
-                                />
-                            </th>
-                            <th>
-                                <FormattedMessage
-                                    id='admin.cluster.status_table.id'
-                                    defaultMessage='Node ID'
+                                    defaultMessage='Gossip Address'
                                 />
                             </th>
                         </tr>
