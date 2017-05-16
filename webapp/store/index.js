@@ -107,6 +107,6 @@ export default function configureStore(initialState) {
         }
     };
 
-    return configureServiceStore({}, {}, offlineOptions);
+    return configureServiceStore({}, {}, offlineOptions, null, false);
 }
 
