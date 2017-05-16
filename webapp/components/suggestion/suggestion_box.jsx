@@ -208,8 +208,12 @@ export default class SuggestionBox extends React.Component {
     }
 
     handlePretextChanged(pretext) {
+        let handled = false;
         for (const provider of this.props.providers) {
-            provider.handlePretextChanged(this.suggestionId, pretext);
+            handled = provider.handlePretextChanged(this.suggestionId, pretext) || handled;
+        }
+        if (!handled) {
+            SuggestionStore.clearSuggestions(this.suggestionId);
         }
     }
 
