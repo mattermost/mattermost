@@ -611,7 +611,7 @@ func CheckPayLoadTooLargeStatus(t *testing.T, resp *model.Response) {
 }
 
 func readTestFile(name string) ([]byte, error) {
-	path := utils.FindDir("tests")
+	path, _ := utils.FindDir("tests")
 	file, err := os.Open(path + "/" + name)
 	if err != nil {
 		return nil, err

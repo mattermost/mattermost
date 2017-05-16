@@ -78,17 +78,21 @@ func FindConfigFile(fileName string) string {
 	return fileName
 }
 
-func FindDir(dir string) string {
-	fileName := ""
+func FindDir(dir string) (string, bool) {
+	fileName := "."
+	found := false
 	if _, err := os.Stat("./" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("./" + dir + "/")
+		found = true
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../" + dir + "/")
+		found = true
 	} else if _, err := os.Stat("../../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../../" + dir + "/")
+		found = true
 	}
 
-	return fileName
+	return fileName + "/", found
 }
 
 func DisableDebugLogForTest() {
@@ -161,7 +165,8 @@ func configureLog(s *model.LogSettings) {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		return FindDir("logs") + LOG_FILENAME
+		logDir, _ := FindDir("logs")
+		return logDir + LOG_FILENAME
 	} else {
 		return fileLocation + LOG_FILENAME
 	}

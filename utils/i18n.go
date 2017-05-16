@@ -39,8 +39,8 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 }
 
 func InitTranslationsWithDir(dir string) error {
-	i18nDirectory := FindDir(dir)
-	if i18nDirectory == "" {
+	i18nDirectory, found := FindDir(dir)
+	if !found {
 		return fmt.Errorf("Unable to find i18n directory")
 	}
 
