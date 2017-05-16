@@ -69,6 +69,8 @@ type Routes struct {
 	OAuthApps *mux.Router // 'api/v4/oauth/apps'
 	OAuthApp  *mux.Router // 'api/v4/oauth/apps/{app_id:[A-Za-z0-9]+}'
 
+	OpenGraph *mux.Router // 'api/v4/opengraph'
+
 	SAML       *mux.Router // 'api/v4/saml'
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
@@ -174,6 +176,8 @@ func InitApi(full bool) {
 
 	BaseRoutes.Webrtc = BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 
+	BaseRoutes.OpenGraph = BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
+
 	InitUser()
 	InitTeam()
 	InitChannel()
@@ -194,6 +198,7 @@ func InitApi(full bool) {
 	InitOAuth()
 	InitReaction()
 	InitWebrtc()
+	InitOpenGraph()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

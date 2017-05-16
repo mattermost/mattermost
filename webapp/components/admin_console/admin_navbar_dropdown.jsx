@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
+import AboutBuildModal from 'components/about_build_modal.jsx';
 import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 
@@ -22,10 +23,13 @@ export default class AdminNavbarDropdown extends React.Component {
         super(props);
         this.blockToggle = false;
         this.onTeamChange = this.onTeamChange.bind(this);
+        this.handleAboutModal = this.handleAboutModal.bind(this);
+        this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
 
         this.state = {
             teams: TeamStore.getAll(),
-            teamMembers: TeamStore.getMyTeamMembers()
+            teamMembers: TeamStore.getMyTeamMembers(),
+            showAboutModal: false
         };
     }
 
@@ -45,6 +49,16 @@ export default class AdminNavbarDropdown extends React.Component {
         TeamStore.removeChangeListener(this.onTeamChange);
     }
 
+    handleAboutModal(e) {
+        e.preventDefault();
+
+        this.setState({showAboutModal: true});
+    }
+
+    aboutModalDismissed() {
+        this.setState({showAboutModal: false});
+    }
+
     onTeamChange() {
         this.setState({
             teams: TeamStore.getAll(),
@@ -53,6 +67,7 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     render() {
+        const config = global.window.mm_config;
         var teamsArray = [];  // Array of team objects
         var teams = [];  // Array of team components
         let switchTeams;
@@ -138,6 +153,54 @@ export default class AdminNavbarDropdown extends React.Component {
                             className='divider'
                         />
                         <li>
+                            <Link
+                                to={config.AdministratorsGuideLink}
+                                rel='noopener noreferrer'
+                                target='_blank'
+                            >
+                                <FormattedMessage
+                                    id='admin.nav.administratorsGuide'
+                                    defaultMessage='Administrator Guide'
+                                />
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                to={config.TroubleshootingForumLink}
+                                rel='noopener noreferrer'
+                                target='_blank'
+                            >
+                                <FormattedMessage
+                                    id='admin.nav.troubleshootingForum'
+                                    defaultMessage='Troubleshooting Forum'
+                                />
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                to={config.CommercialSupportLink}
+                                rel='noopener noreferrer'
+                                target='_blank'
+                            >
+                                <FormattedMessage
+                                    id='admin.nav.commercialSupport'
+                                    defaultMessage='Commercial Support'
+                                />
+                            </Link>
+                        </li>
+                        <li>
+                            <a
+                                href='#'
+                                onClick={this.handleAboutModal}
+                            >
+                                <FormattedMessage
+                                    id='navbar_dropdown.about'
+                                    defaultMessage='About Mattermost'
+                                />
+                            </a>
+                        </li>
+                        <li className='divider'/>
+                        <li>
                             <a
                                 href='#'
                                 id='logout'
@@ -149,6 +212,10 @@ export default class AdminNavbarDropdown extends React.Component {
                                 />
                             </a>
                         </li>
+                        <AboutBuildModal
+                            show={this.state.showAboutModal}
+                            onModalDismissed={this.aboutModalDismissed}
+                        />
                     </ul>
                 </li>
             </ul>

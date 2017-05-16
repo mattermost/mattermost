@@ -26,9 +26,7 @@ export default class EmojiListItem extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
     }
 
-    handleDelete(e) {
-        e.preventDefault();
-
+    handleDelete() {
         this.props.onDelete(this.props.emoji);
     }
 

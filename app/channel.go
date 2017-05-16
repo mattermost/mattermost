@@ -218,7 +218,7 @@ func WaitForChannelMembership(channelId string, userId string) {
 	}
 }
 
-func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -261,6 +261,10 @@ func CreateGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 				return nil, result.Err
 			}
 
+			if user.Id == creatorId {
+				WaitForChannelMembership(group.Id, creatorId)
+			}
+
 			InvalidateCacheForUser(user.Id)
 		}
 
@@ -277,6 +281,14 @@ func UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 		return nil, result.Err
 	} else {
 		InvalidateCacheForChannel(channel)
+		return channel, nil
+	}
+}
+
+func RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	if result := <-Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); result.Err != nil {
+		return nil, result.Err
+	} else {
 		return channel, nil
 	}
 }
@@ -435,7 +447,7 @@ func DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	return nil
 }
 
-func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func addUserToChannel(user *model.User, channel *model.Channel, teamMember *model.TeamMember) (*model.ChannelMember, *model.AppError) {
 	if channel.DeleteAt > 0 {
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.deleted.app_error", nil, "")
 	}
@@ -444,17 +456,7 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 		return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "")
 	}
 
-	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
 	cmchan := Srv.Store.Channel().GetMember(channel.Id, user.Id)
-
-	if result := <-tmchan; result.Err != nil {
-		return nil, result.Err
-	} else {
-		teamMember := result.Data.(*model.TeamMember)
-		if teamMember.DeleteAt > 0 {
-			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
-		}
-	}
 
 	if result := <-cmchan; result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
@@ -485,8 +487,19 @@ func addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 }
 
 func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	tmchan := Srv.Store.Team().GetMember(channel.TeamId, user.Id)
+	var teamMember *model.TeamMember
 
-	newMember, err := addUserToChannel(user, channel)
+	if result := <-tmchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		teamMember = result.Data.(*model.TeamMember)
+		if teamMember.DeleteAt > 0 {
+			return nil, model.NewLocAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "")
+		}
+	}
+
+	newMember, err := addUserToChannel(user, channel, teamMember)
 	if err != nil {
 		return nil, err
 	}
@@ -714,6 +727,14 @@ func GetChannelByNameForTeamName(channelName, teamName string) (*model.Channel, 
 
 func GetChannelsForUser(teamId string, userId string) (*model.ChannelList, *model.AppError) {
 	if result := <-Srv.Store.Channel().GetChannels(teamId, userId); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
+func GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetDeleted(teamId, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.ChannelList), nil
@@ -1012,9 +1033,13 @@ func GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 
 func SetActiveChannel(userId string, channelId string) *model.AppError {
 	status, err := GetStatus(userId)
+
+	oldStatus := model.STATUS_OFFLINE
+
 	if err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: channelId}
 	} else {
+		oldStatus = status.Status
 		status.ActiveChannel = channelId
 		if !status.Manual {
 			status.Status = model.STATUS_ONLINE
@@ -1023,6 +1048,10 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 	}
 
 	AddStatusCache(status)
+
+	if status.Status != oldStatus {
+		BroadcastStatus(status)
+	}
 
 	return nil
 }

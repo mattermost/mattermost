@@ -20,6 +20,7 @@ class LeaveTeamModal extends React.Component {
         this.handleToggle = this.handleToggle.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleHide = this.handleHide.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
 
         this.state = {
             show: false
@@ -28,10 +29,18 @@ class LeaveTeamModal extends React.Component {
 
     componentDidMount() {
         ModalStore.addModalListener(ActionTypes.TOGGLE_LEAVE_TEAM_MODAL, this.handleToggle);
+        document.addEventListener('keypress', this.handleKeyPress);
     }
 
     componentWillUnmount() {
         ModalStore.removeModalListener(ActionTypes.TOGGLE_LEAVE_TEAM_MODAL, this.handleToggle);
+        document.removeEventListener('keypress', this.handleKeyPress);
+    }
+
+    handleKeyPress(e) {
+        if (e.key === 'Enter' && this.state.show) {
+            this.handleSubmit(e);
+        }
     }
 
     handleToggle(value) {

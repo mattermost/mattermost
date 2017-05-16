@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
@@ -82,6 +84,251 @@ func TestCreateUser(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
+}
+
+func TestCreateUserWithHash(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	t.Run("CreateWithHashHappyPath", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		props := make(map[string]string)
+		props["email"] = user.Email
+		props["id"] = th.BasicTeam.Id
+		props["display_name"] = th.BasicTeam.DisplayName
+		props["name"] = th.BasicTeam.Name
+		props["time"] = fmt.Sprintf("%v", model.GetMillis())
+		data := model.MapToJson(props)
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+		ruser, resp := Client.CreateUserWithHash(&user, hash, data)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		Client.Login(user.Email, user.Password)
+		if ruser.Nickname != user.Nickname {
+			t.Fatal("nickname didn't match")
+		}
+		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+			t.Log(ruser.Roles)
+			t.Fatal("did not clear roles")
+		}
+		CheckUserSanitization(t, ruser)
+	})
+
+	t.Run("NoHashAndNoData", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		props := make(map[string]string)
+		props["email"] = user.Email
+		props["id"] = th.BasicTeam.Id
+		props["display_name"] = th.BasicTeam.DisplayName
+		props["name"] = th.BasicTeam.Name
+		props["time"] = fmt.Sprintf("%v", model.GetMillis())
+		data := model.MapToJson(props)
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+		_, resp := Client.CreateUserWithHash(&user, "", data)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.missing_hash_or_data.app_error")
+
+		_, resp = Client.CreateUserWithHash(&user, hash, "")
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.missing_hash_or_data.app_error")
+	})
+
+	t.Run("HashExpired", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		timeNow := time.Now()
+		past49Hours := timeNow.Add(-49*time.Hour).UnixNano() / int64(time.Millisecond)
+
+		props := make(map[string]string)
+		props["email"] = user.Email
+		props["id"] = th.BasicTeam.Id
+		props["display_name"] = th.BasicTeam.DisplayName
+		props["name"] = th.BasicTeam.Name
+		props["time"] = fmt.Sprintf("%v", past49Hours)
+		data := model.MapToJson(props)
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+		_, resp := Client.CreateUserWithHash(&user, hash, data)
+		CheckInternalErrorStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_expired.app_error")
+	})
+
+	t.Run("WrongHash", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		props := make(map[string]string)
+		props["email"] = user.Email
+		props["id"] = th.BasicTeam.Id
+		props["display_name"] = th.BasicTeam.DisplayName
+		props["name"] = th.BasicTeam.Name
+		props["time"] = fmt.Sprintf("%v", model.GetMillis())
+		data := model.MapToJson(props)
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, "WrongHash"))
+
+		_, resp := Client.CreateUserWithHash(&user, hash, data)
+		CheckInternalErrorStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
+	})
+
+	t.Run("EnableUserCreationDisable", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		props := make(map[string]string)
+		props["email"] = user.Email
+		props["id"] = th.BasicTeam.Id
+		props["display_name"] = th.BasicTeam.DisplayName
+		props["name"] = th.BasicTeam.Name
+		props["time"] = fmt.Sprintf("%v", model.GetMillis())
+		data := model.MapToJson(props)
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+		canCreateAccount := utils.Cfg.TeamSettings.EnableUserCreation
+		defer func() {
+			utils.Cfg.TeamSettings.EnableUserCreation = canCreateAccount
+		}()
+		utils.Cfg.TeamSettings.EnableUserCreation = false
+
+		_, resp := Client.CreateUserWithHash(&user, hash, data)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
+	})
+
+	t.Run("EnableOpenServerDisable", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		props := make(map[string]string)
+		props["email"] = user.Email
+		props["id"] = th.BasicTeam.Id
+		props["display_name"] = th.BasicTeam.DisplayName
+		props["name"] = th.BasicTeam.Name
+		props["time"] = fmt.Sprintf("%v", model.GetMillis())
+		data := model.MapToJson(props)
+		hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+
+		openServer := *utils.Cfg.TeamSettings.EnableOpenServer
+		defer func() {
+			*utils.Cfg.TeamSettings.EnableOpenServer = openServer
+		}()
+		*utils.Cfg.TeamSettings.EnableOpenServer = false
+
+		ruser, resp := Client.CreateUserWithHash(&user, hash, data)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		Client.Login(user.Email, user.Password)
+		if ruser.Nickname != user.Nickname {
+			t.Fatal("nickname didn't match")
+		}
+		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+			t.Log(ruser.Roles)
+			t.Fatal("did not clear roles")
+		}
+		CheckUserSanitization(t, ruser)
+	})
+}
+
+func TestCreateUserWithInviteId(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	t.Run("CreateWithInviteIdHappyPath", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		inviteId := th.BasicTeam.InviteId
+
+		ruser, resp := Client.CreateUserWithInviteId(&user, inviteId)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		Client.Login(user.Email, user.Password)
+		if ruser.Nickname != user.Nickname {
+			t.Fatal("nickname didn't match")
+		}
+		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+			t.Log(ruser.Roles)
+			t.Fatal("did not clear roles")
+		}
+		CheckUserSanitization(t, ruser)
+	})
+
+	t.Run("WrongInviteId", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		inviteId := model.NewId()
+
+		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
+		CheckInternalErrorStatus(t, resp)
+		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
+	})
+
+	t.Run("NoInviteId", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		_, resp := Client.CreateUserWithInviteId(&user, "")
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.missing_invite_id.app_error")
+	})
+
+	t.Run("ExpiredInviteId", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		inviteId := th.BasicTeam.InviteId
+
+		th.BasicTeam.InviteId = model.NewId()
+		_, resp := AdminClient.UpdateTeam(th.BasicTeam)
+		CheckNoError(t, resp)
+
+		_, resp = Client.CreateUserWithInviteId(&user, inviteId)
+		CheckInternalErrorStatus(t, resp)
+		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
+	})
+
+	t.Run("EnableUserCreationDisable", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		canCreateAccount := utils.Cfg.TeamSettings.EnableUserCreation
+		defer func() {
+			utils.Cfg.TeamSettings.EnableUserCreation = canCreateAccount
+		}()
+		utils.Cfg.TeamSettings.EnableUserCreation = false
+
+		inviteId := th.BasicTeam.InviteId
+
+		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
+	})
+
+	t.Run("EnableOpenServerDisable", func(t *testing.T) {
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+
+		openServer := *utils.Cfg.TeamSettings.EnableOpenServer
+		defer func() {
+			*utils.Cfg.TeamSettings.EnableOpenServer = openServer
+		}()
+		*utils.Cfg.TeamSettings.EnableOpenServer = false
+
+		inviteId := th.BasicTeam.InviteId
+
+		ruser, resp := Client.CreateUserWithInviteId(&user, inviteId)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		Client.Login(user.Email, user.Password)
+		if ruser.Nickname != user.Nickname {
+			t.Fatal("nickname didn't match")
+		}
+		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+			t.Log(ruser.Roles)
+			t.Fatal("did not clear roles")
+		}
+		CheckUserSanitization(t, ruser)
+	})
+
 }
 
 func TestGetMe(t *testing.T) {
@@ -468,7 +715,6 @@ func TestSearchUsers(t *testing.T) {
 	if !findUserInList(th.BasicUser.Id, users) {
 		t.Fatal("should have found user")
 	}
-
 }
 
 func findUserInList(id string, users []*model.User) bool {
@@ -867,7 +1113,6 @@ func TestDeleteUser(t *testing.T) {
 
 	_, resp = Client.DeleteUser(testUser.Id)
 	CheckNoError(t, resp)
-
 }
 
 func TestUpdateUserRoles(t *testing.T) {
@@ -1542,7 +1787,6 @@ func TestGetSessions(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetSessions(model.NewId(), "")
 	CheckNoError(t, resp)
-
 }
 
 func TestRevokeSessions(t *testing.T) {

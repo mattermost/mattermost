@@ -28,6 +28,7 @@ export default class Textbox extends React.Component {
         onChange: React.PropTypes.func.isRequired,
         onKeyPress: React.PropTypes.func.isRequired,
         createMessage: React.PropTypes.string.isRequired,
+        previewMessageLink: React.PropTypes.string,
         onKeyDown: React.PropTypes.func,
         onBlur: React.PropTypes.func,
         supportsCommands: React.PropTypes.bool.isRequired,
@@ -176,6 +177,22 @@ export default class Textbox extends React.Component {
     render() {
         const hasText = this.props.value && this.props.value.length > 0;
 
+        let editHeader;
+        if (this.props.previewMessageLink) {
+            editHeader = (
+                <span>
+                    {this.props.previewMessageLink}
+                </span>
+            );
+        } else {
+            editHeader = (
+                <FormattedMessage
+                    id='textbox.edit'
+                    defaultMessage='Edit message'
+                />
+            );
+        }
+
         let previewLink = null;
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
             previewLink = (
@@ -184,10 +201,7 @@ export default class Textbox extends React.Component {
                     className='textbox-preview-link'
                 >
                     {this.state.preview ? (
-                        <FormattedMessage
-                            id='textbox.edit'
-                            defaultMessage='Edit message'
-                        />
+                       editHeader
                     ) : (
                         <FormattedMessage
                             id='textbox.preview'

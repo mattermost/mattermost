@@ -226,6 +226,7 @@ export default class MoreDirectChannels extends React.Component {
             >
                 <ProfilePicture
                     src={`${Client.getUsersRoute()}/${option.id}/image?time=${option.last_picture_update}`}
+                    status={`${UserStore.getStatus(option.id)}`}
                     width='32'
                     height='32'
                 />

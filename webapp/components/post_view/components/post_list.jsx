@@ -339,7 +339,7 @@ export default class PostList extends React.Component {
                 <Post
                     key={keyPrefix + 'postKey'}
                     ref={post.id}
-                    isLastPost={i === 0}
+                    lastPostCount={(i >= 0 && i < Constants.TEST_ID_COUNT) ? i : -1}
                     sameUser={sameUser}
                     sameRoot={sameRoot}
                     post={post}

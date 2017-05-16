@@ -90,3 +90,5 @@ import:
 - package: github.com/hashicorp/go-multierror
 - package: github.com/hashicorp/go-sockaddr
 - package: github.com/sean-/seed
+- package: gopkg.in/olivere/elastic.v5
+  version: v5.0.36

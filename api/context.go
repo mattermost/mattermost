@@ -219,6 +219,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
 		app.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+		app.UpdateLastActivityAtIfNeeded(c.Session)
 	}
 
 	if c.Err == nil && (h.requireUser || h.requireSystemAdmin) {

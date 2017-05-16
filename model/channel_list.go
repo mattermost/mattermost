@@ -50,3 +50,14 @@ func ChannelListFromJson(data io.Reader) *ChannelList {
 		return nil
 	}
 }
+
+func ChannelSliceFromJson(data io.Reader) []*Channel {
+	decoder := json.NewDecoder(data)
+	var o []*Channel
+	err := decoder.Decode(&o)
+	if err == nil {
+		return o
+	} else {
+		return nil
+	}
+}

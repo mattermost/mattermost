@@ -1,5 +1,5 @@
-hash: d3a5325594aa31ab2c19c74b946f2dfe533e7282d1e8b790ae757de1feb7431c
-updated: 2017-04-27T15:38:20.468736825-07:00
+hash: bec476d3a62ec36a3192e697194c749894d955f718ab1688b1e399a0691510e3
+updated: 2017-05-05T11:07:23.413127083+01:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -203,6 +203,8 @@ imports:
   - rate
 - name: gopkg.in/asn1-ber.v1
   version: 4e86f4367175e39f69d9358a5f17b4dda270378d
+- name: gopkg.in/olivere/elastic.v5
+  version: 6f76abde0f1f149b7d6fc47aee4c54366844f775
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
   subpackages:

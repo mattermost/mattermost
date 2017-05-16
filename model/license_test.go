@@ -25,6 +25,7 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["mhpns"].(bool))
 	CheckTrue(t, m["saml"].(bool))
 	CheckTrue(t, m["password"].(bool))
+	CheckTrue(t, m["elastic_search"].(bool))
 	CheckTrue(t, m["future"].(bool))
 }
 
@@ -44,6 +45,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.PasswordRequirements)
+	CheckTrue(t, *f.ElasticSearch)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -62,6 +64,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.MHPNS = true
 	*f.SAML = true
 	*f.PasswordRequirements = true
+	*f.ElasticSearch = true
 
 	f.SetDefaults()
 
@@ -77,6 +80,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.PasswordRequirements)
+	CheckTrue(t, *f.ElasticSearch)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -157,6 +161,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.MHPNS, *f.MHPNS)
 	CheckBool(t, *f1.SAML, *f.SAML)
 	CheckBool(t, *f1.PasswordRequirements, *f.PasswordRequirements)
+	CheckBool(t, *f1.ElasticSearch, *f.ElasticSearch)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`

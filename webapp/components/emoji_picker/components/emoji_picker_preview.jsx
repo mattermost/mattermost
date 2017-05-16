@@ -27,7 +27,6 @@ export default class EmojiPickerPreview extends React.Component {
                 previewImage = (<span className='sprite-preview'><img
                     src='/static/emoji/img_trans.gif'
                     className={'  emojisprite-preview emoji-' + emoji.filename + ' '}
-                    align='absmiddle'
                                                                  /></span>);
             } else {
                 // This is a custom emoji that matches the model on the server

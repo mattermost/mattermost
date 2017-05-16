@@ -321,17 +321,15 @@ export default class RhsThread extends React.Component {
     }
 
     render() {
-        const postsArray = this.state.postsArray;
-        const selected = this.state.selected;
-        const profiles = this.state.profiles || {};
-        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
-        let previousPostDay = rootPostDay;
-
-        if (postsArray == null || selected == null) {
+        if (this.state.postsArray == null || this.state.selected == null) {
             return (
                 <div/>
             );
         }
+
+        const postsArray = this.state.postsArray;
+        const selected = this.state.selected;
+        const profiles = this.state.profiles || {};
 
         let profile;
         if (UserStore.getCurrentId() === selected.user_id) {
@@ -350,8 +348,12 @@ export default class RhsThread extends React.Component {
             rootStatus = this.state.statuses[selected.user_id] || 'offline';
         }
 
+        const rootPostDay = Utils.getDateForUnixTicks(selected.create_at);
+        let previousPostDay = rootPostDay;
+
         const commentsLists = [];
-        for (let i = 0; i < postsArray.length; i++) {
+        const postsLength = postsArray.length;
+        for (let i = 0; i < postsLength; i++) {
             const comPost = postsArray[i];
             let p;
             if (UserStore.getCurrentId() === comPost.user_id) {
@@ -370,10 +372,7 @@ export default class RhsThread extends React.Component {
                 status = this.state.statuses[p.id] || 'offline';
             }
 
-            const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
-
             const currentPostDay = Utils.getDateForUnixTicks(comPost.create_at);
-
             if (currentPostDay.toDateString() !== previousPostDay.toDateString()) {
                 previousPostDay = currentPostDay;
                 commentsLists.push(
@@ -382,11 +381,14 @@ export default class RhsThread extends React.Component {
                     />);
             }
 
+            const keyPrefix = comPost.id ? comPost.id : comPost.pending_post_id;
+            const reverseCount = postsLength - i - 1;
             commentsLists.push(
                 <div key={keyPrefix + 'commentKey'}>
                     <Comment
                         ref={comPost.id}
                         post={comPost}
+                        lastPostCount={(reverseCount >= 0 && reverseCount < Constants.TEST_ID_COUNT) ? reverseCount : -1}
                         user={p}
                         currentUser={this.props.currentUser}
                         compactDisplay={this.state.compactDisplay}
@@ -430,12 +432,12 @@ export default class RhsThread extends React.Component {
                         className='post-right__scroll'
                     >
                         <DateSeparator
-                            date={rootPostDay.toDateString()}
+                            date={rootPostDay}
                         />
                         <RootPost
                             ref={selected.id}
                             post={selected}
-                            commentCount={postsArray.length}
+                            commentCount={postsLength}
                             user={profile}
                             currentUser={this.props.currentUser}
                             compactDisplay={this.state.compactDisplay}
@@ -455,7 +457,7 @@ export default class RhsThread extends React.Component {
                             <CreateComment
                                 channelId={selected.channel_id}
                                 rootId={selected.id}
-                                latestPostId={postsArray.length > 0 ? postsArray[postsArray.length - 1].id : selected.id}
+                                latestPostId={postsLength > 0 ? postsArray[postsLength - 1].id : selected.id}
                             />
                         </div>
                     </div>

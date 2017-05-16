@@ -75,12 +75,15 @@ const (
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
-	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
-	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://about.mattermost.com/default-privacy-policy/"
-	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
-	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
-	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
-	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK      = "https://about.mattermost.com/default-terms/"
+	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK        = "https://about.mattermost.com/default-privacy-policy/"
+	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK                 = "https://about.mattermost.com/default-about/"
+	SUPPORT_SETTINGS_DEFAULT_HELP_LINK                  = "https://about.mattermost.com/default-help/"
+	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK      = "https://about.mattermost.com/default-report-a-problem/"
+	SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK  = "https://about.mattermost.com/administrators-guide/"
+	SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK = "https://about.mattermost.com/troubleshooting-forum/"
+	SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK    = "https://about.mattermost.com/commercial-support/"
+	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL              = "feedback@mattermost.com"
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
@@ -281,12 +284,15 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink *string
-	PrivacyPolicyLink  *string
-	AboutLink          *string
-	HelpLink           *string
-	ReportAProblemLink *string
-	SupportEmail       *string
+	TermsOfServiceLink       *string
+	PrivacyPolicyLink        *string
+	AboutLink                *string
+	HelpLink                 *string
+	ReportAProblemLink       *string
+	AdministratorsGuideLink  *string
+	TroubleshootingForumLink *string
+	CommercialSupportLink    *string
+	SupportEmail             *string
 }
 
 type TeamSettings struct {
@@ -616,13 +622,21 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPublicChannelCreation == nil {
 		o.TeamSettings.RestrictPublicChannelCreation = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		*o.TeamSettings.RestrictPublicChannelCreation = *o.TeamSettings.RestrictPublicChannelManagement
+		if *o.TeamSettings.RestrictPublicChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
+			*o.TeamSettings.RestrictPublicChannelCreation = PERMISSIONS_TEAM_ADMIN
+		} else {
+			*o.TeamSettings.RestrictPublicChannelCreation = *o.TeamSettings.RestrictPublicChannelManagement
+		}
 	}
 
 	if o.TeamSettings.RestrictPrivateChannelCreation == nil {
 		o.TeamSettings.RestrictPrivateChannelCreation = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		*o.TeamSettings.RestrictPrivateChannelCreation = *o.TeamSettings.RestrictPrivateChannelManagement
+		if *o.TeamSettings.RestrictPrivateChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
+			*o.TeamSettings.RestrictPrivateChannelCreation = PERMISSIONS_TEAM_ADMIN
+		} else {
+			*o.TeamSettings.RestrictPrivateChannelCreation = *o.TeamSettings.RestrictPrivateChannelManagement
+		}
 	}
 
 	if o.TeamSettings.RestrictPublicChannelDeletion == nil {
@@ -713,7 +727,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
-		*o.SupportSettings.TermsOfServiceLink = ""
+		*o.SupportSettings.TermsOfServiceLink = SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK
 	}
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
@@ -755,6 +769,33 @@ func (o *Config) SetDefaults() {
 	if o.SupportSettings.ReportAProblemLink == nil {
 		o.SupportSettings.ReportAProblemLink = new(string)
 		*o.SupportSettings.ReportAProblemLink = SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK
+	}
+
+	if !IsSafeLink(o.SupportSettings.AdministratorsGuideLink) {
+		*o.SupportSettings.AdministratorsGuideLink = ""
+	}
+
+	if o.SupportSettings.AdministratorsGuideLink == nil {
+		o.SupportSettings.AdministratorsGuideLink = new(string)
+		*o.SupportSettings.AdministratorsGuideLink = SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK
+	}
+
+	if !IsSafeLink(o.SupportSettings.TroubleshootingForumLink) {
+		*o.SupportSettings.TroubleshootingForumLink = ""
+	}
+
+	if o.SupportSettings.TroubleshootingForumLink == nil {
+		o.SupportSettings.TroubleshootingForumLink = new(string)
+		*o.SupportSettings.TroubleshootingForumLink = SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK
+	}
+
+	if !IsSafeLink(o.SupportSettings.CommercialSupportLink) {
+		*o.SupportSettings.CommercialSupportLink = ""
+	}
+
+	if o.SupportSettings.CommercialSupportLink == nil {
+		o.SupportSettings.CommercialSupportLink = new(string)
+		*o.SupportSettings.CommercialSupportLink = SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK
 	}
 
 	if o.SupportSettings.SupportEmail == nil {
