@@ -1270,6 +1270,8 @@
   "edit_post.edit": "Edit {title}",
   "edit_post.editPost": "Edit the post...",
   "edit_post.save": "Save",
+  "edit_channel_header.editHeader": "Edit the Channel Header...",
+  "edit_channel_header.previewHeader": "Edit header",
   "email_signup.address": "Email Address",
   "email_signup.createTeam": "Create Team",
   "email_signup.emailError": "Please enter a valid email address.",
