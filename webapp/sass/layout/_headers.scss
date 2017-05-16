@@ -257,6 +257,8 @@
 
     .team__header {
         @include legacy-pie-clearfix;
+        @include display-flex();
+        @include flex-direction(row-reverse);
         padding: 9px 10px;
         position: relative;
 
@@ -305,7 +307,6 @@
             position: absolute;
             right: 22px;
             top: 10px;
-            z-index: 5;
 
             li {
                 width: 100%;
@@ -358,7 +359,6 @@
             color: $white;
             padding-left: 8px;
             position: relative;
-            z-index: 1;
         }
 
         .team__name,

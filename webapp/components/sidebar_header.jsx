@@ -9,19 +9,15 @@ import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
-import StatusIcon from './status_icon.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {Preferences, TutorialSteps, Constants} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
+import StatusDropdown from './status_dropdown.jsx';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
-
-        this.toggleDropdown = this.toggleDropdown.bind(this);
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
-        this.onStatusChange = this.onStatusChange.bind(this);
 
         this.state = this.getStateFromStores();
     }
@@ -36,7 +32,7 @@ export default class SidebarHeader extends React.Component {
         UserStore.removeStatusesChangeListener(this.onStatusChange);
     }
 
-    getPreferences() {
+    getPreferences = () => {
         if (!this.props.currentUser) {
             return {};
         }
@@ -46,28 +42,28 @@ export default class SidebarHeader extends React.Component {
         return {showTutorialTip};
     }
 
-    getCurrentUserStatus() {
+    getCurrentUserStatus = () => {
         if (!this.props.currentUser) {
             return null;
         }
         return UserStore.getStatus(this.props.currentUser.id);
     }
 
-    getStateFromStores() {
+    getStateFromStores = () => {
         const preferences = this.getPreferences();
         const status = this.getCurrentUserStatus();
         return {...preferences, status};
     }
 
-    onPreferenceChange() {
+    onPreferenceChange = () => {
         this.setState(this.getPreferences());
     }
 
-    onStatusChange() {
+    onStatusChange = () => {
         this.setState({status: this.getCurrentUserStatus()});
     }
 
-    toggleDropdown(e) {
+    toggleDropdown = (e) => {
         e.preventDefault();
 
         this.refs.dropdown.toggleDropdown();
@@ -79,10 +75,8 @@ export default class SidebarHeader extends React.Component {
             return null;
         }
 
-        let profilePictureSrc = Client.getUsersRoute() + '/' + me.id + '/image';
-        if (typeof me.last_picture_update === 'string') {
-            profilePictureSrc += '?time=' + me.last_picture_update;
-        }
+        const profilePictureSrc = Client.getProfilePictureUrl(
+            me.id, me.last_picture_update);
         const profilePicture = (
             <img
                 className='user__picture'
@@ -118,17 +112,9 @@ export default class SidebarHeader extends React.Component {
         return (
             <div className='team__header theme'>
                 {tutorialTip}
-                <div style={{display: 'flex'}}>
-                    <div className='status-wrapper'>
-                        {profilePicture}
-                        <StatusIcon
-                            status={status}
-                        />
-                    </div>
-                    <div className='header__info'>
-                        <div className='user__name'>{'@' + me.username}</div>
-                        {teamNameWithToolTip}
-                    </div>
+                <div className='header__info'>
+                    <div className='user__name'>{'@' + me.username}</div>
+                    {teamNameWithToolTip}
                 </div>
                 <SidebarHeaderDropdown
                     ref='dropdown'
@@ -137,6 +123,14 @@ export default class SidebarHeader extends React.Component {
                     teamName={this.props.teamName}
                     currentUser={this.props.currentUser}
                 />
+                <div className='status-wrapper'>
+                    {profilePicture}
+                    <div className='status_dropdown__wrapper'>
+                        <StatusDropdown
+                            status={status}
+                        />
+                    </div>
+                </div>
             </div>
         );
     }

@@ -26,6 +26,21 @@
             position: relative;
             top: 2px;
         }
+
+        &.status-edit {
+
+            i {
+                padding: 2px 3px;
+                font-size: 12px;
+            }
+        }
+    }
+
+    .status_dropdown__wrapper {
+        @include display-flex(inline-flex);
+        position: absolute;
+        bottom: 0;
+        right: 0;
     }
 }
 
