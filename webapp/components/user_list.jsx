@@ -7,6 +7,8 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import Constants from 'utils/constants.jsx';
+
 export default class UserList extends React.Component {
     constructor(props) {
         super(props);
