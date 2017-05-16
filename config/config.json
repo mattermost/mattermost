@@ -71,13 +71,13 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "nagiqms7hs739ci8d4pmdfqqmuqotk89"
+        "AtRestEncryptKey": ""
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -102,7 +102,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "arpwtytya6ksx33fmwhbcuptynrdezrt",
+        "PublicLinkSalt": "",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -131,7 +131,7 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "t7ugyzusao5hjhcwdryd58oytii7pg3q",
+        "InviteSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -246,13 +246,7 @@
     "ClusterSettings": {
         "Enable": false,
         "InterNodeListenAddress": ":8075",
-        "InterNodeUrls": [],
-        "ClusterName": "TestName",
-        "OverrideHostname": "",
-        "UseIpAddress": true,
-        "UseExperimentalGossip": true,
-        "GossipPort": 8074,
-        "Port": 8075
+        "InterNodeUrls": []
     },
     "MetricsSettings": {
         "Enable": false,
