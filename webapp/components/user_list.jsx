@@ -29,7 +29,7 @@ export default class UserList extends React.Component {
         if (users == null) {
             return <LoadingScreen/>;
         } else if (users.length > 0) {
-            content = users.map((user) => {
+            content = users.map((user, index) => {
                 return (
                     <UserListRow
                         key={user.id}
