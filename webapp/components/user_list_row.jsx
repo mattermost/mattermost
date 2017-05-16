@@ -61,8 +61,8 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
     let userCountID = null;
     let userCountEmail = null;
     if (this.props.userCount >= 0) {
-        userCountID = Utils.createSafeId('userListRowName' + this.props.userCount);
-        userCountEmail = Utils.createSafeId('userListRowEmail' + this.props.userCount);
+        userCountID = Utils.createSafeId('userListRowName' + userCount);
+        userCountEmail = Utils.createSafeId('userListRowEmail' + userCount);
     }
 
     return (
