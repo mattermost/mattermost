@@ -246,6 +246,25 @@ It is possible to mark a flag as hidden, meaning it will still function as norma
 flags.MarkHidden("secretFlag")
 ```
 
+## Disable sorting of flags
+`pflag` allows you to disable sorting of flags for help and usage message.
+
+**Example**:
+```go
+flags.BoolP("verbose", "v", false, "verbose output")
+flags.String("coolflag", "yeaah", "it's really cool flag")
+flags.Int("usefulflag", 777, "sometimes it's very useful")
+flags.SortFlags = false
+flags.PrintDefaults()
+```
+**Output**:
+```
+  -v, --verbose           verbose output
+      --coolflag string   it's really cool flag (default "yeaah")
+      --usefulflag int    sometimes it's very useful (default 777)
+```
+
+
 ## Supporting Go flags when using pflag
 In order to support flags defined using Go's `flag` package, they must be added to the `pflag` flagset. This is usually necessary
 to support flags defined by third-party dependencies (e.g. `golang/glog`).

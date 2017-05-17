@@ -32,16 +32,16 @@ type uploadedPartRes struct {
 	Error   error // Any error encountered while uploading the part.
 	PartNum int   // Number of the part uploaded.
 	Size    int64 // Size of the part uploaded.
-	Part    *objectPart
+	Part    *ObjectPart
 }
 
 type uploadPartReq struct {
 	PartNum int         // Number of the part uploaded.
-	Part    *objectPart // Size of the part uploaded.
+	Part    *ObjectPart // Size of the part uploaded.
 }
 
 // shouldUploadPartReadAt - verify if part should be uploaded.
-func shouldUploadPartReadAt(objPart objectPart, uploadReq uploadPartReq) bool {
+func shouldUploadPartReadAt(objPart ObjectPart, uploadReq uploadPartReq) bool {
 	// If part not found part should be uploaded.
 	if uploadReq.Part == nil {
 		return true
@@ -115,7 +115,7 @@ func (c Client) putObjectMultipartFromReadAt(bucketName, objectName string, read
 	close(uploadPartsCh)
 
 	// Receive each part number from the channel allowing three parallel uploads.
-	for w := 1; w <= 3; w++ {
+	for w := 1; w <= totalWorkers; w++ {
 		go func() {
 			// Read defaults to reading at 5MiB buffer.
 			readAtBuffer := make([]byte, optimalReadBufferSize)
@@ -146,7 +146,7 @@ func (c Client) putObjectMultipartFromReadAt(bucketName, objectName string, read
 				hashSums := make(map[string][]byte)
 				hashAlgos := make(map[string]hash.Hash)
 				hashAlgos["md5"] = md5.New()
-				if c.signature.isV4() && !c.secure {
+				if c.overrideSignerType.IsV4() && !c.secure {
 					hashAlgos["sha256"] = sha256.New()
 				}
 
@@ -164,7 +164,7 @@ func (c Client) putObjectMultipartFromReadAt(bucketName, objectName string, read
 				}
 
 				// Verify object if its uploaded.
-				verifyObjPart := objectPart{
+				verifyObjPart := ObjectPart{
 					PartNumber: uploadReq.PartNum,
 					Size:       partSize,
 				}
@@ -178,7 +178,7 @@ func (c Client) putObjectMultipartFromReadAt(bucketName, objectName string, read
 				// to update any progress bar.
 				if shouldUploadPartReadAt(verifyObjPart, uploadReq) {
 					// Proceed to upload the part.
-					var objPart objectPart
+					var objPart ObjectPart
 					objPart, err = c.uploadPart(bucketName, objectName, uploadID, tmpBuffer, uploadReq.PartNum, hashSums["md5"], hashSums["sha256"], prtSize)
 					if err != nil {
 						uploadedPartsCh <- uploadedPartRes{
@@ -224,7 +224,7 @@ func (c Client) putObjectMultipartFromReadAt(bucketName, objectName string, read
 			}
 		}
 		// Store the parts to be completed in order.
-		complMultipartUpload.Parts = append(complMultipartUpload.Parts, completePart{
+		complMultipartUpload.Parts = append(complMultipartUpload.Parts, CompletePart{
 			ETag:       part.ETag,
 			PartNumber: part.PartNumber,
 		})

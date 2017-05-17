@@ -869,9 +869,11 @@ func (f *Font) parseKern(buf []byte) (buf1 []byte, kernNumPairs, kernOffset int3
 
 	switch version := u16(buf); version {
 	case 0:
-		// TODO: support numTables != 1. Testing that requires finding such a font.
-		if numTables := int(u16(buf[2:])); numTables != 1 {
-			return nil, 0, 0, errUnsupportedKernTable
+		if numTables := int(u16(buf[2:])); numTables == 0 {
+			return buf, 0, 0, nil
+		} else if numTables > 1 {
+			// TODO: support multiple subtables. For now, fall through and use
+			// only the first one.
 		}
 		return f.parseKernVersion0(buf, offset, length)
 	case 1:

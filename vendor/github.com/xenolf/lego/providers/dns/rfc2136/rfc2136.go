@@ -23,11 +23,13 @@ type DNSProvider struct {
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for rfc2136
-// dynamic update. Credentials must be passed in the environment variables:
-// RFC2136_NAMESERVER, RFC2136_TSIG_ALGORITHM, RFC2136_TSIG_KEY and
-// RFC2136_TSIG_SECRET. To disable TSIG authentication, leave the TSIG
-// variables unset. RFC2136_NAMESERVER must be a network address in the form
-// "host" or "host:port".
+// dynamic update. Credentials must be passed in environment variables:
+// RFC2136_NAMESERVER: Network address in the form "host" or "host:port".
+// RFC2136_TSIG_ALGORITHM: Defaults to hmac-md5.sig-alg.reg.int. (HMAC-MD5).
+// See https://github.com/miekg/dns/blob/master/tsig.go for supported values. 
+// RFC2136_TSIG_KEY: Name of the secret key as defined in DNS server configuration.
+// RFC2136_TSIG_SECRET: Secret key payload.
+// To disable TSIG authentication, leave the RFC2136_TSIG* variables unset.
 func NewDNSProvider() (*DNSProvider, error) {
 	nameserver := os.Getenv("RFC2136_NAMESERVER")
 	tsigAlgorithm := os.Getenv("RFC2136_TSIG_ALGORITHM")

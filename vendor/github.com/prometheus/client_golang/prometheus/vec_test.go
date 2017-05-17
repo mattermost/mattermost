@@ -241,8 +241,8 @@ func TestCounterVecEndToEndWithCollision(t *testing.T) {
 
 func BenchmarkMetricVecWithLabelValuesBasic(b *testing.B) {
 	benchmarkMetricVecWithLabelValues(b, map[string][]string{
-		"l1": []string{"onevalue"},
-		"l2": []string{"twovalue"},
+		"l1": {"onevalue"},
+		"l2": {"twovalue"},
 	})
 }
 

@@ -1,4 +1,4 @@
-# Minio Go Client SDK for Amazon S3 Compatible Cloud Storage [![Slack](https://slack.minio.io/slack?type=svg)](https://slack.minio.io)
+# Minio Go Client SDK for Amazon S3 Compatible Cloud Storage [![Slack](https://slack.minio.io/slack?type=svg)](https://slack.minio.io) [![Sourcegraph](https://sourcegraph.com/github.com/minio/minio-go/-/badge.svg)](https://sourcegraph.com/github.com/minio/minio-go?badge)
 
 The Minio Go Client SDK provides simple APIs to access any Amazon S3 compatible object storage.
 
@@ -7,7 +7,6 @@ The Minio Go Client SDK provides simple APIs to access any Amazon S3 compatible 
 - AWS Signature Version 4
    - Amazon S3
    - Minio
-
 
 - AWS Signature Version 2
    - Google Cloud Storage (Compatibility Mode)
@@ -19,18 +18,13 @@ This quickstart guide will show you how to install the Minio client SDK, connect
 
 This document assumes that you have a working [Go development environment](https://docs.minio.io/docs/how-to-install-golang).
 
-
 ## Download from Github
-
 ```sh
-
 go get -u github.com/minio/minio-go
-
 ```
+
 ## Initialize Minio Client
-
 Minio client requires the following four parameters specified to connect to an Amazon S3 compatible object storage.
-
 
 | Parameter  | Description| 
 | :---         |     :---     |
@@ -41,7 +35,6 @@ Minio client requires the following four parameters specified to connect to an A
 
 
 ```go
-
 package main
 
 import (
@@ -62,21 +55,14 @@ func main() {
 	}
 
 	log.Println("%v", minioClient) // minioClient is now setup
-
-
 ```
 
 ## Quick Start Example - File Uploader
-
 This example program connects to an object storage server, creates a bucket and uploads a file to the bucket.
-
-
-
 
 We will use the Minio server running at [https://play.minio.io:9000](https://play.minio.io:9000) in this example. Feel free to use this service for testing and development. Access credentials shown in this example are open to the public.
 
-#### FileUploader.go
-
+### FileUploader.go
 ```go
 package main
 
@@ -97,7 +83,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Make a new bucked called mymusic.
+	// Make a new bucket called mymusic.
 	bucketName := "mymusic"
 	location := "us-east-1"
 
@@ -128,21 +114,17 @@ func main() {
 }
 ```
 
-#### Run FileUploader
-
+### Run FileUploader
 ```sh
-
 go run file-uploader.go
 2016/08/13 17:03:28 Successfully created mymusic 
 2016/08/13 17:03:40 Successfully uploaded golden-oldies.zip of size 16253413
 
 mc ls play/mymusic/
 [2016-05-27 16:02:16 PDT]  17MiB golden-oldies.zip
-
 ```
 
 ## API Reference
-
 The full API Reference is available here. 
 
 * [Complete API Reference](https://docs.minio.io/docs/golang-client-api-reference)
@@ -179,11 +161,17 @@ The full API Reference is available here.
 
 * [`GetObject`](https://docs.minio.io/docs/golang-client-api-reference#GetObject)
 * [`PutObject`](https://docs.minio.io/docs/golang-client-api-reference#PutObject)
+* [`PutObjectStreaming`](https://docs.minio.io/docs/golang-client-api-reference#PutObjectStreaming)
 * [`StatObject`](https://docs.minio.io/docs/golang-client-api-reference#StatObject)
 * [`CopyObject`](https://docs.minio.io/docs/golang-client-api-reference#CopyObject)
 * [`RemoveObject`](https://docs.minio.io/docs/golang-client-api-reference#RemoveObject)
 * [`RemoveObjects`](https://docs.minio.io/docs/golang-client-api-reference#RemoveObjects)
 * [`RemoveIncompleteUpload`](https://docs.minio.io/docs/golang-client-api-reference#RemoveIncompleteUpload)
+
+### API Reference: Encrypted Object Operations
+
+* [`GetEncryptedObject`](https://docs.minio.io/docs/golang-client-api-reference#GetEncryptedObject)
+* [`PutEncryptedObject`](https://docs.minio.io/docs/golang-client-api-reference#PutEncryptedObject)
 
 ### API Reference : Presigned Operations
 
@@ -238,6 +226,11 @@ The full API Reference is available here.
 * [removeincompleteupload.go](https://github.com/minio/minio-go/blob/master/examples/s3/removeincompleteupload.go)
 * [removeobjects.go](https://github.com/minio/minio-go/blob/master/examples/s3/removeobjects.go)
 
+#### Full Examples : Encrypted Object Operations
+
+* [put-encrypted-object.go](https://github.com/minio/minio-go/blob/master/examples/s3/put-encrypted-object.go)
+* [get-encrypted-object.go](https://github.com/minio/minio-go/blob/master/examples/s3/get-encrypted-object.go)
+
 #### Full Examples : Presigned Operations
 * [presignedgetobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/presignedgetobject.go)
 * [presignedputobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/presignedputobject.go)
@@ -246,7 +239,7 @@ The full API Reference is available here.
 ## Explore Further
 * [Complete Documentation](https://docs.minio.io)
 * [Minio Go Client SDK API Reference](https://docs.minio.io/docs/golang-client-api-reference) 
-* [Go Music Player App- Full Application Example ](https://docs.minio.io/docs/go-music-player-app)
+* [Go Music Player App Full Application Example](https://docs.minio.io/docs/go-music-player-app)
 
 ## Contribute
 

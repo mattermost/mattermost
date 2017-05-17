@@ -292,7 +292,7 @@ func (s *Server) ServeConn(c net.Conn, opts *ServeConnOpts) {
 		streams:                     make(map[uint32]*stream),
 		readFrameCh:                 make(chan readFrameResult),
 		wantWriteFrameCh:            make(chan FrameWriteRequest, 8),
-		wantStartPushCh:             make(chan startPushRequest, 8),
+		serveMsgCh:                  make(chan interface{}, 8),
 		wroteFrameCh:                make(chan frameWriteResult, 1), // buffered; one send in writeFrameAsync
 		bodyReadCh:                  make(chan bodyReadMsg),         // buffering doesn't matter either way
 		doneServing:                 make(chan struct{}),
@@ -405,10 +405,9 @@ type serverConn struct {
 	doneServing      chan struct{}          // closed when serverConn.serve ends
 	readFrameCh      chan readFrameResult   // written by serverConn.readFrames
 	wantWriteFrameCh chan FrameWriteRequest // from handlers -> serve
-	wantStartPushCh  chan startPushRequest  // from handlers -> serve
 	wroteFrameCh     chan frameWriteResult  // from writeFrameAsync -> serve, tickles more frame writes
 	bodyReadCh       chan bodyReadMsg       // from handlers -> serve
-	testHookCh       chan func(int)         // code to run on the serve loop
+	serveMsgCh       chan interface{}       // misc messages & code to send to / run on the serve loop
 	flow             flow                   // conn-wide (not stream-specific) outbound flow control
 	inflow           flow                   // conn-wide inbound flow control
 	tlsState         *tls.ConnectionState   // shared by all handlers, like net/http
@@ -440,10 +439,8 @@ type serverConn struct {
 	inFrameScheduleLoop         bool              // whether we're in the scheduleFrameWrite loop
 	needToSendGoAway            bool              // we need to schedule a GOAWAY frame write
 	goAwayCode                  ErrCode
-	shutdownTimerCh             <-chan time.Time // nil until used
-	shutdownTimer               *time.Timer      // nil until used
-	idleTimer                   *time.Timer      // nil if unused
-	idleTimerCh                 <-chan time.Time // nil if unused
+	shutdownTimer               *time.Timer // nil until used
+	idleTimer                   *time.Timer // nil if unused
 
 	// Owned by the writeFrameAsync goroutine:
 	headerWriteBuf bytes.Buffer
@@ -748,19 +745,24 @@ func (sc *serverConn) serve() {
 	sc.setConnState(http.StateIdle)
 
 	if sc.srv.IdleTimeout != 0 {
-		sc.idleTimer = time.NewTimer(sc.srv.IdleTimeout)
+		sc.idleTimer = time.AfterFunc(sc.srv.IdleTimeout, sc.onIdleTimer)
 		defer sc.idleTimer.Stop()
-		sc.idleTimerCh = sc.idleTimer.C
 	}
 
-	var gracefulShutdownCh <-chan struct{}
+	var gracefulShutdownCh chan struct{}
 	if sc.hs != nil {
-		gracefulShutdownCh = h1ServerShutdownChan(sc.hs)
+		ch := h1ServerShutdownChan(sc.hs)
+		if ch != nil {
+			gracefulShutdownCh = make(chan struct{})
+			go sc.awaitGracefulShutdown(ch, gracefulShutdownCh)
+		}
 	}
 
 	go sc.readFrames() // closed by defer sc.conn.Close above
 
-	settingsTimer := time.NewTimer(firstSettingsTimeout)
+	settingsTimer := time.AfterFunc(firstSettingsTimeout, sc.onSettingsTimer)
+	defer settingsTimer.Stop()
+
 	loopNum := 0
 	for {
 		loopNum++
@@ -771,8 +773,6 @@ func (sc *serverConn) serve() {
 				break
 			}
 			sc.writeFrame(wr)
-		case spr := <-sc.wantStartPushCh:
-			sc.startPush(spr)
 		case res := <-sc.wroteFrameCh:
 			sc.wroteFrame(res)
 		case res := <-sc.readFrameCh:
@@ -780,31 +780,72 @@ func (sc *serverConn) serve() {
 				return
 			}
 			res.readMore()
-			if settingsTimer.C != nil {
+			if settingsTimer != nil {
 				settingsTimer.Stop()
-				settingsTimer.C = nil
+				settingsTimer = nil
 			}
 		case m := <-sc.bodyReadCh:
 			sc.noteBodyRead(m.st, m.n)
-		case <-settingsTimer.C:
-			sc.logf("timeout waiting for SETTINGS frames from %v", sc.conn.RemoteAddr())
-			return
 		case <-gracefulShutdownCh:
 			gracefulShutdownCh = nil
 			sc.startGracefulShutdown()
-		case <-sc.shutdownTimerCh:
-			sc.vlogf("GOAWAY close timer fired; closing conn from %v", sc.conn.RemoteAddr())
-			return
-		case <-sc.idleTimerCh:
-			sc.vlogf("connection is idle")
-			sc.goAway(ErrCodeNo)
-		case fn := <-sc.testHookCh:
-			fn(loopNum)
+		case msg := <-sc.serveMsgCh:
+			switch v := msg.(type) {
+			case func(int):
+				v(loopNum) // for testing
+			case *timerMessage:
+				switch v {
+				case settingsTimerMsg:
+					sc.logf("timeout waiting for SETTINGS frames from %v", sc.conn.RemoteAddr())
+					return
+				case idleTimerMsg:
+					sc.vlogf("connection is idle")
+					sc.goAway(ErrCodeNo)
+				case shutdownTimerMsg:
+					sc.vlogf("GOAWAY close timer fired; closing conn from %v", sc.conn.RemoteAddr())
+					return
+				default:
+					panic("unknown timer")
+				}
+			case *startPushRequest:
+				sc.startPush(v)
+			default:
+				panic(fmt.Sprintf("unexpected type %T", v))
+			}
 		}
 
 		if sc.inGoAway && sc.curOpenStreams() == 0 && !sc.needToSendGoAway && !sc.writingFrame {
 			return
 		}
+	}
+}
+
+func (sc *serverConn) awaitGracefulShutdown(sharedCh <-chan struct{}, privateCh chan struct{}) {
+	select {
+	case <-sc.doneServing:
+	case <-sharedCh:
+		close(privateCh)
+	}
+}
+
+type timerMessage int
+
+// Timeout message values sent to serveMsgCh.
+var (
+	settingsTimerMsg = new(timerMessage)
+	idleTimerMsg     = new(timerMessage)
+	shutdownTimerMsg = new(timerMessage)
+)
+
+func (sc *serverConn) onSettingsTimer() { sc.sendServeMsg(settingsTimerMsg) }
+func (sc *serverConn) onIdleTimer()     { sc.sendServeMsg(idleTimerMsg) }
+func (sc *serverConn) onShutdownTimer() { sc.sendServeMsg(shutdownTimerMsg) }
+
+func (sc *serverConn) sendServeMsg(msg interface{}) {
+	sc.serveG.checkNotOn() // NOT
+	select {
+	case sc.serveMsgCh <- msg:
+	case <-sc.doneServing:
 	}
 }
 
@@ -1160,8 +1201,7 @@ func (sc *serverConn) goAwayIn(code ErrCode, forceCloseIn time.Duration) {
 
 func (sc *serverConn) shutDownIn(d time.Duration) {
 	sc.serveG.check()
-	sc.shutdownTimer = time.NewTimer(d)
-	sc.shutdownTimerCh = sc.shutdownTimer.C
+	sc.shutdownTimer = time.AfterFunc(d, sc.onShutdownTimer)
 }
 
 func (sc *serverConn) resetStream(se StreamError) {
@@ -2539,7 +2579,7 @@ func (w *responseWriter) push(target string, opts pushOptions) error {
 		return fmt.Errorf("method %q must be GET or HEAD", opts.Method)
 	}
 
-	msg := startPushRequest{
+	msg := &startPushRequest{
 		parent: st,
 		method: opts.Method,
 		url:    u,
@@ -2552,7 +2592,7 @@ func (w *responseWriter) push(target string, opts pushOptions) error {
 		return errClientDisconnected
 	case <-st.cw:
 		return errStreamClosed
-	case sc.wantStartPushCh <- msg:
+	case sc.serveMsgCh <- msg:
 	}
 
 	select {
@@ -2574,7 +2614,7 @@ type startPushRequest struct {
 	done   chan error
 }
 
-func (sc *serverConn) startPush(msg startPushRequest) {
+func (sc *serverConn) startPush(msg *startPushRequest) {
 	sc.serveG.check()
 
 	// http://tools.ietf.org/html/rfc7540#section-6.6.

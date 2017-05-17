@@ -1,0 +1,8 @@
+Attribute     Value
+type          UNIX
+string        "/tmp/example"
+path          /tmp/example
+DialPacket    "unixgram" "/tmp/example"
+DialStream    "unix" "/tmp/example"
+ListenPacket  "unixgram" "/tmp/example"
+ListenStream  "unix" "/tmp/example"

@@ -50,7 +50,7 @@ func (q *PrefixQuery) Source() (interface{}, error) {
 		query[q.name] = q.prefix
 	} else {
 		subQuery := make(map[string]interface{})
-		subQuery["prefix"] = q.prefix
+		subQuery["value"] = q.prefix
 		if q.boost != nil {
 			subQuery["boost"] = *q.boost
 		}

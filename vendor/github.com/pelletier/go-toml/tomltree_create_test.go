@@ -1,9 +1,9 @@
 package toml
 
 import (
+	"strconv"
 	"testing"
 	"time"
-	"strconv"
 )
 
 type customString string
@@ -16,11 +16,11 @@ func (s stringer) String() string {
 
 func validate(t *testing.T, path string, object interface{}) {
 	switch o := object.(type) {
-	case *TomlTree:
+	case *Tree:
 		for key, tree := range o.values {
 			validate(t, path+"."+key, tree)
 		}
-	case []*TomlTree:
+	case []*Tree:
 		for index, tree := range o {
 			validate(t, path+"."+strconv.Itoa(index), tree)
 		}
@@ -37,11 +37,11 @@ func validate(t *testing.T, path string, object interface{}) {
 	t.Logf("validation ok %s as %T", path, object)
 }
 
-func validateTree(t *testing.T, tree *TomlTree) {
+func validateTree(t *testing.T, tree *Tree) {
 	validate(t, "", tree)
 }
 
-func TestTomlTreeCreateToTree(t *testing.T) {
+func TestTreeCreateToTree(t *testing.T) {
 	data := map[string]interface{}{
 		"a_string": "bar",
 		"an_int":   42,
@@ -72,15 +72,15 @@ func TestTomlTreeCreateToTree(t *testing.T) {
 	validateTree(t, tree)
 }
 
-func TestTomlTreeCreateToTreeInvalidLeafType(t *testing.T) {
+func TestTreeCreateToTreeInvalidLeafType(t *testing.T) {
 	_, err := TreeFromMap(map[string]interface{}{"foo": t})
-	expected := "cannot convert type *testing.T to TomlTree"
+	expected := "cannot convert type *testing.T to Tree"
 	if err.Error() != expected {
 		t.Fatalf("expected error %s, got %s", expected, err.Error())
 	}
 }
 
-func TestTomlTreeCreateToTreeInvalidMapKeyType(t *testing.T) {
+func TestTreeCreateToTreeInvalidMapKeyType(t *testing.T) {
 	_, err := TreeFromMap(map[string]interface{}{"foo": map[int]interface{}{2: 1}})
 	expected := "map key needs to be a string, not int (int)"
 	if err.Error() != expected {
@@ -88,17 +88,17 @@ func TestTomlTreeCreateToTreeInvalidMapKeyType(t *testing.T) {
 	}
 }
 
-func TestTomlTreeCreateToTreeInvalidArrayMemberType(t *testing.T) {
+func TestTreeCreateToTreeInvalidArrayMemberType(t *testing.T) {
 	_, err := TreeFromMap(map[string]interface{}{"foo": []*testing.T{t}})
-	expected := "cannot convert type *testing.T to TomlTree"
+	expected := "cannot convert type *testing.T to Tree"
 	if err.Error() != expected {
 		t.Fatalf("expected error %s, got %s", expected, err.Error())
 	}
 }
 
-func TestTomlTreeCreateToTreeInvalidTableGroupType(t *testing.T) {
+func TestTreeCreateToTreeInvalidTableGroupType(t *testing.T) {
 	_, err := TreeFromMap(map[string]interface{}{"foo": []map[string]interface{}{map[string]interface{}{"hello": t}}})
-	expected := "cannot convert type *testing.T to TomlTree"
+	expected := "cannot convert type *testing.T to Tree"
 	if err.Error() != expected {
 		t.Fatalf("expected error %s, got %s", expected, err.Error())
 	}
