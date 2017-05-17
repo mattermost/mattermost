@@ -3312,20 +3312,12 @@
     "translation": "Failed to create ElasticSearch index"
   },
   {
-    "id": "ent.elasticsearch.start.index_close_failed",
-    "translation": "Failed to close ElasticSearch index"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.elasticsearch.start.index_mapping_failed",
     "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_open_failed",
-    "translation": "Failed to opn ElasticSearch index"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
