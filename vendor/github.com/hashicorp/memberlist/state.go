@@ -40,6 +40,11 @@ func (n *Node) Address() string {
 	return joinHostPort(n.Addr.String(), n.Port)
 }
 
+// String returns the node name
+func (n *Node) String() string {
+	return n.Name
+}
+
 // NodeState is used to manage our state view of another node
 type nodeState struct {
 	Node

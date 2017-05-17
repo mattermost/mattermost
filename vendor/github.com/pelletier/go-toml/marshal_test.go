@@ -177,6 +177,23 @@ func TestDocUnmarshal(t *testing.T) {
 	}
 }
 
+func TestDocPartialUnmarshal(t *testing.T) {
+	result := testDocSubs{}
+
+	tree, _ := LoadFile("marshal_test.toml")
+	subTree := tree.Get("subdoc").(*Tree)
+	err := subTree.Unmarshal(&result)
+	expected := docData.Subdocs
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(result, expected) {
+		resStr, _ := json.MarshalIndent(result, "", "  ")
+		expStr, _ := json.MarshalIndent(expected, "", "  ")
+		t.Errorf("Bad partial unmartial: expected\n-----\n%s\n-----\ngot\n-----\n%s\n-----\n", expStr, resStr)
+	}
+}
+
 type tomlTypeCheckTest struct {
 	name string
 	item interface{}

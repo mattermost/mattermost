@@ -19,6 +19,7 @@ import (
 	"sync"
 	"testing"
 	"testing/quick"
+	"time"
 
 	dto "github.com/prometheus/client_model/go"
 )
@@ -178,5 +179,24 @@ func TestGaugeFunc(t *testing.T) {
 
 	if expected, got := `label:<name:"a" value:"1" > label:<name:"b" value:"2" > gauge:<value:3.1415 > `, m.String(); expected != got {
 		t.Errorf("expected %q, got %q", expected, got)
+	}
+}
+
+func TestGaugeSetCurrentTime(t *testing.T) {
+	g := NewGauge(GaugeOpts{
+		Name: "test_name",
+		Help: "test help",
+	})
+	g.SetToCurrentTime()
+	unixTime := float64(time.Now().Unix())
+
+	m := &dto.Metric{}
+	g.Write(m)
+
+	delta := unixTime - m.GetGauge().GetValue()
+	// This is just a smoke test to make sure SetToCurrentTime is not
+	// totally off. Tests with current time involved are hard...
+	if math.Abs(delta) > 5 {
+		t.Errorf("Gauge set to current time deviates from current time by more than 5s, delta is %f seconds", delta)
 	}
 }

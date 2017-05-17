@@ -5,7 +5,6 @@
 ##  Minio
 
 ```go
-
 package main
 
 import (
@@ -25,13 +24,11 @@ func main() {
                 return
         }
 }
-
 ```
 
 ## AWS S3
 
 ```go
-
 package main
 
 import (
@@ -51,20 +48,19 @@ func main() {
                 return
         }
 }
-
 ```
 
-| Bucket operations  |Object operations   | Presigned operations  | Bucket Policy/Notification Operations | Client custom settings |
-|:---|:---|:---|:---|:---|
-|[`MakeBucket`](#MakeBucket)   |[`GetObject`](#GetObject)   | [`PresignedGetObject`](#PresignedGetObject)  |[`SetBucketPolicy`](#SetBucketPolicy)   | [`SetAppInfo`](#SetAppInfo) |
-|[`ListBuckets`](#ListBuckets)   |[`PutObject`](#PutObject)   |[`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)  | [`SetCustomTransport`](#SetCustomTransport) |
-|[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject)   |[`PresignedPostPolicy`](#PresignedPostPolicy)   |  [`ListBucketPolicies`](#ListBucketPolicies)  | [`TraceOn`](#TraceOn) |
-| [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject)   |   |  [`SetBucketNotification`](#SetBucketNotification)  | [`TraceOff`](#TraceOff) |
-|[`ListObjects`](#ListObjects)  |[`RemoveObject`](#RemoveObject)   |   |  [`GetBucketNotification`](#GetBucketNotification)  | [`SetS3TransferAccelerate`](#SetS3TransferAccelerate) |
-|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveObjects`](#RemoveObjects) |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
-|[`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |   |  [`ListenBucketNotification`](#ListenBucketNotification)  |
-|   | [`FPutObject`](#FPutObject)  |   |   |
-|   | [`FGetObject`](#FGetObject)  |   |   |
+| Bucket operations  |Object operations | Encrypted Object operations  | Presigned operations  | Bucket Policy/Notification Operations | Client custom settings |
+|:---|:---|:---|:---|:---|:---|
+|[`MakeBucket`](#MakeBucket)   |[`GetObject`](#GetObject) | [`NewSymmetricKey`](#NewSymmetricKey) | [`PresignedGetObject`](#PresignedGetObject)  |[`SetBucketPolicy`](#SetBucketPolicy)   | [`SetAppInfo`](#SetAppInfo) |
+|[`ListBuckets`](#ListBuckets)   |[`PutObject`](#PutObject) | [`NewAsymmetricKey`](#NewAsymmetricKey) |[`PresignedPutObject`](#PresignedPutObject)   | [`GetBucketPolicy`](#GetBucketPolicy)  | [`SetCustomTransport`](#SetCustomTransport) |
+|[`BucketExists`](#BucketExists)   |[`CopyObject`](#CopyObject) |  [`GetEncryptedObject`](#GetEncryptedObject)  |[`PresignedPostPolicy`](#PresignedPostPolicy)   |  [`ListBucketPolicies`](#ListBucketPolicies)  | [`TraceOn`](#TraceOn) |
+| [`RemoveBucket`](#RemoveBucket)  |[`StatObject`](#StatObject) | [`PutObjectStreaming`](#PutObjectStreaming) |   |  [`SetBucketNotification`](#SetBucketNotification)  | [`TraceOff`](#TraceOff) |
+|[`ListObjects`](#ListObjects)  |[`RemoveObject`](#RemoveObject) | [`PutEncryptedObject`](#PutEncryptedObject) |   |  [`GetBucketNotification`](#GetBucketNotification)  | [`SetS3TransferAccelerate`](#SetS3TransferAccelerate) |
+|[`ListObjectsV2`](#ListObjectsV2) | [`RemoveObjects`](#RemoveObjects) |  |   | [`RemoveAllBucketNotification`](#RemoveAllBucketNotification)  |
+|[`ListIncompleteUploads`](#ListIncompleteUploads) | [`RemoveIncompleteUpload`](#RemoveIncompleteUpload) |  |  |  [`ListenBucketNotification`](#ListenBucketNotification)  |
+|   | [`FPutObject`](#FPutObject)  | |   |   |
+|   | [`FGetObject`](#FGetObject)  | |   |   |
 
 ## 1. Constructor
 <a name="Minio"></a>
@@ -74,7 +70,6 @@ Initializes a new client object.
 
 __Parameters__
 
-
 |Param   |Type   |Description   |
 |:---|:---| :---|
 |`endpoint`   | _string_  |S3 compatible object storage endpoint   |
@@ -82,13 +77,24 @@ __Parameters__
 |`secretAccessKey`  | _string_  |Secret key for the object storage |
 |`ssl`   | _bool_  | If 'true' API requests will be secure (HTTPS), and insecure (HTTP) otherwise  |
 
+### NewWithRegion(endpoint, accessKeyID, secretAccessKey string, ssl bool, region string) (*Client, error)
+Initializes minio client, with region configured. Unlike New(), NewWithRegion avoids bucket-location lookup operations and it is slightly faster. Use this function when if your application deals with single region.
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`endpoint`   | _string_  |S3 compatible object storage endpoint |
+|`accessKeyID`  |_string_   |Access key for the object storage |
+|`secretAccessKey`  | _string_  |Secret key for the object storage |
+|`ssl` | _bool_  | If 'true' API requests will be secure (HTTPS), and insecure (HTTP) otherwise |
+|`region`| _string_ | Region for the object storage |
 
 ## 2. Bucket operations
 
 <a name="MakeBucket"></a>
 ### MakeBucket(bucketName, location string) error
 Creates a new bucket.
-
 
 __Parameters__
 
@@ -111,14 +117,12 @@ __Example__
 
 
 ```go
-
 err := minioClient.MakeBucket("mybucket", "us-east-1")
 if err != nil {
     fmt.Println(err)
     return
 }
 fmt.Println("Successfully created mybucket.")
-
 ```
 
 <a name="ListBuckets"></a>
@@ -141,7 +145,6 @@ __Example__
 
 
 ```go
-
 buckets, err := minioClient.ListBuckets()
     if err != nil {
     fmt.Println(err)
@@ -150,7 +153,6 @@ buckets, err := minioClient.ListBuckets()
 for _, bucket := range buckets {
     fmt.Println(bucket)
 }
-
 ```
 
 <a name="BucketExists"></a>
@@ -178,7 +180,6 @@ __Example__
 
 
 ```go
-
 found, err := minioClient.BucketExists("mybucket")
 if err != nil {
     fmt.Println(err)
@@ -187,7 +188,6 @@ if err != nil {
 if found {
     fmt.Println("Bucket found")
 }
-
 ```
 
 <a name="RemoveBucket"></a>
@@ -206,13 +206,11 @@ __Example__
 
 
 ```go
-
 err := minioClient.RemoveBucket("mybucket")
 if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="ListObjects"></a>
@@ -246,7 +244,6 @@ __Return Value__
 
 
 ```go
-
 // Create a done channel to control 'ListObjects' go routine.
 doneCh := make(chan struct{})
 
@@ -262,7 +259,6 @@ for object := range objectCh {
     }
     fmt.Println(object)
 }
-
 ```
 
 
@@ -297,7 +293,6 @@ __Return Value__
 
 
 ```go
-
 // Create a done channel to control 'ListObjectsV2' go routine.
 doneCh := make(chan struct{})
 
@@ -313,7 +308,6 @@ for object := range objectCh {
     }
     fmt.Println(object)
 }
-
 ```
 
 <a name="ListIncompleteUploads"></a>
@@ -351,7 +345,6 @@ __Example__
 
 
 ```go
-
 // Create a done channel to control 'ListObjects' go routine.
 doneCh := make(chan struct{})
 
@@ -367,7 +360,6 @@ for multiPartObject := range multiPartObjectCh {
     }
     fmt.Println(multiPartObject)
 }
-
 ```
 
 ## 3. Object operations
@@ -375,7 +367,7 @@ for multiPartObject := range multiPartObjectCh {
 <a name="GetObject"></a>
 ### GetObject(bucketName, objectName string) (*Object, error)
 
-Downloads an object.
+Returns a stream of the object data. Most of the common errors occur when reading the stream.
 
 
 __Parameters__
@@ -399,7 +391,6 @@ __Example__
 
 
 ```go
-
 object, err := minioClient.GetObject("mybucket", "photo.jpg")
 if err != nil {
     fmt.Println(err)
@@ -414,7 +405,6 @@ if _, err = io.Copy(localFile, object); err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="FGetObject"></a>
@@ -436,19 +426,19 @@ __Example__
 
 
 ```go
-
 err := minioClient.FGetObject("mybucket", "photo.jpg", "/tmp/photo.jpg")
 if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="PutObject"></a>
 ### PutObject(bucketName, objectName string, reader io.Reader, contentType string) (n int, err error)
 
-Uploads an object.
+Uploads objects that are less than 64MiB in a single PUT operation. For objects that are greater than 64MiB in size, PutObject seamlessly uploads the object as parts of 64MiB or more depending on the actual file size. The max upload size for an object is 5TB.
+
+In the event that PutObject fails to upload an object, the user may attempt to re-upload the same object. If the same object is being uploaded, PutObject API examines the previous partial attempt to upload this object and resumes automatically from where it left off.
 
 
 __Parameters__
@@ -465,13 +455,7 @@ __Parameters__
 __Example__
 
 
-Uploads objects that are less than 64MiB in a single PUT operation. For objects that are greater than 64MiB in size, PutObject seamlessly uploads the object in chunks of 64MiB or more depending on the actual file size. The max upload size for an object is 5TB.
-
-In the event that PutObject fails to upload an object, the user may attempt to re-upload the same object. If the same object is being uploaded, PutObject API examines the previous partial attempt to upload this object and resumes automatically from where it left off.
-
-
 ```go
-
 file, err := os.Open("my-testfile")
 if err != nil {
     fmt.Println(err)
@@ -484,7 +468,39 @@ if err != nil {
     fmt.Println(err)
     return
 }
+```
 
+<a name="PutObjectStreaming"></a>
+### PutObjectStreaming(bucketName, objectName string, reader io.Reader) (n int, err error)
+
+Uploads an object as multiple chunks keeping memory consumption constant. It is similar to PutObject in how objects are broken into multiple parts. Each part in turn is transferred as multiple chunks with constant memory usage. However resuming previously failed uploads from where it was left is not supported.
+
+
+__Parameters__
+
+
+|Param   |Type   |Description   |
+|:---|:---|:---|
+|`bucketName`  | _string_  |Name of the bucket  |
+|`objectName` | _string_  |Name of the object   |
+|`reader` | _io.Reader_  |Any Go type that implements io.Reader |
+
+__Example__
+
+
+```go
+file, err := os.Open("my-testfile")
+if err != nil {
+    fmt.Println(err)
+    return
+}
+defer file.Close()
+
+n, err := minioClient.PutObjectStreaming("mybucket", "myobject", file)
+if err != nil {
+    fmt.Println(err)
+    return
+}
 ```
 
 
@@ -511,7 +527,7 @@ __Example__
 ```go
 // Use-case-1
 // To copy an existing object to a new object with _no_ copy conditions.
-copyConditions := minio.CopyConditions{}
+copyConds := minio.CopyConditions{}
 err := minioClient.CopyObject("mybucket", "myobject", "my-sourcebucketname/my-sourceobjectname", copyConds)
 if err != nil {
     fmt.Println(err)
@@ -541,13 +557,16 @@ if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="FPutObject"></a>
-### FPutObject(bucketName, objectName, filePath, contentType string) error
+### FPutObject(bucketName, objectName, filePath, contentType string) (length int64, err error)
 
 Uploads contents from a file to objectName.
+
+FPutObject uploads objects that are less than 64MiB in a single PUT operation. For objects that are greater than the 64MiB in size, FPutObject seamlessly uploads the object in chunks of 64MiB or more depending on the actual file size. The max upload size for an object is 5TB.
+
+In the event that FPutObject fails to upload an object, the user may attempt to re-upload the same object. If the same object is being uploaded, FPutObject API examines the previous partial attempt to upload this object and resumes automatically from where it left off.
 
 
 __Parameters__
@@ -564,18 +583,12 @@ __Parameters__
 __Example__
 
 
-FPutObject uploads objects that are less than 64MiB in a single PUT operation. For objects that are greater than the 64MiB in size, FPutObject seamlessly uploads the object in chunks of 64MiB or more depending on the actual file size. The max upload size for an object is 5TB.
-
-In the event that FPutObject fails to upload an object, the user may attempt to re-upload the same object. If the same object is being uploaded, FPutObject API examines the previous partial attempt to upload this object and resumes automatically from where it left off.
-
 ```go
-
 n, err := minioClient.FPutObject("mybucket", "myobject.csv", "/tmp/otherobject.csv", "application/csv")
 if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="StatObject"></a>
@@ -612,14 +625,12 @@ __Return Value__
 
 
 ```go
-
 objInfo, err := minioClient.StatObject("mybucket", "photo.jpg")
 if err != nil {
     fmt.Println(err)
     return
 }
 fmt.Println(objInfo)
-
 ```
 
 <a name="RemoveObject"></a>
@@ -638,13 +649,11 @@ __Parameters__
 
 
 ```go
-
 err := minioClient.RemoveObject("mybucket", "photo.jpg")
 if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 <a name="RemoveObjects"></a>
 ### RemoveObjects(bucketName string, objectsCh chan string) errorCh chan minio.RemoveObjectError
@@ -669,12 +678,10 @@ __Return Values__
 
 
 ```go
-
 errorCh := minioClient.RemoveObjects("mybucket", objectsCh)
 for e := range errorCh {
     fmt.Println("Error detected during deletion: " + e.Err.Error())
 }
-
 ```
 
 
@@ -696,17 +703,187 @@ __Example__
 
 
 ```go
-
 err := minioClient.RemoveIncompleteUpload("mybucket", "photo.jpg")
 if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
-## 4. Presigned operations
+## 4. Encrypted object operations
 
+<a name="NewSymmetricKey"></a>
+### NewSymmetricKey(key []byte) *minio.SymmetricKey
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`key`  | _string_  |Name of the bucket  |
+
+
+__Return Value__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`symmetricKey`  | _*minio.SymmetricKey_ |_minio.SymmetricKey_ represents a symmetric key structure which can be used to encrypt and decrypt data. |
+
+```go
+symKey := minio.NewSymmetricKey([]byte("my-secret-key-00"))
+```
+
+
+<a name="NewAsymmetricKey"></a>
+### NewAsymmetricKey(privateKey []byte, publicKey[]byte) (*minio.AsymmetricKey, error)
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`privateKey` | _[]byte_ | Private key data  |
+|`publicKey`  | _[]byte_ | Public key data  |
+
+
+__Return Value__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`asymmetricKey`  | _*minio.AsymmetricKey_ | represents an asymmetric key structure which can be used to encrypt and decrypt data. |
+|`err`  | _error_ |  encountered errors. |
+
+
+```go
+privateKey, err := ioutil.ReadFile("private.key")
+if err != nil {
+    log.Fatal(err)
+}
+
+publicKey, err := ioutil.ReadFile("public.key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Initialize the asymmetric key
+asymmetricKey, err := minio.NewAsymmetricKey(privateKey, publicKey)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+<a name="GetEncryptedObject"></a>
+### GetEncryptedObject(bucketName, objectName string, encryptMaterials minio.EncryptionMaterials) (io.Reader, error)
+
+Returns the decrypted stream of the object data based of the given encryption materiels. Most of the common errors occur when reading the stream.
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`bucketName`  | _string_  | Name of the bucket  |
+|`objectName` | _string_  | Name of the object  |
+|`encryptMaterials` | _minio.EncryptionMaterials_ | The module to decrypt the object data   |
+
+
+__Return Value__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`stream`  | _io.Reader_ | Returns the deciphered object reader. |
+|`err`  | _error | Returns errors. |
+
+
+__Example__
+
+
+```go
+// Generate a master symmetric key
+key := minio.NewSymmetricKey("my-secret-key-00")
+
+// Build the CBC encryption material
+cbcMaterials, err := NewCBCSecureMaterials(key)
+if err != nil {
+    t.Fatal(err)
+}
+
+object, err := minioClient.GetEncryptedObject("mybucket", "photo.jpg", cbcMaterials)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+localFile, err := os.Create("/tmp/local-file.jpg")
+if err != nil {
+    fmt.Println(err)
+    return
+}
+if _, err = io.Copy(localFile, object); err != nil {
+    fmt.Println(err)
+    return
+}
+```
+
+<a name="PutEncryptedObject"></a>
+
+### PutEncryptedObject(bucketName, objectName string, reader io.Reader, encryptMaterials minio.EncryptionMaterials, metadata map[string][]string, progress io.Reader) (n int, err error)
+
+Encrypt and upload an object.
+
+
+__Parameters__
+
+|Param   |Type   |Description   |
+|:---|:---| :---|
+|`bucketName`  | _string_  |Name of the bucket  |
+|`objectName` | _string_  |Name of the object   |
+|`reader` | _io.Reader_  |Any Go type that implements io.Reader |
+|`encryptMaterials` | _minio.EncryptionMaterials_  | The module that encrypts data |
+|`metadata` | _map[string][]string_  | Object metadata to be stored  |
+|`progress` | io.Reader | A reader to update the upload progress |
+
+
+__Example__
+
+```go
+// Load a private key
+privateKey, err := ioutil.ReadFile("private.key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Load a public key
+publicKey, err := ioutil.ReadFile("public.key")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Build an asymmetric key
+key, err := NewAssymetricKey(privateKey, publicKey)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Build the CBC encryption module
+cbcMaterials, err := NewCBCSecureMaterials(key)
+if err != nil {
+    t.Fatal(err)
+}
+
+// Open a file to upload
+file, err := os.Open("my-testfile")
+if err != nil {
+    fmt.Println(err)
+    return
+}
+defer file.Close()
+
+// Upload the encrypted form of the file
+n, err := minioClient.PutEncryptedObject("mybucket", "myobject", file, encryptMaterials, nil, nil)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+```
+
+## 5. Presigned operations
 
 <a name="PresignedGetObject"></a>
 ### PresignedGetObject(bucketName, objectName string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
@@ -728,7 +905,6 @@ __Example__
 
 
 ```go
-
 // Set request parameters for content-disposition.
 reqParams := make(url.Values)
 reqParams.Set("response-content-disposition", "attachment; filename=\"your-filename.txt\"")
@@ -739,7 +915,6 @@ if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="PresignedPutObject"></a>
@@ -765,7 +940,6 @@ __Example__
 
 
 ```go
-
 // Generates a url which expires in a day.
 expiry := time.Second * 24 * 60 * 60 // 1 day.
 presignedURL, err := minioClient.PresignedPutObject("mybucket", "myobject", expiry)
@@ -774,7 +948,6 @@ if err != nil {
     return
 }
 fmt.Println(presignedURL)
-
 ```
 
 <a name="PresignedPostPolicy"></a>
@@ -786,16 +959,13 @@ Create policy :
 
 
 ```go
-
 policy := minio.NewPostPolicy()
-
 ```
 
 Apply upload policy restrictions:
 
 
 ```go
-
 policy.SetBucket("mybucket")
 policy.SetKey("myobject")
 policy.SetExpires(time.Now().UTC().AddDate(0, 0, 10)) // expires in 10 days
@@ -813,7 +983,6 @@ if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 
@@ -829,7 +998,7 @@ fmt.Printf("-F file=@/etc/bash.bashrc ")
 fmt.Printf("%s\n", url)
 ```
 
-## 5. Bucket policy/notification operations
+## 6. Bucket policy/notification operations
 
 <a name="SetBucketPolicy"></a>
 ### SetBucketPolicy(bucketname, objectPrefix string, policy policy.BucketPolicy) error
@@ -845,11 +1014,11 @@ __Parameters__
 |:---|:---| :---|
 |`bucketName` | _string_  |Name of the bucket|
 |`objectPrefix` | _string_  |Name of the object prefix|
-|`policy` | _policy.BucketPolicy_  |Policy can be one of the following: |
-||  |policy.BucketPolicyNone|
-| |  |policy.BucketPolicyReadOnly|
-||   |policy.BucketPolicyReadWrite|
-| | |policy.BucketPolicyWriteOnly|
+|`policy` | _policy.BucketPolicy_  |Policy can be one of the following, |
+| |  | _policy.BucketPolicyNone_ |
+| |  | _policy.BucketPolicyReadOnly_ |
+| |  | _policy.BucketPolicyReadWrite_ |
+| |  | _policy.BucketPolicyWriteOnly_ |
 
 
 __Return Values__
@@ -864,13 +1033,11 @@ __Example__
 
 
 ```go
-
 err := minioClient.SetBucketPolicy("mybucket", "myprefix", policy.BucketPolicyReadWrite)
 if err != nil {
     fmt.Println(err)
     return
 }
-
 ```
 
 <a name="GetBucketPolicy"></a>
@@ -900,14 +1067,12 @@ __Example__
 
 
 ```go
-
 bucketPolicy, err := minioClient.GetBucketPolicy("mybucket", "")
 if err != nil {
     fmt.Println(err)
     return
 }
 fmt.Println("Access permissions for mybucket is", bucketPolicy)
-
 ```
 
 <a name="ListBucketPolicies"></a>
@@ -935,7 +1100,6 @@ __Example__
 
 
 ```go
-
 bucketPolicies, err := minioClient.ListBucketPolicies("mybucket", "")
 if err != nil {
     fmt.Println(err)
@@ -944,7 +1108,6 @@ if err != nil {
 for resource, permission := range bucketPolicies {
     fmt.Println(resource, " => ", permission)
 }
-
 ```
 
 <a name="GetBucketNotification"></a>
@@ -1087,7 +1250,6 @@ __Example__
 
 
 ```go
-
 // Create a done channel to control 'ListenBucketNotification' go routine.
 doneCh := make(chan struct{})
 
@@ -1097,6 +1259,7 @@ defer close(doneCh)
 // Listen for bucket notifications on "mybucket" filtered by prefix, suffix and events.
 for notificationInfo := range minioClient.ListenBucketNotification("YOUR-BUCKET", "PREFIX", "SUFFIX", []string{
     "s3:ObjectCreated:*",
+    "s3:ObjectAccessed:*",
     "s3:ObjectRemoved:*",
     }, doneCh) {
     if notificationInfo.Err != nil {
@@ -1106,7 +1269,7 @@ for notificationInfo := range minioClient.ListenBucketNotification("YOUR-BUCKET"
 }
 ```
 
-## 6. Client custom settings
+## 7. Client custom settings
 
 <a name="SetAppInfo"></a>
 ### SetAppInfo(appName, appVersion string)
@@ -1124,10 +1287,8 @@ __Example__
 
 
 ```go
-
 // Set Application name and version to be used in subsequent API requests.
 minioClient.SetAppInfo("myCloudApp", "1.0.0")
-
 ```
 
 <a name="SetCustomTransport"></a>
@@ -1170,6 +1331,6 @@ __Parameters__
 |`acceleratedEndpoint`  | _string_  | Set to new S3 transfer acceleration endpoint.|
 
 
-## 7. Explore Further
+## 8. Explore Further
 
 - [Build your own Go Music Player App example](https://docs.minio.io/docs/go-music-player-app)

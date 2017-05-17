@@ -29,33 +29,36 @@ func TestGoCollector(t *testing.T) {
 
 	for {
 		select {
-		case metric := <-ch:
-			switch m := metric.(type) {
-			// Attention, this also catches Counter...
-			case Gauge:
-				pb := &dto.Metric{}
-				m.Write(pb)
-				if pb.GetGauge() == nil {
-					continue
-				}
-
-				if old == -1 {
-					old = int(pb.GetGauge().GetValue())
-					close(waitc)
-					continue
-				}
-
-				if diff := int(pb.GetGauge().GetValue()) - old; diff != 1 {
-					// TODO: This is flaky in highly concurrent situations.
-					t.Errorf("want 1 new goroutine, got %d", diff)
-				}
-
-				// GoCollector performs two sends per call.
-				// On line 27 we need to receive the second send
-				// to shut down cleanly.
-				<-ch
-				return
+		case m := <-ch:
+			// m can be Gauge or Counter,
+			// currently just test the go_goroutines Gauge
+			// and ignore others.
+			if m.Desc().fqName != "go_goroutines" {
+				continue
 			}
+			pb := &dto.Metric{}
+			m.Write(pb)
+			if pb.GetGauge() == nil {
+				continue
+			}
+
+			if old == -1 {
+				old = int(pb.GetGauge().GetValue())
+				close(waitc)
+				continue
+			}
+
+			if diff := int(pb.GetGauge().GetValue()) - old; diff != 1 {
+				// TODO: This is flaky in highly concurrent situations.
+				t.Errorf("want 1 new goroutine, got %d", diff)
+			}
+
+			// GoCollector performs three sends per call.
+			// On line 27 we need to receive the second send
+			// to shut down cleanly.
+			<-ch
+			<-ch
+			return
 		case <-time.After(1 * time.Second):
 			t.Fatalf("expected collect timed out")
 		}

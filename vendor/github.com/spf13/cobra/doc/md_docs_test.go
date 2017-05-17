@@ -86,3 +86,39 @@ func TestGenMdNoTag(t *testing.T) {
 	checkStringOmits(t, found, unexpected)
 
 }
+
+func TestGenMdTree(t *testing.T) {
+	cmd := &cobra.Command{
+		Use: "do [OPTIONS] arg1 arg2",
+	}
+	tmpdir, err := ioutil.TempDir("", "test-gen-md-tree")
+	if err != nil {
+		t.Fatalf("Failed to create tmpdir: %s", err.Error())
+	}
+	defer os.RemoveAll(tmpdir)
+
+	if err := GenMarkdownTree(cmd, tmpdir); err != nil {
+		t.Fatalf("GenMarkdownTree failed: %s", err.Error())
+	}
+
+	if _, err := os.Stat(filepath.Join(tmpdir, "do.md")); err != nil {
+		t.Fatalf("Expected file 'do.md' to exist")
+	}
+}
+
+func BenchmarkGenMarkdownToFile(b *testing.B) {
+	c := initializeWithRootCmd()
+	file, err := ioutil.TempFile("", "")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+	defer file.Close()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := GenMarkdown(c, file); err != nil {
+			b.Fatal(err)
+		}
+	}
+}

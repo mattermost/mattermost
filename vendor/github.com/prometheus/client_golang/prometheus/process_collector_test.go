@@ -38,18 +38,18 @@ func TestProcessCollector(t *testing.T) {
 	}
 
 	for _, re := range []*regexp.Regexp{
-		regexp.MustCompile("process_cpu_seconds_total [0-9]"),
-		regexp.MustCompile("process_max_fds [1-9]"),
-		regexp.MustCompile("process_open_fds [1-9]"),
-		regexp.MustCompile("process_virtual_memory_bytes [1-9]"),
-		regexp.MustCompile("process_resident_memory_bytes [1-9]"),
-		regexp.MustCompile("process_start_time_seconds [0-9.]{10,}"),
-		regexp.MustCompile("foobar_process_cpu_seconds_total [0-9]"),
-		regexp.MustCompile("foobar_process_max_fds [1-9]"),
-		regexp.MustCompile("foobar_process_open_fds [1-9]"),
-		regexp.MustCompile("foobar_process_virtual_memory_bytes [1-9]"),
-		regexp.MustCompile("foobar_process_resident_memory_bytes [1-9]"),
-		regexp.MustCompile("foobar_process_start_time_seconds [0-9.]{10,}"),
+		regexp.MustCompile("\nprocess_cpu_seconds_total [0-9]"),
+		regexp.MustCompile("\nprocess_max_fds [1-9]"),
+		regexp.MustCompile("\nprocess_open_fds [1-9]"),
+		regexp.MustCompile("\nprocess_virtual_memory_bytes [1-9]"),
+		regexp.MustCompile("\nprocess_resident_memory_bytes [1-9]"),
+		regexp.MustCompile("\nprocess_start_time_seconds [0-9.]{10,}"),
+		regexp.MustCompile("\nfoobar_process_cpu_seconds_total [0-9]"),
+		regexp.MustCompile("\nfoobar_process_max_fds [1-9]"),
+		regexp.MustCompile("\nfoobar_process_open_fds [1-9]"),
+		regexp.MustCompile("\nfoobar_process_virtual_memory_bytes [1-9]"),
+		regexp.MustCompile("\nfoobar_process_resident_memory_bytes [1-9]"),
+		regexp.MustCompile("\nfoobar_process_start_time_seconds [0-9.]{10,}"),
 	} {
 		if !re.Match(buf.Bytes()) {
 			t.Errorf("want body to match %s\n%s", re, buf.String())

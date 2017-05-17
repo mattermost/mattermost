@@ -44,7 +44,7 @@ func isReadAt(reader io.Reader) (ok bool) {
 }
 
 // shouldUploadPart - verify if part should be uploaded.
-func shouldUploadPart(objPart objectPart, uploadReq uploadPartReq) bool {
+func shouldUploadPart(objPart ObjectPart, uploadReq uploadPartReq) bool {
 	// If part not found should upload the part.
 	if uploadReq.Part == nil {
 		return true
@@ -185,9 +185,9 @@ func (c Client) newUploadID(bucketName, objectName string, metaData map[string][
 
 // getMpartUploadSession returns the upload id and the uploaded parts to continue a previous upload session
 // or initiate a new multipart session if no current one found
-func (c Client) getMpartUploadSession(bucketName, objectName string, metaData map[string][]string) (string, map[int]objectPart, error) {
+func (c Client) getMpartUploadSession(bucketName, objectName string, metaData map[string][]string) (string, map[int]ObjectPart, error) {
 	// A map of all uploaded parts.
-	var partsInfo map[int]objectPart
+	var partsInfo map[int]ObjectPart
 	var err error
 
 	uploadID, err := c.findUploadID(bucketName, objectName)
@@ -220,7 +220,7 @@ func (c Client) getMpartUploadSession(bucketName, objectName string, metaData ma
 
 	// Allocate partsInfo if not done yet
 	if partsInfo == nil {
-		partsInfo = make(map[int]objectPart)
+		partsInfo = make(map[int]ObjectPart)
 	}
 
 	return uploadID, partsInfo, nil

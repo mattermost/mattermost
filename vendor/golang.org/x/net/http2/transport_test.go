@@ -65,7 +65,8 @@ type fakeTLSConn struct {
 
 func (c *fakeTLSConn) ConnectionState() tls.ConnectionState {
 	return tls.ConnectionState{
-		Version: tls.VersionTLS12,
+		Version:     tls.VersionTLS12,
+		CipherSuite: cipher_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 	}
 }
 

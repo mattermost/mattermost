@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"gopkg.in/asn1-ber.v1"
@@ -82,8 +83,8 @@ const (
 type Conn struct {
 	conn                net.Conn
 	isTLS               bool
-	isClosing           bool
-	closeErr            error
+	closeCount          uint32
+	closeErr            atomicValue
 	isStartingTLS       bool
 	Debug               debugging
 	chanConfirm         chan bool
@@ -158,10 +159,20 @@ func (l *Conn) Start() {
 	l.wgClose.Add(1)
 }
 
+// isClosing returns whether or not we're currently closing.
+func (l *Conn) isClosing() bool {
+	return atomic.LoadUint32(&l.closeCount) > 0
+}
+
+// setClosing sets the closing value to true
+func (l *Conn) setClosing() {
+	atomic.AddUint32(&l.closeCount, 1)
+}
+
 // Close closes the connection.
 func (l *Conn) Close() {
 	l.once.Do(func() {
-		l.isClosing = true
+		l.setClosing()
 		l.wgSender.Wait()
 
 		l.Debug.Printf("Sending quit message and waiting for confirmation")
@@ -258,7 +269,7 @@ func (l *Conn) sendMessage(packet *ber.Packet) (*messageContext, error) {
 }
 
 func (l *Conn) sendMessageWithFlags(packet *ber.Packet, flags sendMessageFlags) (*messageContext, error) {
-	if l.isClosing {
+	if l.isClosing() {
 		return nil, NewError(ErrorNetwork, errors.New("ldap: connection closed"))
 	}
 	l.messageMutex.Lock()
@@ -297,7 +308,7 @@ func (l *Conn) sendMessageWithFlags(packet *ber.Packet, flags sendMessageFlags) 
 func (l *Conn) finishMessage(msgCtx *messageContext) {
 	close(msgCtx.done)
 
-	if l.isClosing {
+	if l.isClosing() {
 		return
 	}
 
@@ -316,7 +327,7 @@ func (l *Conn) finishMessage(msgCtx *messageContext) {
 }
 
 func (l *Conn) sendProcessMessage(message *messagePacket) bool {
-	if l.isClosing {
+	if l.isClosing() {
 		return false
 	}
 	l.wgSender.Add(1)
@@ -333,8 +344,8 @@ func (l *Conn) processMessages() {
 		for messageID, msgCtx := range l.messageContexts {
 			// If we are closing due to an error, inform anyone who
 			// is waiting about the error.
-			if l.isClosing && l.closeErr != nil {
-				msgCtx.sendResponse(&PacketResponse{Error: l.closeErr})
+			if l.isClosing() && l.closeErr.Load() != nil {
+				msgCtx.sendResponse(&PacketResponse{Error: l.closeErr.Load().(error)})
 			}
 			l.Debug.Printf("Closing channel for MessageID %d", messageID)
 			close(msgCtx.responses)
@@ -397,7 +408,7 @@ func (l *Conn) processMessages() {
 				if msgCtx, ok := l.messageContexts[message.MessageID]; ok {
 					msgCtx.sendResponse(&PacketResponse{message.Packet, nil})
 				} else {
-					log.Printf("Received unexpected message %d, %v", message.MessageID, l.isClosing)
+					log.Printf("Received unexpected message %d, %v", message.MessageID, l.isClosing())
 					ber.PrintPacket(message.Packet)
 				}
 			case MessageTimeout:
@@ -439,8 +450,8 @@ func (l *Conn) reader() {
 		packet, err := ber.ReadPacket(l.conn)
 		if err != nil {
 			// A read error is expected here if we are closing the connection...
-			if !l.isClosing {
-				l.closeErr = fmt.Errorf("unable to read LDAP response packet: %s", err)
+			if !l.isClosing() {
+				l.closeErr.Store(fmt.Errorf("unable to read LDAP response packet: %s", err))
 				l.Debug.Printf("reader error: %s", err.Error())
 			}
 			return

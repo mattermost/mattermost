@@ -446,6 +446,42 @@ func TestShorthand(t *testing.T) {
 	}
 }
 
+func TestShorthandLookup(t *testing.T) {
+	f := NewFlagSet("shorthand", ContinueOnError)
+	if f.Parsed() {
+		t.Error("f.Parse() = true before Parse")
+	}
+	f.BoolP("boola", "a", false, "bool value")
+	f.BoolP("boolb", "b", false, "bool2 value")
+	args := []string{
+		"-ab",
+	}
+	f.SetOutput(ioutil.Discard)
+	if err := f.Parse(args); err != nil {
+		t.Error("expected no error, got ", err)
+	}
+	if !f.Parsed() {
+		t.Error("f.Parse() = false after Parse")
+	}
+	flag := f.ShorthandLookup("a")
+	if flag == nil {
+		t.Errorf("f.ShorthandLookup(\"a\") returned nil")
+	}
+	if flag.Name != "boola" {
+		t.Errorf("f.ShorthandLookup(\"a\") found %q instead of \"boola\"", flag.Name)
+	}
+	flag = f.ShorthandLookup("")
+	if flag != nil {
+		t.Errorf("f.ShorthandLookup(\"\") did not return nil")
+	}
+	defer func() {
+		recover()
+	}()
+	flag = f.ShorthandLookup("ab")
+	// should NEVER get here. lookup should panic. defer'd func should recover it.
+	t.Errorf("f.ShorthandLookup(\"ab\") did not panic")
+}
+
 func TestParse(t *testing.T) {
 	ResetForTesting(func() { t.Error("bad parse") })
 	testParse(GetCommandLine(), t)
@@ -936,6 +972,7 @@ const defaultOutput = `      --A                         for bootstrapping, allo
       --Alongflagname             disable bounds checking
   -C, --CCC                       a boolean defaulting to true (default true)
       --D path                    set relative path for local imports
+  -E, --EEE num[=1234]            a num with NoOptDefVal (default 4321)
       --F number                  a non-zero number (default 2.7)
       --G float                   a float that defaults to zero
       --IP ip                     IP address with no default
@@ -987,6 +1024,8 @@ func TestPrintDefaults(t *testing.T) {
 	fs.Lookup("ND1").NoOptDefVal = "bar"
 	fs.Int("ND2", 1234, "a `num` with NoOptDefVal")
 	fs.Lookup("ND2").NoOptDefVal = "4321"
+	fs.IntP("EEE", "E", 4321, "a `num` with NoOptDefVal")
+	fs.ShorthandLookup("E").NoOptDefVal = "1234"
 	fs.StringSlice("StringSlice", []string{}, "string slice with zero default")
 	fs.StringArray("StringArray", []string{}, "string array with zero default")
 

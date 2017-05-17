@@ -60,7 +60,65 @@ package unix
 #include <bluetooth/hci.h>
 #include <linux/can.h>
 #include <linux/if_alg.h>
+#include <linux/fs.h>
 #include <linux/vm_sockets.h>
+
+// On mips64, the glibc stat and kernel stat do not agree
+#if (defined(__mips__) && _MIPS_SIM == _MIPS_SIM_ABI64)
+
+// Use the stat defined by the kernel with a few modifications. These are:
+//	* The time fields (like st_atime and st_atimensec) use the timespec
+//	  struct (like st_atim) for consitancy with the glibc fields.
+//	* The padding fields get different names to not break compatibility.
+//	* st_blocks is signed, again for compatibility.
+struct stat {
+	unsigned int		st_dev;
+	unsigned int		st_pad1[3]; // Reserved for st_dev expansion
+
+	unsigned long		st_ino;
+
+	mode_t			st_mode;
+	__u32			st_nlink;
+
+	uid_t			st_uid;
+	gid_t			st_gid;
+
+	unsigned int		st_rdev;
+	unsigned int		st_pad2[3]; // Reserved for st_rdev expansion
+
+	off_t			st_size;
+
+	// These are declared as speperate fields in the kernel. Here we use
+	// the timespec struct for consistancy with the other stat structs.
+	struct timespec		st_atim;
+	struct timespec		st_mtim;
+	struct timespec		st_ctim;
+
+	unsigned int		st_blksize;
+	unsigned int		st_pad4;
+
+	long			st_blocks;
+};
+
+// These are needed because we do not include fcntl.h or sys/types.h
+#include <linux/fcntl.h>
+#include <linux/fadvise.h>
+
+#else
+
+// Use the stat defined by glibc
+#include <fcntl.h>
+#include <sys/types.h>
+
+#endif
+
+// Certain constants and structs are missing from the fs/crypto UAPI
+#define FS_MAX_KEY_SIZE                 64
+struct fscrypt_key {
+  __u32 mode;
+  __u8 raw[FS_MAX_KEY_SIZE];
+  __u32 size;
+};
 
 #ifdef TCSETS2
 // On systems that have "struct termios2" use this as type Termios.
@@ -102,10 +160,8 @@ struct my_sockaddr_un {
 typedef struct user_regs PtraceRegs;
 #elif defined(__aarch64__)
 typedef struct user_pt_regs PtraceRegs;
-#elif defined(__powerpc64__)
+#elif defined(__mips__) || defined(__powerpc64__)
 typedef struct pt_regs PtraceRegs;
-#elif defined(__mips__)
-typedef struct user PtraceRegs;
 #elif defined(__s390x__)
 typedef struct _user_regs_struct PtraceRegs;
 #elif defined(__sparc__)
@@ -195,6 +251,12 @@ type Dirent C.struct_dirent
 type Fsid C.fsid_t
 
 type Flock_t C.struct_flock
+
+// Filesystem Encryption
+
+type FscryptPolicy C.struct_fscrypt_policy
+
+type FscryptKey C.struct_fscrypt_key
 
 // Advice to Fadvise
 

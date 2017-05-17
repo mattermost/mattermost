@@ -300,13 +300,15 @@ type BulkResponse struct {
 
 // BulkResponseItem is the result of a single bulk request.
 type BulkResponseItem struct {
-	Index   string        `json:"_index,omitempty"`
-	Type    string        `json:"_type,omitempty"`
-	Id      string        `json:"_id,omitempty"`
-	Version int64         `json:"_version,omitempty"`
-	Status  int           `json:"status,omitempty"`
-	Found   bool          `json:"found,omitempty"`
-	Error   *ErrorDetails `json:"error,omitempty"`
+	Index         string        `json:"_index,omitempty"`
+	Type          string        `json:"_type,omitempty"`
+	Id            string        `json:"_id,omitempty"`
+	Version       int64         `json:"_version,omitempty"`
+	Status        int           `json:"status,omitempty"`
+	Result        string        `json:"result,omitempty"`
+	ForcedRefresh bool          `json:"forced_refresh,omitempty"`
+	Found         bool          `json:"found,omitempty"`
+	Error         *ErrorDetails `json:"error,omitempty"`
 }
 
 // Indexed returns all bulk request results of "index" actions.

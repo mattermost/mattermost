@@ -52,7 +52,7 @@ func TestMappingLifecycle(t *testing.T) {
 		"tweetdoc":{
 			"properties":{
 				"field":{
-					"type":"string"
+					"type":"keyword"
 				}
 			}
 		}

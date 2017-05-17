@@ -72,6 +72,7 @@ func TestHttpRespToErrorResponse(t *testing.T) {
 			RequestID:  resp.Header.Get("x-amz-request-id"),
 			HostID:     resp.Header.Get("x-amz-id-2"),
 			Region:     resp.Header.Get("x-amz-bucket-region"),
+			Headers:    resp.Header,
 		}
 		return errResp
 	}
@@ -172,7 +173,7 @@ func TestHttpRespToErrorResponse(t *testing.T) {
 	for i, testCase := range testCases {
 		actualResult := httpRespToErrorResponse(testCase.inputHTTPResp, testCase.bucketName, testCase.objectName)
 		if !reflect.DeepEqual(testCase.expectedResult, actualResult) {
-			t.Errorf("Test %d: Expected result to be '%+v', but instead got '%+v'", i+1, testCase.expectedResult, actualResult)
+			t.Errorf("Test %d: Expected result to be '%#v', but instead got '%#v'", i+1, testCase.expectedResult, actualResult)
 		}
 	}
 }
@@ -259,5 +260,23 @@ func TestErrInvalidArgument(t *testing.T) {
 	actualResult := ErrInvalidArgument("Invalid Argument")
 	if !reflect.DeepEqual(expectedResult, actualResult) {
 		t.Errorf("Expected result to be '%+v', but instead got '%+v'", expectedResult, actualResult)
+	}
+}
+
+// Tests if the Message field is missing.
+func TestErrWithoutMessage(t *testing.T) {
+	errResp := ErrorResponse{
+		Code:      "AccessDenied",
+		RequestID: "minio",
+	}
+	if errResp.Error() != "Access Denied." {
+		t.Errorf("Expected \"Access Denied.\", got %s", errResp)
+	}
+	errResp = ErrorResponse{
+		Code:      "InvalidArgument",
+		RequestID: "minio",
+	}
+	if errResp.Error() != "Error response code InvalidArgument." {
+		t.Errorf("Expected \"Error response code InvalidArgument.\", got %s", errResp)
 	}
 }

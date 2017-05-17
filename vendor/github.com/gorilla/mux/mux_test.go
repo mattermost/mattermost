@@ -1393,7 +1393,7 @@ func TestSubrouterErrorHandling(t *testing.T) {
 func TestPanicOnCapturingGroups(t *testing.T) {
 	defer func() {
 		if recover() == nil {
-			t.Errorf("(Test that capturing groups now fail fast) Expected panic, however test completed sucessfully.\n")
+			t.Errorf("(Test that capturing groups now fail fast) Expected panic, however test completed successfully.\n")
 		}
 	}()
 	NewRouter().NewRoute().Path("/{type:(promo|special)}/{promoId}.json")

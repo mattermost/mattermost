@@ -142,6 +142,10 @@ type ServerConn struct {
 func NewServerConn(c net.Conn, config *ServerConfig) (*ServerConn, <-chan NewChannel, <-chan *Request, error) {
 	fullConf := *config
 	fullConf.SetDefaults()
+	if fullConf.MaxAuthTries == 0 {
+		fullConf.MaxAuthTries = 6
+	}
+
 	s := &connection{
 		sshConn: sshConn{conn: c},
 	}

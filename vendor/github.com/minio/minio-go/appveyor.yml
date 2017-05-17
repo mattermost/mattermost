@@ -17,6 +17,8 @@ install:
   - go version
   - go env
   - go get -u github.com/golang/lint/golint
+  - go get -u github.com/go-ini/ini
+  - go get -u github.com/minio/go-homedir
   - go get -u github.com/remyoudompheng/go-misc/deadcode
   - go get -u github.com/gordonklaus/ineffassign
 
@@ -24,7 +26,7 @@ install:
 build_script:
   - go vet ./...
   - gofmt -s -l .
-  - golint github.com/minio/minio-go...
+  - golint -set_exit_status github.com/minio/minio-go...
   - deadcode
   - ineffassign .
   - go test -short -v

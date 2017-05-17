@@ -13,9 +13,9 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// testExchangedataForWatcher tests the watcher with the exchangedata operation on OS X.
+// testExchangedataForWatcher tests the watcher with the exchangedata operation on macOS.
 //
-// This is widely used for atomic saves on OS X, e.g. TextMate and in Apple's NSDocument.
+// This is widely used for atomic saves on macOS, e.g. TextMate and in Apple's NSDocument.
 //
 // See https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man2/exchangedata.2.html
 // Also see: https://github.com/textmate/textmate/blob/cd016be29489eba5f3c09b7b70b06da134dda550/Frameworks/io/src/swap_file_data.cc#L20
