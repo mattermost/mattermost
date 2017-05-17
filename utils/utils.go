@@ -73,5 +73,6 @@ func GetSiteName(siteURL string) string {
 	if err != nil {
 		return ""
 	}
-	return u.Host
+
+	return u.Hostname()
 }
