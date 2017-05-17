@@ -250,7 +250,7 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		var confirm string
-		CommandPrettyPrintln("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
+		CommandPrettyPrintln("Are you sure you want to delete the channels specified?  All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
