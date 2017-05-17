@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import * as Utils from 'utils/utils.jsx';
 
 import statusGreen from 'images/status_green.png';
-import statusRed from 'images/status_red.png';
+import statusYellow from 'images/status_yellow.png';
 
 export default class ClusterTable extends React.Component {
     static propTypes = {
@@ -32,10 +32,12 @@ export default class ClusterTable extends React.Component {
 
         var version = '';
         var configHash = '';
+        var singleItem = false;
 
         if (this.props.clusterInfos.length) {
             version = this.props.clusterInfos[0].version;
             configHash = this.props.clusterInfos[0].config_hash;
+            singleItem = this.props.clusterInfos.length === 1;
         }
 
         this.props.clusterInfos.map((clusterInfo) => {
@@ -43,7 +45,7 @@ export default class ClusterTable extends React.Component {
                 versionMismatch = (
                     <img
                         className='cluster-status'
-                        src={statusRed}
+                        src={statusYellow}
                     />
                 );
             }
@@ -52,7 +54,7 @@ export default class ClusterTable extends React.Component {
                 configMismatch = (
                     <img
                         className='cluster-status'
-                        src={statusRed}
+                        src={statusYellow}
                     />
                 );
             }
@@ -75,12 +77,21 @@ export default class ClusterTable extends React.Component {
                 clusterInfo.config_hash = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
             }
 
-            status = (
-                <img
-                    className='cluster-status'
-                    src={statusGreen}
-                />
-            );
+            if (singleItem) {
+                status = (
+                    <img
+                        className='cluster-status'
+                        src={statusYellow}
+                    />
+                );
+            } else {
+                status = (
+                    <img
+                        className='cluster-status'
+                        src={statusGreen}
+                    />
+                );
+            }
 
             return (
                 <tr key={clusterInfo.ipaddress}>
