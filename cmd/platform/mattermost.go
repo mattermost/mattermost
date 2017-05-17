@@ -18,6 +18,12 @@ import (
 	_ "github.com/dgryski/dgoogauth"
 	_ "github.com/go-ldap/ldap"
 	_ "github.com/mattermost/rsc/qr"
+
+	// Tmp deps for adding
+	_ "github.com/dimchansky/utfbom"
+	_ "github.com/hashicorp/memberlist"
+	_ "gopkg.in/gomail.v2"
+	_ "gopkg.in/olivere/elastic.v5"
 )
 
 //ENTERPRISE_IMPORTS

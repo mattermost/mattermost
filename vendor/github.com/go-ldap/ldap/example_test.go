@@ -193,7 +193,7 @@ func Example_userAuthentication() {
 	searchRequest := ldap.NewSearchRequest(
 		"dc=example,dc=com",
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=organizationalPerson)&(uid=%s))", username),
+		fmt.Sprintf("(&(objectClass=organizationalPerson)(uid=%s))", username),
 		[]string{"dn"},
 		nil,
 	)

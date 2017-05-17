@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
 // You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package mysql provides a MySQL driver for Go's database/sql package
+// Package mysql provides a MySQL driver for Go's database/sql package.
 //
 // The driver should be used via the database/sql package:
 //

@@ -1,6 +1,7 @@
 # Prometheus Go client library
 
 [![Build Status](https://travis-ci.org/prometheus/client_golang.svg?branch=master)](https://travis-ci.org/prometheus/client_golang)
+[![Go Report Card](https://goreportcard.com/badge/github.com/prometheus/client_golang)](https://goreportcard.com/report/github.com/prometheus/client_golang)
 
 This is the [Go](http://golang.org) client library for
 [Prometheus](http://prometheus.io). It has two separate parts, one for
@@ -29,7 +30,8 @@ The
 [`api/prometheus` directory](https://github.com/prometheus/client_golang/tree/master/api/prometheus)
 contains the client for the
 [Prometheus HTTP API](http://prometheus.io/docs/querying/api/). It allows you
-to write Go applications that query time series data from a Prometheus server.
+to write Go applications that query time series data from a Prometheus
+server. It is still in alpha stage.
 
 ## Where is `model`, `extraction`, and `text`?
 

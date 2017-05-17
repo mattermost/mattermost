@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build go1.7
+
 package rate
 
 import (
@@ -163,6 +165,9 @@ func TestSimultaneousRequests(t *testing.T) {
 }
 
 func TestLongRunningQPS(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
 	if runtime.GOOS == "openbsd" {
 		t.Skip("low resolution time.Sleep invalidates test (golang.org/issue/14183)")
 		return

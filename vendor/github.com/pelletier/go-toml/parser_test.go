@@ -9,7 +9,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-func assertSubTree(t *testing.T, path []string, tree *TomlTree, err error, ref map[string]interface{}) {
+func assertSubTree(t *testing.T, path []string, tree *Tree, err error, ref map[string]interface{}) {
 	if err != nil {
 		t.Error("Non-nil error:", err.Error())
 		return
@@ -20,12 +20,12 @@ func assertSubTree(t *testing.T, path []string, tree *TomlTree, err error, ref m
 		// NOTE: directly access key instead of resolve by path
 		// NOTE: see TestSpecialKV
 		switch node := tree.GetPath([]string{k}).(type) {
-		case []*TomlTree:
+		case []*Tree:
 			t.Log("\tcomparing key", nextPath, "by array iteration")
 			for idx, item := range node {
 				assertSubTree(t, nextPath, item, err, v.([]map[string]interface{})[idx])
 			}
-		case *TomlTree:
+		case *Tree:
 			t.Log("\tcomparing key", nextPath, "by subtree assestion")
 			assertSubTree(t, nextPath, node, err, v.(map[string]interface{}))
 		default:
@@ -37,14 +37,14 @@ func assertSubTree(t *testing.T, path []string, tree *TomlTree, err error, ref m
 	}
 }
 
-func assertTree(t *testing.T, tree *TomlTree, err error, ref map[string]interface{}) {
+func assertTree(t *testing.T, tree *Tree, err error, ref map[string]interface{}) {
 	t.Log("Asserting tree:\n", spew.Sdump(tree))
 	assertSubTree(t, []string{}, tree, err, ref)
 	t.Log("Finished tree assertion.")
 }
 
 func TestCreateSubTree(t *testing.T) {
-	tree := newTomlTree()
+	tree := newTree()
 	tree.createSubTree([]string{"a", "b", "c"}, Position{})
 	tree.Set("a.b.c", 42)
 	if tree.Get("a.b.c") != 42 {

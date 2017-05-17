@@ -131,71 +131,76 @@ func pair(name, value string) HeaderField {
 
 // http://tools.ietf.org/html/draft-ietf-httpbis-header-compression-07#appendix-B
 var staticTable = newStaticTable()
+var staticTableEntries = [...]HeaderField{
+	pair(":authority", ""),
+	pair(":method", "GET"),
+	pair(":method", "POST"),
+	pair(":path", "/"),
+	pair(":path", "/index.html"),
+	pair(":scheme", "http"),
+	pair(":scheme", "https"),
+	pair(":status", "200"),
+	pair(":status", "204"),
+	pair(":status", "206"),
+	pair(":status", "304"),
+	pair(":status", "400"),
+	pair(":status", "404"),
+	pair(":status", "500"),
+	pair("accept-charset", ""),
+	pair("accept-encoding", "gzip, deflate"),
+	pair("accept-language", ""),
+	pair("accept-ranges", ""),
+	pair("accept", ""),
+	pair("access-control-allow-origin", ""),
+	pair("age", ""),
+	pair("allow", ""),
+	pair("authorization", ""),
+	pair("cache-control", ""),
+	pair("content-disposition", ""),
+	pair("content-encoding", ""),
+	pair("content-language", ""),
+	pair("content-length", ""),
+	pair("content-location", ""),
+	pair("content-range", ""),
+	pair("content-type", ""),
+	pair("cookie", ""),
+	pair("date", ""),
+	pair("etag", ""),
+	pair("expect", ""),
+	pair("expires", ""),
+	pair("from", ""),
+	pair("host", ""),
+	pair("if-match", ""),
+	pair("if-modified-since", ""),
+	pair("if-none-match", ""),
+	pair("if-range", ""),
+	pair("if-unmodified-since", ""),
+	pair("last-modified", ""),
+	pair("link", ""),
+	pair("location", ""),
+	pair("max-forwards", ""),
+	pair("proxy-authenticate", ""),
+	pair("proxy-authorization", ""),
+	pair("range", ""),
+	pair("referer", ""),
+	pair("refresh", ""),
+	pair("retry-after", ""),
+	pair("server", ""),
+	pair("set-cookie", ""),
+	pair("strict-transport-security", ""),
+	pair("transfer-encoding", ""),
+	pair("user-agent", ""),
+	pair("vary", ""),
+	pair("via", ""),
+	pair("www-authenticate", ""),
+}
 
 func newStaticTable() *headerFieldTable {
 	t := &headerFieldTable{}
 	t.init()
-	t.addEntry(pair(":authority", ""))
-	t.addEntry(pair(":method", "GET"))
-	t.addEntry(pair(":method", "POST"))
-	t.addEntry(pair(":path", "/"))
-	t.addEntry(pair(":path", "/index.html"))
-	t.addEntry(pair(":scheme", "http"))
-	t.addEntry(pair(":scheme", "https"))
-	t.addEntry(pair(":status", "200"))
-	t.addEntry(pair(":status", "204"))
-	t.addEntry(pair(":status", "206"))
-	t.addEntry(pair(":status", "304"))
-	t.addEntry(pair(":status", "400"))
-	t.addEntry(pair(":status", "404"))
-	t.addEntry(pair(":status", "500"))
-	t.addEntry(pair("accept-charset", ""))
-	t.addEntry(pair("accept-encoding", "gzip, deflate"))
-	t.addEntry(pair("accept-language", ""))
-	t.addEntry(pair("accept-ranges", ""))
-	t.addEntry(pair("accept", ""))
-	t.addEntry(pair("access-control-allow-origin", ""))
-	t.addEntry(pair("age", ""))
-	t.addEntry(pair("allow", ""))
-	t.addEntry(pair("authorization", ""))
-	t.addEntry(pair("cache-control", ""))
-	t.addEntry(pair("content-disposition", ""))
-	t.addEntry(pair("content-encoding", ""))
-	t.addEntry(pair("content-language", ""))
-	t.addEntry(pair("content-length", ""))
-	t.addEntry(pair("content-location", ""))
-	t.addEntry(pair("content-range", ""))
-	t.addEntry(pair("content-type", ""))
-	t.addEntry(pair("cookie", ""))
-	t.addEntry(pair("date", ""))
-	t.addEntry(pair("etag", ""))
-	t.addEntry(pair("expect", ""))
-	t.addEntry(pair("expires", ""))
-	t.addEntry(pair("from", ""))
-	t.addEntry(pair("host", ""))
-	t.addEntry(pair("if-match", ""))
-	t.addEntry(pair("if-modified-since", ""))
-	t.addEntry(pair("if-none-match", ""))
-	t.addEntry(pair("if-range", ""))
-	t.addEntry(pair("if-unmodified-since", ""))
-	t.addEntry(pair("last-modified", ""))
-	t.addEntry(pair("link", ""))
-	t.addEntry(pair("location", ""))
-	t.addEntry(pair("max-forwards", ""))
-	t.addEntry(pair("proxy-authenticate", ""))
-	t.addEntry(pair("proxy-authorization", ""))
-	t.addEntry(pair("range", ""))
-	t.addEntry(pair("referer", ""))
-	t.addEntry(pair("refresh", ""))
-	t.addEntry(pair("retry-after", ""))
-	t.addEntry(pair("server", ""))
-	t.addEntry(pair("set-cookie", ""))
-	t.addEntry(pair("strict-transport-security", ""))
-	t.addEntry(pair("transfer-encoding", ""))
-	t.addEntry(pair("user-agent", ""))
-	t.addEntry(pair("vary", ""))
-	t.addEntry(pair("via", ""))
-	t.addEntry(pair("www-authenticate", ""))
+	for _, e := range staticTableEntries[:] {
+		t.addEntry(e)
+	}
 	return t
 }
 

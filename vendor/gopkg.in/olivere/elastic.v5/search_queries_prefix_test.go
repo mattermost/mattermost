@@ -38,7 +38,7 @@ func TestPrefixQueryWithOptions(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"prefix":{"user":{"_name":"my_query_name","prefix":"ki"}}}`
+	expected := `{"prefix":{"user":{"_name":"my_query_name","value":"ki"}}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}

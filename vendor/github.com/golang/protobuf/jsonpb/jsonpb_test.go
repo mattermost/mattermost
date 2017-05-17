@@ -386,11 +386,36 @@ var marshalingTests = []struct {
 	{"Duration", marshaler, &pb.KnownTypes{Dur: &durpb.Duration{Seconds: 3}}, `{"dur":"3.000s"}`},
 	{"Struct", marshaler, &pb.KnownTypes{St: &stpb.Struct{
 		Fields: map[string]*stpb.Value{
-			"one": &stpb.Value{Kind: &stpb.Value_StringValue{"loneliest number"}},
-			"two": &stpb.Value{Kind: &stpb.Value_NullValue{stpb.NullValue_NULL_VALUE}},
+			"one": {Kind: &stpb.Value_StringValue{"loneliest number"}},
+			"two": {Kind: &stpb.Value_NullValue{stpb.NullValue_NULL_VALUE}},
 		},
 	}}, `{"st":{"one":"loneliest number","two":null}}`},
+	{"empty ListValue", marshaler, &pb.KnownTypes{Lv: &stpb.ListValue{}}, `{"lv":[]}`},
+	{"basic ListValue", marshaler, &pb.KnownTypes{Lv: &stpb.ListValue{Values: []*stpb.Value{
+		{Kind: &stpb.Value_StringValue{"x"}},
+		{Kind: &stpb.Value_NullValue{}},
+		{Kind: &stpb.Value_NumberValue{3}},
+		{Kind: &stpb.Value_BoolValue{true}},
+	}}}, `{"lv":["x",null,3,true]}`},
 	{"Timestamp", marshaler, &pb.KnownTypes{Ts: &tspb.Timestamp{Seconds: 14e8, Nanos: 21e6}}, `{"ts":"2014-05-13T16:53:20.021Z"}`},
+	{"number Value", marshaler, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_NumberValue{1}}}, `{"val":1}`},
+	{"null Value", marshaler, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_NullValue{stpb.NullValue_NULL_VALUE}}}, `{"val":null}`},
+	{"string number value", marshaler, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_StringValue{"9223372036854775807"}}}, `{"val":"9223372036854775807"}`},
+	{"list of lists Value", marshaler, &pb.KnownTypes{Val: &stpb.Value{
+		Kind: &stpb.Value_ListValue{&stpb.ListValue{
+			Values: []*stpb.Value{
+				{Kind: &stpb.Value_StringValue{"x"}},
+				{Kind: &stpb.Value_ListValue{&stpb.ListValue{
+					Values: []*stpb.Value{
+						{Kind: &stpb.Value_ListValue{&stpb.ListValue{
+							Values: []*stpb.Value{{Kind: &stpb.Value_StringValue{"y"}}},
+						}}},
+						{Kind: &stpb.Value_StringValue{"z"}},
+					},
+				}}},
+			},
+		}},
+	}}, `{"val":["x",[["y"],"z"]]}`},
 
 	{"DoubleValue", marshaler, &pb.KnownTypes{Dbl: &wpb.DoubleValue{Value: 1.2}}, `{"dbl":1.2}`},
 	{"FloatValue", marshaler, &pb.KnownTypes{Flt: &wpb.FloatValue{Value: 1.2}}, `{"flt":1.2}`},
@@ -455,6 +480,11 @@ var unmarshalingTests = []struct {
 	{"map<int64, int32>", Unmarshaler{}, `{"nummy":{"1":2,"3":4}}`, &pb.Mappy{Nummy: map[int64]int32{1: 2, 3: 4}}},
 	{"map<string, string>", Unmarshaler{}, `{"strry":{"\"one\"":"two","three":"four"}}`, &pb.Mappy{Strry: map[string]string{`"one"`: "two", "three": "four"}}},
 	{"map<int32, Object>", Unmarshaler{}, `{"objjy":{"1":{"dub":1}}}`, &pb.Mappy{Objjy: map[int32]*pb.Simple3{1: &pb.Simple3{Dub: 1}}}},
+	{"proto2 extension", Unmarshaler{}, realNumberJSON, realNumber},
+	{"Any with message", Unmarshaler{}, anySimpleJSON, anySimple},
+	{"Any with message and indent", Unmarshaler{}, anySimplePrettyJSON, anySimple},
+	{"Any with WKT", Unmarshaler{}, anyWellKnownJSON, anyWellKnown},
+	{"Any with WKT and indent", Unmarshaler{}, anyWellKnownPrettyJSON, anyWellKnown},
 	// TODO: This is broken.
 	//{"map<string, enum>", Unmarshaler{}, `{"enumy":{"XIV":"ROMAN"}`, &pb.Mappy{Enumy: map[string]pb.Numeral{"XIV": pb.Numeral_ROMAN}}},
 	{"map<string, enum as int>", Unmarshaler{}, `{"enumy":{"XIV":2}}`, &pb.Mappy{Enumy: map[string]pb.Numeral{"XIV": pb.Numeral_ROMAN}}},
@@ -472,6 +502,50 @@ var unmarshalingTests = []struct {
 	{"PreEpochTimestamp", Unmarshaler{}, `{"ts":"1969-12-31T23:59:58.999999995Z"}`, &pb.KnownTypes{Ts: &tspb.Timestamp{Seconds: -2, Nanos: 999999995}}},
 	{"ZeroTimeTimestamp", Unmarshaler{}, `{"ts":"0001-01-01T00:00:00Z"}`, &pb.KnownTypes{Ts: &tspb.Timestamp{Seconds: -62135596800, Nanos: 0}}},
 	{"null Timestamp", Unmarshaler{}, `{"ts":null}`, &pb.KnownTypes{Ts: &tspb.Timestamp{Seconds: 0, Nanos: 0}}},
+	{"null Struct", Unmarshaler{}, `{"st": null}`, &pb.KnownTypes{St: &stpb.Struct{}}},
+	{"empty Struct", Unmarshaler{}, `{"st": {}}`, &pb.KnownTypes{St: &stpb.Struct{}}},
+	{"basic Struct", Unmarshaler{}, `{"st": {"a": "x", "b": null, "c": 3, "d": true}}`, &pb.KnownTypes{St: &stpb.Struct{Fields: map[string]*stpb.Value{
+		"a": {Kind: &stpb.Value_StringValue{"x"}},
+		"b": {Kind: &stpb.Value_NullValue{}},
+		"c": {Kind: &stpb.Value_NumberValue{3}},
+		"d": {Kind: &stpb.Value_BoolValue{true}},
+	}}}},
+	{"nested Struct", Unmarshaler{}, `{"st": {"a": {"b": 1, "c": [{"d": true}, "f"]}}}`, &pb.KnownTypes{St: &stpb.Struct{Fields: map[string]*stpb.Value{
+		"a": {Kind: &stpb.Value_StructValue{&stpb.Struct{Fields: map[string]*stpb.Value{
+			"b": {Kind: &stpb.Value_NumberValue{1}},
+			"c": {Kind: &stpb.Value_ListValue{&stpb.ListValue{Values: []*stpb.Value{
+				{Kind: &stpb.Value_StructValue{&stpb.Struct{Fields: map[string]*stpb.Value{"d": {Kind: &stpb.Value_BoolValue{true}}}}}},
+				{Kind: &stpb.Value_StringValue{"f"}},
+			}}}},
+		}}}},
+	}}}},
+	{"null ListValue", Unmarshaler{}, `{"lv": null}`, &pb.KnownTypes{Lv: &stpb.ListValue{}}},
+	{"empty ListValue", Unmarshaler{}, `{"lv": []}`, &pb.KnownTypes{Lv: &stpb.ListValue{}}},
+	{"basic ListValue", Unmarshaler{}, `{"lv": ["x", null, 3, true]}`, &pb.KnownTypes{Lv: &stpb.ListValue{Values: []*stpb.Value{
+		{Kind: &stpb.Value_StringValue{"x"}},
+		{Kind: &stpb.Value_NullValue{}},
+		{Kind: &stpb.Value_NumberValue{3}},
+		{Kind: &stpb.Value_BoolValue{true}},
+	}}}},
+	{"number Value", Unmarshaler{}, `{"val":1}`, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_NumberValue{1}}}},
+	{"null Value", Unmarshaler{}, `{"val":null}`, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_NullValue{stpb.NullValue_NULL_VALUE}}}},
+	{"bool Value", Unmarshaler{}, `{"val":true}`, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_BoolValue{true}}}},
+	{"string Value", Unmarshaler{}, `{"val":"x"}`, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_StringValue{"x"}}}},
+	{"string number value", Unmarshaler{}, `{"val":"9223372036854775807"}`, &pb.KnownTypes{Val: &stpb.Value{Kind: &stpb.Value_StringValue{"9223372036854775807"}}}},
+	{"list of lists Value", Unmarshaler{}, `{"val":["x", [["y"], "z"]]}`, &pb.KnownTypes{Val: &stpb.Value{
+		Kind: &stpb.Value_ListValue{&stpb.ListValue{
+			Values: []*stpb.Value{
+				{Kind: &stpb.Value_StringValue{"x"}},
+				{Kind: &stpb.Value_ListValue{&stpb.ListValue{
+					Values: []*stpb.Value{
+						{Kind: &stpb.Value_ListValue{&stpb.ListValue{
+							Values: []*stpb.Value{{Kind: &stpb.Value_StringValue{"y"}}},
+						}}},
+						{Kind: &stpb.Value_StringValue{"z"}},
+					},
+				}}},
+			},
+		}}}}},
 
 	{"DoubleValue", Unmarshaler{}, `{"dbl":1.2}`, &pb.KnownTypes{Dbl: &wpb.DoubleValue{Value: 1.2}}},
 	{"FloatValue", Unmarshaler{}, `{"flt":1.2}`, &pb.KnownTypes{Flt: &wpb.FloatValue{Value: 1.2}}},

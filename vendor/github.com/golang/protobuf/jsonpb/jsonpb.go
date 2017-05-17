@@ -51,6 +51,8 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+
+	stpb "github.com/golang/protobuf/ptypes/struct"
 )
 
 // Marshaler is a configurable object for converting between
@@ -126,8 +128,8 @@ func (m *Marshaler) marshalObject(out *errWriter, v proto.Message, indent, typeU
 			out.write(x)
 			out.write(`s"`)
 			return out.err
-		case "Struct":
-			// Let marshalValue handle the `fields` map.
+		case "Struct", "ListValue":
+			// Let marshalValue handle the `Struct.fields` map or the `ListValue.values` slice.
 			// TODO: pass the correct Properties if needed.
 			return m.marshalValue(out, &proto.Properties{}, s.Field(0), indent)
 		case "Timestamp":
@@ -573,8 +575,8 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 	type wkt interface {
 		XXX_WellKnownType() string
 	}
-	if wkt, ok := target.Addr().Interface().(wkt); ok {
-		switch wkt.XXX_WellKnownType() {
+	if w, ok := target.Addr().Interface().(wkt); ok {
+		switch w.XXX_WellKnownType() {
 		case "DoubleValue", "FloatValue", "Int64Value", "UInt64Value",
 			"Int32Value", "UInt32Value", "BoolValue", "StringValue", "BytesValue":
 			// "Wrappers use the same representation in JSON
@@ -583,7 +585,60 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			// so we don't have to do any extra work.
 			return u.unmarshalValue(target.Field(0), inputValue, prop)
 		case "Any":
-			return fmt.Errorf("unmarshaling Any not supported yet")
+			var jsonFields map[string]json.RawMessage
+			if err := json.Unmarshal(inputValue, &jsonFields); err != nil {
+				return err
+			}
+
+			val, ok := jsonFields["@type"]
+			if !ok {
+				return errors.New("Any JSON doesn't have '@type'")
+			}
+
+			var turl string
+			if err := json.Unmarshal([]byte(val), &turl); err != nil {
+				return fmt.Errorf("can't unmarshal Any's '@type': %q", val)
+			}
+			target.Field(0).SetString(turl)
+
+			mname := turl
+			if slash := strings.LastIndex(mname, "/"); slash >= 0 {
+				mname = mname[slash+1:]
+			}
+			mt := proto.MessageType(mname)
+			if mt == nil {
+				return fmt.Errorf("unknown message type %q", mname)
+			}
+
+			m := reflect.New(mt.Elem()).Interface().(proto.Message)
+			if _, ok := m.(wkt); ok {
+				val, ok := jsonFields["value"]
+				if !ok {
+					return errors.New("Any JSON doesn't have 'value'")
+				}
+
+				if err := u.unmarshalValue(reflect.ValueOf(m).Elem(), val, nil); err != nil {
+					return fmt.Errorf("can't unmarshal Any's WKT: %v", err)
+				}
+			} else {
+				delete(jsonFields, "@type")
+				nestedProto, err := json.Marshal(jsonFields)
+				if err != nil {
+					return fmt.Errorf("can't generate JSON for Any's nested proto to be unmarshaled: %v", err)
+				}
+
+				if err = u.unmarshalValue(reflect.ValueOf(m).Elem(), nestedProto, nil); err != nil {
+					return fmt.Errorf("can't unmarshal nested Any proto: %v", err)
+				}
+			}
+
+			b, err := proto.Marshal(m)
+			if err != nil {
+				return fmt.Errorf("can't marshal proto into Any.Value: %v", err)
+			}
+			target.Field(1).SetBytes(b)
+
+			return nil
 		case "Duration":
 			ivStr := string(inputValue)
 			if ivStr == "null" {
@@ -624,6 +679,62 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			}
 			target.Field(0).SetInt(int64(t.Unix()))
 			target.Field(1).SetInt(int64(t.Nanosecond()))
+			return nil
+		case "Struct":
+			if string(inputValue) == "null" {
+				// Interpret a null struct as empty.
+				return nil
+			}
+			var m map[string]json.RawMessage
+			if err := json.Unmarshal(inputValue, &m); err != nil {
+				return fmt.Errorf("bad StructValue: %v", err)
+			}
+			target.Field(0).Set(reflect.ValueOf(map[string]*stpb.Value{}))
+			for k, jv := range m {
+				pv := &stpb.Value{}
+				if err := u.unmarshalValue(reflect.ValueOf(pv).Elem(), jv, prop); err != nil {
+					return fmt.Errorf("bad value in StructValue for key %q: %v", k, err)
+				}
+				target.Field(0).SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(pv))
+			}
+			return nil
+		case "ListValue":
+			if string(inputValue) == "null" {
+				// Interpret a null ListValue as empty.
+				return nil
+			}
+			var s []json.RawMessage
+			if err := json.Unmarshal(inputValue, &s); err != nil {
+				return fmt.Errorf("bad ListValue: %v", err)
+			}
+			target.Field(0).Set(reflect.ValueOf(make([]*stpb.Value, len(s), len(s))))
+			for i, sv := range s {
+				if err := u.unmarshalValue(target.Field(0).Index(i), sv, prop); err != nil {
+					return err
+				}
+			}
+			return nil
+		case "Value":
+			ivStr := string(inputValue)
+			if ivStr == "null" {
+				target.Field(0).Set(reflect.ValueOf(&stpb.Value_NullValue{}))
+			} else if v, err := strconv.ParseFloat(ivStr, 0); err == nil {
+				target.Field(0).Set(reflect.ValueOf(&stpb.Value_NumberValue{v}))
+			} else if v, err := strconv.Unquote(ivStr); err == nil {
+				target.Field(0).Set(reflect.ValueOf(&stpb.Value_StringValue{v}))
+			} else if v, err := strconv.ParseBool(ivStr); err == nil {
+				target.Field(0).Set(reflect.ValueOf(&stpb.Value_BoolValue{v}))
+			} else if err := json.Unmarshal(inputValue, &[]json.RawMessage{}); err == nil {
+				lv := &stpb.ListValue{}
+				target.Field(0).Set(reflect.ValueOf(&stpb.Value_ListValue{lv}))
+				return u.unmarshalValue(reflect.ValueOf(lv).Elem(), inputValue, prop)
+			} else if err := json.Unmarshal(inputValue, &map[string]json.RawMessage{}); err == nil {
+				sv := &stpb.Struct{}
+				target.Field(0).Set(reflect.ValueOf(&stpb.Value_StructValue{sv}))
+				return u.unmarshalValue(reflect.ValueOf(sv).Elem(), inputValue, prop)
+			} else {
+				return fmt.Errorf("unrecognized type for Value %q", ivStr)
+			}
 			return nil
 		}
 	}
@@ -705,6 +816,26 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 				target.Field(oop.Field).Set(nv)
 				if err := u.unmarshalValue(nv.Elem().Field(0), raw, oop.Prop); err != nil {
 					return err
+				}
+			}
+		}
+		// Handle proto2 extensions.
+		if len(jsonFields) > 0 {
+			if ep, ok := target.Addr().Interface().(proto.Message); ok {
+				for _, ext := range proto.RegisteredExtensions(ep) {
+					name := fmt.Sprintf("[%s]", ext.Name)
+					raw, ok := jsonFields[name]
+					if !ok {
+						continue
+					}
+					delete(jsonFields, name)
+					nv := reflect.New(reflect.TypeOf(ext.ExtensionType).Elem())
+					if err := u.unmarshalValue(nv.Elem(), raw, nil); err != nil {
+						return err
+					}
+					if err := proto.SetExtension(ep, ext, nv.Interface()); err != nil {
+						return err
+					}
 				}
 			}
 		}

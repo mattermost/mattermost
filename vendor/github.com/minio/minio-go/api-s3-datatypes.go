@@ -41,8 +41,8 @@ type commonPrefix struct {
 	Prefix string
 }
 
-// listBucketResult container for listObjects V2 response.
-type listBucketV2Result struct {
+// ListBucketV2Result container for listObjects response version 2.
+type ListBucketV2Result struct {
 	// A response can contain CommonPrefixes only if you have
 	// specified a delimiter.
 	CommonPrefixes []commonPrefix
@@ -70,8 +70,8 @@ type listBucketV2Result struct {
 	StartAfter string
 }
 
-// listBucketResult container for listObjects response.
-type listBucketResult struct {
+// ListBucketResult container for listObjects response.
+type ListBucketResult struct {
 	// A response can contain CommonPrefixes only if you have
 	// specified a delimiter.
 	CommonPrefixes []commonPrefix
@@ -102,8 +102,8 @@ type listBucketResult struct {
 	Prefix     string
 }
 
-// listMultipartUploadsResult container for ListMultipartUploads response
-type listMultipartUploadsResult struct {
+// ListMultipartUploadsResult container for ListMultipartUploads response
+type ListMultipartUploadsResult struct {
 	Bucket             string
 	KeyMarker          string
 	UploadIDMarker     string `xml:"UploadIdMarker"`
@@ -131,8 +131,8 @@ type copyObjectResult struct {
 	LastModified string // time string format "2006-01-02T15:04:05.000Z"
 }
 
-// objectPart container for particular part of an object.
-type objectPart struct {
+// ObjectPart container for particular part of an object.
+type ObjectPart struct {
 	// Part number identifies the part.
 	PartNumber int
 
@@ -147,8 +147,8 @@ type objectPart struct {
 	Size int64
 }
 
-// listObjectPartsResult container for ListObjectParts response.
-type listObjectPartsResult struct {
+// ListObjectPartsResult container for ListObjectParts response.
+type ListObjectPartsResult struct {
 	Bucket   string
 	Key      string
 	UploadID string `xml:"UploadId"`
@@ -163,7 +163,7 @@ type listObjectPartsResult struct {
 
 	// Indicates whether the returned list of parts is truncated.
 	IsTruncated bool
-	ObjectParts []objectPart `xml:"Part"`
+	ObjectParts []ObjectPart `xml:"Part"`
 
 	EncodingType string
 }
@@ -185,9 +185,9 @@ type completeMultipartUploadResult struct {
 	ETag     string
 }
 
-// completePart sub container lists individual part numbers and their
+// CompletePart sub container lists individual part numbers and their
 // md5sum, part of completeMultipartUpload.
-type completePart struct {
+type CompletePart struct {
 	XMLName xml.Name `xml:"http://s3.amazonaws.com/doc/2006-03-01/ Part" json:"-"`
 
 	// Part number identifies the part.
@@ -198,7 +198,7 @@ type completePart struct {
 // completeMultipartUpload container for completing multipart upload.
 type completeMultipartUpload struct {
 	XMLName xml.Name       `xml:"http://s3.amazonaws.com/doc/2006-03-01/ CompleteMultipartUpload" json:"-"`
-	Parts   []completePart `xml:"Part"`
+	Parts   []CompletePart `xml:"Part"`
 }
 
 // createBucketConfiguration container for bucket configuration.

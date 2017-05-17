@@ -1,0 +1,63 @@
+Attribute     Value
+type          IPv4
+string        192.168.0.1/16
+host          192.168.0.1
+address       192.168.0.1
+port          0
+netmask       255.255.0.0
+network       192.168.0.0
+mask_bits     16
+binary        11000000101010000000000000000001
+hex           c0a80001
+first_usable  192.168.0.1
+last_usable   192.168.255.254
+octets        192 168 0 1
+size          65536
+broadcast     192.168.255.255
+uint32        3232235521
+DialPacket    "udp4" ""
+DialStream    "tcp4" ""
+ListenPacket  "udp4" ""
+ListenStream  "tcp4" ""
+Attribute     Value
+type          IPv4
+string        192.168.0.1/16
+host          192.168.0.1
+address       192.168.0.1
+port          0
+netmask       255.255.0.0
+network       192.168.0.0
+mask_bits     16
+binary        11000000101010000000000000000001
+hex           c0a80001
+first_usable  192.168.0.1
+last_usable   192.168.255.254
+octets        192 168 0 1
+size          65536
+broadcast     192.168.255.255
+uint32        3232235521
+DialPacket    "udp4" ""
+DialStream    "tcp4" ""
+ListenPacket  "udp4" ""
+ListenStream  "tcp4" ""
+Attribute     Value
+type          IPv4
+string        192.168.0.1/16
+host          192.168.0.1
+address       192.168.0.1
+port          0
+netmask       255.255.0.0
+network       192.168.0.0
+mask_bits     16
+binary        11000000101010000000000000000001
+hex           c0a80001
+first_usable  192.168.0.1
+last_usable   192.168.255.254
+octets        192 168 0 1
+size          65536
+broadcast     192.168.255.255
+uint32        3232235521
+DialPacket    "udp4" ""
+DialStream    "tcp4" ""
+ListenPacket  "udp4" ""
+ListenStream  "tcp4" ""

@@ -29,11 +29,11 @@ import:
   subpackages:
   - qr
 - package: github.com/minio/minio-go
-  version: v2.0.4
+  version: v2.1.0
 - package: github.com/mssola/user_agent
   version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
-  version: v1.8.0
+  version: v1.8.1
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
@@ -82,4 +82,4 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
-  version: v5.0.36
+  version: v5.0.38
