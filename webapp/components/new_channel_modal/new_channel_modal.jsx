@@ -10,26 +10,88 @@ import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import UserStore from 'stores/user_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
-
 import {FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
-export default class NewChannelModal extends React.Component {
+export default class NewChannelModal extends React.PureComponent {
+    static propTypes = {
+
+        /**
+         * Set whether to show the modal or not
+         */
+        show: PropTypes.bool.isRequired,
+
+        /**
+         * The type of channel to create, 'O' or 'P'
+         */
+        channelType: PropTypes.string.isRequired,
+
+        /**
+         * The data needed to create the channel
+         */
+        channelData: PropTypes.object.isRequired,
+
+        /**
+         * Set to force form submission on CTRL/CMD + ENTER instead of ENTER
+         */
+        ctrlSend: PropTypes.bool,
+
+        /**
+         * Set to show options available to team admins
+         */
+        isTeamAdmin: PropTypes.bool,
+
+        /**
+         * Set to show options available to system admins
+         */
+        isSystemAdmin: PropTypes.bool,
+
+        /**
+         * Server error from failed channel creation
+         */
+        serverError: PropTypes.node,
+
+        /**
+         * Function used to submit the channel
+         */
+        onSubmitChannel: PropTypes.func.isRequired,
+
+        /**
+         * Function to call when modal is dimissed
+         */
+        onModalDismissed: PropTypes.func.isRequired,
+
+        /**
+         * Function to call when modal has exited
+         */
+        onModalExited: PropTypes.func,
+
+        /**
+         * Function to call to switch channel type
+         */
+        onTypeSwitched: PropTypes.func.isRequired,
+
+        /**
+         * Function to call when edit URL button is pressed
+         */
+        onChangeURLPressed: PropTypes.func.isRequired,
+
+        /**
+         * Function to call when channel data is modified
+         */
+        onDataChanged: PropTypes.func.isRequired
+    }
+
     constructor(props) {
         super(props);
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.onEnterKeyDown = this.onEnterKeyDown.bind(this);
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
-
-        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
 
         this.state = {
             displayNameError: ''
@@ -53,22 +115,12 @@ export default class NewChannelModal extends React.Component {
         if (UserAgent.isInternetExplorer()) {
             $('body').addClass('browser--ie');
         }
-
-        PreferenceStore.addChangeListener(this.onPreferenceChange);
-    }
-
-    componentWillUnmount() {
-        PreferenceStore.removeChangeListener(this.onPreferenceChange);
-    }
-
-    onPreferenceChange() {
-        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
     }
 
     onEnterKeyDown(e) {
-        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
+        if (this.props.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
             this.handleSubmit(e);
-        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+        } else if (!this.props.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
             this.handleSubmit(e);
         }
     }
@@ -140,14 +192,13 @@ export default class NewChannelModal extends React.Component {
             </a>
         );
 
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+        const isAdmin = this.props.isTeamAdmin || this.props.isSystemAdmin;
 
-        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, this.props.isSystemAdmin)) {
             createPublicChannelLink = null;
         }
 
-        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, this.props.isSystemAdmin)) {
             createPrivateChannelLink = null;
         }
 
@@ -338,22 +389,3 @@ export default class NewChannelModal extends React.Component {
         );
     }
 }
-
-NewChannelModal.defaultProps = {
-    show: false,
-    channelType: 'O',
-    serverError: null
-};
-NewChannelModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    channelType: React.PropTypes.string.isRequired,
-    channelData: React.PropTypes.object.isRequired,
-    serverError: React.PropTypes.node,
-    onSubmitChannel: React.PropTypes.func.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired,
-    onModalExited: React.PropTypes.func,
-    onTypeSwitched: React.PropTypes.func.isRequired,
-    onChangeURLPressed: React.PropTypes.func.isRequired,
-    onDataChanged: React.PropTypes.func.isRequired
-};
-
