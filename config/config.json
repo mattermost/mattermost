@@ -51,7 +51,8 @@
         "Username": "elastic",
         "Password": "changeme",
         "EnableIndexing": false,
-        "EnableSearching": false
+        "EnableSearching": false,
+        "Sniff": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

@@ -407,6 +407,7 @@ type ElasticSearchSettings struct {
 	Password        *string
 	EnableIndexing  *bool
 	EnableSearching *bool
+	Sniff           *bool
 }
 
 type Config struct {
@@ -1243,6 +1244,11 @@ func (o *Config) SetDefaults() {
 		*o.ElasticSearchSettings.EnableSearching = false
 	}
 
+	if o.ElasticSearchSettings.Sniff == nil {
+		o.ElasticSearchSettings.Sniff = new(bool)
+		*o.ElasticSearchSettings.Sniff = true
+	}
+
 	o.defaultWebrtcSettings()
 }
 
@@ -1477,14 +1483,6 @@ func (o *Config) IsValid() *AppError {
 	if *o.ElasticSearchSettings.EnableIndexing {
 		if len(*o.ElasticSearchSettings.ConnectionUrl) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "")
-		}
-
-		if len(*o.ElasticSearchSettings.Username) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.username.app_error", nil, "")
-		}
-
-		if len(*o.ElasticSearchSettings.Password) == 0 {
-			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.password.app_error", nil, "")
 		}
 	}
 
