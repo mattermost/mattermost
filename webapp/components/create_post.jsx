@@ -23,10 +23,11 @@ import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import ConfirmModal from './confirm_modal.jsx';
 
 import Constants from 'utils/constants.jsx';
 
-import {FormattedHTMLMessage} from 'react-intl';
+import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -68,11 +69,16 @@ export default class CreatePost extends React.Component {
         this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
         this.closeEmoji = this.closeEmoji.bind(this);
+        this.handleHide = this.handleHide.bind(this);
+        this.handleNotifyAllConfirmation = this.handleNotifyAllConfirmation.bind(this);
 
         PostStore.clearDraftUploads();
 
         const channelId = ChannelStore.getCurrentId();
         const draft = PostStore.getPostDraft(channelId);
+
+        const stats = ChannelStore.getCurrentStats();
+        const members = stats.member_count - 1;
 
         this.state = {
             channelId,
@@ -86,7 +92,10 @@ export default class CreatePost extends React.Component {
             showPostDeletedModal: false,
             enableSendButton: false,
             showEmojiPicker: false,
-            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
+            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW),
+            showConfirmModal: false,
+            postMessage: '',
+            totalMembers: members
         };
 
         this.lastBlurAt = 0;
@@ -108,12 +117,35 @@ export default class CreatePost extends React.Component {
         }
     }
 
+    handleHide() {
+        this.setState({
+            showConfirmModal: false
+        });
+    }
+
+    handleNotifyAllConfirmation() {
+        this.setState({
+            showConfirmModal: false
+        });
+        this.sendMessage(this.state.postMessage);
+
+        this.setState({
+            message: '',
+            submitting: false,
+            postError: null,
+            fileInfos: [],
+            serverError: null,
+            enableSendButton: false
+        });
+
+        const fasterThanHumanWillClick = 150;
+        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
+
+        this.focusTextbox(forceFocus);
+    }
+
     handleSubmit(e) {
         e.preventDefault();
-
-        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
-            return;
-        }
 
         const post = {};
         post.file_ids = [];
@@ -134,6 +166,18 @@ export default class CreatePost extends React.Component {
         MessageHistoryStore.storeMessageInHistory(this.state.message);
 
         this.setState({submitting: true, serverError: null});
+
+        const stats = ChannelStore.getCurrentStats();
+        const members = stats.member_count - 1;
+
+        if ((post.message.includes('@all') || post.message.includes('@channel')) && members >= 5) {
+            this.setState({
+                showConfirmModal: true,
+                postMessage: post,
+                totalMembers: members
+            });
+            return;
+        }
 
         const isReaction = REACTION_PATTERN.exec(post.message);
         if (post.message.indexOf('/') === 0) {
@@ -574,6 +618,30 @@ export default class CreatePost extends React.Component {
     }
 
     render() {
+        const notifyAllTitle = (
+            <FormattedMessage
+                id='notify_all.title.confirm'
+                defaultMessage='Confirm sending notifications to entire channel'
+            />
+        );
+
+        const notifyAllConfirm = (
+            <FormattedMessage
+                id='notify_all.confirm'
+                defaultMessage='Confirm'
+            />
+        );
+
+        const notifyAllMessage = (
+            <FormattedMessage
+                id='notify_all.question'
+                defaultMessage='By using @all or @channel you are about to send notifications to {totalMembers} people. Are you sure you want to do this?'
+                values={{
+                    totalMembers: this.state.totalMembers
+                }}
+            />
+        );
+
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -698,6 +766,14 @@ export default class CreatePost extends React.Component {
                 <PostDeletedModal
                     show={this.state.showPostDeletedModal}
                     onHide={this.hidePostDeletedModal}
+                />
+                <ConfirmModal
+                    title={notifyAllTitle}
+                    message={notifyAllMessage}
+                    confirmButton={notifyAllConfirm}
+                    show={this.state.showConfirmModal}
+                    onConfirm={this.handleNotifyAllConfirmation}
+                    onCancel={() => this.setState({showConfirmModal: false})}
                 />
             </form>
         );
