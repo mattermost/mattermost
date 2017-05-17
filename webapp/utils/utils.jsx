@@ -534,7 +534,7 @@ export function applyTheme(theme) {
 
     if (theme.sidebarHeaderTextColor) {
         changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn, .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor);
-        changeCss('.app__body .sidebar-header-dropdown__icon', 'fill:' + theme.sidebarHeaderTextColor);
+        changeCss('.app__body .sidebar-header-dropdown__icon svg', 'fill:' + theme.sidebarHeaderTextColor);
         changeCss('.sidebar--left .team__header .user__name, .app__body .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8));
         changeCss('.sidebar--left .team__header:hover .user__name, .app__body .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor);
@@ -558,14 +558,14 @@ export function applyTheme(theme) {
 
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
-        changeCss('.app__body .sidebar--left .badge', 'background:' + theme.mentionBj);
-        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'background:' + theme.mentionBj + ' !important');
+        changeCss('.app__body .sidebar--left .mention-badge', 'background:' + theme.mentionBj);
+        changeCss('.multi-teams .team-sidebar .mention-badge', 'background:' + theme.mentionBj);
     }
 
     if (theme.mentionColor) {
         changeCss('.app__body .sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
-        changeCss('.app__body .sidebar--left .badge', 'color:' + theme.mentionColor);
-        changeCss('.app__body .multi-teams .team-sidebar .team-wrapper .team-container .team-btn .badge', 'color:' + theme.mentionColor + ' !important');
+        changeCss('.app__body .sidebar--left .mention-badge', 'color:' + theme.mentionColor);
+        changeCss('.app__body .multi-teams .team-sidebar .mention-badge', 'color:' + theme.mentionColor);
     }
 
     if (theme.centerChannelBg) {
