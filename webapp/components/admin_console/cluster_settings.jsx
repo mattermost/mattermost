@@ -24,28 +24,29 @@ export default class ClusterSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
-        config.ClusterSettings.Enable = this.state.enable;
-        config.ClusterSettings.InterNodeListenAddress = this.state.interNodeListenAddress;
-
-        // config.ClusterSettings.InterNodeUrls = this.state.interNodeUrls.split(',');
-        // config.ClusterSettings.InterNodeUrls = config.ClusterSettings.InterNodeUrls.map((url) => {
-        //     return url.trim();
-        // });
-
-        // if (config.ClusterSettings.InterNodeUrls.length === 1 && config.ClusterSettings.InterNodeUrls[0] === '') {
-        //     config.ClusterSettings.InterNodeUrls = [];
-        // }
-
+        config.ClusterSettings.Enable = this.state.Enable;
+        config.ClusterSettings.ClusterName = this.state.ClusterName;
+        config.ClusterSettings.OverrideHostname = this.state.OverrideHostname;
+        config.ClusterSettings.UseIpAddress = this.state.UseIpAddress;
+        config.ClusterSettings.UseExperimentalGossip = this.state.UseExperimentalGossip;
+        config.ClusterSettings.ReadOnlyConfig = this.state.ReadOnlyConfig;
+        config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort);
+        config.ClusterSettings.StreamingPort = this.parseIntNonZero(this.state.StreamingPort);
         return config;
     }
 
     getStateFromConfig(config) {
         const settings = config.ClusterSettings;
 
-        // interNodeUrls: settings.InterNodeUrls.join(', '),
-        // interNodeListenAddress: settings.InterNodeListenAddress,
         return {
-            enable: settings.Enable,
+            Enable: settings.Enable,
+            ClusterName: settings.ClusterName,
+            OverrideHostname: settings.OverrideHostname,
+            UseIpAddress: settings.UseIpAddress,
+            UseExperimentalGossip: settings.UseExperimentalGossip,
+            ReadOnlyConfig: settings.ReadOnlyConfig,
+            GossipPort: settings.GossipPort,
+            StreamingPort: settings.StreamingPort,
             showWarning: false
         };
     }
@@ -110,7 +111,7 @@ export default class ClusterSettings extends AdminSettings {
         }
 
         var clusterTableContainer = null;
-        if (this.state.enable) {
+        if (this.state.Enable) {
             clusterTableContainer = (<ClusterTableContainer/>);
         }
 
@@ -126,7 +127,7 @@ export default class ClusterSettings extends AdminSettings {
                 </p>
                 {warning}
                 <BooleanSetting
-                    id='enable'
+                    id='Enable'
                     label={
                         <FormattedMessage
                             id='admin.cluster.enableTitle'
@@ -139,46 +140,131 @@ export default class ClusterSettings extends AdminSettings {
                             defaultMessage='When true, Mattermost will run in High Availability mode. Please see <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> to learn more about configuring High Availability for Mattermost.'
                         />
                     }
-                    value={this.state.enable}
+                    value={this.state.Enable}
                     onChange={this.overrideHandleChange}
                 />
                 <TextSetting
-                    id='interNodeListenAddress'
+                    id='ClusterName'
                     label={
                         <FormattedMessage
-                            id='admin.cluster.interNodeListenAddressTitle'
-                            defaultMessage='Inter-Node Listen Address:'
+                            id='admin.cluster.ClusterName'
+                            defaultMessage='Cluster Name:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.cluster.interNodeListenAddressEx', 'Ex ":8075"')}
+                    placeholder={Utils.localizeMessage('admin.cluster.ClusterNameEx', 'Ex "Production" or "Staging"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.cluster.interNodeListenAddressDesc'
-                            defaultMessage='The address the server will listen on for communicating with other servers.'
+                            id='admin.cluster.ClusterNameDesc'
+                            defaultMessage='The cluster to join by name.  Only nodes with the same cluster name will join together.  This is to support Blue-Green deployments or staging pointing to the same database.'
                         />
                     }
-                    value={this.state.interNodeListenAddress}
+                    value={this.state.ClusterName}
                     onChange={this.overrideHandleChange}
-                    disabled={true}
                 />
                 <TextSetting
-                    id='interNodeUrls'
+                    id='OverrideHostname'
                     label={
                         <FormattedMessage
-                            id='admin.cluster.interNodeUrlsTitle'
-                            defaultMessage='Inter-Node URLs:'
+                            id='admin.cluster.OverrideHostname'
+                            defaultMessage='Override Hostname:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.cluster.interNodeUrlsEx', 'Ex "http://10.10.10.30, http://10.10.10.31"')}
+                    placeholder={Utils.localizeMessage('admin.cluster.OverrideHostnameEx', 'Ex "app-server-01"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.cluster.interNodeUrlsDesc'
-                            defaultMessage='The internal/private URLs of all the Mattermost servers separated by commas.'
+                            id='admin.cluster.OverrideHostnameDesc'
+                            defaultMessage='The default value of <blank> will attempt to get the Hostname from the OS or use the IP Address.  You can override the hostname of this server with this property.  It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.'
                         />
                     }
-                    value={this.state.interNodeUrls}
+                    value={this.state.OverrideHostname}
                     onChange={this.overrideHandleChange}
-                    disabled={true}
+                />
+                <BooleanSetting
+                    id='UseIpAddress'
+                    label={
+                        <FormattedMessage
+                            id='admin.cluster.UseIpAddress'
+                            defaultMessage='Use IP Address:'
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.cluster.UseIpAddressDesc'
+                            defaultMessage='When true, the cluster will attempt to communicate via IP Address vs using the hostname.'
+                        />
+                    }
+                    value={this.state.UseIpAddress}
+                    onChange={this.overrideHandleChange}
+                />
+                <BooleanSetting
+                    id='UseExperimentalGossip'
+                    label={
+                        <FormattedMessage
+                            id='admin.cluster.UseExperimentalGossip'
+                            defaultMessage='Use Experimental Gossip:'
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.cluster.UseExperimentalGossipDesc'
+                            defaultMessage='When true, the server will attempt to communicate via the gossip protocol over the gossip port.  When false the server will attempt to communicate over the streaming port. When false the gossip port and protocol are still used to determine cluster health.'
+                        />
+                    }
+                    value={this.state.UseExperimentalGossip}
+                    onChange={this.overrideHandleChange}
+                />
+                <BooleanSetting
+                    id='ReadOnlyConfig'
+                    label={
+                        <FormattedMessage
+                            id='admin.cluster.ReadOnlyConfig'
+                            defaultMessage='Read Only Config:'
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.cluster.ReadOnlyConfigDesc'
+                            defaultMessage='When true, the server will reject changes made to the configuration from the system console. When running in production it is recommened to set this to true.'
+                        />
+                    }
+                    value={this.state.ReadOnlyConfig}
+                    onChange={this.overrideHandleChange}
+                />
+                <TextSetting
+                    id='GossipPort'
+                    label={
+                        <FormattedMessage
+                            id='admin.cluster.GossipPort'
+                            defaultMessage='Gossip Port:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.cluster.GossipPortEx', 'Ex "8074"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.cluster.GossipPortDesc'
+                            defaultMessage='The port used for the gossip protocol.  Both UDP and TCP should abe allowed on this port.'
+                        />
+                    }
+                    value={this.state.GossipPort}
+                    onChange={this.overrideHandleChange}
+                />
+                <TextSetting
+                    id='StreamingPort'
+                    label={
+                        <FormattedMessage
+                            id='admin.cluster.StreamingPort'
+                            defaultMessage='Streaming Port:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.cluster.StreamingPortEx', 'Ex "8075"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.cluster.StreamingPortDesc'
+                            defaultMessage='The port used for streaming data between servers.'
+                        />
+                    }
+                    value={this.state.StreamingPort}
+                    onChange={this.overrideHandleChange}
                 />
             </SettingsGroup>
         );

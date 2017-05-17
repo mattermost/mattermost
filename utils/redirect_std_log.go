@@ -33,10 +33,14 @@ func NewRedirectStdLog(system string, ignoreDebug bool) *log.Logger {
 		for scanner.Scan() {
 			line := scanner.Text()
 
-			if strings.Index(line, "[DEBUG]") == 0 && !ignoreDebug {
-				l4g.Debug("%v%v", system, line[7:])
-			} else if strings.Index(line, "[DEBG]") == 0 && !ignoreDebug {
-				l4g.Debug("%v%v", system, line[6:])
+			if strings.Index(line, "[DEBUG]") == 0 {
+				if !ignoreDebug {
+					l4g.Debug("%v%v", system, line[7:])
+				}
+			} else if strings.Index(line, "[DEBG]") == 0 {
+				if !ignoreDebug {
+					l4g.Debug("%v%v", system, line[6:])
+				}
 			} else if strings.Index(line, "[WARN]") == 0 {
 				l4g.Info("%v%v", system, line[6:])
 			} else if strings.Index(line, "[ERROR]") == 0 {
