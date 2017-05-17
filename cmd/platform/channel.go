@@ -41,14 +41,14 @@ var addChannelUsersCmd = &cobra.Command{
 	RunE:    addChannelUsersCmdF,
 }
 
-var deleteChannelsCmd = &cobra.Command{
-	Use:   "delete [channels]",
-	Short: "Delete channels",
-	Long: `Permanently delete some channels.
-Permanently deletes a channel along with all related information including posts from the database.
+var archiveChannelsCmd = &cobra.Command{
+	Use:   "archive [channels]",
+	Short: "Archive channels",
+	Long: `Archive some channels.
+Archive a channel along with all related information including posts from the database.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel delete myteam:mychannel",
-	RunE:    deleteChannelsCmdF,
+	Example: "  channel archive myteam:mychannel",
+	RunE:    archiveChannelsCmdF,
 }
 
 var listChannelsCmd = &cobra.Command{
@@ -81,7 +81,7 @@ func init() {
 		channelCreateCmd,
 		removeChannelUsersCmd,
 		addChannelUsersCmd,
-		deleteChannelsCmd,
+		archiveChannelsCmd,
 		listChannelsCmd,
 		restoreChannelsCmd,
 	)
@@ -205,7 +205,7 @@ func addUserToChannel(channel *model.Channel, user *model.User, userArg string) 
 	}
 }
 
-func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
+func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 	initDBCommandContextCobra(cmd)
 
 	if len(args) < 1 {
