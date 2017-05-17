@@ -178,6 +178,7 @@ export default class SearchableChannelList extends React.Component {
                 <div className='filter-row'>
                     <div className='col-sm-12'>
                         <input
+                            id="searchChannelsTextbox"
                             ref='filter'
                             className='form-control filter-textbox'
                             placeholder={localizeMessage('filtered_channels_list.search', 'Search channels')}
