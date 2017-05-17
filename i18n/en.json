@@ -6237,6 +6237,6 @@
   },
   {
     "id": "api.system.go_routines",
-    "translation": "The number of running goroutine is over the health threshold %v of %v"
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   }
 ]

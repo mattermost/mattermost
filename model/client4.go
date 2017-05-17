@@ -1739,19 +1739,12 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // General/System Section
 
-// GetPing will ping the server and to see if it is up and running.
-func (c *Client4) GetPing() (bool, *Response) {
-	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); err != nil {
-		return false, &Response{StatusCode: r.StatusCode, Error: err}
-	} else {
-		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
-	}
-}
-
-// HealthCheck will return ok if the running goRoutines are below the threshold and unhealthy for above.
-func (c *Client4) HealthCheck() (string, *Response) {
-	if r, err := c.DoApiGet(c.GetSystemRoute()+"/health", ""); err != nil {
+// GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
+func (c *Client4) GetPing() (string, *Response) {
+	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); r.StatusCode == 500 {
+		defer r.Body.Close()
+		return "unhealthy", &Response{StatusCode: r.StatusCode, Error: err}
+	} else if err != nil {
 		return "", &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)

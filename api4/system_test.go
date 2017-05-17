@@ -12,13 +12,29 @@ import (
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
 
-	b, _ := Client.GetPing()
-	if b == false {
-		t.Fatal()
+	goRoutineHealthThreshold := *utils.Cfg.ServiceSettings.GoroutineHealthThreshold
+	defer func() {
+		*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold
+	}()
+
+	_, resp := Client.GetPing()
+	CheckForbiddenStatus(t, resp)
+
+	status, resp := th.SystemAdminClient.GetPing()
+	CheckNoError(t, resp)
+	if status != "OK" {
+		t.Fatal("should return OK")
+	}
+
+	*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = 10
+	status, resp = th.SystemAdminClient.GetPing()
+	CheckInternalErrorStatus(t, resp)
+	if status != "unhealthy" {
+		t.Fatal("should return unhealthy")
 	}
 }
 
@@ -341,32 +357,5 @@ func TestPostLog(t *testing.T) {
 	CheckNoError(t, resp)
 	if len(logMessage) == 0 {
 		t.Fatal("should return the log message")
-	}
-}
-
-func TestHealthCheck(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
-	Client := th.Client
-
-	goRoutineHealthThreshold := *utils.Cfg.ServiceSettings.GoroutineHealthThreshold
-	defer func() {
-		*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold
-	}()
-
-	_, resp := Client.HealthCheck()
-	CheckForbiddenStatus(t, resp)
-
-	status, resp := th.SystemAdminClient.HealthCheck()
-	CheckNoError(t, resp)
-	if status != "OK" {
-		t.Fatal("should return OK")
-	}
-
-	*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = 10
-	status, resp = th.SystemAdminClient.HealthCheck()
-	CheckNoError(t, resp)
-	if status != "unhealthy" {
-		t.Fatal("should return unhealthy")
 	}
 }
