@@ -79,7 +79,7 @@ kqueue: Fix logic for CREATE after REMOVE [#111](https://github.com/fsnotify/fsn
 
 ## v1.0.2 / 2014-08-17
 
-* [Fix] Missing create events on OS X. [#14](https://github.com/fsnotify/fsnotify/issues/14) (thanks @zhsso)
+* [Fix] Missing create events on macOS. [#14](https://github.com/fsnotify/fsnotify/issues/14) (thanks @zhsso)
 * [Fix] Make ./path and path equivalent. (thanks @zhsso)
 
 ## v1.0.0 / 2014-08-15
@@ -142,7 +142,7 @@ kqueue: Fix logic for CREATE after REMOVE [#111](https://github.com/fsnotify/fsn
 
 ## v0.9.2 / 2014-08-17
 
-* [Backport] Fix missing create events on OS X. [#14](https://github.com/fsnotify/fsnotify/issues/14) (thanks @zhsso)
+* [Backport] Fix missing create events on macOS. [#14](https://github.com/fsnotify/fsnotify/issues/14) (thanks @zhsso)
 
 ## v0.9.1 / 2014-06-12
 
@@ -161,7 +161,7 @@ kqueue: Fix logic for CREATE after REMOVE [#111](https://github.com/fsnotify/fsn
 ## v0.8.11 / 2013-11-02
 
 * [Doc] Add Changelog [#72][] (thanks @nathany)
-* [Doc] Spotlight and double modify events on OS X [#62][] (reported by @paulhammond)
+* [Doc] Spotlight and double modify events on macOS [#62][] (reported by @paulhammond)
 
 ## v0.8.10 / 2013-10-19
 

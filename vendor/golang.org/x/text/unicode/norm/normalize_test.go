@@ -699,6 +699,24 @@ var appendTestsNFC = []AppendTest{
 		"\u0d4a" + strings.Repeat("\u0d3e", 30),
 		"\u0d4a" + strings.Repeat("\u0d3e", 29) + cgj + "\u0d3e",
 	},
+
+	{ //  https://golang.org/issues/20079
+		"",
+		"\xeb\u0344",
+		"\xeb\u0308\u0301",
+	},
+
+	{ //  https://golang.org/issues/20079
+		"",
+		"\uac00" + strings.Repeat("\u0300", 30),
+		"\uac00" + strings.Repeat("\u0300", 29) + "\u034f\u0300",
+	},
+
+	{ //  https://golang.org/issues/20079
+		"",
+		"\xeb" + strings.Repeat("\u0300", 31),
+		"\xeb" + strings.Repeat("\u0300", 30) + "\u034f\u0300",
+	},
 }
 
 var appendTestsNFD = []AppendTest{

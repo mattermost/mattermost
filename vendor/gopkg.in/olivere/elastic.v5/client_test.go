@@ -271,7 +271,7 @@ func TestClientHealthcheckStartupTimeout(t *testing.T) {
 	start := time.Now()
 	_, err := NewClient(SetURL("http://localhost:9299"), SetHealthcheckTimeoutStartup(5*time.Second))
 	duration := time.Now().Sub(start)
-	if err != ErrNoClient {
+	if !IsConnErr(err) {
 		t.Fatal(err)
 	}
 	if duration < 5*time.Second {
@@ -647,9 +647,9 @@ func TestClientSelectConnAllDead(t *testing.T) {
 	client.conns[1].MarkAsDead()
 
 	// If all connections are dead, next should make them alive again, but
-	// still return ErrNoClient when it first finds out.
+	// still return an error when it first finds out.
 	c, err := client.next()
-	if err != ErrNoClient {
+	if !IsConnErr(err) {
 		t.Fatal(err)
 	}
 	if c != nil {

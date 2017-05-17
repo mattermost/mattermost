@@ -324,11 +324,20 @@ func (f *Font) parseKern() error {
 	if version != 0 {
 		return UnsupportedError(fmt.Sprintf("kern version: %d", version))
 	}
+
 	n, offset := u16(f.kern, offset), offset+2
-	if n != 1 {
-		return UnsupportedError(fmt.Sprintf("kern nTables: %d", n))
+	if n == 0 {
+		return UnsupportedError("kern nTables: 0")
 	}
-	offset += 2
+	// TODO: support multiple subtables. In practice, almost all .ttf files
+	// have only one subtable, if they have a kern table at all. But it's not
+	// impossible. Xolonium Regular (https://fontlibrary.org/en/font/xolonium)
+	// has 3 subtables. Those subtables appear to be disjoint, rather than
+	// being the same kerning pairs encoded in three different ways.
+	//
+	// For now, we'll use only the first subtable.
+
+	offset += 2 // Skip the version.
 	length, offset := int(u16(f.kern, offset)), offset+2
 	coverage, offset := u16(f.kern, offset), offset+2
 	if coverage != 0x0001 {

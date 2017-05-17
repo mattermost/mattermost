@@ -50,3 +50,37 @@ func TestNestedQueryWithInnerHit(t *testing.T) {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
 }
+
+func TestNestedQueryWithIgnoreUnmapped(t *testing.T) {
+	var tests = []struct {
+		query    *BoolQuery
+		expected string
+	}{
+		{
+			NewBoolQuery().Must(NewNestedQuery("path", NewTermQuery("test", "test"))),
+			`{"bool":{"must":{"nested":{"path":"path","query":{"term":{"test":"test"}}}}}}`,
+		},
+		{
+			NewBoolQuery().Must(NewNestedQuery("path", NewTermQuery("test", "test")).IgnoreUnmapped(true)),
+			`{"bool":{"must":{"nested":{"ignore_unmapped":true,"path":"path","query":{"term":{"test":"test"}}}}}}`,
+		},
+		{
+			NewBoolQuery().Must(NewNestedQuery("path", NewTermQuery("test", "test")).IgnoreUnmapped(false)),
+			`{"bool":{"must":{"nested":{"ignore_unmapped":false,"path":"path","query":{"term":{"test":"test"}}}}}}`,
+		},
+	}
+	for _, test := range tests {
+		src, err := test.query.Source()
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, err := json.Marshal(src)
+		if err != nil {
+			t.Fatalf("marshaling to JSON failed: %v", err)
+		}
+		got := string(data)
+		if got != test.expected {
+			t.Errorf("expected\n%s\n,got:\n%s", test.expected, got)
+		}
+	}
+}

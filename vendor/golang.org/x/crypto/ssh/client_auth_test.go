@@ -38,7 +38,7 @@ func tryAuth(t *testing.T, config *ClientConfig) error {
 	defer c2.Close()
 
 	certChecker := CertChecker{
-		IsAuthority: func(k PublicKey) bool {
+		IsUserAuthority: func(k PublicKey) bool {
 			return bytes.Equal(k.Marshal(), testPublicKeys["ecdsa"].Marshal())
 		},
 		UserKeyFallback: func(conn ConnMetadata, key PublicKey) (*Permissions, error) {

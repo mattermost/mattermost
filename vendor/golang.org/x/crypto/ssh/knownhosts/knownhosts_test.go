@@ -76,6 +76,28 @@ func TestRevoked(t *testing.T) {
 	}
 }
 
+func TestHostAuthority(t *testing.T) {
+	for _, m := range []struct {
+		authorityFor string
+		address      string
+
+		good bool
+	}{
+		{authorityFor: "localhost", address: "localhost:22", good: true},
+		{authorityFor: "localhost", address: "localhost", good: false},
+		{authorityFor: "localhost", address: "localhost:1234", good: false},
+		{authorityFor: "[localhost]:1234", address: "localhost:1234", good: true},
+		{authorityFor: "[localhost]:1234", address: "localhost:22", good: false},
+		{authorityFor: "[localhost]:1234", address: "localhost", good: false},
+	} {
+		db := testDB(t, `@cert-authority `+m.authorityFor+` `+edKeyStr)
+		if ok := db.IsHostAuthority(db.lines[0].knownKey.Key, m.address); ok != m.good {
+			t.Errorf("IsHostAuthority: authority %s, address %s, wanted good = %v, got good = %v",
+				m.authorityFor, m.address, m.good, ok)
+		}
+	}
+}
+
 func TestBracket(t *testing.T) {
 	db := testDB(t, `[git.eclipse.org]:29418,[198.41.30.196]:29418 `+edKeyStr)
 

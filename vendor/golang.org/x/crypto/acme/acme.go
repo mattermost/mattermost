@@ -152,7 +152,7 @@ func (c *Client) Discover(ctx context.Context) (Directory, error) {
 			CAA     []string `json:"caa-identities"`
 		}
 	}
-	if json.NewDecoder(res.Body).Decode(&v); err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&v); err != nil {
 		return Directory{}, err
 	}
 	c.dir = &Directory{
@@ -436,7 +436,7 @@ func (c *Client) RevokeAuthorization(ctx context.Context, url string) error {
 //
 // It returns a non-nil Authorization only if its Status is StatusValid.
 // In all other cases WaitAuthorization returns an error.
-// If the Status is StatusInvalid, the returned error is ErrAuthorizationFailed.
+// If the Status is StatusInvalid, the returned error is of type *AuthorizationError.
 func (c *Client) WaitAuthorization(ctx context.Context, url string) (*Authorization, error) {
 	sleep := sleeper(ctx)
 	for {
@@ -465,7 +465,7 @@ func (c *Client) WaitAuthorization(ctx context.Context, url string) (*Authorizat
 			return raw.authorization(url), nil
 		}
 		if raw.Status == StatusInvalid {
-			return nil, ErrAuthorizationFailed
+			return nil, raw.error(url)
 		}
 		if err := sleep(retry, 0); err != nil {
 			return nil, err
@@ -882,14 +882,8 @@ func responseError(resp *http.Response) error {
 	// don't care if ReadAll returns an error:
 	// json.Unmarshal will fail in that case anyway
 	b, _ := ioutil.ReadAll(resp.Body)
-	e := struct {
-		Status int
-		Type   string
-		Detail string
-	}{
-		Status: resp.StatusCode,
-	}
-	if err := json.Unmarshal(b, &e); err != nil {
+	e := &wireError{Status: resp.StatusCode}
+	if err := json.Unmarshal(b, e); err != nil {
 		// this is not a regular error response:
 		// populate detail with anything we received,
 		// e.Status will already contain HTTP response code value
@@ -898,12 +892,7 @@ func responseError(resp *http.Response) error {
 			e.Detail = resp.Status
 		}
 	}
-	return &Error{
-		StatusCode:  e.Status,
-		ProblemType: e.Type,
-		Detail:      e.Detail,
-		Header:      resp.Header,
-	}
+	return e.error(resp.Header)
 }
 
 // chainCert fetches CA certificate chain recursively by following "up" links.

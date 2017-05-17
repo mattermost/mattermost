@@ -147,12 +147,12 @@ type ServerConn struct {
 // Request and NewChannel channels must be serviced, or the connection
 // will hang.
 func NewServerConn(c net.Conn, config *ServerConfig) (*ServerConn, <-chan NewChannel, <-chan *Request, error) {
-	if config.MaxAuthTries == 0 {
-		config.MaxAuthTries = 6
-	}
-
 	fullConf := *config
 	fullConf.SetDefaults()
+	if fullConf.MaxAuthTries == 0 {
+		fullConf.MaxAuthTries = 6
+	}
+
 	s := &connection{
 		sshConn: sshConn{conn: c},
 	}

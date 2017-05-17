@@ -56,6 +56,7 @@ package unix
 #include <utime.h>
 #include <linux/can.h>
 #include <linux/if_alg.h>
+#include <linux/fs.h>
 #include <linux/vm_sockets.h>
 
 // On mips64, the glibc stat and kernel stat do not agree
@@ -107,6 +108,14 @@ struct stat {
 
 #endif
 
+// Certain constants and structs are missing from the fs/crypto UAPI
+#define FS_MAX_KEY_SIZE                 64
+struct fscrypt_key {
+  __u32 mode;
+  __u8 raw[FS_MAX_KEY_SIZE];
+  __u32 size;
+};
+
 #ifdef TCSETS2
 // On systems that have "struct termios2" use this as type Termios.
 typedef struct termios2 termios_t;
@@ -154,10 +163,8 @@ struct my_sockaddr_un {
 typedef struct user_regs PtraceRegs;
 #elif defined(__aarch64__)
 typedef struct user_pt_regs PtraceRegs;
-#elif defined(__powerpc64__)
+#elif defined(__mips__) || defined(__powerpc64__)
 typedef struct pt_regs PtraceRegs;
-#elif defined(__mips__)
-typedef struct user PtraceRegs;
 #elif defined(__s390x__)
 typedef struct _user_regs_struct PtraceRegs;
 #elif defined(__sparc__)
@@ -247,6 +254,12 @@ type Dirent C.struct_dirent
 type Fsid C.fsid_t
 
 type Flock_t C.struct_flock
+
+// Filesystem Encryption
+
+type FscryptPolicy C.struct_fscrypt_policy
+
+type FscryptKey C.struct_fscrypt_key
 
 // Advice to Fadvise
 

@@ -19,7 +19,11 @@ End User License Agreement (EULA) and a CAB format decoder. These tests assume
 that such fonts have already been installed. You may need to specify the
 directories for these fonts:
 
-go test golang.org/x/image/font/sfnt -args -proprietary -adobeDir=$HOME/fonts/adobe -appleDir=$HOME/fonts/apple -microsoftDir=$HOME/fonts/microsoft
+go test golang.org/x/image/font/sfnt -args -proprietary \
+	-adobeDir=$HOME/fonts/adobe \
+	-appleDir=$HOME/fonts/apple \
+	-dejavuDir=$HOME/fonts/dejavu \
+	-microsoftDir=$HOME/fonts/microsoft
 
 To only run those tests for the Microsoft fonts:
 
@@ -70,6 +74,13 @@ var (
 		// On a Mac, set this to "/System/Library/Fonts/".
 		"",
 		"directory name for the Apple proprietary fonts",
+	)
+
+	dejavuDir = flag.String(
+		"dejavuDir",
+		// Get the fonts from https://dejavu-fonts.github.io/
+		"",
+		"directory name for the DejaVu proprietary fonts",
 	)
 
 	microsoftDir = flag.String(
@@ -143,6 +154,18 @@ func TestProprietaryAppleHiragino1(t *testing.T) {
 	testProprietary(t, "apple", "ヒラギノ角ゴシック W0.ttc?1", 9000, -1)
 }
 
+func TestProprietaryDejaVuSansExtraLight(t *testing.T) {
+	testProprietary(t, "dejavu", "DejaVuSans-ExtraLight.ttf", 2000, -1)
+}
+
+func TestProprietaryDejaVuSansMono(t *testing.T) {
+	testProprietary(t, "dejavu", "DejaVuSansMono.ttf", 3300, -1)
+}
+
+func TestProprietaryDejaVuSerif(t *testing.T) {
+	testProprietary(t, "dejavu", "DejaVuSerif.ttf", 3500, -1)
+}
+
 func TestProprietaryMicrosoftArial(t *testing.T) {
 	testProprietary(t, "microsoft", "Arial.ttf", 1200, -1)
 }
@@ -192,6 +215,8 @@ func testProprietary(t *testing.T, proprietor, filename string, minNumGlyphs, fi
 		dir = *adobeDir
 	case "apple":
 		dir = *appleDir
+	case "dejavu":
+		dir = *dejavuDir
 	case "microsoft":
 		dir = *microsoftDir
 	default:
@@ -375,6 +400,10 @@ var proprietaryVersions = map[string]string{
 	"apple/ヒラギノ角ゴシック W0.ttc?0": "11.0d7e1",
 	"apple/ヒラギノ角ゴシック W0.ttc?1": "11.0d7e1",
 
+	"dejavu/DejaVuSans-ExtraLight.ttf": "Version 2.37",
+	"dejavu/DejaVuSansMono.ttf":        "Version 2.37",
+	"dejavu/DejaVuSerif.ttf":           "Version 2.37",
+
 	"microsoft/Arial.ttf":           "Version 2.82",
 	"microsoft/Arial.ttf?0":         "Version 2.82",
 	"microsoft/Comic_Sans_MS.ttf":   "Version 2.10",
@@ -402,6 +431,10 @@ var proprietaryFullNames = map[string]string{
 	"apple/Helvetica.dfont?5":    "Helvetica Light Oblique",
 	"apple/ヒラギノ角ゴシック W0.ttc?0": "Hiragino Sans W0",
 	"apple/ヒラギノ角ゴシック W0.ttc?1": ".Hiragino Kaku Gothic Interface W0",
+
+	"dejavu/DejaVuSans-ExtraLight.ttf": "DejaVu Sans ExtraLight",
+	"dejavu/DejaVuSansMono.ttf":        "DejaVu Sans Mono",
+	"dejavu/DejaVuSerif.ttf":           "DejaVu Serif",
 
 	"microsoft/Arial.ttf":           "Arial",
 	"microsoft/Arial.ttf?0":         "Arial",
@@ -467,6 +500,11 @@ var proprietaryGlyphIndexTestCases = map[string]map[rune]GlyphIndex{
 		'\u2229':     0,    // U+2229 INTERSECTION
 		'\u04e9':     1208, // U+04E9 CYRILLIC SMALL LETTER BARRED O
 		'\U0001f100': 0,    // U+0001F100 DIGIT ZERO FULL STOP
+	},
+
+	"dejavu/DejaVuSerif.ttf": {
+		'\u0041': 36,   // U+0041 LATIN CAPITAL LETTER A
+		'\u1e00': 1418, // U+1E00 LATIN CAPITAL LETTER A WITH RING BELOW
 	},
 
 	"microsoft/Arial.ttf": {
@@ -930,6 +968,23 @@ var proprietaryGlyphTestCases = map[string]map[rune][]Segment{
 		},
 	},
 
+	"dejavu/DejaVuSans-ExtraLight.ttf": {
+		'i': {
+			// - contour #0
+			moveTo(230, 1120),
+			lineTo(322, 1120),
+			lineTo(322, 0),
+			lineTo(230, 0),
+			lineTo(230, 1120),
+			// - contour #1
+			moveTo(230, 1556),
+			lineTo(322, 1556),
+			lineTo(322, 1430),
+			lineTo(230, 1430),
+			lineTo(230, 1556),
+		},
+	},
+
 	"microsoft/Arial.ttf": {
 		',': {
 			// - contour #0
@@ -1109,6 +1164,18 @@ type kernTestCase struct {
 // proprietaryKernTestCases hold a sample of each font's kerning pairs. The
 // numerical values can be verified by running the ttx tool.
 var proprietaryKernTestCases = map[string][]kernTestCase{
+	"dejavu/DejaVuSans-ExtraLight.ttf": {
+		{2048, font.HintingNone, [2]rune{'A', 'A'}, 57},
+		{2048, font.HintingNone, [2]rune{'W', 'A'}, -112},
+		// U+00C1 LATIN CAPITAL LETTER A WITH ACUTE
+		// U+01FA LATIN CAPITAL LETTER A WITH RING ABOVE AND ACUTE
+		// U+1E82 LATIN CAPITAL LETTER W WITH ACUTE
+		{2048, font.HintingNone, [2]rune{'\u00c1', 'A'}, 57},
+		// TODO: enable these next two test cases, when we support multiple
+		// kern subtables.
+		// {2048, font.HintingNone, [2]rune{'\u01fa', 'A'}, 57},
+		// {2048, font.HintingNone, [2]rune{'\u1e82', 'A'}, -112},
+	},
 	"microsoft/Arial.ttf": {
 		{2048, font.HintingNone, [2]rune{'A', 'V'}, -152},
 		// U+03B8 GREEK SMALL LETTER THETA

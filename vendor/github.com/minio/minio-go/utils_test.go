@@ -57,13 +57,12 @@ func TestGetEndpointURL(t *testing.T) {
 		{"s3.cn-north-1.amazonaws.com.cn", false, "http://s3.cn-north-1.amazonaws.com.cn", nil, true},
 		{"192.168.1.1:9000", false, "http://192.168.1.1:9000", nil, true},
 		{"192.168.1.1:9000", true, "https://192.168.1.1:9000", nil, true},
-		{"192.168.1.1::9000", false, "", fmt.Errorf("too many colons in address %s", "192.168.1.1::9000"), false},
-		{"13333.123123.-", true, "", fmt.Errorf("Endpoint: %s does not follow ip address or domain name standards.", "13333.123123.-"), false},
-		{"13333.123123.-", true, "", fmt.Errorf("Endpoint: %s does not follow ip address or domain name standards.", "13333.123123.-"), false},
-		{"s3.amazonaws.com:443", true, "", fmt.Errorf("Amazon S3 endpoint should be 's3.amazonaws.com'."), false},
-		{"storage.googleapis.com:4000", true, "", fmt.Errorf("Google Cloud Storage endpoint should be 'storage.googleapis.com'."), false},
-		{"s3.aamzza.-", true, "", fmt.Errorf("Endpoint: %s does not follow ip address or domain name standards.", "s3.aamzza.-"), false},
-		{"", true, "", fmt.Errorf("Endpoint:  does not follow ip address or domain name standards."), false},
+		{"13333.123123.-", true, "", ErrInvalidArgument(fmt.Sprintf("Endpoint: %s does not follow ip address or domain name standards.", "13333.123123.-")), false},
+		{"13333.123123.-", true, "", ErrInvalidArgument(fmt.Sprintf("Endpoint: %s does not follow ip address or domain name standards.", "13333.123123.-")), false},
+		{"s3.amazonaws.com:443", true, "", ErrInvalidArgument("Amazon S3 endpoint should be 's3.amazonaws.com'."), false},
+		{"storage.googleapis.com:4000", true, "", ErrInvalidArgument("Google Cloud Storage endpoint should be 'storage.googleapis.com'."), false},
+		{"s3.aamzza.-", true, "", ErrInvalidArgument(fmt.Sprintf("Endpoint: %s does not follow ip address or domain name standards.", "s3.aamzza.-")), false},
+		{"", true, "", ErrInvalidArgument("Endpoint:  does not follow ip address or domain name standards."), false},
 	}
 
 	for i, testCase := range testCases {
@@ -98,17 +97,17 @@ func TestIsValidEndpointURL(t *testing.T) {
 		// Flag indicating whether the test is expected to pass or not.
 		shouldPass bool
 	}{
-		{"", fmt.Errorf("Endpoint url cannot be empty."), false},
+		{"", ErrInvalidArgument("Endpoint url cannot be empty."), false},
 		{"/", nil, true},
 		{"https://s3.am1;4205;0cazonaws.com", nil, true},
 		{"https://s3.cn-north-1.amazonaws.com.cn", nil, true},
 		{"https://s3.amazonaws.com/", nil, true},
 		{"https://storage.googleapis.com/", nil, true},
-		{"192.168.1.1", fmt.Errorf("Endpoint url cannot have fully qualified paths."), false},
-		{"https://amazon.googleapis.com/", fmt.Errorf("Google Cloud Storage endpoint should be 'storage.googleapis.com'."), false},
-		{"https://storage.googleapis.com/bucket/", fmt.Errorf("Endpoint url cannot have fully qualified paths."), false},
-		{"https://z3.amazonaws.com", fmt.Errorf("Amazon S3 endpoint should be 's3.amazonaws.com'."), false},
-		{"https://s3.amazonaws.com/bucket/object", fmt.Errorf("Endpoint url cannot have fully qualified paths."), false},
+		{"192.168.1.1", ErrInvalidArgument("Endpoint url cannot have fully qualified paths."), false},
+		{"https://amazon.googleapis.com/", ErrInvalidArgument("Google Cloud Storage endpoint should be 'storage.googleapis.com'."), false},
+		{"https://storage.googleapis.com/bucket/", ErrInvalidArgument("Endpoint url cannot have fully qualified paths."), false},
+		{"https://z3.amazonaws.com", ErrInvalidArgument("Amazon S3 endpoint should be 's3.amazonaws.com'."), false},
+		{"https://s3.amazonaws.com/bucket/object", ErrInvalidArgument("Endpoint url cannot have fully qualified paths."), false},
 	}
 
 	for i, testCase := range testCases {
@@ -149,9 +148,9 @@ func TestIsValidExpiry(t *testing.T) {
 		// Flag to indicate whether the test should pass.
 		shouldPass bool
 	}{
-		{100 * time.Millisecond, fmt.Errorf("Expires cannot be lesser than 1 second."), false},
-		{604801 * time.Second, fmt.Errorf("Expires cannot be greater than 7 days."), false},
-		{0 * time.Second, fmt.Errorf("Expires cannot be lesser than 1 second."), false},
+		{100 * time.Millisecond, ErrInvalidArgument("Expires cannot be lesser than 1 second."), false},
+		{604801 * time.Second, ErrInvalidArgument("Expires cannot be greater than 7 days."), false},
+		{0 * time.Second, ErrInvalidArgument("Expires cannot be lesser than 1 second."), false},
 		{1 * time.Second, nil, true},
 		{10000 * time.Second, nil, true},
 		{999 * time.Second, nil, true},

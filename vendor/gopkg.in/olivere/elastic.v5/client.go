@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -17,11 +16,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
 	// Version is the current version of Elastic.
-	Version = "5.0.36"
+	Version = "5.0.38"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -811,7 +812,7 @@ func (c *Client) sniff(timeout time.Duration) error {
 	c.connsMu.RUnlock()
 
 	if len(urls) == 0 {
-		return ErrNoClient
+		return errors.Wrap(ErrNoClient, "no URLs found")
 	}
 
 	// Start sniffing on all found URLs
@@ -830,7 +831,7 @@ func (c *Client) sniff(timeout time.Duration) error {
 			}
 		case <-time.After(timeout):
 			// We get here if no cluster responds in time
-			return ErrNoClient
+			return errors.Wrap(ErrNoClient, "sniff timeout")
 		}
 	}
 }
@@ -1063,7 +1064,7 @@ func (c *Client) startupHealthcheck(timeout time.Duration) error {
 			break
 		}
 	}
-	return ErrNoClient
+	return errors.Wrap(ErrNoClient, "health check timeout")
 }
 
 // next returns the next available connection, or ErrNoClient.
@@ -1102,7 +1103,7 @@ func (c *Client) next() (*conn, error) {
 	}
 
 	// We tried hard, but there is no node available
-	return nil, ErrNoClient
+	return nil, errors.Wrap(ErrNoClient, "no avaiable connection")
 }
 
 // mustActiveConn returns nil if there is an active connection,
@@ -1116,7 +1117,7 @@ func (c *Client) mustActiveConn() error {
 			return nil
 		}
 	}
-	return ErrNoClient
+	return errors.Wrap(ErrNoClient, "no active connection found")
 }
 
 // PerformRequest does a HTTP request to Elasticsearch.
@@ -1157,7 +1158,7 @@ func (c *Client) PerformRequest(ctx context.Context, method, path string, params
 
 		// Get a connection
 		conn, err = c.next()
-		if err == ErrNoClient {
+		if errors.Cause(err) == ErrNoClient {
 			n++
 			if !retried {
 				// Force a healtcheck as all connections seem to be dead.
@@ -1715,4 +1716,10 @@ func (c *Client) WaitForGreenStatus(timeout string) error {
 // See WaitForStatus for more details.
 func (c *Client) WaitForYellowStatus(timeout string) error {
 	return c.WaitForStatus("yellow", timeout)
+}
+
+// IsConnError unwraps the given error value and checks if it is equal to
+// elastic.ErrNoClient.
+func IsConnErr(err error) bool {
+	return errors.Cause(err) == ErrNoClient
 }

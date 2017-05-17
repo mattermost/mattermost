@@ -8,11 +8,9 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"text/template"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
-var homeTemplate = template.Must(template.ParseFiles("home.html"))
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
@@ -24,8 +22,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	homeTemplate.Execute(w, r.Host)
+	http.ServeFile(w, r, "home.html")
 }
 
 func main() {
