@@ -87,6 +87,7 @@ type SqlStore struct {
 	status         StatusStore
 	fileInfo       FileInfoStore
 	reaction       ReactionStore
+	jobStatus      JobStatusStore
 	SchemaVersion  string
 	rrCounter      int64
 	srCounter      int64
@@ -151,6 +152,7 @@ func NewSqlStore() Store {
 	sqlStore.status = NewSqlStatusStore(sqlStore)
 	sqlStore.fileInfo = NewSqlFileInfoStore(sqlStore)
 	sqlStore.reaction = NewSqlReactionStore(sqlStore)
+	sqlStore.jobStatus = NewSqlJobStatusStore(sqlStore)
 
 	err := sqlStore.master.CreateTablesIfNotExists()
 	if err != nil {
@@ -179,6 +181,7 @@ func NewSqlStore() Store {
 	sqlStore.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 	sqlStore.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
 	sqlStore.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
+	sqlStore.jobStatus.(*SqlJobStatusStore).CreateIndexesIfNotExists()
 
 	sqlStore.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -735,6 +738,10 @@ func (ss *SqlStore) Reaction() ReactionStore {
 	return ss.reaction
 }
 
+func (ss *SqlStore) JobStatus() JobStatusStore {
+	return ss.jobStatus
+}
+
 func (ss *SqlStore) DropAllTables() {
 	ss.master.TruncateTables()
 }
@@ -752,6 +759,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return encrypt([]byte(utils.Cfg.SqlSettings.AtRestEncryptKey), model.MapToJson(t))
 	case model.StringInterface:
 		return model.StringInterfaceToJson(t), nil
+	case map[string]interface{}:
+		return model.StringInterfaceToJson(model.StringInterface(t)), nil
 	}
 
 	return val, nil
@@ -796,6 +805,16 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringInterface:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*string)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_string_interface"))
+			}
+			b := []byte(*s)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+	case *map[string]interface{}:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {

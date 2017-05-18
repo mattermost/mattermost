@@ -50,6 +50,22 @@ func SetSiteURL(url string) {
 	siteURL = strings.TrimRight(url, "/")
 }
 
+var cfgListeners = map[string]func(*model.Config, *model.Config){}
+
+// Registers a function with a given to be called when the config is reloaded and may have changed. The function
+// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
+// for the listener that can later be used to remove it.
+func AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	id := model.NewId()
+	cfgListeners[id] = listener
+	return id
+}
+
+// Removes a listener function by the unique ID returned when AddConfigListener was called
+func RemoveConfigListener(id string) {
+	delete(cfgListeners, id)
+}
+
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("./config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("./config/" + fileName)
@@ -242,12 +258,30 @@ func DisableConfigWatch() {
 	}
 }
 
+func InitAndLoadConfig(filename string) (err string) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Sprintf("%v", r)
+		}
+	}()
+	TranslationsPreInit()
+	EnableConfigFromEnviromentVars()
+	LoadConfig(filename)
+	InitializeConfigWatch()
+	EnableConfigWatch()
+
+	return ""
+}
+
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
 func LoadConfig(fileName string) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
+
+	// Cfg should never be null
+	oldConfig := *Cfg
 
 	fileNameWithExtension := filepath.Base(fileName)
 	fileExtension := filepath.Ext(fileNameWithExtension)
@@ -339,6 +373,10 @@ func LoadConfig(fileName string) {
 
 	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
+
+	for _, listener := range cfgListeners {
+		listener(&oldConfig, &config)
+	}
 }
 
 func RegenerateClientConfig() {
