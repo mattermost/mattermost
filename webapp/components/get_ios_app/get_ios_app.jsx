@@ -9,7 +9,7 @@ import {Link} from 'react-router';
 import AppStoreButton from 'images/app-store-button.png';
 import IPhone6Mockup from 'images/iphone-6-mockup.png';
 
-export default function GetIosApp(props) {
+export default function GetIosApp() {
     return (
         <div className='get-app get-ios-app'>
             <h1 className='get-app__header'>

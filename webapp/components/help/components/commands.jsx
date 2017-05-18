@@ -8,7 +8,7 @@ import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default function HelpCommands(props) {
+export default function HelpCommands() {
     const message = [];
     message.push(localizeMessage('help.commands.title', '# Executing Commands\n___'));
     message.push(localizeMessage('help.commands.intro', 'Slash commands perform operations in Mattermost by typing into the text input box. Enter a `/` followed by a command and some arguments to perform actions.\n\nBuilt-in slash commands come with all Mattermost installations and custom slash commands are configurable to interact with external applications. Learn about configuring custom slash commands on the [developer slash command documentation page](http://docs.mattermost.com/developer/slash-commands.html).'));

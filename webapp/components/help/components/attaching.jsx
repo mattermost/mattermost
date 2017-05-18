@@ -8,7 +8,7 @@ import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default function HelpAttaching(props) {
+export default function HelpAttaching() {
     const message = [];
     message.push(localizeMessage('help.attaching.title', '# Attaching Files\n_____'));
     message.push(localizeMessage('help.attaching.methods', '## Attachment Methods\nAttach a file by drag and drop or by clicking the attachment icon in the message input box.'));

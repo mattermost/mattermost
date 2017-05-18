@@ -8,7 +8,7 @@ import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default function HelpFormatting(props) {
+export default function HelpFormatting() {
     const message = [];
     message.push(localizeMessage('help.formatting.title', '# Formatting Text\n_____'));
     message.push(localizeMessage('help.formatting.intro', 'Markdown makes it easy to format messages. Type a message as you normally would, and use these rules to render it with special formatting.'));

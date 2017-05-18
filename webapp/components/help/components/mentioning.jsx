@@ -8,7 +8,7 @@ import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default function HelpMentioning(props) {
+export default function HelpMentioning() {
     const message = [];
     message.push(localizeMessage('help.mentioning.title', '# Mentioning Teammates\n_____'));
     message.push(localizeMessage('help.mentioning.mentions', '## @Mentions\nUse @mentions to get the attention of specific team members.'));

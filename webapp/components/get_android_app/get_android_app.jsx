@@ -9,7 +9,7 @@ import {Link} from 'react-router';
 import MattermostIcon from 'images/favicon/android-chrome-192x192.png';
 import Nexus6Mockup from 'images/nexus-6p-mockup.png';
 
-export default function GetAndroidApp(props) {
+export default function GetAndroidApp() {
     return (
         <div className='get-app get-android-app'>
             <h1 className='get-app__header'>

@@ -8,7 +8,7 @@ import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default function HelpComposing(props) {
+export default function HelpComposing() {
     const message = [];
     message.push(localizeMessage('help.composing.title', '# Sending Messages\n_____'));
     message.push(localizeMessage('help.composing.types', '## Message Types\nReply to posts to keep conversations organized in threads.'));

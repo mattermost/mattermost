@@ -8,7 +8,7 @@ import {Link} from 'react-router/es6';
 
 import React from 'react';
 
-export default function HelpMessaging(props) {
+export default function HelpMessaging() {
     const message = [];
     message.push(localizeMessage('help.messaging.title', '# Messaging Basics\n_____'));
     message.push(localizeMessage('help.messaging.write', '**Write messages** using the text input box at the bottom of Mattermost. Press ENTER to send a message. Use SHIFT+ENTER to create a new line without sending a message.'));
