@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	CDS_OFFLINE_AFTER_MILLIS = 1000 * 60 * 15 // 15 minutes
+	CDS_OFFLINE_AFTER_MILLIS = 1000 * 60 * 30 // 30 minutes
 	CDS_TYPE_APP             = "mattermost_app"
 )
 
