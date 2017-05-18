@@ -46,6 +46,7 @@ export default class RhsComment extends React.Component {
         this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
         this.emojiPickerClick = this.emojiPickerClick.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -56,7 +57,8 @@ export default class RhsComment extends React.Component {
             width: '',
             height: '',
             showReactEmojiPicker: false,
-            reactPickerOffset: 15
+            reactPickerOffset: 15,
+            dropdownOpened: false
         };
     }
 
@@ -132,6 +134,10 @@ export default class RhsComment extends React.Component {
         }
 
         if (nextProps.lastPostCount !== this.props.lastPostCount) {
+            return true;
+        }
+
+        if (this.state.dropdownOpened !== nextState.dropdownOpened) {
             return true;
         }
 
@@ -318,7 +324,10 @@ export default class RhsComment extends React.Component {
         }
 
         return (
-            <RhsDropdown dropdownContents={dropdownContents}/>
+            <RhsDropdown
+                dropdownContents={dropdownContents}
+                handleDropdownOpened={this.handleDropdownOpened}
+            />
         );
     }
 
@@ -386,7 +395,17 @@ export default class RhsComment extends React.Component {
             className += ' post--pinned';
         }
 
+        if (this.state.dropdownOpened) {
+            className += ' post--hovered';
+        }
+
         return className;
+    }
+
+    handleDropdownOpened(isOpened) {
+        this.setState({
+            dropdownOpened: isOpened
+        });
     }
 
     render() {

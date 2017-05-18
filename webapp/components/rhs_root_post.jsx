@@ -45,6 +45,7 @@ export default class RhsRootPost extends React.Component {
         this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
         this.emojiPickerClick = this.emojiPickerClick.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -55,7 +56,8 @@ export default class RhsRootPost extends React.Component {
             width: '',
             height: '',
             showRHSEmojiPicker: false,
-            testStateObj: true
+            testStateObj: true,
+            dropdownOpened: false
         };
     }
 
@@ -118,6 +120,10 @@ export default class RhsRootPost extends React.Component {
         }
 
         if (this.state.showRHSEmojiPicker !== nextState.showRHSEmojiPicker) {
+            return true;
+        }
+
+        if (this.state.dropdownOpened !== nextState.dropdownOpened) {
             return true;
         }
 
@@ -197,7 +203,17 @@ export default class RhsRootPost extends React.Component {
             className += ' post--pinned';
         }
 
+        if (this.state.dropdownOpened) {
+            className += ' post--hovered';
+        }
+
         return className;
+    }
+
+    handleDropdownOpened(isOpened) {
+        this.setState({
+            dropdownOpened: isOpened
+        });
     }
 
     render() {
@@ -413,7 +429,10 @@ export default class RhsRootPost extends React.Component {
         var rootOptions = '';
         if (dropdownContents.length > 0) {
             rootOptions = (
-                <RhsDropdown dropdownContents={dropdownContents}/>
+                <RhsDropdown
+                    dropdownContents={dropdownContents}
+                    handleDropdownOpened={this.handleDropdownOpened}
+                />
             );
         }
 
