@@ -165,6 +165,7 @@ type PostStore interface {
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
 	Overwrite(post *model.Post) StoreChannel
+	GetPostsByIds(postIds []string) StoreChannel
 }
 
 type UserStore interface {
