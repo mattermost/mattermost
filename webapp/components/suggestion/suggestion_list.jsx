@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import SuggestionStore from 'stores/suggestion_store.jsx';
+
 import $ from 'jquery';
-import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
-
-import SuggestionStore from 'stores/suggestion_store.jsx';
 
 export default class SuggestionList extends React.Component {
     static propTypes = {

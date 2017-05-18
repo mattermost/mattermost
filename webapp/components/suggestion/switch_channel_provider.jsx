@@ -4,7 +4,6 @@
 import Suggestion from './suggestion.jsx';
 import Provider from './provider.jsx';
 
-import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
 import {autocompleteUsers} from 'actions/user_actions.jsx';
@@ -19,8 +18,13 @@ import React from 'react';
 // Redux actions
 import store from 'stores/redux_store.jsx';
 const getState = store.getState;
+const dispatch = store.dispatch;
+
+import {searchChannels} from 'mattermost-redux/actions/channels';
 
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
+import {getChannelsInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 class SwitchChannelSuggestion extends Suggestion {
     render() {
@@ -94,7 +98,7 @@ export default class SwitchChannelProvider extends Provider {
             prefix = channelPrefix;
             this.startNewRequest(suggestionId, channelPrefix);
 
-            const allChannels = ChannelStore.getAll();
+            const allChannels = getChannelsInCurrentTeam(getState());
             const users = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
             this.formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, users);
 
@@ -102,7 +106,16 @@ export default class SwitchChannelProvider extends Provider {
                 channelPrefix,
                 () => {
                     const newUsers = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
-                    this.formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, newUsers);
+                    const channels = getChannelsInCurrentTeam(getState());
+                    this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, newUsers);
+                }
+            );
+
+            searchChannels(getCurrentTeamId(getState()), channelPrefix)(dispatch, getState).then(
+                () => {
+                    const newUsers = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
+                    const channels = getChannelsInCurrentTeam(getState());
+                    this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, newUsers);
                 }
             );
 
