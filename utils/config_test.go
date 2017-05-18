@@ -6,6 +6,8 @@ package utils
 import (
 	"os"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestConfig(t *testing.T) {
@@ -58,4 +60,81 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		t.Fatal("should have been reset")
 	}
 
+}
+
+func TestAddRemoveConfigListener(t *testing.T) {
+	if len(cfgListeners) != 0 {
+		t.Fatal("should've started with 0 listeners")
+	}
+
+	id1 := AddConfigListener(func(*model.Config, *model.Config) {
+	})
+	if len(cfgListeners) != 1 {
+		t.Fatal("should now have 1 listener")
+	}
+
+	id2 := AddConfigListener(func(*model.Config, *model.Config) {
+	})
+	if len(cfgListeners) != 2 {
+		t.Fatal("should now have 2 listeners")
+	}
+
+	RemoveConfigListener(id1)
+	if len(cfgListeners) != 1 {
+		t.Fatal("should've removed first listener")
+	}
+
+	RemoveConfigListener(id2)
+	if len(cfgListeners) != 0 {
+		t.Fatal("should've removed both listeners")
+	}
+}
+
+func TestConfigListener(t *testing.T) {
+	TranslationsPreInit()
+	EnableConfigFromEnviromentVars()
+	LoadConfig("config.json")
+
+	SiteName := Cfg.TeamSettings.SiteName
+	defer func() {
+		Cfg.TeamSettings.SiteName = SiteName
+		SaveConfig(CfgFileName, Cfg)
+	}()
+	Cfg.TeamSettings.SiteName = "test123"
+
+	listenerCalled := false
+	listener := func(oldConfig *model.Config, newConfig *model.Config) {
+		if listenerCalled {
+			t.Fatal("listener called twice")
+		}
+
+		if oldConfig.TeamSettings.SiteName != "test123" {
+			t.Fatal("old config contains incorrect site name")
+		} else if newConfig.TeamSettings.SiteName != "Mattermost" {
+			t.Fatal("new config contains incorrect site name")
+		}
+
+		listenerCalled = true
+	}
+	listenerId := AddConfigListener(listener)
+	defer RemoveConfigListener(listenerId)
+
+	listener2Called := false
+	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
+		if listener2Called {
+			t.Fatal("listener2 called twice")
+		}
+
+		listener2Called = true
+	}
+	listener2Id := AddConfigListener(listener2)
+	defer RemoveConfigListener(listener2Id)
+
+	LoadConfig("config.json")
+
+	if !listenerCalled {
+		t.Fatal("listener should've been called")
+	} else if !listener2Called {
+		t.Fatal("listener 2 should've been called")
+	}
 }

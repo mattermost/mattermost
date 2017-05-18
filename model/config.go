@@ -410,6 +410,10 @@ type ElasticSearchSettings struct {
 	Sniff           *bool
 }
 
+type DataRetentionSettings struct {
+	Enable *bool
+}
+
 type Config struct {
 	ServiceSettings       ServiceSettings
 	TeamSettings          TeamSettings
@@ -434,6 +438,7 @@ type Config struct {
 	AnalyticsSettings     AnalyticsSettings
 	WebrtcSettings        WebrtcSettings
 	ElasticSearchSettings ElasticSearchSettings
+	DataRetentionSettings DataRetentionSettings
 }
 
 func (o *Config) ToJson() string {
@@ -1255,6 +1260,11 @@ func (o *Config) SetDefaults() {
 	if o.ElasticSearchSettings.Sniff == nil {
 		o.ElasticSearchSettings.Sniff = new(bool)
 		*o.ElasticSearchSettings.Sniff = true
+	}
+
+	if o.DataRetentionSettings.Enable == nil {
+		o.DataRetentionSettings.Enable = new(bool)
+		*o.DataRetentionSettings.Enable = false
 	}
 
 	o.defaultWebrtcSettings()

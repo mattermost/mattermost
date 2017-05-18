@@ -310,7 +310,8 @@ cover:
 prepare-enterprise:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Enterprise build selected, preparing
-	cp $(BUILD_ENTERPRISE_DIR)/imports.go cmd/platform/
+	mkdir -p imports/
+	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
 	rm -f enterprise
 	ln -s $(BUILD_ENTERPRISE_DIR) enterprise
 endif
@@ -334,6 +335,19 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
+build-job-server: build-job-server-linux build-job-server-mac build-job-server-windows
+
+build-job-server-linux: .prebuild prepare-enterprise
+	@echo Build mattermost job server for Linux amd64
+	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
+
+build-job-server-osx: .prebuild prepare-enterprise
+	@echo Build mattermost job server for OSX amd64
+	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
+
+build-job-server-windows: .prebuild prepare-enterprise
+	@echo Build mattermost job server for Windows amd64
+	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
 
 package: build build-client
 	@ echo Packaging mattermost
@@ -469,6 +483,10 @@ restart-server: | stop-server run-server
 
 restart-client: | stop-client run-client
 
+run-job-server:
+	@echo Running job server for development
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver/jobserver.go
+
 clean: stop-docker
 	@echo Cleaning
 
@@ -515,12 +533,13 @@ govet:
 	$(GO) vet $(GOFLAGS) ./web || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) ./enterprise || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1

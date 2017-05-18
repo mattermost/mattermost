@@ -114,6 +114,25 @@ func ValidateLicense(signed []byte) (bool, string) {
 	return true, string(plaintext)
 }
 
+func GetAndValidateLicenseFileFromDisk() (*model.License, []byte) {
+	fileName := GetLicenseFileLocation(*Cfg.ServiceSettings.LicenseFileLocation)
+
+	if _, err := os.Stat(fileName); err != nil {
+		l4g.Debug("We could not find the license key in the database or on disk at %v", fileName)
+		return nil, nil
+	}
+
+	l4g.Info("License key has not been uploaded.  Loading license key from disk at %v", fileName)
+	licenseBytes := GetLicenseFileFromDisk(fileName)
+
+	if success, licenseStr := ValidateLicense(licenseBytes); !success {
+		l4g.Error("Found license key at %v but it appears to be invalid.", fileName)
+		return nil, nil
+	} else {
+		return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
+	}
+}
+
 func GetLicenseFileFromDisk(fileName string) []byte {
 	file, err := os.Open(fileName)
 	if err != nil {
