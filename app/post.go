@@ -125,6 +125,11 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 		rpost = result.Data.(*model.Post)
 	}
 
+	esInterface := einterfaces.GetElasticSearchInterface()
+	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+		go esInterface.IndexPost(rpost, teamId)
+	}
+
 	if einterfaces.GetMetricsInterface() != nil {
 		einterfaces.GetMetricsInterface().IncrementPostCreate()
 	}
@@ -308,6 +313,17 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	} else {
 		rpost := result.Data.(*model.Post)
 
+		esInterface := einterfaces.GetElasticSearchInterface()
+		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+			go func() {
+				if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
+					l4g.Error("Couldn't get channel %v for post %v for ElasticSearch indexing.", rpost.ChannelId, rpost.Id)
+				} else {
+					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
+				}
+			}()
+		}
+
 		sendUpdatedPostEvent(rpost)
 
 		InvalidateCacheForChannelPosts(rpost.ChannelId)
@@ -484,6 +500,11 @@ func DeletePost(postId string) (*model.Post, *model.AppError) {
 		go DeletePostFiles(post)
 		go DeleteFlaggedPosts(post.Id)
 
+		esInterface := einterfaces.GetElasticSearchInterface()
+		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+			go esInterface.DeletePost(post.Id)
+		}
+
 		InvalidateCacheForChannelPosts(post.ChannelId)
 
 		return post, nil
@@ -509,27 +530,84 @@ func DeletePostFiles(post *model.Post) {
 
 func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
-	channels := []store.StoreChannel{}
 
-	for _, params := range paramsList {
-		params.OrTerms = isOrSearch
-		// don't allow users to search for everything
-		if params.Terms != "*" {
-			channels = append(channels, Srv.Store.Post().Search(teamId, userId, params))
+	esInterface := einterfaces.GetElasticSearchInterface()
+	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.ElasticSearch) {
+		finalParamsList := []*model.SearchParams{}
+
+		for _, params := range paramsList {
+			params.OrTerms = isOrSearch
+			// Don't allow users to search for "*"
+			if params.Terms != "*" {
+				// Convert channel names to channel IDs
+				for idx, channelName := range params.InChannels {
+					if channel, err := GetChannelByName(channelName, teamId); err != nil {
+						l4g.Error(err)
+					} else {
+						params.InChannels[idx] = channel.Id
+					}
+				}
+
+				// Convert usernames to user IDs
+				for idx, username := range params.FromUsers {
+					if user, err := GetUserByUsername(username); err != nil {
+						l4g.Error(err)
+					} else {
+						params.FromUsers[idx] = user.Id
+					}
+				}
+
+				finalParamsList = append(finalParamsList, params)
+			}
 		}
-	}
 
-	posts := model.NewPostList()
-	for _, channel := range channels {
-		if result := <-channel; result.Err != nil {
-			return nil, result.Err
+		// We only allow the user to search in channels they are a member of.
+		userChannels, err := GetChannelsForUser(teamId, userId)
+		if err != nil {
+			l4g.Error(err)
+			return nil, err
+		}
+
+		postIds, err := einterfaces.GetElasticSearchInterface().SearchPosts(userChannels, finalParamsList)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get the posts
+		postList := model.NewPostList()
+		if presult := <-Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
+			return nil, presult.Err
 		} else {
-			data := result.Data.(*model.PostList)
-			posts.Extend(data)
+			for _, p := range presult.Data.([]*model.Post) {
+				postList.AddPost(p)
+				postList.AddOrder(p.Id)
+			}
 		}
-	}
 
-	return posts, nil
+		return postList, nil
+	} else {
+		channels := []store.StoreChannel{}
+
+		for _, params := range paramsList {
+			params.OrTerms = isOrSearch
+			// don't allow users to search for everything
+			if params.Terms != "*" {
+				channels = append(channels, Srv.Store.Post().Search(teamId, userId, params))
+			}
+		}
+
+		posts := model.NewPostList()
+		for _, channel := range channels {
+			if result := <-channel; result.Err != nil {
+				return nil, result.Err
+			} else {
+				data := result.Data.(*model.PostList)
+				posts.Extend(data)
+			}
+		}
+
+		return posts, nil
+	}
 }
 
 func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo, *model.AppError) {

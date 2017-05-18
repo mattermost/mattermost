@@ -114,6 +114,12 @@ func runServer(configFileLocation string) {
 		einterfaces.GetMetricsInterface().StartServer()
 	}
 
+	if einterfaces.GetElasticSearchInterface() != nil {
+		if err := einterfaces.GetElasticSearchInterface().Start(); err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
 	c := make(chan os.Signal)

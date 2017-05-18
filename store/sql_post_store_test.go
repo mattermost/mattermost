@@ -1550,3 +1550,45 @@ func TestPostStoreOverwrite(t *testing.T) {
 		t.Fatal("Failed to set FileIds")
 	}
 }
+
+func TestPostStoreGetPostsByIds(t *testing.T) {
+	Setup()
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "a" + model.NewId() + "AAAAAAAAAAA"
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "a" + model.NewId() + "CCCCCCCCC"
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "a" + model.NewId() + "QQQQQQQQQQ"
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+
+	ro1 := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+	ro2 := (<-store.Post().Get(o2.Id)).Data.(*model.PostList).Posts[o2.Id]
+	ro3 := (<-store.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+
+	postIds := []string{
+		ro1.Id,
+		ro2.Id,
+		ro3.Id,
+	}
+
+	if ro4 := Must(store.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro4) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
+	}
+
+	Must(store.Post().Delete(ro1.Id, model.GetMillis()))
+
+	if ro5 := Must(store.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 2 {
+		t.Fatalf("Expected 2 posts in results. Got %v", len(ro5))
+	}
+}
