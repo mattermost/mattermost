@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -72,11 +73,11 @@ export default function PostFlagIcon(props) {
 }
 
 PostFlagIcon.propTypes = {
-    idPrefix: React.PropTypes.string.isRequired,
-    idCount: React.PropTypes.number,
-    postId: React.PropTypes.string.isRequired,
-    isFlagged: React.PropTypes.bool.isRequired,
-    isEphemeral: React.PropTypes.bool
+    idPrefix: PropTypes.string.isRequired,
+    idCount: PropTypes.number,
+    postId: PropTypes.string.isRequired,
+    isFlagged: PropTypes.bool.isRequired,
+    isEphemeral: PropTypes.bool
 };
 
 PostFlagIcon.defaultProps = {

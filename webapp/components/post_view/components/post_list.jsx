@@ -25,6 +25,8 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -637,26 +639,26 @@ PostList.defaultProps = {
 };
 
 PostList.propTypes = {
-    postList: React.PropTypes.object,
-    profiles: React.PropTypes.object,
-    channel: React.PropTypes.object,
-    currentUser: React.PropTypes.object,
-    scrollPostId: React.PropTypes.string,
-    scrollType: React.PropTypes.number,
-    postListScrolled: React.PropTypes.func.isRequired,
-    showMoreMessagesTop: React.PropTypes.bool,
-    showMoreMessagesBottom: React.PropTypes.bool,
-    lastViewed: React.PropTypes.number,
-    lastViewedBottom: React.PropTypes.number,
-    ownNewMessage: React.PropTypes.bool,
-    postsToHighlight: React.PropTypes.object,
-    displayNameType: React.PropTypes.string,
-    displayPostsInCenter: React.PropTypes.bool,
-    compactDisplay: React.PropTypes.bool,
-    previewsCollapsed: React.PropTypes.string,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFocusPost: React.PropTypes.bool,
-    flaggedPosts: React.PropTypes.object,
-    statuses: React.PropTypes.object,
-    isBusy: React.PropTypes.bool
+    postList: PropTypes.object,
+    profiles: PropTypes.object,
+    channel: PropTypes.object,
+    currentUser: PropTypes.object,
+    scrollPostId: PropTypes.string,
+    scrollType: PropTypes.number,
+    postListScrolled: PropTypes.func.isRequired,
+    showMoreMessagesTop: PropTypes.bool,
+    showMoreMessagesBottom: PropTypes.bool,
+    lastViewed: PropTypes.number,
+    lastViewedBottom: PropTypes.number,
+    ownNewMessage: PropTypes.bool,
+    postsToHighlight: PropTypes.object,
+    displayNameType: PropTypes.string,
+    displayPostsInCenter: PropTypes.bool,
+    compactDisplay: PropTypes.bool,
+    previewsCollapsed: PropTypes.string,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFocusPost: PropTypes.bool,
+    flaggedPosts: PropTypes.object,
+    statuses: PropTypes.object,
+    isBusy: PropTypes.bool
 };

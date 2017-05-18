@@ -17,13 +17,15 @@ import AppIcons from 'images/appIcons.png';
 
 const NUM_SCREENS = 3;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class TutorialIntroScreens extends React.Component {
     static get propTypes() {
         return {
-            townSquare: React.PropTypes.object,
-            offTopic: React.PropTypes.object
+            townSquare: PropTypes.object,
+            offTopic: PropTypes.object
         };
     }
     constructor(props) {

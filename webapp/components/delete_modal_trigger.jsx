@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import ConfirmModal from './confirm_modal.jsx';
@@ -67,5 +68,5 @@ export default class DeleteModalTrigger extends React.Component {
 }
 
 DeleteModalTrigger.propTypes = {
-    onDelete: React.PropTypes.func.isRequired
+    onDelete: PropTypes.func.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -279,7 +280,7 @@ PostAttachmentOpenGraph.defaultProps = {
 };
 
 PostAttachmentOpenGraph.propTypes = {
-    link: React.PropTypes.string.isRequired,
-    childComponentDidUpdateFunction: React.PropTypes.func,
-    previewCollapsed: React.PropTypes.string
+    link: PropTypes.string.isRequired,
+    childComponentDidUpdateFunction: PropTypes.func,
+    previewCollapsed: PropTypes.string
 };

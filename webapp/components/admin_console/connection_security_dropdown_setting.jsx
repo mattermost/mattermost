@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -141,9 +142,9 @@ ConnectionSecurityDropdownSettingEmail.defaultProps = {
 };
 
 ConnectionSecurityDropdownSettingEmail.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };
 
 export function ConnectionSecurityDropdownSettingLdap(props) {
@@ -172,9 +173,9 @@ ConnectionSecurityDropdownSettingLdap.defaultProps = {
 };
 
 ConnectionSecurityDropdownSettingLdap.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };
 
 export function ConnectionSecurityDropdownSettingWebserver(props) {
@@ -202,7 +203,7 @@ ConnectionSecurityDropdownSettingWebserver.defaultProps = {
 };
 
 ConnectionSecurityDropdownSettingWebserver.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };

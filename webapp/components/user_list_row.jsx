@@ -10,6 +10,8 @@ import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
@@ -110,10 +112,10 @@ UserListRow.defaultProps = {
 };
 
 UserListRow.propTypes = {
-    user: React.PropTypes.object.isRequired,
-    extraInfo: React.PropTypes.arrayOf(React.PropTypes.object),
-    actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object,
-    actionUserProps: React.PropTypes.object,
-    userCount: React.PropTypes.number
+    user: PropTypes.object.isRequired,
+    extraInfo: PropTypes.arrayOf(PropTypes.object),
+    actions: PropTypes.arrayOf(PropTypes.func),
+    actionProps: PropTypes.object,
+    actionUserProps: PropTypes.object,
+    userCount: PropTypes.number
 };

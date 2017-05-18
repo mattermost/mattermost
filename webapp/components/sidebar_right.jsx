@@ -19,7 +19,9 @@ import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
-import React, {PropTypes} from 'react';
+import PropTypes from 'prop-types';
+
+import React from 'react';
 
 export default class SidebarRight extends React.Component {
     constructor(props) {

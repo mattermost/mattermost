@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -48,19 +49,19 @@ const UNREAD_CHECK_TIME_MILLISECONDS = 10000;
 
 export default class NeedsTeam extends React.Component {
     static propTypes = {
-        children: React.PropTypes.oneOfType([
-            React.PropTypes.arrayOf(React.PropTypes.element),
-            React.PropTypes.element
+        children: PropTypes.oneOfType([
+            PropTypes.arrayOf(PropTypes.element),
+            PropTypes.element
         ]),
-        navbar: React.PropTypes.element,
-        sidebar: React.PropTypes.element,
-        team_sidebar: React.PropTypes.element,
-        center: React.PropTypes.element,
-        params: React.PropTypes.object,
-        user: React.PropTypes.object,
-        actions: React.PropTypes.shape({
-            viewChannel: React.PropTypes.func.isRequired,
-            getMyChannelMembers: React.PropTypes.func.isRequired
+        navbar: PropTypes.element,
+        sidebar: PropTypes.element,
+        team_sidebar: PropTypes.element,
+        center: PropTypes.element,
+        params: PropTypes.object,
+        user: PropTypes.object,
+        actions: PropTypes.shape({
+            viewChannel: PropTypes.func.isRequired,
+            getMyChannelMembers: PropTypes.func.isRequired
         }).isRequired
     }
 

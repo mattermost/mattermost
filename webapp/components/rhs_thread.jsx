@@ -20,6 +20,7 @@ import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 
@@ -473,13 +474,13 @@ RhsThread.defaultProps = {
 };
 
 RhsThread.propTypes = {
-    fromSearch: React.PropTypes.string,
-    fromFlaggedPosts: React.PropTypes.bool,
-    fromPinnedPosts: React.PropTypes.bool,
-    isWebrtc: React.PropTypes.bool,
-    isMentionSearch: React.PropTypes.bool,
-    currentUser: React.PropTypes.object.isRequired,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.func,
-    shrink: React.PropTypes.func
+    fromSearch: PropTypes.string,
+    fromFlaggedPosts: PropTypes.bool,
+    fromPinnedPosts: PropTypes.bool,
+    isWebrtc: PropTypes.bool,
+    isMentionSearch: PropTypes.bool,
+    currentUser: PropTypes.object.isRequired,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    toggleSize: PropTypes.func,
+    shrink: PropTypes.func
 };

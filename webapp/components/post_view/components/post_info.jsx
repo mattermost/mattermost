@@ -18,6 +18,8 @@ import DelayedAction from 'utils/delayed_action.jsx';
 import {Overlay} from 'react-bootstrap';
 import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -454,15 +456,15 @@ PostInfo.defaultProps = {
     sameUser: false
 };
 PostInfo.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    lastPostCount: React.PropTypes.number,
-    commentCount: React.PropTypes.number.isRequired,
-    isLastComment: React.PropTypes.bool.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    handleDropdownOpened: React.PropTypes.func.isRequired,
-    sameUser: React.PropTypes.bool.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool
+    post: PropTypes.object.isRequired,
+    lastPostCount: PropTypes.number,
+    commentCount: PropTypes.number.isRequired,
+    isLastComment: PropTypes.bool.isRequired,
+    handleCommentClick: PropTypes.func.isRequired,
+    handleDropdownOpened: PropTypes.func.isRequired,
+    sameUser: PropTypes.bool.isRequired,
+    currentUser: PropTypes.object.isRequired,
+    compactDisplay: PropTypes.bool,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFlagged: PropTypes.bool
 };

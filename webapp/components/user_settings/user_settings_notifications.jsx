@@ -97,6 +97,8 @@ function getNotificationsStateFromStores() {
     };
 }
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class NotificationsTab extends React.Component {
@@ -896,11 +898,11 @@ NotificationsTab.defaultProps = {
     activeTab: ''
 };
 NotificationsTab.propTypes = {
-    user: React.PropTypes.object,
-    updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func,
-    activeSection: React.PropTypes.string,
-    activeTab: React.PropTypes.string,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
+    user: PropTypes.object,
+    updateSection: PropTypes.func,
+    updateTab: PropTypes.func,
+    activeSection: PropTypes.string,
+    activeTab: PropTypes.string,
+    closeModal: PropTypes.func.isRequired,
+    collapseModal: PropTypes.func.isRequired
 };

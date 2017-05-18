@@ -21,6 +21,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class LicenseSettings extends React.Component {
@@ -278,7 +280,7 @@ class LicenseSettings extends React.Component {
 
 LicenseSettings.propTypes = {
     intl: intlShape.isRequired,
-    config: React.PropTypes.object
+    config: PropTypes.object
 };
 
 export default injectIntl(LicenseSettings);

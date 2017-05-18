@@ -3,6 +3,8 @@
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import fileOverlayImage from 'images/filesOverlay.png';
@@ -44,5 +46,5 @@ export default function FileUploadOverlay(props) {
 }
 
 FileUploadOverlay.propTypes = {
-    overlayType: React.PropTypes.string
+    overlayType: PropTypes.string
 };

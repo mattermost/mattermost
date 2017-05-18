@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -24,8 +25,8 @@ const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 
 export default class TeamAnalytics extends React.Component {
     static propTypes = {
-        actions: React.PropTypes.shape({
-            getTeams: React.PropTypes.func.isRequired
+        actions: PropTypes.shape({
+            getTeams: PropTypes.func.isRequired
         }).isRequired
     }
 

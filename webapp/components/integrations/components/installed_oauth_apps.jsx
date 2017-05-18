@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -15,7 +16,7 @@ import InstalledOAuthApp from './installed_oauth_app.jsx';
 export default class InstalledOAuthApps extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object
+            team: PropTypes.object
         };
     }
 

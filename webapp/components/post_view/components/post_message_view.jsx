@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -14,15 +15,15 @@ import {renderSystemMessage} from './system_message_helpers.jsx';
 
 export default class PostMessageView extends React.Component {
     static propTypes = {
-        options: React.PropTypes.object.isRequired,
-        post: React.PropTypes.object.isRequired,
-        emojis: React.PropTypes.object.isRequired,
-        enableFormatting: React.PropTypes.bool.isRequired,
-        mentionKeys: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
-        usernameMap: React.PropTypes.object.isRequired,
-        channelNamesMap: React.PropTypes.object.isRequired,
-        team: React.PropTypes.object.isRequired,
-        lastPostCount: React.PropTypes.number
+        options: PropTypes.object.isRequired,
+        post: PropTypes.object.isRequired,
+        emojis: PropTypes.object.isRequired,
+        enableFormatting: PropTypes.bool.isRequired,
+        mentionKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
+        usernameMap: PropTypes.object.isRequired,
+        channelNamesMap: PropTypes.object.isRequired,
+        team: PropTypes.object.isRequired,
+        lastPostCount: PropTypes.number
     };
 
     shouldComponentUpdate(nextProps) {

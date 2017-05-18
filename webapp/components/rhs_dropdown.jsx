@@ -1,7 +1,8 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React, {Component, PropTypes} from 'react';
+import React, { Component } from 'react';
 import {Dropdown} from 'react-bootstrap';
 
 import RhsDropdownButton from 'components/rhs_dropdown_button.jsx';

@@ -10,6 +10,8 @@ import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -19,7 +21,7 @@ import logoImage from 'images/logo.png';
 export default class SignupLdap extends React.Component {
     static get propTypes() {
         return {
-            location: React.PropTypes.object
+            location: PropTypes.object
         };
     }
 

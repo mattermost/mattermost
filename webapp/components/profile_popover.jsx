@@ -15,6 +15,7 @@ const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import {Popover, OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class ProfilePopover extends React.Component {
@@ -259,10 +260,10 @@ export default class ProfilePopover extends React.Component {
 }
 
 ProfilePopover.propTypes = Object.assign({
-    src: React.PropTypes.string.isRequired,
-    user: React.PropTypes.object.isRequired,
-    status: React.PropTypes.string,
-    isBusy: React.PropTypes.bool,
-    hide: React.PropTypes.func
+    src: PropTypes.string.isRequired,
+    user: PropTypes.object.isRequired,
+    status: PropTypes.string,
+    isBusy: PropTypes.bool,
+    hide: PropTypes.func
 }, Popover.propTypes);
 delete ProfilePopover.propTypes.id;

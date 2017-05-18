@@ -7,6 +7,8 @@ import Client from 'client/web_client.jsx';
 
 import {IntlProvider} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import FastClick from 'fastclick';
 import $ from 'jquery';
@@ -141,5 +143,5 @@ Root.defaultProps = {
 };
 
 Root.propTypes = {
-    children: React.PropTypes.object
+    children: PropTypes.object
 };

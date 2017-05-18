@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -26,7 +27,7 @@ UnreadChannelIndicator.defaultProps = {
     text: ''
 };
 UnreadChannelIndicator.propTypes = {
-    show: React.PropTypes.bool,
-    extraClass: React.PropTypes.string,
-    text: React.PropTypes.object
+    show: PropTypes.bool,
+    extraClass: PropTypes.string,
+    text: PropTypes.object
 };

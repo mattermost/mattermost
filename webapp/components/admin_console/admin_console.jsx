@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -13,7 +14,7 @@ import AdminSidebar from './admin_sidebar.jsx';
 export default class AdminConsole extends React.Component {
     static get propTypes() {
         return {
-            children: React.PropTypes.node.isRequired
+            children: PropTypes.node.isRequired
         };
     }
 

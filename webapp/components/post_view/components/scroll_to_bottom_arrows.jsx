@@ -5,6 +5,8 @@ import $ from 'jquery';
 
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function ScrollToBottomArrows(props) {
@@ -29,7 +31,7 @@ export default function ScrollToBottomArrows(props) {
 }
 
 ScrollToBottomArrows.propTypes = {
-    isScrolling: React.PropTypes.bool.isRequired,
-    atBottom: React.PropTypes.bool.isRequired,
-    onClick: React.PropTypes.func.isRequired
+    isScrolling: PropTypes.bool.isRequired,
+    atBottom: PropTypes.bool.isRequired,
+    onClick: PropTypes.func.isRequired
 };

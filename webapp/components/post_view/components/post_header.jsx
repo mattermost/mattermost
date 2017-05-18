@@ -9,6 +9,8 @@ import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PostHeader extends React.Component {
@@ -103,19 +105,19 @@ PostHeader.defaultProps = {
     sameUser: false
 };
 PostHeader.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object,
-    currentUser: React.PropTypes.object.isRequired,
-    lastPostCount: React.PropTypes.number,
-    commentCount: React.PropTypes.number.isRequired,
-    isLastComment: React.PropTypes.bool.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    handleDropdownOpened: React.PropTypes.func.isRequired,
-    sameUser: React.PropTypes.bool.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    displayNameType: React.PropTypes.string,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool.isRequired,
-    status: React.PropTypes.string,
-    isBusy: React.PropTypes.bool
+    post: PropTypes.object.isRequired,
+    user: PropTypes.object,
+    currentUser: PropTypes.object.isRequired,
+    lastPostCount: PropTypes.number,
+    commentCount: PropTypes.number.isRequired,
+    isLastComment: PropTypes.bool.isRequired,
+    handleCommentClick: PropTypes.func.isRequired,
+    handleDropdownOpened: PropTypes.func.isRequired,
+    sameUser: PropTypes.bool.isRequired,
+    compactDisplay: PropTypes.bool,
+    displayNameType: PropTypes.string,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFlagged: PropTypes.bool.isRequired,
+    status: PropTypes.string,
+    isBusy: PropTypes.bool
 };

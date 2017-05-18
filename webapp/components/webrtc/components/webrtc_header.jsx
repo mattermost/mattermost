@@ -6,6 +6,8 @@ import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function WebrtcHeader(props) {
@@ -92,7 +94,7 @@ export default function WebrtcHeader(props) {
 }
 
 WebrtcHeader.propTypes = {
-    username: React.PropTypes.string.isRequired,
-    onClose: React.PropTypes.func.isRequired,
-    toggleSize: React.PropTypes.func
+    username: PropTypes.string.isRequired,
+    onClose: PropTypes.func.isRequired,
+    toggleSize: PropTypes.func
 };

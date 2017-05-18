@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import ChannelHeader from 'components/channel_header.jsx';
@@ -90,5 +91,5 @@ export default class PermalinkView extends React.Component {
 }
 
 PermalinkView.propTypes = {
-    params: React.PropTypes.object.isRequired
+    params: PropTypes.object.isRequired
 };

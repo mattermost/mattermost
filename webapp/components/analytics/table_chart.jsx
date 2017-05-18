@@ -5,6 +5,8 @@ import Constants from 'utils/constants.jsx';
 
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function TableChart(props) {
@@ -54,6 +56,6 @@ export default function TableChart(props) {
 }
 
 TableChart.propTypes = {
-    title: React.PropTypes.node,
-    data: React.PropTypes.array
+    title: PropTypes.node,
+    data: PropTypes.array
 };

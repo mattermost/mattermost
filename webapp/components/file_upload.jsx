@@ -33,6 +33,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 const OverlayTimeout = 500;
@@ -422,19 +424,19 @@ class FileUpload extends React.Component {
 
 FileUpload.propTypes = {
     intl: intlShape.isRequired,
-    onUploadError: React.PropTypes.func,
-    getFileCount: React.PropTypes.func,
-    getTarget: React.PropTypes.func.isRequired,
-    onClick: React.PropTypes.func,
-    onFileUpload: React.PropTypes.func,
-    onUploadStart: React.PropTypes.func,
-    onFileUploadChange: React.PropTypes.func,
-    onTextDrop: React.PropTypes.func,
-    channelId: React.PropTypes.string,
-    postType: React.PropTypes.string,
-    onEmojiClick: React.PropTypes.func,
-    navBarName: React.PropTypes.string,
-    emojiEnabled: React.PropTypes.bool
+    onUploadError: PropTypes.func,
+    getFileCount: PropTypes.func,
+    getTarget: PropTypes.func.isRequired,
+    onClick: PropTypes.func,
+    onFileUpload: PropTypes.func,
+    onUploadStart: PropTypes.func,
+    onFileUploadChange: PropTypes.func,
+    onTextDrop: PropTypes.func,
+    channelId: PropTypes.string,
+    postType: PropTypes.string,
+    onEmojiClick: PropTypes.func,
+    navBarName: PropTypes.string,
+    emojiEnabled: PropTypes.bool
 };
 
 export default injectIntl(FileUpload, {withRef: true});

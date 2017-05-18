@@ -15,6 +15,8 @@ import * as Utils from 'utils/utils.jsx';
 
 import {Overlay} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import tutorialGif from 'images/tutorialTip.gif';
@@ -199,10 +201,10 @@ TutorialTip.defaultProps = {
 };
 
 TutorialTip.propTypes = {
-    screens: React.PropTypes.array.isRequired,
-    placement: React.PropTypes.string.isRequired,
-    overlayClass: React.PropTypes.string,
-    diagnosticsTag: React.PropTypes.string
+    screens: PropTypes.array.isRequired,
+    placement: PropTypes.string.isRequired,
+    overlayClass: PropTypes.string,
+    diagnosticsTag: PropTypes.string
 };
 
 export function createMenuTip(toggleFunc, onBottom) {

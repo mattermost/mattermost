@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -33,6 +34,6 @@ export default function Banner(props) {
 Banner.defaultProps = {
 };
 Banner.propTypes = {
-    title: React.PropTypes.node,
-    description: React.PropTypes.node.isRequired
+    title: PropTypes.node,
+    description: PropTypes.node.isRequired
 };

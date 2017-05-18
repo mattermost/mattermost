@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -116,9 +117,9 @@ SidebarHeader.defaultProps = {
     teamType: ''
 };
 SidebarHeader.propTypes = {
-    teamDisplayName: React.PropTypes.string,
-    teamDescription: React.PropTypes.string,
-    teamName: React.PropTypes.string,
-    teamType: React.PropTypes.string,
-    currentUser: React.PropTypes.object
+    teamDisplayName: PropTypes.string,
+    teamDescription: PropTypes.string,
+    teamName: PropTypes.string,
+    teamType: PropTypes.string,
+    currentUser: PropTypes.object
 };

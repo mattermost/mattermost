@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -25,8 +26,8 @@ Setting.defaultProps = {
 };
 
 Setting.propTypes = {
-    inputId: React.PropTypes.string,
-    label: React.PropTypes.node.isRequired,
-    children: React.PropTypes.node.isRequired,
-    helpText: React.PropTypes.node
+    inputId: PropTypes.string,
+    label: PropTypes.node.isRequired,
+    children: PropTypes.node.isRequired,
+    helpText: PropTypes.node
 };

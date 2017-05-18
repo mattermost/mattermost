@@ -3,6 +3,8 @@
 
 import PostAttachment from './post_attachment.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function PostAttachmentList(props) {
@@ -24,5 +26,5 @@ export default function PostAttachmentList(props) {
 }
 
 PostAttachmentList.propTypes = {
-    attachments: React.PropTypes.array.isRequired
+    attachments: PropTypes.array.isRequired
 };

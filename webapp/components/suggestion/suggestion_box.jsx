@@ -10,6 +10,8 @@ import AutosizeTextarea from 'components/autosize_textarea.jsx';
 
 const KeyCodes = Constants.KeyCodes;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SuggestionBox extends React.Component {
@@ -284,16 +286,16 @@ SuggestionBox.defaultProps = {
 };
 
 SuggestionBox.propTypes = {
-    listComponent: React.PropTypes.func.isRequired,
-    type: React.PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
-    value: React.PropTypes.string.isRequired,
-    providers: React.PropTypes.arrayOf(React.PropTypes.object),
-    listStyle: React.PropTypes.string,
-    renderDividers: React.PropTypes.bool,
+    listComponent: PropTypes.func.isRequired,
+    type: PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
+    value: PropTypes.string.isRequired,
+    providers: PropTypes.arrayOf(PropTypes.object),
+    listStyle: PropTypes.string,
+    renderDividers: PropTypes.bool,
 
     // explicitly name any input event handlers we override and need to manually call
-    onBlur: React.PropTypes.func,
-    onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func,
-    onItemSelected: React.PropTypes.func
+    onBlur: PropTypes.func,
+    onChange: PropTypes.func,
+    onKeyDown: PropTypes.func,
+    onItemSelected: PropTypes.func
 };

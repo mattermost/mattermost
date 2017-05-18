@@ -14,6 +14,8 @@ import {FormattedMessage} from 'react-intl';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class AdvancedSettingsDisplay extends React.Component {
@@ -586,10 +588,10 @@ export default class AdvancedSettingsDisplay extends React.Component {
 }
 
 AdvancedSettingsDisplay.propTypes = {
-    user: React.PropTypes.object,
-    updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func,
-    activeSection: React.PropTypes.string,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired
+    user: PropTypes.object,
+    updateSection: PropTypes.func,
+    updateTab: PropTypes.func,
+    activeSection: PropTypes.string,
+    closeModal: PropTypes.func.isRequired,
+    collapseModal: PropTypes.func.isRequired
 };

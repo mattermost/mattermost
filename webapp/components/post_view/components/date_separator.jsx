@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedDate} from 'react-intl';
 
@@ -21,5 +22,5 @@ export default function DateSeparator(props) {
 }
 
 DateSeparator.propTypes = {
-    date: React.PropTypes.instanceOf(Date)
+    date: PropTypes.instanceOf(Date)
 };

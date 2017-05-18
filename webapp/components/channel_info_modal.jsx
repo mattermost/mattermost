@@ -9,6 +9,8 @@ import {Modal} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class ChannelInfoModal extends React.Component {
@@ -137,6 +139,6 @@ export default class ChannelInfoModal extends React.Component {
 }
 
 ChannelInfoModal.propTypes = {
-    onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    onHide: PropTypes.func.isRequired,
+    channel: PropTypes.object.isRequired
 };

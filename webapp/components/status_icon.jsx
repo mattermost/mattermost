@@ -3,6 +3,8 @@
 
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function StatusIcon(props) {
@@ -43,7 +45,7 @@ StatusIcon.defaultProps = {
 };
 
 StatusIcon.propTypes = {
-    status: React.PropTypes.string,
-    className: React.PropTypes.string,
-    type: React.PropTypes.string
+    status: PropTypes.string,
+    className: PropTypes.string,
+    type: PropTypes.string
 };

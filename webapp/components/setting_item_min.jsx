@@ -4,6 +4,8 @@
 import {FormattedMessage} from 'react-intl';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function SettingItemMin(props) {
@@ -45,8 +47,8 @@ export default function SettingItemMin(props) {
 }
 
 SettingItemMin.propTypes = {
-    title: React.PropTypes.node,
-    disableOpen: React.PropTypes.bool,
-    updateSection: React.PropTypes.func,
-    describe: React.PropTypes.node
+    title: PropTypes.node,
+    disableOpen: PropTypes.bool,
+    updateSection: PropTypes.func,
+    describe: PropTypes.node
 };

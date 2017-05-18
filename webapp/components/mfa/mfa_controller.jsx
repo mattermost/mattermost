@@ -3,6 +3,8 @@
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -82,6 +84,6 @@ export default class MFAController extends React.Component {
 MFAController.defaultProps = {
 };
 MFAController.propTypes = {
-    location: React.PropTypes.object.isRequired,
-    children: React.PropTypes.node
+    location: PropTypes.object.isRequired,
+    children: PropTypes.node
 };

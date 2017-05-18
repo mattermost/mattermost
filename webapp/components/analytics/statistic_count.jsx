@@ -3,6 +3,8 @@
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default function StatisticCount(props) {
@@ -27,7 +29,7 @@ export default function StatisticCount(props) {
 }
 
 StatisticCount.propTypes = {
-    title: React.PropTypes.node.isRequired,
-    icon: React.PropTypes.string.isRequired,
-    count: React.PropTypes.number
+    title: PropTypes.node.isRequired,
+    icon: PropTypes.string.isRequired,
+    count: PropTypes.number
 };

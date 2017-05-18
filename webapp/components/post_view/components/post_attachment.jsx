@@ -17,6 +17,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class PostAttachment extends React.Component {
@@ -315,7 +317,7 @@ class PostAttachment extends React.Component {
 
 PostAttachment.propTypes = {
     intl: intlShape.isRequired,
-    attachment: React.PropTypes.object.isRequired
+    attachment: PropTypes.object.isRequired
 };
 
 export default injectIntl(PostAttachment);

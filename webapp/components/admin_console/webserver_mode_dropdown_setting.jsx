@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -93,7 +94,7 @@ WebserverModeDropdownSetting.defaultProps = {
 };
 
 WebserverModeDropdownSetting.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };

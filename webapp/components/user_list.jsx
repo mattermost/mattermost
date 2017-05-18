@@ -4,6 +4,8 @@
 import UserListRow from './user_list_row.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -74,9 +76,9 @@ UserList.defaultProps = {
 };
 
 UserList.propTypes = {
-    users: React.PropTypes.arrayOf(React.PropTypes.object),
-    extraInfo: React.PropTypes.object,
-    actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object,
-    actionUserProps: React.PropTypes.object
+    users: PropTypes.arrayOf(PropTypes.object),
+    extraInfo: PropTypes.object,
+    actions: PropTypes.arrayOf(PropTypes.func),
+    actionProps: PropTypes.object,
+    actionUserProps: PropTypes.object
 };

@@ -7,6 +7,8 @@ import Client from 'client/web_client.jsx';
 
 import {OverlayTrigger} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class UserProfile extends React.Component {
@@ -101,11 +103,11 @@ UserProfile.defaultProps = {
     disablePopover: false
 };
 UserProfile.propTypes = {
-    user: React.PropTypes.object,
-    overwriteName: React.PropTypes.node,
-    overwriteImage: React.PropTypes.string,
-    disablePopover: React.PropTypes.bool,
-    displayNameType: React.PropTypes.string,
-    status: React.PropTypes.string,
-    isBusy: React.PropTypes.bool
+    user: PropTypes.object,
+    overwriteName: PropTypes.node,
+    overwriteImage: PropTypes.string,
+    disablePopover: PropTypes.bool,
+    displayNameType: PropTypes.string,
+    status: PropTypes.string,
+    isBusy: PropTypes.bool
 };

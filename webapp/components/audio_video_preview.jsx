@@ -7,6 +7,8 @@ import Constants from 'utils/constants.jsx';
 import FileInfoPreview from './file_info_preview.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class AudioVideoPreview extends React.Component {
@@ -109,6 +111,6 @@ export default class AudioVideoPreview extends React.Component {
 }
 
 AudioVideoPreview.propTypes = {
-    fileInfo: React.PropTypes.object.isRequired,
-    fileUrl: React.PropTypes.string.isRequired
+    fileInfo: PropTypes.object.isRequired,
+    fileUrl: PropTypes.string.isRequired
 };

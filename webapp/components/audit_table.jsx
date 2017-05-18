@@ -206,6 +206,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 function AuditTable(props) {
@@ -323,10 +325,10 @@ function AuditTable(props) {
 
 AuditTable.propTypes = {
     intl: intlShape.isRequired,
-    audits: React.PropTypes.array.isRequired,
-    showUserId: React.PropTypes.bool,
-    showIp: React.PropTypes.bool,
-    showSession: React.PropTypes.bool
+    audits: PropTypes.array.isRequired,
+    showUserId: PropTypes.bool,
+    showIp: PropTypes.bool,
+    showSession: PropTypes.bool
 };
 
 export default injectIntl(AuditTable);
