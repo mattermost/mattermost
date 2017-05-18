@@ -143,15 +143,16 @@
 }
 
 .emoji-picker {
+    @include user-select(none);
+    border-radius: 3px;
+    border: 1px solid;
     display: flex;
     flex-direction: column;
-    @include user-select(none);
     position: absolute;
+    right: 0;
     top: -361px;
-    right: 0px;
     width: 278px;
-    border: 1px solid;
-    border-radius: 3px;
+    z-index: 8;
 
     .emoji-picker__search-container {
         position: relative;

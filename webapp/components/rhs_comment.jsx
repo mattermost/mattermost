@@ -379,7 +379,7 @@ export default class RhsComment extends React.Component {
         }
 
         if (this.props.compactDisplay) {
-            className += 'post--compact';
+            className += ' post--compact';
         }
 
         if (post.is_pinned) {
