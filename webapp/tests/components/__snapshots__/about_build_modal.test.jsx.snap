@@ -12,11 +12,14 @@ exports[`components/AboutBuildModal should match snapshot for enterprise edition
   keyboard={true}
   manager={
     ModalManager {
+      "add": [Function],
       "containers": Array [],
       "data": Array [],
       "handleContainerOverflow": true,
       "hideSiblingNodes": true,
+      "isTopModal": [Function],
       "modals": Array [],
+      "remove": [Function],
     }
   }
   onHide={[Function]}
@@ -25,9 +28,9 @@ exports[`components/AboutBuildModal should match snapshot for enterprise edition
   show={true}
 >
   <ModalHeader
-    aria-label="Close"
     bsClass="modal-header"
     closeButton={true}
+    closeLabel="Close"
   >
     <ModalTitle
       bsClass="modal-title"
@@ -183,11 +186,14 @@ exports[`components/AboutBuildModal should match snapshot for team edition 1`] =
   keyboard={true}
   manager={
     ModalManager {
+      "add": [Function],
       "containers": Array [],
       "data": Array [],
       "handleContainerOverflow": true,
       "hideSiblingNodes": true,
+      "isTopModal": [Function],
       "modals": Array [],
+      "remove": [Function],
     }
   }
   onHide={[Function]}
@@ -196,9 +202,9 @@ exports[`components/AboutBuildModal should match snapshot for team edition 1`] =
   show={true}
 >
   <ModalHeader
-    aria-label="Close"
     bsClass="modal-header"
     closeButton={true}
+    closeLabel="Close"
   >
     <ModalTitle
       bsClass="modal-title"
