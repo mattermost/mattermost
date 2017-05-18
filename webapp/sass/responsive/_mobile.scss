@@ -181,6 +181,7 @@
         @include opacity(.6);
         @include transition(none);
         display: block;
+        position: relative;
     }
 
     .post-code {
