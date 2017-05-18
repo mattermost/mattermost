@@ -1,6 +1,6 @@
 # Mattermost Fork for Dialogue
 
-Dialogue changes are integrated on the `dialogue-master` branch, which is based on a fork of MatterMost v3.4. 
+Dialogue changes are integrated on the `dialogue-master` branch, which is based on a fork of MatterMost v3.4.
 
 # Documentation
 
@@ -21,13 +21,13 @@ make package
 Copy the distribution binary to a feature specific name on S3 (for backup).
 
 ```
-aws s3 cp dist/mattermost-team-linux-amd64.tar.gz s3://dialoguemd-infra-distrib/mattermost-3.4-with-xxx-linux-amd64.tar.gz
+aws s3 cp --acl=public-read dist/mattermost-team-linux-amd64.tar.gz s3://dialoguemd-infra-distrib/mattermost-3.4-with-xxx-linux-amd64.tar.gz
 ```
 
-Copy the distribution binary to a generic name on S3 (for deploy).
+Copy the distribution binary to a deploy environment specific name on S3 (for deploy). eg. for the `dev` environment:
 
 ```
-aws s3 cp dist/mattermost-team-linux-amd64.tar.gz s3://dialoguemd-infra-distrib/mattermost-3.4-linux-amd64.tar.gz
+aws s3 cp --acl=public-read dist/mattermost-team-linux-amd64.tar.gz s3://dialoguemd-infra-distrib/mattermost-3.4-linux-amd64.dev.tar.gz
 ```
 
 Then deploy [Mattermost Service](https://github.com/dialogue/mattermost-service).
