@@ -22,6 +22,11 @@ import React from 'react';
 import $ from 'jquery';
 
 export default class SwitchChannelModal extends React.Component {
+    static propTypes = {
+        show: PropTypes.bool.isRequired,
+        onHide: PropTypes.func.isRequired
+    }
+
     constructor() {
         super();
 
@@ -37,8 +42,7 @@ export default class SwitchChannelModal extends React.Component {
         this.suggestionProviders = [new SwitchChannelProvider()];
 
         this.state = {
-            text: '',
-            error: ''
+            text: ''
         };
     }
 
@@ -52,15 +56,13 @@ export default class SwitchChannelModal extends React.Component {
 
     onShow() {
         this.setState({
-            text: '',
-            error: ''
+            text: ''
         });
     }
 
     onHide() {
         this.setState({
-            text: '',
-            error: ''
+            text: ''
         });
         this.props.onHide();
     }
@@ -82,9 +84,6 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleKeyDown(e) {
-        this.setState({
-            error: ''
-        });
         if (e.keyCode === Constants.KeyCodes.ENTER) {
             this.handleSubmit();
         }
@@ -94,11 +93,6 @@ export default class SwitchChannelModal extends React.Component {
         let channel = null;
 
         if (!this.selected) {
-            if (this.state.text !== '') {
-                this.setState({
-                    error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
-                });
-            }
             return;
         }
 
@@ -125,18 +119,13 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     switchToChannel(channel) {
-        if (channel !== null) {
+        if (channel != null) {
             goToChannel(channel);
             this.onHide();
-        } else if (this.state.text !== '') {
-            this.setState({
-                error: Utils.localizeMessage('channel_switch_modal.failed_to_open', 'Failed to open channel.')
-            });
         }
     }
 
     render() {
-        const message = this.state.error;
         return (
             <Modal
                 dialogClassName='channel-switch-modal modal--overflow'
@@ -145,17 +134,6 @@ export default class SwitchChannelModal extends React.Component {
                 onHide={this.onHide}
                 onExited={this.onExited}
             >
-                <Modal.Header closeButton={true}>
-                    <Modal.Title>
-                        <span>
-                            <FormattedMessage
-                                id='channel_switch_modal.title'
-                                defaultMessage='Switch Channels'
-                            />
-                        </span>
-                    </Modal.Title>
-                </Modal.Header>
-
                 <Modal.Body>
                     <div className='modal__hint'>
                         <FormattedMessage
@@ -177,38 +155,7 @@ export default class SwitchChannelModal extends React.Component {
                         listStyle='bottom'
                     />
                 </Modal.Body>
-                <Modal.Footer>
-                    <div className='modal__error'>
-                        {message}
-                    </div>
-                    <button
-                        type='button'
-                        className='btn btn-default'
-                        onClick={this.onHide}
-                    >
-                        <FormattedMessage
-                            id='edit_channel_header_modal.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </button>
-                    <button
-                        type='button'
-                        className='btn btn-primary'
-                        onClick={this.handleSubmit}
-                    >
-                        <FormattedMessage
-                            id='channel_switch_modal.submit'
-                            defaultMessage='Switch'
-                        />
-                    </button>
-                </Modal.Footer>
             </Modal>
         );
     }
 }
-
-SwitchChannelModal.propTypes = {
-    show: PropTypes.bool.isRequired,
-    onHide: PropTypes.func.isRequired
-};
-

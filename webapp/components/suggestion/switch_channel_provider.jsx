@@ -16,6 +16,12 @@ import {sortChannelsByDisplayName, getChannelDisplayName} from 'utils/channel_ut
 
 import React from 'react';
 
+// Redux actions
+import store from 'stores/redux_store.jsx';
+const getState = store.getState;
+
+import * as Selectors from 'mattermost-redux/selectors/entities/users';
+
 class SwitchChannelSuggestion extends Suggestion {
     render() {
         const {item, isSelection} = this.props;
@@ -57,83 +63,116 @@ class SwitchChannelSuggestion extends Suggestion {
     }
 }
 
+let prefix = '';
+
+function quickSwitchSorter(a, b) {
+    let aDisplayName = getChannelDisplayName(a).toLowerCase();
+    let bDisplayName = getChannelDisplayName(b).toLowerCase();
+
+    if (a.type === Constants.DM_CHANNEL) {
+        aDisplayName = aDisplayName.substring(1);
+    }
+
+    if (b.type === Constants.DM_CHANNEL) {
+        bDisplayName = bDisplayName.substring(1);
+    }
+
+    const aStartsWith = aDisplayName.startsWith(prefix);
+    const bStartsWith = bDisplayName.startsWith(prefix);
+    if (aStartsWith && bStartsWith) {
+        return sortChannelsByDisplayName(a, b);
+    } else if (aStartsWith) {
+        return -1;
+    }
+
+    return 1;
+}
+
 export default class SwitchChannelProvider extends Provider {
     handlePretextChanged(suggestionId, channelPrefix) {
         if (channelPrefix) {
+            prefix = channelPrefix;
             this.startNewRequest(suggestionId, channelPrefix);
 
             const allChannels = ChannelStore.getAll();
-            const channels = [];
+            const users = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
+            this.formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, users);
 
             autocompleteUsers(
                 channelPrefix,
-                (data) => {
-                    const users = Object.assign([], data.users);
-
-                    if (this.shouldCancelDispatch(channelPrefix)) {
-                        return;
-                    }
-
-                    const currentId = UserStore.getCurrentId();
-
-                    for (const id of Object.keys(allChannels)) {
-                        const channel = allChannels[id];
-                        if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
-                            const newChannel = Object.assign({}, channel);
-                            if (newChannel.type === Constants.GM_CHANNEL) {
-                                newChannel.name = getChannelDisplayName(newChannel);
-                            }
-                            channels.push(newChannel);
-                        }
-                    }
-
-                    const userMap = {};
-                    for (let i = 0; i < users.length; i++) {
-                        const user = users[i];
-                        let displayName = `@${user.username} `;
-
-                        if (user.id === currentId) {
-                            continue;
-                        }
-
-                        if ((user.first_name || user.last_name) && user.nickname) {
-                            displayName += `- ${Utils.getFullName(user)} (${user.nickname})`;
-                        } else if (user.nickname) {
-                            displayName += `- (${user.nickname})`;
-                        } else if (user.first_name || user.last_name) {
-                            displayName += `- ${Utils.getFullName(user)}`;
-                        }
-
-                        const newChannel = {
-                            display_name: displayName,
-                            name: user.username,
-                            id: user.id,
-                            update_at: user.update_at,
-                            type: Constants.DM_CHANNEL
-                        };
-                        channels.push(newChannel);
-                        userMap[user.id] = user;
-                    }
-
-                    const channelNames = channels.
-                        sort(sortChannelsByDisplayName).
-                        map((channel) => channel.name);
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
-                        id: suggestionId,
-                        matchedPretext: channelPrefix,
-                        terms: channelNames,
-                        items: channels,
-                        component: SwitchChannelSuggestion
-                    });
-
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_PROFILES,
-                        profiles: userMap
-                    });
+                () => {
+                    const newUsers = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
+                    this.formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, newUsers);
                 }
             );
+
+            return true;
         }
+
+        return false;
+    }
+
+    formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, users) {
+        const channels = [];
+
+        if (this.shouldCancelDispatch(channelPrefix)) {
+            return;
+        }
+
+        const currentId = UserStore.getCurrentId();
+
+        for (const id of Object.keys(allChannels)) {
+            const channel = allChannels[id];
+            if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
+                const newChannel = Object.assign({}, channel);
+                if (newChannel.type === Constants.GM_CHANNEL) {
+                    newChannel.name = getChannelDisplayName(newChannel);
+                }
+                channels.push(newChannel);
+            }
+        }
+
+        const userMap = {};
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            let displayName = `@${user.username} `;
+
+            if (user.id === currentId) {
+                continue;
+            }
+
+            if ((user.first_name || user.last_name) && user.nickname) {
+                displayName += `- ${Utils.getFullName(user)} (${user.nickname})`;
+            } else if (user.nickname) {
+                displayName += `- (${user.nickname})`;
+            } else if (user.first_name || user.last_name) {
+                displayName += `- ${Utils.getFullName(user)}`;
+            }
+
+            const newChannel = {
+                display_name: displayName,
+                name: user.username,
+                id: user.id,
+                update_at: user.update_at,
+                type: Constants.DM_CHANNEL
+            };
+            channels.push(newChannel);
+            userMap[user.id] = user;
+        }
+
+        const channelNames = channels.
+            sort(quickSwitchSorter).
+            map((channel) => channel.name);
+
+        setTimeout(() => {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                id: suggestionId,
+                matchedPretext: channelPrefix,
+                terms: channelNames,
+                items: channels,
+                component: SwitchChannelSuggestion
+            });
+        }, 0);
     }
 }
