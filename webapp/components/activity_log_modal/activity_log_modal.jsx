@@ -51,7 +51,9 @@ export default class ActivityLogModal extends React.Component {
         setTimeout(() => {
             modalContent.removeClass('animation--highlight');
         }, 1500);
-        this.props.actions.revokeSession(UserStore.getCurrentId(), altId);
+        this.props.actions.revokeSession(UserStore.getCurrentId(), altId).then(() => {
+            this.props.actions.getSessions(UserStore.getCurrentId());
+        });
     }
 
     onShow() {
