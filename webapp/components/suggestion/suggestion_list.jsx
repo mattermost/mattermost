@@ -13,7 +13,8 @@ export default class SuggestionList extends React.Component {
     static propTypes = {
         suggestionId: React.PropTypes.string.isRequired,
         location: React.PropTypes.string,
-        renderDividers: React.PropTypes.bool
+        renderDividers: React.PropTypes.bool,
+        className: React.PropTypes.string
     };
 
     static defaultProps = {
@@ -148,7 +149,7 @@ export default class SuggestionList extends React.Component {
             );
         }
 
-        const mainClass = 'suggestion-list suggestion-list--' + this.props.location;
+        const mainClass = 'suggestion-list suggestion-list--' + this.props.location + ' ' + this.props.className;
         const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.location;
 
         return (

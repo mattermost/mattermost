@@ -31,6 +31,7 @@ export default class SwitchChannelModal extends React.Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.switchToChannel = this.switchToChannel.bind(this);
+        this.suggestionsChange = this.suggestionsChange.bind(this);
 
         this.suggestionProviders = [new SwitchChannelProvider()];
 
@@ -80,9 +81,6 @@ export default class SwitchChannelModal extends React.Component {
     }
 
     handleKeyDown(e) {
-        this.setState({
-            error: ''
-        });
         if (e.keyCode === Constants.KeyCodes.ENTER) {
             this.handleSubmit();
         }
@@ -133,6 +131,27 @@ export default class SwitchChannelModal extends React.Component {
         }
     }
 
+    suggestionsChange(suggestions, options) {
+        if (suggestions.pretext === '') {
+            this.setState({
+                error: ''
+            });
+            return;
+        }
+        if (options && options.pretextChanged) {
+            return;
+        }
+        if (!suggestions || !suggestions.terms || !suggestions.terms.length) {
+            this.setState({
+                error: Utils.localizeMessage('channel_switch_modal.not_found', 'No matches found.')
+            });
+        } else {
+            this.setState({
+                error: ''
+            });
+        }
+    }
+
     render() {
         const message = this.state.error;
         return (
@@ -172,11 +191,12 @@ export default class SwitchChannelModal extends React.Component {
                         listComponent={SuggestionList}
                         maxLength='64'
                         providers={this.suggestionProviders}
+                        onSuggestionsChange={this.suggestionsChange}
                         listStyle='bottom'
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <div className='modal__error'>
+                    <div className='modal__info'>
                         {message}
                     </div>
                     <button
@@ -209,4 +229,3 @@ SwitchChannelModal.propTypes = {
     show: React.PropTypes.bool.isRequired,
     onHide: React.PropTypes.func.isRequired
 };
-

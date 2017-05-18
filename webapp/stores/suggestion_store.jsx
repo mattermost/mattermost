@@ -47,8 +47,8 @@ class SuggestionStore extends EventEmitter {
     removeSuggestionsChangedListener(id, callback) {
         this.removeListener(SUGGESTIONS_CHANGED_EVENT + id, callback);
     }
-    emitSuggestionsChanged(id) {
-        this.emit(SUGGESTIONS_CHANGED_EVENT + id);
+    emitSuggestionsChanged(id, options) {
+        this.emit(SUGGESTIONS_CHANGED_EVENT + id, options);
     }
 
     addPretextChangedListener(id, callback) {
@@ -255,6 +255,7 @@ class SuggestionStore extends EventEmitter {
             // Clear the suggestions if the pretext is empty or ends with whitespace
             if (other.pretext === '') {
                 this.clearSuggestions(id);
+                this.emitSuggestionsChanged(id, {pretextChanged: true});
             }
 
             other.pretext = other.pretext.toLowerCase();
@@ -263,7 +264,7 @@ class SuggestionStore extends EventEmitter {
             this.emitPretextChanged(id, other.pretext);
 
             this.ensureSelectionExists(id);
-            this.emitSuggestionsChanged(id);
+            this.emitSuggestionsChanged(id, {pretextChanged: true});
             break;
         case ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS:
             if (!this.checkIfPretextMatches(id, other.matchedPretext)) {
