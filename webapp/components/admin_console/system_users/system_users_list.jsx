@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -16,17 +18,17 @@ import SystemUsersDropdown from './system_users_dropdown.jsx';
 
 export default class SystemUsersList extends React.Component {
     static propTypes = {
-        users: React.PropTypes.arrayOf(React.PropTypes.object),
-        usersPerPage: React.PropTypes.number,
-        total: React.PropTypes.number,
-        nextPage: React.PropTypes.func,
-        search: React.PropTypes.func.isRequired,
-        focusOnMount: React.PropTypes.bool,
-        renderFilterRow: React.PropTypes.func,
+        users: PropTypes.arrayOf(PropTypes.object),
+        usersPerPage: PropTypes.number,
+        total: PropTypes.number,
+        nextPage: PropTypes.func,
+        search: PropTypes.func.isRequired,
+        focusOnMount: PropTypes.bool,
+        renderFilterRow: PropTypes.func,
 
-        teamId: React.PropTypes.string.isRequired,
-        term: React.PropTypes.string.isRequired,
-        onTermChange: React.PropTypes.func.isRequired
+        teamId: PropTypes.string.isRequired,
+        term: PropTypes.string.isRequired,
+        onTermChange: PropTypes.func.isRequired
     };
 
     constructor(props) {

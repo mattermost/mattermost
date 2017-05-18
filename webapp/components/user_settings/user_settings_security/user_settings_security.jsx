@@ -15,6 +15,7 @@ import Constants from 'utils/constants.jsx';
 import {updatePassword, getAuthorizedApps, deactivateMfa, deauthorizeOAuthApp} from 'actions/user_actions.jsx';
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -23,15 +24,15 @@ import icon50 from 'images/icon50x50.png';
 
 export default class SecurityTab extends React.Component {
     static propTypes = {
-        user: React.PropTypes.object,
-        activeSection: React.PropTypes.string,
-        updateSection: React.PropTypes.func,
-        updateTab: React.PropTypes.func,
-        closeModal: React.PropTypes.func.isRequired,
-        collapseModal: React.PropTypes.func.isRequired,
-        setEnforceFocus: React.PropTypes.func.isRequired,
-        actions: React.PropTypes.shape({
-            getMe: React.PropTypes.func.isRequired
+        user: PropTypes.object,
+        activeSection: PropTypes.string,
+        updateSection: PropTypes.func,
+        updateTab: PropTypes.func,
+        closeModal: PropTypes.func.isRequired,
+        collapseModal: PropTypes.func.isRequired,
+        setEnforceFocus: PropTypes.func.isRequired,
+        actions: PropTypes.shape({
+            getMe: PropTypes.func.isRequired
         }).isRequired
     }
 

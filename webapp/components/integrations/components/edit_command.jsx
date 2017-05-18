@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -23,8 +25,8 @@ const REQUEST_GET = 'G';
 export default class EditCommand extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object,
-            location: React.PropTypes.object
+            team: PropTypes.object,
+            location: PropTypes.object
         };
     }
 

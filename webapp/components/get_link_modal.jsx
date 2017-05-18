@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -125,11 +127,11 @@ export default class GetLinkModal extends React.Component {
 }
 
 GetLinkModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired,
-    title: React.PropTypes.string.isRequired,
-    helpText: React.PropTypes.string,
-    link: React.PropTypes.string.isRequired
+    show: PropTypes.bool.isRequired,
+    onHide: PropTypes.func.isRequired,
+    title: PropTypes.string.isRequired,
+    helpText: PropTypes.string,
+    link: PropTypes.string.isRequired
 };
 
 GetLinkModal.defaultProps = {

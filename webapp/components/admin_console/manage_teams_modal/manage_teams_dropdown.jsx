@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -11,11 +13,11 @@ import * as Utils from 'utils/utils.jsx';
 
 export default class ManageTeamsDropdown extends React.Component {
     static propTypes = {
-        user: React.PropTypes.object.isRequired,
-        teamMember: React.PropTypes.object.isRequired,
-        onError: React.PropTypes.func.isRequired,
-        onMemberChange: React.PropTypes.func.isRequired,
-        onMemberRemove: React.PropTypes.func.isRequired
+        user: PropTypes.object.isRequired,
+        teamMember: PropTypes.object.isRequired,
+        onError: PropTypes.func.isRequired,
+        onMemberChange: PropTypes.func.isRequired,
+        onMemberRemove: PropTypes.func.isRequired
     };
 
     constructor(props) {

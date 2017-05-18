@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -67,35 +69,33 @@ const WEBSERVER_MODE_HELP_TEXT = (
     </div>
 );
 
-export default class WebserverModeDropdownSetting extends React.Component {
-    render() {
-        return (
-            <DropdownSetting
-                id='webserverMode'
-                values={[
-                    {value: 'gzip', text: Utils.localizeMessage('admin.webserverModeGzip', 'gzip')},
-                    {value: 'uncompressed', text: Utils.localizeMessage('admin.webserverModeUncompressed', 'Uncompressed')},
-                    {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDisabled', 'Disabled')}
-                ]}
-                label={
-                    <FormattedMessage
-                        id='admin.webserverModeTitle'
-                        defaultMessage='Webserver Mode:'
-                    />
-                }
-                value={this.props.value}
-                onChange={this.props.onChange}
-                disabled={this.props.disabled}
-                helpText={WEBSERVER_MODE_HELP_TEXT}
-            />
-        );
-    }
+export default function WebserverModeDropdownSetting(props) {
+    return (
+        <DropdownSetting
+            id='webserverMode'
+            values={[
+                {value: 'gzip', text: Utils.localizeMessage('admin.webserverModeGzip', 'gzip')},
+                {value: 'uncompressed', text: Utils.localizeMessage('admin.webserverModeUncompressed', 'Uncompressed')},
+                {value: 'disabled', text: Utils.localizeMessage('admin.webserverModeDisabled', 'Disabled')}
+            ]}
+            label={
+                <FormattedMessage
+                    id='admin.webserverModeTitle'
+                    defaultMessage='Webserver Mode:'
+                />
+            }
+            value={props.value}
+            onChange={props.onChange}
+            disabled={props.disabled}
+            helpText={WEBSERVER_MODE_HELP_TEXT}
+        />
+    );
 }
 WebserverModeDropdownSetting.defaultProps = {
 };
 
 WebserverModeDropdownSetting.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };

@@ -7,6 +7,8 @@ import SettingItemMax from 'components/setting_item_max.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -451,13 +453,13 @@ export default class DesktopNotificationSettings extends React.Component {
 }
 
 DesktopNotificationSettings.propTypes = {
-    activity: React.PropTypes.string.isRequired,
-    sound: React.PropTypes.string.isRequired,
-    duration: React.PropTypes.string.isRequired,
-    updateSection: React.PropTypes.func,
-    setParentState: React.PropTypes.func,
-    submit: React.PropTypes.func,
-    cancel: React.PropTypes.func,
-    error: React.PropTypes.string,
-    active: React.PropTypes.bool
+    activity: PropTypes.string.isRequired,
+    sound: PropTypes.string.isRequired,
+    duration: PropTypes.string.isRequired,
+    updateSection: PropTypes.func,
+    setParentState: PropTypes.func,
+    submit: PropTypes.func,
+    cancel: PropTypes.func,
+    error: PropTypes.string,
+    active: PropTypes.bool
 };

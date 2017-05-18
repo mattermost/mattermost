@@ -9,6 +9,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {resetPassword} from 'actions/user_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class PasswordResetForm extends React.Component {
@@ -122,8 +124,8 @@ class PasswordResetForm extends React.Component {
 PasswordResetForm.defaultProps = {
 };
 PasswordResetForm.propTypes = {
-    params: React.PropTypes.object.isRequired,
-    location: React.PropTypes.object.isRequired
+    params: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired
 };
 
 export default PasswordResetForm;

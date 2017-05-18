@@ -37,6 +37,8 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import {Constants, Preferences, UserStatuses, ActionTypes} from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
@@ -948,5 +950,5 @@ export default class ChannelHeader extends React.Component {
 }
 
 ChannelHeader.propTypes = {
-    channelId: React.PropTypes.string.isRequired
+    channelId: PropTypes.string.isRequired
 };

@@ -5,6 +5,8 @@ import {FormattedMessage} from 'react-intl';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SettingItemMax extends React.Component {
@@ -128,13 +130,13 @@ export default class SettingItemMax extends React.Component {
 }
 
 SettingItemMax.propTypes = {
-    inputs: React.PropTypes.array,
-    client_error: React.PropTypes.string,
-    server_error: React.PropTypes.string,
-    extraInfo: React.PropTypes.element,
-    updateSection: React.PropTypes.func,
-    submit: React.PropTypes.func,
-    title: React.PropTypes.node,
-    width: React.PropTypes.string,
-    submitExtra: React.PropTypes.node
+    inputs: PropTypes.array,
+    client_error: PropTypes.string,
+    server_error: PropTypes.string,
+    extraInfo: PropTypes.element,
+    updateSection: PropTypes.func,
+    submit: PropTypes.func,
+    title: PropTypes.node,
+    width: PropTypes.string,
+    submitExtra: PropTypes.node
 };

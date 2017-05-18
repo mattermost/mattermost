@@ -18,23 +18,25 @@ import {FormattedMessage} from 'react-intl';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class Textbox extends React.Component {
     static propTypes = {
-        id: React.PropTypes.string.isRequired,
-        channelId: React.PropTypes.string,
-        value: React.PropTypes.string.isRequired,
-        onChange: React.PropTypes.func.isRequired,
-        onKeyPress: React.PropTypes.func.isRequired,
-        createMessage: React.PropTypes.string.isRequired,
-        previewMessageLink: React.PropTypes.string,
-        onKeyDown: React.PropTypes.func,
-        onBlur: React.PropTypes.func,
-        supportsCommands: React.PropTypes.bool.isRequired,
-        handlePostError: React.PropTypes.func,
-        suggestionListStyle: React.PropTypes.string,
-        emojiEnabled: React.PropTypes.bool
+        id: PropTypes.string.isRequired,
+        channelId: PropTypes.string,
+        value: PropTypes.string.isRequired,
+        onChange: PropTypes.func.isRequired,
+        onKeyPress: PropTypes.func.isRequired,
+        createMessage: PropTypes.string.isRequired,
+        previewMessageLink: PropTypes.string,
+        onKeyDown: PropTypes.func,
+        onBlur: PropTypes.func,
+        supportsCommands: PropTypes.bool.isRequired,
+        handlePostError: PropTypes.func,
+        suggestionListStyle: PropTypes.string,
+        emojiEnabled: PropTypes.bool
     };
 
     static defaultProps = {

@@ -17,6 +17,7 @@ import Constants from 'utils/constants.jsx';
 const KeyCodes = Constants.KeyCodes;
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
@@ -310,10 +311,10 @@ ViewImageModal.defaultProps = {
     startId: 0
 };
 ViewImageModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired,
-    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    startId: React.PropTypes.number
+    show: PropTypes.bool.isRequired,
+    onModalDismissed: PropTypes.func.isRequired,
+    fileInfos: PropTypes.arrayOf(PropTypes.object).isRequired,
+    startId: PropTypes.number
 };
 
 function LoadingImagePreview({progress, loading}) {
@@ -338,8 +339,8 @@ function LoadingImagePreview({progress, loading}) {
 }
 
 LoadingImagePreview.propTypes = {
-    progress: React.PropTypes.number,
-    loading: React.PropTypes.string
+    progress: PropTypes.number,
+    loading: PropTypes.string
 };
 
 function ImagePreview({fileInfo, fileUrl}) {
@@ -363,6 +364,6 @@ function ImagePreview({fileInfo, fileUrl}) {
 }
 
 ImagePreview.propTypes = {
-    fileInfo: React.PropTypes.object.isRequired,
-    fileUrl: React.PropTypes.string.isRequired
+    fileInfo: PropTypes.object.isRequired,
+    fileUrl: PropTypes.string.isRequired
 };

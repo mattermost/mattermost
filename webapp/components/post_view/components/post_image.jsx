@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -82,6 +84,6 @@ export default class PostImageEmbed extends React.Component {
 }
 
 PostImageEmbed.propTypes = {
-    link: React.PropTypes.string.isRequired,
-    onLinkLoadError: React.PropTypes.func
+    link: PropTypes.string.isRequired,
+    onLinkLoadError: PropTypes.func
 };

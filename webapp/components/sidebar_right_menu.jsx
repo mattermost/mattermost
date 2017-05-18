@@ -28,6 +28,8 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SidebarRightMenu extends React.Component {
@@ -527,6 +529,6 @@ export default class SidebarRightMenu extends React.Component {
 }
 
 SidebarRightMenu.propTypes = {
-    teamType: React.PropTypes.string,
-    teamDisplayName: React.PropTypes.string
+    teamType: PropTypes.string,
+    teamDisplayName: PropTypes.string
 };

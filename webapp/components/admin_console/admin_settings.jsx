@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -13,7 +15,7 @@ import {saveConfig} from 'actions/admin_actions.jsx';
 export default class AdminSettings extends React.Component {
     static get propTypes() {
         return {
-            config: React.PropTypes.object
+            config: PropTypes.object
         };
     }
 

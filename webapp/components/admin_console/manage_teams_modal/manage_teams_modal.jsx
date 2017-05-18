@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -19,9 +21,9 @@ import RemoveFromTeamButton from './remove_from_team_button.jsx';
 
 export default class ManageTeamsModal extends React.Component {
     static propTypes = {
-        onModalDismissed: React.PropTypes.func.isRequired,
-        show: React.PropTypes.bool.isRequired,
-        user: React.PropTypes.object
+        onModalDismissed: PropTypes.func.isRequired,
+        show: PropTypes.bool.isRequired,
+        user: PropTypes.object
     };
 
     constructor(props) {

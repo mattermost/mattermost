@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -9,7 +11,7 @@ import EmojiPicker from './emoji_picker.jsx';
 
 export default class EmojiPickerContainer extends React.Component {
     static propTypes = {
-        onEmojiClick: React.PropTypes.func.isRequred
+        onEmojiClick: PropTypes.func.isRequred
     }
 
     constructor(props) {

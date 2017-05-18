@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -114,101 +116,95 @@ const CONNECTION_SECURITY_HELP_TEXT_WEBSERVER = (
     </table>
 );
 
-export class ConnectionSecurityDropdownSettingEmail extends React.Component { //eslint-disable-line react/no-multi-comp
-    render() {
-        return (
-            <DropdownSetting
-                id='connectionSecurity'
-                values={[
-                    {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
-                    {value: 'PLAIN', text: Utils.localizeMessage('admin.connectionSecurityPlain')},
-                    {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
-                    {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
-                ]}
-                label={
-                    <FormattedMessage
-                        id='admin.connectionSecurityTitle'
-                        defaultMessage='Connection Security:'
-                    />
-                }
-                value={this.props.value}
-                onChange={this.props.onChange}
-                disabled={this.props.disabled}
-                helpText={CONNECTION_SECURITY_HELP_TEXT_EMAIL}
-            />
-        );
-    }
+export function ConnectionSecurityDropdownSettingEmail(props) {
+    return (
+        <DropdownSetting
+            id='connectionSecurity'
+            values={[
+                {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
+                {value: 'PLAIN', text: Utils.localizeMessage('admin.connectionSecurityPlain')},
+                {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
+                {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
+            ]}
+            label={
+                <FormattedMessage
+                    id='admin.connectionSecurityTitle'
+                    defaultMessage='Connection Security:'
+                />
+            }
+            value={props.value}
+            onChange={props.onChange}
+            disabled={props.disabled}
+            helpText={CONNECTION_SECURITY_HELP_TEXT_EMAIL}
+        />
+    );
 }
 ConnectionSecurityDropdownSettingEmail.defaultProps = {
 };
 
 ConnectionSecurityDropdownSettingEmail.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };
 
-export class ConnectionSecurityDropdownSettingLdap extends React.Component { //eslint-disable-line react/no-multi-comp
-    render() {
-        return (
-            <DropdownSetting
-                id='connectionSecurity'
-                values={[
-                    {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
-                    {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
-                    {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
-                ]}
-                label={
-                    <FormattedMessage
-                        id='admin.connectionSecurityTitle'
-                        defaultMessage='Connection Security:'
-                    />
-                }
-                value={this.props.value}
-                onChange={this.props.onChange}
-                disabled={this.props.disabled}
-                helpText={CONNECTION_SECURITY_HELP_TEXT_LDAP}
-            />
-        );
-    }
+export function ConnectionSecurityDropdownSettingLdap(props) {
+    return (
+        <DropdownSetting
+            id='connectionSecurity'
+            values={[
+                {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
+                {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
+                {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
+            ]}
+            label={
+                <FormattedMessage
+                    id='admin.connectionSecurityTitle'
+                    defaultMessage='Connection Security:'
+                />
+            }
+            value={props.value}
+            onChange={props.onChange}
+            disabled={props.disabled}
+            helpText={CONNECTION_SECURITY_HELP_TEXT_LDAP}
+        />
+    );
 }
 ConnectionSecurityDropdownSettingLdap.defaultProps = {
 };
 
 ConnectionSecurityDropdownSettingLdap.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };
 
-export class ConnectionSecurityDropdownSettingWebserver extends React.Component { //eslint-disable-line react/no-multi-comp
-    render() {
-        return (
-            <DropdownSetting
-                id='connectionSecurity'
-                values={[
-                    {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
-                    {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')}
-                ]}
-                label={
-                    <FormattedMessage
-                        id='admin.connectionSecurityTitle'
-                        defaultMessage='Connection Security:'
-                    />
-                }
-                value={this.props.value}
-                onChange={this.props.onChange}
-                disabled={this.props.disabled}
-                helpText={CONNECTION_SECURITY_HELP_TEXT_WEBSERVER}
-            />
-        );
-    }
+export function ConnectionSecurityDropdownSettingWebserver(props) {
+    return (
+        <DropdownSetting
+            id='connectionSecurity'
+            values={[
+                {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
+                {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')}
+            ]}
+            label={
+                <FormattedMessage
+                    id='admin.connectionSecurityTitle'
+                    defaultMessage='Connection Security:'
+                />
+            }
+            value={props.value}
+            onChange={props.onChange}
+            disabled={props.disabled}
+            helpText={CONNECTION_SECURITY_HELP_TEXT_WEBSERVER}
+        />
+    );
 }
 ConnectionSecurityDropdownSettingWebserver.defaultProps = {
 };
 
 ConnectionSecurityDropdownSettingWebserver.propTypes = {
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool.isRequired
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired
 };

@@ -5,6 +5,8 @@ import {Modal} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import Constants from 'utils/constants.jsx';
 
@@ -198,6 +200,6 @@ AboutBuildModal.defaultProps = {
 };
 
 AboutBuildModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    onModalDismissed: PropTypes.func.isRequired
 };

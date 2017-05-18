@@ -22,6 +22,7 @@ cmd/mattermost/imports.go
 # Build Targets
 .prebuild
 .npminstall
+.yarninstall
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

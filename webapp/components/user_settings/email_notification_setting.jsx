@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -15,12 +17,12 @@ import {Preferences} from 'utils/constants.jsx';
 
 export default class EmailNotificationSetting extends React.Component {
     static propTypes = {
-        activeSection: React.PropTypes.string.isRequired,
-        updateSection: React.PropTypes.func.isRequired,
-        enableEmail: React.PropTypes.bool.isRequired,
-        onChange: React.PropTypes.func.isRequired,
-        onSubmit: React.PropTypes.func.isRequired,
-        serverError: React.PropTypes.string
+        activeSection: PropTypes.string.isRequired,
+        updateSection: PropTypes.func.isRequired,
+        enableEmail: PropTypes.bool.isRequired,
+        onChange: PropTypes.func.isRequired,
+        onSubmit: PropTypes.func.isRequired,
+        serverError: PropTypes.string
     };
 
     constructor(props) {

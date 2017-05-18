@@ -41,6 +41,8 @@ import {Popover, OverlayTrigger} from 'react-bootstrap';
 
 import {Link} from 'react-router/es6';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class Navbar extends React.Component {
@@ -934,5 +936,5 @@ Navbar.defaultProps = {
     teamDisplayName: ''
 };
 Navbar.propTypes = {
-    teamDisplayName: React.PropTypes.string
+    teamDisplayName: PropTypes.string
 };

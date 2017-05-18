@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -41,11 +43,11 @@ export default function CommentIcon(props) {
 }
 
 CommentIcon.propTypes = {
-    idPrefix: React.PropTypes.string.isRequired,
-    idCount: React.PropTypes.number,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    searchStyle: React.PropTypes.string,
-    commentCount: React.PropTypes.number
+    idPrefix: PropTypes.string.isRequired,
+    idCount: PropTypes.number,
+    handleCommentClick: PropTypes.func.isRequired,
+    searchStyle: PropTypes.string,
+    commentCount: PropTypes.number
 };
 
 CommentIcon.defaultProps = {

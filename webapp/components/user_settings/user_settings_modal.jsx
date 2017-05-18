@@ -49,6 +49,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class UserSettingsModal extends React.Component {
@@ -279,8 +281,8 @@ class UserSettingsModal extends React.Component {
 
 UserSettingsModal.propTypes = {
     intl: intlShape.isRequired,
-    show: React.PropTypes.bool.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    onModalDismissed: PropTypes.func.isRequired
 };
 
 export default injectIntl(UserSettingsModal);

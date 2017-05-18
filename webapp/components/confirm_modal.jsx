@@ -4,6 +4,8 @@
 import {FormattedMessage} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class ConfirmModal extends React.Component {
@@ -71,11 +73,11 @@ ConfirmModal.defaultProps = {
     confirmButton: ''
 };
 ConfirmModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    title: React.PropTypes.node,
-    message: React.PropTypes.node,
-    confirmButtonClass: React.PropTypes.string,
-    confirmButton: React.PropTypes.node,
-    onConfirm: React.PropTypes.func.isRequired,
-    onCancel: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    title: PropTypes.node,
+    message: PropTypes.node,
+    confirmButtonClass: PropTypes.string,
+    confirmButton: PropTypes.node,
+    onConfirm: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired
 };

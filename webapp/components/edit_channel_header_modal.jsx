@@ -23,6 +23,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class EditChannelHeaderModal extends React.Component {
@@ -221,8 +223,8 @@ class EditChannelHeaderModal extends React.Component {
 
 EditChannelHeaderModal.propTypes = {
     intl: intlShape.isRequired,
-    onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    onHide: PropTypes.func.isRequired,
+    channel: PropTypes.object.isRequired
 };
 
 export default injectIntl(EditChannelHeaderModal);

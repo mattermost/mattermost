@@ -5,6 +5,8 @@ import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class LoginMfa extends React.Component {
@@ -87,7 +89,7 @@ LoginMfa.defaultProps = {
 };
 
 LoginMfa.propTypes = {
-    loginId: React.PropTypes.string.isRequired,
-    password: React.PropTypes.string.isRequired,
-    submit: React.PropTypes.func.isRequired
+    loginId: PropTypes.string.isRequired,
+    password: PropTypes.string.isRequired,
+    submit: PropTypes.func.isRequired
 };

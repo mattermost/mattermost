@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -91,5 +92,5 @@ ChannelView.defaultProps = {
 };
 
 ChannelView.propTypes = {
-    params: React.PropTypes.object.isRequired
+    params: PropTypes.object.isRequired
 };

@@ -45,6 +45,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export class RenameChannelModal extends React.Component {
@@ -322,9 +324,9 @@ export class RenameChannelModal extends React.Component {
 
 RenameChannelModal.propTypes = {
     intl: intlShape.isRequired,
-    show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    show: PropTypes.bool.isRequired,
+    onHide: PropTypes.func.isRequired,
+    channel: PropTypes.object.isRequired
 };
 
 export default injectIntl(RenameChannelModal);

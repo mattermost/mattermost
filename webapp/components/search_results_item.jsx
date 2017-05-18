@@ -22,6 +22,8 @@ import * as PostUtils from 'utils/post_utils.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage, FormattedDate} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -318,17 +320,17 @@ export default class SearchResultsItem extends React.Component {
 }
 
 SearchResultsItem.propTypes = {
-    post: React.PropTypes.object,
-    lastPostCount: React.PropTypes.number,
-    user: React.PropTypes.object,
-    channel: React.PropTypes.object,
-    compactDisplay: React.PropTypes.bool,
-    isMentionSearch: React.PropTypes.bool,
-    isFlaggedSearch: React.PropTypes.bool,
-    term: React.PropTypes.string,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    shrink: React.PropTypes.func,
-    isFlagged: React.PropTypes.bool,
-    isBusy: React.PropTypes.bool,
-    status: React.PropTypes.string
+    post: PropTypes.object,
+    lastPostCount: PropTypes.number,
+    user: PropTypes.object,
+    channel: PropTypes.object,
+    compactDisplay: PropTypes.bool,
+    isMentionSearch: PropTypes.bool,
+    isFlaggedSearch: PropTypes.bool,
+    term: PropTypes.string,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    shrink: PropTypes.func,
+    isFlagged: PropTypes.bool,
+    isBusy: PropTypes.bool,
+    status: PropTypes.string
 };

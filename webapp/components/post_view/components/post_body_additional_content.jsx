@@ -9,6 +9,8 @@ import YoutubeVideo from 'components/youtube_video.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PostBodyAdditionalContent extends React.Component {
@@ -216,9 +218,9 @@ PostBodyAdditionalContent.defaultProps = {
     previewCollapsed: 'false'
 };
 PostBodyAdditionalContent.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    message: React.PropTypes.element.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string,
-    childComponentDidUpdateFunction: React.PropTypes.func
+    post: PropTypes.object.isRequired,
+    message: PropTypes.element.isRequired,
+    compactDisplay: PropTypes.bool,
+    previewCollapsed: PropTypes.string,
+    childComponentDidUpdateFunction: PropTypes.func
 };

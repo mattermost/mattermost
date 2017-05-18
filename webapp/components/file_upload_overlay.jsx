@@ -3,48 +3,48 @@
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import fileOverlayImage from 'images/filesOverlay.png';
 import overlayLogoImage from 'images/logoWhite.png';
 
-export default class FileUploadOverlay extends React.Component {
-    render() {
-        var overlayClass = 'file-overlay hidden';
-        if (this.props.overlayType === 'right') {
-            overlayClass += ' right-file-overlay';
-        } else if (this.props.overlayType === 'center') {
-            overlayClass += ' center-file-overlay';
-        }
+export default function FileUploadOverlay(props) {
+    var overlayClass = 'file-overlay hidden';
+    if (props.overlayType === 'right') {
+        overlayClass += ' right-file-overlay';
+    } else if (props.overlayType === 'center') {
+        overlayClass += ' center-file-overlay';
+    }
 
-        return (
-            <div className={overlayClass}>
-                <div className='overlay__indent'>
-                    <div className='overlay__circle'>
-                        <img
-                            className='overlay__files'
-                            src={fileOverlayImage}
-                            alt='Files'
+    return (
+        <div className={overlayClass}>
+            <div className='overlay__indent'>
+                <div className='overlay__circle'>
+                    <img
+                        className='overlay__files'
+                        src={fileOverlayImage}
+                        alt='Files'
+                    />
+                    <span><i className='fa fa-upload'/>
+                        <FormattedMessage
+                            id='upload_overlay.info'
+                            defaultMessage='Drop a file to upload it.'
                         />
-                        <span><i className='fa fa-upload'/>
-                            <FormattedMessage
-                                id='upload_overlay.info'
-                                defaultMessage='Drop a file to upload it.'
-                            />
-                        </span>
-                        <img
-                            className='overlay__logo'
-                            src={overlayLogoImage}
-                            width='100'
-                            alt='Logo'
-                        />
-                    </div>
+                    </span>
+                    <img
+                        className='overlay__logo'
+                        src={overlayLogoImage}
+                        width='100'
+                        alt='Logo'
+                    />
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 FileUploadOverlay.propTypes = {
-    overlayType: React.PropTypes.string
+    overlayType: PropTypes.string
 };

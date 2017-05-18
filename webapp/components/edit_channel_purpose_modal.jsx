@@ -6,6 +6,8 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -181,6 +183,6 @@ export default class EditChannelPurposeModal extends React.Component {
 }
 
 EditChannelPurposeModal.propTypes = {
-    channel: React.PropTypes.object,
-    onModalDismissed: React.PropTypes.func.isRequired
+    channel: PropTypes.object,
+    onModalDismissed: PropTypes.func.isRequired
 };

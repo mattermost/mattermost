@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -11,7 +13,7 @@ import ReactionListView from './reaction_list_view.jsx';
 
 export default class ReactionListContainer extends React.Component {
     static propTypes = {
-        post: React.PropTypes.object.isRequired
+        post: PropTypes.object.isRequired
     }
 
     constructor(props) {
