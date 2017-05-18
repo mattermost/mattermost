@@ -13,7 +13,7 @@ test: .yarninstall
 .yarninstall: package.json
 	@echo Getting dependencies using yarn
 
-	yarn install
+	yarn install --pure-lockfile
 
 	touch $@
 
