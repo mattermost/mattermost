@@ -6,6 +6,8 @@ import EventEmitter from 'events';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import PostStore from 'stores/post_store.jsx';
+import NotificationStore from 'stores/notification_store.jsx';
 
 var ChannelUtils;
 var Utils;
@@ -483,6 +485,14 @@ class ChannelStoreClass extends EventEmitter {
 
         if (!this.unreadCounts[id]) {
             return;
+        }
+
+        const sidebarSelectedPostId = PostStore.getSelectedPostId();
+        if (sidebarSelectedPostId && NotificationStore.getFocus()) {
+            const post = JSON.parse(msgProps.post);
+            if (sidebarSelectedPostId === post.root_id) {
+                return;
+            }
         }
 
         if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
