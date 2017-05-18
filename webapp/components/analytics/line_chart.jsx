@@ -5,6 +5,8 @@ import {FormattedMessage} from 'react-intl';
 
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Chart from 'chart.js';
@@ -110,10 +112,10 @@ export default class LineChart extends React.Component {
 }
 
 LineChart.propTypes = {
-    title: React.PropTypes.node.isRequired,
-    width: React.PropTypes.string.isRequired,
-    height: React.PropTypes.string.isRequired,
-    data: React.PropTypes.object,
-    options: React.PropTypes.object
+    title: PropTypes.node.isRequired,
+    width: PropTypes.string.isRequired,
+    height: PropTypes.string.isRequired,
+    data: PropTypes.object,
+    options: PropTypes.object
 };
 

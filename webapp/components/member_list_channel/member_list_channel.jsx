@@ -14,6 +14,8 @@ import Constants from 'utils/constants.jsx';
 
 import * as UserAgent from 'utils/user_agent.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import store from 'stores/redux_store.jsx';
@@ -23,9 +25,9 @@ const USERS_PER_PAGE = 50;
 
 export default class MemberListChannel extends React.Component {
     static propTypes = {
-        channel: React.PropTypes.object.isRequired,
-        actions: React.PropTypes.shape({
-            getChannelStats: React.PropTypes.func.isRequired
+        channel: PropTypes.object.isRequired,
+        actions: PropTypes.shape({
+            getChannelStats: PropTypes.func.isRequired
         }).isRequired
     }
 

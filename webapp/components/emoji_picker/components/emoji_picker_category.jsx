@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -5,10 +7,10 @@ import React from 'react';
 
 export default class EmojiPickerCategory extends React.Component {
     static propTypes = {
-        category: React.PropTypes.string.isRequired,
-        icon: React.PropTypes.node.isRequired,
-        onCategoryClick: React.PropTypes.func.isRequired,
-        selected: React.PropTypes.bool.isRequired
+        category: PropTypes.string.isRequired,
+        icon: PropTypes.node.isRequired,
+        onCategoryClick: PropTypes.func.isRequired,
+        selected: PropTypes.bool.isRequired
     }
 
     constructor(props) {

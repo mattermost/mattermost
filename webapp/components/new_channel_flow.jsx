@@ -16,6 +16,8 @@ const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class NewChannelFlow extends React.Component {
@@ -239,7 +241,7 @@ NewChannelFlow.defaultProps = {
 };
 
 NewChannelFlow.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    channelType: React.PropTypes.string.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    channelType: PropTypes.string.isRequired,
+    onModalDismissed: PropTypes.func.isRequired
 };

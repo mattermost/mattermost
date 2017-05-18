@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -45,6 +46,6 @@ export default class DeleteIntegration extends DeleteModalTrigger {
 }
 
 DeleteIntegration.propTypes = {
-    messageId: React.PropTypes.string.isRequired,
-    onDelete: React.PropTypes.func.isRequired
+    messageId: PropTypes.string.isRequired,
+    onDelete: PropTypes.func.isRequired
 };

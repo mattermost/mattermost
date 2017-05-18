@@ -3,6 +3,8 @@
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Link} from 'react-router/es6';
 
@@ -111,5 +113,5 @@ export default class ShouldVerifyEmail extends React.Component {
 ShouldVerifyEmail.defaultProps = {
 };
 ShouldVerifyEmail.propTypes = {
-    location: React.PropTypes.object.isRequired
+    location: PropTypes.object.isRequired
 };

@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -69,10 +71,10 @@ export default class ModalToggleButton extends React.Component {
 }
 
 ModalToggleButton.propTypes = {
-    children: React.PropTypes.node.isRequired,
-    dialogType: React.PropTypes.func.isRequired,
-    dialogProps: React.PropTypes.object,
-    onClick: React.PropTypes.func
+    children: PropTypes.node.isRequired,
+    dialogType: PropTypes.func.isRequired,
+    dialogProps: PropTypes.object,
+    onClick: PropTypes.func
 };
 
 ModalToggleButton.defaultProps = {

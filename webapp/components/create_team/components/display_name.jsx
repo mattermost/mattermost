@@ -8,6 +8,8 @@ import {cleanUpUrlable} from 'utils/url.jsx';
 
 import logoImage from 'images/logo.png';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
@@ -124,6 +126,6 @@ export default class TeamSignupDisplayNamePage extends React.Component {
 }
 
 TeamSignupDisplayNamePage.propTypes = {
-    state: React.PropTypes.object,
-    updateParent: React.PropTypes.func
+    state: PropTypes.object,
+    updateParent: PropTypes.func
 };

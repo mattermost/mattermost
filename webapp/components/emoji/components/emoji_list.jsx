@@ -12,6 +12,8 @@ import {loadEmoji} from 'actions/emoji_actions.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Link} from 'react-router';
 import {FormattedMessage} from 'react-intl';
@@ -19,8 +21,8 @@ import {FormattedMessage} from 'react-intl';
 export default class EmojiList extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object,
-            user: React.PropTypes.object
+            team: PropTypes.object,
+            user: PropTypes.object
         };
     }
 

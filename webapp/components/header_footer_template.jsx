@@ -4,6 +4,8 @@
 import $ from 'jquery';
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class NotLoggedIn extends React.Component {
@@ -104,5 +106,5 @@ NotLoggedIn.defaultProps = {
 };
 
 NotLoggedIn.propTypes = {
-    children: React.PropTypes.object
+    children: PropTypes.object
 };

@@ -7,13 +7,15 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SuggestionList extends React.Component {
     static propTypes = {
-        suggestionId: React.PropTypes.string.isRequired,
-        location: React.PropTypes.string,
-        renderDividers: React.PropTypes.bool
+        suggestionId: PropTypes.string.isRequired,
+        location: PropTypes.string,
+        renderDividers: PropTypes.bool
     };
 
     static defaultProps = {

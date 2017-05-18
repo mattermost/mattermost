@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -54,6 +56,6 @@ export default class ClaimController extends React.Component {
 ClaimController.defaultProps = {
 };
 ClaimController.propTypes = {
-    location: React.PropTypes.object.isRequired,
-    children: React.PropTypes.node
+    location: PropTypes.object.isRequired,
+    children: PropTypes.node
 };

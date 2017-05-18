@@ -22,14 +22,16 @@ import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SidebarHeaderDropdown extends React.Component {
     static propTypes = {
-        teamType: React.PropTypes.string,
-        teamDisplayName: React.PropTypes.string,
-        teamName: React.PropTypes.string,
-        currentUser: React.PropTypes.object
+        teamType: PropTypes.string,
+        teamDisplayName: PropTypes.string,
+        teamName: PropTypes.string,
+        currentUser: PropTypes.object
     };
 
     static defaultProps = {

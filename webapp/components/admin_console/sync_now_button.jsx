@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -12,7 +14,7 @@ import {ldapSyncNow} from 'actions/admin_actions.jsx';
 export default class SyncNowButton extends React.Component {
     static get propTypes() {
         return {
-            disabled: React.PropTypes.bool
+            disabled: PropTypes.bool
         };
     }
     constructor(props) {

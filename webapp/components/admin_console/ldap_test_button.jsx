@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -12,9 +14,9 @@ import {ldapTest} from 'actions/admin_actions.jsx';
 export default class LdapTestButton extends React.Component {
     static get propTypes() {
         return {
-            disabled: React.PropTypes.bool,
-            submitFunction: React.PropTypes.func,
-            saveNeeded: React.PropTypes.bool
+            disabled: PropTypes.bool,
+            submitFunction: PropTypes.func,
+            saveNeeded: PropTypes.bool
         };
     }
     constructor(props) {

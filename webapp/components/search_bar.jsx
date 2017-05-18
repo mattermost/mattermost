@@ -18,6 +18,8 @@ import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 var ActionTypes = Constants.ActionTypes;
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SearchBar extends React.Component {
@@ -365,7 +367,7 @@ SearchBar.defaultProps = {
 };
 
 SearchBar.propTypes = {
-    showMentionFlagBtns: React.PropTypes.bool,
-    isCommentsPage: React.PropTypes.bool,
-    isFocus: React.PropTypes.bool
+    showMentionFlagBtns: PropTypes.bool,
+    isCommentsPage: PropTypes.bool,
+    isFocus: PropTypes.bool
 };

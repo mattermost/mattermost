@@ -4,6 +4,7 @@
 import FormError from 'components/form_error.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import icon50 from 'images/icon50x50.png';
@@ -13,8 +14,8 @@ import {getOAuthAppInfo, allowOAuth2} from 'actions/admin_actions.jsx';
 export default class Authorize extends React.Component {
     static get propTypes() {
         return {
-            location: React.PropTypes.object.isRequired,
-            params: React.PropTypes.object.isRequired
+            location: PropTypes.object.isRequired,
+            params: PropTypes.object.isRequired
         };
     }
 

@@ -3,6 +3,8 @@
 import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import StatusIcon from './status_icon.jsx';
 import {OverlayTrigger} from 'react-bootstrap';
@@ -94,10 +96,10 @@ ProfilePicture.defaultProps = {
     height: '36'
 };
 ProfilePicture.propTypes = {
-    src: React.PropTypes.string.isRequired,
-    status: React.PropTypes.string,
-    width: React.PropTypes.string,
-    height: React.PropTypes.string,
-    user: React.PropTypes.object,
-    isBusy: React.PropTypes.bool
+    src: PropTypes.string.isRequired,
+    status: PropTypes.string,
+    width: PropTypes.string,
+    height: PropTypes.string,
+    user: PropTypes.object,
+    isBusy: PropTypes.bool
 };

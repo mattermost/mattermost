@@ -13,13 +13,15 @@ import {adminResetMfa} from 'actions/admin_actions.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SystemUsersDropdown extends React.Component {
     static propTypes = {
-        user: React.PropTypes.object.isRequired,
-        doPasswordReset: React.PropTypes.func.isRequired,
-        doManageTeams: React.PropTypes.func.isRequired
+        user: PropTypes.object.isRequired,
+        doPasswordReset: PropTypes.func.isRequired,
+        doManageTeams: PropTypes.func.isRequired
     };
 
     constructor(props) {

@@ -17,6 +17,8 @@ import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
 const ScrollTypes = Constants.ScrollTypes;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PostViewController extends React.Component {
@@ -396,6 +398,6 @@ export default class PostViewController extends React.Component {
 }
 
 PostViewController.propTypes = {
-    channel: React.PropTypes.object,
-    active: React.PropTypes.bool
+    channel: PropTypes.object,
+    active: PropTypes.bool
 };

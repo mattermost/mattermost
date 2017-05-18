@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -8,11 +10,11 @@ import {Link} from 'react-router/es6';
 export default class BackstageCategory extends React.Component {
     static get propTypes() {
         return {
-            name: React.PropTypes.string.isRequired,
-            title: React.PropTypes.node.isRequired,
-            icon: React.PropTypes.string.isRequired,
-            parentLink: React.PropTypes.string,
-            children: React.PropTypes.arrayOf(React.PropTypes.element)
+            name: PropTypes.string.isRequired,
+            title: PropTypes.node.isRequired,
+            icon: PropTypes.string.isRequired,
+            parentLink: PropTypes.string,
+            children: PropTypes.arrayOf(PropTypes.element)
         };
     }
 
@@ -25,7 +27,7 @@ export default class BackstageCategory extends React.Component {
 
     static get contextTypes() {
         return {
-            router: React.PropTypes.object.isRequired
+            router: PropTypes.object.isRequired
         };
     }
 

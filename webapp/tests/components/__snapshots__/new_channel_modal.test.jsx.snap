@@ -14,11 +14,14 @@ exports[`components/NewChannelModal should match snapshot, modal not showing 1`]
     keyboard={true}
     manager={
       ModalManager {
+        "add": [Function],
         "containers": Array [],
         "data": Array [],
         "handleContainerOverflow": true,
         "hideSiblingNodes": true,
+        "isTopModal": [Function],
         "modals": Array [],
+        "remove": [Function],
       }
     }
     onHide={[Function]}
@@ -27,9 +30,9 @@ exports[`components/NewChannelModal should match snapshot, modal not showing 1`]
     show={true}
   >
     <ModalHeader
-      aria-label="Close"
       bsClass="modal-header"
       closeButton={true}
+      closeLabel="Close"
     >
       <ModalTitle
         bsClass="modal-title"
@@ -258,11 +261,14 @@ exports[`components/NewChannelModal should match snapshot, modal showing 1`] = `
     keyboard={true}
     manager={
       ModalManager {
+        "add": [Function],
         "containers": Array [],
         "data": Array [],
         "handleContainerOverflow": true,
         "hideSiblingNodes": true,
+        "isTopModal": [Function],
         "modals": Array [],
+        "remove": [Function],
       }
     }
     onHide={[Function]}
@@ -271,9 +277,9 @@ exports[`components/NewChannelModal should match snapshot, modal showing 1`] = `
     show={true}
   >
     <ModalHeader
-      aria-label="Close"
       bsClass="modal-header"
       closeButton={true}
+      closeLabel="Close"
     >
       <ModalTitle
         bsClass="modal-title"
@@ -502,11 +508,14 @@ exports[`components/NewChannelModal should match snapshot, private channel fille
     keyboard={true}
     manager={
       ModalManager {
+        "add": [Function],
         "containers": Array [],
         "data": Array [],
         "handleContainerOverflow": true,
         "hideSiblingNodes": true,
+        "isTopModal": [Function],
         "modals": Array [],
+        "remove": [Function],
       }
     }
     onHide={[Function]}
@@ -515,9 +524,9 @@ exports[`components/NewChannelModal should match snapshot, private channel fille
     show={true}
   >
     <ModalHeader
-      aria-label="Close"
       bsClass="modal-header"
       closeButton={true}
+      closeLabel="Close"
     >
       <ModalTitle
         bsClass="modal-title"

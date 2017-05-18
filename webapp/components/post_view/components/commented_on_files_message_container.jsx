@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -9,8 +11,8 @@ import * as Utils from 'utils/utils.jsx';
 
 export default class CommentedOnFilesMessageContainer extends React.Component {
     static propTypes = {
-        parentPostChannelId: React.PropTypes.string.isRequired,
-        parentPostId: React.PropTypes.string.isRequired
+        parentPostChannelId: PropTypes.string.isRequired,
+        parentPostId: PropTypes.string.isRequired
     }
 
     constructor(props) {

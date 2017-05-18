@@ -11,17 +11,19 @@ import * as Utils from 'utils/utils.jsx';
 import {canManageMembers} from 'utils/channel_utils.jsx';
 import {Constants} from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class ChannelMembersDropdown extends React.Component {
     static propTypes = {
-        channel: React.PropTypes.object.isRequired,
-        user: React.PropTypes.object.isRequired,
-        teamMember: React.PropTypes.object.isRequired,
-        channelMember: React.PropTypes.object.isRequired,
-        actions: React.PropTypes.shape({
-            getChannelStats: React.PropTypes.func.isRequired
+        channel: PropTypes.object.isRequired,
+        user: PropTypes.object.isRequired,
+        teamMember: PropTypes.object.isRequired,
+        channelMember: PropTypes.object.isRequired,
+        actions: PropTypes.shape({
+            getChannelStats: PropTypes.func.isRequired
         }).isRequired
     }
 

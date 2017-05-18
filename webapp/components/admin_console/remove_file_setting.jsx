@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import Setting from './setting.jsx';
@@ -9,14 +10,14 @@ import Setting from './setting.jsx';
 export default class RemoveFileSetting extends Setting {
     static get propTypes() {
         return {
-            id: React.PropTypes.string.isRequired,
-            label: React.PropTypes.node.isRequired,
-            helpText: React.PropTypes.node,
-            removeButtonText: React.PropTypes.node.isRequired,
-            removingText: React.PropTypes.node,
-            fileName: React.PropTypes.string.isRequired,
-            onSubmit: React.PropTypes.func.isRequired,
-            disabled: React.PropTypes.bool
+            id: PropTypes.string.isRequired,
+            label: PropTypes.node.isRequired,
+            helpText: PropTypes.node,
+            removeButtonText: PropTypes.node.isRequired,
+            removingText: PropTypes.node,
+            fileName: PropTypes.string.isRequired,
+            onSubmit: PropTypes.func.isRequired,
+            disabled: PropTypes.bool
         };
     }
 

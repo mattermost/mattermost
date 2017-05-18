@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -14,12 +16,12 @@ import {Link} from 'react-router';
 export default class InstalledIncomingWebhook extends React.Component {
     static get propTypes() {
         return {
-            incomingWebhook: React.PropTypes.object.isRequired,
-            onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string,
-            creator: React.PropTypes.object.isRequired,
-            canChange: React.PropTypes.bool.isRequired,
-            team: React.PropTypes.object.isRequired
+            incomingWebhook: PropTypes.object.isRequired,
+            onDelete: PropTypes.func.isRequired,
+            filter: PropTypes.string,
+            creator: PropTypes.object.isRequired,
+            canChange: PropTypes.bool.isRequired,
+            team: PropTypes.object.isRequired
         };
     }
 

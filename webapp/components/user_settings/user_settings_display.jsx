@@ -29,6 +29,8 @@ function getDisplayStateFromStores() {
     };
 }
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class UserSettingsDisplay extends React.Component {
@@ -902,12 +904,12 @@ export default class UserSettingsDisplay extends React.Component {
 }
 
 UserSettingsDisplay.propTypes = {
-    user: React.PropTypes.object,
-    updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func,
-    activeSection: React.PropTypes.string,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired,
-    setRequireConfirm: React.PropTypes.func.isRequired,
-    setEnforceFocus: React.PropTypes.func.isRequired
+    user: PropTypes.object,
+    updateSection: PropTypes.func,
+    updateTab: PropTypes.func,
+    activeSection: PropTypes.string,
+    closeModal: PropTypes.func.isRequired,
+    collapseModal: PropTypes.func.isRequired,
+    setRequireConfirm: PropTypes.func.isRequired,
+    setEnforceFocus: PropTypes.func.isRequired
 };
