@@ -8,7 +8,7 @@ import React from 'react';
 import Constants from 'utils/constants.jsx';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
-import {getDateForUnixTicks, isMobile, updateWindowDimensions} from 'utils/utils.jsx';
+import {getDateForUnixTicks, isMobile, updateWindowDimensions, openInNewTab} from 'utils/utils.jsx';
 
 import {Link} from 'react-router/es6';
 import TeamStore from 'stores/team_store.jsx';
@@ -60,8 +60,7 @@ export default class PostTime extends React.Component {
             this.renderTimeTag() :
             (
                 <Link
-                    to={`/${this.state.currentTeamDisplayName}/pl/${this.props.postId}`}
-                    target='_blank'
+                    onClick={openInNewTab.bind(this, `/${this.state.currentTeamDisplayName}/pl/${this.props.postId}`)}
                     className='post__permalink'
                 >
                     {this.renderTimeTag()}

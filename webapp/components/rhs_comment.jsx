@@ -338,8 +338,7 @@ export default class RhsComment extends React.Component {
             this.timeTag(post, timeOptions) :
             (
                 <Link
-                    to={`/${this.state.currentTeamDisplayName}/pl/${post.id}`}
-                    target='_blank'
+                    onClick={Utils.openInNewTab.bind(this, `/${this.state.currentTeamDisplayName}/pl/${post.id}`)}
                     className='post__permalink'
                 >
                     {this.timeTag(post, timeOptions)}
