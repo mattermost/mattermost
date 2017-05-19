@@ -190,7 +190,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         if (this.props.compactDisplay) {
-            className += 'post--compact';
+            className += ' post--compact';
         }
 
         if (post.is_pinned) {

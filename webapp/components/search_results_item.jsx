@@ -166,7 +166,7 @@ export default class SearchResultsItem extends React.Component {
         let compactClass = '';
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
         if (this.props.compactDisplay) {
-            compactClass = 'post--compact';
+            compactClass = ' post--compact';
         }
 
         let fileAttachment = null;
