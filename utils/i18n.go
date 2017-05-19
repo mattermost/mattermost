@@ -26,7 +26,20 @@ func TranslationsPreInit() {
 
 func InitTranslations(localizationSettings model.LocalizationSettings) {
 	settings = localizationSettings
+	validateDefaultClientLocale()
 	T = GetTranslationsBySystemLocale()
+}
+
+func validateDefaultClientLocale() {
+	if *settings.AvailableLocales != "" {
+		if !strings.Contains(*settings.AvailableLocales, *settings.DefaultClientLocale) {
+			panic("Unable to load mattermost configuration file: AvailableLocales must include DefaultClientLocale.")
+		}
+	}
+
+	if locales[*settings.DefaultClientLocale] == "" {
+		panic("Failed to load system translations for DefaultClientLocale")
+	}
 }
 
 func InitTranslationsWithDir(dir string) {
