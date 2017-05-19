@@ -314,6 +314,13 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 			return
 		}
 
+		if len(id) == 0 {
+			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id)
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
