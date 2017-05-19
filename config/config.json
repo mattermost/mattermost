@@ -273,5 +273,8 @@
         "TurnURI": "",
         "TurnUsername": "",
         "TurnSharedKey": ""
+    },
+    "DataRetentionSettings": {
+        "Enable": false
     }
 }

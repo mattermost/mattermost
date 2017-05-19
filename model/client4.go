@@ -254,6 +254,10 @@ func (c *Client4) GetOpenGraphRoute() string {
 	return fmt.Sprintf("/opengraph")
 }
 
+func (c *Client4) GetJobsRoute() string {
+	return fmt.Sprintf("/jobs")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -2636,5 +2640,27 @@ func (c *Client4) OpenGraph(url string) (map[string]string, *Response) {
 	} else {
 		defer closeBody(r)
 		return MapFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Jobs Section
+
+// GetJobStatus gets the status of a single job.
+func (c *Client4) GetJobStatus(id string) (*JobStatus, *Response) {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/status", id), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return JobStatusFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetJobStatusesByType gets the status of all jobs of a given type, sorted with the job that most recently started first.
+func (c *Client4) GetJobStatusesByType(jobType string, page int, perPage int) ([]*JobStatus, *Response) {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/type/%v/statuses?page=%v&per_page=%v", jobType, page, perPage), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return JobStatusesFromJson(r.Body), BuildResponse(r)
 	}
 }

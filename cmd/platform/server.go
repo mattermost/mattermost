@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -43,7 +44,7 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runServer(configFileLocation string) {
-	if errstr := doLoadConfig(configFileLocation); errstr != "" {
+	if errstr := utils.InitAndLoadConfig(configFileLocation); errstr != "" {
 		l4g.Exit("Unable to load mattermost configuration file: ", errstr)
 		return
 	}
@@ -120,6 +121,8 @@ func runServer(configFileLocation string) {
 		}
 	}
 
+	jobs := jobs.InitJobs(app.Srv.Store).Start()
+
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
 	c := make(chan os.Signal)
@@ -133,6 +136,8 @@ func runServer(configFileLocation string) {
 	if einterfaces.GetMetricsInterface() != nil {
 		einterfaces.GetMetricsInterface().StopServer()
 	}
+
+	jobs.Stop()
 
 	app.StopServer()
 }
