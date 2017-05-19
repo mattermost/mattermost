@@ -560,7 +560,9 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         var markRead = id === ChannelStore.getCurrentId() && window.isActive;
 
         if (TeamStore.getCurrentId() === teamId || teamId === '') {
-            ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            if (!markRead) {
+                ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            }
             ChannelStore.incrementMessages(id, markRead);
         }
         break;

@@ -41,14 +41,6 @@
             width: 43px;
             z-index: 5;
 
-            > span {
-                > svg {
-                    position: relative;
-                    top: 13px;
-                    vertical-align: top;
-                }
-            }
-
             .icon-bar {
                 background: $white;
                 width: 21px;
@@ -57,8 +49,7 @@
             .icon-search {
                 font-size: 17px;
                 position: relative;
-                top: 11px;
-                vertical-align: top;
+                top: -2px;
             }
 
             .icon--white {
