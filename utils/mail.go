@@ -50,6 +50,15 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error())
 	}
 
+	hostname := GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL)
+	if hostname != "" {
+		err := c.Hello(hostname)
+		if err != nil {
+			l4g.Error(T("utils.mail.new_client.helo.error"), err)
+			return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error())
+		}
+	}
+
 	auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if config.EmailSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		if err = c.Auth(auth); err != nil {
@@ -135,15 +144,6 @@ func SendMailUsingConfig(to, subject, body string, config *model.Config) *model.
 	}
 	defer c.Quit()
 	defer c.Close()
-
-	siteName := GetSiteName(*config.ServiceSettings.SiteURL)
-	if siteName != "" {
-		err := c.Hello(siteName)
-		if err != nil {
-			l4g.Error(T("utils.mail.new_client.helo.error"), err)
-			return model.NewLocAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error())
-		}
-	}
 
 	if err := c.Mail(fromMail.Address); err != nil {
 		return model.NewLocAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error())
