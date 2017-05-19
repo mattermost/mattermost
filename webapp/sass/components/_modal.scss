@@ -12,6 +12,7 @@
 
     .modal-body {
         max-height: calc(90vh - 62px);
+        overflow: auto;
         padding: 20px 15px;
     }
 
@@ -28,16 +29,16 @@
         }
 
         .edit-post-footer {
+            display: inline-block;
             font-size: 13px;
             position: relative;
-            display: inline-block;
 
             .post-error {
-                position: relative;
+                @include opacity(.55);
+                font-size: .85em;
                 font-weight: normal;
                 margin-bottom: 0;
-                font-size: .85em;
-                @include opacity(.55);
+                position: relative;
                 top: 3px;
             }
         }
