@@ -14,7 +14,7 @@ How can we reproduce the issue (what version are you using?)
 #### Expected behavior
 Describe your issue in detail
 
-#### Observed behavior
+#### Observed behavior (obviously unintentional) 
 What did you see happen? Please include relevant error messages and/or screenshots.
 
 #### Possible fixes
