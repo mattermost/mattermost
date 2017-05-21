@@ -12,16 +12,38 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-export default class InstalledCommands extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object,
-            user: PropTypes.object,
-            users: PropTypes.object,
-            commands: PropTypes.array,
-            loading: PropTypes.bool,
-            isAdmin: PropTypes.bool
-        };
+export default class InstalledCommands extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The team object
+        */
+        team: PropTypes.object,
+
+        /**
+        * The user object
+        */
+        user: PropTypes.object,
+
+        /**
+        * The users collection
+        */
+        users: PropTypes.object,
+
+        /**
+        * Installed splash commands to display
+        */
+        commands: PropTypes.array,
+
+        /**
+        * Set whether to show the loading... animation or not
+        */
+        loading: PropTypes.bool,
+
+        /**
+        * Set to allow changes to installed splash commands
+        */
+        isAdmin: PropTypes.bool
     }
 
     constructor(props) {
