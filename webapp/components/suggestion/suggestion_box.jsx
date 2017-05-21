@@ -43,7 +43,7 @@ export default class SuggestionBox extends React.Component {
         listStyle: PropTypes.string,
 
         /**
-         * Set to true to draw dividers between list items, defaults to false
+         * Set to true to draw dividers between types of list items, defaults to false
          */
         renderDividers: PropTypes.bool,
 

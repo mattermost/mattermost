@@ -17,6 +17,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -422,6 +423,13 @@ export default class Sidebar extends React.Component {
                 document.querySelector('.app__body .sidebar--left').classList.add('move--right');
             });
         }
+    }
+
+    openQuickSwitcher(e) {
+        e.preventDefault();
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.TOGGLE_QUICK_SWITCH_MODAL
+        });
     }
 
     createTutorialTip() {
@@ -889,6 +897,17 @@ export default class Sidebar extends React.Component {
                         {directMessageItems}
                         {directMessageMore}
                     </ul>
+                </div>
+                <div style={{height: '20px', width: '100%'}}>
+                    <a
+                        href='#'
+                        onClick={this.openQuickSwitcher}
+                    >
+                        <FormattedMessage
+                            id='sidebar.switch_channels'
+                            defaultMessage='Switch Channels (CTRL/CMD + K)'
+                        />
+                    </a>
                 </div>
             </div>
         );

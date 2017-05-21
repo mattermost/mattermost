@@ -111,6 +111,22 @@ export default class SuggestionList extends React.Component {
         );
     }
 
+    renderLoading(type) {
+        return (
+            <div
+                key={type + '-loading'}
+                className='suggestion-list__divider'
+            >
+                <span>
+                    <FormattedMessage
+                        id='suggestion.loading'
+                        defaultMessage='Loading...'
+                    />
+                </span>
+            </div>
+        );
+    }
+
     render() {
         if (this.state.items.length === 0) {
             return null;
@@ -129,6 +145,11 @@ export default class SuggestionList extends React.Component {
             if (this.props.renderDividers && item.type !== lastType) {
                 items.push(this.renderDivider(item.type));
                 lastType = item.type;
+            }
+
+            if (item.loading) {
+                items.push(this.renderLoading(item.type));
+                continue;
             }
 
             items.push(

@@ -21,6 +21,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
+import ModalStore from 'stores/modal_store.jsx';
 
 import QuickSwitchModal from 'components/quick_switch_modal';
 
@@ -66,6 +67,7 @@ export default class Navbar extends React.Component {
 
         this.showQuickSwitchModal = this.showQuickSwitchModal.bind(this);
         this.hideQuickSwitchModal = this.hideQuickSwitchModal.bind(this);
+        this.handleQuickSwitchKeyPress = this.handleQuickSwitchKeyPress.bind(this);
 
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
         this.getPinnedPosts = this.getPinnedPosts.bind(this);
@@ -107,8 +109,9 @@ export default class Navbar extends React.Component {
         UserStore.addStatusesChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.showQuickSwitchModal);
         $('.inner-wrap').click(this.hideSidebars);
-        document.addEventListener('keydown', this.showQuickSwitchModal);
+        document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
     componentWillUnmount() {
@@ -117,7 +120,8 @@ export default class Navbar extends React.Component {
         UserStore.removeStatusesChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
-        document.removeEventListener('keydown', this.showQuickSwitchModal);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.showQuickSwitchModal);
+        document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
     handleSubmit(e) {
@@ -213,16 +217,22 @@ export default class Navbar extends React.Component {
         this.setState({showMembersModal: false});
     }
 
-    showQuickSwitchModal(e) {
+    handleQuickSwitchKeyPress(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
             e.preventDefault();
-            if (this.state.showQuickSwitchModal) {
-                this.setState({showQuickSwitchModal: false, quickSwitchMode: 'channel'});
-            } else if (e.altKey) {
-                this.setState({showQuickSwitchModal: true, quickSwitchMode: 'team'});
+            if (e.altKey) {
+                this.showQuickSwitchModal('team');
             } else {
-                this.setState({showQuickSwitchModal: true, quickSwitchMode: 'channel'});
+                this.showQuickSwitchModal('channel');
             }
+        }
+    }
+
+    showQuickSwitchModal(mode = 'channel') {
+        if (this.state.showQuickSwitchModal) {
+            this.setState({showQuickSwitchModal: false, quickSwitchMode: 'channel'});
+        } else {
+            this.setState({showQuickSwitchModal: true, quickSwitchMode: mode});
         }
     }
 

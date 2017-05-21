@@ -4,9 +4,6 @@
 import Suggestion from './suggestion.jsx';
 import Provider from './provider.jsx';
 
-import UserStore from 'stores/user_store.jsx';
-
-import {autocompleteUsers} from 'actions/user_actions.jsx';
 import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
@@ -15,41 +12,44 @@ import {sortChannelsByDisplayName, getChannelDisplayName} from 'utils/channel_ut
 
 import React from 'react';
 
-// Redux actions
 import store from 'stores/redux_store.jsx';
 const getState = store.getState;
 const dispatch = store.dispatch;
 
 import {searchChannels} from 'mattermost-redux/actions/channels';
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 
-import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import {getChannelsInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId, searchProfiles} from 'mattermost-redux/selectors/entities/users';
+import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {Preferences} from 'mattermost-redux/constants';
 
 class SwitchChannelSuggestion extends Suggestion {
     render() {
         const {item, isSelection} = this.props;
+        const channel = item.channel;
 
         let className = 'mentions__name';
         if (isSelection) {
             className += ' suggestion--selected';
         }
 
-        let displayName = item.display_name;
+        let displayName = channel.display_name;
         let icon = null;
-        if (item.type === Constants.OPEN_CHANNEL) {
+        if (channel.type === Constants.OPEN_CHANNEL) {
             icon = <div className='status'><i className='fa fa-globe'/></div>;
-        } else if (item.type === Constants.PRIVATE_CHANNEL) {
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
             icon = <div className='status'><i className='fa fa-lock'/></div>;
-        } else if (item.type === Constants.GM_CHANNEL) {
-            displayName = getChannelDisplayName(item);
+        } else if (channel.type === Constants.GM_CHANNEL) {
+            displayName = getChannelDisplayName(channel);
             icon = <div className='status status--group'>{'G'}</div>;
         } else {
             icon = (
                 <div className='pull-left'>
                     <img
                         className='mention__image'
-                        src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.last_picture_update}
+                        src={Client.getUsersRoute() + '/' + channel.id + '/image?time=' + channel.last_picture_update}
                     />
                 </div>
             );
@@ -69,7 +69,16 @@ class SwitchChannelSuggestion extends Suggestion {
 
 let prefix = '';
 
-function quickSwitchSorter(a, b) {
+function quickSwitchSorter(wrappedA, wrappedB) {
+    if (wrappedA.type === Constants.MENTION_CHANNELS && wrappedB.type === Constants.MENTION_MORE_CHANNELS) {
+        return -1;
+    } else if (wrappedB.type === Constants.MENTION_CHANNELS && wrappedA.type === Constants.MENTION_MORE_CHANNELS) {
+        return 1;
+    }
+
+    const a = wrappedA.channel;
+    const b = wrappedB.channel;
+
     let aDisplayName = getChannelDisplayName(a).toLowerCase();
     let bDisplayName = getChannelDisplayName(b).toLowerCase();
 
@@ -98,26 +107,13 @@ export default class SwitchChannelProvider extends Provider {
             prefix = channelPrefix;
             this.startNewRequest(suggestionId, channelPrefix);
 
-            const allChannels = getChannelsInCurrentTeam(getState());
-            const users = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
-            this.formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, users);
+            // Dispatch suggestions for local data
+            const channels = getChannelsInCurrentTeam(getState());
+            const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), true);
+            this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users, true);
 
-            autocompleteUsers(
-                channelPrefix,
-                () => {
-                    const newUsers = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
-                    const channels = getChannelsInCurrentTeam(getState());
-                    this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, newUsers);
-                }
-            );
-
-            searchChannels(getCurrentTeamId(getState()), channelPrefix)(dispatch, getState).then(
-                () => {
-                    const newUsers = Object.assign([], Selectors.searchProfiles(getState(), channelPrefix, true));
-                    const channels = getChannelsInCurrentTeam(getState());
-                    this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, newUsers);
-                }
-            );
+            // Fetch data from the server and dispatch
+            this.fetchUsersAndChannels(channelPrefix, suggestionId);
 
             return true;
         }
@@ -125,29 +121,61 @@ export default class SwitchChannelProvider extends Provider {
         return false;
     }
 
-    formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, users) {
+    async fetchUsersAndChannels(channelPrefix, suggestionId) {
+        const usersAsync = autocompleteUsers(channelPrefix)(dispatch, getState);
+        const channelsAsync = searchChannels(getCurrentTeamId(getState()), channelPrefix)(dispatch, getState);
+        await usersAsync;
+        await channelsAsync;
+
+        const users = Object.assign([], searchProfiles(getState(), channelPrefix, true));
+        const channels = getChannelsInCurrentTeam(getState());
+        this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users);
+    }
+
+    formatChannelsAndDispatch(channelPrefix, suggestionId, allChannels, users, skipNotInChannel = false) {
         const channels = [];
+        const members = getMyChannelMemberships(getState());
 
         if (this.shouldCancelDispatch(channelPrefix)) {
             return;
         }
 
-        const currentId = UserStore.getCurrentId();
+        const currentId = getCurrentUserId(getState());
 
         for (const id of Object.keys(allChannels)) {
             const channel = allChannels[id];
+            const member = members[channel.id];
+
             if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
                 const newChannel = Object.assign({}, channel);
+                const wrappedChannel = {channel: newChannel, name: newChannel.name};
                 if (newChannel.type === Constants.GM_CHANNEL) {
                     newChannel.name = getChannelDisplayName(newChannel);
+                    const isGMVisible = getBool(getState(), Preferences.CATEGORY_GROUP_CHANNEL_SHOW, newChannel.id, false);
+                    if (isGMVisible) {
+                        wrappedChannel.type = Constants.MENTION_CHANNELS;
+                    } else {
+                        wrappedChannel.type = Constants.MENTION_MORE_CHANNELS;
+                        if (skipNotInChannel) {
+                            continue;
+                        }
+                    }
+                } else if (member) {
+                    wrappedChannel.type = Constants.MENTION_CHANNELS;
+                } else {
+                    wrappedChannel.type = Constants.MENTION_MORE_CHANNELS;
+                    if (skipNotInChannel) {
+                        continue;
+                    }
                 }
-                channels.push(newChannel);
+
+                channels.push(wrappedChannel);
             }
         }
 
-        const userMap = {};
         for (let i = 0; i < users.length; i++) {
             const user = users[i];
+            const isDMVisible = getBool(getState(), Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, false);
             let displayName = `@${user.username} `;
 
             if (user.id === currentId) {
@@ -162,20 +190,39 @@ export default class SwitchChannelProvider extends Provider {
                 displayName += `- ${Utils.getFullName(user)}`;
             }
 
-            const newChannel = {
-                display_name: displayName,
-                name: user.username,
-                id: user.id,
-                update_at: user.update_at,
-                type: Constants.DM_CHANNEL
+            const wrappedChannel = {
+                channel: {
+                    display_name: displayName,
+                    name: user.username,
+                    id: user.id,
+                    update_at: user.update_at,
+                    type: Constants.DM_CHANNEL
+                },
+                name: user.username
             };
-            channels.push(newChannel);
-            userMap[user.id] = user;
+
+            if (isDMVisible) {
+                wrappedChannel.type = Constants.MENTION_CHANNELS;
+            } else {
+                wrappedChannel.type = Constants.MENTION_MORE_CHANNELS;
+                if (skipNotInChannel) {
+                    continue;
+                }
+            }
+
+            channels.push(wrappedChannel);
         }
 
         const channelNames = channels.
             sort(quickSwitchSorter).
-            map((channel) => channel.name);
+            map((wrappedChannel) => wrappedChannel.channel.name);
+
+        if (skipNotInChannel) {
+            channels.push({
+                type: Constants.MENTION_MORE_CHANNELS,
+                loading: true
+            });
+        }
 
         setTimeout(() => {
             AppDispatcher.handleServerAction({

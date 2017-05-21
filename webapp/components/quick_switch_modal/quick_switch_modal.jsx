@@ -139,8 +139,9 @@ export default class QuickSwitchModal extends React.PureComponent {
         }
 
         if (this.state.mode === CHANNEL_MODE) {
-            if (this.selected.type === Constants.DM_CHANNEL) {
-                const user = getUserByUsername(getState(), this.selected.name);
+            const selected = this.selected.channel;
+            if (selected.type === Constants.DM_CHANNEL) {
+                const user = getUserByUsername(getState(), selected.name);
 
                 if (user) {
                     openDirectChannelToUser(
@@ -156,7 +157,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                     );
                 }
             } else {
-                channel = getChannel(getState(), this.selected.id);
+                channel = getChannel(getState(), selected.id);
                 this.switchToChannel(channel);
             }
         } else {
@@ -183,11 +184,13 @@ export default class QuickSwitchModal extends React.PureComponent {
     render() {
         let providers = this.channelProviders;
         let header;
+        let renderDividers = true;
         if (this.props.showTeamSwitcher) {
             const channelStyle = {};
             const teamStyle = {marginLeft: '50px'};
             if (this.state.mode === TEAM_MODE) {
                 providers = this.teamProviders;
+                renderDividers = false;
                 teamStyle.fontWeight = 'bold';
             } else {
                 channelStyle.fontWeight = 'bold';
@@ -230,7 +233,7 @@ export default class QuickSwitchModal extends React.PureComponent {
 
         return (
             <Modal
-                dialogClassName='channel-switch-modal'
+                dialogClassName='channel-switch-modal modal--overflow'
                 ref='modal'
                 show={this.props.show}
                 onHide={this.onHide}
@@ -254,6 +257,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                         providers={providers}
                         listStyle='bottom'
                         completeOnTab={false}
+                        renderDividers={renderDividers}
                     />
                 </Modal.Body>
             </Modal>
