@@ -733,6 +733,7 @@ export default class Sidebar extends React.Component {
                 overlay={createChannelTootlip}
             >
                 <a
+                    id='publicChannelAddButton'
                     className='add-channel-btn'
                     href='#'
                     onClick={this.showNewChannelModal.bind(this, Constants.OPEN_CHANNEL)}
@@ -750,6 +751,7 @@ export default class Sidebar extends React.Component {
                 overlay={createGroupTootlip}
             >
                 <a
+                    id='privateChannelAddButton'
                     className='add-channel-btn'
                     href='#'
                     onClick={this.showNewChannelModal.bind(this, Constants.PRIVATE_CHANNEL)}
