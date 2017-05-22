@@ -76,6 +76,12 @@
         color: alpha-color($black, .9);
         width: 100%;
 
+        .modal--overflow {
+            .modal-body {
+                overflow: visible;
+            }
+        }
+
         &.modal-image {
             .modal-backdrop {
                 &.in {
