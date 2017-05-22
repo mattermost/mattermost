@@ -558,14 +558,14 @@ export function applyTheme(theme) {
 
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
-        changeCss('.app__body .sidebar--left .mention-badge', 'background:' + theme.mentionBj);
-        changeCss('.multi-teams .team-sidebar .mention-badge', 'background:' + theme.mentionBj);
+        changeCss('.app__body .sidebar--left .badge', 'background:' + theme.mentionBj);
+        changeCss('.multi-teams .team-sidebar .badge', 'background:' + theme.mentionBj);
     }
 
     if (theme.mentionColor) {
         changeCss('.app__body .sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
-        changeCss('.app__body .sidebar--left .mention-badge', 'color:' + theme.mentionColor);
-        changeCss('.app__body .multi-teams .team-sidebar .mention-badge', 'color:' + theme.mentionColor);
+        changeCss('.app__body .sidebar--left .badge', 'color:' + theme.mentionColor);
+        changeCss('.app__body .multi-teams .team-sidebar .badge', 'color:' + theme.mentionColor);
     }
 
     if (theme.centerChannelBg) {

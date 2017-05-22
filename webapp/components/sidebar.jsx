@@ -517,7 +517,7 @@ export default class Sidebar extends React.Component {
         var badge = null;
         if (channelMember) {
             if (unreadCount.mentions) {
-                badge = <span className='mention-badge pull-right small'>{unreadCount.mentions}</span>;
+                badge = <span className='badge pull-right small'>{unreadCount.mentions}</span>;
                 this.badgesActive = true;
             }
         } else if (this.state.loadingDMChannel === index && channel.type === Constants.DM_CHANNEL) {
