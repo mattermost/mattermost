@@ -139,7 +139,7 @@ export default class SwitchChannelModal extends React.Component {
         const message = this.state.error;
         return (
             <Modal
-                dialogClassName='channel-switch-modal'
+                dialogClassName='channel-switch-modal modal--overflow'
                 ref='modal'
                 show={this.props.show}
                 onHide={this.onHide}
