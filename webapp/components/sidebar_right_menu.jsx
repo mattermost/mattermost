@@ -174,7 +174,6 @@ export default class SidebarRightMenu extends React.Component {
         let isAdmin = false;
         let isSystemAdmin = false;
         let createTeam = null;
-        const leaveTeamIcon = Constants.LEAVE_TEAM_SVG;
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -307,8 +306,8 @@ export default class SidebarRightMenu extends React.Component {
                     onClick={GlobalActions.showLeaveTeamModal}
                 >
                     <span
-                        className='icon fa'
-                        dangerouslySetInnerHTML={{__html: leaveTeamIcon}}
+                        className='icon'
+                        dangerouslySetInnerHTML={{__html: Constants.LEAVE_TEAM_SVG}}
                     />
                     <FormattedMessage
                         id='navbar_dropdown.leave'
