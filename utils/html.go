@@ -33,7 +33,7 @@ func InitHTMLWithDir(dir string) {
 		return
 	}
 
-	templatesDir := FindDir(dir)
+	templatesDir, _ := FindDir(dir)
 	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
 	var err error
 	if htmlTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
