@@ -495,30 +495,35 @@ func prepareImage(fileData []byte) (*image.Image, int, int) {
 	}
 
 	// Flip the image to be upright
-	orientation, _ := getImageOrientation(fileData)
-
-	switch orientation {
-	case UprightMirrored:
-		img = imaging.FlipH(img)
-	case UpsideDown:
-		img = imaging.Rotate180(img)
-	case UpsideDownMirrored:
-		img = imaging.FlipV(img)
-	case RotatedCWMirrored:
-		img = imaging.Transpose(img)
-	case RotatedCCW:
-		img = imaging.Rotate270(img)
-	case RotatedCCWMirrored:
-		img = imaging.Transverse(img)
-	case RotatedCW:
-		img = imaging.Rotate90(img)
-	}
+	orientation, _ := getImageOrientation(bytes.NewReader(fileData))
+	img = makeImageUpright(img, orientation)
 
 	return &img, width, height
 }
 
-func getImageOrientation(imageData []byte) (int, error) {
-	if exifData, err := exif.Decode(bytes.NewReader(imageData)); err != nil {
+func makeImageUpright(img image.Image, orientation int) image.Image {
+	switch orientation {
+	case UprightMirrored:
+		return imaging.FlipH(img)
+	case UpsideDown:
+		return imaging.Rotate180(img)
+	case UpsideDownMirrored:
+		return imaging.FlipV(img)
+	case RotatedCWMirrored:
+		return imaging.Transpose(img)
+	case RotatedCCW:
+		return imaging.Rotate270(img)
+	case RotatedCCWMirrored:
+		return imaging.Transverse(img)
+	case RotatedCW:
+		return imaging.Rotate90(img)
+	default:
+		return img
+	}
+}
+
+func getImageOrientation(input io.Reader) (int, error) {
+	if exifData, err := exif.Decode(input); err != nil {
 		return Upright, err
 	} else {
 		if tag, err := exifData.Get("Orientation"); err != nil {
