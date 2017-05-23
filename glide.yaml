@@ -23,8 +23,6 @@ import:
 - package: github.com/gorilla/websocket
   version: v1.1.0
 - package: github.com/lib/pq
-- package: github.com/mattermost/gorp
-  version: 264455541e08d3b5ec89f605e9695823d5bec606
 - package: github.com/mattermost/rsc
   subpackages:
   - qr
@@ -83,3 +81,4 @@ import:
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
   version: v5.0.38
+- package: github.com/mattermost/gorp
