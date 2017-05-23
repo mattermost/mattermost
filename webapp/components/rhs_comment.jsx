@@ -622,7 +622,6 @@ export default class RhsComment extends React.Component {
 }
 
 RhsComment.propTypes = {
-<<<<<<< 33a5ac8c8d1683de4b18b60be55bb322a6fff3a3
     post: PropTypes.object,
     lastPostCount: PropTypes.number,
     user: PropTypes.object.isRequired,
@@ -631,16 +630,6 @@ RhsComment.propTypes = {
     useMilitaryTime: PropTypes.bool.isRequired,
     isFlagged: PropTypes.bool,
     status: PropTypes.string,
-    isBusy: PropTypes.bool
-=======
-    post: React.PropTypes.object,
-    user: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string,
-    isBusy: React.PropTypes.bool,
-    getPostList: React.PropTypes.func.isRequired
->>>>>>> PLT-6135 Changed RHS post components to use EmojiPickerOverlay
+    isBusy: PropTypes.bool,
+    getPostList: PropTypes.func.isRequired
 };

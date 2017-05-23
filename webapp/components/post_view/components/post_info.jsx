@@ -459,7 +459,6 @@ PostInfo.defaultProps = {
     sameUser: false
 };
 PostInfo.propTypes = {
-<<<<<<< 5cbb3a7c1195717ca4b67b795b3f8d4a932d8dc4
     post: PropTypes.object.isRequired,
     lastPostCount: PropTypes.number,
     commentCount: PropTypes.number.isRequired,
@@ -470,18 +469,6 @@ PostInfo.propTypes = {
     currentUser: PropTypes.object.isRequired,
     compactDisplay: PropTypes.bool,
     useMilitaryTime: PropTypes.bool.isRequired,
-    isFlagged: PropTypes.bool
-=======
-    post: React.PropTypes.object.isRequired,
-    commentCount: React.PropTypes.number.isRequired,
-    isLastComment: React.PropTypes.bool.isRequired,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    handleDropdownOpened: React.PropTypes.func.isRequired,
-    sameUser: React.PropTypes.bool.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool,
-    getPostList: React.PropTypes.func.isRequired
->>>>>>> PLT-6135 Made EmojiPicker automatically position itself above/below the [...] menu
+    isFlagged: PropTypes.bool,
+    getPostList: PropTypes.func.isRequired
 };
