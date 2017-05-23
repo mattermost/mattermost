@@ -21,7 +21,7 @@ func initDBCommandContextCobra(cmd *cobra.Command) error {
 	return nil
 }
 
-func initDBCommandContext(configFileLocation string) {
+func initDBCommandContext(configFileLocation string) error {
 	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
 		return err
 	}
