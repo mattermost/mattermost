@@ -4653,7 +4653,7 @@
   },
   {
     "id": "store.sql.schema_out_of_date.warn",
-    "translation": "Das Datenbankschema der Version %v scheint veralten zu sein"
+    "translation": "Das Datenbankschema der Version %v scheint veraltet zu sein"
   },
   {
     "id": "store.sql.schema_set.info",
