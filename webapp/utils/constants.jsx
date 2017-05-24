@@ -928,7 +928,7 @@ export const Constants = {
     RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
     MHPNS: 'https://push.mattermost.com',
-    MTPNS: 'http://push-test.mattermost.com',
+    MTPNS: 'https://push-test.mattermost.com',
     BOT_NAME: 'BOT',
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
