@@ -551,7 +551,7 @@ export default class PostList extends React.Component {
         window.removeEventListener('keydown', this.handleKeyDown);
         this.scrollStopAction.cancel();
 
-        PostStore.removePostDraftChangeListener(this.handlePostDraftChange);
+        PostStore.removePostDraftChangeListener(this.props.channelId, this.handlePostDraftChange);
     }
 
     componentDidUpdate() {
