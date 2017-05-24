@@ -45,6 +45,8 @@ import {Link} from 'react-router/es6';
 import PropTypes from 'prop-types';
 
 import React from 'react';
+import store from 'stores/redux_store.jsx';
+import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 export default class Navbar extends React.Component {
     constructor(props) {
@@ -218,9 +220,12 @@ export default class Navbar extends React.Component {
     }
 
     handleQuickSwitchKeyPress(e) {
-        if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
+        if (Utils.cmdOrCtrlPressed(e, true) && e.keyCode === Constants.KeyCodes.K) {
             e.preventDefault();
             if (e.altKey) {
+                if (getMyTeams(store.getState()).length <= 1) {
+                    return;
+                }
                 this.showQuickSwitchModal('team');
             } else {
                 this.showQuickSwitchModal('channel');

@@ -94,6 +94,8 @@ function quickSwitchSorter(wrappedA, wrappedB) {
     const bStartsWith = bDisplayName.startsWith(prefix);
     if (aStartsWith && bStartsWith) {
         return sortChannelsByDisplayName(a, b);
+    } else if (!aStartsWith && !bStartsWith) {
+        return sortChannelsByDisplayName(a, b);
     } else if (aStartsWith) {
         return -1;
     }

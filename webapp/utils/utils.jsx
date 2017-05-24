@@ -47,7 +47,10 @@ export function createSafeId(prop) {
     return str.replace(new RegExp(' ', 'g'), '_');
 }
 
-export function cmdOrCtrlPressed(e) {
+export function cmdOrCtrlPressed(e, allowAlt = false) {
+    if (allowAlt) {
+        return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey);
+    }
     return (isMac() && e.metaKey) || (!isMac() && e.ctrlKey && !e.altKey);
 }
 
