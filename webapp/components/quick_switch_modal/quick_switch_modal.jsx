@@ -7,7 +7,6 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import SwitchTeamProvider from 'components/suggestion/switch_team_provider.jsx';
 
 import {goToChannel, openDirectChannelToUser} from 'actions/channel_actions.jsx';
-import {emitSuggestionPretextChanged} from 'actions/global_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
