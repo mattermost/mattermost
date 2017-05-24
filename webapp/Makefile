@@ -13,6 +13,7 @@ test: .yarninstall
 .yarninstall: package.json
 	@echo Getting dependencies using yarn
 
+	yarn cache clean
 	yarn install --pure-lockfile
 
 	touch $@
@@ -52,3 +53,5 @@ clean:
 	rm -rf dist
 	rm -rf node_modules
 	rm -f .yarninstall
+
+	yarn cache clean
