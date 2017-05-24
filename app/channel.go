@@ -1041,7 +1041,7 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 	} else {
 		oldStatus = status.Status
 		status.ActiveChannel = channelId
-		if !status.Manual {
+		if !status.Manual && channelId != "" {
 			status.Status = model.STATUS_ONLINE
 		}
 		status.LastActivityAt = model.GetMillis()
