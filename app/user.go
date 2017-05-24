@@ -805,6 +805,11 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
 	}
 
+	file.Seek(0, 0)
+
+	orientation, _ := getImageOrientation(file)
+	img = makeImageUpright(img, orientation)
+
 	// Scale profile image
 	img = imaging.Fill(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Center, imaging.Lanczos)
 
