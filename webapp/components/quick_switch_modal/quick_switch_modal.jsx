@@ -69,6 +69,8 @@ export default class QuickSwitchModal extends React.PureComponent {
         this.switchMode = this.switchMode.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
 
+        this.enableChannelProvider = this.enableChannelProvider.bind(this);
+        this.enableTeamProvider = this.enableTeamProvider.bind(this);
         this.channelProviders = [new SwitchChannelProvider()];
         this.teamProviders = [new SwitchTeamProvider()];
 
@@ -172,10 +174,22 @@ export default class QuickSwitchModal extends React.PureComponent {
         }
     }
 
+    enableChannelProvider() {
+        this.channelProviders[0].disableDispatches = false;
+        this.teamProviders[0].disableDispatches = true;
+    }
+
+    enableTeamProvider() {
+        this.teamProviders[0].disableDispatches = false;
+        this.channelProviders[0].disableDispatches = true;
+    }
+
     switchMode() {
         if (this.state.mode === CHANNEL_MODE && this.props.showTeamSwitcher) {
+            this.enableTeamProvider();
             this.setState({mode: TEAM_MODE});
         } else if (this.state.mode === TEAM_MODE) {
+            this.enableChannelProvider();
             this.setState({mode: CHANNEL_MODE});
         }
     }
@@ -202,6 +216,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                         href='#'
                         onClick={(e) => {
                             e.preventDefault();
+                            this.enableChannelProvider();
                             this.setState({mode: 'channel'});
                             this.focusTextbox();
                         }}
@@ -216,6 +231,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                         href='#'
                         onClick={(e) => {
                             e.preventDefault();
+                            this.enableTeamProvider();
                             this.setState({mode: 'team'});
                             this.focusTextbox();
                         }}

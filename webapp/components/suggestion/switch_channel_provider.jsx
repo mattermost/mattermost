@@ -20,7 +20,7 @@ import {searchChannels} from 'mattermost-redux/actions/channels';
 import {autocompleteUsers} from 'mattermost-redux/actions/users';
 
 import {getCurrentUserId, searchProfiles} from 'mattermost-redux/selectors/entities/users';
-import {getChannelsInCurrentTeam, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getGroupChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
@@ -110,7 +110,7 @@ export default class SwitchChannelProvider extends Provider {
             this.startNewRequest(suggestionId, channelPrefix);
 
             // Dispatch suggestions for local data
-            const channels = getChannelsInCurrentTeam(getState());
+            const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState()));
             const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), true);
             this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users, true);
 
@@ -129,8 +129,12 @@ export default class SwitchChannelProvider extends Provider {
         await usersAsync;
         await channelsAsync;
 
+        if (this.shouldCancelDispatch(channelPrefix)) {
+            return;
+        }
+
         const users = Object.assign([], searchProfiles(getState(), channelPrefix, true));
-        const channels = getChannelsInCurrentTeam(getState());
+        const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState()));
         this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users);
     }
 
@@ -153,6 +157,7 @@ export default class SwitchChannelProvider extends Provider {
                 const wrappedChannel = {channel: newChannel, name: newChannel.name};
                 if (newChannel.type === Constants.GM_CHANNEL) {
                     newChannel.name = getChannelDisplayName(newChannel);
+                    wrappedChannel.name = newChannel.name;
                     const isGMVisible = getBool(getState(), Preferences.CATEGORY_GROUP_CHANNEL_SHOW, newChannel.id, false);
                     if (isGMVisible) {
                         wrappedChannel.type = Constants.MENTION_CHANNELS;
