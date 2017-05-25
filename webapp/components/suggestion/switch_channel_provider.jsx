@@ -166,7 +166,7 @@ export default class SwitchChannelProvider extends Provider {
                     wrappedChannel.type = Constants.MENTION_CHANNELS;
                 } else {
                     wrappedChannel.type = Constants.MENTION_MORE_CHANNELS;
-                    if (skipNotInChannel) {
+                    if (skipNotInChannel || !newChannel.display_name.startsWith(channelPrefix)) {
                         continue;
                     }
                 }
