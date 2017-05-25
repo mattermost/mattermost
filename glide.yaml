@@ -81,14 +81,5 @@ import:
   - pbutil
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
-- package: github.com/hashicorp/memberlist
-  version: v0.1.0
-- package: github.com/armon/go-metrics
-- package: github.com/hashicorp/go-msgpack
-  subpackages:
-  - codec
-- package: github.com/hashicorp/go-multierror
-- package: github.com/hashicorp/go-sockaddr
-- package: github.com/sean-/seed
 - package: gopkg.in/olivere/elastic.v5
   version: v5.0.38

@@ -81,7 +81,7 @@ imports:
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/lib/pq
-  version: d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b
+  version: 2704adc878c21e1329f46f6e56a1c387d788ff94
   subpackages:
   - oid
 - name: github.com/magiconair/properties
@@ -121,7 +121,7 @@ imports:
   - i18n/language
   - i18n/translation
 - name: github.com/NYTimes/gziphandler
-  version: 172fbbbb329cf7e031dd3ab35766186fc2081eab
+  version: 22d4470af89e09998fc16b35029df973932df4ae
 - name: github.com/pborman/uuid
   version: 1b00554d822231195d1babd97ff4a781231955c9
 - name: github.com/pelletier/go-buffruneio
@@ -170,7 +170,7 @@ imports:
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
-  version: 84f94806c67f59dd7ae87bc5351f7a9c94a4558d
+  version: 0967fc9aceab2ce9da34061253ac10fb99bba5b2
 - name: github.com/tylerb/graceful
   version: d72b0151351a13d0421b763b88f791469c4f5dc7
 - name: github.com/xenolf/lego
@@ -233,5 +233,5 @@ imports:
   subpackages:
   - store/memstore
 - name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 testImports: []
