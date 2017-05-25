@@ -14,6 +14,7 @@ var TypeToRR = map[uint16]func() RR{
 	TypeAAAA:       func() RR { return new(AAAA) },
 	TypeAFSDB:      func() RR { return new(AFSDB) },
 	TypeANY:        func() RR { return new(ANY) },
+	TypeAVC:        func() RR { return new(AVC) },
 	TypeCAA:        func() RR { return new(CAA) },
 	TypeCDNSKEY:    func() RR { return new(CDNSKEY) },
 	TypeCDS:        func() RR { return new(CDS) },
@@ -86,6 +87,7 @@ var TypeToString = map[uint16]string{
 	TypeAFSDB:      "AFSDB",
 	TypeANY:        "ANY",
 	TypeATMA:       "ATMA",
+	TypeAVC:        "AVC",
 	TypeAXFR:       "AXFR",
 	TypeCAA:        "CAA",
 	TypeCDNSKEY:    "CDNSKEY",
@@ -166,6 +168,7 @@ func (rr *A) Header() *RR_Header          { return &rr.Hdr }
 func (rr *AAAA) Header() *RR_Header       { return &rr.Hdr }
 func (rr *AFSDB) Header() *RR_Header      { return &rr.Hdr }
 func (rr *ANY) Header() *RR_Header        { return &rr.Hdr }
+func (rr *AVC) Header() *RR_Header        { return &rr.Hdr }
 func (rr *CAA) Header() *RR_Header        { return &rr.Hdr }
 func (rr *CDNSKEY) Header() *RR_Header    { return &rr.Hdr }
 func (rr *CDS) Header() *RR_Header        { return &rr.Hdr }
@@ -250,6 +253,13 @@ func (rr *AFSDB) len() int {
 }
 func (rr *ANY) len() int {
 	l := rr.Hdr.len()
+	return l
+}
+func (rr *AVC) len() int {
+	l := rr.Hdr.len()
+	for _, x := range rr.Txt {
+		l += len(x) + 1
+	}
 	return l
 }
 func (rr *CAA) len() int {
@@ -648,6 +658,11 @@ func (rr *AFSDB) copy() RR {
 }
 func (rr *ANY) copy() RR {
 	return &ANY{*rr.Hdr.copyHeader()}
+}
+func (rr *AVC) copy() RR {
+	Txt := make([]string, len(rr.Txt))
+	copy(Txt, rr.Txt)
+	return &AVC{*rr.Hdr.copyHeader(), Txt}
 }
 func (rr *CAA) copy() RR {
 	return &CAA{*rr.Hdr.copyHeader(), rr.Flag, rr.Tag, rr.Value}

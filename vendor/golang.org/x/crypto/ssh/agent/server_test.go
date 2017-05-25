@@ -56,7 +56,9 @@ func TestSetupForwardAgent(t *testing.T) {
 		incoming <- conn
 	}()
 
-	conf := ssh.ClientConfig{}
+	conf := ssh.ClientConfig{
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
 	conn, chans, reqs, err := ssh.NewClientConn(b, "", &conf)
 	if err != nil {
 		t.Fatalf("NewClientConn: %v", err)

@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/spf13/pflag"
 )
 
 // test to ensure hidden commands run as intended
@@ -192,8 +194,15 @@ func TestEnableCommandSortingIsDisabled(t *testing.T) {
 	EnableCommandSorting = true
 }
 
-func TestFlagErrorFunc(t *testing.T) {
+func TestSetOutput(t *testing.T) {
+	cmd := &Command{}
+	cmd.SetOutput(nil)
+	if out := cmd.OutOrStdout(); out != os.Stdout {
+		t.Fatalf("expected setting output to nil to revert back to stdout, got %v", out)
+	}
+}
 
+func TestFlagErrorFunc(t *testing.T) {
 	cmd := &Command{
 		Use: "print",
 		RunE: func(cmd *Command, args []string) error {

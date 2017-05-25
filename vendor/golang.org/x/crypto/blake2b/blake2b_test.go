@@ -30,6 +30,11 @@ func TestHashes(t *testing.T) {
 		testHashes(t)
 		useAVX2 = false
 	}
+	if useAVX {
+		t.Log("AVX version")
+		testHashes(t)
+		useAVX = false
+	}
 	if useSSE4 {
 		t.Log("SSE4 version")
 		testHashes(t)

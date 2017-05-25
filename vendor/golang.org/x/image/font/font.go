@@ -126,6 +126,8 @@ type Drawer struct {
 // vertical line? Should DrawString return the number of runes drawn?
 
 // DrawBytes draws s at the dot and advances the dot's location.
+//
+// It is equivalent to DrawString(string(s)) but may be more efficient.
 func (d *Drawer) DrawBytes(s []byte) {
 	prevC := rune(-1)
 	for len(s) > 0 {
@@ -167,7 +169,29 @@ func (d *Drawer) DrawString(s string) {
 	}
 }
 
+// BoundBytes returns the bounding box of s, drawn at the drawer dot, as well as
+// the advance.
+//
+// It is equivalent to BoundBytes(string(s)) but may be more efficient.
+func (d *Drawer) BoundBytes(s []byte) (bounds fixed.Rectangle26_6, advance fixed.Int26_6) {
+	bounds, advance = BoundBytes(d.Face, s)
+	bounds.Min = bounds.Min.Add(d.Dot)
+	bounds.Max = bounds.Max.Add(d.Dot)
+	return
+}
+
+// BoundString returns the bounding box of s, drawn at the drawer dot, as well
+// as the advance.
+func (d *Drawer) BoundString(s string) (bounds fixed.Rectangle26_6, advance fixed.Int26_6) {
+	bounds, advance = BoundString(d.Face, s)
+	bounds.Min = bounds.Min.Add(d.Dot)
+	bounds.Max = bounds.Max.Add(d.Dot)
+	return
+}
+
 // MeasureBytes returns how far dot would advance by drawing s.
+//
+// It is equivalent to MeasureString(string(s)) but may be more efficient.
 func (d *Drawer) MeasureBytes(s []byte) (advance fixed.Int26_6) {
 	return MeasureBytes(d.Face, s)
 }
@@ -177,7 +201,61 @@ func (d *Drawer) MeasureString(s string) (advance fixed.Int26_6) {
 	return MeasureString(d.Face, s)
 }
 
+// BoundBytes returns the bounding box of s with f, drawn at a dot equal to the
+// origin, as well as the advance.
+//
+// It is equivalent to BoundString(string(s)) but may be more efficient.
+func BoundBytes(f Face, s []byte) (bounds fixed.Rectangle26_6, advance fixed.Int26_6) {
+	prevC := rune(-1)
+	for len(s) > 0 {
+		c, size := utf8.DecodeRune(s)
+		s = s[size:]
+		if prevC >= 0 {
+			advance += f.Kern(prevC, c)
+		}
+		b, a, ok := f.GlyphBounds(c)
+		if !ok {
+			// TODO: is falling back on the U+FFFD glyph the responsibility of
+			// the Drawer or the Face?
+			// TODO: set prevC = '\ufffd'?
+			continue
+		}
+		b.Min.X += advance
+		b.Max.X += advance
+		bounds = bounds.Union(b)
+		advance += a
+		prevC = c
+	}
+	return
+}
+
+// BoundString returns the bounding box of s with f, drawn at a dot equal to the
+// origin, as well as the advance.
+func BoundString(f Face, s string) (bounds fixed.Rectangle26_6, advance fixed.Int26_6) {
+	prevC := rune(-1)
+	for _, c := range s {
+		if prevC >= 0 {
+			advance += f.Kern(prevC, c)
+		}
+		b, a, ok := f.GlyphBounds(c)
+		if !ok {
+			// TODO: is falling back on the U+FFFD glyph the responsibility of
+			// the Drawer or the Face?
+			// TODO: set prevC = '\ufffd'?
+			continue
+		}
+		b.Min.X += advance
+		b.Max.X += advance
+		bounds = bounds.Union(b)
+		advance += a
+		prevC = c
+	}
+	return
+}
+
 // MeasureBytes returns how far dot would advance by drawing s with f.
+//
+// It is equivalent to MeasureString(string(s)) but may be more efficient.
 func MeasureBytes(f Face, s []byte) (advance fixed.Int26_6) {
 	prevC := rune(-1)
 	for len(s) > 0 {

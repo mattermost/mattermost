@@ -2,14 +2,14 @@ package doc
 
 import (
 	"bytes"
-	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
-)
 
-var _ = fmt.Println
-var _ = os.Stderr
+	"github.com/spf13/cobra"
+)
 
 func TestGenYamlDoc(t *testing.T) {
 	c := initializeWithRootCmd()

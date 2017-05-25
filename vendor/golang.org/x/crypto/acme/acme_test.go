@@ -6,6 +6,7 @@ package acme
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -23,8 +24,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // Decodes a JWS-encoded request and unmarshals the decoded JSON into a provided
@@ -43,6 +42,28 @@ func decodeJWSRequest(t *testing.T, v interface{}, r *http.Request) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+type jwsHead struct {
+	Alg   string
+	Nonce string
+	JWK   map[string]string `json:"jwk"`
+}
+
+func decodeJWSHead(r *http.Request) (*jwsHead, error) {
+	var req struct{ Protected string }
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, err
+	}
+	b, err := base64.RawURLEncoding.DecodeString(req.Protected)
+	if err != nil {
+		return nil, err
+	}
+	var head jwsHead
+	if err := json.Unmarshal(b, &head); err != nil {
+		return nil, err
+	}
+	return &head, nil
 }
 
 func TestDiscover(t *testing.T) {
@@ -919,7 +940,30 @@ func TestRevokeCert(t *testing.T) {
 	}
 }
 
-func TestFetchNonce(t *testing.T) {
+func TestNonce_add(t *testing.T) {
+	var c Client
+	c.addNonce(http.Header{"Replay-Nonce": {"nonce"}})
+	c.addNonce(http.Header{"Replay-Nonce": {}})
+	c.addNonce(http.Header{"Replay-Nonce": {"nonce"}})
+
+	nonces := map[string]struct{}{"nonce": struct{}{}}
+	if !reflect.DeepEqual(c.nonces, nonces) {
+		t.Errorf("c.nonces = %q; want %q", c.nonces, nonces)
+	}
+}
+
+func TestNonce_addMax(t *testing.T) {
+	c := &Client{nonces: make(map[string]struct{})}
+	for i := 0; i < maxNonces; i++ {
+		c.nonces[fmt.Sprintf("%d", i)] = struct{}{}
+	}
+	c.addNonce(http.Header{"Replay-Nonce": {"nonce"}})
+	if n := len(c.nonces); n != maxNonces {
+		t.Errorf("len(c.nonces) = %d; want %d", n, maxNonces)
+	}
+}
+
+func TestNonce_fetch(t *testing.T) {
 	tests := []struct {
 		code  int
 		nonce string
@@ -939,7 +983,8 @@ func TestFetchNonce(t *testing.T) {
 	defer ts.Close()
 	for ; i < len(tests); i++ {
 		test := tests[i]
-		n, err := fetchNonce(context.Background(), http.DefaultClient, ts.URL)
+		c := &Client{}
+		n, err := c.fetchNonce(context.Background(), ts.URL)
 		if n != test.nonce {
 			t.Errorf("%d: n=%q; want %q", i, n, test.nonce)
 		}
@@ -949,6 +994,115 @@ func TestFetchNonce(t *testing.T) {
 		case err != nil && test.nonce != "":
 			t.Errorf("%d: n=%q, err=%v; want %q", i, n, err, test.nonce)
 		}
+	}
+}
+
+func TestNonce_fetchError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+	defer ts.Close()
+	c := &Client{}
+	_, err := c.fetchNonce(context.Background(), ts.URL)
+	e, ok := err.(*Error)
+	if !ok {
+		t.Fatalf("err is %T; want *Error", err)
+	}
+	if e.StatusCode != http.StatusTooManyRequests {
+		t.Errorf("e.StatusCode = %d; want %d", e.StatusCode, http.StatusTooManyRequests)
+	}
+}
+
+func TestNonce_postJWS(t *testing.T) {
+	var count int
+	seen := make(map[string]bool)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		count++
+		w.Header().Set("replay-nonce", fmt.Sprintf("nonce%d", count))
+		if r.Method == "HEAD" {
+			// We expect the client do a HEAD request
+			// but only to fetch the first nonce.
+			return
+		}
+		// Make client.Authorize happy; we're not testing its result.
+		defer func() {
+			w.WriteHeader(http.StatusCreated)
+			w.Write([]byte(`{"status":"valid"}`))
+		}()
+
+		head, err := decodeJWSHead(r)
+		if err != nil {
+			t.Errorf("decodeJWSHead: %v", err)
+			return
+		}
+		if head.Nonce == "" {
+			t.Error("head.Nonce is empty")
+			return
+		}
+		if seen[head.Nonce] {
+			t.Errorf("nonce is already used: %q", head.Nonce)
+		}
+		seen[head.Nonce] = true
+	}))
+	defer ts.Close()
+
+	client := Client{Key: testKey, dir: &Directory{AuthzURL: ts.URL}}
+	if _, err := client.Authorize(context.Background(), "example.com"); err != nil {
+		t.Errorf("client.Authorize 1: %v", err)
+	}
+	// The second call should not generate another extra HEAD request.
+	if _, err := client.Authorize(context.Background(), "example.com"); err != nil {
+		t.Errorf("client.Authorize 2: %v", err)
+	}
+
+	if count != 3 {
+		t.Errorf("total requests count: %d; want 3", count)
+	}
+	if n := len(client.nonces); n != 1 {
+		t.Errorf("len(client.nonces) = %d; want 1", n)
+	}
+	for k := range seen {
+		if _, exist := client.nonces[k]; exist {
+			t.Errorf("used nonce %q in client.nonces", k)
+		}
+	}
+}
+
+func TestRetryPostJWS(t *testing.T) {
+	var count int
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		count++
+		w.Header().Set("replay-nonce", fmt.Sprintf("nonce%d", count))
+		if r.Method == "HEAD" {
+			// We expect the client to do 2 head requests to fetch
+			// nonces, one to start and another after getting badNonce
+			return
+		}
+
+		head, err := decodeJWSHead(r)
+		if err != nil {
+			t.Errorf("decodeJWSHead: %v", err)
+		} else if head.Nonce == "" {
+			t.Error("head.Nonce is empty")
+		} else if head.Nonce == "nonce1" {
+			// return a badNonce error to force the call to retry
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"type":"urn:ietf:params:acme:error:badNonce"}`))
+			return
+		}
+		// Make client.Authorize happy; we're not testing its result.
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"status":"valid"}`))
+	}))
+	defer ts.Close()
+
+	client := Client{Key: testKey, dir: &Directory{AuthzURL: ts.URL}}
+	// This call will fail with badNonce, causing a retry
+	if _, err := client.Authorize(context.Background(), "example.com"); err != nil {
+		t.Errorf("client.Authorize 1: %v", err)
+	}
+	if count != 4 {
+		t.Errorf("total requests count: %d; want 4", count)
 	}
 }
 

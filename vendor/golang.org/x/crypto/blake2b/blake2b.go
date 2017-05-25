@@ -4,7 +4,7 @@
 
 // Package blake2b implements the BLAKE2b hash algorithm as
 // defined in RFC 7693.
-package blake2b
+package blake2b // import "golang.org/x/crypto/blake2b"
 
 import (
 	"encoding/binary"
@@ -21,6 +21,12 @@ const (
 	Size384 = 48
 	// The hash size of BLAKE2b-256 in bytes.
 	Size256 = 32
+)
+
+var (
+	useAVX2 bool
+	useAVX  bool
+	useSSE4 bool
 )
 
 var errKeySize = errors.New("blake2b: invalid key size")

@@ -6,20 +6,20 @@ package agent_test
 
 import (
 	"log"
-	"os"
 	"net"
+	"os"
 
-        "golang.org/x/crypto/ssh"
-        "golang.org/x/crypto/ssh/agent"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 func ExampleClientAgent() {
 	// ssh-agent has a UNIX socket under $SSH_AUTH_SOCK
 	socket := os.Getenv("SSH_AUTH_SOCK")
-        conn, err := net.Dial("unix", socket)
-        if err != nil {
-                log.Fatalf("net.Dial: %v", err)
-        }
+	conn, err := net.Dial("unix", socket)
+	if err != nil {
+		log.Fatalf("net.Dial: %v", err)
+	}
 	agentClient := agent.NewClient(conn)
 	config := &ssh.ClientConfig{
 		User: "username",
@@ -29,6 +29,7 @@ func ExampleClientAgent() {
 			// wants it.
 			ssh.PublicKeysCallback(agentClient.Signers),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	sshc, err := ssh.Dial("tcp", "localhost:22", config)

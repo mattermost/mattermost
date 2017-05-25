@@ -5,7 +5,7 @@
 // +build ignore
 
 /*
-Input to cgo -godefs.  See also mkerrors.sh and mkall.sh
+Input to cgo -godefs.  See README.md
 */
 
 // +godefs map struct_in_addr [4]byte /* in_addr */
@@ -20,7 +20,6 @@ package unix
 #define _GNU_SOURCE
 
 #include <dirent.h>
-#include <fcntl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netpacket/packet.h>
@@ -36,13 +35,11 @@ package unix
 #include <sys/resource.h>
 #include <sys/select.h>
 #include <sys/signal.h>
-#include <sys/stat.h>
 #include <sys/statfs.h>
 #include <sys/sysinfo.h>
 #include <sys/time.h>
 #include <sys/times.h>
 #include <sys/timex.h>
-#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/user.h>
 #include <sys/utsname.h>
@@ -52,12 +49,11 @@ package unix
 #include <linux/rtnetlink.h>
 #include <linux/icmpv6.h>
 #include <asm/termbits.h>
+#include <asm/ptrace.h>
 #include <time.h>
 #include <unistd.h>
 #include <ustat.h>
 #include <utime.h>
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
 #include <linux/can.h>
 #include <linux/if_alg.h>
 #include <linux/fs.h>
@@ -144,6 +140,13 @@ struct sockaddr_any {
 	struct sockaddr addr;
 	char pad[sizeof(union sockaddr_all) - sizeof(struct sockaddr)];
 };
+
+// copied from /usr/include/bluetooth/hci.h
+struct sockaddr_hci {
+        sa_family_t     hci_family;
+        unsigned short  hci_dev;
+        unsigned short  hci_channel;
+};;
 
 // copied from /usr/include/linux/un.h
 struct my_sockaddr_un {
@@ -483,11 +486,11 @@ const SizeofInotifyEvent = C.sizeof_struct_inotify_event
 type PtraceRegs C.PtraceRegs
 
 // Structures contained in PtraceRegs on s390x (exported by mkpost.go)
-type ptracePsw C.ptracePsw
+type PtracePsw C.ptracePsw
 
-type ptraceFpregs C.ptraceFpregs
+type PtraceFpregs C.ptraceFpregs
 
-type ptracePer C.ptracePer
+type PtracePer C.ptracePer
 
 // Misc
 

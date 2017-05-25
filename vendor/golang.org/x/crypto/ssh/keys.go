@@ -10,10 +10,13 @@ import (
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/md5"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -795,8 +798,8 @@ func ParseDSAPrivateKey(der []byte) (*dsa.PrivateKey, error) {
 		P       *big.Int
 		Q       *big.Int
 		G       *big.Int
-		Priv    *big.Int
 		Pub     *big.Int
+		Priv    *big.Int
 	}
 	rest, err := asn1.Unmarshal(der, &k)
 	if err != nil {
@@ -813,15 +816,15 @@ func ParseDSAPrivateKey(der []byte) (*dsa.PrivateKey, error) {
 				Q: k.Q,
 				G: k.G,
 			},
-			Y: k.Priv,
+			Y: k.Pub,
 		},
-		X: k.Pub,
+		X: k.Priv,
 	}, nil
 }
 
 // Implemented based on the documentation at
 // https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key
-func parseOpenSSHPrivateKey(key []byte) (*ed25519.PrivateKey, error) {
+func parseOpenSSHPrivateKey(key []byte) (crypto.PrivateKey, error) {
 	magic := append([]byte("openssh-key-v1"), 0)
 	if !bytes.Equal(magic, key[0:len(magic)]) {
 		return nil, errors.New("ssh: invalid openssh private key format")
@@ -841,14 +844,15 @@ func parseOpenSSHPrivateKey(key []byte) (*ed25519.PrivateKey, error) {
 		return nil, err
 	}
 
+	if w.KdfName != "none" || w.CipherName != "none" {
+		return nil, errors.New("ssh: cannot decode encrypted private keys")
+	}
+
 	pk1 := struct {
 		Check1  uint32
 		Check2  uint32
 		Keytype string
-		Pub     []byte
-		Priv    []byte
-		Comment string
-		Pad     []byte `ssh:"rest"`
+		Rest    []byte `ssh:"rest"`
 	}{}
 
 	if err := Unmarshal(w.PrivKeyBlock, &pk1); err != nil {
@@ -859,22 +863,95 @@ func parseOpenSSHPrivateKey(key []byte) (*ed25519.PrivateKey, error) {
 		return nil, errors.New("ssh: checkint mismatch")
 	}
 
-	// we only handle ed25519 keys currently
-	if pk1.Keytype != KeyAlgoED25519 {
+	// we only handle ed25519 and rsa keys currently
+	switch pk1.Keytype {
+	case KeyAlgoRSA:
+		// https://github.com/openssh/openssh-portable/blob/master/sshkey.c#L2760-L2773
+		key := struct {
+			N       *big.Int
+			E       *big.Int
+			D       *big.Int
+			Iqmp    *big.Int
+			P       *big.Int
+			Q       *big.Int
+			Comment string
+			Pad     []byte `ssh:"rest"`
+		}{}
+
+		if err := Unmarshal(pk1.Rest, &key); err != nil {
+			return nil, err
+		}
+
+		for i, b := range key.Pad {
+			if int(b) != i+1 {
+				return nil, errors.New("ssh: padding not as expected")
+			}
+		}
+
+		pk := &rsa.PrivateKey{
+			PublicKey: rsa.PublicKey{
+				N: key.N,
+				E: int(key.E.Int64()),
+			},
+			D:      key.D,
+			Primes: []*big.Int{key.P, key.Q},
+		}
+
+		if err := pk.Validate(); err != nil {
+			return nil, err
+		}
+
+		pk.Precompute()
+
+		return pk, nil
+	case KeyAlgoED25519:
+		key := struct {
+			Pub     []byte
+			Priv    []byte
+			Comment string
+			Pad     []byte `ssh:"rest"`
+		}{}
+
+		if err := Unmarshal(pk1.Rest, &key); err != nil {
+			return nil, err
+		}
+
+		if len(key.Priv) != ed25519.PrivateKeySize {
+			return nil, errors.New("ssh: private key unexpected length")
+		}
+
+		for i, b := range key.Pad {
+			if int(b) != i+1 {
+				return nil, errors.New("ssh: padding not as expected")
+			}
+		}
+
+		pk := ed25519.PrivateKey(make([]byte, ed25519.PrivateKeySize))
+		copy(pk, key.Priv)
+		return &pk, nil
+	default:
 		return nil, errors.New("ssh: unhandled key type")
 	}
+}
 
-	for i, b := range pk1.Pad {
-		if int(b) != i+1 {
-			return nil, errors.New("ssh: padding not as expected")
-		}
+// FingerprintLegacyMD5 returns the user presentation of the key's
+// fingerprint as described by RFC 4716 section 4.
+func FingerprintLegacyMD5(pubKey PublicKey) string {
+	md5sum := md5.Sum(pubKey.Marshal())
+	hexarray := make([]string, len(md5sum))
+	for i, c := range md5sum {
+		hexarray[i] = hex.EncodeToString([]byte{c})
 	}
+	return strings.Join(hexarray, ":")
+}
 
-	if len(pk1.Priv) != ed25519.PrivateKeySize {
-		return nil, errors.New("ssh: private key unexpected length")
-	}
-
-	pk := ed25519.PrivateKey(make([]byte, ed25519.PrivateKeySize))
-	copy(pk, pk1.Priv)
-	return &pk, nil
+// FingerprintSHA256 returns the user presentation of the key's
+// fingerprint as unpadded base64 encoded sha256 hash.
+// This format was introduced from OpenSSH 6.8.
+// https://www.openssh.com/txt/release-6.8
+// https://tools.ietf.org/html/rfc4648#section-3.2 (unpadded base64 encoding)
+func FingerprintSHA256(pubKey PublicKey) string {
+	sha256sum := sha256.Sum256(pubKey.Marshal())
+	hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+	return "SHA256:" + hash
 }

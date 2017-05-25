@@ -1,8 +1,6 @@
 package dns
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestPackNsec3(t *testing.T) {
 	nsec3 := HashName("dnsex.nl.", SHA1, 0, "DEAD")
@@ -17,13 +15,119 @@ func TestPackNsec3(t *testing.T) {
 }
 
 func TestNsec3(t *testing.T) {
-	// examples taken from .nl
-	nsec3, _ := NewRR("39p91242oslggest5e6a7cci4iaeqvnk.nl. IN NSEC3 1 1 5 F10E9F7EA83FC8F3 39P99DCGG0MDLARTCRMCF6OFLLUL7PR6 NS DS RRSIG")
-	if !nsec3.(*NSEC3).Cover("snasajsksasasa.nl.") { // 39p94jrinub66hnpem8qdpstrec86pg3
-		t.Error("39p94jrinub66hnpem8qdpstrec86pg3. should be covered by 39p91242oslggest5e6a7cci4iaeqvnk.nl. - 39P99DCGG0MDLARTCRMCF6OFLLUL7PR6")
+	nsec3, _ := NewRR("sk4e8fj94u78smusb40o1n0oltbblu2r.nl. IN NSEC3 1 1 5 F10E9F7EA83FC8F3 SK4F38CQ0ATIEI8MH3RGD0P5I4II6QAN NS SOA TXT RRSIG DNSKEY NSEC3PARAM")
+	if !nsec3.(*NSEC3).Match("nl.") { // name hash = sk4e8fj94u78smusb40o1n0oltbblu2r
+		t.Fatal("sk4e8fj94u78smusb40o1n0oltbblu2r.nl. should match sk4e8fj94u78smusb40o1n0oltbblu2r.nl.")
 	}
-	nsec3, _ = NewRR("sk4e8fj94u78smusb40o1n0oltbblu2r.nl. IN NSEC3 1 1 5 F10E9F7EA83FC8F3 SK4F38CQ0ATIEI8MH3RGD0P5I4II6QAN NS SOA TXT RRSIG DNSKEY NSEC3PARAM")
-	if !nsec3.(*NSEC3).Match("nl.") { // sk4e8fj94u78smusb40o1n0oltbblu2r.nl.
-		t.Error("sk4e8fj94u78smusb40o1n0oltbblu2r.nl. should match sk4e8fj94u78smusb40o1n0oltbblu2r.nl.")
+	if !nsec3.(*NSEC3).Match("NL.") { // name hash = sk4e8fj94u78smusb40o1n0oltbblu2r
+		t.Fatal("sk4e8fj94u78smusb40o1n0oltbblu2r.NL. should match sk4e8fj94u78smusb40o1n0oltbblu2r.nl.")
+	}
+	if nsec3.(*NSEC3).Match("com.") { //
+		t.Fatal("com. is not in the zone nl.")
+	}
+	if nsec3.(*NSEC3).Match("test.nl.") { // name hash = gd0ptr5bnfpimpu2d3v6gd4n0bai7s0q
+		t.Fatal("gd0ptr5bnfpimpu2d3v6gd4n0bai7s0q.nl. should not match sk4e8fj94u78smusb40o1n0oltbblu2r.nl.")
+	}
+	nsec3, _ = NewRR("nl. IN NSEC3 1 1 5 F10E9F7EA83FC8F3 SK4F38CQ0ATIEI8MH3RGD0P5I4II6QAN NS SOA TXT RRSIG DNSKEY NSEC3PARAM")
+	if nsec3.(*NSEC3).Match("nl.") {
+		t.Fatal("sk4e8fj94u78smusb40o1n0oltbblu2r.nl. should not match a record without a owner hash")
+	}
+
+	for _, tc := range []struct {
+		rr     *NSEC3
+		name   string
+		covers bool
+	}{
+		// positive tests
+		{ // name hash between owner hash and next hash
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "2N1TB3VAIRUOBL6RKDVII42N9TFMIALP.com."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "PT3RON8N7PM3A0OE989IB84OOSADP7O8",
+			},
+			name:   "bsd.com.",
+			covers: true,
+		},
+		{ // end of zone, name hash is after owner hash
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "3v62ulr0nre83v0rja2vjgtlif9v6rab.com."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "2N1TB3VAIRUOBL6RKDVII42N9TFMIALP",
+			},
+			name:   "csd.com.",
+			covers: true,
+		},
+		{ // end of zone, name hash is before beginning of zone
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "PT3RON8N7PM3A0OE989IB84OOSADP7O8.com."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "3V62ULR0NRE83V0RJA2VJGTLIF9V6RAB",
+			},
+			name:   "asd.com.",
+			covers: true,
+		},
+		// negative tests
+		{ // too short owner name
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "nl."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "39P99DCGG0MDLARTCRMCF6OFLLUL7PR6",
+			},
+			name:   "asd.com.",
+			covers: false,
+		},
+		{ // outside of zone
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "39p91242oslggest5e6a7cci4iaeqvnk.nl."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "39P99DCGG0MDLARTCRMCF6OFLLUL7PR6",
+			},
+			name:   "asd.com.",
+			covers: false,
+		},
+		{ // empty interval
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "2n1tb3vairuobl6rkdvii42n9tfmialp.com."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "2N1TB3VAIRUOBL6RKDVII42N9TFMIALP",
+			},
+			name:   "asd.com.",
+			covers: false,
+		},
+		{ // name hash is before owner hash, not covered
+			rr: &NSEC3{
+				Hdr:        RR_Header{Name: "3V62ULR0NRE83V0RJA2VJGTLIF9V6RAB.com."},
+				Hash:       1,
+				Flags:      1,
+				Iterations: 5,
+				Salt:       "F10E9F7EA83FC8F3",
+				NextDomain: "PT3RON8N7PM3A0OE989IB84OOSADP7O8",
+			},
+			name:   "asd.com.",
+			covers: false,
+		},
+	} {
+		covers := tc.rr.Cover(tc.name)
+		if tc.covers != covers {
+			t.Fatalf("Cover failed for %s: expected %t, got %t [record: %s]", tc.name, tc.covers, covers, tc.rr)
+		}
 	}
 }

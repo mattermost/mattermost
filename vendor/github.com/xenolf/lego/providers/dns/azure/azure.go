@@ -17,7 +17,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/xenolf/lego/acme"
-	"strings"
 )
 
 // DNSProvider is an implementation of the acme.ChallengeProvider interface
@@ -80,7 +79,7 @@ func (c *DNSProvider) Present(domain, token, keyAuth string) error {
 		Name: &relative,
 		RecordSetProperties: &dns.RecordSetProperties{
 			TTL:        to.Int64Ptr(60),
-			TXTRecords: &[]dns.TxtRecord{dns.TxtRecord{Value: &[]string{value}}},
+			TxtRecords: &[]dns.TxtRecord{dns.TxtRecord{Value: &[]string{value}}},
 		},
 	}
 	_, err = rsc.CreateOrUpdate(c.resourceGroup, zone, relative, dns.TXT, rec, "", "")

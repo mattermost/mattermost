@@ -32,7 +32,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 // DNSProvider instance configured for dnsimple.
 func NewDNSProviderCredentials(accessToken, baseUrl string) (*DNSProvider, error) {
 	if accessToken == "" {
-		return nil, fmt.Errorf("DNSimple OAuth token missing")
+		return nil, fmt.Errorf("DNSimple OAuth token is missing")
 	}
 
 	client := dnsimple.NewClient(dnsimple.NewOauthTokenCredentials(accessToken))
@@ -173,7 +173,7 @@ func (c *DNSProvider) getAccountID() (string, error) {
 	}
 
 	if whoamiResponse.Data.Account == nil {
-		return "", fmt.Errorf("DNSimple API returned empty account ID")
+		return "", fmt.Errorf("DNSimple user tokens are not supported, please use an account token.")
 	}
 
 	return strconv.Itoa(whoamiResponse.Data.Account.ID), nil

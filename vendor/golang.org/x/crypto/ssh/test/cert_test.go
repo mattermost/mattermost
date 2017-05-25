@@ -36,7 +36,8 @@ func TestCertLogin(t *testing.T) {
 	}
 
 	conf := &ssh.ClientConfig{
-		User: username(),
+		User:            username(),
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	conf.Auth = append(conf.Auth, ssh.PublicKeys(certSigner))
 	client, err := s.TryDial(conf)

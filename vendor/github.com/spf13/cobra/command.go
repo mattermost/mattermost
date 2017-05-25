@@ -180,7 +180,7 @@ func (c *Command) SetArgs(a []string) {
 // SetOutput sets the destination for usage and error messages.
 // If output is nil, os.Stderr is used.
 func (c *Command) SetOutput(output io.Writer) {
-	c.output = &output
+	c.output = output
 }
 
 // SetUsageFunc sets usage function. Usage can be defined by application.
@@ -238,7 +238,7 @@ func (c *Command) OutOrStderr() io.Writer {
 
 func (c *Command) getOut(def io.Writer) io.Writer {
 	if c.output != nil {
-		return *c.output
+		return c.output
 	}
 	if c.HasParent() {
 		return c.parent.getOut(def)
@@ -252,9 +252,8 @@ func (c *Command) UsageFunc() (f func(*Command) error) {
 	if c.usageFunc != nil {
 		return c.usageFunc
 	}
-
 	if c.HasParent() {
-		return c.parent.UsageFunc()
+		return c.Parent().UsageFunc()
 	}
 	return func(c *Command) error {
 		c.mergePersistentFlags()
@@ -276,30 +275,19 @@ func (c *Command) Usage() error {
 // HelpFunc returns either the function set by SetHelpFunc for this command
 // or a parent, or it returns a function with default help behavior.
 func (c *Command) HelpFunc() func(*Command, []string) {
-	if helpFunc := c.checkHelpFunc(); helpFunc != nil {
-		return helpFunc
+	if c.helpFunc != nil {
+		return c.helpFunc
 	}
-	return func(*Command, []string) {
+	if c.HasParent() {
+		return c.Parent().HelpFunc()
+	}
+	return func(c *Command, a []string) {
 		c.mergePersistentFlags()
 		err := tmpl(c.OutOrStdout(), c.HelpTemplate(), c)
 		if err != nil {
 			c.Println(err)
 		}
 	}
-}
-
-// checkHelpFunc checks if there is helpFunc in ancestors of c.
-func (c *Command) checkHelpFunc() func(*Command, []string) {
-	if c == nil {
-		return nil
-	}
-	if c.helpFunc != nil {
-		return c.helpFunc
-	}
-	if c.HasParent() {
-		return c.parent.checkHelpFunc()
-	}
-	return nil
 }
 
 // Help puts out the help for the command.
@@ -380,8 +368,7 @@ func (c *Command) UsageTemplate() string {
   {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
 
 Aliases:
-  {{.NameAndAliases}}
-{{end}}{{if .HasExample}}
+  {{.NameAndAliases}}{{end}}{{if .HasExample}}
 
 Examples:
 {{.Example}}{{end}}{{if .HasAvailableSubCommands}}
@@ -421,7 +408,7 @@ func hasNoOptDefVal(name string, fs *flag.FlagSet) bool {
 	if flag == nil {
 		return false
 	}
-	return len(flag.NoOptDefVal) > 0
+	return flag.NoOptDefVal != ""
 }
 
 func shortHasNoOptDefVal(name string, fs *flag.FlagSet) bool {
@@ -437,7 +424,7 @@ func shortHasNoOptDefVal(name string, fs *flag.FlagSet) bool {
 }
 
 func stripFlags(args []string, c *Command) []string {
-	if len(args) < 1 {
+	if len(args) == 0 {
 		return args
 	}
 	c.mergePersistentFlags()
@@ -576,32 +563,18 @@ func (c *Command) SuggestionsFor(typedName string) []string {
 
 // VisitParents visits all parents of the command and invokes fn on each parent.
 func (c *Command) VisitParents(fn func(*Command)) {
-	var traverse func(*Command) *Command
-
-	traverse = func(x *Command) *Command {
-		if x != c {
-			fn(x)
-		}
-		if x.HasParent() {
-			return traverse(x.parent)
-		}
-		return x
+	if c.HasParent() {
+		fn(c.Parent())
+		c.Parent().VisitParents(fn)
 	}
-	traverse(c)
 }
 
 // Root finds root command.
 func (c *Command) Root() *Command {
-	var findRoot func(*Command) *Command
-
-	findRoot = func(x *Command) *Command {
-		if x.HasParent() {
-			return findRoot(x.parent)
-		}
-		return x
+	if c.HasParent() {
+		return c.Parent().Root()
 	}
-
-	return findRoot(c)
+	return c
 }
 
 // ArgsLenAtDash will return the length of f.Args at the moment when a -- was
@@ -703,17 +676,6 @@ func (c *Command) preRun() {
 	for _, x := range initializers {
 		x()
 	}
-}
-
-func (c *Command) errorMsgFromParse() string {
-	s := c.flagErrorBuf.String()
-
-	x := strings.Split(s, "\n")
-
-	if len(x) > 0 {
-		return x[0]
-	}
-	return ""
 }
 
 // Execute Call execute to use the args (os.Args[1:] by default)
@@ -836,6 +798,7 @@ func (c *Command) initHelpCmd() {
 func (c *Command) ResetCommands() {
 	c.commands = nil
 	c.helpCommand = nil
+	c.parentsPflags = nil
 }
 
 // Sorts commands by their names.
@@ -967,12 +930,8 @@ func (c *Command) DebugFlags() {
 		}
 		if x.HasFlags() {
 			x.flags.VisitAll(func(f *flag.Flag) {
-				if x.HasPersistentFlags() {
-					if x.persistentFlag(f.Name) == nil {
-						c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [L]")
-					} else {
-						c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [LP]")
-					}
+				if x.HasPersistentFlags() && x.persistentFlag(f.Name) != nil {
+					c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [LP]")
 				} else {
 					c.Println("  -"+f.Shorthand+",", "--"+f.Name, "["+f.DefValue+"]", "", f.Value, "  [L]")
 				}
@@ -1134,6 +1093,7 @@ func (c *Command) Flags() *flag.FlagSet {
 		}
 		c.flags.SetOutput(c.flagErrorBuf)
 	}
+
 	return c.flags
 }
 
@@ -1168,7 +1128,9 @@ func (c *Command) LocalFlags() *flag.FlagSet {
 			c.lflags.AddFlag(f)
 		}
 	}
-	return local
+	c.Flags().VisitAll(addToLocal)
+	c.PersistentFlags().VisitAll(addToLocal)
+	return c.lflags
 }
 
 // InheritedFlags returns all flags which were inherited from parents commands.
@@ -1184,27 +1146,12 @@ func (c *Command) InheritedFlags() *flag.FlagSet {
 	}
 
 	local := c.LocalFlags()
-
-	var rmerge func(x *Command)
-
-	rmerge = func(x *Command) {
-		if x.HasPersistentFlags() {
-			x.PersistentFlags().VisitAll(func(f *flag.Flag) {
-				if inherited.Lookup(f.Name) == nil && local.Lookup(f.Name) == nil {
-					inherited.AddFlag(f)
-				}
-			})
+	c.parentsPflags.VisitAll(func(f *flag.Flag) {
+		if c.iflags.Lookup(f.Name) == nil && local.Lookup(f.Name) == nil {
+			c.iflags.AddFlag(f)
 		}
-		if x.HasParent() {
-			rmerge(x.parent)
-		}
-	}
-
-	if c.HasParent() {
-		rmerge(c.parent)
-	}
-
-	return inherited
+	})
+	return c.iflags
 }
 
 // NonInheritedFlags returns all flags which were not inherited from parent commands.
@@ -1294,8 +1241,9 @@ func (c *Command) persistentFlag(name string) (flag *flag.Flag) {
 		flag = c.PersistentFlags().Lookup(name)
 	}
 
-	if flag == nil && c.HasParent() {
-		flag = c.parent.persistentFlag(name)
+	if flag == nil {
+		c.updateParentsPflags()
+		flag = c.parentsPflags.Lookup(name)
 	}
 	return
 }
@@ -1315,6 +1263,8 @@ func (c *Command) Parent() *Command {
 	return c.parent
 }
 
+// mergePersistentFlags merges c.PersistentFlags() to c.Flags()
+// and adds missing persistent flags of all parents.
 func (c *Command) mergePersistentFlags() {
 	c.updateParentsPflags()
 	c.Flags().AddFlagSet(c.PersistentFlags())
@@ -1331,5 +1281,9 @@ func (c *Command) updateParentsPflags() {
 		c.parentsPflags.SortFlags = false
 	}
 
-	rmerge(c)
+	c.Root().PersistentFlags().AddFlagSet(flag.CommandLine)
+
+	c.VisitParents(func(parent *Command) {
+		c.parentsPflags.AddFlagSet(parent.PersistentFlags())
+	})
 }

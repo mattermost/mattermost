@@ -10,8 +10,6 @@ import (
 	"math"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 // Limit defines the maximum frequency of some events.
