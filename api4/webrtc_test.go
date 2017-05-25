@@ -10,6 +10,10 @@ import (
 )
 
 func TestGetWebrtcToken(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
