@@ -20,7 +20,7 @@ import (
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if einterfaces.GetClusterInterface() != nil {
+	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, einterfaces.GetClusterInterface().GetClusterId())
@@ -35,7 +35,7 @@ func GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
 		clines, err := einterfaces.GetClusterInterface().GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
