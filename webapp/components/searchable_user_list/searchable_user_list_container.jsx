@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -7,16 +9,16 @@ import SearchableUserList from './searchable_user_list.jsx';
 
 export default class SearchableUserListContainer extends React.Component {
     static propTypes = {
-        users: React.PropTypes.arrayOf(React.PropTypes.object),
-        usersPerPage: React.PropTypes.number,
-        total: React.PropTypes.number,
-        extraInfo: React.PropTypes.object,
-        nextPage: React.PropTypes.func.isRequired,
-        search: React.PropTypes.func.isRequired,
-        actions: React.PropTypes.arrayOf(React.PropTypes.func),
-        actionProps: React.PropTypes.object,
-        actionUserProps: React.PropTypes.object,
-        focusOnMount: React.PropTypes.bool
+        users: PropTypes.arrayOf(PropTypes.object),
+        usersPerPage: PropTypes.number,
+        total: PropTypes.number,
+        extraInfo: PropTypes.object,
+        nextPage: PropTypes.func.isRequired,
+        search: PropTypes.func.isRequired,
+        actions: PropTypes.arrayOf(PropTypes.func),
+        actionProps: PropTypes.object,
+        actionUserProps: PropTypes.object,
+        focusOnMount: PropTypes.bool
     };
 
     constructor(props) {

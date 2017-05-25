@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -7,12 +9,12 @@ import EmojiStore from 'stores/emoji_store.jsx';
 
 export default class EmojiPickerItem extends React.Component {
     static propTypes = {
-        emoji: React.PropTypes.object.isRequired,
-        onItemOver: React.PropTypes.func.isRequired,
-        onItemOut: React.PropTypes.func.isRequired,
-        onItemClick: React.PropTypes.func.isRequired,
-        onItemUnmount: React.PropTypes.func.isRequired,
-        category: React.PropTypes.string.isRequired
+        emoji: PropTypes.object.isRequired,
+        onItemOver: PropTypes.func.isRequired,
+        onItemOut: PropTypes.func.isRequired,
+        onItemClick: PropTypes.func.isRequired,
+        onItemUnmount: PropTypes.func.isRequired,
+        category: PropTypes.string.isRequired
     }
 
     constructor(props) {

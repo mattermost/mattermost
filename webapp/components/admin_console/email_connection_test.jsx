@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -12,9 +14,9 @@ import {testEmail} from 'actions/admin_actions.jsx';
 export default class EmailConnectionTestButton extends React.Component {
     static get propTypes() {
         return {
-            config: React.PropTypes.object.isRequired,
-            getConfigFromState: React.PropTypes.func.isRequired,
-            disabled: React.PropTypes.bool.isRequired
+            config: PropTypes.object.isRequired,
+            getConfigFromState: PropTypes.func.isRequired,
+            disabled: PropTypes.bool.isRequired
         };
     }
 

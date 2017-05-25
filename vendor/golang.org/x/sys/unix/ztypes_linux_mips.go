@@ -576,15 +576,6 @@ type PtraceRegs struct {
 	Cause    uint64
 }
 
-type ptracePsw struct {
-}
-
-type ptraceFpregs struct {
-}
-
-type ptracePer struct {
-}
-
 type FdSet struct {
 	Bits [32]int32
 }

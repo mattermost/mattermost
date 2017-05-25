@@ -22,14 +22,16 @@ import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SidebarHeaderDropdown extends React.Component {
     static propTypes = {
-        teamType: React.PropTypes.string,
-        teamDisplayName: React.PropTypes.string,
-        teamName: React.PropTypes.string,
-        currentUser: React.PropTypes.object
+        teamType: PropTypes.string,
+        teamDisplayName: PropTypes.string,
+        teamName: PropTypes.string,
+        currentUser: PropTypes.object
     };
 
     static defaultProps = {
@@ -76,9 +78,14 @@ export default class SidebarHeaderDropdown extends React.Component {
         }
     }
 
-    toggleDropdown(e) {
-        if (e) {
-            e.preventDefault();
+    toggleDropdown(val) {
+        if (typeof (val) === 'boolean') {
+            this.setState({showDropdown: val});
+            return;
+        }
+
+        if (val && val.preventDefault) {
+            val.preventDefault();
         }
 
         this.setState({showDropdown: !this.state.showDropdown});
@@ -159,7 +166,8 @@ export default class SidebarHeaderDropdown extends React.Component {
     onTeamChange() {
         this.setState({
             teamMembers: TeamStore.getMyTeamMembers(),
-            teamListings: TeamStore.getTeamListings()
+            teamListings: TeamStore.getTeamListings(),
+            showDropdown: false
         });
     }
 
@@ -594,8 +602,8 @@ export default class SidebarHeaderDropdown extends React.Component {
         return (
             <Dropdown
                 id='sidebar-header-dropdown'
-                defaultOpen={this.state.showDropdown}
-                onClose={this.toggleDropdown}
+                open={this.state.showDropdown}
+                onToggle={this.toggleDropdown}
                 className='sidebar-header-dropdown'
                 pullRight={true}
             >

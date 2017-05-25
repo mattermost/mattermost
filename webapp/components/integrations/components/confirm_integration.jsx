@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -15,9 +17,9 @@ import Constants from 'utils/constants.jsx';
 export default class ConfirmIntegration extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object,
-            location: React.PropTypes.object,
-            loading: React.PropTypes.bool
+            team: PropTypes.object,
+            location: PropTypes.object,
+            loading: PropTypes.bool
         };
     }
 

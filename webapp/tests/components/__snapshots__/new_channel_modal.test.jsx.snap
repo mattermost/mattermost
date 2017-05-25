@@ -1,0 +1,742 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/NewChannelModal should match snapshot, modal not showing 1`] = `
+<span>
+  <Modal
+    animation={true}
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    bsSize="large"
+    dialogClassName="new-channel__modal"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h4"
+      >
+        <FormattedMessage
+          defaultMessage="New Channel"
+          id="channel_modal.modalTitle"
+          values={Object {}}
+        />
+      </ModalTitle>
+    </ModalHeader>
+    <form
+      className="form-horizontal"
+      role="form"
+    >
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
+      >
+        <div>
+          <div
+            className="modal-intro"
+          >
+            <FormattedMessage
+              defaultMessage="Create a new public channel anyone can join. "
+              id="channel_modal.publicChannel2"
+              values={Object {}}
+            />
+            <a
+              href="#"
+              onClick={[Function]}
+            >
+              <FormattedMessage
+                defaultMessage="Create a private channel"
+                id="channel_modal.privateGroup2"
+                values={Object {}}
+              />
+            </a>
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <label
+            className="col-sm-3 form__label control-label"
+          >
+            <FormattedMessage
+              defaultMessage="Name"
+              id="channel_modal.name"
+              values={Object {}}
+            />
+          </label>
+          <div
+            className="col-sm-9"
+          >
+            <input
+              autoFocus={true}
+              className="form-control"
+              maxLength={22}
+              onChange={[Function]}
+              placeholder="E.g.: \\"Bugs\\", \\"Marketing\\", \\"客户支持\\""
+              tabIndex="1"
+              type="text"
+              value="testchannel"
+            />
+            <p
+              className="input__help dark"
+            >
+              URL: /testchannel (
+              <a
+                href="#"
+                onClick={[Function]}
+              >
+                <FormattedMessage
+                  defaultMessage="Edit"
+                  id="channel_modal.edit"
+                  values={Object {}}
+                />
+              </a>
+              )
+            </p>
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <div
+            className="col-sm-3"
+          >
+            <label
+              className="form__label control-label"
+            >
+              <FormattedMessage
+                defaultMessage="Purpose"
+                id="channel_modal.purpose"
+                values={Object {}}
+              />
+            </label>
+            <label
+              className="form__label light"
+            >
+              <FormattedMessage
+                defaultMessage="(optional)"
+                id="channel_modal.optional"
+                values={Object {}}
+              />
+            </label>
+          </div>
+          <div
+            className="col-sm-9"
+          >
+            <textarea
+              className="form-control no-resize"
+              maxLength="250"
+              onChange={[Function]}
+              placeholder="E.g.: \\"A channel to file bugs and improvements\\""
+              rows="4"
+              tabIndex="2"
+              value=""
+            />
+            <p
+              className="input__help"
+            >
+              <FormattedMessage
+                defaultMessage="Describe how this channel should be used."
+                id="channel_modal.descriptionHelp"
+                values={Object {}}
+              />
+            </p>
+          </div>
+        </div>
+        <div
+          className="form-group less"
+        >
+          <div
+            className="col-sm-3"
+          >
+            <label
+              className="form__label control-label"
+            >
+              <FormattedMessage
+                defaultMessage="Header"
+                id="channel_modal.header"
+                values={Object {}}
+              />
+            </label>
+            <label
+              className="form__label light"
+            >
+              <FormattedMessage
+                defaultMessage="(optional)"
+                id="channel_modal.optional"
+                values={Object {}}
+              />
+            </label>
+          </div>
+          <div
+            className="col-sm-9"
+          >
+            <textarea
+              className="form-control no-resize"
+              maxLength="1024"
+              onChange={[Function]}
+              placeholder="E.g.: \\"[Link Title](http://example.com)\\""
+              rows="4"
+              tabIndex="2"
+              value=""
+            />
+            <p
+              className="input__help"
+            >
+              <FormattedMessage
+                defaultMessage="Set text that will appear in the header of the channel beside the channel name. For example, include frequently used links by typing [Link Title](http://example.com)."
+                id="channel_modal.headerHelp"
+                values={Object {}}
+              />
+            </p>
+          </div>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        componentClass="div"
+      >
+        <button
+          className="btn btn-default"
+          onClick={[Function]}
+          type="button"
+        >
+          <FormattedMessage
+            defaultMessage="Cancel"
+            id="channel_modal.cancel"
+            values={Object {}}
+          />
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={[Function]}
+          tabIndex="3"
+          type="submit"
+        >
+          <FormattedMessage
+            defaultMessage="Create New Channel"
+            id="channel_modal.createNew"
+            values={Object {}}
+          />
+        </button>
+      </ModalFooter>
+    </form>
+  </Modal>
+</span>
+`;
+
+exports[`components/NewChannelModal should match snapshot, modal showing 1`] = `
+<span>
+  <Modal
+    animation={true}
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    bsSize="large"
+    dialogClassName="new-channel__modal"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h4"
+      >
+        <FormattedMessage
+          defaultMessage="New Channel"
+          id="channel_modal.modalTitle"
+          values={Object {}}
+        />
+      </ModalTitle>
+    </ModalHeader>
+    <form
+      className="form-horizontal"
+      role="form"
+    >
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
+      >
+        <div>
+          <div
+            className="modal-intro"
+          >
+            <FormattedMessage
+              defaultMessage="Create a new public channel anyone can join. "
+              id="channel_modal.publicChannel2"
+              values={Object {}}
+            />
+            <a
+              href="#"
+              onClick={[Function]}
+            >
+              <FormattedMessage
+                defaultMessage="Create a private channel"
+                id="channel_modal.privateGroup2"
+                values={Object {}}
+              />
+            </a>
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <label
+            className="col-sm-3 form__label control-label"
+          >
+            <FormattedMessage
+              defaultMessage="Name"
+              id="channel_modal.name"
+              values={Object {}}
+            />
+          </label>
+          <div
+            className="col-sm-9"
+          >
+            <input
+              autoFocus={true}
+              className="form-control"
+              maxLength={22}
+              onChange={[Function]}
+              placeholder="E.g.: \\"Bugs\\", \\"Marketing\\", \\"客户支持\\""
+              tabIndex="1"
+              type="text"
+              value="testchannel"
+            />
+            <p
+              className="input__help dark"
+            >
+              URL: /testchannel (
+              <a
+                href="#"
+                onClick={[Function]}
+              >
+                <FormattedMessage
+                  defaultMessage="Edit"
+                  id="channel_modal.edit"
+                  values={Object {}}
+                />
+              </a>
+              )
+            </p>
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <div
+            className="col-sm-3"
+          >
+            <label
+              className="form__label control-label"
+            >
+              <FormattedMessage
+                defaultMessage="Purpose"
+                id="channel_modal.purpose"
+                values={Object {}}
+              />
+            </label>
+            <label
+              className="form__label light"
+            >
+              <FormattedMessage
+                defaultMessage="(optional)"
+                id="channel_modal.optional"
+                values={Object {}}
+              />
+            </label>
+          </div>
+          <div
+            className="col-sm-9"
+          >
+            <textarea
+              className="form-control no-resize"
+              maxLength="250"
+              onChange={[Function]}
+              placeholder="E.g.: \\"A channel to file bugs and improvements\\""
+              rows="4"
+              tabIndex="2"
+              value=""
+            />
+            <p
+              className="input__help"
+            >
+              <FormattedMessage
+                defaultMessage="Describe how this channel should be used."
+                id="channel_modal.descriptionHelp"
+                values={Object {}}
+              />
+            </p>
+          </div>
+        </div>
+        <div
+          className="form-group less"
+        >
+          <div
+            className="col-sm-3"
+          >
+            <label
+              className="form__label control-label"
+            >
+              <FormattedMessage
+                defaultMessage="Header"
+                id="channel_modal.header"
+                values={Object {}}
+              />
+            </label>
+            <label
+              className="form__label light"
+            >
+              <FormattedMessage
+                defaultMessage="(optional)"
+                id="channel_modal.optional"
+                values={Object {}}
+              />
+            </label>
+          </div>
+          <div
+            className="col-sm-9"
+          >
+            <textarea
+              className="form-control no-resize"
+              maxLength="1024"
+              onChange={[Function]}
+              placeholder="E.g.: \\"[Link Title](http://example.com)\\""
+              rows="4"
+              tabIndex="2"
+              value=""
+            />
+            <p
+              className="input__help"
+            >
+              <FormattedMessage
+                defaultMessage="Set text that will appear in the header of the channel beside the channel name. For example, include frequently used links by typing [Link Title](http://example.com)."
+                id="channel_modal.headerHelp"
+                values={Object {}}
+              />
+            </p>
+          </div>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        componentClass="div"
+      >
+        <button
+          className="btn btn-default"
+          onClick={[Function]}
+          type="button"
+        >
+          <FormattedMessage
+            defaultMessage="Cancel"
+            id="channel_modal.cancel"
+            values={Object {}}
+          />
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={[Function]}
+          tabIndex="3"
+          type="submit"
+        >
+          <FormattedMessage
+            defaultMessage="Create New Channel"
+            id="channel_modal.createNew"
+            values={Object {}}
+          />
+        </button>
+      </ModalFooter>
+    </form>
+  </Modal>
+</span>
+`;
+
+exports[`components/NewChannelModal should match snapshot, private channel filled in header and purpose 1`] = `
+<span>
+  <Modal
+    animation={true}
+    autoFocus={true}
+    backdrop={true}
+    bsClass="modal"
+    bsSize="large"
+    dialogClassName="new-channel__modal"
+    dialogComponentClass={[Function]}
+    enforceFocus={true}
+    keyboard={true}
+    manager={
+      ModalManager {
+        "add": [Function],
+        "containers": Array [],
+        "data": Array [],
+        "handleContainerOverflow": true,
+        "hideSiblingNodes": true,
+        "isTopModal": [Function],
+        "modals": Array [],
+        "remove": [Function],
+      }
+    }
+    onHide={[Function]}
+    renderBackdrop={[Function]}
+    restoreFocus={true}
+    show={true}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h4"
+      >
+        <FormattedMessage
+          defaultMessage="New Channel"
+          id="channel_modal.modalTitle"
+          values={Object {}}
+        />
+      </ModalTitle>
+    </ModalHeader>
+    <form
+      className="form-horizontal"
+      role="form"
+    >
+      <ModalBody
+        bsClass="modal-body"
+        componentClass="div"
+      >
+        <div>
+          <div
+            className="modal-intro"
+          >
+            <FormattedMessage
+              defaultMessage="Create a new private channel with restricted membership. "
+              id="channel_modal.privateGroup1"
+              values={Object {}}
+            />
+            <a
+              href="#"
+              onClick={[Function]}
+            >
+              <FormattedMessage
+                defaultMessage="Create a public channel"
+                id="channel_modal.publicChannel1"
+                values={Object {}}
+              />
+            </a>
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <label
+            className="col-sm-3 form__label control-label"
+          >
+            <FormattedMessage
+              defaultMessage="Name"
+              id="channel_modal.name"
+              values={Object {}}
+            />
+          </label>
+          <div
+            className="col-sm-9"
+          >
+            <input
+              autoFocus={true}
+              className="form-control"
+              maxLength={22}
+              onChange={[Function]}
+              placeholder="E.g.: \\"Bugs\\", \\"Marketing\\", \\"客户支持\\""
+              tabIndex="1"
+              type="text"
+              value="testchannel"
+            />
+            <p
+              className="input__help dark"
+            >
+              URL: /testchannel (
+              <a
+                href="#"
+                onClick={[Function]}
+              >
+                <FormattedMessage
+                  defaultMessage="Edit"
+                  id="channel_modal.edit"
+                  values={Object {}}
+                />
+              </a>
+              )
+            </p>
+          </div>
+        </div>
+        <div
+          className="form-group"
+        >
+          <div
+            className="col-sm-3"
+          >
+            <label
+              className="form__label control-label"
+            >
+              <FormattedMessage
+                defaultMessage="Purpose"
+                id="channel_modal.purpose"
+                values={Object {}}
+              />
+            </label>
+            <label
+              className="form__label light"
+            >
+              <FormattedMessage
+                defaultMessage="(optional)"
+                id="channel_modal.optional"
+                values={Object {}}
+              />
+            </label>
+          </div>
+          <div
+            className="col-sm-9"
+          >
+            <textarea
+              className="form-control no-resize"
+              maxLength="250"
+              onChange={[Function]}
+              placeholder="E.g.: \\"A channel to file bugs and improvements\\""
+              rows="4"
+              tabIndex="2"
+              value="some purpose"
+            />
+            <p
+              className="input__help"
+            >
+              <FormattedMessage
+                defaultMessage="Describe how this channel should be used."
+                id="channel_modal.descriptionHelp"
+                values={Object {}}
+              />
+            </p>
+          </div>
+        </div>
+        <div
+          className="form-group less"
+        >
+          <div
+            className="col-sm-3"
+          >
+            <label
+              className="form__label control-label"
+            >
+              <FormattedMessage
+                defaultMessage="Header"
+                id="channel_modal.header"
+                values={Object {}}
+              />
+            </label>
+            <label
+              className="form__label light"
+            >
+              <FormattedMessage
+                defaultMessage="(optional)"
+                id="channel_modal.optional"
+                values={Object {}}
+              />
+            </label>
+          </div>
+          <div
+            className="col-sm-9"
+          >
+            <textarea
+              className="form-control no-resize"
+              maxLength="1024"
+              onChange={[Function]}
+              placeholder="E.g.: \\"[Link Title](http://example.com)\\""
+              rows="4"
+              tabIndex="2"
+              value="some header"
+            />
+            <p
+              className="input__help"
+            >
+              <FormattedMessage
+                defaultMessage="Set text that will appear in the header of the channel beside the channel name. For example, include frequently used links by typing [Link Title](http://example.com)."
+                id="channel_modal.headerHelp"
+                values={Object {}}
+              />
+            </p>
+          </div>
+        </div>
+      </ModalBody>
+      <ModalFooter
+        bsClass="modal-footer"
+        componentClass="div"
+      >
+        <button
+          className="btn btn-default"
+          onClick={[Function]}
+          type="button"
+        >
+          <FormattedMessage
+            defaultMessage="Cancel"
+            id="channel_modal.cancel"
+            values={Object {}}
+          />
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={[Function]}
+          tabIndex="3"
+          type="submit"
+        >
+          <FormattedMessage
+            defaultMessage="Create New Channel"
+            id="channel_modal.createNew"
+            values={Object {}}
+          />
+        </button>
+      </ModalFooter>
+    </form>
+  </Modal>
+</span>
+`;

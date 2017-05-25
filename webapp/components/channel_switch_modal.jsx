@@ -16,6 +16,8 @@ import UserStore from 'stores/user_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import $ from 'jquery';
 
@@ -137,7 +139,7 @@ export default class SwitchChannelModal extends React.Component {
         const message = this.state.error;
         return (
             <Modal
-                dialogClassName='channel-switch-modal'
+                dialogClassName='channel-switch-modal modal--overflow'
                 ref='modal'
                 show={this.props.show}
                 onHide={this.onHide}
@@ -206,7 +208,7 @@ export default class SwitchChannelModal extends React.Component {
 }
 
 SwitchChannelModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    onHide: PropTypes.func.isRequired
 };
 

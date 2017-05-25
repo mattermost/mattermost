@@ -46,6 +46,14 @@
         "EnableUserStatuses": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
+    "ElasticSearchSettings": {
+        "ConnectionUrl": "http://dockerhost:9200",
+        "Username": "elastic",
+        "Password": "changeme",
+        "EnableIndexing": false,
+        "EnableSearching": false,
+        "Sniff": true
+    },
     "TeamSettings": {
         "SiteName": "Mattermost",
         "MaxUsersPerTeam": 50,
@@ -270,5 +278,8 @@
         "TurnURI": "",
         "TurnUsername": "",
         "TurnSharedKey": ""
+    },
+    "DataRetentionSettings": {
+        "Enable": false
     }
 }

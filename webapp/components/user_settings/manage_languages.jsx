@@ -9,6 +9,7 @@ import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {updateUser} from 'actions/user_actions.jsx';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class ManageLanguage extends React.Component {
@@ -132,6 +133,6 @@ export default class ManageLanguage extends React.Component {
 }
 
 ManageLanguage.propTypes = {
-    user: React.PropTypes.object.isRequired,
-    updateSection: React.PropTypes.func.isRequired
+    user: PropTypes.object.isRequired,
+    updateSection: PropTypes.func.isRequired
 };

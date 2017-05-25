@@ -23,7 +23,7 @@ func InitWeb() {
 	mainrouter := app.Srv.Router
 
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
-		staticDir := utils.FindDir(model.CLIENT_DIR)
+		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		l4g.Debug("Using client directory at %v", staticDir)
 		if *utils.Cfg.ServiceSettings.WebserverMode == "gzip" {
 			mainrouter.PathPrefix("/static/").Handler(gziphandler.GzipHandler(staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))))
@@ -79,5 +79,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-	http.ServeFile(w, r, utils.FindDir(model.CLIENT_DIR)+"root.html")
+
+	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+	http.ServeFile(w, r, staticDir+"root.html")
 }

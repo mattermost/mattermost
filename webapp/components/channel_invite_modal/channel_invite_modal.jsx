@@ -14,6 +14,8 @@ import {searchUsers} from 'actions/user_actions.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -25,11 +27,11 @@ const USERS_PER_PAGE = 50;
 
 export default class ChannelInviteModal extends React.Component {
     static propTypes = {
-        onHide: React.PropTypes.func.isRequired,
-        channel: React.PropTypes.object.isRequired,
-        actions: React.PropTypes.shape({
-            getProfilesNotInChannel: React.PropTypes.func.isRequired,
-            getTeamStats: React.PropTypes.func.isRequired
+        onHide: PropTypes.func.isRequired,
+        channel: PropTypes.object.isRequired,
+        actions: PropTypes.shape({
+            getProfilesNotInChannel: PropTypes.func.isRequired,
+            getTeamStats: PropTypes.func.isRequired
         }).isRequired
     }
 

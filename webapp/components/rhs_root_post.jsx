@@ -29,6 +29,8 @@ import {Overlay} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Link} from 'react-router/es6';
 
@@ -188,7 +190,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         if (this.props.compactDisplay) {
-            className += 'post--compact';
+            className += ' post--compact';
         }
 
         if (post.is_pinned) {
@@ -597,15 +599,15 @@ RhsRootPost.defaultProps = {
     commentCount: 0
 };
 RhsRootPost.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    lastPostCount: React.PropTypes.number,
-    user: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    commentCount: React.PropTypes.number,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string,
-    previewCollapsed: React.PropTypes.string,
-    isBusy: React.PropTypes.bool
+    post: PropTypes.object.isRequired,
+    lastPostCount: PropTypes.number,
+    user: PropTypes.object.isRequired,
+    currentUser: PropTypes.object.isRequired,
+    commentCount: PropTypes.number,
+    compactDisplay: PropTypes.bool,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFlagged: PropTypes.bool,
+    status: PropTypes.string,
+    previewCollapsed: PropTypes.string,
+    isBusy: PropTypes.bool
 };

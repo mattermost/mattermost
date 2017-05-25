@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -13,8 +15,8 @@ import ErrorBar from 'components/error_bar.jsx';
 export default class BackstageController extends React.Component {
     static get propTypes() {
         return {
-            user: React.PropTypes.object,
-            children: React.PropTypes.node.isRequired
+            user: PropTypes.object,
+            children: PropTypes.node.isRequired
         };
     }
 

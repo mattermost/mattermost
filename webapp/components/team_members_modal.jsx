@@ -8,6 +8,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class TeamMembersModal extends React.Component {
@@ -77,7 +79,7 @@ export default class TeamMembersModal extends React.Component {
 }
 
 TeamMembersModal.propTypes = {
-    onHide: React.PropTypes.func.isRequired,
-    isAdmin: React.PropTypes.bool.isRequired,
-    onLoad: React.PropTypes.func
+    onHide: PropTypes.func.isRequired,
+    isAdmin: PropTypes.bool.isRequired,
+    onLoad: PropTypes.func
 };

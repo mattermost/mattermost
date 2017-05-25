@@ -10,6 +10,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 import {canManageMembers} from 'utils/channel_utils.jsx';
 import {Constants} from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -87,7 +89,7 @@ export default class ChannelMembersModal extends React.Component {
 }
 
 ChannelMembersModal.propTypes = {
-    onModalDismissed: React.PropTypes.func.isRequired,
-    showInviteModal: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    onModalDismissed: PropTypes.func.isRequired,
+    showInviteModal: PropTypes.func.isRequired,
+    channel: PropTypes.object.isRequired
 };

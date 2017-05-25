@@ -5,6 +5,8 @@ import FileStore from 'stores/file_store.jsx';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import loadingGif from 'images/load.gif';
@@ -99,7 +101,7 @@ FilePreview.defaultProps = {
     uploadsInProgress: []
 };
 FilePreview.propTypes = {
-    onRemove: React.PropTypes.func.isRequired,
-    fileInfos: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    uploadsInProgress: React.PropTypes.array
+    onRemove: PropTypes.func.isRequired,
+    fileInfos: PropTypes.arrayOf(PropTypes.object).isRequired,
+    uploadsInProgress: PropTypes.array
 };

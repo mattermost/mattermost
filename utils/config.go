@@ -50,6 +50,22 @@ func SetSiteURL(url string) {
 	siteURL = strings.TrimRight(url, "/")
 }
 
+var cfgListeners = map[string]func(*model.Config, *model.Config){}
+
+// Registers a function with a given to be called when the config is reloaded and may have changed. The function
+// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
+// for the listener that can later be used to remove it.
+func AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	id := model.NewId()
+	cfgListeners[id] = listener
+	return id
+}
+
+// Removes a listener function by the unique ID returned when AddConfigListener was called
+func RemoveConfigListener(id string) {
+	delete(cfgListeners, id)
+}
+
 func FindConfigFile(fileName string) string {
 	if _, err := os.Stat("./config/" + fileName); err == nil {
 		fileName, _ = filepath.Abs("./config/" + fileName)
@@ -62,17 +78,21 @@ func FindConfigFile(fileName string) string {
 	return fileName
 }
 
-func FindDir(dir string) string {
+func FindDir(dir string) (string, bool) {
 	fileName := "."
+	found := false
 	if _, err := os.Stat("./" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("./" + dir + "/")
+		found = true
 	} else if _, err := os.Stat("../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../" + dir + "/")
+		found = true
 	} else if _, err := os.Stat("../../" + dir + "/"); err == nil {
 		fileName, _ = filepath.Abs("../../" + dir + "/")
+		found = true
 	}
 
-	return fileName + "/"
+	return fileName + "/", found
 }
 
 func DisableDebugLogForTest() {
@@ -145,7 +165,8 @@ func configureLog(s *model.LogSettings) {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		return FindDir("logs") + LOG_FILENAME
+		logDir, _ := FindDir("logs")
+		return logDir + LOG_FILENAME
 	} else {
 		return fileLocation + LOG_FILENAME
 	}
@@ -242,12 +263,28 @@ func DisableConfigWatch() {
 	}
 }
 
+func InitAndLoadConfig(filename string) error {
+	if err := TranslationsPreInit(); err != nil {
+		return err
+	}
+
+	EnableConfigFromEnviromentVars()
+	LoadConfig(filename)
+	InitializeConfigWatch()
+	EnableConfigWatch()
+
+	return nil
+}
+
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
 func LoadConfig(fileName string) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
+
+	// Cfg should never be null
+	oldConfig := *Cfg
 
 	fileNameWithExtension := filepath.Base(fileName)
 	fileExtension := filepath.Ext(fileNameWithExtension)
@@ -339,6 +376,10 @@ func LoadConfig(fileName string) {
 
 	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
+
+	for _, listener := range cfgListeners {
+		listener(&oldConfig, &config)
+	}
 }
 
 func RegenerateClientConfig() {
@@ -492,6 +533,11 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
+
+		if *License.Features.ElasticSearch {
+			props["ElasticSearchEnableIndexing"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableIndexing)
+			props["ElasticSearchEnableSearching"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableSearching)
+		}
 	}
 
 	return props
@@ -558,6 +604,16 @@ func Desanitize(cfg *model.Config) {
 	}
 	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
 		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
+	}
+
+	if *cfg.ElasticSearchSettings.ConnectionUrl == model.FAKE_SETTING {
+		*cfg.ElasticSearchSettings.ConnectionUrl = *Cfg.ElasticSearchSettings.ConnectionUrl
+	}
+	if *cfg.ElasticSearchSettings.Username == model.FAKE_SETTING {
+		*cfg.ElasticSearchSettings.Username = *Cfg.ElasticSearchSettings.Username
+	}
+	if *cfg.ElasticSearchSettings.Password == model.FAKE_SETTING {
+		*cfg.ElasticSearchSettings.Password = *Cfg.ElasticSearchSettings.Password
 	}
 
 	for i := range cfg.SqlSettings.DataSourceReplicas {

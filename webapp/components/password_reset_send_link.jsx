@@ -8,6 +8,8 @@ import client from 'client/web_client.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Link} from 'react-router/es6';
 
@@ -148,7 +150,7 @@ class PasswordResetSendLink extends React.Component {
 PasswordResetSendLink.defaultProps = {
 };
 PasswordResetSendLink.propTypes = {
-    params: React.PropTypes.object.isRequired
+    params: PropTypes.object.isRequired
 };
 
 export default PasswordResetSendLink;

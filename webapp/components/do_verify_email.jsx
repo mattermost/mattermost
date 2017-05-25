@@ -8,6 +8,8 @@ import {browserHistory, Link} from 'react-router/es6';
 
 import {verifyEmail} from 'actions/user_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class DoVerifyEmail extends React.Component {
@@ -75,5 +77,5 @@ export default class DoVerifyEmail extends React.Component {
 DoVerifyEmail.defaultProps = {
 };
 DoVerifyEmail.propTypes = {
-    location: React.PropTypes.object.isRequired
+    location: PropTypes.object.isRequired
 };

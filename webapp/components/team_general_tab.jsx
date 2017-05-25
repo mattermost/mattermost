@@ -11,6 +11,8 @@ import Constants from 'utils/constants.jsx';
 import {FormattedMessage} from 'react-intl';
 import {updateTeam} from 'actions/team_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class GeneralTab extends React.Component {
@@ -592,9 +594,9 @@ class GeneralTab extends React.Component {
 }
 
 GeneralTab.propTypes = {
-    updateSection: React.PropTypes.func.isRequired,
-    team: React.PropTypes.object.isRequired,
-    activeSection: React.PropTypes.string.isRequired
+    updateSection: PropTypes.func.isRequired,
+    team: PropTypes.object.isRequired,
+    activeSection: PropTypes.string.isRequired
 };
 
 export default GeneralTab;

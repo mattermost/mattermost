@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -8,10 +10,10 @@ import {Link} from 'react-router/es6';
 export default class IntegrationOption extends React.Component {
     static get propTypes() {
         return {
-            image: React.PropTypes.string.isRequired,
-            title: React.PropTypes.node.isRequired,
-            description: React.PropTypes.node.isRequired,
-            link: React.PropTypes.string.isRequired
+            image: PropTypes.string.isRequired,
+            title: PropTypes.node.isRequired,
+            description: PropTypes.node.isRequired,
+            link: PropTypes.string.isRequired
         };
     }
 

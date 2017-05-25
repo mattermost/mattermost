@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -30,11 +32,11 @@ const CATEGORIES = [
 
 class EmojiPicker extends React.Component {
     static propTypes = {
-        customEmojis: React.PropTypes.object,
-        onEmojiClick: React.PropTypes.func.isRequired,
-        pickerLocation: React.PropTypes.string.isRequired,
-        emojiOffset: React.PropTypes.number,
-        outsideClick: React.PropTypes.func
+        customEmojis: PropTypes.object,
+        onEmojiClick: PropTypes.func.isRequired,
+        pickerLocation: PropTypes.string.isRequired,
+        emojiOffset: PropTypes.number,
+        outsideClick: PropTypes.func
     }
 
     constructor(props) {

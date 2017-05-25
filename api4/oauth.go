@@ -35,6 +35,7 @@ func InitOAuth() {
 	// API version independent OAuth as a client endpoints
 	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
 	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/login", ApiHandler(loginWithOAuth)).Methods("GET")
+	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", ApiHandler(mobileLoginWithOAuth)).Methods("GET")
 	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", ApiHandler(signupWithOAuth)).Methods("GET")
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
@@ -322,7 +323,9 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
 	w.Header().Set("Content-Type", "text/html")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-	http.ServeFile(w, r, utils.FindDir(model.CLIENT_DIR)+"root.html")
+
+	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+	http.ServeFile(w, r, staticDir+"root.html")
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -417,9 +420,6 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
 
 		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
-	} else if action == model.OAUTH_ACTION_MOBILE {
-		ReturnStatusOK(w)
-		return
 	} else {
 		session, err := app.DoLogin(w, r, user, "")
 		if err != nil {
@@ -432,7 +432,12 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectUrl = c.GetSiteURLHeader()
 	}
 
-	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+	if action == model.OAUTH_ACTION_MOBILE {
+		ReturnStatusOK(w)
+		return
+	} else {
+		http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+	}
 }
 
 func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -450,7 +455,27 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(c.Params.Service, teamId, redirectTo, loginHint); err != nil {
+	if authUrl, err := app.GetOAuthLoginEndpoint(c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
+		c.Err = err
+		return
+	} else {
+		http.Redirect(w, r, authUrl, http.StatusFound)
+	}
+}
+
+func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireService()
+	if c.Err != nil {
+		return
+	}
+
+	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if authUrl, err := app.GetOAuthLoginEndpoint(c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", ""); err != nil {
 		c.Err = err
 		return
 	} else {

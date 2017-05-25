@@ -206,129 +206,129 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
-class AuditTable extends React.Component {
-    render() {
-        var accessList = [];
+function AuditTable(props) {
+    var accessList = [];
 
-        const {formatMessage} = this.props.intl;
-        for (var i = 0; i < this.props.audits.length; i++) {
-            const audit = this.props.audits[i];
-            const auditInfo = formatAuditInfo(audit, formatMessage);
+    const {formatMessage} = props.intl;
+    for (var i = 0; i < props.audits.length; i++) {
+        const audit = props.audits[i];
+        const auditInfo = formatAuditInfo(audit, formatMessage);
 
-            let uContent;
-            if (this.props.showUserId) {
-                var profile = UserStore.getProfile(auditInfo.userId);
-                if (profile) {
-                    uContent = <td className='word-break--all'>{profile.email}</td>;
-                } else {
-                    uContent = <td className='word-break--all'>{auditInfo.userId}</td>;
-                }
+        let uContent;
+        if (props.showUserId) {
+            var profile = UserStore.getProfile(auditInfo.userId);
+            if (profile) {
+                uContent = <td className='word-break--all'>{profile.email}</td>;
+            } else {
+                uContent = <td className='word-break--all'>{auditInfo.userId}</td>;
             }
-
-            let iContent;
-            if (this.props.showIp) {
-                iContent = <td className='whitespace--nowrap word-break--all'>{auditInfo.ip}</td>;
-            }
-
-            let sContent;
-            if (this.props.showSession) {
-                sContent = <td className='whitespace--nowrap word-break--all'>{auditInfo.sessionId}</td>;
-            }
-
-            const descStyle = {};
-            if (auditInfo.desc.toLowerCase().indexOf('fail') !== -1) {
-                descStyle.color = 'red';
-            }
-
-            accessList[i] = (
-                <tr key={audit.id}>
-                    <td className='whitespace--nowrap word-break--all'>{auditInfo.timestamp}</td>
-                    {uContent}
-                    <td
-                        className='word-break--all'
-                        style={descStyle}
-                    >
-                        {auditInfo.desc}
-                    </td>
-                    {iContent}
-                    {sContent}
-                </tr>
-            );
         }
 
-        let userIdContent;
-        if (this.props.showUserId) {
-            userIdContent = (
-                <th>
-                    <FormattedMessage
-                        id='audit_table.userId'
-                        defaultMessage='User ID'
-                    />
-                </th>
-            );
+        let iContent;
+        if (props.showIp) {
+            iContent = <td className='whitespace--nowrap word-break--all'>{auditInfo.ip}</td>;
         }
 
-        let ipContent;
-        if (this.props.showIp) {
-            ipContent = (
-                <th>
-                    <FormattedMessage
-                        id='audit_table.ip'
-                        defaultMessage='IP Address'
-                    />
-                </th>
-            );
+        let sContent;
+        if (props.showSession) {
+            sContent = <td className='whitespace--nowrap word-break--all'>{auditInfo.sessionId}</td>;
         }
 
-        let sessionContent;
-        if (this.props.showSession) {
-            sessionContent = (
-                <th>
-                    <FormattedMessage
-                        id='audit_table.session'
-                        defaultMessage='Session ID'
-                    />
-                </th>
-            );
+        const descStyle = {};
+        if (auditInfo.desc.toLowerCase().indexOf('fail') !== -1) {
+            descStyle.color = 'red';
         }
 
-        return (
-            <table className='table'>
-                <thead>
-                    <tr>
-                        <th>
-                            <FormattedMessage
-                                id='audit_table.timestamp'
-                                defaultMessage='Timestamp'
-                            />
-                        </th>
-                        {userIdContent}
-                        <th>
-                            <FormattedMessage
-                                id='audit_table.action'
-                                defaultMessage='Action'
-                            />
-                        </th>
-                        {ipContent}
-                        {sessionContent}
-                    </tr>
-                </thead>
-                <tbody>
-                    {accessList}
-                </tbody>
-            </table>
+        accessList[i] = (
+            <tr key={audit.id}>
+                <td className='whitespace--nowrap word-break--all'>{auditInfo.timestamp}</td>
+                {uContent}
+                <td
+                    className='word-break--all'
+                    style={descStyle}
+                >
+                    {auditInfo.desc}
+                </td>
+                {iContent}
+                {sContent}
+            </tr>
         );
     }
+
+    let userIdContent;
+    if (props.showUserId) {
+        userIdContent = (
+            <th>
+                <FormattedMessage
+                    id='audit_table.userId'
+                    defaultMessage='User ID'
+                />
+            </th>
+        );
+    }
+
+    let ipContent;
+    if (props.showIp) {
+        ipContent = (
+            <th>
+                <FormattedMessage
+                    id='audit_table.ip'
+                    defaultMessage='IP Address'
+                />
+            </th>
+        );
+    }
+
+    let sessionContent;
+    if (props.showSession) {
+        sessionContent = (
+            <th>
+                <FormattedMessage
+                    id='audit_table.session'
+                    defaultMessage='Session ID'
+                />
+            </th>
+        );
+    }
+
+    return (
+        <table className='table'>
+            <thead>
+                <tr>
+                    <th>
+                        <FormattedMessage
+                            id='audit_table.timestamp'
+                            defaultMessage='Timestamp'
+                        />
+                    </th>
+                    {userIdContent}
+                    <th>
+                        <FormattedMessage
+                            id='audit_table.action'
+                            defaultMessage='Action'
+                        />
+                    </th>
+                    {ipContent}
+                    {sessionContent}
+                </tr>
+            </thead>
+            <tbody>
+                {accessList}
+            </tbody>
+        </table>
+    );
 }
 
 AuditTable.propTypes = {
     intl: intlShape.isRequired,
-    audits: React.PropTypes.array.isRequired,
-    showUserId: React.PropTypes.bool,
-    showIp: React.PropTypes.bool,
-    showSession: React.PropTypes.bool
+    audits: PropTypes.array.isRequired,
+    showUserId: PropTypes.bool,
+    showIp: PropTypes.bool,
+    showSession: PropTypes.bool
 };
 
 export default injectIntl(AuditTable);

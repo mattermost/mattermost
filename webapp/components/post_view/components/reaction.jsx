@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -11,17 +13,17 @@ import * as Utils from 'utils/utils.jsx';
 
 export default class Reaction extends React.Component {
     static propTypes = {
-        post: React.PropTypes.object.isRequired,
-        currentUserId: React.PropTypes.string.isRequired,
-        emojiName: React.PropTypes.string.isRequired,
-        reactions: React.PropTypes.arrayOf(React.PropTypes.object),
-        emojis: React.PropTypes.object.isRequired,
-        profiles: React.PropTypes.array.isRequired,
-        otherUsers: React.PropTypes.number.isRequired,
-        actions: React.PropTypes.shape({
-            addReaction: React.PropTypes.func.isRequired,
-            getMissingProfiles: React.PropTypes.func.isRequired,
-            removeReaction: React.PropTypes.func.isRequired
+        post: PropTypes.object.isRequired,
+        currentUserId: PropTypes.string.isRequired,
+        emojiName: PropTypes.string.isRequired,
+        reactions: PropTypes.arrayOf(PropTypes.object),
+        emojis: PropTypes.object.isRequired,
+        profiles: PropTypes.array.isRequired,
+        otherUsers: PropTypes.number.isRequired,
+        actions: PropTypes.shape({
+            addReaction: PropTypes.func.isRequired,
+            getMissingProfiles: PropTypes.func.isRequired,
+            removeReaction: PropTypes.func.isRequired
         })
     }
 

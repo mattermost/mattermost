@@ -1,7 +1,9 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import FormError from 'components/form_error.jsx';

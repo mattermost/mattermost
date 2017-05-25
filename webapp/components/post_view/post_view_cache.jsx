@@ -6,14 +6,16 @@ import PostViewController from './post_view_controller.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 const MAXIMUM_CACHED_VIEWS = 5;
 
 export default class PostViewCache extends React.Component {
     static propTypes = {
-        actions: React.PropTypes.shape({
-            viewChannel: React.PropTypes.func.isRequired
+        actions: PropTypes.shape({
+            viewChannel: PropTypes.func.isRequired
         }).isRequired
     }
 

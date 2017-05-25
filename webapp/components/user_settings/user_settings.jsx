@@ -9,6 +9,8 @@ import GeneralTab from './user_settings_general';
 import DisplayTab from './user_settings_display.jsx';
 import AdvancedTab from './user_settings_advanced.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class UserSettings extends React.Component {
@@ -111,12 +113,12 @@ export default class UserSettings extends React.Component {
 }
 
 UserSettings.propTypes = {
-    activeTab: React.PropTypes.string,
-    activeSection: React.PropTypes.string,
-    updateSection: React.PropTypes.func,
-    updateTab: React.PropTypes.func,
-    closeModal: React.PropTypes.func.isRequired,
-    collapseModal: React.PropTypes.func.isRequired,
-    setEnforceFocus: React.PropTypes.func.isRequired,
-    setRequireConfirm: React.PropTypes.func.isRequired
+    activeTab: PropTypes.string,
+    activeSection: PropTypes.string,
+    updateSection: PropTypes.func,
+    updateTab: PropTypes.func,
+    closeModal: PropTypes.func.isRequired,
+    collapseModal: PropTypes.func.isRequired,
+    setEnforceFocus: PropTypes.func.isRequired,
+    setRequireConfirm: PropTypes.func.isRequired
 };

@@ -8,16 +8,17 @@ import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
 
 export default class ActivityLogModal extends React.Component {
     static propTypes = {
-        onHide: React.PropTypes.func.isRequired,
-        actions: React.PropTypes.shape({
-            getSessions: React.PropTypes.func.isRequired,
-            revokeSession: React.PropTypes.func.isRequired
+        onHide: PropTypes.func.isRequired,
+        actions: PropTypes.shape({
+            getSessions: PropTypes.func.isRequired,
+            revokeSession: PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -51,7 +52,9 @@ export default class ActivityLogModal extends React.Component {
         setTimeout(() => {
             modalContent.removeClass('animation--highlight');
         }, 1500);
-        this.props.actions.revokeSession(UserStore.getCurrentId(), altId);
+        this.props.actions.revokeSession(UserStore.getCurrentId(), altId).then(() => {
+            this.props.actions.getSessions(UserStore.getCurrentId());
+        });
     }
 
     onShow() {

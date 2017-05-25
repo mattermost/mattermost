@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -15,7 +16,7 @@ import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 export default class BrandImageSetting extends React.Component {
     static get propTypes() {
         return {
-            disabled: React.PropTypes.bool.isRequired
+            disabled: PropTypes.bool.isRequired
         };
     }
 

@@ -14,6 +14,9 @@ import (
 	// Plugins
 	_ "github.com/mattermost/platform/model/gitlab"
 
+	// Enterprise Imports
+	_ "github.com/mattermost/platform/imports"
+
 	// Enterprise Deps
 	_ "github.com/dgryski/dgoogauth"
 	_ "github.com/go-ldap/ldap"
@@ -25,8 +28,6 @@ import (
 	_ "gopkg.in/gomail.v2"
 	_ "gopkg.in/olivere/elastic.v5"
 )
-
-//ENTERPRISE_IMPORTS
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
@@ -58,7 +59,9 @@ var resetCmd = &cobra.Command{
 }
 
 func resetCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {

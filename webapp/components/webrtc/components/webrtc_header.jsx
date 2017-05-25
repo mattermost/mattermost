@@ -6,95 +6,95 @@ import Constants from 'utils/constants.jsx';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
-export default class WebrtcHeader extends React.Component {
-    render() {
-        const title = (
+export default function WebrtcHeader(props) {
+    const title = (
+        <FormattedMessage
+            id='webrtc.header'
+            defaultMessage='Call with {username}'
+            values={{
+                username: props.username
+            }}
+        />
+    );
+
+    const closeSidebarTooltip = (
+        <Tooltip id='closeSidebarTooltip'>
             <FormattedMessage
-                id='webrtc.header'
-                defaultMessage='Call with {username}'
-                values={{
-                    username: this.props.username
-                }}
+                id='rhs_header.closeTooltip'
+                defaultMessage='Close Sidebar'
             />
-        );
+        </Tooltip>
+    );
 
-        const closeSidebarTooltip = (
-            <Tooltip id='closeSidebarTooltip'>
-                <FormattedMessage
-                    id='rhs_header.closeTooltip'
-                    defaultMessage='Close Sidebar'
-                />
-            </Tooltip>
-        );
+    const expandSidebarTooltip = (
+        <Tooltip id='expandSidebarTooltip'>
+            <FormattedMessage
+                id='rhs_header.expandTooltip'
+                defaultMessage='Expand Sidebar'
+            />
+        </Tooltip>
+    );
 
-        const expandSidebarTooltip = (
-            <Tooltip id='expandSidebarTooltip'>
-                <FormattedMessage
-                    id='rhs_header.expandTooltip'
-                    defaultMessage='Expand Sidebar'
-                />
-            </Tooltip>
-        );
+    const shrinkSidebarTooltip = (
+        <Tooltip id='shrinkSidebarTooltip'>
+            <FormattedMessage
+                id='rhs_header.expandTooltip'
+                defaultMessage='Shrink Sidebar'
+            />
+        </Tooltip>
+    );
 
-        const shrinkSidebarTooltip = (
-            <Tooltip id='shrinkSidebarTooltip'>
-                <FormattedMessage
-                    id='rhs_header.expandTooltip'
-                    defaultMessage='Shrink Sidebar'
-                />
-            </Tooltip>
-        );
-
-        return (
-            <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>{title}</span>
-                <div className='pull-right'>
-                    <button
-                        type='button'
-                        className='sidebar--right__expand'
-                        aria-label='Expand'
-                        onClick={this.props.toggleSize}
+    return (
+        <div className='sidebar--right__header'>
+            <span className='sidebar--right__title'>{title}</span>
+            <div className='pull-right'>
+                <button
+                    type='button'
+                    className='sidebar--right__expand'
+                    aria-label='Expand'
+                    onClick={props.toggleSize}
+                >
+                    <OverlayTrigger
+                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                        placement='top'
+                        overlay={expandSidebarTooltip}
                     >
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                            placement='top'
-                            overlay={expandSidebarTooltip}
-                        >
-                            <i className='fa fa-expand'/>
-                        </OverlayTrigger>
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                            placement='top'
-                            overlay={shrinkSidebarTooltip}
-                        >
-                            <i className='fa fa-compress'/>
-                        </OverlayTrigger>
-                    </button>
-                    <button
-                        type='button'
-                        className='sidebar--right__close'
-                        aria-label='Close'
-                        title='Close'
-                        onClick={this.props.onClose}
+                        <i className='fa fa-expand'/>
+                    </OverlayTrigger>
+                    <OverlayTrigger
+                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                        placement='top'
+                        overlay={shrinkSidebarTooltip}
                     >
-                        <OverlayTrigger
-                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                            placement='top'
-                            overlay={closeSidebarTooltip}
-                        >
-                            <i className='fa fa-sign-out'/>
-                        </OverlayTrigger>
-                    </button>
-                </div>
+                        <i className='fa fa-compress'/>
+                    </OverlayTrigger>
+                </button>
+                <button
+                    type='button'
+                    className='sidebar--right__close'
+                    aria-label='Close'
+                    title='Close'
+                    onClick={props.onClose}
+                >
+                    <OverlayTrigger
+                        delayShow={Constants.OVERLAY_TIME_DELAY}
+                        placement='top'
+                        overlay={closeSidebarTooltip}
+                    >
+                        <i className='fa fa-sign-out'/>
+                    </OverlayTrigger>
+                </button>
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 WebrtcHeader.propTypes = {
-    username: React.PropTypes.string.isRequired,
-    onClose: React.PropTypes.func.isRequired,
-    toggleSize: React.PropTypes.func
+    username: PropTypes.string.isRequired,
+    onClose: PropTypes.func.isRequired,
+    toggleSize: PropTypes.func
 };

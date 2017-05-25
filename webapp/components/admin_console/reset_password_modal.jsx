@@ -8,14 +8,16 @@ import {FormattedMessage} from 'react-intl';
 
 import {adminResetPassword} from 'actions/admin_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class ResetPasswordModal extends React.Component {
     static propTypes = {
-        user: React.PropTypes.object,
-        show: React.PropTypes.bool.isRequired,
-        onModalSubmit: React.PropTypes.func,
-        onModalDismissed: React.PropTypes.func
+        user: PropTypes.object,
+        show: PropTypes.bool.isRequired,
+        onModalSubmit: PropTypes.func,
+        onModalDismissed: PropTypes.func
     };
 
     static defaultProps = {

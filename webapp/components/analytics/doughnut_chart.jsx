@@ -5,6 +5,8 @@ import {FormattedMessage} from 'react-intl';
 
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Chart from 'chart.js';
@@ -80,9 +82,9 @@ export default class DoughnutChart extends React.Component {
 }
 
 DoughnutChart.propTypes = {
-    title: React.PropTypes.node,
-    width: React.PropTypes.string,
-    height: React.PropTypes.string,
-    data: React.PropTypes.object,
-    options: React.PropTypes.object
+    title: PropTypes.node,
+    width: PropTypes.string,
+    height: PropTypes.string,
+    data: PropTypes.object,
+    options: PropTypes.object
 };

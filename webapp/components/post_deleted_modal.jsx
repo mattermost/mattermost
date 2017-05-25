@@ -5,6 +5,8 @@ import {FormattedMessage} from 'react-intl';
 
 import {Modal} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PostDeletedModal extends React.Component {
@@ -64,6 +66,6 @@ export default class PostDeletedModal extends React.Component {
 }
 
 PostDeletedModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    onHide: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    onHide: PropTypes.func.isRequired
 };

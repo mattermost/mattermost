@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -10,8 +12,8 @@ import FileAttachmentList from './file_attachment_list.jsx';
 
 export default class FileAttachmentListContainer extends React.Component {
     static propTypes = {
-        post: React.PropTypes.object.isRequired,
-        compactDisplay: React.PropTypes.bool.isRequired
+        post: PropTypes.object.isRequired,
+        compactDisplay: PropTypes.bool.isRequired
     }
 
     constructor(props) {

@@ -14,6 +14,8 @@ import Constants from 'utils/constants.jsx';
 import {displayUsernameForUser} from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -27,9 +29,9 @@ const MAX_SELECTABLE_VALUES = 20;
 
 export default class AddUsersToTeam extends React.Component {
     static propTypes = {
-        onModalDismissed: React.PropTypes.func,
-        actions: React.PropTypes.shape({
-            getProfilesNotInTeam: React.PropTypes.func.isRequired
+        onModalDismissed: PropTypes.func,
+        actions: PropTypes.shape({
+            getProfilesNotInTeam: PropTypes.func.isRequired
         }).isRequired
     }
 

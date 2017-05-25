@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -85,13 +87,13 @@ BooleanSetting.defaultProps = {
 };
 
 BooleanSetting.propTypes = {
-    id: React.PropTypes.string.isRequired,
-    label: React.PropTypes.node.isRequired,
-    value: React.PropTypes.bool.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    trueText: React.PropTypes.node,
-    falseText: React.PropTypes.node,
-    disabled: React.PropTypes.bool.isRequired,
-    disabledText: React.PropTypes.node,
-    helpText: React.PropTypes.node.isRequired
+    id: PropTypes.string.isRequired,
+    label: PropTypes.node.isRequired,
+    value: PropTypes.bool.isRequired,
+    onChange: PropTypes.func.isRequired,
+    trueText: PropTypes.node,
+    falseText: PropTypes.node,
+    disabled: PropTypes.bool.isRequired,
+    disabledText: PropTypes.node,
+    helpText: PropTypes.node.isRequired
 };

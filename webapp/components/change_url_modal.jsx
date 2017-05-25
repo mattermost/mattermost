@@ -9,6 +9,8 @@ import * as URL from 'utils/url.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class ChangeUrlModal extends React.Component {
@@ -234,12 +236,12 @@ ChangeUrlModal.defaultProps = {
 };
 
 ChangeUrlModal.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    title: React.PropTypes.node,
-    submitButtonText: React.PropTypes.node,
-    currentURL: React.PropTypes.string,
-    serverError: React.PropTypes.node,
-    onModalSubmit: React.PropTypes.func.isRequired,
-    onModalExited: React.PropTypes.func,
-    onModalDismissed: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    title: PropTypes.node,
+    submitButtonText: PropTypes.node,
+    currentURL: PropTypes.string,
+    serverError: PropTypes.node,
+    onModalSubmit: PropTypes.func.isRequired,
+    onModalExited: PropTypes.func,
+    onModalDismissed: PropTypes.func.isRequired
 };

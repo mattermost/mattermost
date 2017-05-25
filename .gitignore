@@ -4,6 +4,7 @@ logs
 node_modules
 /dist
 /webapp/dist
+jobserver
 npm-debug.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
@@ -16,12 +17,12 @@ config/active.dat
 config/config.json
 
 # Enteprise imports file
-imports.go
-cmd/mattermost/imports.go
+imports/imports.go
 
 # Build Targets
 .prebuild
 .npminstall
+.yarninstall
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

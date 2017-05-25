@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -7,10 +9,10 @@ export default class FormError extends React.Component {
     static get propTypes() {
         // accepts either a single error or an array of errors
         return {
-            type: React.PropTypes.node,
-            error: React.PropTypes.node,
-            margin: React.PropTypes.bool,
-            errors: React.PropTypes.arrayOf(React.PropTypes.node)
+            type: PropTypes.node,
+            error: PropTypes.node,
+            margin: PropTypes.bool,
+            errors: PropTypes.arrayOf(PropTypes.node)
         };
     }
 

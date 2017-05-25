@@ -10,10 +10,12 @@ import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
-export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps}) {
+export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps, userCount}) {
     const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
 
     let name = user.username;
@@ -58,6 +60,13 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
         status = UserStore.getStatus(user.id);
     }
 
+    let userCountID = null;
+    let userCountEmail = null;
+    if (userCount >= 0) {
+        userCountID = Utils.createSafeId('userListRowName' + userCount);
+        userCountEmail = Utils.createSafeId('userListRowEmail' + userCount);
+    }
+
     return (
         <div
             key={user.id}
@@ -72,10 +81,16 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
             <div
                 className='more-modal__details'
             >
-                <div className='more-modal__name'>
+                <div
+                    id={userCountID}
+                    className='more-modal__name'
+                >
                     {name}
                 </div>
-                <div className={emailStyle}>
+                <div
+                    id={userCountEmail}
+                    className={emailStyle}
+                >
                     {email}
                 </div>
                 {extraInfo}
@@ -97,9 +112,10 @@ UserListRow.defaultProps = {
 };
 
 UserListRow.propTypes = {
-    user: React.PropTypes.object.isRequired,
-    extraInfo: React.PropTypes.arrayOf(React.PropTypes.object),
-    actions: React.PropTypes.arrayOf(React.PropTypes.func),
-    actionProps: React.PropTypes.object,
-    actionUserProps: React.PropTypes.object
+    user: PropTypes.object.isRequired,
+    extraInfo: PropTypes.arrayOf(PropTypes.object),
+    actions: PropTypes.arrayOf(PropTypes.func),
+    actionProps: PropTypes.object,
+    actionUserProps: PropTypes.object,
+    userCount: PropTypes.number
 };

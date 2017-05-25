@@ -12,6 +12,8 @@ import {FormattedMessage} from 'react-intl';
 
 const ActionTypes = Constants.ActionTypes;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class RhsHeaderPost extends React.Component {
@@ -201,11 +203,11 @@ RhsHeaderPost.defaultProps = {
     fromSearch: ''
 };
 RhsHeaderPost.propTypes = {
-    isMentionSearch: React.PropTypes.bool,
-    isWebrtc: React.PropTypes.bool,
-    fromSearch: React.PropTypes.string,
-    fromFlaggedPosts: React.PropTypes.bool,
-    fromPinnedPosts: React.PropTypes.bool,
-    toggleSize: React.PropTypes.func,
-    shrink: React.PropTypes.func
+    isMentionSearch: PropTypes.bool,
+    isWebrtc: PropTypes.bool,
+    fromSearch: PropTypes.string,
+    fromFlaggedPosts: PropTypes.bool,
+    fromPinnedPosts: PropTypes.bool,
+    toggleSize: PropTypes.func,
+    shrink: PropTypes.func
 };

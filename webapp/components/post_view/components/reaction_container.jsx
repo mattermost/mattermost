@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -12,10 +14,10 @@ import Reaction from './reaction.jsx';
 
 export default class ReactionContainer extends React.Component {
     static propTypes = {
-        post: React.PropTypes.object.isRequired,
-        emojiName: React.PropTypes.string.isRequired,
-        reactions: React.PropTypes.arrayOf(React.PropTypes.object),
-        emojis: React.PropTypes.object.isRequired
+        post: PropTypes.object.isRequired,
+        emojiName: PropTypes.string.isRequired,
+        reactions: PropTypes.arrayOf(PropTypes.object),
+        emojis: PropTypes.object.isRequired
     }
 
     constructor(props) {

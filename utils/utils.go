@@ -68,10 +68,11 @@ func GetIpAddress(r *http.Request) string {
 	return address
 }
 
-func GetSiteName(siteURL string) string {
+func GetHostnameFromSiteURL(siteURL string) string {
 	u, err := url.Parse(siteURL)
 	if err != nil {
 		return ""
 	}
-	return u.Host
+
+	return u.Hostname()
 }

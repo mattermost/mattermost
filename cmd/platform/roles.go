@@ -38,7 +38,10 @@ func init() {
 }
 
 func makeSystemAdminCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}
@@ -58,7 +61,10 @@ func makeSystemAdminCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func makeMemberCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}

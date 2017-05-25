@@ -5,15 +5,17 @@ import SpinnerButton from 'components/spinner_button.jsx';
 
 import {addUserToChannel} from 'actions/channel_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class ChannelInviteButton extends React.Component {
     static get propTypes() {
         return {
-            user: React.PropTypes.object.isRequired,
-            channel: React.PropTypes.object.isRequired,
-            onInviteError: React.PropTypes.func.isRequired
+            user: PropTypes.object.isRequired,
+            channel: PropTypes.object.isRequired,
+            onInviteError: PropTypes.func.isRequired
         };
     }
 

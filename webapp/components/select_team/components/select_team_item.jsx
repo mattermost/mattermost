@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -10,10 +12,10 @@ import * as Utils from 'utils/utils.jsx';
 
 export default class SelectTeamItem extends React.Component {
     static propTypes = {
-        team: React.PropTypes.object.isRequired,
-        url: React.PropTypes.string.isRequired,
-        onTeamClick: React.PropTypes.func.isRequired,
-        loading: React.PropTypes.bool.isRequired
+        team: PropTypes.object.isRequired,
+        url: PropTypes.string.isRequired,
+        onTeamClick: PropTypes.func.isRequired,
+        loading: PropTypes.bool.isRequired
     };
 
     constructor(props) {

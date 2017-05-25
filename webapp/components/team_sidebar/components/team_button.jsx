@@ -6,6 +6,8 @@ import Constants from 'utils/constants.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {switchTeams} from 'actions/team_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Link} from 'react-router/es6';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
@@ -110,15 +112,15 @@ TeamButton.defaultProps = {
 };
 
 TeamButton.propTypes = {
-    btnClass: React.PropTypes.string,
-    url: React.PropTypes.string.isRequired,
-    displayName: React.PropTypes.string,
-    content: React.PropTypes.node,
-    tip: React.PropTypes.node.isRequired,
-    active: React.PropTypes.bool,
-    disabled: React.PropTypes.bool,
-    isMobile: React.PropTypes.bool,
-    unread: React.PropTypes.bool,
-    mentions: React.PropTypes.number,
-    placement: React.PropTypes.oneOf(['left', 'right', 'top', 'bottom'])
+    btnClass: PropTypes.string,
+    url: PropTypes.string.isRequired,
+    displayName: PropTypes.string,
+    content: PropTypes.node,
+    tip: PropTypes.node.isRequired,
+    active: PropTypes.bool,
+    disabled: PropTypes.bool,
+    isMobile: PropTypes.bool,
+    unread: PropTypes.bool,
+    mentions: PropTypes.number,
+    placement: PropTypes.oneOf(['left', 'right', 'top', 'bottom'])
 };

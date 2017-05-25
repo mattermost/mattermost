@@ -10,6 +10,8 @@ import AutosizeTextarea from 'components/autosize_textarea.jsx';
 
 const KeyCodes = Constants.KeyCodes;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SuggestionBox extends React.Component {
@@ -35,12 +37,10 @@ export default class SuggestionBox extends React.Component {
     }
 
     componentDidMount() {
-        SuggestionStore.addCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
 
     componentWillUnmount() {
-        SuggestionStore.removeCompleteWordListener(this.suggestionId, this.handleCompleteWord);
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
@@ -159,6 +159,8 @@ export default class SuggestionBox extends React.Component {
                 provider.handleCompleteWord(term, matchedPretext);
             }
         }
+
+        GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
     }
 
     handleKeyDown(e) {
@@ -170,7 +172,7 @@ export default class SuggestionBox extends React.Component {
                 GlobalActions.emitSelectNextSuggestion(this.suggestionId);
                 e.preventDefault();
             } else if (e.which === KeyCodes.ENTER || e.which === KeyCodes.TAB) {
-                GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
+                this.handleCompleteWord(SuggestionStore.getSelection(this.suggestionId), SuggestionStore.getSelectedMatchedPretext(this.suggestionId));
                 this.props.onKeyDown(e);
                 e.preventDefault();
             } else if (e.which === KeyCodes.ESCAPE) {
@@ -210,6 +212,7 @@ export default class SuggestionBox extends React.Component {
 
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
+        Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
         Reflect.deleteProperty(props, 'onItemSelected');
 
         const childProps = {
@@ -258,6 +261,7 @@ export default class SuggestionBox extends React.Component {
                     suggestionId={this.suggestionId}
                     location={listStyle}
                     renderDividers={renderDividers}
+                    onCompleteWord={this.handleCompleteWord}
                 />
             </div>
         );
@@ -284,16 +288,16 @@ SuggestionBox.defaultProps = {
 };
 
 SuggestionBox.propTypes = {
-    listComponent: React.PropTypes.func.isRequired,
-    type: React.PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
-    value: React.PropTypes.string.isRequired,
-    providers: React.PropTypes.arrayOf(React.PropTypes.object),
-    listStyle: React.PropTypes.string,
-    renderDividers: React.PropTypes.bool,
+    listComponent: PropTypes.func.isRequired,
+    type: PropTypes.oneOf(['input', 'textarea', 'search']).isRequired,
+    value: PropTypes.string.isRequired,
+    providers: PropTypes.arrayOf(PropTypes.object),
+    listStyle: PropTypes.string,
+    renderDividers: PropTypes.bool,
 
     // explicitly name any input event handlers we override and need to manually call
-    onBlur: React.PropTypes.func,
-    onChange: React.PropTypes.func,
-    onKeyDown: React.PropTypes.func,
-    onItemSelected: React.PropTypes.func
+    onBlur: PropTypes.func,
+    onChange: PropTypes.func,
+    onKeyDown: PropTypes.func,
+    onItemSelected: PropTypes.func
 };

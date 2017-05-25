@@ -14,13 +14,15 @@ import {Link} from 'react-router/es6';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import logoImage from 'images/logo.png';
 
 export default class SelectTeam extends React.Component {
     static propTypes = {
-        actions: React.PropTypes.shape({
-            getTeams: React.PropTypes.func.isRequired
+        actions: PropTypes.shape({
+            getTeams: PropTypes.func.isRequired
         }).isRequired
     }
 

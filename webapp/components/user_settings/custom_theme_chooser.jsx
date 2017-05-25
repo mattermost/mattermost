@@ -3,6 +3,7 @@
 
 import 'bootstrap-colorpicker';
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Popover, OverlayTrigger} from 'react-bootstrap';
 import {defineMessages, FormattedMessage, intlShape, injectIntl} from 'react-intl';
@@ -444,8 +445,8 @@ class CustomThemeChooser extends React.Component {
 
 CustomThemeChooser.propTypes = {
     intl: intlShape.isRequired,
-    theme: React.PropTypes.object.isRequired,
-    updateTheme: React.PropTypes.func.isRequired
+    theme: PropTypes.object.isRequired,
+    updateTheme: PropTypes.func.isRequired
 };
 
 export default injectIntl(CustomThemeChooser);

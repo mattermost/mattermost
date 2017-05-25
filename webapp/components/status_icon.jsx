@@ -3,42 +3,41 @@
 
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
-export default class StatusIcon extends React.Component {
-    render() {
-        const status = this.props.status;
-        const type = this.props.type;
+export default function StatusIcon(props) {
+    const status = props.status;
+    const type = props.type;
 
-        if (!status) {
-            return null;
-        }
-
-        let statusIcon = '';
-        if (type === 'avatar') {
-            if (status === 'online') {
-                statusIcon = Constants.ONLINE_AVATAR_SVG;
-            } else if (status === 'away') {
-                statusIcon = Constants.AWAY_AVATAR_SVG;
-            } else {
-                statusIcon = Constants.OFFLINE_AVATAR_SVG;
-            }
-        } else if (status === 'online') {
-            statusIcon = Constants.ONLINE_ICON_SVG;
-        } else if (status === 'away') {
-            statusIcon = Constants.AWAY_ICON_SVG;
-        } else {
-            statusIcon = Constants.OFFLINE_ICON_SVG;
-        }
-
-        return (
-            <span
-                className={'status ' + this.props.className}
-                dangerouslySetInnerHTML={{__html: statusIcon}}
-            />
-        );
+    if (!status) {
+        return null;
     }
 
+    let statusIcon = '';
+    if (type === 'avatar') {
+        if (status === 'online') {
+            statusIcon = Constants.ONLINE_AVATAR_SVG;
+        } else if (status === 'away') {
+            statusIcon = Constants.AWAY_AVATAR_SVG;
+        } else {
+            statusIcon = Constants.OFFLINE_AVATAR_SVG;
+        }
+    } else if (status === 'online') {
+        statusIcon = Constants.ONLINE_ICON_SVG;
+    } else if (status === 'away') {
+        statusIcon = Constants.AWAY_ICON_SVG;
+    } else {
+        statusIcon = Constants.OFFLINE_ICON_SVG;
+    }
+
+    return (
+        <span
+            className={'status ' + props.className}
+            dangerouslySetInnerHTML={{__html: statusIcon}}
+        />
+    );
 }
 
 StatusIcon.defaultProps = {
@@ -46,7 +45,7 @@ StatusIcon.defaultProps = {
 };
 
 StatusIcon.propTypes = {
-    status: React.PropTypes.string,
-    className: React.PropTypes.string,
-    type: React.PropTypes.string
+    status: PropTypes.string,
+    className: PropTypes.string,
+    type: PropTypes.string
 };

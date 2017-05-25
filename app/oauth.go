@@ -290,9 +290,9 @@ func newSessionUpdateToken(appName string, accessData *model.AccessData, user *m
 	return accessRsp, nil
 }
 
-func GetOAuthLoginEndpoint(service, teamId, redirectTo, loginHint string) (string, *model.AppError) {
+func GetOAuthLoginEndpoint(service, teamId, action, redirectTo, loginHint string) (string, *model.AppError) {
 	stateProps := map[string]string{}
-	stateProps["action"] = model.OAUTH_ACTION_LOGIN
+	stateProps["action"] = action
 	if len(teamId) != 0 {
 		stateProps["team_id"] = teamId
 	}

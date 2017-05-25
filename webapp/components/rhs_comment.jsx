@@ -29,6 +29,8 @@ import ReactDOM from 'react-dom';
 
 import loadingGif from 'images/load.gif';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Link} from 'react-router/es6';
 
@@ -377,7 +379,7 @@ export default class RhsComment extends React.Component {
         }
 
         if (this.props.compactDisplay) {
-            className += 'post--compact';
+            className += ' post--compact';
         }
 
         if (post.is_pinned) {
@@ -645,13 +647,13 @@ export default class RhsComment extends React.Component {
 }
 
 RhsComment.propTypes = {
-    post: React.PropTypes.object,
-    lastPostCount: React.PropTypes.number,
-    user: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string,
-    isBusy: React.PropTypes.bool
+    post: PropTypes.object,
+    lastPostCount: PropTypes.number,
+    user: PropTypes.object.isRequired,
+    currentUser: PropTypes.object.isRequired,
+    compactDisplay: PropTypes.bool,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFlagged: PropTypes.bool,
+    status: PropTypes.string,
+    isBusy: PropTypes.bool
 };

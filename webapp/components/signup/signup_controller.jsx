@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -374,5 +376,5 @@ export default class SignupController extends React.Component {
 }
 
 SignupController.propTypes = {
-    location: React.PropTypes.object
+    location: PropTypes.object
 };

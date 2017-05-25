@@ -48,6 +48,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	JobStatus() JobStatusStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -166,6 +167,7 @@ type PostStore interface {
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
 	Overwrite(post *model.Post) StoreChannel
+	GetPostsByIds(postIds []string) StoreChannel
 }
 
 type UserStore interface {
@@ -379,4 +381,12 @@ type ReactionStore interface {
 	InvalidateCache()
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
+}
+
+type JobStatusStore interface {
+	SaveOrUpdate(status *model.JobStatus) StoreChannel
+	Get(id string) StoreChannel
+	GetAllByType(jobType string) StoreChannel
+	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
+	Delete(id string) StoreChannel
 }

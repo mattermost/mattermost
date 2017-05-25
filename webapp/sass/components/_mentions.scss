@@ -9,6 +9,21 @@
     z-index: 10;
 }
 
+.badge {
+    background-color: #777;
+    border-radius: 10px;
+    color: #fff;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    min-width: 10px;
+    padding: 3px 7px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
 .mentions__name {
     @include clearfix;
     cursor: pointer;

@@ -11,6 +11,8 @@ import Constants from 'utils/constants.jsx';
 import {joinChannel, searchMoreChannels} from 'actions/channel_actions.jsx';
 import {showCreateOption} from 'utils/channel_utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {Modal} from 'react-bootstrap';
@@ -23,10 +25,10 @@ const SEARCH_TIMEOUT_MILLISECONDS = 100;
 
 export default class MoreChannels extends React.Component {
     static propTypes = {
-        onModalDismissed: React.PropTypes.func,
-        handleNewChannel: React.PropTypes.func,
-        actions: React.PropTypes.shape({
-            getChannels: React.PropTypes.func.isRequired
+        onModalDismissed: PropTypes.func,
+        handleNewChannel: PropTypes.func,
+        actions: PropTypes.shape({
+            getChannels: PropTypes.func.isRequired
         }).isRequired
     }
 

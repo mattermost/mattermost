@@ -12,18 +12,20 @@ import {loadMyTeamMembers, updateActive} from 'actions/user_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
 export default class TeamMembersDropdown extends React.Component {
     static propTypes = {
-        user: React.PropTypes.object.isRequired,
-        teamMember: React.PropTypes.object.isRequired,
-        actions: React.PropTypes.shape({
-            getUser: React.PropTypes.func.isRequired,
-            getTeamStats: React.PropTypes.func.isRequired,
-            getChannelStats: React.PropTypes.func.isRequired
+        user: PropTypes.object.isRequired,
+        teamMember: PropTypes.object.isRequired,
+        actions: PropTypes.shape({
+            getUser: PropTypes.func.isRequired,
+            getTeamStats: PropTypes.func.isRequired,
+            getChannelStats: PropTypes.func.isRequired
         }).isRequired
     }
 

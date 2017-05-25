@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -12,14 +13,14 @@ import * as Utils from 'utils/utils.jsx';
 export default class FileUploadSetting extends Setting {
     static get propTypes() {
         return {
-            id: React.PropTypes.string.isRequired,
-            label: React.PropTypes.node.isRequired,
-            helpText: React.PropTypes.node,
-            uploadingText: React.PropTypes.node,
-            onSubmit: React.PropTypes.func.isRequired,
-            disabled: React.PropTypes.bool,
-            fileType: React.PropTypes.string.isRequired,
-            error: React.PropTypes.string
+            id: PropTypes.string.isRequired,
+            label: PropTypes.node.isRequired,
+            helpText: PropTypes.node,
+            uploadingText: PropTypes.node,
+            onSubmit: PropTypes.func.isRequired,
+            disabled: PropTypes.bool,
+            fileType: PropTypes.string.isRequired,
+            error: PropTypes.string
         };
     }
 

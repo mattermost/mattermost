@@ -184,6 +184,9 @@ func (m *Manager) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate, 
 		return nil, errors.New("acme/autocert: server name contains invalid character")
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
 	// check whether this is a token cert requested for TLS-SNI challenge
 	if strings.HasSuffix(name, ".acme.invalid") {
 		m.tokenCertMu.RLock()

@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -23,28 +22,14 @@ func LoadLicense() {
 
 	if len(licenseId) != 26 {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		fileName := utils.GetLicenseFileLocation(*utils.Cfg.ServiceSettings.LicenseFileLocation)
+		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk()
 
-		if _, err := os.Stat(fileName); err == nil {
-			l4g.Info("License key has not been uploaded.  Loading license key from disk at %v", fileName)
-			licenseBytes := utils.GetLicenseFileFromDisk(fileName)
-
-			if success, licenseStr := utils.ValidateLicense(licenseBytes); success {
-				licenseFileFromDisk := model.LicenseFromJson(strings.NewReader(licenseStr))
-				licenseId = licenseFileFromDisk.Id
-				if _, err := SaveLicense(licenseBytes); err != nil {
-					l4g.Info("Failed to save license key loaded from disk err=%v", err.Error())
-					return
-				}
+		if license != nil {
+			if _, err := SaveLicense(licenseBytes); err != nil {
+				l4g.Info("Failed to save license key loaded from disk err=%v", err.Error())
 			} else {
-				l4g.Error("Found license key at %v but it appears to be invalid.", fileName)
-				return
+				licenseId = license.Id
 			}
-
-		} else {
-			l4g.Info(utils.T("mattermost.load_license.find.warn"))
-			l4g.Debug("We could not find the license key in the database or on disk at %v", fileName)
-			return
 		}
 	}
 

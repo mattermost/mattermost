@@ -21,14 +21,16 @@ import Constants from 'utils/constants.jsx';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import logoImage from 'images/logo.png';
 
 export default class LoginController extends React.Component {
     static get propTypes() {
         return {
-            location: React.PropTypes.object.isRequired,
-            params: React.PropTypes.object.isRequired
+            location: PropTypes.object.isRequired,
+            params: PropTypes.object.isRequired
         };
     }
 
@@ -211,7 +213,7 @@ export default class LoginController extends React.Component {
     finishSignin(team) {
         const query = this.props.location.query;
         GlobalActions.loadCurrentLocale();
-        if (query.redirect_to) {
+        if (query.redirect_to && query.redirect_to.match(/^\//)) {
             browserHistory.push(query.redirect_to);
         } else if (team) {
             browserHistory.push(`/${team.name}`);
