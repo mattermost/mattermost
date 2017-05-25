@@ -28,6 +28,9 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestGetClusterInfos(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	th := Setup().InitSystemAdmin().InitBasic()
 
 	if _, err := th.BasicClient.GetClusterStatus(); err == nil {
