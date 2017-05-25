@@ -213,7 +213,7 @@ export default class LoginController extends React.Component {
     finishSignin(team) {
         const query = this.props.location.query;
         GlobalActions.loadCurrentLocale();
-        if (query.redirect_to) {
+        if (query.redirect_to && query.redirect_to.match(/^\//)) {
             browserHistory.push(query.redirect_to);
         } else if (team) {
             browserHistory.push(`/${team.name}`);
