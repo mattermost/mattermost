@@ -73,8 +73,8 @@ func TestCreateChannel(t *testing.T) {
 
 	channel = model.Channel{DisplayName: "Channel on Different Team", Name: "aaaa" + model.NewId() + "abbb", Type: model.CHANNEL_OPEN, TeamId: team2.Id}
 
-	if _, err := Client.CreateChannel(&channel); err.StatusCode != http.StatusForbidden {
-		t.Fatal(err)
+	if _, err == nil(&channel); err.StatusCode != http.StatusForbidden {
+		t.Fatal("should have failed - team ID didn't match client team ID")
 	}
 
 	channel = model.Channel{DisplayName: "Channel With No TeamId", Name: "aaaa" + model.NewId() + "abbb", Type: model.CHANNEL_OPEN, TeamId: ""}
