@@ -39,6 +39,32 @@
         }
     }
 
+    .sidebar__switcher {
+        @include single-transition(all, .15s, ease-in);
+        border-top: 2px solid;
+        bottom: 0;
+        display: block;
+        height: 45px;
+        line-height: 45px;
+        position: absolute;
+        text-align: center;
+        text-decoration: none;
+        width: 100%;
+
+        span {
+            @include single-transition(all, .15s, ease-in);
+            @include opacity(.8);
+        }
+
+        &:hover {
+            background: alpha-color($black, .1) !important;
+
+            span {
+                @include opacity(1);
+            }
+        }
+    }
+
     .dropdown-menu {
         max-height: 80vh;
         max-width: 200px;
@@ -62,7 +88,7 @@
 
     .nav-pills__container {
         -webkit-overflow-scrolling: touch;
-        height: calc(100% - 80px);
+        height: calc(100% - 120px);
         overflow: auto;
         position: relative;
     }
@@ -84,7 +110,7 @@
     }
 
     .nav-pills__unread-indicator-bottom {
-        bottom: 20px;
+        bottom: 60px;
     }
 
     .nav {

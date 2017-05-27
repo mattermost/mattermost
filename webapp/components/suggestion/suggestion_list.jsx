@@ -115,14 +115,9 @@ export default class SuggestionList extends React.Component {
         return (
             <div
                 key={type + '-loading'}
-                className='suggestion-list__divider'
+                className='suggestion-loader'
             >
-                <span>
-                    <FormattedMessage
-                        id='suggestion.loading'
-                        defaultMessage='Loading...'
-                    />
-                </span>
+                <i className='fa fa-spinner fa-pulse fa-fw margin-bottom'/>
             </div>
         );
     }

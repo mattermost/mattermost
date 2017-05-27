@@ -906,6 +906,7 @@ export default class Sidebar extends React.Component {
                 <div style={{height: '20px', width: '100%'}}>
                     <a
                         href='#'
+                        className='sidebar__switcher'
                         onClick={this.openQuickSwitcher}
                     >
                         <FormattedMessage
