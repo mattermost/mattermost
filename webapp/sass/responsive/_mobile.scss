@@ -1060,15 +1060,11 @@
         }
 
         .nav-pills__container {
-            height: 100%;
+            height: calc(100% - 50px);
         }
 
         > div {
             padding-bottom: 70px;
-        }
-
-        .nav-pills__unread-indicator-bottom {
-            bottom: 10px;
         }
 
         .nav-pills__unread-indicator {

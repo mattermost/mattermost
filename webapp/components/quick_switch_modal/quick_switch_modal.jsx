@@ -198,49 +198,74 @@ export default class QuickSwitchModal extends React.PureComponent {
         let providers = this.channelProviders;
         let header;
         let renderDividers = true;
+
+        let channelShortcut = 'quick_switch_modal.channelsShortcut.windows';
+        if (Utils.isMac()) {
+            channelShortcut = 'quick_switch_modal.channelsShortcut.mac';
+        }
+
+        let teamShortcut = 'quick_switch_modal.teamsShortcut.windows';
+        if (Utils.isMac()) {
+            teamShortcut = 'quick_switch_modal.teamsShortcut.mac';
+        }
+
         if (this.props.showTeamSwitcher) {
-            const channelStyle = {};
-            const teamStyle = {marginLeft: '50px'};
+            let channelsActiveClass = '';
+            let teamsActiveClass = '';
             if (this.state.mode === TEAM_MODE) {
                 providers = this.teamProviders;
                 renderDividers = false;
-                teamStyle.fontWeight = 'bold';
+                teamsActiveClass = 'active';
             } else {
-                channelStyle.fontWeight = 'bold';
+                channelsActiveClass = 'active';
             }
 
             header = (
-                <div>
-                    <a
-                        style={channelStyle}
-                        href='#'
-                        onClick={(e) => {
-                            e.preventDefault();
-                            this.enableChannelProvider();
-                            this.setState({mode: 'channel'});
-                            this.focusTextbox();
-                        }}
-                    >
-                        <FormattedMessage
-                            id='quick_switch_modal.channels'
-                            defaultMessage='Channels'
-                        />
-                    </a>
-                    <a
-                        style={teamStyle}
-                        href='#'
-                        onClick={(e) => {
-                            e.preventDefault();
-                            this.enableTeamProvider();
-                            this.setState({mode: 'team'});
-                            this.focusTextbox();
-                        }}
-                    >
-                        <FormattedMessage
-                            id='quick_switch_modal.teams'
-                            defaultMessage='Teams'
-                        />
-                    </a>
+                <div className='nav nav-tabs'>
+                    <li className={channelsActiveClass}>
+                        <a
+                            href='#'
+                            onClick={(e) => {
+                                e.preventDefault();
+                                this.enableChannelProvider();
+                                this.setState({mode: 'channel'});
+                                this.focusTextbox();
+                            }}
+                        >
+                            <FormattedMessage
+                                id='quick_switch_modal.channels'
+                                defaultMessage='Channels'
+                            />
+                            <span className='small'>
+                                <FormattedMessage
+                                    id={channelShortcut}
+                                    defaultMessage='CTRL+K'
+                                />
+                            </span>
+                        </a>
+                    </li>
+                    <li className={teamsActiveClass}>
+                        <a
+                            href='#'
+                            onClick={(e) => {
+                                e.preventDefault();
+                                this.enableTeamProvider();
+                                this.setState({mode: 'team'});
+                                this.focusTextbox();
+                            }}
+                        >
+                            <FormattedMessage
+                                id='quick_switch_modal.teams'
+                                defaultMessage='Teams'
+                            />
+                            <span className='small'>
+                                <FormattedMessage
+                                    id={teamShortcut}
+                                    defaultMessage='CTRL+ALT+K'
+                                />
+                            </span>
+                        </a>
+                    </li>
                 </div>
             );
         }
