@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import LoginMfa from './components/login_mfa.jsx';
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar.jsx';
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -621,7 +621,7 @@ export default class LoginController extends React.Component {
 
         return (
             <div>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <div className='col-sm-12'>
                     <div className={'signup-team__container ' + customClass}>
                         <div className='signup__markdown'>

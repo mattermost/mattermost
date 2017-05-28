@@ -1,12 +1,11 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import 'bootstrap';
 
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar.jsx';
 import AdminStore from 'stores/admin_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
@@ -52,7 +51,7 @@ export default class AdminConsole extends React.Component {
         if (config && Object.keys(config).length === 0 && config.constructor === 'Object') {
             return (
                 <div className='admin-console__wrapper'>
-                    <ErrorBar/>
+                    <AnnouncementBar/>
                     <div className='admin-console'/>
                 </div>
             );
@@ -64,7 +63,7 @@ export default class AdminConsole extends React.Component {
         });
         return (
             <div className='admin-console__wrapper'>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <div className='admin-console'>
                     <AdminSidebar/>
                     {children}
