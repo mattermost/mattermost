@@ -23,7 +23,7 @@ import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar.jsx';
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
@@ -211,7 +211,7 @@ export default class NeedsTeam extends React.Component {
 
         return (
             <div className='channel-view'>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <WebrtcNotification/>
                 <div className='container-fluid'>
                     <SidebarRight channel={channel}/>

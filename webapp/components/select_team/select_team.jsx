@@ -5,7 +5,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import SelectTeamItem from './components/select_team_item.jsx';
@@ -218,7 +218,7 @@ export default class SelectTeam extends React.Component {
         }
         return (
             <div>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <div className='signup-header'>
                     {headerButton}
                 </div>

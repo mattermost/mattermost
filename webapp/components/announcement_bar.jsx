@@ -18,8 +18,9 @@ const RENEWAL_LINK = 'https://licensing.mattermost.com/renew';
 
 const BAR_DEVELOPER_TYPE = 'developer';
 const BAR_CRITICAL_TYPE = 'critical';
+const BAR_ANNOUNCEMENT_TYPE = 'announcement';
 
-export default class ErrorBar extends React.Component {
+export default class AnnouncementBar extends React.PureComponent {
     constructor() {
         super();
 
@@ -31,7 +32,7 @@ export default class ErrorBar extends React.Component {
 
         this.setInitialError();
 
-        this.state = ErrorStore.getLastError() || {};
+        this.state = this.getState();
     }
 
     setInitialError() {
@@ -62,11 +63,35 @@ export default class ErrorBar extends React.Component {
         } else if (isLicenseExpired() && isSystemAdmin) {
             ErrorStore.storeLastError({notification: true, message: ErrorBarTypes.LICENSE_EXPIRED, type: BAR_CRITICAL_TYPE});
         } else if (isLicenseExpiring() && isSystemAdmin) {
-            ErrorStore.storeLastError({notification: true, message: ErrorBarTypes.LICENSE_EXPIRING});
+            ErrorStore.storeLastError({notification: true, message: ErrorBarTypes.LICENSE_EXPIRING, type: BAR_CRITICAL_TYPE});
         }
     }
 
-    isValidError(s) {
+    getState() {
+        const error = ErrorStore.getLastError();
+        if (error) {
+            return {message: error.message, color: null, textColor: null, type: error.type, allowDismissal: true};
+        }
+
+        const bannerText = global.window.mm_config.BannerText || '';
+        const allowDismissal = global.window.mm_config.AllowBannerDismissal === 'true';
+        const bannerDismissed = localStorage.getItem(global.window.mm_config.BannerText);
+        if (global.window.mm_config.EnableBanner === 'true' &&
+                bannerText.length > 0 &&
+                (!bannerDismissed || !allowDismissal)) {
+            return {
+                message: bannerText,
+                color: global.window.mm_config.BannerColor,
+                textColor: global.window.mm_config.BannerTextColor,
+                type: BAR_ANNOUNCEMENT_TYPE,
+                allowDismissal
+            };
+        }
+
+        return {message: null, color: null, colorText: null, textColor: null, type: null};
+    }
+
+    isValidState(s) {
         if (!s) {
             return false;
         }
@@ -93,16 +118,11 @@ export default class ErrorBar extends React.Component {
     }
 
     onErrorChange() {
-        var newState = ErrorStore.getLastError();
-
-        if (newState) {
-            if (newState.message === ErrorBarTypes.LICENSE_EXPIRING && !this.state.totalUsers) {
-                AsyncClient.getStandardAnalytics();
-            }
-            this.setState(newState);
-        } else {
-            this.setState({message: null});
+        const newState = this.getState();
+        if (newState.message === ErrorBarTypes.LICENSE_EXPIRING && !this.state.totalUsers) {
+            AsyncClient.getStandardAnalytics();
         }
+        this.setState(newState);
     }
 
     onAnalyticsChange() {
@@ -115,26 +135,51 @@ export default class ErrorBar extends React.Component {
             e.preventDefault();
         }
 
+        if (this.state.type === BAR_ANNOUNCEMENT_TYPE) {
+            localStorage.setItem(this.state.message, true);
+        }
+
         if (ErrorStore.getLastError() && ErrorStore.getLastError().notification) {
             ErrorStore.clearNotificationError();
         } else {
             ErrorStore.clearLastError();
         }
 
-        this.setState({message: null});
+        this.setState(this.getState());
     }
 
     render() {
-        if (!this.isValidError(this.state)) {
+        if (!this.isValidState(this.state)) {
             return <div/>;
         }
 
-        var errClass = 'error-bar';
-
-        if (this.state.type === BAR_DEVELOPER_TYPE) {
+        let errClass = 'error-bar';
+        const barStyle = {};
+        const linkStyle = {};
+        if (this.state.color && this.state.textColor) {
+            barStyle.backgroundColor = this.state.color;
+            barStyle.color = this.state.textColor;
+            linkStyle.color = this.state.textColor;
+        } else if (this.state.type === BAR_DEVELOPER_TYPE) {
             errClass = 'error-bar-developer';
         } else if (this.state.type === BAR_CRITICAL_TYPE) {
             errClass = 'error-bar-critical';
+        }
+
+        let closeButton;
+        if (this.state.allowDismissal) {
+            closeButton = (
+                <a
+                    href='#'
+                    className='error-bar__close'
+                    style={linkStyle}
+                    onClick={this.handleClose}
+                >
+                    {'×'}
+                </a>
+            );
+        } else {
+            barStyle.position = 'static';
         }
 
         const renewalLink = RENEWAL_LINK + '?id=' + global.window.mm_license.Id + '&user_count=' + this.state.totalUsers;
@@ -217,15 +262,12 @@ export default class ErrorBar extends React.Component {
         }
 
         return (
-            <div className={errClass}>
+            <div
+                className={errClass}
+                style={barStyle}
+            >
                 <span>{message}</span>
-                <a
-                    href='#'
-                    className='error-bar__close'
-                    onClick={this.handleClose}
-                >
-                    {'×'}
-                </a>
+                {closeButton}
             </div>
         );
     }
