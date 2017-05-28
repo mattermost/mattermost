@@ -1318,6 +1318,7 @@
             }
         }
     }
+
     .post {
         .attachment {
             .attachment__image {
@@ -1542,6 +1543,7 @@
         top: 60px;
         width: calc(100% - 30px);
     }
+
     .post {
         .attachment {
             .attachment__image {
@@ -1554,6 +1556,19 @@
 }
 
 @media screen and (max-width: 480px) {
+    .nav-tabs {
+        margin-top: 1em;
+
+        > li {
+            margin-right: 0;
+
+            a {
+                font-size: .9em;
+                padding: 6px 11px;
+            }
+        }
+    }
+
     .sidebar--right {
         .post {
             &.post--compact {
