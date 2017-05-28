@@ -538,6 +538,14 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["ElasticSearchEnableIndexing"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableIndexing)
 			props["ElasticSearchEnableSearching"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableSearching)
 		}
+
+		if *License.Features.Announcement {
+			props["EnableBanner"] = strconv.FormatBool(*c.AnnouncementSettings.EnableBanner)
+			props["BannerText"] = *c.AnnouncementSettings.BannerText
+			props["BannerColor"] = *c.AnnouncementSettings.BannerColor
+			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
+			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
+		}
 	}
 
 	return props

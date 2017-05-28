@@ -11,7 +11,7 @@
     z-index: 9999;
 
     a {
-        color: $white !important;
+        color: $white;
         text-decoration: underline;
 
         &.error-bar__close {

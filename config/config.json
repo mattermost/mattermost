@@ -171,6 +171,13 @@
         "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
         "SupportEmail": "feedback@mattermost.com"
     },
+    "AnnouncementSettings": {
+        "EnableBanner": false,
+        "BannerText": "",
+        "BannerColor": "#f2a93b",
+        "BannerTextColor": "#333333",
+        "AllowBannerDismissal": false
+    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",

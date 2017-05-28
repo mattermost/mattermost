@@ -30,6 +30,7 @@
     "react": "15.5.4",
     "react-addons-pure-render-mixin": "15.5.2",
     "react-bootstrap": "0.31.0",
+    "react-color": "2.11.7",
     "react-custom-scrollbars": "4.1.2",
     "react-dom": "15.5.4",
     "react-intl": "2.3.0",
