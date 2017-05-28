@@ -40,7 +40,6 @@
     }
 
     .sidebar__switcher {
-        @include single-transition(all, .15s, ease-in);
         border-top: 2px solid;
         bottom: 0;
         display: block;
@@ -51,13 +50,27 @@
         text-decoration: none;
         width: 100%;
 
+        &:after {
+            @include single-transition(all, .15s, ease-in);
+            background: alpha-color($black, .1);
+            content: '';
+            display: none;
+            height: 100%;
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+
         span {
             @include single-transition(all, .15s, ease-in);
             @include opacity(.8);
         }
 
         &:hover {
-            background: alpha-color($black, .1) !important;
+            &:after {
+                display: block;
+            }
 
             span {
                 @include opacity(1);
@@ -88,7 +101,7 @@
 
     .nav-pills__container {
         -webkit-overflow-scrolling: touch;
-        height: calc(100% - 120px);
+        height: calc(100% - 110px);
         overflow: auto;
         position: relative;
     }
