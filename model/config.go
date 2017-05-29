@@ -196,7 +196,7 @@ type SqlSettings struct {
 	MaxOpenConns             int
 	Trace                    bool
 	AtRestEncryptKey         string
-	ConnectionTimeout        *int
+	QueryTimeout             *int
 }
 
 type LogSettings struct {
@@ -482,9 +482,9 @@ func (o *Config) SetDefaults() {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
 	}
 
-	if o.SqlSettings.ConnectionTimeout == nil {
-		o.SqlSettings.ConnectionTimeout = new(int)
-		*o.SqlSettings.ConnectionTimeout = 30
+	if o.SqlSettings.QueryTimeout == nil {
+		o.SqlSettings.QueryTimeout = new(int)
+		*o.SqlSettings.QueryTimeout = 30
 	}
 
 	if o.FileSettings.AmazonS3Endpoint == "" {
@@ -1329,8 +1329,8 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "")
 	}
 
-	if *o.SqlSettings.ConnectionTimeout <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sql_connection_timeout.app_error", nil, "", http.StatusBadRequest)
+	if *o.SqlSettings.QueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.SqlSettings.DataSource) == 0 {

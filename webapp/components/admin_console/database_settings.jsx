@@ -29,7 +29,7 @@ export default class DatabaseSettings extends AdminSettings {
         config.SqlSettings.MaxOpenConns = this.parseIntNonZero(this.state.maxOpenConns);
         config.SqlSettings.AtRestEncryptKey = this.state.atRestEncryptKey;
         config.SqlSettings.Trace = this.state.trace;
-        config.SqlSettings.ConnectionTimeout = this.parseIntNonZero(this.state.connectionTimeout);
+        config.SqlSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
 
         return config;
     }
@@ -42,7 +42,7 @@ export default class DatabaseSettings extends AdminSettings {
             maxOpenConns: config.SqlSettings.MaxOpenConns,
             atRestEncryptKey: config.SqlSettings.AtRestEncryptKey,
             trace: config.SqlSettings.Trace,
-            connectionTimeout: config.SqlSettings.ConnectionTimeout
+            queryTimeout: config.SqlSettings.QueryTimeout
         };
     }
 
@@ -131,21 +131,21 @@ export default class DatabaseSettings extends AdminSettings {
                     onChange={this.handleChange}
                 />
                 <TextSetting
-                    id='connectionTimeout'
+                    id='queryTimeout'
                     label={
                         <FormattedMessage
-                            id='admin.sql.connectionTimeoutTitle'
-                            defaultMessage='Connection Timeout:'
+                            id='admin.sql.queryTimeoutTitle'
+                            defaultMessage='Query Timeout:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.sql.connectionTimeoutExample', 'Ex "30"')}
+                    placeholder={Utils.localizeMessage('admin.sql.queryTimeoutExample', 'Ex "30"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.sql.connectionTimeoutDescription'
-                            defaultMessage='The number of seconds a query can be executing for before being cancelled.'
+                            id='admin.sql.queryTimeoutDescription'
+                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query. This setting has no effect on PostgreSQL databases.'
                         />
                     }
-                    value={this.state.connectionTimeout}
+                    value={this.state.queryTimeout}
                     onChange={this.handleChange}
                 />
                 <GeneratedSetting

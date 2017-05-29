@@ -4132,8 +4132,8 @@
     "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.sql_connection_timeout.app_error",
-    "translation": "Invalid connection timeout for SQL settings.  Must be a positive number."
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
