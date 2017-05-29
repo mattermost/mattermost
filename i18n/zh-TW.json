@@ -4136,6 +4136,10 @@
     "translation": "SQL 設定中的最高開啟連線數無效。必須為正數。"
   },
   {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "使用者輸入更新間隔不應該設定為低於 1000 毫秒。"
   },
@@ -6013,7 +6017,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "新增送信人失敗"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6033,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "新增收件人失敗"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",

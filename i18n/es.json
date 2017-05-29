@@ -3897,19 +3897,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "El valor de Elastic Search ConnectionUrl debe ser proporcionado cuando está habilitado la indización de Elastic Search."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "El valor de Elastic Search IndexingEnabled debe ser verdadero cuando el valor de Elastic Search SearchEnabled es verdadero."
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "El valor de Elastic Search Password debe ser proporcionado cuando está habilitado la indización de Elastic Search."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "El valor de Elastic Search Username debe ser proporcionado cuando está habilitado la indización de Elastic Search."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4134,6 +4134,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5097,27 +5101,27 @@
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
-    "translation": "No pudimos guardar la información del archivo"
+    "translation": "No pudimos guardar o actualizar la información del archivo"
   },
   {
     "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "No pudimos eliminar el mensaje"
+    "translation": "No pudimos eliminar el trabajo de estatus"
   },
   {
     "id": "store.sql_job_status.get.app_error",
-    "translation": "No pudimos obtener el mensaje"
+    "translation": "No pudimos obtener el trabajo de estatus"
   },
   {
     "id": "store.sql_job_status.get_all.app_error",
-    "translation": "No pudimos obtener el mensaje"
+    "translation": "No pudimos obtener todos los trabajos de estatus"
   },
   {
     "id": "store.sql_job_status.save.app_error",
-    "translation": "No pudimos guardar el Mensaje"
+    "translation": "No pudimos guardar el trabajo de estatus"
   },
   {
     "id": "store.sql_job_status.update.app_error",
-    "translation": "No pudimos actualizar el Mensaje"
+    "translation": "No pudimos actualizar el trabajo de estatus"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5269,7 +5273,7 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "No pudimos obtener el mensaje"
+    "translation": "No pudimos obtener los mensajes"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -6013,7 +6017,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Falla al agregar el correo electrónico desde"
+    "translation": "Notificación la Dirección del remitente falta o no es válida."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6033,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Falla al agregar el correo electrónico para"
+    "translation": "Notificación la Dirección de recepción falta o no es válida."
   },
   {
     "id": "utils.mail.test.configured.error",
