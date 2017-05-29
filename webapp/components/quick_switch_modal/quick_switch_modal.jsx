@@ -295,6 +295,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                 onHide={this.onHide}
                 onExited={this.onExited}
             >
+                <Modal.Header closeButton={true}/>
                 <Modal.Body>
                     {header}
                     <div className='modal__hint'>
