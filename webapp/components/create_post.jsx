@@ -217,7 +217,7 @@ export default class CreatePost extends React.Component {
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
 
-        if ((this.state.message.includes('@all') || this.state.message.includes('@channel')) && members >= 0) {
+        if ((this.state.message.includes('@all') || this.state.message.includes('@channel')) && members >= Constants.NOTIFY_ALL_MEMBERS) {
             this.setState({totalMembers: members});
             this.showNotifyAllModal();
             return;
