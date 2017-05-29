@@ -169,6 +169,11 @@ export default class SearchResultsItem extends React.Component {
             compactClass = ' post--compact';
         }
 
+        let postClass = '';
+        if (PostUtils.isEdited(this.props.post)) {
+            postClass += ' post--edited';
+        }
+
         let fileAttachment = null;
         if (post.file_ids && post.file_ids.length > 0) {
             fileAttachment = (
@@ -308,8 +313,10 @@ export default class SearchResultsItem extends React.Component {
                                 {rhsControls}
                             </div>
                             <div className='search-item-snippet post__body'>
-                                {message}
-                                {fileAttachment}
+                                <div className={postClass}>
+                                    {message}
+                                    {fileAttachment}
+                                </div>
                             </div>
                         </div>
                     </div>
