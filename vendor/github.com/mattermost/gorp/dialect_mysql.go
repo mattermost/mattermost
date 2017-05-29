@@ -27,6 +27,8 @@ type MySQLDialect struct {
 	Encoding string
 }
 
+func (d MySQLDialect) Name() string { return "MySQLDialect" }
+
 func (d MySQLDialect) QuerySuffix() string { return ";" }
 
 func (d MySQLDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr bool) string {

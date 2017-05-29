@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-gorp/gorp"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/platform/model"
 )
 

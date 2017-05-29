@@ -29,6 +29,7 @@ export default class DatabaseSettings extends AdminSettings {
         config.SqlSettings.MaxOpenConns = this.parseIntNonZero(this.state.maxOpenConns);
         config.SqlSettings.AtRestEncryptKey = this.state.atRestEncryptKey;
         config.SqlSettings.Trace = this.state.trace;
+        config.SqlSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
 
         return config;
     }
@@ -40,7 +41,8 @@ export default class DatabaseSettings extends AdminSettings {
             maxIdleConns: config.SqlSettings.MaxIdleConns,
             maxOpenConns: config.SqlSettings.MaxOpenConns,
             atRestEncryptKey: config.SqlSettings.AtRestEncryptKey,
-            trace: config.SqlSettings.Trace
+            trace: config.SqlSettings.Trace,
+            queryTimeout: config.SqlSettings.QueryTimeout
         };
     }
 
@@ -126,6 +128,24 @@ export default class DatabaseSettings extends AdminSettings {
                         />
                     }
                     value={this.state.maxOpenConns}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='queryTimeout'
+                    label={
+                        <FormattedMessage
+                            id='admin.sql.queryTimeoutTitle'
+                            defaultMessage='Query Timeout:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.sql.queryTimeoutExample', 'Ex "30"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.sql.queryTimeoutDescription'
+                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query. This setting has no effect on PostgreSQL databases.'
+                        />
+                    }
+                    value={this.state.queryTimeout}
                     onChange={this.handleChange}
                 />
                 <GeneratedSetting

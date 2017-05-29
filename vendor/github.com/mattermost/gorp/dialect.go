@@ -18,6 +18,9 @@ import "reflect"
 // but this could change in the future
 type Dialect interface {
 
+	// dialect name
+	Name() string
+
 	// adds a suffix to any query, usually ";"
 	QuerySuffix() string
 
