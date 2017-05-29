@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -8,10 +10,10 @@ import {removeUserFromTeam} from 'actions/team_actions.jsx';
 
 export default class RemoveFromTeamButton extends React.PureComponent {
     static propTypes = {
-        onError: React.PropTypes.func.isRequired,
-        onMemberRemove: React.PropTypes.func.isRequired,
-        team: React.PropTypes.object.isRequired,
-        user: React.PropTypes.object.isRequired
+        onError: PropTypes.func.isRequired,
+        onMemberRemove: PropTypes.func.isRequired,
+        team: PropTypes.object.isRequired,
+        user: PropTypes.object.isRequired
     };
 
     constructor(props) {

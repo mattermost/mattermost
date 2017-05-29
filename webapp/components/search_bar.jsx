@@ -18,6 +18,8 @@ import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 var ActionTypes = Constants.ActionTypes;
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SearchBar extends React.Component {
@@ -248,6 +250,8 @@ export default class SearchBar extends React.Component {
         let mentionBtn;
         let flagBtn;
         if (this.props.showMentionFlagBtns) {
+            var mentionBtnClass = SearchStore.isMentionSearch ? 'active' : '';
+
             mentionBtn = (
                 <div
                     className='dropdown channel-header__links'
@@ -262,12 +266,15 @@ export default class SearchBar extends React.Component {
                             href='#'
                             type='button'
                             onClick={this.searchMentions}
+                            className={mentionBtnClass}
                         >
                             {'@'}
                         </a>
                     </OverlayTrigger>
                 </div>
             );
+
+            var flagBtnClass = SearchStore.isFlaggedPosts ? 'active' : '';
 
             flagBtn = (
                 <div
@@ -283,6 +290,7 @@ export default class SearchBar extends React.Component {
                             href='#'
                             type='button'
                             onClick={this.getFlagged}
+                            className={flagBtnClass}
                         >
                             <span
                                 className='icon icon__flag'
@@ -359,7 +367,7 @@ SearchBar.defaultProps = {
 };
 
 SearchBar.propTypes = {
-    showMentionFlagBtns: React.PropTypes.bool,
-    isCommentsPage: React.PropTypes.bool,
-    isFocus: React.PropTypes.bool
+    showMentionFlagBtns: PropTypes.bool,
+    isCommentsPage: PropTypes.bool,
+    isFocus: PropTypes.bool
 };

@@ -651,6 +651,12 @@
             visibility: visible;
         }
 
+        .post__header {
+            .col__reply {
+                z-index: 7;
+            }
+        }
+
         .post__body {
             background: transparent !important;
         }

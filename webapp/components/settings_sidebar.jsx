@@ -4,6 +4,8 @@
 import $ from 'jquery';
 import * as UserAgent from 'utils/user_agent.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SettingsSidebar extends React.Component {
@@ -57,11 +59,11 @@ export default class SettingsSidebar extends React.Component {
 }
 
 SettingsSidebar.propTypes = {
-    tabs: React.PropTypes.arrayOf(React.PropTypes.shape({
-        name: React.PropTypes.string.isRequired,
-        uiName: React.PropTypes.string.isRequired,
-        icon: React.PropTypes.string.isRequired
+    tabs: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        uiName: PropTypes.string.isRequired,
+        icon: PropTypes.string.isRequired
     })).isRequired,
-    activeTab: React.PropTypes.string,
-    updateTab: React.PropTypes.func.isRequired
+    activeTab: PropTypes.string,
+    updateTab: PropTypes.func.isRequired
 };

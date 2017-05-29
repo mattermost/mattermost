@@ -19,6 +19,7 @@ import Constants from 'utils/constants.jsx';
 import {canManageMembers} from 'utils/channel_utils.jsx';
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Popover, Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -26,11 +27,11 @@ import {browserHistory} from 'react-router/es6';
 
 export default class PopoverListMembers extends React.Component {
     static propTypes = {
-        channel: React.PropTypes.object.isRequired,
-        members: React.PropTypes.array.isRequired,
-        memberCount: React.PropTypes.number,
-        actions: React.PropTypes.shape({
-            getProfilesInChannel: React.PropTypes.func.isRequired
+        channel: PropTypes.object.isRequired,
+        members: PropTypes.array.isRequired,
+        memberCount: PropTypes.number,
+        actions: PropTypes.shape({
+            getProfilesInChannel: PropTypes.func.isRequired
         }).isRequired
     }
 

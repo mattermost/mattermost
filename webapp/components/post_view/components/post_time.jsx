@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -74,9 +76,9 @@ PostTime.defaultProps = {
 };
 
 PostTime.propTypes = {
-    eventTime: React.PropTypes.number.isRequired,
-    sameUser: React.PropTypes.bool,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    postId: React.PropTypes.string
+    eventTime: PropTypes.number.isRequired,
+    sameUser: PropTypes.bool,
+    compactDisplay: PropTypes.bool,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    postId: PropTypes.string
 };

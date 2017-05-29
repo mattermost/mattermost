@@ -271,9 +271,13 @@ func (c *Context) MfaRequired() {
 			return
 		}
 
+		// Special case to let user get themself
+		if c.Path == "/api/v4/users/me" {
+			return
+		}
+
 		if !user.MfaActive {
-			c.Err = model.NewLocAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired")
-			c.Err.StatusCode = http.StatusUnauthorized
+			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
 			return
 		}
 	}
@@ -533,6 +537,28 @@ func (c *Context) RequireCommandId() *Context {
 
 	if len(c.Params.CommandId) != 26 {
 		c.SetInvalidUrlParam("command_id")
+	}
+	return c
+}
+
+func (c *Context) RequireJobId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.JobId) != 26 {
+		c.SetInvalidUrlParam("job_id")
+	}
+	return c
+}
+
+func (c *Context) RequireJobType() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
+		c.SetInvalidUrlParam("job_type")
 	}
 	return c
 }

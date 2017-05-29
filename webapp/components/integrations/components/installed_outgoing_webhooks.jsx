@@ -14,15 +14,17 @@ import {loadOutgoingHooks} from 'actions/integration_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 export default class InstalledOutgoingWebhooks extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object,
-            user: React.PropTypes.object,
-            isAdmin: React.PropTypes.bool
+            team: PropTypes.object,
+            user: PropTypes.object,
+            isAdmin: PropTypes.bool
         };
     }
 

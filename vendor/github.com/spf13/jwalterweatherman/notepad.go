@@ -96,13 +96,6 @@ func NewNotepad(outThreshold Threshold, logThreshold Threshold, outHandle, logHa
 	return n
 }
 
-// Feedback is special. It writes plainly to the output while
-// logging with the standard extra information (date, file, etc)
-// Only Println and Printf are currently provided for this
-type Feedback struct {
-	*Notepad
-}
-
 // init create the loggers for each level depending on the notepad thresholds
 func (n *Notepad) init() {
 	bothHandle := io.MultiWriter(n.outHandle, n.logHandle)
@@ -177,19 +170,25 @@ func (n *Notepad) SetFlags(flags int) {
 }
 
 // Feedback is special. It writes plainly to the output while
-// logging with the standard extra information (date, file, etc)
-// Only Println and Printf are currently provided for this
+// logging with the standard extra information (date, file, etc).
+type Feedback struct {
+	*Notepad
+}
+
 func (fb *Feedback) Println(v ...interface{}) {
 	s := fmt.Sprintln(v...)
 	fmt.Print(s)
 	fb.LOG.Output(2, s)
 }
 
-// Feedback is special. It writes plainly to the output while
-// logging with the standard extra information (date, file, etc)
-// Only Println and Printf are currently provided for this
 func (fb *Feedback) Printf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
+	fmt.Print(s)
+	fb.LOG.Output(2, s)
+}
+
+func (fb *Feedback) Print(v ...interface{}) {
+	s := fmt.Sprint(v...)
 	fmt.Print(s)
 	fb.LOG.Output(2, s)
 }

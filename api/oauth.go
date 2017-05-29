@@ -157,7 +157,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(service, teamId, redirectTo, loginHint); err != nil {
+	if authUrl, err := app.GetOAuthLoginEndpoint(service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {

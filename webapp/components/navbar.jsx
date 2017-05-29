@@ -41,6 +41,8 @@ import {Popover, OverlayTrigger} from 'react-bootstrap';
 
 import {Link} from 'react-router/es6';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class Navbar extends React.Component {
@@ -894,7 +896,7 @@ export default class Navbar extends React.Component {
         const searchButton = (
             <button
                 type='button'
-                className='navbar-toggle pull-right'
+                className='navbar-toggle navbar-search pull-right'
                 onClick={this.showSearch}
             >
                 <span className='fa fa-search icon-search icon--white'/>
@@ -934,5 +936,5 @@ Navbar.defaultProps = {
     teamDisplayName: ''
 };
 Navbar.propTypes = {
-    teamDisplayName: React.PropTypes.string
+    teamDisplayName: PropTypes.string
 };

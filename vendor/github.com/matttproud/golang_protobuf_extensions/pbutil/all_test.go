@@ -18,14 +18,15 @@ import (
 	"bytes"
 	"testing"
 
-	. "github.com/golang/protobuf/proto"
-	. "github.com/golang/protobuf/proto/testdata"
+	"github.com/golang/protobuf/proto"
+
+	. "github.com/matttproud/golang_protobuf_extensions/testdata"
 )
 
 func TestWriteDelimited(t *testing.T) {
 	t.Parallel()
 	for _, test := range []struct {
-		msg Message
+		msg proto.Message
 		buf []byte
 		n   int
 		err error
@@ -42,7 +43,7 @@ func TestWriteDelimited(t *testing.T) {
 		},
 		{
 			msg: &Strings{
-				StringField: String(`This is my gigantic, unhappy string.  It exceeds
+				StringField: proto.String(`This is my gigantic, unhappy string.  It exceeds
 the encoding size of a single byte varint.  We are using it to fuzz test the
 correctness of the header decoding mechanisms, which may prove problematic.
 I expect it may.  Let's hope you enjoy testing as much as we do.`),
@@ -82,7 +83,7 @@ func TestReadDelimited(t *testing.T) {
 	t.Parallel()
 	for _, test := range []struct {
 		buf []byte
-		msg Message
+		msg proto.Message
 		n   int
 		err error
 	}{
@@ -116,7 +117,7 @@ func TestReadDelimited(t *testing.T) {
 				106, 111, 121, 32, 116, 101, 115, 116, 105, 110, 103, 32, 97, 115, 32,
 				109, 117, 99, 104, 32, 97, 115, 32, 119, 101, 32, 100, 111, 46},
 			msg: &Strings{
-				StringField: String(`This is my gigantic, unhappy string.  It exceeds
+				StringField: proto.String(`This is my gigantic, unhappy string.  It exceeds
 the encoding size of a single byte varint.  We are using it to fuzz test the
 correctness of the header decoding mechanisms, which may prove problematic.
 I expect it may.  Let's hope you enjoy testing as much as we do.`),
@@ -124,12 +125,12 @@ I expect it may.  Let's hope you enjoy testing as much as we do.`),
 			n: 271,
 		},
 	} {
-		msg := Clone(test.msg)
+		msg := proto.Clone(test.msg)
 		msg.Reset()
 		if n, err := ReadDelimited(bytes.NewBuffer(test.buf), msg); n != test.n || err != test.err {
 			t.Fatalf("ReadDelimited(%v, msg) = %v, %v; want %v, %v", test.buf, n, err, test.n, test.err)
 		}
-		if !Equal(msg, test.msg) {
+		if !proto.Equal(msg, test.msg) {
 			t.Fatalf("ReadDelimited(%v, msg); msg = %v; want %v", test.buf, msg, test.msg)
 		}
 	}
@@ -137,12 +138,12 @@ I expect it may.  Let's hope you enjoy testing as much as we do.`),
 
 func TestEndToEndValid(t *testing.T) {
 	t.Parallel()
-	for _, test := range [][]Message{
+	for _, test := range [][]proto.Message{
 		{&Empty{}},
 		{&GoEnum{Foo: FOO_FOO1.Enum()}, &Empty{}, &GoEnum{Foo: FOO_FOO1.Enum()}},
 		{&GoEnum{Foo: FOO_FOO1.Enum()}},
 		{&Strings{
-			StringField: String(`This is my gigantic, unhappy string.  It exceeds
+			StringField: proto.String(`This is my gigantic, unhappy string.  It exceeds
 the encoding size of a single byte varint.  We are using it to fuzz test the
 correctness of the header decoding mechanisms, which may prove problematic.
 I expect it may.  Let's hope you enjoy testing as much as we do.`),
@@ -161,12 +162,12 @@ I expect it may.  Let's hope you enjoy testing as much as we do.`),
 		}
 		var read int
 		for i, msg := range test {
-			out := Clone(msg)
+			out := proto.Clone(msg)
 			out.Reset()
 			n, _ := ReadDelimited(&buf, out)
 			// Decide to do EOF checking?
 			read += n
-			if !Equal(out, msg) {
+			if !proto.Equal(out, msg) {
 				t.Fatalf("out = %v; want %v[%d] = %#v", out, test, i, msg)
 			}
 		}

@@ -526,20 +526,21 @@ func TestRegisterWithOrGet(t *testing.T) {
 		},
 		[]string{"foo", "bar"},
 	)
-	if err := prometheus.Register(original); err != nil {
+	var err error
+	if err = prometheus.Register(original); err != nil {
 		t.Fatal(err)
 	}
-	if err := prometheus.Register(equalButNotSame); err == nil {
+	if err = prometheus.Register(equalButNotSame); err == nil {
 		t.Fatal("expected error when registringe equal collector")
 	}
-	existing, err := prometheus.RegisterOrGet(equalButNotSame)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if existing != original {
-		t.Error("expected original collector but got something else")
-	}
-	if existing == equalButNotSame {
-		t.Error("expected original callector but got new one")
+	if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
+		if are.ExistingCollector != original {
+			t.Error("expected original collector but got something else")
+		}
+		if are.ExistingCollector == equalButNotSame {
+			t.Error("expected original callector but got new one")
+		}
+	} else {
+		t.Error("unexpected error:", err)
 	}
 }

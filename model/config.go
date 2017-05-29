@@ -75,12 +75,15 @@ const (
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
-	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
-	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://about.mattermost.com/default-privacy-policy/"
-	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
-	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
-	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
-	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
+	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK      = "https://about.mattermost.com/default-terms/"
+	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK        = "https://about.mattermost.com/default-privacy-policy/"
+	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK                 = "https://about.mattermost.com/default-about/"
+	SUPPORT_SETTINGS_DEFAULT_HELP_LINK                  = "https://about.mattermost.com/default-help/"
+	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK      = "https://about.mattermost.com/default-report-a-problem/"
+	SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK  = "https://about.mattermost.com/administrators-guide/"
+	SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK = "https://about.mattermost.com/troubleshooting-forum/"
+	SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK    = "https://about.mattermost.com/commercial-support/"
+	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL              = "feedback@mattermost.com"
 
 	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
@@ -274,12 +277,15 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink *string
-	PrivacyPolicyLink  *string
-	AboutLink          *string
-	HelpLink           *string
-	ReportAProblemLink *string
-	SupportEmail       *string
+	TermsOfServiceLink       *string
+	PrivacyPolicyLink        *string
+	AboutLink                *string
+	HelpLink                 *string
+	ReportAProblemLink       *string
+	AdministratorsGuideLink  *string
+	TroubleshootingForumLink *string
+	CommercialSupportLink    *string
+	SupportEmail             *string
 }
 
 type TeamSettings struct {
@@ -395,29 +401,44 @@ type WebrtcSettings struct {
 	TurnSharedKey       *string
 }
 
+type ElasticSearchSettings struct {
+	ConnectionUrl   *string
+	Username        *string
+	Password        *string
+	EnableIndexing  *bool
+	EnableSearching *bool
+	Sniff           *bool
+}
+
+type DataRetentionSettings struct {
+	Enable *bool
+}
+
 type Config struct {
-	ServiceSettings      ServiceSettings
-	TeamSettings         TeamSettings
-	SqlSettings          SqlSettings
-	LogSettings          LogSettings
-	PasswordSettings     PasswordSettings
-	FileSettings         FileSettings
-	EmailSettings        EmailSettings
-	RateLimitSettings    RateLimitSettings
-	PrivacySettings      PrivacySettings
-	SupportSettings      SupportSettings
-	GitLabSettings       SSOSettings
-	GoogleSettings       SSOSettings
-	Office365Settings    SSOSettings
-	LdapSettings         LdapSettings
-	ComplianceSettings   ComplianceSettings
-	LocalizationSettings LocalizationSettings
-	SamlSettings         SamlSettings
-	NativeAppSettings    NativeAppSettings
-	ClusterSettings      ClusterSettings
-	MetricsSettings      MetricsSettings
-	AnalyticsSettings    AnalyticsSettings
-	WebrtcSettings       WebrtcSettings
+	ServiceSettings       ServiceSettings
+	TeamSettings          TeamSettings
+	SqlSettings           SqlSettings
+	LogSettings           LogSettings
+	PasswordSettings      PasswordSettings
+	FileSettings          FileSettings
+	EmailSettings         EmailSettings
+	RateLimitSettings     RateLimitSettings
+	PrivacySettings       PrivacySettings
+	SupportSettings       SupportSettings
+	GitLabSettings        SSOSettings
+	GoogleSettings        SSOSettings
+	Office365Settings     SSOSettings
+	LdapSettings          LdapSettings
+	ComplianceSettings    ComplianceSettings
+	LocalizationSettings  LocalizationSettings
+	SamlSettings          SamlSettings
+	NativeAppSettings     NativeAppSettings
+	ClusterSettings       ClusterSettings
+	MetricsSettings       MetricsSettings
+	AnalyticsSettings     AnalyticsSettings
+	WebrtcSettings        WebrtcSettings
+	ElasticSearchSettings ElasticSearchSettings
+	DataRetentionSettings DataRetentionSettings
 }
 
 func (o *Config) ToJson() string {
@@ -609,13 +630,21 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPublicChannelCreation == nil {
 		o.TeamSettings.RestrictPublicChannelCreation = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		*o.TeamSettings.RestrictPublicChannelCreation = *o.TeamSettings.RestrictPublicChannelManagement
+		if *o.TeamSettings.RestrictPublicChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
+			*o.TeamSettings.RestrictPublicChannelCreation = PERMISSIONS_TEAM_ADMIN
+		} else {
+			*o.TeamSettings.RestrictPublicChannelCreation = *o.TeamSettings.RestrictPublicChannelManagement
+		}
 	}
 
 	if o.TeamSettings.RestrictPrivateChannelCreation == nil {
 		o.TeamSettings.RestrictPrivateChannelCreation = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		*o.TeamSettings.RestrictPrivateChannelCreation = *o.TeamSettings.RestrictPrivateChannelManagement
+		if *o.TeamSettings.RestrictPrivateChannelManagement == PERMISSIONS_CHANNEL_ADMIN {
+			*o.TeamSettings.RestrictPrivateChannelCreation = PERMISSIONS_TEAM_ADMIN
+		} else {
+			*o.TeamSettings.RestrictPrivateChannelCreation = *o.TeamSettings.RestrictPrivateChannelManagement
+		}
 	}
 
 	if o.TeamSettings.RestrictPublicChannelDeletion == nil {
@@ -706,7 +735,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
-		*o.SupportSettings.TermsOfServiceLink = ""
+		*o.SupportSettings.TermsOfServiceLink = SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK
 	}
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
@@ -748,6 +777,33 @@ func (o *Config) SetDefaults() {
 	if o.SupportSettings.ReportAProblemLink == nil {
 		o.SupportSettings.ReportAProblemLink = new(string)
 		*o.SupportSettings.ReportAProblemLink = SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK
+	}
+
+	if !IsSafeLink(o.SupportSettings.AdministratorsGuideLink) {
+		*o.SupportSettings.AdministratorsGuideLink = ""
+	}
+
+	if o.SupportSettings.AdministratorsGuideLink == nil {
+		o.SupportSettings.AdministratorsGuideLink = new(string)
+		*o.SupportSettings.AdministratorsGuideLink = SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK
+	}
+
+	if !IsSafeLink(o.SupportSettings.TroubleshootingForumLink) {
+		*o.SupportSettings.TroubleshootingForumLink = ""
+	}
+
+	if o.SupportSettings.TroubleshootingForumLink == nil {
+		o.SupportSettings.TroubleshootingForumLink = new(string)
+		*o.SupportSettings.TroubleshootingForumLink = SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK
+	}
+
+	if !IsSafeLink(o.SupportSettings.CommercialSupportLink) {
+		*o.SupportSettings.CommercialSupportLink = ""
+	}
+
+	if o.SupportSettings.CommercialSupportLink == nil {
+		o.SupportSettings.CommercialSupportLink = new(string)
+		*o.SupportSettings.CommercialSupportLink = SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK
 	}
 
 	if o.SupportSettings.SupportEmail == nil {
@@ -1176,6 +1232,41 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
 	}
 
+	if o.ElasticSearchSettings.ConnectionUrl == nil {
+		o.ElasticSearchSettings.ConnectionUrl = new(string)
+		*o.ElasticSearchSettings.ConnectionUrl = ""
+	}
+
+	if o.ElasticSearchSettings.Username == nil {
+		o.ElasticSearchSettings.Username = new(string)
+		*o.ElasticSearchSettings.Username = ""
+	}
+
+	if o.ElasticSearchSettings.Password == nil {
+		o.ElasticSearchSettings.Password = new(string)
+		*o.ElasticSearchSettings.Password = ""
+	}
+
+	if o.ElasticSearchSettings.EnableIndexing == nil {
+		o.ElasticSearchSettings.EnableIndexing = new(bool)
+		*o.ElasticSearchSettings.EnableIndexing = false
+	}
+
+	if o.ElasticSearchSettings.EnableSearching == nil {
+		o.ElasticSearchSettings.EnableSearching = new(bool)
+		*o.ElasticSearchSettings.EnableSearching = false
+	}
+
+	if o.ElasticSearchSettings.Sniff == nil {
+		o.ElasticSearchSettings.Sniff = new(bool)
+		*o.ElasticSearchSettings.Sniff = true
+	}
+
+	if o.DataRetentionSettings.Enable == nil {
+		o.DataRetentionSettings.Enable = new(bool)
+		*o.DataRetentionSettings.Enable = false
+	}
+
 	o.defaultWebrtcSettings()
 }
 
@@ -1407,6 +1498,16 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.time_between_user_typing.app_error", nil, "")
 	}
 
+	if *o.ElasticSearchSettings.EnableIndexing {
+		if len(*o.ElasticSearchSettings.ConnectionUrl) == 0 {
+			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "")
+		}
+	}
+
+	if *o.ElasticSearchSettings.EnableSearching && !*o.ElasticSearchSettings.EnableIndexing {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "")
+	}
+
 	return nil
 }
 
@@ -1447,6 +1548,10 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
+
+	*o.ElasticSearchSettings.ConnectionUrl = FAKE_SETTING
+	*o.ElasticSearchSettings.Username = FAKE_SETTING
+	*o.ElasticSearchSettings.Password = FAKE_SETTING
 }
 
 func (o *Config) defaultWebrtcSettings() {

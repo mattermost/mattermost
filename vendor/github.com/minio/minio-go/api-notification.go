@@ -47,8 +47,9 @@ func (c Client) getBucketNotification(bucketName string) (BucketNotification, er
 
 	// Execute GET on bucket to list objects.
 	resp, err := c.executeMethod("GET", requestMetadata{
-		bucketName:  bucketName,
-		queryValues: urlValues,
+		bucketName:         bucketName,
+		queryValues:        urlValues,
+		contentSHA256Bytes: emptySHA256,
 	})
 
 	defer closeResponse(resp)
@@ -102,6 +103,14 @@ type eventMeta struct {
 	Object          objectMeta `json:"object"`
 }
 
+// sourceInfo represents information on the client that
+// triggered the event notification.
+type sourceInfo struct {
+	Host      string `json:"host"`
+	Port      string `json:"port"`
+	UserAgent string `json:"userAgent"`
+}
+
 // NotificationEvent represents an Amazon an S3 bucket notification event.
 type NotificationEvent struct {
 	EventVersion      string            `json:"eventVersion"`
@@ -113,6 +122,7 @@ type NotificationEvent struct {
 	RequestParameters map[string]string `json:"requestParameters"`
 	ResponseElements  map[string]string `json:"responseElements"`
 	S3                eventMeta         `json:"s3"`
+	Source            sourceInfo        `json:"source"`
 }
 
 // NotificationInfo - represents the collection of notification events, additionally
@@ -161,8 +171,9 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 
 			// Execute GET on bucket to list objects.
 			resp, err := c.executeMethod("GET", requestMetadata{
-				bucketName:  bucketName,
-				queryValues: urlValues,
+				bucketName:         bucketName,
+				queryValues:        urlValues,
+				contentSHA256Bytes: emptySHA256,
 			})
 			if err != nil {
 				continue

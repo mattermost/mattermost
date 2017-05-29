@@ -1,8 +1,8 @@
-// Copyright 2009,2010 The Go Authors. All rights reserved.
+// Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// FreeBSD system calls.
+// DragonFly BSD system calls.
 // This file is compiled as ordinary Go code,
 // but it is also input to mksyscall,
 // which parses the //sys lines and generates system call stubs.
@@ -34,7 +34,7 @@ func nametomib(name string) (mib []_C_int, err error) {
 
 	// NOTE(rsc): It seems strange to set the buffer to have
 	// size CTL_MAXNAME+2 but use only CTL_MAXNAME
-	// as the size.  I don't know why the +2 is here, but the
+	// as the size. I don't know why the +2 is here, but the
 	// kernel uses +2 for its own implementation of this function.
 	// I am scared that if we don't include the +2 here, the kernel
 	// will silently write 2 words farther than we specify
@@ -57,7 +57,7 @@ func nametomib(name string) (mib []_C_int, err error) {
 }
 
 func direntIno(buf []byte) (uint64, bool) {
-	return readInt(buf, unsafe.Offsetof(Dirent{}.Ino), unsafe.Sizeof(Dirent{}.Ino))
+	return readInt(buf, unsafe.Offsetof(Dirent{}.Fileno), unsafe.Sizeof(Dirent{}.Fileno))
 }
 
 func direntReclen(buf []byte) (uint64, bool) {
@@ -65,7 +65,7 @@ func direntReclen(buf []byte) (uint64, bool) {
 	if !ok {
 		return 0, false
 	}
-	return (16 + namlen + 1 + 7) & ^7, true
+	return (16 + namlen + 1 + 7) &^ 7, true
 }
 
 func direntNamlen(buf []byte) (uint64, bool) {
@@ -90,6 +90,24 @@ func Pread(fd int, p []byte, offset int64) (n int, err error) {
 //sys	extpwrite(fd int, p []byte, flags int, offset int64) (n int, err error)
 func Pwrite(fd int, p []byte, offset int64) (n int, err error) {
 	return extpwrite(fd, p, 0, offset)
+}
+
+func Accept4(fd, flags int) (nfd int, sa Sockaddr, err error) {
+	var rsa RawSockaddrAny
+	var len _Socklen = SizeofSockaddrAny
+	nfd, err = accept4(fd, &rsa, &len, flags)
+	if err != nil {
+		return
+	}
+	if len > SizeofSockaddrAny {
+		panic("RawSockaddrAny too small")
+	}
+	sa, err = anyToSockaddr(&rsa)
+	if err != nil {
+		Close(nfd)
+		nfd = 0
+	}
+	return
 }
 
 func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
@@ -199,6 +217,7 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 //sys   munmap(addr uintptr, length uintptr) (err error)
 //sys	readlen(fd int, buf *byte, nbuf int) (n int, err error) = SYS_READ
 //sys	writelen(fd int, buf *byte, nbuf int) (n int, err error) = SYS_WRITE
+//sys	accept4(fd int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (nfd int, err error)
 
 /*
  * Unimplemented
@@ -234,6 +253,8 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 // Kdebug_trace
 // Sigreturn
 // Mmap
+// Mlock
+// Munlock
 // Atsocket
 // Kqueue_from_portset_np
 // Kqueue_portset
@@ -326,6 +347,8 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 // Lio_listio
 // __pthread_cond_wait
 // Iopolicysys
+// Mlockall
+// Munlockall
 // __pthread_kill
 // __pthread_sigmask
 // __sigwait

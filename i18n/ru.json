@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Произошла ошибка при построении поставщика метаданных"
+    "translation": "Произошла ошибка при построении метаданных поставщика услуг."
   },
   {
     "id": "api.admin.test_email.body",
@@ -1030,6 +1030,10 @@
     "translation": "Невозможно создать смайлик. Произошла ошибка при кодирования GIF изображения."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Вложения отключены на этом сервере."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Публичные ссылки были запрещены системным администратором"
   },
@@ -1051,7 +1055,7 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
+    "translation": "Не удалось получить информацию о файле. Хранилище изображений не настроено."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -1444,6 +1448,10 @@
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
     "translation": "Неправильная ссылка на регистрацию"
+  },
+  {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2237,7 +2245,7 @@
   },
   {
     "id": "api.templates.post_subject_in_group_message",
-    "translation": "{{.SubjectText}} в {{.TeamDisplayName}} от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "Новое групповое сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2269,7 +2277,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Вы обновили свой метод входа на {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Ваш пароль обновлён"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2460,6 +2468,14 @@
     "translation": "Возникла проблема при присоединении к каналам по умолчанию user_id=%s, team_id=%s, err=%v"
   },
   {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Missing Invite Id."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "Этот сервер не разрешает открытую регистрацию. Пожалуйста, поговорите с администратором для получения приглашения."
   },
@@ -2525,7 +2541,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Вход не удался, поскольку ваша учетная запись была деактивирована. Пожалуйста, свяжитесь с администратором."
+    "translation": "Вход не удался, поскольку ваша учетная запись отключена. Пожалуйста, свяжитесь с администратором."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -2841,7 +2857,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Невозможно обновить команды через команды"
+    "translation": "Невозможно обновить вебхук для команд"
   },
   {
     "id": "api.webhook.update_incoming.disabled.app_error",
@@ -2933,7 +2949,7 @@
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": "Строка импорта данных содержит тип \"team\", но объект team равен null."
+    "translation": "Строка импорта данных содержит тип \"post\", но объект post равен null."
   },
   {
     "id": "app.import.import_line.null_team.error",
@@ -3013,7 +3029,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt не может быть нулевым, если задан."
+    "translation": "Post CreateAt property must not be zero if provided."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3153,11 +3169,11 @@
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Ability to create new group message channels"
+    "translation": "Возможность создания новых групповых каналов сообщений"
   },
   {
     "id": "authentication.permissions.create_group_channel.name",
-    "translation": "Create Group Message"
+    "translation": "Создать Групповое Сообщение"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3177,11 +3193,11 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
+    "translation": "Возможность чтения публичных каналов"
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
-    "translation": "Read Public Channels"
+    "translation": "Чтение публичных каналов"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3290,6 +3306,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Экспорт комплаенс-листа начат для задачи '{{.JobName}}' в '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "ElasticSearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3625,7 +3673,7 @@
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
+    "translation": "Неправильный тип отклика"
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
@@ -3846,6 +3894,22 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4421,7 +4485,7 @@
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": "Недопустимый маркер"
+    "translation": "Неверный токен."
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -4701,7 +4765,7 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Не удалось получить подсчет типов каналов"
+    "translation": "Не удалось получить количество удалённых каналов по типам"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
@@ -5032,6 +5096,30 @@
     "translation": "Мы не смогли сохранить информацию о файле"
   },
   {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "Мы не смогли сохранить информацию о файле"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "Неудачная попытка удалить пост"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "Не удалось получить пост"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "Не удалось получить пост"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "Не удалось сохранить Пост"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "Мы не смогли обновить Пост"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Возникла ошибка с получением лицензии"
   },
@@ -5178,6 +5266,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Не удалось получить родительские посты для канала"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "Не удалось получить пост"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5892,6 +5984,10 @@
     "translation": "Обнаружена ошибка подписывания лицензии, err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Failed to set HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Не удалось открыть соединение."
   },
@@ -5902,6 +5998,10 @@
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Не удалось авторизоваться на SMTP сервере"
+  },
+  {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Failed to to set the HELO to SMTP server %v"
   },
   {
     "id": "utils.mail.new_client.open.error",

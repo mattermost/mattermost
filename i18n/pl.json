@@ -53,7 +53,7 @@
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Nie można otworzyć pliku certyfikatu"
+    "translation": "Nie można otworzyć pliku certyfikatu."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Podczas budowania metadanych dostawcy usługi (Service Provider Metadata) wystąpił błąd"
+    "translation": "Podczas budowania metadanych dostawcy usługi (Service Provider Metadata) wystąpił błąd."
   },
   {
     "id": "api.admin.test_email.body",
@@ -1030,6 +1030,10 @@
     "translation": "Nie można utworzyć emoji. Wystąpił błąd podczas kodowania obrazu GIF."
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "Dodawanie załączników na tym serwerze jest zablokowane."
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "Linki publiczne zapisu została wyłączona przez administratora systemu."
   },
@@ -1444,6 +1448,10 @@
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
     "translation": "Łącze rejestracji wydaje się być niepoprawne."
+  },
+  {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2269,7 +2277,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Zaktualizowałeś swoją metodę logowania na {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Twoje hasło zostało zaktualizowane"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2458,6 +2466,14 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "Wystąpił problem podczas dołączania do domyślnych kanalów user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Brak identyfikatora zaproszenia."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -3013,7 +3029,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Właściwość Post CreateAt nie może być zerem jeśli jest podana."
+    "translation": "Post CreateAt property must not be zero if provided."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3290,6 +3306,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Rozpoczęto eksport zgodności dla zadania '{{.JobName}}' do '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "ElasticSearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3846,6 +3894,22 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Nie można odblokować masowych emaili gdy klastrowanie jest odblokowane."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4701,7 +4765,7 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie można pobrać liczby usuniętych typów kanału"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
@@ -5009,11 +5073,11 @@
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
+    "translation": "Nie można załączyć informacji o pliku do wpisu"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
+    "translation": "Nie można usunąć informacji o pliku z wpisu "
   },
   {
     "id": "store.sql_file_info.get.app_error",
@@ -5030,6 +5094,30 @@
   {
     "id": "store.sql_file_info.save.app_error",
     "translation": "Nie mogliśmy zapisać informacji o pliku"
+  },
+  {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "Nie mogliśmy zapisać informacji o pliku"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "Nie mogliśmy usunąć wpisu"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "Nie udało się pobrać wiadomości"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "Nie udało się pobrać wiadomości"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "Nie udało się zapisać wiadomości"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "Nie udało się zaktualizować wiadomości"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5180,6 +5268,10 @@
     "translation": "Nie można uzyskać wpisów nadrzędnych dla kanału"
   },
   {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "Nie udało się pobrać wiadomości"
+  },
+  {
     "id": "store.sql_post.get_posts_created_att.app_error",
     "translation": "Nie można uzyskać wpisów do kanału"
   },
@@ -5205,7 +5297,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie można usunąć postów według kanału"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5405,7 +5497,7 @@
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Napotkaliśmy błąd zapisując audyty"
+    "translation": "Wystąpił błąd podczas pobierania wszystkich statusów online/zdala"
   },
   {
     "id": "store.sql_status.get_team_statuses.app_error",
@@ -5413,7 +5505,7 @@
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Nie odnaleziono użytkownika"
+    "translation": "Nie można porać ilości aktywnych użytkowników"
   },
   {
     "id": "store.sql_status.reset_all.app_error",
@@ -5689,15 +5781,15 @@
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "This email is already taken. Please choose another."
+    "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie można znaleźć istniejącego konta do aktualizacji"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
-    "translation": "Napotkaliśmy błąd szukając audytów"
+    "translation": "Wystąpił błąd podczas wyszukiwania konta"
   },
   {
     "id": "store.sql_user.update.updating.app_error",
@@ -5705,7 +5797,7 @@
   },
   {
     "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "This username is already taken. Please choose another."
+    "translation": "Ta nazwa użytkownika jest już zajęta. Proszę wybrać inną."
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -5869,7 +5961,7 @@
   },
   {
     "id": "utils.license.load_license.invalid.warn",
-    "translation": "No valid enterprise license found"
+    "translation": "Nie odnaleziono żadnej prawidłowej licencji"
   },
   {
     "id": "utils.license.remove_license.unable.error",
@@ -5885,11 +5977,15 @@
   },
   {
     "id": "utils.license.validate_license.not_long.error",
-    "translation": "Signed license not long enough"
+    "translation": "Licencja ma zbyt krótką długość"
   },
   {
     "id": "utils.license.validate_license.signing.error",
     "translation": "Encountered error signing license, err=%v"
+  },
+  {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Failed to set HELO"
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
@@ -5902,6 +5998,10 @@
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Uwierzytelnienie na serwerze SMTP nie powiodło się."
+  },
+  {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Failed to to set the HELO to SMTP server %v"
   },
   {
     "id": "utils.mail.new_client.open.error",

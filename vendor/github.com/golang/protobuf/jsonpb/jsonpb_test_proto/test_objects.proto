@@ -122,6 +122,8 @@ message KnownTypes {
   optional google.protobuf.Duration dur = 1;
   optional google.protobuf.Struct st = 12;
   optional google.protobuf.Timestamp ts = 2;
+  optional google.protobuf.ListValue lv = 15;
+  optional google.protobuf.Value val = 16;
 
   optional google.protobuf.DoubleValue dbl = 3;
   optional google.protobuf.FloatValue flt = 4;

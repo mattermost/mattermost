@@ -1,7 +1,9 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 
 import ProfilePicture from 'components/profile_picture.jsx';
 
@@ -22,7 +24,7 @@ export default class Post extends Component {
         sameUser: PropTypes.bool,
         sameRoot: PropTypes.bool,
         hideProfilePic: PropTypes.bool,
-        isLastPost: PropTypes.bool,
+        lastPostCount: PropTypes.number,
         isLastComment: PropTypes.bool,
         shouldHighlight: PropTypes.bool,
         displayNameType: PropTypes.string,
@@ -134,6 +136,10 @@ export default class Post extends Component {
         }
 
         if (nextProps.isBusy !== this.props.isBusy) {
+            return true;
+        }
+
+        if (nextProps.lastPostCount !== this.props.lastPostCount) {
             return true;
         }
 
@@ -288,6 +294,7 @@ export default class Post extends Component {
                                 ref='header'
                                 post={post}
                                 sameRoot={this.props.sameRoot}
+                                lastPostCount={this.props.lastPostCount}
                                 commentCount={this.props.commentCount}
                                 handleCommentClick={this.handleCommentClick}
                                 handleDropdownOpened={this.handleDropdownOpened}
@@ -306,7 +313,7 @@ export default class Post extends Component {
                                 post={post}
                                 currentUser={this.props.currentUser}
                                 sameRoot={this.props.sameRoot}
-                                isLastPost={this.props.isLastPost}
+                                lastPostCount={this.props.lastPostCount}
                                 parentPost={parentPost}
                                 handleCommentClick={this.handleCommentClick}
                                 compactDisplay={this.props.compactDisplay}

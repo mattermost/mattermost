@@ -45,7 +45,10 @@ func init() {
 }
 
 func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	api.InitRouter()
 	wsapi.InitRouter()
@@ -61,7 +64,10 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	api.InitRouter()
 	wsapi.InitRouter()

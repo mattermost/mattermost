@@ -4,6 +4,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
@@ -39,6 +40,16 @@ var addChannelUsersCmd = &cobra.Command{
 	Long:    "Add some users to channel",
 	Example: "  channel add mychannel user@example.com username",
 	RunE:    addChannelUsersCmdF,
+}
+
+var archiveChannelsCmd = &cobra.Command{
+	Use:   "archive [channels]",
+	Short: "Archive channels",
+	Long: `Archive some channels.
+Archive a channel along with all related information including posts from the database.
+Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel archive myteam:mychannel",
+	RunE:    archiveChannelsCmdF,
 }
 
 var deleteChannelsCmd = &cobra.Command{
@@ -77,10 +88,13 @@ func init() {
 	channelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	channelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
+	deleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
+
 	channelCmd.AddCommand(
 		channelCreateCmd,
 		removeChannelUsersCmd,
 		addChannelUsersCmd,
+		archiveChannelsCmd,
 		deleteChannelsCmd,
 		listChannelsCmd,
 		restoreChannelsCmd,
@@ -88,7 +102,9 @@ func init() {
 }
 
 func createChannelCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -138,7 +154,9 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -172,7 +190,9 @@ func removeUserFromChannel(channel *model.Channel, user *model.User, userArg str
 }
 
 func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -205,8 +225,10 @@ func addUserToChannel(channel *model.Channel, user *model.User, userArg string) 
 	}
 }
 
-func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to delete.")
@@ -226,8 +248,49 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
+	if len(args) < 1 {
+		return errors.New("Enter at least one channel to delete.")
+	}
+
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		CommandPrettyPrintln("Are you sure you want to delete the channels specified?  All data will be permanently deleted? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+	}
+
+	channels := getChannelsFromChannelArgs(args)
+	for i, channel := range channels {
+		if channel == nil {
+			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			continue
+		}
+		if err := deleteChannel(channel); err != nil {
+			CommandPrintErrorln("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Deleted channel '" + channel.Name + "'")
+		}
+	}
+
+	return nil
+}
+
+func deleteChannel(channel *model.Channel) *model.AppError {
+	return app.PermanentDeleteChannel(channel)
+}
+
 func listChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -262,7 +325,9 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))

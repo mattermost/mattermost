@@ -93,7 +93,7 @@
             .description {
                 color: $white;
                 display: inline-block;
-                margin-right: .5em;
+                margin-right: 1em;
 
                 &.info-popover {
                     @include background-size(100% 100%);

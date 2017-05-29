@@ -5,6 +5,8 @@ import {cmdOrCtrlPressed} from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 const KeyCodes = Constants.KeyCodes;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -159,11 +161,11 @@ MultiSelectList.defaultProps = {
 };
 
 MultiSelectList.propTypes = {
-    options: React.PropTypes.arrayOf(React.PropTypes.object),
-    optionRenderer: React.PropTypes.func,
-    page: React.PropTypes.number,
-    perPage: React.PropTypes.number,
-    onPageChange: React.PropTypes.func,
-    onAdd: React.PropTypes.func,
-    onSelect: React.PropTypes.func
+    options: PropTypes.arrayOf(PropTypes.object),
+    optionRenderer: PropTypes.func,
+    page: PropTypes.number,
+    perPage: PropTypes.number,
+    onPageChange: PropTypes.func,
+    onAdd: PropTypes.func,
+    onSelect: PropTypes.func
 };

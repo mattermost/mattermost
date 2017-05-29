@@ -364,6 +364,34 @@ func TestChannelStoreGetForPost(t *testing.T) {
 	}
 }
 
+func TestSqlChannelStoreRestore(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "Channel1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o1))
+
+	if r := <-store.Channel().Delete(o1.Id, model.GetMillis()); r.Err != nil {
+		t.Fatal(r.Err)
+	}
+
+	if r := <-store.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt == 0 {
+		t.Fatal("should have been deleted")
+	}
+
+	if r := <-store.Channel().Restore(o1.Id, model.GetMillis()); r.Err != nil {
+		t.Fatal(r.Err)
+	}
+
+	if r := <-store.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt != 0 {
+		t.Fatal("should have been restored")
+	}
+
+}
+
 func TestChannelStoreDelete(t *testing.T) {
 	Setup()
 
@@ -510,6 +538,88 @@ func TestChannelStoreGetDeletedByName(t *testing.T) {
 	if err := (<-store.Channel().GetDeletedByName(o1.TeamId, "")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
+}
+
+func TestChannelStoreGetDeleted(t *testing.T) {
+	Setup()
+
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "Channel1"
+	o1.Name = "a" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	o1.DeleteAt = model.GetMillis()
+	Must(store.Channel().Save(&o1))
+
+	cresult := <-store.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
+	list := cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list")
+	}
+
+	if (*list)[0].Name != o1.Name {
+		t.Fatal("missing channel")
+	}
+
+	o2 := model.Channel{}
+	o2.TeamId = o1.TeamId
+	o2.DisplayName = "Channel2"
+	o2.Name = "a" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	Must(store.Channel().Save(&o2))
+
+	cresult = <-store.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list")
+	}
+
+	o3 := model.Channel{}
+	o3.TeamId = o1.TeamId
+	o3.DisplayName = "Channel3"
+	o3.Name = "a" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	o3.DeleteAt = model.GetMillis()
+	Must(store.Channel().Save(&o3))
+
+	cresult = <-store.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 2 {
+		t.Fatal("wrong list length")
+	}
+
+	cresult = <-store.Channel().GetDeleted(o1.TeamId, 0, 1)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list length")
+	}
+
+	cresult = <-store.Channel().GetDeleted(o1.TeamId, 1, 1)
+	if cresult.Err != nil {
+		t.Fatal(cresult.Err)
+	}
+	list = cresult.Data.(*model.ChannelList)
+
+	if len(*list) != 1 {
+		t.Fatal("wrong list length")
+	}
+
 }
 
 func TestChannelMemberStore(t *testing.T) {

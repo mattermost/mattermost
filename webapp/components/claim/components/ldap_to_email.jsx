@@ -7,6 +7,8 @@ import * as Utils from 'utils/utils.jsx';
 
 import {checkMfa, switchFromLdapToEmail} from 'actions/user_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -240,5 +242,5 @@ export default class LDAPToEmail extends React.Component {
 LDAPToEmail.defaultProps = {
 };
 LDAPToEmail.propTypes = {
-    email: React.PropTypes.string
+    email: PropTypes.string
 };

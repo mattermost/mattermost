@@ -10,6 +10,7 @@ package mysql
 
 import (
 	"database/sql/driver"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -271,7 +272,6 @@ func (mc *mysqlConn) Exec(query string, args []driver.Value) (driver.Result, err
 			return nil, err
 		}
 		query = prepared
-		args = nil
 	}
 	mc.affectedRows = 0
 	mc.insertId = 0
@@ -289,22 +289,29 @@ func (mc *mysqlConn) Exec(query string, args []driver.Value) (driver.Result, err
 // Internal function to execute commands
 func (mc *mysqlConn) exec(query string) error {
 	// Send command
-	err := mc.writeCommandPacketStr(comQuery, query)
-	if err != nil {
+	if err := mc.writeCommandPacketStr(comQuery, query); err != nil {
 		return err
 	}
 
 	// Read Result
 	resLen, err := mc.readResultSetHeaderPacket()
-	if err == nil && resLen > 0 {
-		if err = mc.readUntilEOF(); err != nil {
+	if err != nil {
+		return err
+	}
+
+	if resLen > 0 {
+		// columns
+		if err := mc.readUntilEOF(); err != nil {
 			return err
 		}
 
-		err = mc.readUntilEOF()
+		// rows
+		if err := mc.readUntilEOF(); err != nil {
+			return err
+		}
 	}
 
-	return err
+	return mc.discardResults()
 }
 
 func (mc *mysqlConn) Query(query string, args []driver.Value) (driver.Rows, error) {
@@ -322,7 +329,6 @@ func (mc *mysqlConn) Query(query string, args []driver.Value) (driver.Rows, erro
 			return nil, err
 		}
 		query = prepared
-		args = nil
 	}
 	// Send command
 	err := mc.writeCommandPacketStr(comQuery, query)
@@ -335,11 +341,17 @@ func (mc *mysqlConn) Query(query string, args []driver.Value) (driver.Rows, erro
 			rows.mc = mc
 
 			if resLen == 0 {
-				// no columns, no more data
-				return emptyRows{}, nil
+				rows.rs.done = true
+
+				switch err := rows.NextResultSet(); err {
+				case nil, io.EOF:
+					return rows, nil
+				default:
+					return nil, err
+				}
 			}
 			// Columns
-			rows.columns, err = mc.readColumns(resLen)
+			rows.rs.columns, err = mc.readColumns(resLen)
 			return rows, err
 		}
 	}
@@ -359,7 +371,7 @@ func (mc *mysqlConn) getSystemVar(name string) ([]byte, error) {
 	if err == nil {
 		rows := new(textRows)
 		rows.mc = mc
-		rows.columns = []mysqlField{{fieldType: fieldTypeVarChar}}
+		rows.rs.columns = []mysqlField{{fieldType: fieldTypeVarChar}}
 
 		if resLen > 0 {
 			// Columns

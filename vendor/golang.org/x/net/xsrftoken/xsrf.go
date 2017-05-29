@@ -27,15 +27,18 @@ func clean(s string) string {
 
 // Generate returns a URL-safe secure XSRF token that expires in 24 hours.
 //
-// key is a secret key for your application.
-// userID is a unique identifier for the user.
-// actionID is the action the user is taking (e.g. POSTing to a particular path).
+// key is a secret key for your application; it must be non-empty.
+// userID is an optional unique identifier for the user.
+// actionID is an optional action the user is taking (e.g. POSTing to a particular path).
 func Generate(key, userID, actionID string) string {
 	return generateTokenAtTime(key, userID, actionID, time.Now())
 }
 
 // generateTokenAtTime is like Generate, but returns a token that expires 24 hours from now.
 func generateTokenAtTime(key, userID, actionID string, now time.Time) string {
+	if len(key) == 0 {
+		panic("zero length xsrf secret key")
+	}
 	// Round time up and convert to milliseconds.
 	milliTime := (now.UnixNano() + 1e6 - 1) / 1e6
 
@@ -57,6 +60,9 @@ func Valid(token, key, userID, actionID string) bool {
 
 // validTokenAtTime reports whether a token is valid at the given time.
 func validTokenAtTime(token, key, userID, actionID string, now time.Time) bool {
+	if len(key) == 0 {
+		panic("zero length xsrf secret key")
+	}
 	// Extract the issue time of the token.
 	sep := strings.LastIndex(token, ":")
 	if sep < 0 {

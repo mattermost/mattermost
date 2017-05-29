@@ -747,7 +747,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		path := utils.FindDir("tests")
+		path, _ := utils.FindDir("tests")
 		file, err := os.Open(path + "/test.png")
 		if err != nil {
 			t.Fatal(err)

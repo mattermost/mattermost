@@ -22,77 +22,232 @@ if (NPM_TARGET === 'test') {
     TEST = true;
 }
 
+const STANDARD_EXCLUDE = [
+    path.join(__dirname, 'node_modules'),
+    path.join(__dirname, 'non_npm_dependencies')
+];
+
+var MYSTATS = {
+
+    // Add asset Information
+    assets: false,
+
+    // Sort assets by a field
+    assetsSort: '',
+
+    // Add information about cached (not built) modules
+    cached: true,
+
+    // Show cached assets (setting this to `false` only shows emitted files)
+    cachedAssets: true,
+
+    // Add children information
+    children: true,
+
+    // Add chunk information (setting this to `false` allows for a less verbose output)
+    chunks: true,
+
+    // Add built modules information to chunk information
+    chunkModules: true,
+
+    // Add the origins of chunks and chunk merging info
+    chunkOrigins: true,
+
+    // Sort the chunks by a field
+    chunksSort: '',
+
+    // `webpack --colors` equivalent
+    colors: true,
+
+    // Display the distance from the entry point for each module
+    depth: true,
+
+    // Display the entry points with the corresponding bundles
+    entrypoints: true,
+
+    // Add errors
+    errors: true,
+
+    // Add details to errors (like resolving log)
+    errorDetails: true,
+
+    // Exclude modules which match one of the given strings or regular expressions
+    exclude: [],
+
+    // Add the hash of the compilation
+    hash: true,
+
+    // Set the maximum number of modules to be shown
+    maxModules: 0,
+
+    // Add built modules information
+    modules: false,
+
+    // Sort the modules by a field
+    modulesSort: '!size',
+
+    // Show performance hint when file size exceeds `performance.maxAssetSize`
+    performance: true,
+
+    // Show the exports of the modules
+    providedExports: true,
+
+    // Add public path information
+    publicPath: true,
+
+    // Add information about the reasons why modules are included
+    reasons: true,
+
+    // Add the source code of modules
+    source: true,
+
+    // Add timing information
+    timings: true,
+
+    // Show which exports of a module are used
+    usedExports: true,
+
+    // Add webpack version information
+    version: true,
+
+    // Add warnings
+    warnings: true,
+
+    // Filter warnings to be shown (since webpack 2.4.0),
+    // can be a String, Regexp, a function getting the warning and returning a boolean
+    // or an Array of a combination of the above. First match wins.
+    warningsFilter: ''
+};
+
 var config = {
     entry: ['babel-polyfill', 'whatwg-fetch', './root.jsx', 'root.html'],
     output: {
-        path: 'dist',
+        path: path.join(__dirname, 'dist'),
         publicPath: '/static/',
         filename: '[name].[hash].js',
         chunkFilename: '[name].[chunkhash].js'
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.(js|jsx)?$/,
-                loader: 'babel-loader',
-                exclude: /(node_modules|non_npm_dependencies)/,
-                query: {
-                    presets: [
-                        'react',
-                        ['es2015', {modules: false}],
-                        'stage-0'
-                    ],
-                    plugins: ['transform-runtime'],
-                    cacheDirectory: DEV
-                }
+                exclude: STANDARD_EXCLUDE,
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: [
+                                'react',
+                                ['es2015', {modules: false}],
+                                'stage-0'
+                            ],
+                            plugins: ['transform-runtime'],
+                            cacheDirectory: true
+                        }
+                    }
+                ]
             },
             {
                 test: /\.json$/,
                 exclude: /manifest\.json$/,
-                loader: 'json-loader'
+                use: [
+                    {
+                        loader: 'json-loader'
+                    }
+                ]
             },
             {
                 test: /manifest\.json$/,
-                loader: 'file-loader?name=files/[hash].[ext]'
+                use: [
+                    {
+                        loader: 'file-loader?name=files/[hash].[ext]'
+                    }
+                ]
             },
             {
                 test: /(node_modules|non_npm_dependencies)(\\|\/).+\.(js|jsx)$/,
-                loader: 'imports-loader',
-                query: {
-                    $: 'jquery',
-                    jQuery: 'jquery'
-                }
+                use: [
+                    {
+                        loader: 'imports-loader',
+                        options: {
+                            $: 'jquery',
+                            jQuery: 'jquery'
+                        }
+                    }
+                ]
             },
             {
                 test: /\.scss$/,
-                use: [{
-                    loader: 'style-loader'
-                }, {
-                    loader: 'css-loader'
-                }, {
-                    loader: 'sass-loader',
-                    options: {
-                        includePaths: ['node_modules/compass-mixins/lib']
+                use: [
+                    {
+                        loader: 'style-loader'
+                    },
+                    {
+                        loader: 'css-loader'
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            includePaths: ['node_modules/compass-mixins/lib']
+                        }
                     }
-                }]
+                ]
             },
             {
                 test: /\.css$/,
-                loaders: ['style-loader', 'css-loader']
+                use: [
+                    {
+                        loader: 'style-loader'
+                    },
+                    {
+                        loader: 'css-loader'
+                    }
+                ]
             },
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
-                loaders: [
-                    'file-loader?name=files/[hash].[ext]',
-                    'image-webpack-loader'
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: 'files/[hash].[ext]'
+                        }
+                    },
+                    {
+                        loader: 'image-webpack-loader',
+                        options: {}
+                    }
                 ]
             },
             {
                 test: /\.html$/,
-                loader: 'html-loader?attrs=link:href'
+                use: [
+                    {
+                        loader: 'html-loader',
+                        options: {
+                            attrs: 'link:href'
+                        }
+                    }
+                ]
             }
         ]
     },
+    resolve: {
+        modules: [
+            'node_modules',
+            'non_npm_dependencies',
+            path.resolve(__dirname)
+        ],
+        alias: {
+            jquery: 'jquery/dist/jquery',
+            superagent: 'node_modules/superagent/lib/client'
+        }
+    },
+    performance: {
+        hints: 'warning'
+    },
+    target: 'web',
+    stats: MYSTATS,
     plugins: [
         new webpack.ProvidePlugin({
             'window.jQuery': 'jquery'
@@ -105,18 +260,7 @@ var config = {
             minChunks: 2,
             children: true
         })
-    ],
-    resolve: {
-        alias: {
-            jquery: 'jquery/dist/jquery',
-            superagent: 'node_modules/superagent/lib/client'
-        },
-        modules: [
-            'node_modules',
-            'non_npm_dependencies',
-            path.resolve(__dirname)
-        ]
-    }
+    ]
 };
 
 // Development mode configuration
@@ -124,7 +268,7 @@ if (DEV) {
     if (FULLMAP) {
         config.devtool = 'source-map';
     } else {
-        config.devtool = 'eval-cheap-module-source-map';
+        config.devtool = 'cheap-module-eval-source-map';
     }
 }
 

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import Textbox from './textbox.jsx';
+
 import ReactDOM from 'react-dom';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -8,6 +10,9 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannelHeader} from 'actions/channel_actions.jsx';
+import * as UserAgent from 'utils/user_agent.jsx';
+
+const KeyCodes = Constants.KeyCodes;
 
 import {Modal} from 'react-bootstrap';
 
@@ -18,6 +23,8 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class EditChannelHeaderModal extends React.Component {
@@ -27,8 +34,11 @@ class EditChannelHeaderModal extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
+        this.handlePostError = this.handlePostError.bind(this);
+        this.focusTextbox = this.focusTextbox.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
@@ -44,6 +54,7 @@ class EditChannelHeaderModal extends React.Component {
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         this.onShow();
+        this.focusTextbox();
     }
 
     componentWillUnmount() {
@@ -81,13 +92,17 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     onShow() {
-        const textarea = ReactDOM.findDOMNode(this.refs.textarea);
-        Utils.placeCaretAtEnd(textarea);
         this.submitted = false;
     }
 
     onHide() {
         this.setState({show: false});
+    }
+
+    focusTextbox() {
+        if (!Utils.isMobile()) {
+            this.refs.textbox.focus();
+        }
     }
 
     handleKeyDown(e) {
@@ -98,6 +113,22 @@ class EditChannelHeaderModal extends React.Component {
             e.preventDefault();
             this.handleSubmit(e);
         }
+    }
+
+    handleEditKeyPress(e) {
+        if (!UserAgent.isMobile() && !this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+            e.preventDefault();
+            ReactDOM.findDOMNode(this.refs.editbox).blur();
+            this.handleEdit();
+        } else if (this.state.ctrlSend && e.ctrlKey && e.which === KeyCodes.ENTER) {
+            e.preventDefault();
+            ReactDOM.findDOMNode(this.refs.editbox).blur();
+            this.handleEdit();
+        }
+    }
+
+    handlePostError(postError) {
+        this.setState({serverError: postError});
     }
 
     render() {
@@ -138,23 +169,29 @@ class EditChannelHeaderModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>
-                        <FormattedMessage
-                            id='edit_channel_header_modal.description'
-                            defaultMessage='Edit the text appearing next to the channel name in the channel header.'
+                    <div className='edit-modal-body'>
+                        <p>
+                            <FormattedMessage
+                                id='edit_channel_header_modal.description'
+                                defaultMessage='Edit the text appearing next to the channel name in the channel header.'
+                            />
+                        </p>
+                        <Textbox
+                            value={this.state.header}
+                            onChange={this.handleChange}
+                            onKeyPress={this.handleEditKeyPress}
+                            onKeyDown={this.handleKeyDown}
+                            supportsCommands={false}
+                            suggestionListStyle='bottom'
+                            createMessage={Utils.localizeMessage('edit_channel_header.editHeader', 'Edit the Channel Header...')}
+                            previewMessageLink={Utils.localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
+                            handlePostError={this.handlePostError}
+                            id='edit_textbox'
+                            ref='textbox'
                         />
-                    </p>
-                    <textarea
-                        ref='textarea'
-                        className='form-control no-resize'
-                        rows='6'
-                        id='edit_header'
-                        maxLength='1024'
-                        value={this.state.header}
-                        onChange={this.handleChange}
-                        onKeyDown={this.handleKeyDown}
-                    />
-                    {serverError}
+                        <br/>
+                        {serverError}
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
                     <button
@@ -186,8 +223,8 @@ class EditChannelHeaderModal extends React.Component {
 
 EditChannelHeaderModal.propTypes = {
     intl: intlShape.isRequired,
-    onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    onHide: PropTypes.func.isRequired,
+    channel: PropTypes.object.isRequired
 };
 
 export default injectIntl(EditChannelHeaderModal);

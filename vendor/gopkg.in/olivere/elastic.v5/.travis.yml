@@ -1,0 +1,17 @@
+sudo: required
+language: go
+go:
+  - 1.7
+  - 1.8
+  - tip
+matrix:
+  allow_failures:
+    - go: tip
+services:
+  - docker
+before_script:
+  - mkdir -p /tmp/elasticsearch/config
+  - cp -r config/* /tmp/elasticsearch/config/
+  - sudo sysctl -w vm.max_map_count=262144
+  - docker run --rm --privileged=true -p 9200:9200 -p 9300:9300 -v "/tmp/elasticsearch/config:/usr/share/elasticsearch/config" -e ES_JAVA_OPTS='-Xms1g -Xmx1g' elasticsearch:5.4.0 elasticsearch >& /dev/null &
+  - sleep 15

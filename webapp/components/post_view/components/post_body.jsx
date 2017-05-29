@@ -17,6 +17,8 @@ import {FormattedMessage} from 'react-intl';
 
 import loadingGif from 'images/load.gif';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PostBody extends React.Component {
@@ -48,6 +50,10 @@ export default class PostBody extends React.Component {
         }
 
         if (nextProps.handleCommentClick.toString() !== this.props.handleCommentClick.toString()) {
+            return true;
+        }
+
+        if (nextProps.lastPostCount !== this.props.lastPostCount) {
             return true;
         }
 
@@ -164,7 +170,7 @@ export default class PostBody extends React.Component {
             >
                 {loading}
                 <PostMessageContainer
-                    isLastPost={this.props.isLastPost}
+                    lastPostCount={this.props.lastPostCount}
                     post={this.props.post}
                 />
             </div>
@@ -204,14 +210,14 @@ export default class PostBody extends React.Component {
 }
 
 PostBody.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    parentPost: React.PropTypes.object,
-    retryPost: React.PropTypes.func,
-    isLastPost: React.PropTypes.bool,
-    handleCommentClick: React.PropTypes.func.isRequired,
-    compactDisplay: React.PropTypes.bool,
-    previewCollapsed: React.PropTypes.string,
-    isCommentMention: React.PropTypes.bool,
-    childComponentDidUpdateFunction: React.PropTypes.func
+    post: PropTypes.object.isRequired,
+    currentUser: PropTypes.object.isRequired,
+    parentPost: PropTypes.object,
+    retryPost: PropTypes.func,
+    lastPostCount: PropTypes.number,
+    handleCommentClick: PropTypes.func.isRequired,
+    compactDisplay: PropTypes.bool,
+    previewCollapsed: PropTypes.string,
+    isCommentMention: PropTypes.bool,
+    childComponentDidUpdateFunction: PropTypes.func
 };

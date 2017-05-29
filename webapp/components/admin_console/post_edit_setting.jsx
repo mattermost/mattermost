@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -88,12 +90,12 @@ PostEditSetting.defaultProps = {
 };
 
 PostEditSetting.propTypes = {
-    id: React.PropTypes.string.isRequired,
-    timeLimitId: React.PropTypes.string.isRequired,
-    label: React.PropTypes.node.isRequired,
-    value: React.PropTypes.string.isRequired,
-    timeLimitValue: React.PropTypes.number.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool,
-    helpText: React.PropTypes.node
+    id: PropTypes.string.isRequired,
+    timeLimitId: PropTypes.string.isRequired,
+    label: PropTypes.node.isRequired,
+    value: PropTypes.string.isRequired,
+    timeLimitValue: PropTypes.number.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+    helpText: PropTypes.node
 };

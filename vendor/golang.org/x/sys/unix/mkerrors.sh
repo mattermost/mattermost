@@ -161,6 +161,7 @@ struct ltchars {
 #include <linux/if_addr.h>
 #include <linux/falloc.h>
 #include <linux/filter.h>
+#include <linux/fs.h>
 #include <linux/netlink.h>
 #include <linux/random.h>
 #include <linux/reboot.h>
@@ -196,6 +197,11 @@ struct ltchars {
 // but it is already in bluetooth_linux.go
 #undef SOL_BLUETOOTH
 #endif
+
+// Certain constants are missing from the fs/crypto UAPI
+#define FS_KEY_DESC_PREFIX              "fscrypt:"
+#define FS_KEY_DESC_PREFIX_SIZE         8
+#define FS_MAX_KEY_SIZE                 64
 '
 
 includes_NetBSD='
@@ -390,12 +396,13 @@ ccflags="$@"
 		$2 ~ /^CLOCK_/ ||
 		$2 ~ /^CAN_/ ||
 		$2 ~ /^ALG_/ ||
+		$2 ~ /^FS_(POLICY_FLAGS|KEY_DESC|ENCRYPTION_MODE|[A-Z0-9_]+_KEY_SIZE|IOC_(GET|SET)_ENCRYPTION)/ ||
 		$2 ~ /^GRND_/ ||
 		$2 ~ /^SPLICE_/ ||
 		$2 ~ /^(VM|VMADDR)_/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
-		$2 ~ /^BLK/ {printf("\t%s = C.%s\n", $2, $2)}
+		$2 ~ /^BLK[A-Z]*(GET$|SET$|BUF$|PART$|SIZE)/ {printf("\t%s = C.%s\n", $2, $2)}
 		$2 ~ /^__WCOREFLAG$/ {next}
 		$2 ~ /^__W[A-Z0-9]+$/ {printf("\t%s = C.%s\n", substr($2,3), $2)}
 

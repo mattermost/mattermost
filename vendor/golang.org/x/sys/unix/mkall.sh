@@ -45,7 +45,7 @@ case "$#" in
 	exit 2
 esac
 
-if [[ "$GOOS" -eq "linux" ]] && [[ "$GOARCH" != "sparc64" ]]; then
+if [[ "$GOOS" = "linux" ]] && [[ "$GOARCH" != "sparc64" ]]; then
 	# Use then new build system
 	# Files generated through docker (use $cmd so you can Ctl-C the build or run)
 	$cmd docker build --tag generate:$GOOS $GOOS

@@ -5,6 +5,8 @@ import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class SettingsUpload extends React.Component {
@@ -118,10 +120,10 @@ export default class SettingsUpload extends React.Component {
 }
 
 SettingsUpload.propTypes = {
-    title: React.PropTypes.string.isRequired,
-    submit: React.PropTypes.func.isRequired,
-    fileTypesAccepted: React.PropTypes.string.isRequired,
-    clientError: React.PropTypes.string,
-    serverError: React.PropTypes.string,
-    helpText: React.PropTypes.object
+    title: PropTypes.string.isRequired,
+    submit: PropTypes.func.isRequired,
+    fileTypesAccepted: PropTypes.string.isRequired,
+    clientError: PropTypes.string,
+    serverError: PropTypes.string,
+    helpText: PropTypes.object
 };

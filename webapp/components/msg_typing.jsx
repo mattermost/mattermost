@@ -5,6 +5,8 @@ import UserTypingStore from 'stores/user_typing_store.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class MsgTyping extends React.Component {
@@ -90,8 +92,8 @@ class MsgTyping extends React.Component {
 }
 
 MsgTyping.propTypes = {
-    channelId: React.PropTypes.string,
-    parentId: React.PropTypes.string
+    channelId: PropTypes.string,
+    parentId: PropTypes.string
 };
 
 export default MsgTyping;

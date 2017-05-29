@@ -3,28 +3,28 @@
 
 import PostAttachment from './post_attachment.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
-export default class PostAttachmentList extends React.Component {
-    render() {
-        const content = [];
-        this.props.attachments.forEach((attachment, i) => {
-            content.push(
-                <PostAttachment
-                    attachment={attachment}
-                    key={'att_' + i}
-                />
-            );
-        });
-
-        return (
-            <div className='attachment_list'>
-                {content}
-            </div>
+export default function PostAttachmentList(props) {
+    const content = [];
+    props.attachments.forEach((attachment, i) => {
+        content.push(
+            <PostAttachment
+                attachment={attachment}
+                key={'att_' + i}
+            />
         );
-    }
+    });
+
+    return (
+        <div className='attachment_list'>
+            {content}
+        </div>
+    );
 }
 
 PostAttachmentList.propTypes = {
-    attachments: React.PropTypes.array.isRequired
+    attachments: PropTypes.array.isRequired
 };

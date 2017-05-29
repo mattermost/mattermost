@@ -9,6 +9,8 @@ import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PendingPostOptions extends React.Component {
@@ -83,5 +85,5 @@ export default class PendingPostOptions extends React.Component {
 }
 
 PendingPostOptions.propTypes = {
-    post: React.PropTypes.object
+    post: PropTypes.object
 };

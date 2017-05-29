@@ -250,6 +250,14 @@ func (c *Client4) GetOAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) GetOpenGraphRoute() string {
+	return fmt.Sprintf("/opengraph")
+}
+
+func (c *Client4) GetJobsRoute() string {
+	return fmt.Sprintf("/jobs")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -440,6 +448,40 @@ func (c *Client4) SwitchAccountType(switchRequest *SwitchRequest) (string, *Resp
 // CreateUser creates a user in the system based on the provided user struct.
 func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	if r, err := c.DoApiPost(c.GetUsersRoute(), user.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CreateUserWithHash creates a user in the system based on the provided user struct and hash created.
+func (c *Client4) CreateUserWithHash(user *User, hash, data string) (*User, *Response) {
+	var query string
+	if hash != "" && data != "" {
+		query = fmt.Sprintf("?d=%v&h=%v", url.QueryEscape(data), hash)
+	} else {
+		err := NewAppError("MissingHashOrData", "api.user.create_user.missing_hash_or_data.app_error", nil, "", http.StatusBadRequest)
+		return nil, &Response{StatusCode: err.StatusCode, Error: err}
+	}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson()); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CreateUserWithInviteId creates a user in the system based on the provided invited id.
+func (c *Client4) CreateUserWithInviteId(user *User, inviteId string) (*User, *Response) {
+	var query string
+	if inviteId != "" {
+		query = fmt.Sprintf("?iid=%v", url.QueryEscape(inviteId))
+	} else {
+		err := NewAppError("MissingInviteId", "api.user.create_user.missing_invite_id.app_error", nil, "", http.StatusBadRequest)
+		return nil, &Response{StatusCode: err.StatusCode, Error: err}
+	}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+query, user.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
@@ -1179,6 +1221,16 @@ func (c *Client4) PatchChannel(channelId string, patch *ChannelPatch) (*Channel,
 	}
 }
 
+// RestoreChannel restores a previously deleted channel. Any missing fields are not updated.
+func (c *Client4) RestoreChannel(channelId string) (*Channel, *Response) {
+	if r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/restore", ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // CreateDirectChannel creates a direct message channel based on the two user
 // ids provided.
 func (c *Client4) CreateDirectChannel(userId1, userId2 string) (*Channel, *Response) {
@@ -1232,43 +1284,54 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 }
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
-func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) (*ChannelList, *Response) {
+func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetDeletedChannelsForTeam returns a list of public channels based on the provided team id string.
+func (c *Client4) GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
+	query := fmt.Sprintf("/deleted?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetPublicChannelsByIdsForTeam returns a list of public channels based on provided team id string
-func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*ChannelList, *Response) {
+func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) ([]*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/ids", ArrayToJson(channelIds)); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
-func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) (*ChannelList, *Response) {
+func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) ([]*Channel, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/channels", etag); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
 // SearchChannels returns the channels on a team matching the provided search term.
-func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) (*ChannelList, *Response) {
+func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	if r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
-		return ChannelListFromJson(r.Body), BuildResponse(r)
+		return ChannelSliceFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -2562,5 +2625,42 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Open Graph Metadata Section
+
+// OpenGraph return the open graph metadata for a particular url if the site have the metadata
+func (c *Client4) OpenGraph(url string) (map[string]string, *Response) {
+	requestBody := make(map[string]string)
+	requestBody["url"] = url
+
+	if r, err := c.DoApiPost(c.GetOpenGraphRoute(), MapToJson(requestBody)); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return MapFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Jobs Section
+
+// GetJobStatus gets the status of a single job.
+func (c *Client4) GetJobStatus(id string) (*JobStatus, *Response) {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/status", id), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return JobStatusFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetJobStatusesByType gets the status of all jobs of a given type, sorted with the job that most recently started first.
+func (c *Client4) GetJobStatusesByType(jobType string, page int, perPage int) ([]*JobStatus, *Response) {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/type/%v/statuses?page=%v&per_page=%v", jobType, page, perPage), ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return JobStatusesFromJson(r.Body), BuildResponse(r)
 	}
 }

@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 import React from 'react';
@@ -65,15 +67,15 @@ MultiSelectSetting.defaultProps = {
 };
 
 MultiSelectSetting.propTypes = {
-    id: React.PropTypes.string.isRequired,
-    values: React.PropTypes.array.isRequired,
-    label: React.PropTypes.node.isRequired,
-    selected: React.PropTypes.array.isRequired,
-    mustBePresent: React.PropTypes.string,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool,
-    helpText: React.PropTypes.node,
-    noResultText: React.PropTypes.node,
-    errorText: React.PropTypes.node,
-    notPresent: React.PropTypes.node
+    id: PropTypes.string.isRequired,
+    values: PropTypes.array.isRequired,
+    label: PropTypes.node.isRequired,
+    selected: PropTypes.array.isRequired,
+    mustBePresent: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+    helpText: PropTypes.node,
+    noResultText: PropTypes.node,
+    errorText: PropTypes.node,
+    notPresent: PropTypes.node
 };

@@ -1030,6 +1030,10 @@
     "translation": "絵文字を作成できません。GIF画像をエンコードする際にエラーが発生しました。"
   },
   {
+    "id": "api.file.attachments.disabled.app_error",
+    "translation": "このサーバーではファイル添付が無効になっています。"
+  },
+  {
     "id": "api.file.get_file.public_disabled.app_error",
     "translation": "公開リンクはシステム管理者によって無効にされています"
   },
@@ -1051,7 +1055,7 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "ファイルの情報を取得できません。画像ストレージが設定されていません。"
+    "translation": "ファイルの情報を取得できません。ファイルストレージが設定されていません。"
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -1444,6 +1448,10 @@
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
     "translation": "利用登録リンクが不正です"
+  },
+  {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -2269,7 +2277,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] {{ .SiteName }}のサインイン方法が更新されました"
+    "translation": "[{{ .SiteName }}] あなたのパスワードが更新されました"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2458,6 +2466,14 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Missing Invite Id."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -3013,7 +3029,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "投稿の作成日には0を設定できません。"
+    "translation": "Post CreateAt property must not be zero if provided."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3290,6 +3306,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "コンプライアンスエクスポートが開始されました ジョブ='{{.JobName}}'、ファイル='{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "ElasticSearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3846,6 +3894,22 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4461,7 +4525,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "cryptの制限により72文字以上のパスワードを設定できません"
+    "translation": "bcryptの制限により72文字以上のパスワードを設定できません"
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5032,6 +5096,30 @@
     "translation": "ファイル情報を保存できませんでした"
   },
   {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "ファイル情報を保存できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "投稿を削除できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "投稿を保存できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "投稿を更新できませんでした"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "ライセンスを取得する際にエラーが発生しました"
   },
@@ -5178,6 +5266,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "チャンネルの親に当たる投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "投稿を取得できませんでした"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5892,6 +5984,10 @@
     "translation": "ライセンスに署名中にエラーが発生しました err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Failed to set HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "接続できませんでした"
   },
@@ -5902,6 +5998,10 @@
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "SMTPサーバーの認証に失敗しました"
+  },
+  {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Failed to to set the HELO to SMTP server %v"
   },
   {
     "id": "utils.mail.new_client.open.error",

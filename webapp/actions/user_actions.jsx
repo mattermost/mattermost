@@ -9,6 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
+import {loadCurrentLocale} from 'actions/global_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
 import {getDirectChannelName, getUserIdFromChannelName} from 'utils/utils.jsx';
@@ -51,6 +52,8 @@ import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/te
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
         () => {
+            loadCurrentLocale();
+
             if (callback) {
                 callback();
             }
@@ -742,6 +745,12 @@ export function webLogin(loginId, password, token, success, error) {
                 success();
             } else if (!ok && error) {
                 const serverError = getState().requests.users.login.error;
+                if (serverError.server_error_id === 'api.context.mfa_required.app_error') {
+                    if (success) {
+                        success();
+                    }
+                    return;
+                }
                 error({id: serverError.server_error_id, ...serverError});
             }
         }

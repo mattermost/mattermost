@@ -92,6 +92,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ADD_MENTION: null,
     RECEIVED_POST_PINNED: null,
     RECEIVED_POST_UNPINNED: null,
+    POST_DRAFT_CHANGED: null,
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
@@ -952,7 +953,8 @@ export const Constants = {
     AUTOCOMPLETE_TIMEOUT: 100,
     ANIMATION_TIMEOUT: 1000,
     SEARCH_TIMEOUT_MILLISECONDS: 100,
-    DIAGNOSTICS_SEGMENT_KEY: 'fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok'
+    DIAGNOSTICS_SEGMENT_KEY: 'fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok',
+    TEST_ID_COUNT: 10
 };
 
 export default Constants;

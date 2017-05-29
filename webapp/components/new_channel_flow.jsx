@@ -5,7 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import {cleanUpUrlable} from 'utils/url.jsx';
 
-import NewChannelModal from './new_channel_modal.jsx';
+import NewChannelModal from 'components/new_channel_modal';
 import ChangeURLModal from './change_url_modal.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -15,6 +15,8 @@ import {browserHistory} from 'react-router/es6';
 const SHOW_NEW_CHANNEL = 1;
 const SHOW_EDIT_URL = 2;
 const SHOW_EDIT_URL_THEN_COMPLETE = 3;
+
+import PropTypes from 'prop-types';
 
 import React from 'react';
 
@@ -239,7 +241,7 @@ NewChannelFlow.defaultProps = {
 };
 
 NewChannelFlow.propTypes = {
-    show: React.PropTypes.bool.isRequired,
-    channelType: React.PropTypes.string.isRequired,
-    onModalDismissed: React.PropTypes.func.isRequired
+    show: PropTypes.bool.isRequired,
+    channelType: PropTypes.string.isRequired,
+    onModalDismissed: PropTypes.func.isRequired
 };

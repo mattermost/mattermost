@@ -33,8 +33,16 @@ const MaxJitter = 1.0
 // NoJitter disables the use of jitter for randomizing the exponential backoff time
 const NoJitter = 0.0
 
-// newRetryTimer creates a timer with exponentially increasing delays
-// until the maximum retry attempts are reached.
+// DefaultRetryUnit - default unit multiplicative per retry.
+// defaults to 1 second.
+const DefaultRetryUnit = time.Second
+
+// DefaultRetryCap - Each retry attempt never waits no longer than
+// this maximum time duration.
+const DefaultRetryCap = time.Second * 30
+
+// newRetryTimer creates a timer with exponentially increasing
+// delays until the maximum retry attempts are reached.
 func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duration, jitter float64, doneCh chan struct{}) <-chan int {
 	attemptCh := make(chan int)
 
@@ -78,6 +86,9 @@ func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duratio
 
 // isNetErrorRetryable - is network error retryable.
 func isNetErrorRetryable(err error) bool {
+	if err == nil {
+		return false
+	}
 	switch err.(type) {
 	case net.Error:
 		switch err.(type) {
@@ -95,6 +106,9 @@ func isNetErrorRetryable(err error) bool {
 				return true
 			} else if strings.Contains(err.Error(), "i/o timeout") {
 				// If error is - tcp timeoutError, retry.
+				return true
+			} else if strings.Contains(err.Error(), "connection timed out") {
+				// If err is a net.Dial timeout, retry.
 				return true
 			}
 		}

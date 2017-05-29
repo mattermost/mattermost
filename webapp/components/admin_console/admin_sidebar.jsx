@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -14,7 +15,7 @@ import AdminSidebarSection from './admin_sidebar_section.jsx';
 export default class AdminSidebar extends React.Component {
     static get contextTypes() {
         return {
-            router: React.PropTypes.object.isRequired
+            router: PropTypes.object.isRequired
         };
     }
 

@@ -8,6 +8,7 @@ import FileAttachmentListContainer from './file_attachment_list_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
 import RhsDropdown from 'components/rhs_dropdown.jsx';
+import PostFlagIcon from 'components/common/post_flag_icon.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -24,9 +25,11 @@ import ReactDOM from 'react-dom';
 
 import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
-import {Tooltip, OverlayTrigger, Overlay} from 'react-bootstrap';
+import {Overlay} from 'react-bootstrap';
 
 import {FormattedMessage} from 'react-intl';
+
+import PropTypes from 'prop-types';
 
 import React from 'react';
 import {Link} from 'react-router/es6';
@@ -187,7 +190,7 @@ export default class RhsRootPost extends React.Component {
         }
 
         if (this.props.compactDisplay) {
-            className += 'post--compact';
+            className += ' post--compact';
         }
 
         if (post.is_pinned) {
@@ -203,7 +206,6 @@ export default class RhsRootPost extends React.Component {
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
         var timestamp = user ? user.last_picture_update : 0;
         var channel = ChannelStore.get(post.channel_id);
-        const flagIcon = Constants.FLAG_ICON_SVG;
 
         this.canDelete = PostUtils.canDeletePost(post);
         this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
@@ -530,44 +532,6 @@ export default class RhsRootPost extends React.Component {
 
         const profilePicContainer = (<div className='post__img'>{profilePic}</div>);
 
-        let flag;
-        let flagFunc;
-        let flagVisible = '';
-        let flagTooltip = (
-            <Tooltip id='flagTooltip'>
-                <FormattedMessage
-                    id='flag_post.flag'
-                    defaultMessage='Flag for follow up'
-                />
-            </Tooltip>
-        );
-        if (this.props.isFlagged) {
-            flagVisible = 'visible';
-            flag = (
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIcon}}
-                />
-            );
-            flagFunc = this.unflagPost;
-            flagTooltip = (
-                <Tooltip id='flagTooltip'>
-                    <FormattedMessage
-                        id='flag_post.unflag'
-                        defaultMessage='Unflag'
-                    />
-                </Tooltip>
-            );
-        } else {
-            flag = (
-                <span
-                    className='icon'
-                    dangerouslySetInnerHTML={{__html: flagIcon}}
-                />
-            );
-            flagFunc = this.flagPost;
-        }
-
         let pinnedBadge;
         if (post.is_pinned) {
             pinnedBadge = (
@@ -601,20 +565,11 @@ export default class RhsRootPost extends React.Component {
                             <li className='col'>
                                 {this.renderTimeTag(post, timeOptions)}
                                 {pinnedBadge}
-                                <OverlayTrigger
-                                    key={'rootpostflagtooltipkey' + flagVisible}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='top'
-                                    overlay={flagTooltip}
-                                >
-                                    <a
-                                        href='#'
-                                        className={'flag-icon__container ' + flagVisible}
-                                        onClick={flagFunc}
-                                    >
-                                        {flag}
-                                    </a>
-                                </OverlayTrigger>
+                                <PostFlagIcon
+                                    idPrefix={'rhsRootPostFlag'}
+                                    postId={post.id}
+                                    isFlagged={this.props.isFlagged}
+                                />
                             </li>
                             <li className='col col__reply'>
                                 {reactOverlay}
@@ -644,14 +599,15 @@ RhsRootPost.defaultProps = {
     commentCount: 0
 };
 RhsRootPost.propTypes = {
-    post: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
-    currentUser: React.PropTypes.object.isRequired,
-    commentCount: React.PropTypes.number,
-    compactDisplay: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFlagged: React.PropTypes.bool,
-    status: React.PropTypes.string,
-    previewCollapsed: React.PropTypes.string,
-    isBusy: React.PropTypes.bool
+    post: PropTypes.object.isRequired,
+    lastPostCount: PropTypes.number,
+    user: PropTypes.object.isRequired,
+    currentUser: PropTypes.object.isRequired,
+    commentCount: PropTypes.number,
+    compactDisplay: PropTypes.bool,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFlagged: PropTypes.bool,
+    status: PropTypes.string,
+    previewCollapsed: PropTypes.string,
+    isBusy: PropTypes.bool
 };

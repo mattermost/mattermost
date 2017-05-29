@@ -21,9 +21,12 @@ import * as ChannelActions from 'actions/channel_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const ScrollTypes = Constants.ScrollTypes;
 
+import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {FormattedDate, FormattedMessage} from 'react-intl';
+
+import PropTypes from 'prop-types';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -94,6 +97,11 @@ export default class PostList extends React.Component {
             }, 0);
         }
         this.setState({unViewedCount});
+
+        if (this.props.channelId !== nextProps.channelId) {
+            PostStore.removePostDraftChangeListener(this.props.channelId, this.handlePostDraftChange);
+            PostStore.addPostDraftChangeListener(nextProps.channelId, this.handlePostDraftChange);
+        }
     }
 
     handleKeyDown(e) {
@@ -339,7 +347,7 @@ export default class PostList extends React.Component {
                 <Post
                     key={keyPrefix + 'postKey'}
                     ref={post.id}
-                    isLastPost={i === 0}
+                    lastPostCount={(i >= 0 && i < Constants.TEST_ID_COUNT) ? i : -1}
                     sameUser={sameUser}
                     sameRoot={sameRoot}
                     post={post}
@@ -525,6 +533,16 @@ export default class PostList extends React.Component {
 
         window.addEventListener('resize', this.handleResize);
         window.addEventListener('keydown', this.handleKeyDown);
+
+        PostStore.addPostDraftChangeListener(this.props.channelId, this.handlePostDraftChange);
+    }
+
+    handlePostDraftChange = (draft) => {
+        // this.state.draft isn't used anywhere, but this will cause an update to the scroll position
+        // without causing two updates to trigger when something else changes
+        this.setState({
+            draft
+        });
     }
 
     componentWillUnmount() {
@@ -532,6 +550,8 @@ export default class PostList extends React.Component {
         window.removeEventListener('resize', this.handleResize);
         window.removeEventListener('keydown', this.handleKeyDown);
         this.scrollStopAction.cancel();
+
+        PostStore.removePostDraftChangeListener(this.props.channelId, this.handlePostDraftChange);
     }
 
     componentDidUpdate() {
@@ -543,13 +563,6 @@ export default class PostList extends React.Component {
     }
 
     render() {
-        if (this.props.postList == null) {
-            return <div/>;
-        }
-
-        const posts = this.props.postList.posts;
-        const order = this.props.postList.order;
-
         // Create intro message or top loadmore link
         let moreMessagesTop;
         if (this.props.showMoreMessagesTop) {
@@ -586,11 +599,17 @@ export default class PostList extends React.Component {
         }
 
         // Create post elements
-        const postElements = this.createPosts(posts, order);
-
+        let postElements = null;
         let topPostCreateAt = 0;
-        if (this.state.topPostId && this.props.postList.posts[this.state.topPostId]) {
-            topPostCreateAt = this.props.postList.posts[this.state.topPostId].create_at;
+        if (this.props.postList) {
+            const posts = this.props.postList.posts;
+            const order = this.props.postList.order;
+
+            postElements = this.createPosts(posts, order);
+
+            if (this.state.topPostId && this.props.postList.posts[this.state.topPostId]) {
+                topPostCreateAt = this.props.postList.posts[this.state.topPostId].create_at;
+            }
         }
 
         return (
@@ -637,26 +656,27 @@ PostList.defaultProps = {
 };
 
 PostList.propTypes = {
-    postList: React.PropTypes.object,
-    profiles: React.PropTypes.object,
-    channel: React.PropTypes.object,
-    currentUser: React.PropTypes.object,
-    scrollPostId: React.PropTypes.string,
-    scrollType: React.PropTypes.number,
-    postListScrolled: React.PropTypes.func.isRequired,
-    showMoreMessagesTop: React.PropTypes.bool,
-    showMoreMessagesBottom: React.PropTypes.bool,
-    lastViewed: React.PropTypes.number,
-    lastViewedBottom: React.PropTypes.number,
-    ownNewMessage: React.PropTypes.bool,
-    postsToHighlight: React.PropTypes.object,
-    displayNameType: React.PropTypes.string,
-    displayPostsInCenter: React.PropTypes.bool,
-    compactDisplay: React.PropTypes.bool,
-    previewsCollapsed: React.PropTypes.string,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    isFocusPost: React.PropTypes.bool,
-    flaggedPosts: React.PropTypes.object,
-    statuses: React.PropTypes.object,
-    isBusy: React.PropTypes.bool
+    postList: PropTypes.object,
+    profiles: PropTypes.object,
+    channel: PropTypes.object,
+    channelId: PropTypes.string.isRequired,
+    currentUser: PropTypes.object,
+    scrollPostId: PropTypes.string,
+    scrollType: PropTypes.number,
+    postListScrolled: PropTypes.func.isRequired,
+    showMoreMessagesTop: PropTypes.bool,
+    showMoreMessagesBottom: PropTypes.bool,
+    lastViewed: PropTypes.number,
+    lastViewedBottom: PropTypes.number,
+    ownNewMessage: PropTypes.bool,
+    postsToHighlight: PropTypes.object,
+    displayNameType: PropTypes.string,
+    displayPostsInCenter: PropTypes.bool,
+    compactDisplay: PropTypes.bool,
+    previewsCollapsed: PropTypes.string,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    isFocusPost: PropTypes.bool,
+    flaggedPosts: PropTypes.object,
+    statuses: PropTypes.object,
+    isBusy: PropTypes.bool
 };

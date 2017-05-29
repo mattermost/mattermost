@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -53,11 +55,11 @@ RadioSetting.defaultProps = {
 };
 
 RadioSetting.propTypes = {
-    id: React.PropTypes.string.isRequired,
-    values: React.PropTypes.array.isRequired,
-    label: React.PropTypes.node.isRequired,
-    value: React.PropTypes.string.isRequired,
-    onChange: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool,
-    helpText: React.PropTypes.node
+    id: PropTypes.string.isRequired,
+    values: PropTypes.array.isRequired,
+    label: PropTypes.node.isRequired,
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+    helpText: PropTypes.node
 };

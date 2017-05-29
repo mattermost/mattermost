@@ -94,6 +94,54 @@ var (
 			ActiveConn:    0,
 			InactConn:     0,
 		},
+		{
+			LocalAddress:  net.ParseIP("2620::1"),
+			LocalPort:     80,
+			RemoteAddress: net.ParseIP("2620::2"),
+			RemotePort:    80,
+			Proto:         "TCP",
+			Weight:        1,
+			ActiveConn:    0,
+			InactConn:     0,
+		},
+		{
+			LocalAddress:  net.ParseIP("2620::1"),
+			LocalPort:     80,
+			RemoteAddress: net.ParseIP("2620::3"),
+			RemotePort:    80,
+			Proto:         "TCP",
+			Weight:        1,
+			ActiveConn:    0,
+			InactConn:     0,
+		},
+		{
+			LocalAddress:  net.ParseIP("2620::1"),
+			LocalPort:     80,
+			RemoteAddress: net.ParseIP("2620::4"),
+			RemotePort:    80,
+			Proto:         "TCP",
+			Weight:        1,
+			ActiveConn:    1,
+			InactConn:     1,
+		},
+		{
+			LocalMark:     "10001000",
+			RemoteAddress: net.ParseIP("192.168.50.26"),
+			RemotePort:    3306,
+			Proto:         "FWM",
+			Weight:        0,
+			ActiveConn:    0,
+			InactConn:     1,
+		},
+		{
+			LocalMark:     "10001000",
+			RemoteAddress: net.ParseIP("192.168.50.21"),
+			RemotePort:    3306,
+			Proto:         "FWM",
+			Weight:        0,
+			ActiveConn:    0,
+			InactConn:     2,
+		},
 	}
 )
 
@@ -142,14 +190,13 @@ func TestParseIPPortIPv6(t *testing.T) {
 	ip := net.ParseIP("dead:beef::1")
 	port := uint16(8080)
 
-	gotIP, gotPort, err := parseIPPort("DEADBEEF000000000000000000000001:1F90")
+	gotIP, gotPort, err := parseIPPort("[DEAD:BEEF:0000:0000:0000:0000:0000:0001]:1F90")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !(gotIP.Equal(ip) && port == gotPort) {
 		t.Errorf("want %s:%d, have %s:%d", ip, port, gotIP, gotPort)
 	}
-
 }
 
 func TestIPVSBackendStatus(t *testing.T) {

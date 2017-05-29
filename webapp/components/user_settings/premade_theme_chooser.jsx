@@ -5,6 +5,8 @@ import $ from 'jquery';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class PremadeThemeChooser extends React.Component {
@@ -58,6 +60,6 @@ export default class PremadeThemeChooser extends React.Component {
 }
 
 PremadeThemeChooser.propTypes = {
-    theme: React.PropTypes.object.isRequired,
-    updateTheme: React.PropTypes.func.isRequired
+    theme: PropTypes.object.isRequired,
+    updateTheme: PropTypes.func.isRequired
 };

@@ -9,6 +9,8 @@ import Constants from 'utils/constants.jsx';
 import {checkMfa} from 'actions/user_actions.jsx';
 import {emailToOAuth} from 'actions/admin_actions.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
@@ -171,6 +173,6 @@ export default class EmailToOAuth extends React.Component {
 EmailToOAuth.defaultProps = {
 };
 EmailToOAuth.propTypes = {
-    newType: React.PropTypes.string,
-    email: React.PropTypes.string
+    newType: PropTypes.string,
+    email: PropTypes.string
 };

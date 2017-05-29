@@ -5,7 +5,9 @@
     border-left: none;
     font-size: 14px;
     line-height: 56px;
+    position: relative;
     width: 100%;
+    z-index: 9;
 
     .member-popover__trigger,
     .pinned-posts-button {
@@ -462,11 +464,19 @@
             text-decoration: none;
 
             &:hover {
-                @include opacity(1);
+                @include opacity(0.7);
             }
 
             &:focus {
                 color: inherit;
+            }
+
+            &.active {
+                color: $primary-color;
+                @include opacity(1);
+                .icon {
+                    fill: $primary-color;
+                }
             }
         }
     }

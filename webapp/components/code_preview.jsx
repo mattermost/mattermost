@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting.jsx';
@@ -136,6 +137,6 @@ export default class CodePreview extends React.Component {
 }
 
 CodePreview.propTypes = {
-    fileInfo: React.PropTypes.object.isRequired,
-    fileUrl: React.PropTypes.string.isRequired
+    fileInfo: PropTypes.object.isRequired,
+    fileUrl: PropTypes.string.isRequired
 };

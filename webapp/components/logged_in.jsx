@@ -16,6 +16,7 @@ import Constants from 'utils/constants.jsx';
 const BACKSPACE_CHAR = 8;
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 // import the EmojiStore so that it'll register to receive the results of the listEmojis call further down
@@ -157,5 +158,5 @@ export default class LoggedIn extends React.Component {
 }
 
 LoggedIn.propTypes = {
-    children: React.PropTypes.object
+    children: PropTypes.object
 };

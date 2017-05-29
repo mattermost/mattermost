@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
@@ -10,13 +12,13 @@ import DeleteIntegration from './delete_integration.jsx';
 export default class InstalledCommand extends React.Component {
     static get propTypes() {
         return {
-            team: React.PropTypes.object.isRequired,
-            command: React.PropTypes.object.isRequired,
-            onRegenToken: React.PropTypes.func.isRequired,
-            onDelete: React.PropTypes.func.isRequired,
-            filter: React.PropTypes.string,
-            creator: React.PropTypes.object.isRequired,
-            canChange: React.PropTypes.bool.isRequired
+            team: PropTypes.object.isRequired,
+            command: PropTypes.object.isRequired,
+            onRegenToken: PropTypes.func.isRequired,
+            onDelete: PropTypes.func.isRequired,
+            filter: PropTypes.string,
+            creator: PropTypes.object.isRequired,
+            canChange: PropTypes.bool.isRequired
         };
     }
 

@@ -46,6 +46,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("RootId").SetMaxSize(26)
 		table.ColMap("ParentId").SetMaxSize(26)
+		table.ColMap("OriginalId").SetMaxSize(26)
 		table.ColMap("Message").SetMaxSize(4000)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
@@ -1277,6 +1278,33 @@ func (s SqlPostStore) GetPostsCreatedAt(channelId string, time int64) StoreChann
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = posts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetPostsByIds(postIds []string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		inClause := `'` + strings.Join(postIds, `', '`) + `'`
+
+		query := `SELECT * FROM Posts WHERE Id in (` + inClause + `) and DeleteAt = 0 ORDER BY CreateAt DESC`
+
+		var posts []*model.Post
+		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{})
+
+		if err != nil {
+			l4g.Error(err)
+			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
 		} else {
 			result.Data = posts
 		}

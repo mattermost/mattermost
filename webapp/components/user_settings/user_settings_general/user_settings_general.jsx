@@ -76,19 +76,21 @@ const holders = defineMessages({
     }
 });
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 class UserSettingsGeneralTab extends React.Component {
     static propTypes = {
         intl: intlShape.isRequired,
-        user: React.PropTypes.object.isRequired,
-        updateSection: React.PropTypes.func.isRequired,
-        updateTab: React.PropTypes.func.isRequired,
-        activeSection: React.PropTypes.string.isRequired,
-        closeModal: React.PropTypes.func.isRequired,
-        collapseModal: React.PropTypes.func.isRequired,
-        actions: React.PropTypes.shape({
-            getMe: React.PropTypes.func.isRequired
+        user: PropTypes.object.isRequired,
+        updateSection: PropTypes.func.isRequired,
+        updateTab: PropTypes.func.isRequired,
+        activeSection: PropTypes.string.isRequired,
+        closeModal: PropTypes.func.isRequired,
+        collapseModal: PropTypes.func.isRequired,
+        actions: PropTypes.shape({
+            getMe: PropTypes.func.isRequired
         }).isRequired
     }
 

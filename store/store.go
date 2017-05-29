@@ -47,6 +47,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	JobStatus() JobStatusStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -97,12 +98,14 @@ type ChannelStore interface {
 	InvalidateChannelByName(teamId, name string)
 	GetFromMaster(id string) StoreChannel
 	Delete(channelId string, time int64) StoreChannel
+	Restore(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) StoreChannel
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) StoreChannel
 	GetDeletedByName(team_id string, name string) StoreChannel
+	GetDeleted(team_id string, offset int, limit int) StoreChannel
 	GetChannels(teamId string, userId string) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
@@ -163,6 +166,7 @@ type PostStore interface {
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
 	Overwrite(post *model.Post) StoreChannel
+	GetPostsByIds(postIds []string) StoreChannel
 }
 
 type UserStore interface {
@@ -367,4 +371,12 @@ type ReactionStore interface {
 	InvalidateCache()
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
+}
+
+type JobStatusStore interface {
+	SaveOrUpdate(status *model.JobStatus) StoreChannel
+	Get(id string) StoreChannel
+	GetAllByType(jobType string) StoreChannel
+	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
+	Delete(id string) StoreChannel
 }

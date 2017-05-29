@@ -127,6 +127,12 @@ To renew the certificate:
 $ lego --email="foo@bar.com" --domains="example.com" renew
 ```
 
+To renew the certificate only if it's older than 30 days
+
+```bash
+$ lego --email="foo@bar.com" --domains="example.com" renew --days 30
+```
+
 Obtain a certificate using the DNS challenge and AWS Route 53:
 
 ```bash

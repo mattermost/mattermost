@@ -1,9 +1,13 @@
 @charset 'UTF-8';
 
-.app__body {
+.modal {
+    .modal-content {
+        @include box-shadow(0 0 10px rgba($black, .5));
+        border-radius: $border-rad;
+    }
 
-    .modal {
-        .about-modal {
+    .about-modal {
+        .modal-content {
             .modal-header {
                 background: transparent;
                 border: none;
@@ -25,69 +29,68 @@
                     margin: 0 4px 0 8px;
                 }
             }
+        }
 
+        .modal-body {
+            padding: 20px 25px 10px;
+        }
+
+        &.large {
             .modal-body {
-                padding: 20px 25px 5px;
+                padding-bottom: 20px;
             }
+        }
 
-            &.large {
-                .modal-body {
-                    padding-bottom: 20px;
-                }
-            }
+        .about-modal__content {
+            @include clearfix;
+            @include display-flex;
+            @include flex-direction(row);
+            padding: 1em 0 3em;
+        }
 
-            .about-modal__content {
-                @include clearfix;
-                @include display-flex;
-                @include flex-direction(row);
-                padding: 1em 0 3em;
-            }
+        .about-modal__copyright {
+            @include opacity(.6);
+            margin-top: .5em;
+        }
 
-            .about-modal__copyright {
-                @include opacity(.6);
-                margin-top: .5em;
-            }
+        .about-modal__footer {
+            font-size: 13.5px;
+        }
 
-            .about-modal__footer {
-                font-size: 13.5px;
-            }
+        .about-modal__title {
+            line-height: 1.5;
+            margin: 0 0 10px;
+        }
 
-            .about-modal__title {
-                line-height: 1.5;
-                margin: 0 0 10px;
-            }
+        .about-modal__subtitle {
+            @include opacity(.6);
+        }
 
-            .about-modal__subtitle {
-                @include opacity(.6);
-            }
+        .about-modal__hash {
+            @include opacity(.4);
+            font-size: .75em;
+            text-align: right;
 
-            .about-modal__hash {
-                @include opacity(.4);
-                font-size: .75em;
-                text-align: right;
-
-                p {
-                    &:first-child {
-                        float: left;
-                        text-align: left;
-                    }
-                }
-            }
-
-            .about-modal__logo {
-                @include opacity(.9);
-                padding: 0 40px 0 20px;
-
-                svg {
-                    height: 125px;
-                    width: 125px;
-                }
-
-                path {
-                    fill: inherit;
+            p {
+                &:first-child {
+                    float: left;
+                    text-align: left;
                 }
             }
         }
-    }
 
+        .about-modal__logo {
+            @include opacity(.9);
+            padding: 0 40px 0 20px;
+
+            svg {
+                height: 125px;
+                width: 125px;
+            }
+
+            path {
+                fill: inherit;
+            }
+        }
+    }
 }

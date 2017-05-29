@@ -8,15 +8,19 @@ import {FormattedMessage} from 'react-intl';
 
 import {browserHistory} from 'react-router/es6';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 import {deleteChannel} from 'actions/channel_actions.jsx';
+import Constants from 'utils/constants.jsx';
 
 export default class DeleteChannelModal extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleDelete = this.handleDelete.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onHide = this.onHide.bind(this);
 
         this.state = {show: true};
@@ -35,12 +39,19 @@ export default class DeleteChannelModal extends React.Component {
         this.setState({show: false});
     }
 
+    handleKeyDown(e) {
+        if (e.keyCode === Constants.KeyCodes.ENTER) {
+            this.handleDelete();
+        }
+    }
+
     render() {
         return (
             <Modal
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onHide}
+                onKeyDown={this.handleKeyDown}
             >
                 <Modal.Header closeButton={true}>
                     <h4 className='modal-title'>
@@ -90,6 +101,6 @@ export default class DeleteChannelModal extends React.Component {
 }
 
 DeleteChannelModal.propTypes = {
-    onHide: React.PropTypes.func.isRequired,
-    channel: React.PropTypes.object.isRequired
+    onHide: PropTypes.func.isRequired,
+    channel: PropTypes.object.isRequired
 };

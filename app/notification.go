@@ -83,7 +83,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 				for _, threadPost := range list.Posts {
 					profile := profileMap[threadPost.UserId]
-					if profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0]) {
+					if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0])) {
 						mentionedUserIds[threadPost.UserId] = true
 					}
 				}
@@ -98,7 +98,9 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		if len(potentialOtherMentions) > 0 {
 			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.([]*model.User)
-				go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
+				if channel.Type != model.CHANNEL_GROUP {
+					go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
+				}
 			}
 		}
 

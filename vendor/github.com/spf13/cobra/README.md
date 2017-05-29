@@ -8,7 +8,7 @@ Many of the most widely used Go projects are built using Cobra including:
 * [Hugo](http://gohugo.io)
 * [rkt](https://github.com/coreos/rkt)
 * [etcd](https://github.com/coreos/etcd)
-* [Docker](https://github.com/docker/docker)
+* [Moby (former Docker)](https://github.com/moby/moby)
 * [Docker (distribution)](https://github.com/docker/distribution)
 * [OpenShift](https://www.openshift.com/)
 * [Delve](https://github.com/derekparker/delve)
@@ -40,7 +40,7 @@ Cobra provides:
 * Fully POSIX-compliant flags (including short & long versions)
 * Nested subcommands
 * Global, local and cascading flags
-* Easy generation of applications & commands with `cobra create appname` & `cobra add cmdname`
+* Easy generation of applications & commands with `cobra init appname` & `cobra add cmdname`
 * Intelligent suggestions (`app srver`... did you mean `app server`?)
 * Automatic help generation for commands and flags
 * Automatic detailed help for `app help [command]`
@@ -48,7 +48,7 @@ Cobra provides:
 * Automatically generated bash autocomplete for your application
 * Automatically generated man pages for your application
 * Command aliases so you can change things without breaking them
-* The flexibilty to define your own help, usage, etc.
+* The flexibility to define your own help, usage, etc.
 * Optional tight integration with [viper](http://github.com/spf13/viper) for 12-factor apps
 
 Cobra has an exceptionally clean interface and simple design without needless
@@ -79,11 +79,11 @@ A few good real world examples may better illustrate this point.
 
 In the following example, 'server' is a command, and 'port' is a flag:
 
-    > hugo server --port=1313
+    hugo server --port=1313
 
 In this command we are telling Git to clone the url bare.
 
-    > git clone URL --bare
+    git clone URL --bare
 
 ## Commands
 
@@ -114,7 +114,7 @@ and flags that are only available to that command.
 In the example above, 'port' is the flag.
 
 Flag functionality is provided by the [pflag
-library](https://github.com/ogier/pflag), a fork of the flag standard library
+library](https://github.com/spf13/pflag), a fork of the flag standard library
 which maintains the same interface while adding POSIX compliance.
 
 ## Usage
@@ -130,7 +130,7 @@ Using Cobra is easy. First, use `go get` to install the latest version
 of the library. This command will install the `cobra` generator executible
 along with the library:
 
-    > go get -v github.com/spf13/cobra/cobra
+    go get -v github.com/spf13/cobra/cobra
 
 Next, include Cobra in your application:
 
@@ -180,7 +180,7 @@ commands you want. It's the easiest way to incorporate Cobra into your applicati
 
 In order to use the cobra command, compile it using the following command:
 
-    > go get github.com/spf13/cobra/cobra
+    go get github.com/spf13/cobra/cobra
 
 This will create the cobra executable under your `$GOPATH/bin` directory.
 
@@ -214,6 +214,10 @@ cobra add serve
 cobra add config
 cobra add create -p 'configCmd'
 ```
+
+*Note: Use camelCase (not snake_case/snake-case) for command names.
+Otherwise, you will become unexpected errors.
+For example, `cobra add add-user` is incorrect, but `cobra add addUser` is valid.*
 
 Once you have run these three commands you would have an app structure that would look like:
 
@@ -259,6 +263,9 @@ license:
     My license is my best friend. It is my life. I must master it as I must
     master my life.
 ```
+
+You can also use built-in licenses. For example, **GPLv2**, **GPLv3**, **LGPL**,
+**AGPL**, **MIT**, **2-Clause BSD** or **3-Clause BSD**.
 
 ## Manually implementing Cobra
 
@@ -853,38 +860,11 @@ out everything Cobra knows about the flags for each command.
 command.DebugFlags()
 ```
 
-## Release Notes
-* **0.9.0** June 17, 2014
-  * flags can appears anywhere in the args (provided they are unambiguous)
-  * --help prints usage screen for app or command
-  * Prefix matching for commands
-  * Cleaner looking help and usage output
-  * Extensive test suite
-* **0.8.0** Nov 5, 2013
-  * Reworked interface to remove commander completely
-  * Command now primary structure
-  * No initialization needed
-  * Usage & Help templates & functions definable at any level
-  * Updated Readme
-* **0.7.0** Sept 24, 2013
-  * Needs more eyes
-  * Test suite
-  * Support for automatic error messages
-  * Support for help command
-  * Support for printing to any io.Writer instead of os.Stderr
-  * Support for persistent flags which cascade down tree
-  * Ready for integration into Hugo
-* **0.1.0** Sept 3, 2013
-  * Implement first draft
-
 ## Extensions
 
 Libraries for extending Cobra:
 
 * [cmdns](https://github.com/gosuri/cmdns): Enables name spacing a command's immediate children. It provides an alternative way to structure subcommands, similar to `heroku apps:create` and `ovrclk clusters:launch`.
-
-## ToDo
-* Launch proper documentation site
 
 ## Contributing
 
@@ -905,6 +885,3 @@ Names in no particular order:
 ## License
 
 Cobra is released under the Apache 2.0 license. See [LICENSE.txt](https://github.com/spf13/cobra/blob/master/LICENSE.txt)
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/spf13/cobra/trend.png)](https://bitdeli.com/free "Bitdeli Badge")

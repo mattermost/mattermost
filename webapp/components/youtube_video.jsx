@@ -7,6 +7,8 @@ import * as Utils from 'utils/utils.jsx';
 
 const ytRegex = /(?:http|https):\/\/(?:www\.|m\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&?]*)/;
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 
 export default class YoutubeVideo extends React.Component {
@@ -233,7 +235,7 @@ export default class YoutubeVideo extends React.Component {
 }
 
 YoutubeVideo.propTypes = {
-    channelId: React.PropTypes.string.isRequired,
-    link: React.PropTypes.string.isRequired,
-    show: React.PropTypes.bool.isRequired
+    channelId: PropTypes.string.isRequired,
+    link: PropTypes.string.isRequired,
+    show: PropTypes.bool.isRequired
 };

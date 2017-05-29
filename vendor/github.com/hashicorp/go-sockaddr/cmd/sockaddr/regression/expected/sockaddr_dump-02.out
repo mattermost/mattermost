@@ -1,0 +1,21 @@
+Attribute     Value
+type          IPv4
+string        127.0.0.2/8
+host          127.0.0.2
+address       127.0.0.2
+port          0
+netmask       255.0.0.0
+network       127.0.0.0
+mask_bits     8
+binary        01111111000000000000000000000010
+hex           7f000002
+first_usable  127.0.0.1
+last_usable   127.255.255.254
+octets        127 0 0 2
+size          16777216
+broadcast     127.255.255.255
+uint32        2130706434
+DialPacket    "udp4" ""
+DialStream    "tcp4" ""
+ListenPacket  "udp4" ""
+ListenStream  "tcp4" ""

@@ -12,7 +12,7 @@ class LocalizationStoreClass extends EventEmitter {
     constructor() {
         super();
 
-        this.currentLocale = 'en';
+        this.currentLocale = '';
         this.currentTranslations = null;
     }
 

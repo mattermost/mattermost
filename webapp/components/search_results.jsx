@@ -15,6 +15,7 @@ import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -267,7 +268,7 @@ export default class SearchResults extends React.Component {
                 </div>
             );
         } else {
-            ctls = results.order.map(function mymap(id) {
+            ctls = results.order.map(function searchResults(id, idx, arr) {
                 const post = results.posts[id];
                 let profile;
                 if (UserStore.getCurrentId() === post.user_id) {
@@ -285,12 +286,16 @@ export default class SearchResults extends React.Component {
                 if (this.state.flaggedPosts) {
                     isFlagged = this.state.flaggedPosts.get(post.id) === 'true';
                 }
+
+                const reverseCount = arr.length - idx - 1;
+
                 return (
                     <SearchResultsItem
                         key={post.id}
                         channel={this.state.channels.get(post.channel_id)}
                         compactDisplay={this.state.compactDisplay}
                         post={post}
+                        lastPostCount={(reverseCount >= 0 && reverseCount < Constants.TEST_ID_COUNT) ? reverseCount : -1}
                         user={profile}
                         term={searchTerm}
                         isMentionSearch={this.props.isMentionSearch}
@@ -327,11 +332,11 @@ export default class SearchResults extends React.Component {
 }
 
 SearchResults.propTypes = {
-    isMentionSearch: React.PropTypes.bool,
-    useMilitaryTime: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.func,
-    shrink: React.PropTypes.func,
-    isFlaggedPosts: React.PropTypes.bool,
-    isPinnedPosts: React.PropTypes.bool,
-    channelDisplayName: React.PropTypes.string.isRequired
+    isMentionSearch: PropTypes.bool,
+    useMilitaryTime: PropTypes.bool.isRequired,
+    toggleSize: PropTypes.func,
+    shrink: PropTypes.func,
+    isFlaggedPosts: PropTypes.bool,
+    isPinnedPosts: PropTypes.bool,
+    channelDisplayName: PropTypes.string.isRequired
 };

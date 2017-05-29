@@ -6,6 +6,7 @@ package utils
 import (
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/mattermost/platform/model"
@@ -65,4 +66,13 @@ func GetIpAddress(r *http.Request) string {
 	}
 
 	return address
+}
+
+func GetHostnameFromSiteURL(siteURL string) string {
+	u, err := url.Parse(siteURL)
+	if err != nil {
+		return ""
+	}
+
+	return u.Hostname()
 }

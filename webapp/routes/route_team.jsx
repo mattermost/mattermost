@@ -94,7 +94,7 @@ function preNeedsTeam(nextState, replace, callback) {
     const team = TeamStore.getByName(teamName);
 
     if (!team) {
-        browserHistory.push('/');
+        browserHistory.push('/?redirect_to=' + encodeURIComponent(nextState.location.pathname));
         return;
     }
 

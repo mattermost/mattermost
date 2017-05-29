@@ -20,6 +20,7 @@ const LAST_VIEVED_EVENT = 'last_viewed';
 import store from 'stores/redux_store.jsx';
 import * as Selectors from 'mattermost-redux/selectors/entities/channels';
 import {ChannelTypes, UserTypes} from 'mattermost-redux/action_types';
+import {batchActions} from 'redux-batched-actions';
 
 class ChannelStoreClass extends EventEmitter {
     constructor(props) {
@@ -456,16 +457,22 @@ class ChannelStoreClass extends EventEmitter {
 
         const channel = {...this.get(id)};
         channel.total_msg_count++;
-        store.dispatch({
-            type: ChannelTypes.RECEIVED_CHANNEL,
-            data: channel
-        });
 
+        const actions = [];
         if (markRead) {
-            this.resetCounts([id]);
-        } else {
-            this.unreadCounts[id].msgs++;
+            actions.push({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+                data: {...member, msg_count: channel.total_msg_count}
+            });
         }
+
+        actions.push(
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL,
+                data: channel
+            }
+        );
+        store.dispatch(batchActions(actions));
     }
 
     incrementMentionsIfNeeded(id, msgProps) {
@@ -553,7 +560,9 @@ ChannelStore.dispatchToken = AppDispatcher.register((payload) => {
         var markRead = id === ChannelStore.getCurrentId() && window.isActive;
 
         if (TeamStore.getCurrentId() === teamId || teamId === '') {
-            ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            if (!markRead) {
+                ChannelStore.incrementMentionsIfNeeded(id, action.websocketMessageProps);
+            }
             ChannelStore.incrementMessages(id, markRead);
         }
         break;

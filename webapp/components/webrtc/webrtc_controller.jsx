@@ -19,6 +19,8 @@ import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Constants, UserStatuses, WebrtcActionTypes} from 'utils/constants.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -1235,9 +1237,9 @@ export default class WebrtcController extends React.Component {
 }
 
 WebrtcController.propTypes = {
-    currentUser: React.PropTypes.object,
-    userId: React.PropTypes.string.isRequired,
-    isCaller: React.PropTypes.bool.isRequired,
-    expanded: React.PropTypes.bool.isRequired,
-    toggleSize: React.PropTypes.func
+    currentUser: PropTypes.object,
+    userId: PropTypes.string.isRequired,
+    isCaller: PropTypes.bool.isRequired,
+    expanded: PropTypes.bool.isRequired,
+    toggleSize: PropTypes.func
 };

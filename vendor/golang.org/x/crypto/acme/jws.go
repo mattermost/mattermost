@@ -134,7 +134,7 @@ func jwsHasher(key crypto.Signer) (string, crypto.Hash) {
 			return "ES256", crypto.SHA256
 		case "P-384":
 			return "ES384", crypto.SHA384
-		case "P-512":
+		case "P-521":
 			return "ES512", crypto.SHA512
 		}
 	}

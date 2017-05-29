@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//Package cobra is a commander providing a simple interface to create powerful modern CLI interfaces.
-//In addition to providing an interface, Cobra simultaneously provides a controller to organize your application code.
+// Package cobra is a commander providing a simple interface to create powerful modern CLI interfaces.
+// In addition to providing an interface, Cobra simultaneously provides a controller to organize your application code.
 package cobra
 
 import (
@@ -28,110 +28,147 @@ import (
 )
 
 // Command is just that, a command for your application.
-// eg.  'go run' ... 'run' is the command. Cobra requires
+// E.g.  'go run ...' - 'run' is the command. Cobra requires
 // you to define the usage and description as part of your command
 // definition to ensure usability.
 type Command struct {
-	// Name is the command name, usually the executable's name.
-	name string
-	// The one-line usage message.
+	// Use is the one-line usage message.
 	Use string
-	// An array of aliases that can be used instead of the first word in Use.
+
+	// Aliases is an array of aliases that can be used instead of the first word in Use.
 	Aliases []string
-	// An array of command names for which this command will be suggested - similar to aliases but only suggests.
+
+	// SuggestFor is an array of command names for which this command will be suggested -
+	// similar to aliases but only suggests.
 	SuggestFor []string
-	// The short description shown in the 'help' output.
+
+	// Short is the short description shown in the 'help' output.
 	Short string
-	// The long message shown in the 'help <this-command>' output.
+
+	// Long is the long message shown in the 'help <this-command>' output.
 	Long string
-	// Examples of how to use the command
+
+	// Example is examples of how to use the command.
 	Example string
-	// List of all valid non-flag arguments that are accepted in bash completions
+
+	// ValidArgs is list of all valid non-flag arguments that are accepted in bash completions
 	ValidArgs []string
-	// List of aliases for ValidArgs. These are not suggested to the user in the bash
-	// completion, but accepted if entered manually.
+
+	// ArgAliases is List of aliases for ValidArgs.
+	// These are not suggested to the user in the bash completion,
+	// but accepted if entered manually.
 	ArgAliases []string
-	// Custom functions used by the bash autocompletion generator
+
+	// BashCompletionFunction is custom functions used by the bash autocompletion generator.
 	BashCompletionFunction string
-	// Is this command deprecated and should print this string when used?
+
+	// Deprecated defines, if this command is deprecated and should print this string when used.
 	Deprecated string
-	// Is this command hidden and should NOT show up in the list of available commands?
+
+	// Hidden defines, if this command is hidden and should NOT show up in the list of available commands.
 	Hidden bool
+
 	// Annotations are key/value pairs that can be used by applications to identify or
-	// group commands
+	// group commands.
 	Annotations map[string]string
-	// Full set of flags
-	flags *flag.FlagSet
-	// Set of flags childrens of this command will inherit
-	pflags *flag.FlagSet
-	// Flags that are declared specifically by this command (not inherited).
-	lflags *flag.FlagSet
-	// Inherited flags.
-	iflags *flag.FlagSet
-	// All persistent flags of cmd's parents.
-	parentsPflags *flag.FlagSet
-	// SilenceErrors is an option to quiet errors down stream
-	SilenceErrors bool
-	// Silence Usage is an option to silence usage when an error occurs.
-	SilenceUsage bool
+
 	// The *Run functions are executed in the following order:
 	//   * PersistentPreRun()
 	//   * PreRun()
 	//   * Run()
 	//   * PostRun()
 	//   * PersistentPostRun()
-	// All functions get the same args, the arguments after the command name
-	// PersistentPreRun: children of this command will inherit and execute
+	// All functions get the same args, the arguments after the command name.
+	//
+	// PersistentPreRun: children of this command will inherit and execute.
 	PersistentPreRun func(cmd *Command, args []string)
-	// PersistentPreRunE: PersistentPreRun but returns an error
+	// PersistentPreRunE: PersistentPreRun but returns an error.
 	PersistentPreRunE func(cmd *Command, args []string) error
 	// PreRun: children of this command will not inherit.
 	PreRun func(cmd *Command, args []string)
-	// PreRunE: PreRun but returns an error
+	// PreRunE: PreRun but returns an error.
 	PreRunE func(cmd *Command, args []string) error
-	// Run: Typically the actual work function. Most commands will only implement this
+	// Run: Typically the actual work function. Most commands will only implement this.
 	Run func(cmd *Command, args []string)
-	// RunE: Run but returns an error
+	// RunE: Run but returns an error.
 	RunE func(cmd *Command, args []string) error
 	// PostRun: run after the Run command.
 	PostRun func(cmd *Command, args []string)
-	// PostRunE: PostRun but returns an error
+	// PostRunE: PostRun but returns an error.
 	PostRunE func(cmd *Command, args []string) error
-	// PersistentPostRun: children of this command will inherit and execute after PostRun
+	// PersistentPostRun: children of this command will inherit and execute after PostRun.
 	PersistentPostRun func(cmd *Command, args []string)
-	// PersistentPostRunE: PersistentPostRun but returns an error
+	// PersistentPostRunE: PersistentPostRun but returns an error.
 	PersistentPostRunE func(cmd *Command, args []string) error
-	// DisableAutoGenTag remove
+
+	// SilenceErrors is an option to quiet errors down stream.
+	SilenceErrors bool
+
+	// SilenceUsage is an option to silence usage when an error occurs.
+	SilenceUsage bool
+
+	// DisableFlagParsing disables the flag parsing.
+	// If this is true all flags will be passed to the command as arguments.
+	DisableFlagParsing bool
+
+	// DisableAutoGenTag defines, if gen tag ("Auto generated by spf13/cobra...")
+	// will be printed by generating docs for this command.
 	DisableAutoGenTag bool
-	// Commands is the list of commands supported by this program.
+
+	// DisableSuggestions disables the suggestions based on Levenshtein distance
+	// that go along with 'unknown command' messages.
+	DisableSuggestions bool
+	// SuggestionsMinimumDistance defines minimum levenshtein distance to display suggestions.
+	// Must be > 0.
+	SuggestionsMinimumDistance int
+
+	// name is the command name, usually the executable's name.
+	name string
+	// commands is the list of commands supported by this program.
 	commands []*Command
-	// Parent Command for this command
+	// parent is a parent command for this command.
 	parent *Command
-	// max lengths of commands' string lengths for use in padding
+	// Max lengths of commands' string lengths for use in padding.
 	commandsMaxUseLen         int
 	commandsMaxCommandPathLen int
 	commandsMaxNameLen        int
-	// is commands slice are sorted or not
+	// commandsAreSorted defines, if command slice are sorted or not.
 	commandsAreSorted bool
 
-	args          []string             // actual args parsed from flags
-	output        io.Writer            // out writer if set in SetOutput(w)
-	usageFunc     func(*Command) error // Usage can be defined by application
-	usageTemplate string               // Can be defined by Application
-	flagErrorFunc func(*Command, error) error
-	helpTemplate  string                   // Can be defined by Application
-	helpFunc      func(*Command, []string) // Help can be defined by application
-	helpCommand   *Command                 // The help command
-	// The global normalization function that we can use on every pFlag set and children commands
+	// args is actual args parsed from flags.
+	args []string
+	// flagErrorBuf contains all error messages from pflag.
+	flagErrorBuf *bytes.Buffer
+	// flags is full set of flags.
+	flags *flag.FlagSet
+	// pflags contains persistent flags.
+	pflags *flag.FlagSet
+	// lflags contains local flags.
+	lflags *flag.FlagSet
+	// iflags contains inherited flags.
+	iflags *flag.FlagSet
+	// parentsPflags is all persistent flags of cmd's parents.
+	parentsPflags *flag.FlagSet
+	// globNormFunc is the global normalization function
+	// that we can use on every pflag set and children commands
 	globNormFunc func(f *flag.FlagSet, name string) flag.NormalizedName
 
-	// Disable the suggestions based on Levenshtein distance that go along with 'unknown command' messages
-	DisableSuggestions bool
-	// If displaying suggestions, allows to set the minimum levenshtein distance to display, must be > 0
-	SuggestionsMinimumDistance int
-
-	// Disable the flag parsing. If this is true all flags will be passed to the command as arguments.
-	DisableFlagParsing bool
+	// output is an output writer defined by user.
+	output io.Writer
+	// usageFunc is usage func defined by user.
+	usageFunc func(*Command) error
+	// usageTemplate is usage template defined by user.
+	usageTemplate string
+	// flagErrorFunc is func defined by user and it's called when the parsing of
+	// flags returns an error.
+	flagErrorFunc func(*Command, error) error
+	// helpTemplate is help template defined by user.
+	helpTemplate string
+	// helpFunc is help func defined by user.
+	helpFunc func(*Command, []string)
+	// helpCommand is command with usage 'help'. If it's not defined by user,
+	// cobra uses default help command.
+	helpCommand *Command
 }
 
 // SetArgs sets arguments for the command. It is set to os.Args[1:] by default, if desired, can be overridden
@@ -327,23 +364,23 @@ func (c *Command) UsageTemplate() string {
 		return c.parent.UsageTemplate()
 	}
 	return `Usage:{{if .Runnable}}
-  {{if .HasAvailableFlags}}{{appendIfNotPresent .UseLine "[flags]"}}{{else}}{{.UseLine}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
-  {{ .CommandPath}} [command]{{end}}{{if gt .Aliases 0}}
+  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
 
 Aliases:
   {{.NameAndAliases}}{{end}}{{if .HasExample}}
 
 Examples:
-{{ .Example }}{{end}}{{if .HasAvailableSubCommands}}
+{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
 
 Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
 
 Flags:
-{{.LocalFlags.FlagUsages | trimRightSpace}}{{end}}{{if .HasAvailableInheritedFlags}}
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
 
 Global Flags:
-{{.InheritedFlags.FlagUsages | trimRightSpace}}{{end}}{{if .HasHelpSubCommands}}
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
 
 Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
@@ -361,13 +398,13 @@ func (c *Command) HelpTemplate() string {
 	if c.HasParent() {
 		return c.parent.HelpTemplate()
 	}
-	return `{{with or .Long .Short }}{{. | trim}}
+	return `{{with (or .Long .Short)}}{{. | trimTrailingWhitespaces}}
 
 {{end}}{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
 }
 
-func hasNoOptDefVal(name string, f *flag.FlagSet) bool {
-	flag := f.Lookup(name)
+func hasNoOptDefVal(name string, fs *flag.FlagSet) bool {
+	flag := fs.Lookup(name)
 	if flag == nil {
 		return false
 	}
@@ -375,14 +412,15 @@ func hasNoOptDefVal(name string, f *flag.FlagSet) bool {
 }
 
 func shortHasNoOptDefVal(name string, fs *flag.FlagSet) bool {
-	result := false
-	fs.VisitAll(func(flag *flag.Flag) {
-		if flag.Shorthand == name && flag.NoOptDefVal != "" {
-			result = true
-			return
-		}
-	})
-	return result
+	if len(name) == 0 {
+		return false
+	}
+
+	flag := fs.ShorthandLookup(name[:1])
+	if flag == nil {
+		return false
+	}
+	return flag.NoOptDefVal != ""
 }
 
 func stripFlags(args []string, c *Command) []string {
@@ -392,37 +430,28 @@ func stripFlags(args []string, c *Command) []string {
 	c.mergePersistentFlags()
 
 	commands := []string{}
-	inQuote := false
 	flags := c.Flags()
 
 Loop:
 	for len(args) > 0 {
 		s := args[0]
 		args = args[1:]
-		if !inQuote {
-			switch {
-			case strings.HasPrefix(s, "\"") || strings.Contains(s, "=\""):
-				inQuote = true
-			case strings.HasPrefix(s, "--") && !strings.Contains(s, "=") && !hasNoOptDefVal(s[2:], flags):
-				// If '--flag arg' then
-				// delete arg from args.
-				fallthrough // (do the same as below)
-			case strings.HasPrefix(s, "-") && !strings.Contains(s, "=") && len(s) == 2 && !shortHasNoOptDefVal(s[1:], flags):
-				// If '-f arg' then
-				// delete 'arg' from args or break the loop if len(args) <= 1.
-				if len(args) <= 1 {
-					break Loop
-				} else {
-					args = args[1:]
-					continue
-				}
-			case s != "" && !strings.HasPrefix(s, "-"):
-				commands = append(commands, s)
+		switch {
+		case strings.HasPrefix(s, "--") && !strings.Contains(s, "=") && !hasNoOptDefVal(s[2:], flags):
+			// If '--flag arg' then
+			// delete arg from args.
+			fallthrough // (do the same as below)
+		case strings.HasPrefix(s, "-") && !strings.Contains(s, "=") && len(s) == 2 && !shortHasNoOptDefVal(s[1:], flags):
+			// If '-f arg' then
+			// delete 'arg' from args or break the loop if len(args) <= 1.
+			if len(args) <= 1 {
+				break Loop
+			} else {
+				args = args[1:]
+				continue
 			}
-		}
-
-		if strings.HasSuffix(s, "\"") && !strings.HasSuffix(s, "\\\"") {
-			inQuote = false
+		case s != "" && !strings.HasPrefix(s, "-"):
+			commands = append(commands, s)
 		}
 	}
 
@@ -567,18 +596,19 @@ func (c *Command) execute(a []string) (err error) {
 
 	// initialize help flag as the last point possible to allow for user
 	// overriding
-	c.initHelpFlag()
+	c.InitDefaultHelpFlag()
 
 	err = c.ParseFlags(a)
 	if err != nil {
 		return c.FlagErrorFunc()(c, err)
 	}
-	// If help is called, regardless of other flags, return we want help
+
+	// If help is called, regardless of other flags, return we want help.
 	// Also say we need help if the command isn't runnable.
 	helpVal, err := c.Flags().GetBool("help")
 	if err != nil {
 		// should be impossible to get here as we always declare a help
-		// flag in initHelpFlag()
+		// flag in InitDefaultHelpFlag()
 		c.Println("\"help\" flag declared as non-bool. Please correct your code")
 		return err
 	}
@@ -718,10 +748,19 @@ func (c *Command) ExecuteC() (cmd *Command, err error) {
 	return cmd, nil
 }
 
-func (c *Command) initHelpFlag() {
+// InitDefaultHelpFlag adds default help flag to c.
+// It is called automatically by executing the c or by calling help and usage.
+// If c already has help flag, it will do nothing.
+func (c *Command) InitDefaultHelpFlag() {
 	c.mergePersistentFlags()
 	if c.Flags().Lookup("help") == nil {
-		c.Flags().BoolP("help", "h", false, "help for "+c.Name())
+		usage := "help for "
+		if c.Name() == "" {
+			usage += "this command"
+		} else {
+			usage += c.Name()
+		}
+		c.Flags().BoolP("help", "h", false, usage)
 	}
 }
 
@@ -745,6 +784,7 @@ func (c *Command) initHelpCmd() {
 					c.Printf("Unknown help topic %#q\n", args)
 					c.Root().Usage()
 				} else {
+					cmd.InitDefaultHelpFlag() // make possible 'help' flag to be shown
 					cmd.Help()
 				}
 			},
@@ -848,34 +888,34 @@ func (c *Command) Print(i ...interface{}) {
 
 // Println is a convenience method to Println to the defined output, fallback to Stderr if not set.
 func (c *Command) Println(i ...interface{}) {
-	str := fmt.Sprintln(i...)
-	c.Print(str)
+	c.Print(fmt.Sprintln(i...))
 }
 
 // Printf is a convenience method to Printf to the defined output, fallback to Stderr if not set.
 func (c *Command) Printf(format string, i ...interface{}) {
-	str := fmt.Sprintf(format, i...)
-	c.Print(str)
+	c.Print(fmt.Sprintf(format, i...))
 }
 
 // CommandPath returns the full path to this command.
 func (c *Command) CommandPath() string {
-	str := c.Name()
-	x := c
-	for x.HasParent() {
-		str = x.parent.Name() + " " + str
-		x = x.parent
+	if c.HasParent() {
+		return c.Parent().CommandPath() + " " + c.Name()
 	}
-	return str
+	return c.Name()
 }
 
 // UseLine puts out the full usage for a given command (including parents).
 func (c *Command) UseLine() string {
-	str := ""
+	var useline string
 	if c.HasParent() {
-		str = c.parent.CommandPath() + " "
+		useline = c.parent.CommandPath() + " " + c.Use
+	} else {
+		useline = c.Use
 	}
-	return str + c.Use
+	if c.HasAvailableFlags() && !strings.Contains(useline, "[flags]") {
+		useline += " [flags]"
+	}
+	return useline
 }
 
 // DebugFlags used to determine which flags have been assigned to which commands
@@ -908,6 +948,7 @@ func (c *Command) DebugFlags() {
 				}
 			})
 		}
+		c.Println(x.flagErrorBuf)
 		if x.HasSubCommands() {
 			for _, y := range x.commands {
 				debugflags(y)
@@ -920,15 +961,14 @@ func (c *Command) DebugFlags() {
 
 // Name returns the command's name: the first word in the use line.
 func (c *Command) Name() string {
-	if c.name != "" {
-		return c.name
+	if c.name == "" {
+		name := c.Use
+		i := strings.Index(name, " ")
+		if i >= 0 {
+			name = name[:i]
+		}
+		c.name = name
 	}
-	name := c.Use
-	i := strings.Index(name, " ")
-	if i >= 0 {
-		name = name[:i]
-	}
-	c.name = name
 	return c.name
 }
 
@@ -1048,7 +1088,10 @@ func (c *Command) GlobalNormalizationFunc() func(f *flag.FlagSet, name string) f
 func (c *Command) Flags() *flag.FlagSet {
 	if c.flags == nil {
 		c.flags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-		c.flags.SetOutput(c.OutOrStderr())
+		if c.flagErrorBuf == nil {
+			c.flagErrorBuf = new(bytes.Buffer)
+		}
+		c.flags.SetOutput(c.flagErrorBuf)
 	}
 
 	return c.flags
@@ -1073,7 +1116,10 @@ func (c *Command) LocalFlags() *flag.FlagSet {
 
 	if c.lflags == nil {
 		c.lflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-		c.lflags.SetOutput(c.OutOrStderr())
+		if c.flagErrorBuf == nil {
+			c.flagErrorBuf = new(bytes.Buffer)
+		}
+		c.lflags.SetOutput(c.flagErrorBuf)
 	}
 	c.lflags.SortFlags = c.Flags().SortFlags
 
@@ -1093,6 +1139,10 @@ func (c *Command) InheritedFlags() *flag.FlagSet {
 
 	if c.iflags == nil {
 		c.iflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+		if c.flagErrorBuf == nil {
+			c.flagErrorBuf = new(bytes.Buffer)
+		}
+		c.iflags.SetOutput(c.flagErrorBuf)
 	}
 
 	local := c.LocalFlags()
@@ -1113,17 +1163,22 @@ func (c *Command) NonInheritedFlags() *flag.FlagSet {
 func (c *Command) PersistentFlags() *flag.FlagSet {
 	if c.pflags == nil {
 		c.pflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-		c.pflags.SetOutput(c.OutOrStderr())
+		if c.flagErrorBuf == nil {
+			c.flagErrorBuf = new(bytes.Buffer)
+		}
+		c.pflags.SetOutput(c.flagErrorBuf)
 	}
 	return c.pflags
 }
 
 // ResetFlags is used in testing.
 func (c *Command) ResetFlags() {
+	c.flagErrorBuf = new(bytes.Buffer)
+	c.flagErrorBuf.Reset()
 	c.flags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-	c.flags.SetOutput(c.OutOrStderr())
+	c.flags.SetOutput(c.flagErrorBuf)
 	c.pflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-	c.pflags.SetOutput(c.OutOrStderr())
+	c.pflags.SetOutput(c.flagErrorBuf)
 }
 
 // HasFlags checks if the command contains any flags (local plus persistent from the entire structure).
@@ -1211,8 +1266,8 @@ func (c *Command) Parent() *Command {
 // mergePersistentFlags merges c.PersistentFlags() to c.Flags()
 // and adds missing persistent flags of all parents.
 func (c *Command) mergePersistentFlags() {
-	c.Flags().AddFlagSet(c.PersistentFlags())
 	c.updateParentsPflags()
+	c.Flags().AddFlagSet(c.PersistentFlags())
 	c.Flags().AddFlagSet(c.parentsPflags)
 }
 
@@ -1222,7 +1277,7 @@ func (c *Command) mergePersistentFlags() {
 func (c *Command) updateParentsPflags() {
 	if c.parentsPflags == nil {
 		c.parentsPflags = flag.NewFlagSet(c.Name(), flag.ContinueOnError)
-		c.parentsPflags.SetOutput(c.OutOrStderr())
+		c.parentsPflags.SetOutput(c.flagErrorBuf)
 		c.parentsPflags.SortFlags = false
 	}
 

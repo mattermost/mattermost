@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -45,5 +46,5 @@ export default class DeleteEmoji extends DeleteModalTrigger {
 }
 
 DeleteEmoji.propTypes = {
-    onDelete: React.PropTypes.func.isRequired
+    onDelete: PropTypes.func.isRequired
 };

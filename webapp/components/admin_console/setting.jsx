@@ -1,34 +1,35 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import React, {PureComponent} from 'react';
+import PropTypes from 'prop-types';
 
-export default class Setting extends React.Component {
+export default class Settings extends PureComponent {
+    static propTypes = {
+        inputId: PropTypes.string,
+        label: PropTypes.node.isRequired,
+        children: PropTypes.node.isRequired,
+        helpText: PropTypes.node
+    };
+
     render() {
+        const {children, helpText, inputId, label} = this.props;
+
         return (
             <div className='form-group'>
                 <label
                     className='control-label col-sm-4'
-                    htmlFor={this.props.inputId}
+                    htmlFor={inputId}
                 >
-                    {this.props.label}
+                    {label}
                 </label>
                 <div className='col-sm-8'>
-                    {this.props.children}
+                    {children}
                     <div className='help-text'>
-                        {this.props.helpText}
+                        {helpText}
                     </div>
                 </div>
             </div>
         );
     }
 }
-Setting.defaultProps = {
-};
-
-Setting.propTypes = {
-    inputId: React.PropTypes.string,
-    label: React.PropTypes.node.isRequired,
-    children: React.PropTypes.node.isRequired,
-    helpText: React.PropTypes.node
-};

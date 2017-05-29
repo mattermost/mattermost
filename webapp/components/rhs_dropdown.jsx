@@ -1,24 +1,30 @@
+import PropTypes from 'prop-types';
+
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as Agent from 'utils/user_agent.jsx';
+import React, {Component} from 'react';
+import {Dropdown} from 'react-bootstrap';
+
+import RhsDropdownButton from 'components/rhs_dropdown_button.jsx';
 import RhsDropdownMenu from 'components/rhs_dropdown_menu.jsx';
 
-import {Dropdown} from 'react-bootstrap';
-import React from 'react';
+import * as Agent from 'utils/user_agent.jsx';
 
-export default class RhsDropdown extends React.Component {
+export default class RhsDropdown extends Component {
+    static propTypes = {
+        dropdownContents: PropTypes.array.isRequired
+    }
+
     constructor(props) {
         super(props);
-
-        this.toggleDropdown = this.toggleDropdown.bind(this);
 
         this.state = {
             showDropdown: false
         };
     }
 
-    toggleDropdown() {
+    toggleDropdown = () => {
         const showDropdown = !this.state.showDropdown;
         if (Agent.isMobile() || Agent.isMobileApp()) {
             const scroll = document.querySelector('.scrollbar--view');
@@ -39,9 +45,7 @@ export default class RhsDropdown extends React.Component {
                 open={this.state.showDropdown}
                 onToggle={this.toggleDropdown}
             >
-                <a
-                    href='#'
-                    className='post__dropdown dropdown-toggle'
+                <RhsDropdownButton
                     bsRole='toggle'
                     onClick={this.toggleDropdown}
                 />
@@ -53,6 +57,3 @@ export default class RhsDropdown extends React.Component {
     }
 }
 
-RhsDropdown.propTypes = {
-    dropdownContents: React.PropTypes.array.isRequired
-};

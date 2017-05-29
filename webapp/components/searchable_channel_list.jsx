@@ -6,6 +6,7 @@ import LoadingScreen from './loading_screen.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {localizeMessage} from 'utils/utils.jsx';
@@ -178,6 +179,7 @@ export default class SearchableChannelList extends React.Component {
                 <div className='filter-row'>
                     <div className='col-sm-12'>
                         <input
+                            id='searchChannelsTextbox'
                             ref='filter'
                             className='form-control filter-textbox'
                             placeholder={localizeMessage('filtered_channels_list.search', 'Search channels')}
@@ -207,10 +209,10 @@ SearchableChannelList.defaultProps = {
 };
 
 SearchableChannelList.propTypes = {
-    channels: React.PropTypes.arrayOf(React.PropTypes.object),
-    channelsPerPage: React.PropTypes.number,
-    nextPage: React.PropTypes.func.isRequired,
-    search: React.PropTypes.func.isRequired,
-    handleJoin: React.PropTypes.func.isRequired,
-    noResultsText: React.PropTypes.object
+    channels: PropTypes.arrayOf(PropTypes.object),
+    channelsPerPage: PropTypes.number,
+    nextPage: PropTypes.func.isRequired,
+    search: PropTypes.func.isRequired,
+    handleJoin: PropTypes.func.isRequired,
+    noResultsText: PropTypes.object
 };

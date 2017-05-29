@@ -9,6 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import {Modal} from 'react-bootstrap';
@@ -16,9 +17,9 @@ import {FormattedMessage} from 'react-intl';
 
 export default class AccessHistoryModal extends React.Component {
     static propTypes = {
-        onHide: React.PropTypes.func.isRequired,
-        actions: React.PropTypes.shape({
-            getUserAudits: React.PropTypes.func.isRequired
+        onHide: PropTypes.func.isRequired,
+        actions: PropTypes.shape({
+            getUserAudits: PropTypes.func.isRequired
         }).isRequired
     }
 

@@ -16,9 +16,9 @@ This library supports TOML version
 Go-toml provides the following features for using data parsed from TOML documents:
 
 * Load TOML documents from files and string data
-* Easily navigate TOML structure using TomlTree
+* Easily navigate TOML structure using Tree
 * Line & column position data for all parsed elements
-* Query support similar to JSON-Path
+* [Query support similar to JSON-Path](query/)
 * Syntax errors contain line and column numbers
 
 Go-toml is designed to help cover use-cases not covered by reflection-based TOML parsing:
@@ -61,7 +61,7 @@ if err != nil {
     password := config.Get("postgres.password").(string)
 
     // or using an intermediate object
-    configTree := config.Get("postgres").(*toml.TomlTree)
+    configTree := config.Get("postgres").(*toml.Tree)
     user = configTree.Get("user").(string)
     password = configTree.Get("password").(string)
     fmt.Println("User is ", user, ". Password is ", password)

@@ -14,6 +14,8 @@ import Constants from 'utils/constants.jsx';
 import {displayUsernameForUser} from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
 
+import PropTypes from 'prop-types';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -27,11 +29,11 @@ const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 
 export default class MoreDirectChannels extends React.Component {
     static propTypes = {
-        startingUsers: React.PropTypes.arrayOf(React.PropTypes.object),
-        onModalDismissed: React.PropTypes.func,
-        actions: React.PropTypes.shape({
-            getProfiles: React.PropTypes.func.isRequired,
-            getProfilesInTeam: React.PropTypes.func.isRequired
+        startingUsers: PropTypes.arrayOf(PropTypes.object),
+        onModalDismissed: PropTypes.func,
+        actions: PropTypes.shape({
+            getProfiles: PropTypes.func.isRequired,
+            getProfilesInTeam: PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -226,6 +228,7 @@ export default class MoreDirectChannels extends React.Component {
             >
                 <ProfilePicture
                     src={`${Client.getUsersRoute()}/${option.id}/image?time=${option.last_picture_update}`}
+                    status={`${UserStore.getStatus(option.id)}`}
                     width='32'
                     height='32'
                 />
