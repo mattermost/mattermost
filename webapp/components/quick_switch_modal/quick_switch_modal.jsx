@@ -11,7 +11,6 @@ import {goToChannel, openDirectChannelToUser} from 'actions/channel_actions.jsx'
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {browserHistory} from 'react-router/es6';
@@ -117,7 +116,7 @@ export default class QuickSwitchModal extends React.PureComponent {
 
     onExited() {
         setTimeout(() => {
-            $('#post_textbox').get(0).focus();
+            document.querySelector('#post_textbox').focus();
         });
     }
 
