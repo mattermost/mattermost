@@ -20,6 +20,8 @@ type SqliteDialect struct {
 	suffix string
 }
 
+func (d SqliteDialect) Name() string { return "SQLiteDialect" }
+
 func (d SqliteDialect) QuerySuffix() string { return ";" }
 
 func (d SqliteDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr bool) string {
