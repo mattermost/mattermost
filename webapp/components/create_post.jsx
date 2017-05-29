@@ -46,6 +46,7 @@ export default class CreatePost extends React.Component {
 
         this.lastTime = 0;
 
+        this.doSubmit = this.doSubmit.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.postMsgKeyPress = this.postMsgKeyPress.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -69,7 +70,9 @@ export default class CreatePost extends React.Component {
         this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
         this.closeEmoji = this.closeEmoji.bind(this);
-        this.handleHide = this.handleHide.bind(this);
+        this.hideNotifyAllModal = this.hideNotifyAllModal.bind(this);
+        this.showNotifyAllModal = this.showNotifyAllModal.bind(this);
+        this.handleNotifyModalCancel = this.handleNotifyModalCancel.bind(this);
         this.handleNotifyAllConfirmation = this.handleNotifyAllConfirmation.bind(this);
 
         PostStore.clearDraftUploads();
@@ -94,7 +97,6 @@ export default class CreatePost extends React.Component {
             showEmojiPicker: false,
             emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW),
             showConfirmModal: false,
-            postMessage: '',
             totalMembers: members
         };
 
@@ -117,34 +119,7 @@ export default class CreatePost extends React.Component {
         }
     }
 
-    handleHide() {
-        this.setState({
-            showConfirmModal: false
-        });
-    }
-
-    handleNotifyAllConfirmation() {
-        this.setState({
-            showConfirmModal: false
-        });
-        this.sendMessage(this.state.postMessage);
-
-        this.setState({
-            message: '',
-            submitting: false,
-            postError: null,
-            fileInfos: [],
-            serverError: null,
-            enableSendButton: false
-        });
-
-        const fasterThanHumanWillClick = 150;
-        const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
-
-        this.focusTextbox(forceFocus);
-    }
-
-    handleSubmit(e) {
+    doSubmit(e) {
         e.preventDefault();
 
         const post = {};
@@ -166,18 +141,6 @@ export default class CreatePost extends React.Component {
         MessageHistoryStore.storeMessageInHistory(this.state.message);
 
         this.setState({submitting: true, serverError: null});
-
-        const stats = ChannelStore.getCurrentStats();
-        const members = stats.member_count - 1;
-
-        if ((post.message.includes('@all') || post.message.includes('@channel')) && members >= 5) {
-            this.setState({
-                showConfirmModal: true,
-                postMessage: post,
-                totalMembers: members
-            });
-            return;
-        }
 
         const isReaction = REACTION_PATTERN.exec(post.message);
         if (post.message.indexOf('/') === 0) {
@@ -235,6 +198,35 @@ export default class CreatePost extends React.Component {
         const forceFocus = (Date.now() - this.lastBlurAt < fasterThanHumanWillClick);
 
         this.focusTextbox(forceFocus);
+    }
+
+    handleNotifyAllConfirmation(e) {
+        this.hideNotifyAllModal();
+        this.doSubmit(e);
+    }
+
+    hideNotifyAllModal() {
+        this.setState({showConfirmModal: false});
+    }
+
+    showNotifyAllModal() {
+        this.setState({showConfirmModal: true});
+    }
+
+    handleSubmit(e) {
+        const stats = ChannelStore.getCurrentStats();
+        const members = stats.member_count - 1;
+
+        if ((this.state.message.includes('@all') || this.state.message.includes('@channel')) && members >= 0) {
+            this.setState({totalMembers: members});
+            this.showNotifyAllModal();
+            return;
+        }
+        this.doSubmit(e);
+    }
+
+    handleNotifyModalCancel() {
+        this.setState({showConfirmModal: false});
     }
 
     sendMessage(post) {
@@ -773,7 +765,7 @@ export default class CreatePost extends React.Component {
                     confirmButton={notifyAllConfirm}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleNotifyAllConfirmation}
-                    onCancel={() => this.setState({showConfirmModal: false})}
+                    onCancel={this.handleNotifyModalCancel}
                 />
             </form>
         );
