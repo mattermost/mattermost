@@ -80,8 +80,8 @@ export default class StatusDropdown extends React.Component {
         ChannelActions.executeCommand(
             `/${status}`,
             args,
-            null,
-            null
+            this.closeDropdown,
+            this.closeDropdown
         );
     }
 
@@ -115,6 +115,10 @@ export default class StatusDropdown extends React.Component {
 
     onToggle = (showDropdown) => {
         this.setState({showDropdown});
+    }
+
+    closeDropdown = () => {
+        this.setState({showDropdown: false});
     }
 
     render() {
