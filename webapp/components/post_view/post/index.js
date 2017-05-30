@@ -7,7 +7,7 @@ import {getCurrentUser, getUser, getStatusForUserId} from 'mattermost-redux/sele
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {Preferences} from 'utils/constants.jsx';
 
 import Post from './post.jsx';
 
