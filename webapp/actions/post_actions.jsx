@@ -10,7 +10,6 @@ import PostStore from 'stores/post_store.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
