@@ -36,10 +36,6 @@ func InitSystem() {
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
 
 	actualGoroutines := runtime.NumGoroutine()
 	if *utils.Cfg.ServiceSettings.GoroutineHealthThreshold <= 0 || actualGoroutines <= *utils.Cfg.ServiceSettings.GoroutineHealthThreshold {
@@ -47,7 +43,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		rdata := map[string]string{}
 		rdata["status"] = "unhealthy"
+
 		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *utils.Cfg.ServiceSettings.GoroutineHealthThreshold)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(model.MapToJson(rdata)))
 	}

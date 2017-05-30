@@ -21,10 +21,7 @@ func TestGetPing(t *testing.T) {
 		*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold
 	}()
 
-	_, resp := Client.GetPing()
-	CheckForbiddenStatus(t, resp)
-
-	status, resp := th.SystemAdminClient.GetPing()
+	status, resp := Client.GetPing()
 	CheckNoError(t, resp)
 	if status != "OK" {
 		t.Fatal("should return OK")
