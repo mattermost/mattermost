@@ -5,7 +5,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import 'bootstrap';
 
-import AnnouncementBar from 'components/announcement_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 import AdminStore from 'stores/admin_store.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
 

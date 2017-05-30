@@ -10,7 +10,7 @@ import UserStore from 'stores/user_store.jsx';
 
 import BackstageSidebar from './components/backstage_sidebar.jsx';
 import BackstageNavbar from './components/backstage_navbar.jsx';
-import AnnouncementBar from 'components/announcement_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 
 export default class BackstageController extends React.Component {
     static get propTypes() {

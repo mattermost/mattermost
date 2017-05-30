@@ -322,7 +322,7 @@
   "admin.general.policy.enableBannerTitle": "Enable Announcement Banner:",
   "admin.general.policy.enableBannerDesc": "Enable an announcement banner across all teams.",
   "admin.general.policy.bannerTextTitle": "Banner Text:",
-  "admin.general.policy.bannerTextDesc": "Text that will appear in the announcement banner. Maximum 100 characters allowed.",
+  "admin.general.policy.bannerTextDesc": "Text that will appear in the announcement banner.",
   "admin.general.policy.bannerColorTitle": "Banner Color:",
   "admin.general.policy.bannerTextColorTitle": "Banner Text Color:",
   "admin.general.policy.allowBannerDismissalTitle": "Allow Banner Dismissal:",
