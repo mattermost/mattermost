@@ -26,6 +26,7 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {
     getProfiles,
@@ -43,11 +44,14 @@ import {
     createUser,
     login,
     loadMe as loadMeRedux,
-    updateUserRoles as updateUserRolesRedux
+    updateUserRoles as updateUserRolesRedux,
+    getStatus,
+    setStatus
 } from 'mattermost-redux/actions/users';
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/teams';
+import {Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
@@ -847,4 +851,24 @@ export function loadMyTeamMembers() {
             AsyncClient.getMyTeamsUnread();
         }
     );
+}
+
+export function autoResetStatus() {
+    return async (doDispatch, doGetState) => {
+        const {currentUserId} = getState().entities.users;
+        const userStatus = await getStatus(currentUserId)(doDispatch, doGetState);
+
+        if (!userStatus.manual) {
+            return userStatus;
+        }
+
+        const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
+
+        if (autoReset) {
+            setStatus({user_id: currentUserId, status: 'online'})(doDispatch, doGetState);
+            return userStatus;
+        }
+
+        return userStatus;
+    };
 }
