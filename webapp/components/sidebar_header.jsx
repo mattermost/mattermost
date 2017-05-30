@@ -71,21 +71,35 @@ export default class SidebarHeader extends React.Component {
         this.refs.dropdown.toggleDropdown();
     }
 
-    render() {
-        var me = this.props.currentUser;
-        if (!me) {
+    renderProfilePicture = () => {
+        var user = this.props.currentUser;
+        if (!user) {
             return null;
         }
-
         const profilePictureSrc = Client.getProfilePictureUrl(
-            me.id, me.last_picture_update);
-        const profilePicture = (
+            user.id, user.last_picture_update);
+        return (
             <img
                 className='user__picture'
                 src={profilePictureSrc}
             />
         );
-        const {status} = this.state;
+    }
+
+    renderStatusDropdown = () => {
+        if (Utils.isMobile()) {
+            return null;
+        }
+        return (
+            <div className='status_dropdown__wrapper'>
+                <StatusDropdown status={this.state.status}/>
+            </div>
+        );
+    }
+
+    render() {
+        const profilePicture = this.renderProfilePicture();
+        const statusDropdown = this.renderStatusDropdown();
 
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
@@ -115,7 +129,7 @@ export default class SidebarHeader extends React.Component {
             <div className='team__header theme'>
                 {tutorialTip}
                 <div className='header__info'>
-                    <div className='user__name'>{'@' + me.username}</div>
+                    <div className='user__name'>{'@' + this.props.currentUser.username}</div>
                     {teamNameWithToolTip}
                 </div>
                 <SidebarHeaderDropdown
@@ -127,11 +141,7 @@ export default class SidebarHeader extends React.Component {
                 />
                 <div className='status-wrapper'>
                     {profilePicture}
-                    <div className='status_dropdown__wrapper'>
-                        <StatusDropdown
-                            status={status}
-                        />
-                    </div>
+                    {statusDropdown}
                 </div>
             </div>
         );
