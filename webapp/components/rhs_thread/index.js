@@ -11,11 +11,15 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state, ownProps) {
         const selected = getPost(state, state.views.rhs.selectedPostId);
+        let posts = [];
+        if (selected) {
+            posts = getPostsForThread(state, {rootId: selected.id, channelId: selected.channel_id});
+        }
 
         return {
             ...ownProps,
             selected,
-            posts: getPostsForThread(state, {rootId: selected.id, channelId: selected.channel_id})
+            posts
         };
     };
 }

@@ -3,11 +3,17 @@
 
 import {combineReducers} from 'redux';
 import {ActionTypes} from 'utils/constants.jsx';
+import {PostTypes} from 'mattermost-redux/action_types';
 
 function selectedPostId(state = '', action) {
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return action.postId;
+    case PostTypes.REMOVE_POST:
+        if (action.data && action.data.id === state) {
+            return '';
+        }
+        return state;
     default:
         return state;
     }

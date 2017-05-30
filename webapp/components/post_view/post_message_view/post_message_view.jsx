@@ -5,12 +5,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
 
-import Constants from 'utils/constants.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
+import {Posts} from 'mattermost-redux/constants';
 import store from 'stores/redux_store.jsx';
 
 import {renderSystemMessage} from './system_message_helpers.jsx';
@@ -97,7 +97,7 @@ export default class PostMessageView extends React.PureComponent {
     }
 
     render() {
-        if (this.props.post.state === Constants.POST_DELETED) {
+        if (this.props.post.state === Posts.POST_DELETED) {
             return this.renderDeletedPost();
         }
 

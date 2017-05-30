@@ -7,6 +7,7 @@ import ProfilePicture from 'components/profile_picture.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+import {Posts} from 'mattermost-redux/constants';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
@@ -134,7 +135,7 @@ export default class Post extends React.PureComponent {
     getClassName = (post, isSystemMessage, fromWebhook) => {
         let className = 'post';
 
-        if (post.failed) {
+        if (post.failed || post.state === Posts.POST_DELETED) {
             className += ' post--hide-controls';
         }
 
