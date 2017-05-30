@@ -8,15 +8,37 @@ import PropTypes from 'prop-types';
 import {ChromePicker} from 'react-color';
 
 export default class ColorSetting extends React.PureComponent {
-    static get propTypes() {
-        return {
-            id: PropTypes.string.isRequired,
-            label: PropTypes.node.isRequired,
-            helpText: PropTypes.node,
-            value: PropTypes.string.isRequired,
-            onChange: PropTypes.func,
-            disabled: PropTypes.bool
-        };
+    static propTypes = {
+
+        /*
+         * The unique identifer for the admin console setting
+         */
+        id: PropTypes.string.isRequired,
+
+        /*
+         * The text/jsx display name for the setting
+         */
+        label: PropTypes.node.isRequired,
+
+        /*
+         * The text/jsx help text to display underneath the setting
+         */
+        helpText: PropTypes.node,
+
+        /*
+         * The hex color value
+         */
+        value: PropTypes.string.isRequired,
+
+        /*
+         * Function called when the input changes
+         */
+        onChange: PropTypes.func,
+
+        /*
+         * Set to disable the setting
+         */
+        disabled: PropTypes.bool
     }
 
     constructor(props) {

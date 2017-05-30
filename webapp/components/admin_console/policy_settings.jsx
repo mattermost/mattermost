@@ -358,11 +358,12 @@ export default class PolicySettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.general.policy.bannerTextDesc'
-                            defaultMessage='Text that will appear in the announcement banner. Maximum 100 characters allowed.'
+                            defaultMessage='Text that will appear in the announcement banner.'
                         />
                     }
                     value={this.state.bannerText}
                     onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
                 />
                 <ColorSetting
                     id='bannerColor'
@@ -374,6 +375,7 @@ export default class PolicySettings extends AdminSettings {
                     }
                     value={this.state.bannerColor}
                     onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
                 />
                 <ColorSetting
                     id='bannerTextColor'
@@ -385,6 +387,7 @@ export default class PolicySettings extends AdminSettings {
                     }
                     value={this.state.bannerTextColor}
                     onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
                 />
                 <BooleanSetting
                     id='allowBannerDismissal'
@@ -402,6 +405,7 @@ export default class PolicySettings extends AdminSettings {
                     }
                     value={this.state.allowBannerDismissal}
                     onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
                 />
             </SettingsGroup>
         );

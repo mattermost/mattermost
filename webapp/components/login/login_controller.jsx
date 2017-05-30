@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import LoginMfa from './components/login_mfa.jsx';
-import AnnouncementBar from 'components/announcement_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';

@@ -173,7 +173,7 @@
         "BannerText": "",
         "BannerColor": "#f2a93b",
         "BannerTextColor": "#333333",
-        "AllowBannerDismissal": false
+        "AllowBannerDismissal": true
     },
     "GitLabSettings": {
         "Enable": false,

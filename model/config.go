@@ -842,7 +842,7 @@ func (o *Config) SetDefaults() {
 
 	if o.AnnouncementSettings.AllowBannerDismissal == nil {
 		o.AnnouncementSettings.AllowBannerDismissal = new(bool)
-		*o.AnnouncementSettings.AllowBannerDismissal = false
+		*o.AnnouncementSettings.AllowBannerDismissal = true
 	}
 
 	if o.LdapSettings.Enable == nil {

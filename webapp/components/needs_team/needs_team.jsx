@@ -23,7 +23,7 @@ import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
-import AnnouncementBar from 'components/announcement_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
