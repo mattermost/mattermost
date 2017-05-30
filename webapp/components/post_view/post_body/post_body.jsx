@@ -3,7 +3,7 @@
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
-import Constants from 'utils/constants.jsx';
+import {Posts} from 'mattermost-redux/constants';
 
 import CommentedOnFilesMessageContainer from 'components/post_view/commented_on_files_message_container';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -140,7 +140,7 @@ export default class PostBody extends React.PureComponent {
         }
 
         let fileAttachmentHolder = null;
-        if (((post.file_ids && post.file_ids.length > 0) || (post.filenames && post.filenames.length > 0)) && this.props.post.state !== Constants.POST_DELETED) {
+        if (((post.file_ids && post.file_ids.length > 0) || (post.filenames && post.filenames.length > 0)) && this.props.post.state !== Posts.POST_DELETED) {
             fileAttachmentHolder = (
                 <FileAttachmentListContainer
                     post={post}
@@ -164,7 +164,7 @@ export default class PostBody extends React.PureComponent {
         );
 
         let messageWithAdditionalContent;
-        if (this.props.post.state === Constants.POST_DELETED) {
+        if (this.props.post.state === Posts.POST_DELETED) {
             messageWithAdditionalContent = messageWrapper;
         } else {
             messageWithAdditionalContent = (
