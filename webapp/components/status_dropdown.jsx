@@ -44,7 +44,7 @@ export default class StatusDropdown extends React.Component {
             return (
                 <span className={'status status-edit'}>
                     <i
-                        className={'fa fa-pencil'}
+                        className={'fa fa-caret-down'}
                         style={iconStyle}
                     />
                 </span>
