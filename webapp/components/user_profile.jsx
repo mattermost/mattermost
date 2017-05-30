@@ -87,7 +87,6 @@ export default class UserProfile extends React.Component {
             >
                 <div
                     className='user-popover'
-                    id={'profile_' + this.uniqueId}
                 >
                     {name}
                 </div>
