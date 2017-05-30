@@ -173,6 +173,7 @@ export default class SidebarRightMenu extends React.Component {
         let joinAnotherTeamLink;
         let isAdmin = false;
         let isSystemAdmin = false;
+        let createTeam = null;
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -259,6 +260,25 @@ export default class SidebarRightMenu extends React.Component {
                             <FormattedMessage
                                 id='navbar_dropdown.join'
                                 defaultMessage='Join Another Team'
+                            />
+                        </Link>
+                    </li>
+                );
+            }
+
+            if (global.window.mm_config.EnableTeamCreation === 'true' || isAdmin) {
+                createTeam = (
+                    <li key='newTeam_li'>
+                        <Link
+                            id='createTeam'
+                            key='newTeam_a'
+                            to='/create_team'
+                            onClick={this.handleClick}
+                        >
+                            <i className='icon fa fa-plus-square'/>
+                            <FormattedMessage
+                                id='navbar_dropdown.create'
+                                defaultMessage='Create a New Team'
                             />
                         </Link>
                     </li>
@@ -410,7 +430,7 @@ export default class SidebarRightMenu extends React.Component {
         }
 
         let teamDivider = null;
-        if (teamSettingsLink || manageLink || joinAnotherTeamLink) {
+        if (teamSettingsLink || manageLink || joinAnotherTeamLink || createTeam) {
             teamDivider = <li className='divider'/>;
         }
 
@@ -480,6 +500,7 @@ export default class SidebarRightMenu extends React.Component {
                         {teamDivider}
                         {teamSettingsLink}
                         {manageLink}
+                        {createTeam}
                         {joinAnotherTeamLink}
                         {consoleDivider}
                         {consoleLink}
