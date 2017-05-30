@@ -1028,11 +1028,10 @@
     }
 
     .post__header {
-        list-style: none;
         margin-bottom: 2px;
         padding: 0;
 
-        li {
+        > div {
             display: inline-block;
             vertical-align: top;
         }

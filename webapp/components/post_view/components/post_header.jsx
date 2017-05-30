@@ -53,7 +53,7 @@ export default class PostHeader extends React.Component {
                 );
             }
 
-            botIndicator = <li className='bot-indicator'>{Constants.BOT_NAME}</li>;
+            botIndicator = <div className='bot-indicator'>{Constants.BOT_NAME}</div>;
         } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
@@ -75,10 +75,10 @@ export default class PostHeader extends React.Component {
         }
 
         return (
-            <ul className='post__header'>
-                <li className='col col__name'>{userProfile}{colon}</li>
+            <div className='post__header'>
+                <div className='col col__name'>{userProfile}{colon}</div>
                 {botIndicator}
-                <li className='col'>
+                <div className='col'>
                     <PostInfo
                         post={post}
                         lastPostCount={this.props.lastPostCount}
@@ -92,8 +92,8 @@ export default class PostHeader extends React.Component {
                         useMilitaryTime={this.props.useMilitaryTime}
                         isFlagged={this.props.isFlagged}
                     />
-                </li>
-            </ul>
+                </div>
+            </div>
         );
     }
 }
