@@ -241,17 +241,19 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
-		"enable_public_links": utils.Cfg.FileSettings.EnablePublicLink,
-		"driver_name":         utils.Cfg.FileSettings.DriverName,
-		"amazon_s3_ssl":       *utils.Cfg.FileSettings.AmazonS3SSL,
-		"amazon_s3_signv2":    *utils.Cfg.FileSettings.AmazonS3SignV2,
-		"thumbnail_width":     utils.Cfg.FileSettings.ThumbnailWidth,
-		"thumbnail_height":    utils.Cfg.FileSettings.ThumbnailHeight,
-		"preview_width":       utils.Cfg.FileSettings.PreviewWidth,
-		"preview_height":      utils.Cfg.FileSettings.PreviewHeight,
-		"profile_width":       utils.Cfg.FileSettings.ProfileWidth,
-		"profile_height":      utils.Cfg.FileSettings.ProfileHeight,
-		"max_file_size":       *utils.Cfg.FileSettings.MaxFileSize,
+
+		"enable_public_links":           utils.Cfg.FileSettings.EnablePublicLink,
+		"driver_name":                   utils.Cfg.FileSettings.DriverName,
+		"amazon_s3_ssl":                 *utils.Cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_signv2":              *utils.Cfg.FileSettings.AmazonS3SignV2,
+		"enable_client_side_encryption": *utils.Cfg.FileSettings.EnableClientSideEncryption,
+		"thumbnail_width":               utils.Cfg.FileSettings.ThumbnailWidth,
+		"thumbnail_height":              utils.Cfg.FileSettings.ThumbnailHeight,
+		"preview_width":                 utils.Cfg.FileSettings.PreviewWidth,
+		"preview_height":                utils.Cfg.FileSettings.PreviewHeight,
+		"profile_width":                 utils.Cfg.FileSettings.ProfileWidth,
+		"profile_height":                utils.Cfg.FileSettings.ProfileHeight,
+		"max_file_size":                 *utils.Cfg.FileSettings.MaxFileSize,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{

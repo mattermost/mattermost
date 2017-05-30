@@ -587,6 +587,9 @@ func Desanitize(cfg *model.Config) {
 	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = Cfg.FileSettings.AmazonS3SecretAccessKey
 	}
+	if *cfg.FileSettings.ClientSideEncryptionKey == model.FAKE_SETTING {
+		*cfg.FileSettings.ClientSideEncryptionKey = *Cfg.FileSettings.ClientSideEncryptionKey
+	}
 
 	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
 		cfg.EmailSettings.InviteSalt = Cfg.EmailSettings.InviteSalt

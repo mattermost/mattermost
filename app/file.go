@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	s3 "github.com/minio/minio-go"
+	"github.com/minio/minio-go/pkg/encrypt"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 )
@@ -71,18 +72,30 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		encrypted := *utils.Cfg.FileSettings.EnableClientSideEncryption
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 		if err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		}
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
-		minioObject, err := s3Clnt.GetObject(bucket, path)
-		defer minioObject.Close()
+
+		var reader io.ReadCloser
+		if encrypted {
+			symmetricKey := encrypt.NewSymmetricKey([]byte(*utils.Cfg.FileSettings.ClientSideEncryptionKey))
+			cbcMaterials, err := encrypt.NewCBCSecureMaterials(symmetricKey)
+			if err != nil {
+				return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+			}
+			reader, err = s3Clnt.GetEncryptedObject(bucket, path, cbcMaterials)
+		} else {
+			reader, err = s3Clnt.GetObject(bucket, path)
+		}
+		defer reader.Close()
 		if err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		}
-		if f, err := ioutil.ReadAll(minioObject); err != nil {
+		if f, err := ioutil.ReadAll(reader); err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		} else {
 			return f, nil
@@ -139,6 +152,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		encrypted := *utils.Cfg.FileSettings.EnableClientSideEncryption
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 		if err != nil {
@@ -148,11 +162,23 @@ func WriteFile(f []byte, path string) *model.AppError {
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 		ext := filepath.Ext(path)
 
+		metaData := S3Metadata("binary/octet-stream")
+
 		if model.IsFileExtImage(ext) {
-			_, err = s3Clnt.PutObject(bucket, path, bytes.NewReader(f), model.GetImageMimeType(ext))
-		} else {
-			_, err = s3Clnt.PutObject(bucket, path, bytes.NewReader(f), "binary/octet-stream")
+			metaData = S3Metadata(model.GetImageMimeType(ext))
 		}
+
+		if encrypted {
+			symmetricKey := encrypt.NewSymmetricKey([]byte(*utils.Cfg.FileSettings.ClientSideEncryptionKey))
+			cbcMaterials, err := encrypt.NewCBCSecureMaterials(symmetricKey)
+			if err != nil {
+				return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
+			}
+			_, err = s3Clnt.PutEncryptedObject(bucket, path, bytes.NewReader(f), cbcMaterials, metaData, nil)
+		} else {
+			_, err = s3Clnt.PutObjectWithMetadata(bucket, path, bytes.NewReader(f), metaData, nil)
+		}
+
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
@@ -606,4 +632,10 @@ func GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	} else {
 		return result.Data.(*model.FileInfo), nil
 	}
+}
+
+func S3Metadata(contentType string) map[string][]string {
+	metaData := make(map[string][]string)
+	metaData["Content-Type"] = []string{contentType}
+	return metaData
 }

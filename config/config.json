@@ -107,6 +107,8 @@
         "Symbol": false
     },
     "FileSettings": {
+        "EnableClientSideEncryption": false,
+        "ClientSideEncryptionKey": "",
         "EnableFileAttachments": true,
         "MaxFileSize": 52428800,
         "DriverName": "local",
