@@ -208,14 +208,14 @@ export default class StorageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.amazonS3SignV2Title'
-                            defaultMessage='Enable Signature V2 for S3 Connections:'
+                            defaultMessage='Enable Legacy Signature V2 for S3 Connections:'
                         />
                     }
                     placeholder={Utils.localizeMessage('admin.image.amazonS3SignV2Example', 'Ex "false"')}
                     helpText={
                         <FormattedMessage
                             id='admin.image.amazonS3SignV2Desc'
-                            defaultMessage='When true, allow signature v2 to Amazon S3. Defaults to Signature V4 requests.'
+                            defaultMessage='When true, allow legacy signature V2 to Amazon S3.'
                         />
                     }
                     value={this.state.amazonS3SignV2}

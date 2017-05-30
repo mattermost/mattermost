@@ -397,6 +397,11 @@
   "admin.image.amazonS3RegionTitle": "Amazon S3 Region:",
   "admin.image.amazonS3SSLDescription": "When false, allow insecure connections to Amazon S3. Defaults to secure connections only.",
   "admin.image.amazonS3SSLExample": "E.g.: \"true\"",
+
+"admin.image.amazonS3SignV2Title": "Enable Legacy Signature V2 for S3 Connections:",
+"admin.image.amazonS3SignV2Example": "E.g.: \"false\"",
+"admin.image.amazonS3SignV2Desc": "When true, allow legacy signature V2 to Amazon S3.",
+
   "admin.image.amazonS3SSLTitle": "Enable Secure Amazon S3 Connections:",
   "admin.image.amazonS3SecretDescription": "Obtain this credential from your Amazon EC2 administrator.",
   "admin.image.amazonS3SecretExample": "E.g.: \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
