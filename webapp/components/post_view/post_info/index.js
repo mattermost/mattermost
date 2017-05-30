@@ -7,7 +7,7 @@ import {removePost, addReaction} from 'mattermost-redux/actions/posts';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {Preferences} from 'utils/constants.jsx';
 
 import PostInfo from './post_info.jsx';
 
