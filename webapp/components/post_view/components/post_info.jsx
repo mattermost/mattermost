@@ -388,16 +388,16 @@ export default class PostInfo extends React.Component {
         let options;
         if (isEphemeral) {
             options = (
-                <li className='col col__remove'>
+                <div className='col col__remove'>
                     {this.createRemovePostButton()}
-                </li>
+                </div>
             );
         } else if (!isPending) {
             const dropdown = this.createDropdown(isSystemMessage);
 
             if (dropdown) {
                 options = (
-                    <li className='col col__reply'>
+                    <div className='col col__reply'>
                         <div
                             className='dropdown'
                             ref='dotMenu'
@@ -406,7 +406,7 @@ export default class PostInfo extends React.Component {
                         </div>
                         {react}
                         {comments}
-                    </li>
+                    </div>
                 );
             }
         }
@@ -424,8 +424,8 @@ export default class PostInfo extends React.Component {
         }
 
         return (
-            <ul className='post__header--info'>
-                <li className='col'>
+            <div className='post__header--info'>
+                <div className='col'>
                     <PostTime
                         eventTime={post.create_at}
                         sameUser={this.props.sameUser}
@@ -442,9 +442,9 @@ export default class PostInfo extends React.Component {
                         isFlagged={this.props.isFlagged}
                         isEphemeral={isEphemeral}
                     />
-                </li>
+                </div>
                 {options}
-            </ul>
+            </div>
         );
     }
 }
