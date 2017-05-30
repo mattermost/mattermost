@@ -21,6 +21,14 @@ const BAR_CRITICAL_TYPE = 'critical';
 const BAR_ANNOUNCEMENT_TYPE = 'announcement';
 
 export default class AnnouncementBar extends React.PureComponent {
+    static propTypes = {
+
+        /*
+         * Set if the user is logged in
+         */
+        isLoggedIn: React.PropTypes.bool.isRequired
+    }
+
     constructor() {
         super();
 
@@ -150,6 +158,10 @@ export default class AnnouncementBar extends React.PureComponent {
 
     render() {
         if (!this.isValidState(this.state)) {
+            return <div/>;
+        }
+
+        if (!this.props.isLoggedIn && this.state.type === BAR_ANNOUNCEMENT_TYPE) {
             return <div/>;
         }
 

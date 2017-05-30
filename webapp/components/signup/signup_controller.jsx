@@ -18,7 +18,7 @@ import {addUserToTeamFromInvite, getInviteInfo} from 'actions/team_actions.jsx';
 import {loadMe} from 'actions/user_actions.jsx';
 
 import logoImage from 'images/logo.png';
-import AnnouncementBar from 'components/announcement_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
