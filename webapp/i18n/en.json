@@ -2257,7 +2257,7 @@
   "user.settings.modal.security": "Security",
   "user.settings.modal.title": "Account Settings",
   "user.settings.notifications.allActivity": "For all activity",
-  "user.settings.notifications.channelWide": "Channel-wide mentions \"@channel\", \"@all\"",
+  "user.settings.notifications.channelWide": "Channel-wide mentions \"@channel\", \"@all\", \"@here\"",
   "user.settings.notifications.close": "Close",
   "user.settings.notifications.comments": "Reply notifications",
   "user.settings.notifications.commentsAny": "Trigger notifications on messages in reply threads that I start or participate in",
