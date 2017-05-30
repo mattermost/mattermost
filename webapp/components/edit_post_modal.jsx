@@ -21,6 +21,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
+import store from 'stores/redux_store.jsx';
+const getState = store.getState;
+
+import * as Selectors from 'mattermost-redux/selectors/entities/posts';
+
 export default class EditPostModal extends React.Component {
     constructor(props) {
         super(props);
@@ -85,7 +90,7 @@ export default class EditPostModal extends React.Component {
             Reflect.deleteProperty(tempState, 'editText');
             BrowserStore.setItem('edit_state_transfer', tempState);
             $('#edit_post').modal('hide');
-            GlobalActions.showDeletePostModal(PostStore.getPost(this.state.channel_id, this.state.post_id), this.state.comments);
+            GlobalActions.showDeletePostModal(Selectors.getPost(getState(), this.state.post_id), this.state.comments);
             return;
         }
 
@@ -119,7 +124,7 @@ export default class EditPostModal extends React.Component {
     }
 
     handleEditPostEvent(options) {
-        var post = PostStore.getPost(options.channelId, options.postId);
+        const post = Selectors.getPost(getState(), options.postId);
         if (global.window.mm_license.IsLicensed === 'true') {
             if (global.window.mm_config.AllowEditPost === Constants.ALLOW_EDIT_POST_NEVER) {
                 return;
