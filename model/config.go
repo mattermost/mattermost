@@ -238,6 +238,7 @@ type FileSettings struct {
 	AmazonS3Region          string
 	AmazonS3Endpoint        string
 	AmazonS3SSL             *bool
+	AmazonS3SignV2          *bool
 }
 
 type EmailSettings struct {
@@ -500,6 +501,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
+	}
+
+	if o.FileSettings.AmazonS3SignV2 == nil {
+		o.FileSettings.AmazonS3SignV2 = new(bool)
+		// Signature v2 is not enabled by default.
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
