@@ -12,6 +12,7 @@ import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 import Client from 'client/web_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import {Posts} from 'mattermost-redux/constants';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
@@ -1195,7 +1196,7 @@ export function clearFileInput(elm) {
 }
 
 export function isPostEphemeral(post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Constants.POST_DELETED;
+    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
 }
 
 export function getRootId(post) {

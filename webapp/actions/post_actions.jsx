@@ -249,9 +249,15 @@ export function emitEmojiPosted(emoji) {
 }
 
 export function deletePost(channelId, post, success) {
-    deletePostRedux(post)(dispatch, getState).then(
-        (data) => {
-            GlobalActions.emitRemovePost(post);
+    const {currentUserId} = getState().entities.users;
+
+    let hardDelete = false;
+    if (post.user_id === currentUserId) {
+        hardDelete = true;
+    }
+
+    deletePostRedux(post, hardDelete)(dispatch, getState).then(
+        () => {
             if (post.id === getState().views.rhs.selectedPostId) {
                 dispatch({
                     type: ActionTypes.SELECT_POST,
@@ -259,7 +265,12 @@ export function deletePost(channelId, post, success) {
                 });
             }
 
-            if (data & success) {
+            dispatch({
+                type: PostTypes.REMOVE_POST,
+                data: post
+            });
+
+            if (success) {
                 success();
             }
         }

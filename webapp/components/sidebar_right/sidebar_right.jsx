@@ -76,7 +76,7 @@ export default class SidebarRight extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return !Utils.areObjectsEqual(nextState, this.state);
+        return !Utils.areObjectsEqual(nextState, this.state) || !Utils.areObjectsEqual(nextProps, this.props);
     }
 
     componentWillUpdate(nextProps, nextState) {
