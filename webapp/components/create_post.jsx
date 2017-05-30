@@ -120,7 +120,9 @@ export default class CreatePost extends React.Component {
     }
 
     doSubmit(e) {
-        e.preventDefault();
+        if (e) {
+            e.preventDefault();
+        }
 
         const post = {};
         post.file_ids = [];

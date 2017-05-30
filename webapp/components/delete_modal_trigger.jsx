@@ -28,8 +28,8 @@ export default class DeleteModalTrigger extends React.Component {
         });
     }
 
-    handleConfirm(e) {
-        this.props.onDelete(e);
+    handleConfirm() {
+        this.props.onDelete();
     }
 
     handleCancel() {
