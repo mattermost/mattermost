@@ -16,11 +16,23 @@ export default class ConfirmModal extends React.Component {
     }
 
     componentDidMount() {
-        document.addEventListener('keypress', this.handleKeypress);
+        if (this.props.show) {
+            document.addEventListener('keypress', this.handleKeypress);
+        }
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keypress', this.handleKeypress);
+        if (!this.props.show) {
+            document.removeEventListener('keypress', this.handleKeypress);
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.props.show && !nextProps.show) {
+            document.removeEventListener('keypress', this.handleKeypress);
+        } else if (!this.props.show && nextProps.show) {
+            document.addEventListener('keypress', this.handleKeypress);
+        }
     }
 
     handleKeypress(e) {
