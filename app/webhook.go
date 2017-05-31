@@ -4,9 +4,7 @@
 package app
 
 import (
-	"crypto/tls"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
@@ -87,23 +85,16 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 				body = strings.NewReader(payload.ToFormValues())
 				contentType = "application/x-www-form-urlencoded"
 			}
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-			}
-			client := &http.Client{Transport: tr}
 
 			for _, url := range hook.CallbackURLs {
 				go func(url string) {
 					req, _ := http.NewRequest("POST", url, body)
 					req.Header.Set("Content-Type", contentType)
 					req.Header.Set("Accept", "application/json")
-					if resp, err := client.Do(req); err != nil {
+					if resp, err := utils.HttpClient().Do(req); err != nil {
 						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
 					} else {
-						defer func() {
-							ioutil.ReadAll(resp.Body)
-							resp.Body.Close()
-						}()
+						defer CloseBody(resp)
 						respProps := model.MapFromJson(resp.Body)
 
 						if text, ok := respProps["text"]; ok {

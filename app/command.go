@@ -4,7 +4,6 @@
 package app
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -204,18 +203,13 @@ func ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.App
 						method = "GET"
 					}
 
-					tr := &http.Transport{
-						TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-					}
-					client := &http.Client{Transport: tr}
-
 					req, _ := http.NewRequest(method, cmd.URL, strings.NewReader(p.Encode()))
 					req.Header.Set("Accept", "application/json")
 					if cmd.Method == model.COMMAND_METHOD_POST {
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 					}
 
-					if resp, err := client.Do(req); err != nil {
+					if resp, err := utils.HttpClient().Do(req); err != nil {
 						return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 					} else {
 						if resp.StatusCode == http.StatusOK {
