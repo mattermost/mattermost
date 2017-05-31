@@ -8,7 +8,6 @@ import ChannelStore from 'stores/channel_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
-const PostTypes = Constants.PostTypes;
 
 import {getSiteURL} from 'utils/url.jsx';
 const ActionTypes = Constants.ActionTypes;
