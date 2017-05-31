@@ -67,7 +67,7 @@ export default class Navbar extends React.Component {
         this.showMembersModal = this.showMembersModal.bind(this);
         this.hideMembersModal = this.hideMembersModal.bind(this);
 
-        this.showQuickSwitchModal = this.showQuickSwitchModal.bind(this);
+        this.toggleQuickSwitchModal = this.toggleQuickSwitchModal.bind(this);
         this.hideQuickSwitchModal = this.hideQuickSwitchModal.bind(this);
         this.handleQuickSwitchKeyPress = this.handleQuickSwitchKeyPress.bind(this);
 
@@ -111,7 +111,7 @@ export default class Navbar extends React.Component {
         UserStore.addStatusesChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
-        ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.showQuickSwitchModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
@@ -122,7 +122,7 @@ export default class Navbar extends React.Component {
         UserStore.removeStatusesChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
-        ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.showQuickSwitchModal);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
         document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
@@ -226,14 +226,14 @@ export default class Navbar extends React.Component {
                 if (getMyTeams(store.getState()).length <= 1) {
                     return;
                 }
-                this.showQuickSwitchModal('team');
+                this.toggleQuickSwitchModal('team');
             } else {
-                this.showQuickSwitchModal('channel');
+                this.toggleQuickSwitchModal('channel');
             }
         }
     }
 
-    showQuickSwitchModal(mode = 'channel') {
+    toggleQuickSwitchModal(mode = 'channel') {
         if (this.state.showQuickSwitchModal) {
             this.setState({showQuickSwitchModal: false, quickSwitchMode: 'channel'});
         } else {
