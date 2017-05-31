@@ -4,7 +4,6 @@
 package app
 
 import (
-	"crypto/tls"
 	"encoding/base64"
 	"net/http"
 	"strings"
@@ -25,9 +24,5 @@ func RevokeWebrtcToken(sessionId string) {
 	rq.Header.Set("Content-Type", "application/json")
 
 	// we do not care about the response
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-	}
-	httpClient := &http.Client{Transport: tr}
-	httpClient.Do(rq)
+	utils.HttpClient().Do(rq)
 }
