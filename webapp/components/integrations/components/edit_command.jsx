@@ -719,7 +719,7 @@ export default class EditCommand extends React.Component {
                             <ConfirmModal
                                 title={confirmTitle}
                                 message={confirmMessage}
-                                confirmButton={confirmButton}
+                                confirmButtonText={confirmButton}
                                 show={this.state.showConfirmModal}
                                 onConfirm={this.handleUpdate}
                                 onCancel={this.confirmModalDismissed}
