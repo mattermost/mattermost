@@ -792,6 +792,10 @@
     "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
   },
   {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
+  },
+  {
     "id": "api.command_shortcuts.nav.unread_next",
     "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
   },
