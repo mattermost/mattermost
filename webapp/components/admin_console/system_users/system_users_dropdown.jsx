@@ -202,7 +202,7 @@ export default class SystemUsersDropdown extends React.Component {
                 title={title}
                 message={message}
                 confirmButtonClass={confirmButtonClass}
-                confirmButton={deactivateMemberButton}
+                confirmButtonText={deactivateMemberButton}
                 onConfirm={this.handleDeactivateMember}
                 onCancel={this.handleDeactivateCancel}
             />
@@ -467,7 +467,7 @@ export default class SystemUsersDropdown extends React.Component {
                     show={this.state.showDemoteModal}
                     title={title}
                     message={message}
-                    confirmButton={confirmButton}
+                    confirmButtonText={confirmButton}
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
                 />
