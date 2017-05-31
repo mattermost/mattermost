@@ -12,13 +12,26 @@ import (
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
 
-	b, _ := Client.GetPing()
-	if b == false {
-		t.Fatal()
+	goRoutineHealthThreshold := *utils.Cfg.ServiceSettings.GoroutineHealthThreshold
+	defer func() {
+		*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold
+	}()
+
+	status, resp := Client.GetPing()
+	CheckNoError(t, resp)
+	if status != "OK" {
+		t.Fatal("should return OK")
+	}
+
+	*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = 10
+	status, resp = th.SystemAdminClient.GetPing()
+	CheckInternalErrorStatus(t, resp)
+	if status != "unhealthy" {
+		t.Fatal("should return unhealthy")
 	}
 }
 
@@ -342,5 +355,4 @@ func TestPostLog(t *testing.T) {
 	if len(logMessage) == 0 {
 		t.Fatal("should return the log message")
 	}
-
 }
