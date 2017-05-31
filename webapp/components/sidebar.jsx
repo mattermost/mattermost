@@ -308,7 +308,6 @@ export default class Sidebar extends React.Component {
             this.updateScrollbarOnChannelChange(nextChannel);
             this.isSwitchingChannel = false;
         } else if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
-            e.preventDefault();
             this.handleOpenMoreDirectChannelsModal(e);
         }
     }
