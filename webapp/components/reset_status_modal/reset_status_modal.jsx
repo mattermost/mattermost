@@ -40,8 +40,8 @@ export default class ResetStatusModal extends React.PureComponent {
         super(props);
 
         this.state = {
-            currentUserStatus: {},
-            show: false
+            show: false,
+            currentUserStatus: {}
         };
     }
 
