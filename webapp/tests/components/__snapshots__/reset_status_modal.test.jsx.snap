@@ -16,7 +16,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   checkboxText={
     <FormattedMessage
       defaultMessage="Do not ask me again"
-      id="modal.manual_status.cancel"
+      id="modal.manual_status.ask"
       values={Object {}}
     />
   }
