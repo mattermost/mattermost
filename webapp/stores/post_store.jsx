@@ -148,6 +148,20 @@ class PostStoreClass extends EventEmitter {
         return null;
     }
 
+    getLatestNonEphemeralPost(id) {
+        if (this.postsInfo.hasOwnProperty(id)) {
+            const postList = this.postsInfo[id].postList;
+
+            for (const postId of postList.order) {
+                if (postList.posts[postId].state !== Constants.POST_DELETED && postList.posts[postId].type !== Constants.PostTypes.EPHEMERAL) {
+                    return postList.posts[postId];
+                }
+            }
+        }
+
+        return null;
+    }
+
     getLatestPostFromPageTime(id) {
         if (this.latestPageTime.hasOwnProperty(id)) {
             return this.latestPageTime[id];

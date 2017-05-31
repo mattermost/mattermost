@@ -270,11 +270,11 @@ export default class CreatePost extends React.Component {
         const action = isReaction[1];
 
         const emojiName = isReaction[2];
-        const postId = PostStore.getLatestPost(this.state.channelId).id;
+        const postId = PostStore.getLatestNonEphemeralPost(this.state.channelId).id;
 
-        if (action === '+') {
+        if (postId && action === '+') {
             PostActions.addReaction(this.state.channelId, postId, emojiName);
-        } else if (action === '-') {
+        } else if (postId && action === '-') {
             PostActions.removeReaction(this.state.channelId, postId, emojiName);
         }
 
