@@ -266,7 +266,7 @@ export default class SidebarRightMenu extends React.Component {
                 );
             }
 
-            if (global.window.mm_config.EnableTeamCreation === 'true' || isAdmin) {
+            if (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin) {
                 createTeam = (
                     <li key='newTeam_li'>
                         <Link
