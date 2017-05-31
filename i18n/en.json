@@ -1632,10 +1632,6 @@
     "translation": " posted in "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Sending push notification to %v with msg of '%v'"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
