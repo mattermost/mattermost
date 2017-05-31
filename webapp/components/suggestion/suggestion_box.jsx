@@ -330,12 +330,14 @@ export default class SuggestionBox extends React.Component {
         return (
             <div ref='container'>
                 {textbox}
-                <SuggestionListComponent
-                    suggestionId={this.suggestionId}
-                    location={listStyle}
-                    renderDividers={renderDividers}
-                    onCompleteWord={this.handleCompleteWord}
-                />
+                {this.props.value &&
+                    <SuggestionListComponent
+                        suggestionId={this.suggestionId}
+                        location={listStyle}
+                        renderDividers={renderDividers}
+                        onCompleteWord={this.handleCompleteWord}
+                    />
+                }
             </div>
         );
     }
