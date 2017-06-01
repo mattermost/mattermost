@@ -201,8 +201,14 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         output += '" href="' + outHref + '" rel="noreferrer"';
 
         // special case for team invite links, channel links, and permalinks that are inside the app
-        const pattern = new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/(?:signup_user_complete|[^\\/]+\\/(?:pl|channels))\\/');
-        if (this.formattingOptions.siteURL && pattern.test(outHref)) {
+        let internalLink = false;
+        if (this.formattingOptions.siteURL) {
+            const pattern = new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/(?:signup_user_complete|[^\\/]+\\/(?:pl|channels))\\/');
+
+            internalLink = pattern.test(outHref);
+        }
+
+        if (internalLink) {
             output += ' data-link="' + outHref.substring(this.formattingOptions.siteURL) + '"';
         } else {
             output += ' target="_blank"';
