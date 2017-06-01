@@ -22,6 +22,12 @@ body {
     font-family: 'Open Sans', sans-serif;
 }
 
+.margin--bottom {
+    &.none {
+        margin-bottom: 0;
+    }
+}
+
 .word-break--all {
     word-break: break-all;
 }
