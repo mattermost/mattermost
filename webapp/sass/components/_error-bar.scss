@@ -18,6 +18,10 @@
         color: $white;
         text-decoration: underline;
 
+        .app__body & {
+            color: $white;
+        }
+
         &.error-bar__close {
             color: $white;
             font-family: 'Open Sans', sans-serif;
