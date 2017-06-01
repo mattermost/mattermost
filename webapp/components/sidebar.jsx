@@ -105,11 +105,12 @@ export default class Sidebar extends React.Component {
         const preferences = getMyPreferences(store.getState());
         const profiles = getUsers(store.getState());
         let displayableChannels = {};
-        if (channels !== this.oldChannels ||
-            preferences !== this.oldPreferences ||
-            profiles !== this.oldProfiles) {
+        if (!Utils.areObjectsEqual(channels, this.oldChannels) ||
+                !Utils.areObjectsEqual(preferences, this.oldPreferences) ||
+                !Utils.areObjectsEqual(profiles, this.oldProfiles)) {
             const channelsArray = channels.map((channel) => Object.assign({}, channel));
             displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
+            displayableChannels.favoriteChannels.sort(sortTeamsByDisplayName);
         }
         this.oldChannels = channels;
         this.oldPreferences = preferences;
@@ -641,7 +642,6 @@ export default class Sidebar extends React.Component {
 
         // create elements for all 4 types of channels
         const favoriteItems = this.state.favoriteChannels.
-            sort(sortTeamsByDisplayName).
             map((channel, index, arr) => {
                 if (channel.type === Constants.DM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
