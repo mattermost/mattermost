@@ -48,6 +48,7 @@ import {
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/teams';
+import {getChannelAndMyMember} from 'mattermost-redux/actions/channels';
 
 export function loadMe(callback) {
     loadMeRedux()(dispatch, getState).then(
@@ -276,21 +277,13 @@ export function loadNewDMIfNeeded(channelId) {
     if (channel) {
         checkPreference(channel);
     } else {
-        Client.getChannel(
-            channelId,
+        getChannelAndMyMember(channelId)(dispatch, getState).then(
             (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_CHANNEL,
-                    channel: data.channel,
-                    member: data.member
-                });
-
-                checkPreference(data.channel);
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getChannel');
+                if (data) {
+                    checkPreference(data.channel);
+                }
             }
-       );
+        );
     }
 }
 
@@ -308,21 +301,11 @@ export function loadNewGMIfNeeded(channelId) {
     if (channel) {
         checkPreference();
     } else {
-        Client.getChannel(
-            channelId,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_CHANNEL,
-                    channel: data.channel,
-                    member: data.member
-                });
-
+        getChannelAndMyMember(channelId)(dispatch, getState).then(
+            () => {
                 checkPreference();
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getChannel');
             }
-       );
+        );
     }
 }
 
