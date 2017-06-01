@@ -166,6 +166,7 @@ export default class AnnouncementBar extends React.PureComponent {
         }
 
         let errClass = 'error-bar';
+        let dismissClass = ' error-bar--fixed';
         const barStyle = {};
         const linkStyle = {};
         if (this.state.color && this.state.textColor) {
@@ -180,6 +181,7 @@ export default class AnnouncementBar extends React.PureComponent {
 
         let closeButton;
         if (this.state.allowDismissal) {
+            dismissClass = '';
             closeButton = (
                 <a
                     href='#'
@@ -191,7 +193,7 @@ export default class AnnouncementBar extends React.PureComponent {
                 </a>
             );
         } else {
-            barStyle.position = 'static';
+            barStyle.position = 'relative';
         }
 
         const renewalLink = RENEWAL_LINK + '?id=' + global.window.mm_license.Id + '&user_count=' + this.state.totalUsers;
@@ -275,7 +277,7 @@ export default class AnnouncementBar extends React.PureComponent {
 
         return (
             <div
-                className={errClass}
+                className={errClass + dismissClass}
                 style={barStyle}
             >
                 <span>{message}</span>
