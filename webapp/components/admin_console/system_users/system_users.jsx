@@ -158,6 +158,11 @@ export default class SystemUsers extends React.Component {
     }
 
     loadDataForTeam(teamId) {
+        if (this.state.term) {
+            this.search(this.state.term, teamId);
+            return;
+        }
+
         if (teamId === ALL_USERS) {
             loadProfiles(0, Constants.PROFILE_CHUNK_SIZE, this.loadComplete);
             getStandardAnalytics();
@@ -193,9 +198,9 @@ export default class SystemUsers extends React.Component {
         }
     }
 
-    search(term) {
+    search(term, teamId = this.state.teamId) {
         if (term === '') {
-            this.updateUsersFromStore(this.state.teamId, term);
+            this.updateUsersFromStore(teamId, term);
 
             this.setState({
                 loading: false
@@ -205,7 +210,7 @@ export default class SystemUsers extends React.Component {
             return;
         }
 
-        this.doSearch(this.state.teamId, term);
+        this.doSearch(teamId, term);
     }
 
     doSearch(teamId, term, now = false) {
