@@ -20,6 +20,8 @@ const BAR_DEVELOPER_TYPE = 'developer';
 const BAR_CRITICAL_TYPE = 'critical';
 const BAR_ANNOUNCEMENT_TYPE = 'announcement';
 
+const ANNOUNCEMENT_KEY = 'announcement--';
+
 export default class AnnouncementBar extends React.PureComponent {
     static propTypes = {
 
@@ -83,10 +85,13 @@ export default class AnnouncementBar extends React.PureComponent {
 
         const bannerText = global.window.mm_config.BannerText || '';
         const allowDismissal = global.window.mm_config.AllowBannerDismissal === 'true';
-        const bannerDismissed = localStorage.getItem(global.window.mm_config.BannerText);
+        const bannerDismissed = localStorage.getItem(ANNOUNCEMENT_KEY + global.window.mm_config.BannerText);
+
         if (global.window.mm_config.EnableBanner === 'true' &&
                 bannerText.length > 0 &&
                 (!bannerDismissed || !allowDismissal)) {
+            // Remove old local storage items
+            Utils.removePrefixFromLocalStorage(ANNOUNCEMENT_KEY);
             return {
                 message: bannerText,
                 color: global.window.mm_config.BannerColor,
@@ -96,7 +101,7 @@ export default class AnnouncementBar extends React.PureComponent {
             };
         }
 
-        return {message: null, color: null, colorText: null, textColor: null, type: null};
+        return {message: null, color: null, colorText: null, textColor: null, type: null, allowDismissal: true};
     }
 
     isValidState(s) {
@@ -116,13 +121,30 @@ export default class AnnouncementBar extends React.PureComponent {
     }
 
     componentDidMount() {
+        if (this.props.isLoggedIn && !this.state.allowDismissal) {
+            document.body.classList.add('asaadclassname');
+        }
+
         ErrorStore.addChangeListener(this.onErrorChange);
         AnalyticsStore.addChangeListener(this.onAnalyticsChange);
     }
 
     componentWillUnmount() {
+        document.body.classList.remove('asaadclassname');
         ErrorStore.removeChangeListener(this.onErrorChange);
         AnalyticsStore.removeChangeListener(this.onAnalyticsChange);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (!this.props.isLoggedIn) {
+            return;
+        }
+
+        if (!prevState.allowDismissal && this.state.allowDismissal) {
+            document.body.classList.remove('asaadclassname');
+        } else if (prevState.allowDismissal && !this.state.allowDismissal) {
+            document.body.classList.add('asaadclassname');
+        }
     }
 
     onErrorChange() {
@@ -144,7 +166,7 @@ export default class AnnouncementBar extends React.PureComponent {
         }
 
         if (this.state.type === BAR_ANNOUNCEMENT_TYPE) {
-            localStorage.setItem(this.state.message, true);
+            localStorage.setItem(ANNOUNCEMENT_KEY + this.state.message, true);
         }
 
         if (ErrorStore.getLastError() && ErrorStore.getLastError().notification) {
