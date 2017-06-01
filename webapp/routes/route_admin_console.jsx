@@ -44,8 +44,8 @@ import DeveloperSettings from 'components/admin_console/developer_settings.jsx';
 import SystemUsers from 'components/admin_console/system_users';
 import TeamAnalytics from 'components/analytics/team_analytics';
 import LicenseSettings from 'components/admin_console/license_settings.jsx';
-import Audits from 'components/admin_console/audits.jsx';
-import Logs from 'components/admin_console/logs.jsx';
+import Audits from 'components/admin_console/audits';
+import Logs from 'components/admin_console/logs';
 
 export default (
     <Route>

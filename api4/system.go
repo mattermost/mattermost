@@ -52,13 +52,18 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	cfg := model.ConfigFromJson(r.Body)
+	if cfg == nil {
+		c.SetInvalidParam("config")
+		return
+	}
 
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	err := app.TestEmail(c.Session.UserId, utils.Cfg)
+	err := app.TestEmail(c.Session.UserId, cfg)
 	if err != nil {
 		c.Err = err
 		return

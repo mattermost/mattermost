@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import {browserHistory} from 'react-router/es6';
 
 // Redux actions
@@ -10,193 +9,166 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-import {getUser} from 'mattermost-redux/actions/users';
+import {updateUserMfa, updateUserPassword} from 'mattermost-redux/actions/users';
+import {
+    getConfig,
+    updateConfig,
+    uploadBrandImage as uploadBrandImageRedux,
+    reloadConfig as reloadConfigRedux,
+    getClusterStatus as getClusterStatusRedux,
+    testEmail as testEmailRedux,
+    invalidateCaches,
+    recycleDatabase,
+    testLdap,
+    syncLdap,
+    getSamlCertificateStatus,
+    uploadPublicSamlCertificate as uploadPublicSamlCertificateRedux,
+    uploadPrivateSamlCertificate as uploadPrivateSamlCertificateRedux,
+    uploadIdpSamlCertificate as uploadIdpSamlCertificateRedux,
+    removePublicSamlCertificate as removePublicSamlCertificateRedux,
+    removePrivateSamlCertificate as removePrivateSamlCertificateRedux,
+    removeIdpSamlCertificate as removeIdpSamlCertificateRedux
+} from 'mattermost-redux/actions/admin';
 
 export function saveConfig(config, success, error) {
-    Client.saveConfig(
-        config,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateConfig(config)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.updateConfig.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function reloadConfig(success, error) {
-    Client.reloadConfig(
-        () => {
-            AsyncClient.getConfig();
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    reloadConfigRedux()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                getConfig()(dispatch, getState);
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.reloadConfig.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function adminResetMfa(userId, success, error) {
-    Client.adminResetMfa(
-        userId,
-        () => {
-            getUser(userId)(dispatch, getState);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateUserMfa(userId, false)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function getClusterStatus(success, error) {
-    Client.getClusterStatus(
+    getClusterStatusRedux()(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getClusterStatus');
-            if (error) {
-                error(err);
-            }
-        }
-    );
-}
-
-export function saveComplianceReports(job, success, error) {
-    Client.saveComplianceReports(
-        job,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.getClusterStatus.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function testEmail(config, success, error) {
-    Client.testEmail(
-        config,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    testEmailRedux(config)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.testEmail.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function ldapTest(success, error) {
-    Client.ldapTest(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    testLdap()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.testLdap.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function invalidateAllCaches(success, error) {
-    Client.invalidateAllCaches(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    invalidateCaches()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.invalidateCaches.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function recycleDatabaseConnection(success, error) {
-    Client.recycleDatabaseConnection(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    recycleDatabase()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.recycleDatabase.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function adminResetPassword(userId, password, success, error) {
-    Client.adminResetPassword(
-        userId,
-        password,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    updateUserPassword(userId, '', password)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function samlCertificateStatus(success, error) {
-    Client.samlCertificateStatus(
+    getSamlCertificateStatus()(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.getSamlCertificateStatus.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function ldapSyncNow(success, error) {
-    Client.ldapSyncNow(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    syncLdap()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.syncLdap.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -316,16 +288,13 @@ export function regenerateOAuthAppSecret(oauthAppId, success, error) {
 }
 
 export function uploadBrandImage(brandImage, success, error) {
-    Client.uploadBrandImage(
-        brandImage,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    uploadBrandImageRedux(brandImage)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadBrandImage.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -362,33 +331,79 @@ export function removeLicenseFile(success, error) {
     );
 }
 
-export function uploadCertificateFile(certificateFile, success, error) {
-    Client.uploadCertificateFile(
-        certificateFile,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+export function uploadPublicSamlCertificate(file, success, error) {
+    uploadPublicSamlCertificateRedux(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadPublicSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function removeCertificateFile(certificateId, success, error) {
-    Client.removeCertificateFile(
-        certificateId,
-        () => {
-            if (success) {
-                success();
+export function uploadPrivateSamlCertificate(file, success, error) {
+    uploadPrivateSamlCertificateRedux(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadPrivateSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+        }
+    );
+}
+
+export function uploadIdpSamlCertificate(file, success, error) {
+    uploadIdpSamlCertificateRedux(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadIdpSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function removePublicSamlCertificate(success, error) {
+    removePublicSamlCertificateRedux()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removePublicSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function removePrivateSamlCertificate(success, error) {
+    removePrivateSamlCertificateRedux()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removePrivateSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function removeIdpSamlCertificate(success, error) {
+    removeIdpSamlCertificateRedux()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removeIdpSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
