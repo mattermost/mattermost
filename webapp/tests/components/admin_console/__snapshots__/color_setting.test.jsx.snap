@@ -7,7 +7,7 @@ exports[`components/ColorSetting should match snapshot, all 1`] = `
   label="label"
 >
   <div
-    className="input-group"
+    className="input-group color-picker colorpicker-element"
   >
     <input
       className="form-control"
@@ -38,7 +38,7 @@ exports[`components/ColorSetting should match snapshot, disabled 1`] = `
   label="label"
 >
   <div
-    className="input-group"
+    className="input-group color-picker colorpicker-element"
   >
     <input
       className="form-control"
@@ -69,7 +69,7 @@ exports[`components/ColorSetting should match snapshot, no help text 1`] = `
   label="label"
 >
   <div
-    className="input-group"
+    className="input-group color-picker colorpicker-element"
   >
     <input
       className="form-control"
