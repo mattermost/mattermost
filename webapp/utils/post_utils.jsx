@@ -7,6 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
 export function isSystemMessage(post) {
     return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
@@ -48,14 +49,17 @@ export function getProfilePicSrcForPost(post, timestamp) {
 
 export function canDeletePost(post) {
     var isOwner = isPostOwner(post);
-    var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
     var isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    var isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam() || isSystemAdmin;
+    var isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel() || isTeamAdmin;
+    var isAdmin = isChannelAdmin || isTeamAdmin || isSystemAdmin;
 
     if (global.window.mm_license.IsLicensed === 'true') {
-        return (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_ALL && (isOwner || isAdmin)) ||
-            (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_TEAM_ADMIN && isAdmin) ||
+        return (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_ALL && (isOwner || isChannelAdmin)) ||
+            (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_TEAM_ADMIN && isTeamAdmin) ||
             (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN && isSystemAdmin);
     }
+
     return isOwner || isAdmin;
 }
 
