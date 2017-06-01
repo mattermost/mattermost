@@ -748,6 +748,10 @@
     "translation": "UP (in empty input field): Edit your last message in the current channel\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.header",
     "translation": "#### Messages\n\n"
   },
