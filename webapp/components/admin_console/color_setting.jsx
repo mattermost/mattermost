@@ -82,16 +82,11 @@ export default class ColorSetting extends React.PureComponent {
         let picker;
         if (this.state.showPicker) {
             picker = (
-                <div
-                    className={'picker-' + this.props.id}
-                    style={{position: 'absolute'}}
-                >
-                    <div style={{position: 'relative', bottom: '100px', left: '10px'}}>
-                        <ChromePicker
-                            color={this.props.value}
-                            onChange={this.handleChange}
-                        />
-                    </div>
+                <div className={'color-picker__popover picker-' + this.props.id}>
+                    <ChromePicker
+                        color={this.props.value}
+                        onChange={this.handleChange}
+                    />
                 </div>
             );
         }
@@ -102,7 +97,7 @@ export default class ColorSetting extends React.PureComponent {
                 helpText={this.props.helpText}
                 inputId={this.props.id}
             >
-                <div className='input-group'>
+                <div className='input-group color-picker colorpicker-element'>
                     <input
                         type='text'
                         className='form-control'

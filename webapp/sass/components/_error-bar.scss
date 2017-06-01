@@ -10,6 +10,10 @@
     width: 100%;
     z-index: 9999;
 
+    &.error-bar--fixed {
+        padding: 2px 30px;
+    }
+
     a {
         color: $white;
         text-decoration: underline;
