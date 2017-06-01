@@ -422,7 +422,7 @@ export default class RhsComment extends React.Component {
                 );
             }
 
-            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+            botIndicator = <div className='col col__name bot-indicator'>{'BOT'}</div>;
         } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
@@ -546,19 +546,16 @@ export default class RhsComment extends React.Component {
         let options;
         if (isEphemeral) {
             options = (
-                <li className='col col__remove'>
+                <div className='col col__remove'>
                     {this.createRemovePostButton()}
-                </li>
+                </div>
             );
         } else if (!isSystemMessage) {
             options = (
-                <li
-                    ref='dotMenu'
-                    className='col col__reply'
-                >
+                <div className='col col__reply'>
                     {this.createDropdown(isSystemMessage)}
                     {react}
-                </li>
+                </div>
             );
         }
 
@@ -588,12 +585,12 @@ export default class RhsComment extends React.Component {
                 <div className='post__content'>
                     {profilePicContainer}
                     <div>
-                        <ul className='post__header'>
-                            <li className='col col__name'>
+                        <div className='post__header'>
+                            <div className='col col__name'>
                                 <strong>{userProfile}</strong>
-                            </li>
+                            </div>
                             {botIndicator}
-                            <li className='col'>
+                            <div className='col'>
                                 {this.renderTimeTag(post, timeOptions)}
                                 {pinnedBadge}
                                 <PostFlagIcon
@@ -603,9 +600,9 @@ export default class RhsComment extends React.Component {
                                     isFlagged={this.props.isFlagged}
                                     isEphemeral={isEphemeral}
                                 />
-                            </li>
+                            </div>
                             {options}
-                        </ul>
+                        </div>
                         <div className='post__body' >
                             <div className={postClass}>
                                 {loading}

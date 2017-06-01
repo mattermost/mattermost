@@ -49,23 +49,23 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Nenhum arquivo sob o 'certificado' na requisição"
+    "translation": "Nenhum arquivo sob o 'certificado' na requisição."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Não foi possível abrir o arquivo do certificado"
+    "translation": "Não foi possível abrir o arquivo do certificado."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Não foi possível salvar o arquivo do certificado"
+    "translation": "Não foi possível salvar o arquivo do certificado."
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Erro ao ler o arquivo de log"
+    "translation": "Erro ao ler o arquivo de log."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "Marca personalizada não está configurado ou não é suportado pelo servidor"
+    "translation": "Marca personalizada não está configurado ou não é suportado pelo servidor."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Inicializando as rotas da API admin"
+    "translation": "Inicializando as rotas da API admin."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Terminada a reciclagem da conexão do banco de dados"
+    "translation": "Terminada a reciclagem da conexão do banco de dados."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Tentando reciclar a conexão com o banco de dados"
+    "translation": "Tentando reciclar a conexão com o banco de dados."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Um erro aconteceu enquanto construindo o Service Provider Metadata"
+    "translation": "Ocorreu um erro ao construir Serviço de Provedor de Metadados."
   },
   {
     "id": "api.admin.test_email.body",
@@ -1450,6 +1450,10 @@
     "translation": "O link de inscrição não parece ser válido"
   },
   {
+    "id": "api.opengraph.init.debug",
+    "translation": "Inicializando as rotas da api para o protocolo open graph"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} e {{.LastUsername}} foram mencionados, mas eles não receberam notificação porque eles não pertencem a este canal."
   },
@@ -2273,7 +2277,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Você atualizou seu método de login em {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Seu método de login foi atualizado"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2462,6 +2466,14 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "Encontrado um problema ao se juntar ao canal padrão user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Falta a Hash ou URL nos dados da consulta."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Falta Id do Convite."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2965,7 +2977,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "Canal create_at precisa ser maior que 0 se informado."
+    "translation": "Canal create_at não pode ser zero se informado."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -2973,7 +2985,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Faltando a propriedade obrigatória do canal: display_name."
+    "translation": "Faltando a propriedade obrigatória do canal: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -3017,7 +3029,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt não pode ser zero se for informado."
+    "translation": "A propriedade CreateAt da mensagem não pode ser zero se informado."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3041,7 +3053,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "Equipe create_at não pode ser 0 se informado."
+    "translation": "Equipe create_at não pode ser zero se informado."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3053,7 +3065,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Falta a propriedade obrigatória da equipe: display_name"
+    "translation": "Falta a propriedade obrigatória da equipe: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -3077,7 +3089,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Falta a propriedade obrigatória da equipe: type"
+    "translation": "Falta a propriedade obrigatória da equipe: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3294,6 +3306,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Exportação da conformidade para tarefa '{{.JobName}}' iniciada no '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "A busca usando o ElasticSearch foi desativada neste servidor"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Não foi possível completar a busca"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Falha ao decodificar os resultados da pesquisa"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Configuração do Cliente de ElasticSearch falhou"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Não foi possível criar o ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Não foi possível verificar se o ElasticSearch index existe"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Não foi possível configurar o ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Não foi possível configurar as opções do ElasticSearch index"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3850,6 +3894,22 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Não é possível ativar email em lote quando clustering está ativo."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "A ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "A senha do ElasticSearch deve ser fornecida quando o ElasticSearch indexing está ativo."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "O nome de usuário do ElasticSearch deve ser fornecido quando o ElasticSearch indexing está ativo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -5036,6 +5096,30 @@
     "translation": "Não foi possível salvar as informações do arquivo"
   },
   {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "Não foi possível salvar ou atualizar as informações do arquivo"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "Não foi possível deletar o status do job"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "Não foi possível obter o status do job"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "Não conseguimos pegar todos os status dos jobs"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "Não foi possível salvar o status do job"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "Não foi possível atualizar o status do job"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Encontramos um erro ao obter a licença"
   },
@@ -5182,6 +5266,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Não foi possível obter o post pai para o canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "Não foi possível obter os posts"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5896,6 +5984,10 @@
     "translation": "Encontrado um erro ao assinar a licença, err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Falha ao definir HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Falha ao abrir conexão"
   },
@@ -5906,6 +5998,10 @@
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Falha ao autenticar no servidor de SMTP"
+  },
+  {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Falha ao definir HELO para o servir SMTP %v"
   },
   {
     "id": "utils.mail.new_client.open.error",

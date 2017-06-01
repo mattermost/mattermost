@@ -44,7 +44,9 @@ func init() {
 }
 
 func slackImportCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) != 2 {
 		return errors.New("Incorrect number of arguments.")
@@ -76,7 +78,9 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func bulkImportCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	apply, err := cmd.Flags().GetBool("apply")
 	if err != nil {

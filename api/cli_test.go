@@ -11,11 +11,9 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-var disableCliTests bool = false
-
 func TestCliVersion(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	cmd := exec.Command("bash", "-c", `go run ../cmd/platform/*.go version`)
@@ -27,8 +25,8 @@ func TestCliVersion(t *testing.T) {
 }
 
 func TestCliCreateTeam(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitSystemAdmin()
@@ -52,8 +50,8 @@ func TestCliCreateTeam(t *testing.T) {
 }
 
 func TestCliCreateUserWithTeam(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitSystemAdmin()
@@ -93,8 +91,8 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 }
 
 func TestCliCreateUserWithoutTeam(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	Setup()
@@ -120,8 +118,8 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 }
 
 func TestCliAssignRole(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -144,8 +142,8 @@ func TestCliAssignRole(t *testing.T) {
 }
 
 func TestCliJoinChannel(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -186,8 +184,8 @@ func TestCliJoinChannel(t *testing.T) {
 }
 
 func TestCliRemoveChannel(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -243,8 +241,8 @@ func TestCliRemoveChannel(t *testing.T) {
 }
 
 func TestCliListChannels(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -278,8 +276,8 @@ func TestCliListChannels(t *testing.T) {
 }
 
 func TestCliRestoreChannel(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -313,8 +311,8 @@ func TestCliRestoreChannel(t *testing.T) {
 }
 
 func TestCliJoinTeam(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitSystemAdmin().InitBasic()
@@ -343,8 +341,8 @@ func TestCliJoinTeam(t *testing.T) {
 }
 
 func TestCliLeaveTeam(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -380,8 +378,8 @@ func TestCliLeaveTeam(t *testing.T) {
 }
 
 func TestCliResetPassword(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -399,8 +397,8 @@ func TestCliResetPassword(t *testing.T) {
 }
 
 func TestCliCreateChannel(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()
@@ -427,8 +425,8 @@ func TestCliCreateChannel(t *testing.T) {
 }
 
 func TestCliMakeUserActiveAndInactive(t *testing.T) {
-	if disableCliTests {
-		return
+	if testing.Short() {
+		t.SkipNow()
 	}
 
 	th := Setup().InitBasic()

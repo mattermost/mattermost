@@ -36,7 +36,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
-import {viewChannel, getChannelStats, getMyChannelMember} from 'mattermost-redux/actions/channels';
+import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember} from 'mattermost-redux/actions/channels';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -557,13 +557,13 @@ export function redirectUserToDefaultTeam() {
             redirect(teams[teamId].name, channel);
         } else if (channelId) {
             Client.setTeamId(teamId);
-            Client.getChannel(
-                channelId,
+            getChannelAndMyMember(channelId)(dispatch, getState).then(
                 (data) => {
-                    redirect(teams[teamId].name, data.channel.name);
-                },
-                () => {
-                    redirect(teams[teamId].name, 'town-square');
+                    if (data) {
+                        redirect(teams[teamId].name, data.channel.name);
+                    } else {
+                        redirect(teams[teamId].name, 'town-square');
+                    }
                 }
             );
         } else {

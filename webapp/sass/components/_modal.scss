@@ -76,6 +76,18 @@
         color: alpha-color($black, .9);
         width: 100%;
 
+        .channel-switch-modal {
+            .modal-header {
+                background: transparent;
+                min-height: 0;
+                padding: 0;
+
+                .close {
+                    top: 10px;
+                }
+            }
+        }
+
         .modal--overflow {
             .modal-body {
                 overflow: visible;

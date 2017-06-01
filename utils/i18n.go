@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -18,30 +19,47 @@ var settings model.LocalizationSettings
 
 // this functions loads translations from filesystem
 // and assign english while loading server config
-func TranslationsPreInit() {
-	InitTranslationsWithDir("i18n")
+func TranslationsPreInit() error {
+	if err := InitTranslationsWithDir("i18n"); err != nil {
+		return err
+	}
+
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
+
+	return nil
 }
 
-func InitTranslations(localizationSettings model.LocalizationSettings) {
+func InitTranslations(localizationSettings model.LocalizationSettings) error {
 	settings = localizationSettings
-	T = GetTranslationsBySystemLocale()
+
+	var err error
+	T, err = GetTranslationsBySystemLocale()
+	return err
 }
 
-func InitTranslationsWithDir(dir string) {
-	i18nDirectory := FindDir(dir)
+func InitTranslationsWithDir(dir string) error {
+	i18nDirectory, found := FindDir(dir)
+	if !found {
+		return fmt.Errorf("Unable to find i18n directory")
+	}
+
 	files, _ := ioutil.ReadDir(i18nDirectory)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
 			locales[strings.Split(filename, ".")[0]] = i18nDirectory + filename
-			i18n.MustLoadTranslationFile(i18nDirectory + filename)
+
+			if err := i18n.LoadTranslationFile(i18nDirectory + filename); err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
 
-func GetTranslationsBySystemLocale() i18n.TranslateFunc {
+func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 	locale := *settings.DefaultServerLocale
 	if _, ok := locales[locale]; !ok {
 		l4g.Error("Failed to load system translations for '%v' attempting to fall back to '%v'", locale, model.DEFAULT_LOCALE)
@@ -49,16 +67,16 @@ func GetTranslationsBySystemLocale() i18n.TranslateFunc {
 	}
 
 	if locales[locale] == "" {
-		panic("Failed to load system translations for '" + model.DEFAULT_LOCALE + "'")
+		return nil, fmt.Errorf("Failed to load system translations for '%v'", model.DEFAULT_LOCALE)
 	}
 
 	translations := TfuncWithFallback(locale)
 	if translations == nil {
-		panic("Failed to load system translations")
+		return nil, fmt.Errorf("Failed to load system translations")
 	}
 
 	l4g.Info(translations("utils.i18n.loaded"), locale, locales[locale])
-	return translations
+	return translations, nil
 }
 
 func GetUserTranslations(locale string) i18n.TranslateFunc {

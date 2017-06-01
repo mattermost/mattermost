@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
 	"io"
@@ -576,10 +575,6 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-	}
-	client := &http.Client{Transport: tr}
 	req, _ := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -587,14 +582,11 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	var ar *model.AccessResponse
 	var respBody []byte
-	if resp, err := client.Do(req); err != nil {
+	if resp, err := utils.HttpClient().Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
-		defer func() {
-			ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-		}()
+		defer CloseBody(resp)
 		if ar == nil {
 			return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "")
 		}
@@ -616,7 +608,7 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
-	if resp, err := client.Do(req); err != nil {
+	if resp, err := utils.HttpClient().Do(req); err != nil {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error",
 			map[string]interface{}{"Service": service}, err.Error())
 	} else {

@@ -439,7 +439,7 @@ export default class RhsRootPost extends React.Component {
                 );
             }
 
-            botIndicator = <li className='col col__name bot-indicator'>{'BOT'}</li>;
+            botIndicator = <div className='col col__name bot-indicator'>{'BOT'}</div>;
         } else if (isSystemMessage) {
             userProfile = (
                 <UserProfile
@@ -544,10 +544,10 @@ export default class RhsRootPost extends React.Component {
                 <div className='post__content'>
                     {profilePicContainer}
                     <div>
-                        <ul className='post__header'>
-                            <li className='col__name'>{userProfile}</li>
+                        <div className='post__header'>
+                            <div className='col__name'>{userProfile}</div>
                             {botIndicator}
-                            <li className='col'>
+                            <div className='col'>
                                 {this.renderTimeTag(post, timeOptions)}
                                 {pinnedBadge}
                                 <PostFlagIcon
@@ -555,15 +555,15 @@ export default class RhsRootPost extends React.Component {
                                     postId={post.id}
                                     isFlagged={this.props.isFlagged}
                                 />
-                            </li>
-                            <li
+                            </div>
+                            <div
                                 ref='dotMenu'
                                 className='col col__reply'
                             >
                                 {rootOptions}
                                 {react}
-                            </li>
-                        </ul>
+                            </div>
+                        </div>
                         <div className='post__body'>
                             <div className={postClass}>
                                 <PostBodyAdditionalContent

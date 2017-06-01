@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"net/url"
 )
 
@@ -125,6 +126,7 @@ type ServiceSettings struct {
 	ReadTimeout                              *int
 	WriteTimeout                             *int
 	MaximumLoginAttempts                     int
+	GoroutineHealthThreshold                 *int
 	GoogleDeveloperKey                       string
 	EnableOAuthServiceProvider               bool
 	EnableIncomingWebhooks                   bool
@@ -195,6 +197,7 @@ type SqlSettings struct {
 	MaxOpenConns             int
 	Trace                    bool
 	AtRestEncryptKey         string
+	QueryTimeout             *int
 }
 
 type LogSettings struct {
@@ -236,6 +239,7 @@ type FileSettings struct {
 	AmazonS3Region          string
 	AmazonS3Endpoint        string
 	AmazonS3SSL             *bool
+	AmazonS3SignV2          *bool
 }
 
 type EmailSettings struct {
@@ -480,6 +484,11 @@ func (o *Config) SetDefaults() {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
 	}
 
+	if o.SqlSettings.QueryTimeout == nil {
+		o.SqlSettings.QueryTimeout = new(int)
+		*o.SqlSettings.QueryTimeout = 30
+	}
+
 	if o.FileSettings.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
@@ -493,6 +502,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
+	}
+
+	if o.FileSettings.AmazonS3SignV2 == nil {
+		o.FileSettings.AmazonS3SignV2 = new(bool)
+		// Signature v2 is not enabled by default.
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
@@ -1157,6 +1171,11 @@ func (o *Config) SetDefaults() {
 		*o.RateLimitSettings.Enable = false
 	}
 
+	if o.ServiceSettings.GoroutineHealthThreshold == nil {
+		o.ServiceSettings.GoroutineHealthThreshold = new(int)
+		*o.ServiceSettings.GoroutineHealthThreshold = -1
+	}
+
 	if o.RateLimitSettings.MaxBurst == nil {
 		o.RateLimitSettings.MaxBurst = new(int)
 		*o.RateLimitSettings.MaxBurst = 100
@@ -1320,6 +1339,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.SqlSettings.MaxIdleConns <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "")
+	}
+
+	if *o.SqlSettings.QueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.SqlSettings.DataSource) == 0 {

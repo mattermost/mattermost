@@ -4,7 +4,6 @@
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
-import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
@@ -17,6 +16,7 @@ const EDIT_POST_EVENT = 'edit_post';
 const POSTS_VIEW_JUMP_EVENT = 'post_list_jump';
 const SELECTED_POST_CHANGE_EVENT = 'selected_post_change';
 const POST_PINNED_CHANGE_EVENT = 'post_pinned_change';
+const POST_DRAFT_CHANGE_EVENT = 'post_draft_change';
 
 class PostStoreClass extends EventEmitter {
     constructor() {
@@ -75,6 +75,18 @@ class PostStoreClass extends EventEmitter {
         this.removeListener(POSTS_VIEW_JUMP_EVENT, callback);
     }
 
+    emitPostDraftChange(channelId) {
+        this.emit(POST_DRAFT_CHANGE_EVENT + channelId, this.getPostDraft(channelId));
+    }
+
+    addPostDraftChangeListener(channelId, callback) {
+        this.on(POST_DRAFT_CHANGE_EVENT + channelId, callback);
+    }
+
+    removePostDraftChangeListener(channelId, callback) {
+        this.removeListener(POST_DRAFT_CHANGE_EVENT + channelId, callback);
+    }
+
     jumpPostsViewToBottom() {
         this.emitPostsViewJump(Constants.PostsViewJumpTypes.BOTTOM, null);
     }
@@ -128,6 +140,20 @@ class PostStoreClass extends EventEmitter {
 
             for (const postId of postList.order) {
                 if (postList.posts[postId].state !== Constants.POST_DELETED) {
+                    return postList.posts[postId];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    getLatestNonEphemeralPost(id) {
+        if (this.postsInfo.hasOwnProperty(id)) {
+            const postList = this.postsInfo[id].postList;
+
+            for (const postId of postList.order) {
+                if (postList.posts[postId].state !== Constants.POST_DELETED && postList.posts[postId].type !== Constants.PostTypes.EPHEMERAL) {
                     return postList.posts[postId];
                 }
             }
@@ -585,21 +611,11 @@ class PostStoreClass extends EventEmitter {
         return draft;
     }
 
-    storeCurrentDraft(draft) {
-        var channelId = ChannelStore.getCurrentId();
+    storePostDraft(channelId, draft) {
         BrowserStore.setGlobalItem('draft_' + channelId, draft);
     }
 
-    getCurrentDraft() {
-        var channelId = ChannelStore.getCurrentId();
-        return this.getDraft(channelId);
-    }
-
-    storeDraft(channelId, draft) {
-        BrowserStore.setGlobalItem('draft_' + channelId, draft);
-    }
-
-    getDraft(channelId) {
+    getPostDraft(channelId) {
         return this.normalizeDraft(BrowserStore.getGlobalItem('draft_' + channelId));
     }
 
@@ -700,7 +716,7 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.CREATE_POST:
         PostStore.storePendingPost(action.post);
-        PostStore.storeDraft(action.post.channel_id, null);
+        PostStore.storePostDraft(action.post.channel_id, null);
         PostStore.jumpPostsViewToBottom();
         break;
     case ActionTypes.CREATE_COMMENT:
@@ -722,6 +738,10 @@ PostStore.dispatchToken = AppDispatcher.register((payload) => {
     case ActionTypes.RECEIVED_POST_PINNED:
     case ActionTypes.RECEIVED_POST_UNPINNED:
         PostStore.emitPostPinnedChange();
+        break;
+    case ActionTypes.POST_DRAFT_CHANGED:
+        PostStore.storePostDraft(action.channelId, action.draft);
+        PostStore.emitPostDraftChange(action.channelId);
         break;
     default:
     }

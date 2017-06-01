@@ -12,6 +12,7 @@
 package gorp
 
 import (
+	"context"
 	"database/sql"
 	"time"
 )
@@ -62,7 +63,16 @@ func (t *Transaction) Exec(query string, args ...interface{}) (sql.Result, error
 		now := time.Now()
 		defer t.dbmap.trace(now, query, args...)
 	}
-	return exec(t, query, args...)
+	return exec(t, query, true, args...)
+}
+
+// ExecNoTimeout has the same behavior as DbMap.ExecNoTimeout(), but runs in a transaction.
+func (t *Transaction) ExecNoTimeout(query string, args ...interface{}) (sql.Result, error) {
+	if t.dbmap.logger != nil {
+		now := time.Now()
+		defer t.dbmap.trace(now, query, args...)
+	}
+	return exec(t, query, false, args...)
 }
 
 // SelectInt is a convenience wrapper around the gorp.SelectInt function.
@@ -176,7 +186,7 @@ func (t *Transaction) Prepare(query string) (*sql.Stmt, error) {
 	return t.tx.Prepare(query)
 }
 
-func (t *Transaction) queryRow(query string, args ...interface{}) *sql.Row {
+func (t *Transaction) QueryRow(query string, args ...interface{}) *sql.Row {
 	if t.dbmap.logger != nil {
 		now := time.Now()
 		defer t.dbmap.trace(now, query, args...)
@@ -184,10 +194,26 @@ func (t *Transaction) queryRow(query string, args ...interface{}) *sql.Row {
 	return t.tx.QueryRow(query, args...)
 }
 
-func (t *Transaction) query(query string, args ...interface{}) (*sql.Rows, error) {
+func (t *Transaction) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	if t.dbmap.logger != nil {
+		now := time.Now()
+		defer t.dbmap.trace(now, query, args...)
+	}
+	return t.tx.QueryRowContext(ctx, query, args...)
+}
+
+func (t *Transaction) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	if t.dbmap.logger != nil {
 		now := time.Now()
 		defer t.dbmap.trace(now, query, args...)
 	}
 	return t.tx.Query(query, args...)
+}
+
+func (t *Transaction) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	if t.dbmap.logger != nil {
+		now := time.Now()
+		defer t.dbmap.trace(now, query, args...)
+	}
+	return t.tx.QueryContext(ctx, query, args...)
 }

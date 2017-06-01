@@ -4,23 +4,40 @@
 [![code coverage](https://img.shields.io/coveralls/go-gorp/gorp.svg)](https://coveralls.io/r/go-gorp/gorp)
 [![issues](https://img.shields.io/github/issues/go-gorp/gorp.svg)](https://github.com/go-gorp/gorp/issues)
 [![godoc v1](https://img.shields.io/badge/godoc-v1-375EAB.svg)](https://godoc.org/gopkg.in/gorp.v1)
+[![godoc v2](https://img.shields.io/badge/godoc-v2-375EAB.svg)](https://godoc.org/gopkg.in/gorp.v2)
 [![godoc bleeding edge](https://img.shields.io/badge/godoc-bleeding--edge-375EAB.svg)](https://godoc.org/github.com/go-gorp/gorp)
 
-### Update 2015-07-01 Cleanup & feature freeze ([#270](https://github.com/go-gorp/gorp/issues/270))
+### Update 2016-11-13: Future versions
 
-We are currently cleaning up the backlog of issues and PR's. When this is done the codebase will be split into separate files and there will be breaking changes to the API's. We're also adding better tests and documentation. As a result of these changes the `master` branch will be unstable. Please use `gopkg.in/gorp.v1`. When the cleanup and changes are done, we will release `v2.0`.
+As many of the maintainers have become busy with other projects,
+progress toward the ever-elusive v2 has slowed to the point that we're
+only occasionally making progress outside of merging pull requests.
+In the interest of continuing to release, I'd like to lean toward a
+more maintainable path forward.
 
-At this time we won't accept new feature-related pull-requests because of changes to the codebase. Please create an issue for your feature and wait until `v2.0` has been released.
-
-For more information, please read [#270](https://github.com/go-gorp/gorp/issues/270).
+For the moment, I am releasing a v2 tag with the current feature set
+from master, as some of those features have been actively used and
+relied on by more than one project.  Our next goal is to continue
+cleaning up the code base with non-breaking changes as much as
+possible, but if/when a breaking change is needed, we'll just release
+new versions.  This allows us to continue development at whatever pace
+we're capable of, without delaying the release of features or refusing
+PRs.
 
 ## Introduction
 
-I hesitate to call gorp an ORM.  Go doesn't really have objects, at least not in the classic Smalltalk/Java sense.  There goes the "O".  gorp doesn't know anything about the relationships between your structs (at least not yet).  So the "R" is questionable too (but I use it in the name because, well, it seemed more clever).
+I hesitate to call gorp an ORM.  Go doesn't really have objects, at
+least not in the classic Smalltalk/Java sense.  There goes the "O".
+gorp doesn't know anything about the relationships between your
+structs (at least not yet).  So the "R" is questionable too (but I use
+it in the name because, well, it seemed more clever).
 
-The "M" is alive and well.  Given some Go structs and a database, gorp should remove a fair amount of boilerplate busy-work from your code.
+The "M" is alive and well.  Given some Go structs and a database, gorp
+should remove a fair amount of boilerplate busy-work from your code.
 
-I hope that gorp saves you time, minimizes the drudgery of getting data in and out of your database, and helps your code focus on algorithms, not infrastructure.
+I hope that gorp saves you time, minimizes the drudgery of getting
+data in and out of your database, and helps your code focus on
+algorithms, not infrastructure.
 
 * Bind struct fields to table columns via API or tag
 * Support for embedded structs
@@ -35,42 +52,59 @@ I hope that gorp saves you time, minimizes the drudgery of getting data in and o
 * Bind arbitrary SQL queries to a struct
 * Bind slice to SELECT query results without type assertions
 * Use positional or named bind parameters in custom SELECT queries
-* Optional optimistic locking using a version column (for update/deletes)
+* Optional optimistic locking using a version column (for
+  update/deletes)
 
 ## Installation
 
-    # install the library:
-    go get gopkg.in/gorp.v1
-
-    // use in your .go code:
-    import (
-        "gopkg.in/gorp.v1"
-    )
+Use `go get` or your favorite vendoring tool, using whichever import
+path you'd like.
 
 ## Versioning
 
-This project provides a stable release (v1.x tags) and a bleeding edge codebase (master).
+We use semantic version tags.  Feel free to import through `gopkg.in`
+(e.g. `gopkg.in/gorp.v2`) to get the latest tag for a major version,
+or check out the tag using your favorite vendoring tool.
 
-`gopkg.in/gorp.v1` points to the latest v1.x tag. The API's for v1 are stable and shouldn't change. Development takes place at the master branch. Althought the code in master should always compile and test successfully, it might break API's. We aim to maintain backwards compatibility, but API's and behaviour might be changed to fix a bug. Also note that API's that are new in the master branch can change until released as v2.
+Development is not very active right now, but we have plans to
+restructure `gorp` as we continue to move toward a more extensible
+system.  Whenever a breaking change is needed, the major version will
+be bumped.
 
-If you want to use bleeding edge, use `github.com/go-gorp/gorp` as import path.
+The `master` branch is where all development is done, and breaking
+changes may happen from time to time.  That said, if you want to live
+on the bleeding edge and are comfortable updating your code when we
+make a breaking change, you may use `github.com/go-gorp/gorp` as your
+import path.
 
-## API Documentation
-
-Full godoc output from the latest v1 release is available here:
-
-https://godoc.org/gopkg.in/gorp.v1
-
-For the latest code in master:
-
-https://godoc.org/github.com/go-gorp/gorp
+Check the version tags to see what's available.  We'll make a good
+faith effort to add badges for new versions, but we make no
+guarantees.
 
 ## Supported Go versions
 
-This package is compatible with the last 2 major versions of Go, at this time `1.3` and `1.4`.
+This package is guaranteed to be compatible with the latest 2 major
+versions of Go.
 
-Any earlier versions are only supported on a best effort basis and can be dropped any time.
-Go has a great compatibility promise. Upgrading your program to a newer version of Go should never really be a problem.
+Any earlier versions are only supported on a best effort basis and can
+be dropped any time.  Go has a great compatibility promise. Upgrading
+your program to a newer version of Go should never really be a
+problem.
+
+## Migration guide
+
+#### Pre-v2 to v2
+Automatic mapping of the version column used in optimistic locking has
+been removed as it could cause problems if the type was not int. The
+version column must now explicitly be set with
+`tablemap.SetVersionCol()`.
+
+## Help/Support
+
+Use our [`gitter` channel](https://gitter.im/go-gorp/gorp).  We used
+to use IRC, but with most of us being pulled in many directions, we
+often need the email notifications from `gitter` to yell at us to sign
+in.
 
 ## Quickstart
 
@@ -530,10 +564,11 @@ Full list of hooks that you can implement:
 
 #### Note that this behaviour has changed in v2. See [Migration Guide](#migration-guide).
 
-gorp provides a simple optimistic locking feature, similar to Java's JPA, that
-will raise an error if you try to update/delete a row whose `version` column
-has a value different than the one in memory.  This provides a safe way to do
-"select then update" style operations without explicit read and write locks.
+gorp provides a simple optimistic locking feature, similar to Java's
+JPA, that will raise an error if you try to update/delete a row whose
+`version` column has a value different than the one in memory.  This
+provides a safe way to do "select then update" style operations
+without explicit read and write locks.
 
 ```go
 // Version is an auto-incremented number, managed by gorp
@@ -582,13 +617,15 @@ if ok {
 ```
 ### Adding INDEX(es) on column(s) beyond the primary key ###
 
-Indexes are frequently critical for performance. Here is how to add them to your tables.
+Indexes are frequently critical for performance. Here is how to add
+them to your tables.
 
-NB: SqlServer and Oracle need testing and possible adjustment to the 
+NB: SqlServer and Oracle need testing and possible adjustment to the
 CreateIndexSuffix() and DropIndexSuffix() methods to make AddIndex()
 work for them.
 
-In the example below we put an index both on the Id field, and on the AcctId field.
+In the example below we put an index both on the Id field, and on the
+AcctId field.
 
 ```
 type Account struct {
@@ -626,76 +663,111 @@ MariaDB [test]> show create table Account;
 
 ## Database Drivers
 
-gorp uses the Go 1 `database/sql` package.  A full list of compliant drivers is available here:
+gorp uses the Go 1 `database/sql` package.  A full list of compliant
+drivers is available here:
 
 http://code.google.com/p/go-wiki/wiki/SQLDrivers
 
-Sadly, SQL databases differ on various issues. gorp provides a Dialect interface that should be
-implemented per database vendor.  Dialects are provided for:
+Sadly, SQL databases differ on various issues. gorp provides a Dialect
+interface that should be implemented per database vendor.  Dialects
+are provided for:
 
 * MySQL
 * PostgreSQL
 * sqlite3
 
-Each of these three databases pass the test suite.  See `gorp_test.go` for example
-DSNs for these three databases.
+Each of these three databases pass the test suite.  See `gorp_test.go`
+for example DSNs for these three databases.
 
 Support is also provided for:
 
 * Oracle (contributed by @klaidliadon)
-* SQL Server (contributed by @qrawl) - use driver: github.com/denisenkom/go-mssqldb
+* SQL Server (contributed by @qrawl) - use driver:
+  github.com/denisenkom/go-mssqldb
 
-Note that these databases are not covered by CI and I (@coopernurse) have no good way to
-test them locally.  So please try them and send patches as needed, but expect a bit more
-unpredicability.
+Note that these databases are not covered by CI and I (@coopernurse)
+have no good way to test them locally.  So please try them and send
+patches as needed, but expect a bit more unpredicability.
+
+## Sqlite3 Extensions
+
+In order to use sqlite3 extensions you need to first register a custom driver:
+
+```go
+import (
+	"database/sql"
+
+	// use whatever database/sql driver you wish
+	sqlite "github.com/mattn/go-sqlite3"
+)
+
+func customDriver() (*sql.DB, error) {
+
+	// create custom driver with extensions defined
+	sql.Register("sqlite3-custom", &sqlite.SQLiteDriver{
+		Extensions: []string{
+			"mod_spatialite",
+		},
+	})
+
+	// now you can then connect using the 'sqlite3-custom' driver instead of 'sqlite3'
+	return sql.Open("sqlite3-custom", "/tmp/post_db.bin")
+}
+```
 
 ## Known Issues
 
 ### SQL placeholder portability
 
-Different databases use different strings to indicate variable placeholders in
-prepared SQL statements.  Unlike some database abstraction layers (such as JDBC),
-Go's `database/sql` does not standardize this.
+Different databases use different strings to indicate variable
+placeholders in prepared SQL statements.  Unlike some database
+abstraction layers (such as JDBC), Go's `database/sql` does not
+standardize this.
 
-SQL generated by gorp in the `Insert`, `Update`, `Delete`, and `Get` methods delegates
-to a Dialect implementation for each database, and will generate portable SQL.
+SQL generated by gorp in the `Insert`, `Update`, `Delete`, and `Get`
+methods delegates to a Dialect implementation for each database, and
+will generate portable SQL.
 
-Raw SQL strings passed to `Exec`, `Select`, `SelectOne`, `SelectInt`, etc will not be
-parsed.  Consequently you may have portability issues if you write a query like this:
+Raw SQL strings passed to `Exec`, `Select`, `SelectOne`, `SelectInt`,
+etc will not be parsed.  Consequently you may have portability issues
+if you write a query like this:
 
-```go
-// works on MySQL and Sqlite3, but not with Postgresql
-err := dbmap.SelectOne(&val, "select * from foo where id = ?", 30)
-```
+```go // works on MySQL and Sqlite3, but not with Postgresql err :=
+dbmap.SelectOne(&val, "select * from foo where id = ?", 30) ```
 
-In `Select` and `SelectOne` you can use named parameters to work around this.
-The following is portable:
+In `Select` and `SelectOne` you can use named parameters to work
+around this.  The following is portable:
 
-```go
-err := dbmap.SelectOne(&val, "select * from foo where id = :id",
-   map[string]interface{} { "id": 30})
-```
+```go err := dbmap.SelectOne(&val, "select * from foo where id = :id",
+map[string]interface{} { "id": 30}) ```
 
-Additionally, when using Postgres as your database, you should utilize `$1` instead
-of `?` placeholders as utilizing `?` placeholders when querying Postgres will result
-in `pq: operator does not exist` errors. Alternatively, use
-`dbMap.Dialect.BindVar(varIdx)` to get the proper variable binding for your dialect.
+Additionally, when using Postgres as your database, you should utilize
+`$1` instead of `?` placeholders as utilizing `?` placeholders when
+querying Postgres will result in `pq: operator does not exist`
+errors. Alternatively, use `dbMap.Dialect.BindVar(varIdx)` to get the
+proper variable binding for your dialect.
 
 ### time.Time and time zones
 
-gorp will pass `time.Time` fields through to the `database/sql` driver, but note that
-the behavior of this type varies across database drivers.
+gorp will pass `time.Time` fields through to the `database/sql`
+driver, but note that the behavior of this type varies across database
+drivers.
 
-MySQL users should be especially cautious.  See: https://github.com/ziutek/mymysql/pull/77
+MySQL users should be especially cautious.  See:
+https://github.com/ziutek/mymysql/pull/77
 
-To avoid any potential issues with timezone/DST, consider using an integer field for time
-data and storing UNIX time.
+To avoid any potential issues with timezone/DST, consider:
+
+- Using an integer field for time data and storing UNIX time.
+- Using a custom time type that implements some SQL types:
+  - [`"database/sql".Scanner`](https://golang.org/pkg/database/sql/#Scanner)
+  - [`"database/sql/driver".Valuer`](https://golang.org/pkg/database/sql/driver/#Valuer)
 
 ## Running the tests
 
 The included tests may be run against MySQL, Postgresql, or sqlite3.
-You must set two environment variables so the test code knows which driver to
-use, and how to connect to your database.
+You must set two environment variables so the test code knows which
+driver to use, and how to connect to your database.
 
 ```sh
 # MySQL example:
@@ -709,34 +781,18 @@ go test
 go test -bench="Bench" -benchtime 10
 ```
 
-Valid `GORP_TEST_DIALECT` values are: "mysql"(for mymysql), "gomysql"(for go-sql-driver), "postgres", "sqlite"
-See the `test_all.sh` script for examples of all 3 databases.  This is the script I run
-locally to test the library.
+Valid `GORP_TEST_DIALECT` values are: "mysql"(for mymysql),
+"gomysql"(for go-sql-driver), "postgres", "sqlite" See the
+`test_all.sh` script for examples of all 3 databases.  This is the
+script I run locally to test the library.
 
 ## Performance
 
-gorp uses reflection to construct SQL queries and bind parameters.  See the BenchmarkNativeCrud vs BenchmarkGorpCrud in gorp_test.go for a simple perf test.  On my MacBook Pro gorp is about 2-3% slower than hand written SQL.
+gorp uses reflection to construct SQL queries and bind parameters.
+See the BenchmarkNativeCrud vs BenchmarkGorpCrud in gorp_test.go for a
+simple perf test.  On my MacBook Pro gorp is about 2-3% slower than
+hand written SQL.
 
-## Migration guide
-#### Pre-v2 to v2
-Automatic mapping of the version column used in optimistic locking has been removed as it could cause problems if the type was not int. The version column must now explicitly be set with tablemap.SetVersionCol().
-
-## Help/Support
-
-IRC: #gorp
-Mailing list: gorp-dev@googlegroups.com
-Bugs/Enhancements: Create a github issue
-
-## Pull requests / Contributions
-
-Contributions are very welcome.  Please follow these guidelines:
-
-* Fork the `master` branch and issue pull requests targeting the `master` branch
-* If you are adding an enhancement, please open an issue first with your proposed change.
-* Changes that break backwards compatibility in the public API are only accepted after we
-  discuss on a GitHub issue for a while.
-
-Thanks!
 
 ## Contributors
 

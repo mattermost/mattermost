@@ -4,7 +4,6 @@
 package app
 
 import (
-	"crypto/tls"
 	"fmt"
 	"html"
 	"html/template"
@@ -220,23 +219,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
-	}
-
-	if hereNotification {
-		statuses := GetAllStatuses()
-		for _, status := range statuses {
-			if status.UserId == post.UserId {
-				continue
-			}
-
-			_, profileFound := profileMap[status.UserId]
-			_, alreadyMentioned := mentionedUserIds[status.UserId]
-
-			if status.Status == model.STATUS_ONLINE && profileFound && !alreadyMentioned {
-				mentionedUsersList = append(mentionedUsersList, status.UserId)
-				updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, status.UserId))
-			}
-		}
 	}
 
 	// Make sure all mention updates are complete to prevent race
@@ -574,14 +556,9 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = utils.CfgDiagnosticId
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-		DisableKeepAlives: true,
-	}
-	httpClient := &http.Client{Transport: tr}
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := httpClient.Do(request); err != nil {
+	if resp, err := utils.HttpClient().Do(request); err != nil {
 		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)
@@ -790,6 +767,11 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 		if int64(len(profiles)) < *utils.Cfg.TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
 			keywords["@channel"] = append(keywords["@channel"], profile.Id)
 			keywords["@all"] = append(keywords["@all"], profile.Id)
+
+			status := GetStatusFromCache(profile.Id)
+			if status != nil && status.Status == model.STATUS_ONLINE {
+				keywords["@here"] = append(keywords["@here"], profile.Id)
+			}
 		}
 	}
 

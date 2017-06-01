@@ -56,13 +56,23 @@ const (
 	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 )
 
+// Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
+// If signV2 input is false, function always returns signature v4.
+func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool) (*s3.Client, error) {
+	if signV2 {
+		return s3.NewV2(endpoint, accessKey, secretKey, secure)
+	}
+	return s3.NewV4(endpoint, accessKey, secretKey, secure)
+}
+
 func ReadFile(path string) ([]byte, *model.AppError) {
 	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 		if err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		}
@@ -94,7 +104,8 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 		if err != nil {
 			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
@@ -128,10 +139,12 @@ func WriteFile(f []byte, path string) *model.AppError {
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
+
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 		ext := filepath.Ext(path)
 
@@ -495,30 +508,35 @@ func prepareImage(fileData []byte) (*image.Image, int, int) {
 	}
 
 	// Flip the image to be upright
-	orientation, _ := getImageOrientation(fileData)
-
-	switch orientation {
-	case UprightMirrored:
-		img = imaging.FlipH(img)
-	case UpsideDown:
-		img = imaging.Rotate180(img)
-	case UpsideDownMirrored:
-		img = imaging.FlipV(img)
-	case RotatedCWMirrored:
-		img = imaging.Transpose(img)
-	case RotatedCCW:
-		img = imaging.Rotate270(img)
-	case RotatedCCWMirrored:
-		img = imaging.Transverse(img)
-	case RotatedCW:
-		img = imaging.Rotate90(img)
-	}
+	orientation, _ := getImageOrientation(bytes.NewReader(fileData))
+	img = makeImageUpright(img, orientation)
 
 	return &img, width, height
 }
 
-func getImageOrientation(imageData []byte) (int, error) {
-	if exifData, err := exif.Decode(bytes.NewReader(imageData)); err != nil {
+func makeImageUpright(img image.Image, orientation int) image.Image {
+	switch orientation {
+	case UprightMirrored:
+		return imaging.FlipH(img)
+	case UpsideDown:
+		return imaging.Rotate180(img)
+	case UpsideDownMirrored:
+		return imaging.FlipV(img)
+	case RotatedCWMirrored:
+		return imaging.Transpose(img)
+	case RotatedCCW:
+		return imaging.Rotate270(img)
+	case RotatedCCWMirrored:
+		return imaging.Transverse(img)
+	case RotatedCW:
+		return imaging.Rotate90(img)
+	default:
+		return img
+	}
+}
+
+func getImageOrientation(input io.Reader) (int, error) {
+	if exifData, err := exif.Decode(input); err != nil {
 		return Upright, err
 	} else {
 		if tag, err := exifData.Get("Orientation"); err != nil {

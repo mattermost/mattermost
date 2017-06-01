@@ -162,7 +162,7 @@ export default class PasswordSettings extends AdminSettings {
                                 id='admin.password.minimumLengthDescription'
                                 defaultMessage='Minimum number of characters required for a valid password. Must be a whole number greater than or equal to {min} and less than or equal to {max}.'
                                 values={{
-                                    min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
+                                    min: Constants.MIN_PASSWORD_LENGTH,
                                     max: Constants.MAX_PASSWORD_LENGTH
                                 }}
                             />

@@ -27,6 +27,8 @@ type SqlServerDialect struct {
 	Version string
 }
 
+func (d SqlServerDialect) Name() string { return "SQLServerDialect" }
+
 func (d SqlServerDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr bool) string {
 	switch val.Kind() {
 	case reflect.Ptr:

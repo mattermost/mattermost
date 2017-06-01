@@ -20,8 +20,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-
-	s3 "github.com/minio/minio-go"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -696,7 +694,8 @@ func TestUserCreateImage(t *testing.T) {
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -747,7 +746,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		path := utils.FindDir("tests")
+		path, _ := utils.FindDir("tests")
 		file, err := os.Open(path + "/test.png")
 		if err != nil {
 			t.Fatal(err)
@@ -800,7 +799,8 @@ func TestUserUploadProfileImage(t *testing.T) {
 			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 			secure := *utils.Cfg.FileSettings.AmazonS3SSL
-			s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+			signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+			s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
 			if err != nil {
 				t.Fatal(err)
 			}

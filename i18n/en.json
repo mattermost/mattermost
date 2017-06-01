@@ -792,6 +792,10 @@
     "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
   },
   {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
+  },
+  {
     "id": "api.command_shortcuts.nav.unread_next",
     "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
   },
@@ -1450,6 +1454,10 @@
     "translation": "The signup link does not appear to be valid"
   },
   {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they did not receive notifications because they do not belong to this channel."
   },
@@ -1698,10 +1706,6 @@
   {
     "id": "api.reaction.init.debug",
     "translation": "Initializing reactions api routes"
-  },
-  {
-    "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
@@ -2468,6 +2472,14 @@
     "translation": "Encountered an issue joining default channels user_id=%s, team_id=%s, err=%v"
   },
   {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Missing Invite Id."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "This server does not allow open signups.  Please speak with your Administrator to receive an invitation."
   },
@@ -2478,14 +2490,6 @@
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
     "translation": "User sign-up with email is disabled."
-  },
-  {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Missing Invite Id."
-  },
-  {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
@@ -3308,26 +3312,6 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch searching is disabled on this server"
   },
@@ -3338,6 +3322,26 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3892,24 +3896,24 @@
     "translation": "To must be greater than From"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Unable to enable email batching when clustering is enabled."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
   },
   {
-    "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Unable to enable email batching when clustering is enabled."
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4130,6 +4134,10 @@
   {
     "id": "model.config.is_valid.sql_idle.app_error",
     "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
@@ -5252,10 +5260,6 @@
     "translation": "We couldn't get the post"
   },
   {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "We couldn't get the posts"
-  },
-  {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "We couldn't get the parent post for the channel"
   },
@@ -5270,6 +5274,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "We couldn't get the parent posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "We couldn't get the posts"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5984,6 +5992,10 @@
     "translation": "Encountered error signing license, err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Failed to set HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Failed to open connection"
   },
@@ -5991,21 +6003,17 @@
     "id": "utils.mail.connect_smtp.open_tls.app_error",
     "translation": "Failed to open TLS connection"
   },
-    {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
-  },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Failed to authenticate on SMTP server"
   },
   {
-    "id": "utils.mail.new_client.open.error",
-    "translation": "Failed to open a connection to SMTP server %v"
-  },
-  {
     "id": "utils.mail.new_client.helo.error",
     "translation": "Failed to to set the HELO to SMTP server %v"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "Failed to open a connection to SMTP server %v"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
@@ -6013,7 +6021,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Failed to add from email address"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6037,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Failed to add to email address"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",
@@ -6230,5 +6238,9 @@
   {
     "id": "wsapi.webrtc.init.debug",
     "translation": "Initializing webrtc WebSocket API routes"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   }
 ]

@@ -46,6 +46,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("RootId").SetMaxSize(26)
 		table.ColMap("ParentId").SetMaxSize(26)
+		table.ColMap("OriginalId").SetMaxSize(26)
 		table.ColMap("Message").SetMaxSize(4000)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)

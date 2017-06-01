@@ -92,6 +92,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_ADD_MENTION: null,
     RECEIVED_POST_PINNED: null,
     RECEIVED_POST_UNPINNED: null,
+    POST_DRAFT_CHANGED: null,
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
@@ -171,6 +172,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_GET_TEAM_INVITE_LINK_MODAL: null,
     TOGGLE_GET_PUBLIC_LINK_MODAL: null,
     TOGGLE_DM_MODAL: null,
+    TOGGLE_QUICK_SWITCH_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,
     SUGGESTION_RECEIVED_SUGGESTIONS: null,
@@ -336,6 +338,7 @@ export const Constants = {
     },
 
     SPECIAL_MENTIONS: ['all', 'channel', 'here'],
+    NOTIFY_ALL_MEMBERS: 5,
     CHARACTER_LIMIT: 4000,
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg'],
     AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg'],

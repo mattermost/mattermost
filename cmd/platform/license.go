@@ -28,7 +28,9 @@ func init() {
 }
 
 func uploadLicenseCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) != 1 {
 		return errors.New("Enter one license file to upload")

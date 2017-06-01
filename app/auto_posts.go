@@ -41,7 +41,7 @@ func NewAutoPostCreator(client *model.Client, channelid string) *AutoPostCreator
 func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
-	path := utils.FindDir("web/static/images")
+	path, _ := utils.FindDir("web/static/images")
 	file, err := os.Open(path + "/" + filename)
 	defer file.Close()
 

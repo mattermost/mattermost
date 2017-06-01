@@ -52,6 +52,8 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 # Tests
 TESTS=.
 
+TESTFLAGS ?= -short
+
 # Packages lists
 TE_PACKAGES=$(shell go list ./... | grep -v vendor)
 TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
@@ -233,7 +235,7 @@ test-te: start-docker prepare-enterprise do-cover-file
 
 	@for package in $(TE_PACKAGES); do \
 		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
+		$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
 		if [ -f cprofile.out ]; then \
 			tail -n +2 cprofile.out >> cover.out; \
 			rm cprofile.out; \
@@ -267,7 +269,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package; \
 		if [ -f $$(basename $$package).test ]; then \
 			echo "Testing "$$package; \
-			./$$(basename $$package).test -test.v -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
+			./$$(basename $$package).test -test.v $(TESTFLAGS) -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
 			if [ -f cprofile.out ]; then \
 				tail -n +2 cprofile.out >> cover.out; \
 				rm cprofile.out; \

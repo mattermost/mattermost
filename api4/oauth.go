@@ -323,7 +323,9 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
 	w.Header().Set("Content-Type", "text/html")
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-	http.ServeFile(w, r, utils.FindDir(model.CLIENT_DIR)+"root.html")
+
+	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+	http.ServeFile(w, r, staticDir+"root.html")
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -9,6 +9,10 @@ import (
 )
 
 func TestWebrtcInfoResponseToFromJson(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	o := WebrtcInfoResponse{Token: NewId(), GatewayUrl: NewId()}
 	json := o.ToJson()
 	ro := WebrtcInfoResponseFromJson(strings.NewReader(json))
@@ -24,6 +28,10 @@ func TestWebrtcInfoResponseToFromJson(t *testing.T) {
 }
 
 func TestGatewayResponseFromJson(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	// Valid Gateway Response
 	s1 := `{"janus": "something"}`
 	g1 := GatewayResponseFromJson(strings.NewReader(s1))
