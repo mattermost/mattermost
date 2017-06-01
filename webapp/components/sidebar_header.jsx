@@ -27,11 +27,18 @@ export default class SidebarHeader extends React.Component {
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
         UserStore.addStatusesChangeListener(this.onStatusChange);
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
         UserStore.removeStatusesChangeListener(this.onStatusChange);
+        window.removeEventListener('resize', this.handleResize);
+    }
+
+    handleResize = () => {
+        const isMobile = Utils.isMobile();
+        this.setState({isMobile});
     }
 
     getPreferences = () => {
@@ -54,7 +61,8 @@ export default class SidebarHeader extends React.Component {
     getStateFromStores = () => {
         const preferences = this.getPreferences();
         const status = this.getCurrentUserStatus();
-        return {...preferences, status};
+        const isMobile = Utils.isMobile();
+        return {...preferences, status, isMobile};
     }
 
     onPreferenceChange = () => {
@@ -87,7 +95,7 @@ export default class SidebarHeader extends React.Component {
     }
 
     renderStatusDropdown = () => {
-        if (Utils.isMobile()) {
+        if (this.state.isMobile) {
             return null;
         }
         return (
