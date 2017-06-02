@@ -11,7 +11,10 @@
     z-index: 9999;
 
     &.error-bar--fixed {
+        overflow: hidden;
         padding: 1px 30px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     a {
