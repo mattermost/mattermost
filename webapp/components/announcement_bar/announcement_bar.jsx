@@ -122,7 +122,7 @@ export default class AnnouncementBar extends React.PureComponent {
 
     componentDidMount() {
         if (this.props.isLoggedIn && !this.state.allowDismissal) {
-            document.body.classList.add('asaadclassname');
+            document.body.classList.add('error-bar--fixed');
         }
 
         ErrorStore.addChangeListener(this.onErrorChange);
@@ -130,7 +130,7 @@ export default class AnnouncementBar extends React.PureComponent {
     }
 
     componentWillUnmount() {
-        document.body.classList.remove('asaadclassname');
+        document.body.classList.remove('error-bar--fixed');
         ErrorStore.removeChangeListener(this.onErrorChange);
         AnalyticsStore.removeChangeListener(this.onAnalyticsChange);
     }
@@ -141,9 +141,9 @@ export default class AnnouncementBar extends React.PureComponent {
         }
 
         if (!prevState.allowDismissal && this.state.allowDismissal) {
-            document.body.classList.remove('asaadclassname');
+            document.body.classList.remove('error-bar--fixed');
         } else if (prevState.allowDismissal && !this.state.allowDismissal) {
-            document.body.classList.add('asaadclassname');
+            document.body.classList.add('error-bar--fixed');
         }
     }
 
@@ -214,8 +214,6 @@ export default class AnnouncementBar extends React.PureComponent {
                     {'×'}
                 </a>
             );
-        } else {
-            barStyle.position = 'relative';
         }
 
         const renewalLink = RENEWAL_LINK + '?id=' + global.window.mm_license.Id + '&user_count=' + this.state.totalUsers;
