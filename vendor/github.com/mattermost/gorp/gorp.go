@@ -12,6 +12,7 @@
 package gorp
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
@@ -87,6 +88,7 @@ type TypeConverter interface {
 // on internal functions that convert named parameters for the Exec function.
 type executor interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 }
 
 // SqlExecutor exposes gorp operations that can be run from Pre/Post
@@ -101,6 +103,7 @@ type SqlExecutor interface {
 	Update(list ...interface{}) (int64, error)
 	Delete(list ...interface{}) (int64, error)
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	ExecNoTimeout(query string, args ...interface{}) (sql.Result, error)
 	Select(i interface{}, query string,
 		args ...interface{}) ([]interface{}, error)
 	SelectInt(query string, args ...interface{}) (int64, error)
@@ -110,8 +113,18 @@ type SqlExecutor interface {
 	SelectStr(query string, args ...interface{}) (string, error)
 	SelectNullStr(query string, args ...interface{}) (sql.NullString, error)
 	SelectOne(holder interface{}, query string, args ...interface{}) error
-	query(query string, args ...interface{}) (*sql.Rows, error)
-	queryRow(query string, args ...interface{}) *sql.Row
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+}
+
+// DynamicTable allows the users of gorp to dynamically
+// use different database table names during runtime
+// while sharing the same golang struct for in-memory data
+type DynamicTable interface {
+	TableName() string
+	SetTableName(string)
 }
 
 // Compile-time check that DbMap and Transaction implement the SqlExecutor
@@ -144,7 +157,7 @@ func argsString(args ...interface{}) string {
 
 // Calls the Exec function on the executor, but attempts to expand any eligible named
 // query arguments first.
-func exec(e SqlExecutor, query string, args ...interface{}) (sql.Result, error) {
+func exec(e SqlExecutor, query string, doTimeout bool, args ...interface{}) (sql.Result, error) {
 	var dbMap *DbMap
 	var executor executor
 	switch m := e.(type) {
@@ -160,7 +173,13 @@ func exec(e SqlExecutor, query string, args ...interface{}) (sql.Result, error) 
 		query, args = maybeExpandNamedQuery(dbMap, query, args)
 	}
 
-	return executor.Exec(query, args...)
+	if doTimeout && dbMap.Dialect.Name() != "PostgresDialect" {
+		ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
+		defer cancel()
+		return executor.ExecContext(ctx, query, args...)
+	} else {
+		return executor.Exec(query, args...)
+	}
 }
 
 // maybeExpandNamedQuery checks the given arg to see if it's eligible to be used
@@ -220,13 +239,13 @@ func expandNamedQuery(m *DbMap, query string, keyGetter func(key string) reflect
 	}), args
 }
 
-func columnToFieldIndex(m *DbMap, t reflect.Type, cols []string) ([][]int, error) {
+func columnToFieldIndex(m *DbMap, t reflect.Type, name string, cols []string) ([][]int, error) {
 	colToFieldIndex := make([][]int, len(cols))
 
 	// check if type t is a mapped table - if so we'll
 	// check the table for column aliasing below
 	tableMapped := false
-	table := tableOrNil(m, t)
+	table := tableOrNil(m, t, name)
 	if table != nil {
 		tableMapped = true
 	}
@@ -327,6 +346,30 @@ func toType(i interface{}) (reflect.Type, error) {
 	return t, nil
 }
 
+type foundTable struct {
+	table   *TableMap
+	dynName *string
+}
+
+func tableFor(m *DbMap, t reflect.Type, i interface{}) (*foundTable, error) {
+	if dyn, isDynamic := i.(DynamicTable); isDynamic {
+		tableName := dyn.TableName()
+		table, err := m.DynamicTableFor(tableName, true)
+		if err != nil {
+			return nil, err
+		}
+		return &foundTable{
+			table:   table,
+			dynName: &tableName,
+		}, nil
+	}
+	table, err := m.TableFor(t, true)
+	if err != nil {
+		return nil, err
+	}
+	return &foundTable{table: table}, nil
+}
+
 func get(m *DbMap, exec SqlExecutor, i interface{},
 	keys ...interface{}) (interface{}, error) {
 
@@ -335,14 +378,20 @@ func get(m *DbMap, exec SqlExecutor, i interface{},
 		return nil, err
 	}
 
-	table, err := m.TableFor(t, true)
+	foundTable, err := tableFor(m, t, i)
 	if err != nil {
 		return nil, err
 	}
+	table := foundTable.table
 
 	plan := table.bindGet()
 
 	v := reflect.New(t)
+	if foundTable.dynName != nil {
+		retDyn := v.Interface().(DynamicTable)
+		retDyn.SetTableName(*foundTable.dynName)
+	}
+
 	dest := make([]interface{}, len(plan.argFields))
 
 	conv := m.TypeConverter
@@ -361,7 +410,15 @@ func get(m *DbMap, exec SqlExecutor, i interface{},
 		dest[x] = target
 	}
 
-	row := exec.queryRow(plan.query, keys...)
+	var row *sql.Row
+	if m.Dialect.Name() != "PostgresDialect" {
+		ctx, cancel := context.WithTimeout(context.Background(), m.QueryTimeout)
+		defer cancel()
+		row = exec.QueryRowContext(ctx, plan.query, keys...)
+	} else {
+		row = exec.QueryRow(plan.query, keys...)
+	}
+
 	err = row.Scan(dest...)
 	if err != nil {
 		if err == sql.ErrNoRows {

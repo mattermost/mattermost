@@ -85,7 +85,8 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "",
+        "QueryTimeout": 30
     },
     "LogSettings": {
         "EnableConsole": true,

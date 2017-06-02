@@ -589,7 +589,7 @@ export default class NotificationsTab extends React.Component {
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.channelWide'
-                                defaultMessage='Channel-wide mentions "@channel", "@all"'
+                                defaultMessage='Channel-wide mentions "@channel", "@all", "@here"'
                             />
                         </label>
                     </div>
@@ -658,6 +658,7 @@ export default class NotificationsTab extends React.Component {
             if (this.state.channelKey) {
                 keys.push('@channel');
                 keys.push('@all');
+                keys.push('@here');
             }
             if (this.state.customKeys.length > 0) {
                 keys = keys.concat(this.state.customKeys.split(','));

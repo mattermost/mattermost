@@ -20,6 +20,8 @@ import (
 // Implementation of Dialect for Oracle databases.
 type OracleDialect struct{}
 
+func (d OracleDialect) Name() string { return "OracleDialect" }
+
 func (d OracleDialect) QuerySuffix() string { return "" }
 
 func (d OracleDialect) CreateIndexSuffix() string { return "" }

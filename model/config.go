@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"net/url"
 )
 
@@ -195,6 +196,7 @@ type SqlSettings struct {
 	MaxOpenConns             int
 	Trace                    bool
 	AtRestEncryptKey         string
+	QueryTimeout             *int
 }
 
 type LogSettings struct {
@@ -478,6 +480,11 @@ func (o *Config) SetDefaults() {
 
 	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
 		o.SqlSettings.AtRestEncryptKey = NewRandomString(32)
+	}
+
+	if o.SqlSettings.QueryTimeout == nil {
+		o.SqlSettings.QueryTimeout = new(int)
+		*o.SqlSettings.QueryTimeout = 30
 	}
 
 	if o.FileSettings.AmazonS3Endpoint == "" {
@@ -1320,6 +1327,10 @@ func (o *Config) IsValid() *AppError {
 
 	if o.SqlSettings.MaxIdleConns <= 0 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.sql_idle.app_error", nil, "")
+	}
+
+	if *o.SqlSettings.QueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.SqlSettings.DataSource) == 0 {
