@@ -40,7 +40,6 @@ export default class PostMessageContainer extends React.Component {
             emojis: EmojiStore.getEmojis(),
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             mentionKeys,
-            usernameMap: UserStore.getProfilesUsernameMap(),
             channelNamesMap: ChannelStore.getChannelNamesMap(),
             team: TeamStore.getCurrent()
         };
@@ -77,8 +76,7 @@ export default class PostMessageContainer extends React.Component {
         mentionKeys.push('@here');
 
         this.setState({
-            mentionKeys,
-            usernameMap: UserStore.getProfilesUsernameMap()
+            mentionKeys
         });
     }
 
@@ -97,7 +95,6 @@ export default class PostMessageContainer extends React.Component {
                 emojis={this.state.emojis}
                 enableFormatting={this.state.enableFormatting}
                 mentionKeys={this.state.mentionKeys}
-                usernameMap={this.state.usernameMap}
                 channelNamesMap={this.state.channelNamesMap}
                 team={this.state.team}
             />

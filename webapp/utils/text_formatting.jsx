@@ -9,6 +9,8 @@ import * as Markdown from './markdown.jsx';
 import twemoji from 'twemoji';
 import XRegExp from 'xregexp';
 
+const punctuation = XRegExp.cache('[^\\pL\\d]');
+
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
 // http://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
 const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3]/;
@@ -24,8 +26,7 @@ const cjkPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-
 // - markdown - Enables markdown parsing. Defaults to true.
 // - siteURL - The origin of this Mattermost instance. If provided, links to channels and posts will be replaced with internal
 //     links that can be handled by a special click handler.
-// - usernameMap - An object mapping usernames to users. If provided, at mentions will be replaced with internal links that can
-//      be handled by a special click handler (Utils.handleFormattedTextClick)
+// - atMentions - Whether or not to render at mentions into spans with a data-mention attribute. Defaults to false.
 // - channelNamesMap - An object mapping channel display names to channels. If provided, ~channel mentions will be replaced with
 //      links to the relevant channel.
 // - team - The current team.
@@ -67,8 +68,8 @@ export function doFormatText(text, options) {
     const tokens = new Map();
 
     // replace important words and phrases with tokens
-    if (options.usernameMap) {
-        output = autolinkAtMentions(output, tokens, options.usernameMap);
+    if (options.atMentions) {
+        output = autolinkAtMentions(output, tokens);
     }
 
     if (options.channelNamesMap) {
@@ -157,45 +158,21 @@ function autolinkEmails(text, tokens) {
     return autolinker.link(text);
 }
 
-const punctuation = XRegExp.cache('[^\\pL\\d]');
-
-export function autolinkAtMentions(text, tokens, usernameMap) {
-    // Test if provided text needs to be highlighted, special mention or current user
-    function mentionExists(u) {
-        return (Constants.SPECIAL_MENTIONS.indexOf(u) !== -1 || Boolean(usernameMap[u]));
-    }
-
-    function addToken(username, mention) {
+export function autolinkAtMentions(text, tokens) {
+    function replaceAtMentionWithToken(fullMatch, username) {
         const index = tokens.size;
         const alias = `$MM_ATMENTION${index}`;
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href='#' data-mention='${username}'>${mention}</a>`,
-            originalText: mention
+            value: `<span data-mention="${username}">@${username}</span>`,
+            originalText: fullMatch
         });
+
         return alias;
     }
 
-    function replaceAtMentionWithToken(fullMatch, prefix, mention, username) {
-        const usernameLower = username.toLowerCase();
-
-        // Check if the text makes up an explicit mention, possible trimming extra punctuation from the end of the name if necessary
-        for (let c = usernameLower.length; c > 0; c--) {
-            const truncated = usernameLower.substring(0, c);
-            const suffix = usernameLower.substring(c);
-
-            // If we've found a username or run out of punctuation to trim off, render it as an at mention
-            if (mentionExists(truncated) || !punctuation.test(truncated[truncated.length - 1])) {
-                const alias = addToken(truncated, '@' + truncated);
-                return prefix + alias + suffix;
-            }
-        }
-
-        return fullMatch;
-    }
-
     let output = text;
-    output = output.replace(/(^|\W)(@([a-z0-9.\-_]*))/gi, replaceAtMentionWithToken);
+    output = output.replace(/\B@([a-z0-9.\-_]*)/gi, replaceAtMentionWithToken);
 
     return output;
 }

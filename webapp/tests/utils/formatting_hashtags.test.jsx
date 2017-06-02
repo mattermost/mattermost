@@ -160,13 +160,11 @@ describe('TextFormatting.Hashtags', function() {
         );
 
         let options = {
-            usernameMap: {
-                test: {id: '1234', username: 'test'}
-            }
+            atMentions: true
         };
         assert.equal(
             TextFormatting.formatText('#@test', options).trim(),
-            "<p>#<a class='mention-link' href='#' data-mention='test'>@test</a></p>"
+            '<p>#<span data-mention="test">@test</a></p>'
         );
 
         assert.equal(

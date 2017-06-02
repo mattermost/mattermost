@@ -1298,16 +1298,11 @@ export function isValidPassword(password) {
 }
 
 export function handleFormattedTextClick(e) {
-    const mentionAttribute = e.target.getAttributeNode('data-mention');
     const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
     const linkAttribute = e.target.getAttributeNode('data-link');
     const channelMentionAttribute = e.target.getAttributeNode('data-channel-mention');
 
-    if (mentionAttribute) {
-        e.preventDefault();
-
-        searchForTerm(mentionAttribute.value);
-    } else if (hashtagAttribute) {
+    if (hashtagAttribute) {
         e.preventDefault();
 
         searchForTerm(hashtagAttribute.value);

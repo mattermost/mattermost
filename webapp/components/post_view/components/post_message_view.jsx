@@ -1,16 +1,18 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import {Parser, ProcessNodeDefinitions} from 'html-to-react';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import AtMention from 'components/at_mention';
 
 import Constants from 'utils/constants.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
-import * as Utils from 'utils/utils.jsx';
 import {getSiteURL} from 'utils/url.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import {renderSystemMessage} from './system_message_helpers.jsx';
 
@@ -21,7 +23,6 @@ export default class PostMessageView extends React.Component {
         emojis: PropTypes.object.isRequired,
         enableFormatting: PropTypes.bool.isRequired,
         mentionKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
-        usernameMap: PropTypes.object.isRequired,
         channelNamesMap: PropTypes.object.isRequired,
         team: PropTypes.object.isRequired,
         lastPostCount: PropTypes.number
@@ -61,9 +62,8 @@ export default class PostMessageView extends React.Component {
             return true;
         }
 
-        // Don't check if props.usernameMap changes since it is very large and inefficient to do so.
+        // Don't check if props.channelNamesMap changes since it is very large and inefficient to do so.
         // This mimics previous behaviour, but could be changed if we decide it's worth it.
-        // The same choice (and reasoning) is also applied to the this.props.channelNamesMap.
 
         return false;
     }
@@ -94,6 +94,34 @@ export default class PostMessageView extends React.Component {
         );
     }
 
+    postMessageHtmlToComponent(html) {
+        const parser = new Parser();
+        const attrib = 'data-mention';
+        const processNodeDefinitions = new ProcessNodeDefinitions(React);
+
+        function isValidNode() {
+            return true;
+        }
+
+        const processingInstructions = [
+            {
+                replaceChildren: true,
+                shouldProcessNode: (node) => node.attribs && node.attribs[attrib],
+                processNode: (node) => {
+                    const mentionName = node.attribs[attrib];
+
+                    return <AtMention mentionName={mentionName}/>;
+                }
+            },
+            {
+                shouldProcessNode: () => true,
+                processNode: processNodeDefinitions.processDefaultNode
+            }
+        ];
+
+        return parser.parseWithInstructions(html, isValidNode, processingInstructions);
+    }
+
     render() {
         if (this.props.post.state === Constants.POST_DELETED) {
             return this.renderDeletedPost();
@@ -107,7 +135,7 @@ export default class PostMessageView extends React.Component {
             emojis: this.props.emojis,
             siteURL: getSiteURL(),
             mentionKeys: this.props.mentionKeys,
-            usernameMap: this.props.usernameMap,
+            atMentions: true,
             channelNamesMap: this.props.channelNamesMap,
             team: this.props.team
         });
@@ -122,14 +150,18 @@ export default class PostMessageView extends React.Component {
             postId = Utils.createSafeId('lastPostMessageText' + this.props.lastPostCount);
         }
 
+        const htmlFormattedText = TextFormatting.formatText(this.props.post.message, options);
+        const postMessageComponent = this.postMessageHtmlToComponent(htmlFormattedText);
+
         return (
             <div>
                 <span
                     id={postId}
                     className='post-message__text'
                     onClick={Utils.handleFormattedTextClick}
-                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
-                />
+                >
+                    {postMessageComponent}
+                </span>
                 {this.renderEditedIndicator()}
             </div>
         );
