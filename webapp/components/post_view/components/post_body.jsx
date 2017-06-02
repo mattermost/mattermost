@@ -1,27 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import UserStore from 'stores/user_store.jsx';
-import * as Utils from 'utils/utils.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
-import * as PostUtils from 'utils/post_utils.jsx';
-import Constants from 'utils/constants.jsx';
-import CommentedOnFilesMessageContainer from './commented_on_files_message_container.jsx';
-import FileAttachmentListContainer from 'components/file_attachment_list_container.jsx';
-import PostBodyAdditionalContent from './post_body_additional_content.jsx';
-import PostMessageContainer from './post_message_container.jsx';
-import PendingPostOptions from './pending_post_options.jsx';
-import ReactionListContainer from './reaction_list_container.jsx';
-
+import PropTypes from 'prop-types';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import * as GlobalActions from 'actions/global_actions.jsx';
+import * as PostActions from 'actions/post_actions.jsx';
+
+import FileAttachmentListContainer from 'components/file_attachment_list_container.jsx';
 
 import loadingGif from 'images/load.gif';
 
-import PropTypes from 'prop-types';
+import UserStore from 'stores/user_store.jsx';
 
-import React from 'react';
+import Constants from 'utils/constants.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
+import * as Utils from 'utils/utils.jsx';
+
+import CommentedOnFilesMessageContainer from './commented_on_files_message_container.jsx';
+import PendingPostOptions from './pending_post_options.jsx';
+import PostBodyAdditionalContent from './post_body_additional_content.jsx';
+import PostMessageContainer from './post_message_container.jsx';
+import ReactionListContainer from './reaction_list_container.jsx';
 
 export default class PostBody extends React.Component {
+    static propTypes = {
+        post: PropTypes.object.isRequired,
+        currentUser: PropTypes.object.isRequired,
+        parentPost: PropTypes.object,
+        retryPost: PropTypes.func,
+        lastPostCount: PropTypes.number,
+        handleCommentClick: PropTypes.func.isRequired,
+        compactDisplay: PropTypes.bool,
+        previewCollapsed: PropTypes.string,
+        isCommentMention: PropTypes.bool,
+        childComponentDidUpdateFunction: PropTypes.func
+    }
+
     constructor(props) {
         super(props);
 
@@ -93,7 +109,7 @@ export default class PostBody extends React.Component {
                 name = (
                     <a
                         className='theme'
-                        onClick={Utils.searchForTerm.bind(null, username)}
+                        onClick={PostActions.searchForTerm.bind(null, username)}
                     >
                         {username}
                     </a>
@@ -208,16 +224,3 @@ export default class PostBody extends React.Component {
         );
     }
 }
-
-PostBody.propTypes = {
-    post: PropTypes.object.isRequired,
-    currentUser: PropTypes.object.isRequired,
-    parentPost: PropTypes.object,
-    retryPost: PropTypes.func,
-    lastPostCount: PropTypes.number,
-    handleCommentClick: PropTypes.func.isRequired,
-    compactDisplay: PropTypes.bool,
-    previewCollapsed: PropTypes.string,
-    isCommentMention: PropTypes.bool,
-    childComponentDidUpdateFunction: PropTypes.func
-};

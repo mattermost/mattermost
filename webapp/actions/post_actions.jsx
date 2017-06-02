@@ -507,3 +507,11 @@ export function storePostDraft(channelId, draft) {
         draft
     });
 }
+
+export function searchForTerm(term) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term,
+        do_search: true
+    });
+}

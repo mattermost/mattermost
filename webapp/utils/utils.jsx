@@ -383,14 +383,6 @@ export function insertHtmlEntities(text) {
     return newtext;
 }
 
-export function searchForTerm(term) {
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.RECEIVED_SEARCH_TERM,
-        term,
-        do_search: true
-    });
-}
-
 export function getFileType(extin) {
     var ext = extin.toLowerCase();
     if (Constants.IMAGE_TYPES.indexOf(ext) > -1) {
@@ -1331,6 +1323,15 @@ export function handleFormattedTextClick(e) {
         e.preventDefault();
         browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
+}
+
+// This should eventually be removed once everywhere else calls the action
+function searchForTerm(term) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term,
+        do_search: true
+    });
 }
 
 export function isEmptyObject(object) {
