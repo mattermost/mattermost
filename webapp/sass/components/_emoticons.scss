@@ -59,25 +59,6 @@
     z-index: 8;
 }
 
-.emoji-picker-react,
-.emoji-picker-react-rhs-comment {
-    position: absolute;
-    width: 278px;
-    border: 1px solid;
-    min-height: 298px;
-    border-radius: 3px;
-    right: 59px;
-    z-index: 100;
-}
-
-.emoji-picker-react {
-    top: 42px;
-}
-
-.emoji-picker-react-rhs-comment {
-    top: 21px;
-}
-
 .emoji-picker__categories {
     flex-grow: 0;
     flex-shrink: 0;
