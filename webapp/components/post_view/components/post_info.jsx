@@ -371,7 +371,7 @@ export default class PostInfo extends React.Component {
                             container={this.props.getPostList}
                             target={this.getDotMenu}
                             onHide={this.hideEmojiPicker}
-                            onEmojiClick={this.toggleEmojiPicker}
+                            onEmojiClick={this.reactEmojiClick}
                         />
                         <a
                             href='#'
