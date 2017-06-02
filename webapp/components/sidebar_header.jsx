@@ -98,15 +98,16 @@ export default class SidebarHeader extends React.Component {
         if (this.state.isMobile) {
             return null;
         }
+        const profilePicture = this.renderProfilePicture();
         return (
-            <div className='status_dropdown__wrapper'>
-                <StatusDropdown status={this.state.status}/>
-            </div>
+            <StatusDropdown
+                status={this.state.status}
+                profilePicture={profilePicture}
+            />
         );
     }
 
     render() {
-        const profilePicture = this.renderProfilePicture();
         const statusDropdown = this.renderStatusDropdown();
 
         let tutorialTip = null;
@@ -147,10 +148,7 @@ export default class SidebarHeader extends React.Component {
                     teamName={this.props.teamName}
                     currentUser={this.props.currentUser}
                 />
-                <div className='status-wrapper'>
-                    {profilePicture}
-                    {statusDropdown}
-                </div>
+                {statusDropdown}
             </div>
         );
     }

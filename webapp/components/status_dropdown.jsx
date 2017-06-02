@@ -16,6 +16,7 @@ export default class StatusDropdown extends React.Component {
 
     static propTypes = {
         status: React.PropTypes.string,
+        profilePicture: React.PropTypes.element,
         style: React.PropTypes.object
     }
 
@@ -36,25 +37,12 @@ export default class StatusDropdown extends React.Component {
         this.setState({mouseOver: false});
     }
 
-    renderStatusIcon = () => {
-        if (this.state.mouseOver) {
-            const team = TeamStore.getCurrent();
-            const theme = PreferenceStore.getTheme(team.id);
-            const iconStyle = {color: theme.sidebarHeaderTextColor};
-            return (
-                <span className={'status status-edit'}>
-                    <i
-                        className={'fa fa-caret-down'}
-                        style={iconStyle}
-                    />
-                </span>
-            );
-        }
-        return (
-            <StatusIcon
-                status={this.props.status}
-            />
-        );
+    onToggle = (showDropdown) => {
+        this.setState({showDropdown});
+    }
+
+    closeDropdown = () => {
+        this.setState({showDropdown: false});
     }
 
     setOnline = (event) => {
@@ -85,6 +73,18 @@ export default class StatusDropdown extends React.Component {
         );
     }
 
+    renderStatusOnlineAction = () => {
+        return this.renderStatusAction(UserStatuses.ONLINE, this.setOnline);
+    }
+
+    renderStatusAwayAction = () => {
+        return this.renderStatusAction(UserStatuses.AWAY, this.setAway);
+    }
+
+    renderStatusOfflineAction = () => {
+        return this.renderStatusAction(UserStatuses.OFFLINE, this.setOffline);
+    }
+
     renderStatusAction = (status, onClick) => {
         return (
             <li key={status}>
@@ -101,24 +101,25 @@ export default class StatusDropdown extends React.Component {
         );
     }
 
-    renderStatusOnlineAction = () => {
-        return this.renderStatusAction(UserStatuses.ONLINE, this.setOnline);
-    }
-
-    renderStatusAwayAction = () => {
-        return this.renderStatusAction(UserStatuses.AWAY, this.setAway);
-    }
-
-    renderStatusOfflineAction = () => {
-        return this.renderStatusAction(UserStatuses.OFFLINE, this.setOffline);
-    }
-
-    onToggle = (showDropdown) => {
-        this.setState({showDropdown});
-    }
-
-    closeDropdown = () => {
-        this.setState({showDropdown: false});
+    renderStatusIcon = () => {
+        if (this.state.mouseOver) {
+            const team = TeamStore.getCurrent();
+            const theme = PreferenceStore.getTheme(team.id);
+            const iconStyle = {color: theme.sidebarHeaderTextColor};
+            return (
+                <span className={'status status-edit'}>
+                    <i
+                        className={'fa fa-caret-down'}
+                        style={iconStyle}
+                    />
+                </span>
+            );
+        }
+        return (
+            <StatusIcon
+                status={this.props.status}
+            />
+        );
     }
 
     render() {
@@ -136,12 +137,16 @@ export default class StatusDropdown extends React.Component {
                 style={this.props.style}
             >
                 <BootstrapSpan
-                    className={'status_dropdown__toggle'}
                     bsRole={'toggle'}
                     onMouseEnter={this.onMouseEnter}
                     onMouseLeave={this.onMouseLeave}
                 >
-                    {statusIcon}
+                    <div className='status-wrapper'>
+                        {this.props.profilePicture}
+                        <div className='status_dropdown__toggle'>
+                            {statusIcon}
+                        </div>
+                    </div>
                 </BootstrapSpan>
                 <Dropdown.Menu>
                     {actions}
