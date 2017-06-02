@@ -552,7 +552,10 @@ export default class RhsComment extends React.Component {
             );
         } else if (!isSystemMessage) {
             options = (
-                <div className='col col__reply'>
+                <div
+                    ref='dotMenu'
+                    className='col col__reply'
+                >
                     {this.createDropdown(isSystemMessage)}
                     {react}
                 </div>
