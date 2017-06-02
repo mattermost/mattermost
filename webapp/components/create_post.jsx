@@ -529,6 +529,16 @@ export default class CreatePost extends React.Component {
                 channelId: lastPost.channel_id,
                 comments: PostStore.getCommentCount(lastPost)
             });
+        } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
+            e.preventDefault();
+            if (document.createEvent) {
+                var evt = document.createEvent('MouseEvents');
+                evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                document.getElementById('commentIcon0').dispatchEvent(evt);
+            } else if (document.createEventObject) {
+                var evObj = document.createEventObject();
+                document.getElementById('commentIcon0').fireEvent('onclick', evObj);
+            }
         }
 
         if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
