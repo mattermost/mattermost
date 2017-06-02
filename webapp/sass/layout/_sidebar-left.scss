@@ -8,6 +8,10 @@
     width: 220px;
     z-index: 5;
 
+    .error-bar--fixed & {
+        height: calc(100% - 22px);
+    }
+
     &.sidebar--padded {
         padding-top: 44px;
     }
