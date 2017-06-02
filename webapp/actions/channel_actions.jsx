@@ -43,6 +43,8 @@ import {
     deleteChannel as deleteChannelRedux
 } from 'mattermost-redux/actions/channels';
 
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+
 export function goToChannel(channel) {
     if (channel.fake) {
         const user = UserStore.getProfileByUsername(channel.display_name);
@@ -294,7 +296,9 @@ export function searchMoreChannels(term, success, error) {
     searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
         (data) => {
             if (data && success) {
-                success(data);
+                const myMembers = getMyChannelMemberships(getState());
+                const channels = data.filter((c) => !myMembers[c.id]);
+                success(channels);
             } else if (data == null && error) {
                 const serverError = getState().requests.channels.getChannels.error;
                 error({id: serverError.server_error_id, ...serverError});

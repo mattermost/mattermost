@@ -21,6 +21,8 @@ type PostgresDialect struct {
 	suffix string
 }
 
+func (d PostgresDialect) Name() string { return "PostgresDialect" }
+
 func (d PostgresDialect) QuerySuffix() string { return ";" }
 
 func (d PostgresDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr bool) string {
@@ -78,7 +80,7 @@ func (d PostgresDialect) AutoIncrBindValue() string {
 }
 
 func (d PostgresDialect) AutoIncrInsertSuffix(col *ColumnMap) string {
-	return " returning " + col.ColumnName
+	return " returning " + d.QuoteField(col.ColumnName)
 }
 
 // Returns suffix
@@ -104,7 +106,7 @@ func (d PostgresDialect) BindVar(i int) string {
 }
 
 func (d PostgresDialect) InsertAutoIncrToTarget(exec SqlExecutor, insertSql string, target interface{}, params ...interface{}) error {
-	rows, err := exec.query(insertSql, params...)
+	rows, err := exec.Query(insertSql, params...)
 	if err != nil {
 		return err
 	}

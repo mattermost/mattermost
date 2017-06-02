@@ -52,7 +52,10 @@ export function formatText(text, inputOptions) {
         output = replaceNewlines(output);
     }
 
-    output = insertLongLinkWbr(output);
+    // Add <wbr /> tags to recommend line breaking on slashes within URLs
+    if (!options.singleline) {
+        output = insertLongLinkWbr(output);
+    }
 
     return output;
 }

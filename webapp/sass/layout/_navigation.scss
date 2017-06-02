@@ -5,6 +5,24 @@
     background: transparent;
 }
 
+.nav-tabs {
+    margin-bottom: 10px;
+
+    > li {
+        margin-right: 5px;
+
+        > a {
+            border-bottom-color: transparent !important;
+            padding: 7px 15px;
+
+            .small {
+                @include opacity(.8);
+                margin-left: 4px;
+            }
+        }
+    }
+}
+
 #navbar {
     input {
         margin: 0 5px 0 2px;

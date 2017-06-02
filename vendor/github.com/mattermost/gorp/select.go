@@ -12,6 +12,7 @@
 package gorp
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"reflect"
@@ -154,15 +155,28 @@ func SelectOne(m *DbMap, e SqlExecutor, holder interface{}, query string, args .
 }
 
 func selectVal(e SqlExecutor, holder interface{}, query string, args ...interface{}) error {
-	if len(args) == 1 {
-		switch m := e.(type) {
-		case *DbMap:
-			query, args = maybeExpandNamedQuery(m, query, args)
-		case *Transaction:
-			query, args = maybeExpandNamedQuery(m.dbmap, query, args)
-		}
+	var dbMap *DbMap
+	switch m := e.(type) {
+	case *DbMap:
+		dbMap = m
+	case *Transaction:
+		dbMap = m.dbmap
 	}
-	rows, err := e.query(query, args...)
+
+	if len(args) == 1 {
+		query, args = maybeExpandNamedQuery(dbMap, query, args)
+	}
+
+	var rows *sql.Rows
+	var err error
+	if dbMap.Dialect.Name() != "PostgresDialect" {
+		ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
+		defer cancel()
+		rows, err = e.QueryContext(ctx, query, args...)
+	} else {
+		rows, err = e.Query(query, args...)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -178,14 +192,11 @@ func selectVal(e SqlExecutor, holder interface{}, query string, args ...interfac
 func hookedselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 	args ...interface{}) ([]interface{}, error) {
 
-	var nonFatalErr error
-
 	list, err := rawselect(m, exec, i, query, args...)
 	if err != nil {
 		if !NonFatalError(err) {
 			return nil, err
 		}
-		nonFatalErr = err
 	}
 
 	// Determine where the results are: written to i, or returned in list
@@ -209,7 +220,8 @@ func hookedselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 			}
 		}
 	}
-	return list, nonFatalErr
+
+	return list, nil
 }
 
 func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
@@ -221,6 +233,13 @@ func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 	)
 
 	var nonFatalErr error
+
+	tableName := ""
+	var dynObj DynamicTable
+	isDynamic := false
+	if dynObj, isDynamic = i.(DynamicTable); isDynamic {
+		tableName = dynObj.TableName()
+	}
 
 	// get type for i, verifying it's a supported destination
 	t, err := toType(i)
@@ -248,7 +267,15 @@ func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 	}
 
 	// Run the query
-	rows, err := exec.query(query, args...)
+	var rows *sql.Rows
+	if m.Dialect.Name() != "PostgresDialect" {
+		ctx, cancel := context.WithTimeout(context.Background(), m.QueryTimeout)
+		defer cancel()
+		rows, err = exec.QueryContext(ctx, query, args...)
+	} else {
+		rows, err = exec.Query(query, args...)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +293,7 @@ func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 
 	var colToFieldIndex [][]int
 	if intoStruct {
-		colToFieldIndex, err = columnToFieldIndex(m, t, cols)
+		colToFieldIndex, err = columnToFieldIndex(m, t, tableName, cols)
 		if err != nil {
 			if !NonFatalError(err) {
 				return nil, err
@@ -293,6 +320,11 @@ func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 			break
 		}
 		v := reflect.New(t)
+
+		if isDynamic {
+			v.Interface().(DynamicTable).SetTableName(tableName)
+		}
+
 		dest := make([]interface{}, len(cols))
 
 		custScan := make([]CustomScanner, 0)

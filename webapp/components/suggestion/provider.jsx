@@ -7,6 +7,7 @@ export default class Provider {
     constructor() {
         this.latestPrefix = '';
         this.latestComplete = true;
+        this.disableDispatches = false;
     }
 
     handlePretextChanged(suggestionId, pretext) { // eslint-disable-line no-unused-vars
@@ -22,6 +23,10 @@ export default class Provider {
     }
 
     shouldCancelDispatch(prefix) {
+        if (this.disableDispatches) {
+            return true;
+        }
+
         if (prefix === this.latestPrefix) {
             this.latestComplete = true;
         } else if (this.latestComplete) {

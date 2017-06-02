@@ -6,7 +6,6 @@ package app
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"crypto/tls"
 	"encoding/base64"
 	"net/http"
 	"strconv"
@@ -60,11 +59,7 @@ func GetWebrtcToken(sessionId string) (string, *model.AppError) {
 	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl, strings.NewReader(model.MapToJson(data)))
 	rq.Header.Set("Content-Type", "application/json")
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-	}
-	httpClient := &http.Client{Transport: tr}
-	if rp, err := httpClient.Do(rq); err != nil {
+	if rp, err := utils.HttpClient().Do(rq); err != nil {
 		return "", model.NewAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if rp.StatusCode >= 300 {
 		defer CloseBody(rp)
