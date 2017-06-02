@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import SuggestionStore from 'stores/suggestion_store.jsx';
+
 import $ from 'jquery';
-import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
-
-import SuggestionStore from 'stores/suggestion_store.jsx';
 
 export default class SuggestionList extends React.Component {
     static propTypes = {
@@ -111,6 +111,17 @@ export default class SuggestionList extends React.Component {
         );
     }
 
+    renderLoading(type) {
+        return (
+            <div
+                key={type + '-loading'}
+                className='suggestion-loader'
+            >
+                <i className='fa fa-spinner fa-pulse fa-fw margin-bottom'/>
+            </div>
+        );
+    }
+
     render() {
         if (this.state.items.length === 0) {
             return null;
@@ -129,6 +140,11 @@ export default class SuggestionList extends React.Component {
             if (this.props.renderDividers && item.type !== lastType) {
                 items.push(this.renderDivider(item.type));
                 lastType = item.type;
+            }
+
+            if (item.loading) {
+                items.push(this.renderLoading(item.type));
+                continue;
             }
 
             items.push(

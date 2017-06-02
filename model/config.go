@@ -126,6 +126,7 @@ type ServiceSettings struct {
 	ReadTimeout                              *int
 	WriteTimeout                             *int
 	MaximumLoginAttempts                     int
+	GoroutineHealthThreshold                 *int
 	GoogleDeveloperKey                       string
 	EnableOAuthServiceProvider               bool
 	EnableIncomingWebhooks                   bool
@@ -238,6 +239,7 @@ type FileSettings struct {
 	AmazonS3Region          string
 	AmazonS3Endpoint        string
 	AmazonS3SSL             *bool
+	AmazonS3SignV2          *bool
 }
 
 type EmailSettings struct {
@@ -500,6 +502,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
+	}
+
+	if o.FileSettings.AmazonS3SignV2 == nil {
+		o.FileSettings.AmazonS3SignV2 = new(bool)
+		// Signature v2 is not enabled by default.
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
@@ -1162,6 +1169,11 @@ func (o *Config) SetDefaults() {
 	if o.RateLimitSettings.Enable == nil {
 		o.RateLimitSettings.Enable = new(bool)
 		*o.RateLimitSettings.Enable = false
+	}
+
+	if o.ServiceSettings.GoroutineHealthThreshold == nil {
+		o.ServiceSettings.GoroutineHealthThreshold = new(int)
+		*o.ServiceSettings.GoroutineHealthThreshold = -1
 	}
 
 	if o.RateLimitSettings.MaxBurst == nil {

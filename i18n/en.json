@@ -748,6 +748,10 @@
     "translation": "UP (in empty input field): Edit your last message in the current channel\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.header",
     "translation": "#### Messages\n\n"
   },
@@ -790,6 +794,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1630,10 +1638,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " posted in "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Sending push notification to %v with msg of '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -2737,7 +2741,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not decode profile image config."
+    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -6234,5 +6238,9 @@
   {
     "id": "wsapi.webrtc.init.debug",
     "translation": "Initializing webrtc WebSocket API routes"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   }
 ]

@@ -76,6 +76,18 @@
         color: alpha-color($black, .9);
         width: 100%;
 
+        .channel-switch-modal {
+            .modal-header {
+                background: transparent;
+                min-height: 0;
+                padding: 0;
+
+                .close {
+                    top: 10px;
+                }
+            }
+        }
+
         .modal--overflow {
             .modal-body {
                 overflow: visible;
@@ -201,12 +213,16 @@
                 line-height: 30px;
                 position: absolute;
                 right: 10px;
+                text-shadow: none;
                 width: 30px;
                 z-index: 5;
-                text-shadow: none;
 
                 &:hover {
                     @include alpha-property(background, $black, .1);
+                }
+
+                .sr-only {
+                    display: none;
                 }
 
                 span {

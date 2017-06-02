@@ -244,6 +244,7 @@ func trackConfig() {
 		"enable_public_links": utils.Cfg.FileSettings.EnablePublicLink,
 		"driver_name":         utils.Cfg.FileSettings.DriverName,
 		"amazon_s3_ssl":       *utils.Cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_signv2":    *utils.Cfg.FileSettings.AmazonS3SignV2,
 		"thumbnail_width":     utils.Cfg.FileSettings.ThumbnailWidth,
 		"thumbnail_height":    utils.Cfg.FileSettings.ThumbnailHeight,
 		"preview_width":       utils.Cfg.FileSettings.PreviewWidth,

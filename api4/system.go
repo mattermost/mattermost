@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"runtime"
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
@@ -17,6 +18,7 @@ func InitSystem() {
 	l4g.Debug(utils.T("api.system.init.debug"))
 
 	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
+
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
 	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(updateConfig)).Methods("PUT")
 	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
@@ -34,7 +36,19 @@ func InitSystem() {
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
-	ReturnStatusOK(w)
+
+	actualGoroutines := runtime.NumGoroutine()
+	if *utils.Cfg.ServiceSettings.GoroutineHealthThreshold <= 0 || actualGoroutines <= *utils.Cfg.ServiceSettings.GoroutineHealthThreshold {
+		ReturnStatusOK(w)
+	} else {
+		rdata := map[string]string{}
+		rdata["status"] = "unhealthy"
+
+		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *utils.Cfg.ServiceSettings.GoroutineHealthThreshold)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(model.MapToJson(rdata)))
+	}
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {

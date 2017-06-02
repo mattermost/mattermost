@@ -4,7 +4,6 @@
 package app
 
 import (
-	"crypto/tls"
 	"fmt"
 	"html"
 	"html/template"
@@ -511,11 +510,14 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	}
 
-	l4g.Debug(utils.T("api.post.send_notifications_and_forget.push_notification.debug"), msg.DeviceId, msg.Message)
+	l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+
+		l4g.Debug("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message)
+
 		go sendToPushProxy(tmpMessage, session)
 
 		if einterfaces.GetMetricsInterface() != nil {
@@ -557,14 +559,9 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = utils.CfgDiagnosticId
 
-	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections},
-		DisableKeepAlives: true,
-	}
-	httpClient := &http.Client{Transport: tr}
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := httpClient.Do(request); err != nil {
+	if resp, err := utils.HttpClient().Do(request); err != nil {
 		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)

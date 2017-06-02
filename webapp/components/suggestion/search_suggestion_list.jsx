@@ -79,7 +79,7 @@ export default class SearchSuggestionList extends SuggestionList {
                     term={term}
                     matchedPretext={this.state.matchedPretext[i]}
                     isSelection={isSelection}
-                    onClick={this.handleItemClick}
+                    onClick={this.props.onCompleteWord}
                 />
             );
         }

@@ -1059,15 +1059,11 @@
         }
 
         .nav-pills__container {
-            height: 100%;
+            height: calc(100% - 50px);
         }
 
         > div {
             padding-bottom: 70px;
-        }
-
-        .nav-pills__unread-indicator-bottom {
-            bottom: 10px;
         }
 
         .nav-pills__unread-indicator {
@@ -1321,6 +1317,7 @@
             }
         }
     }
+
     .post {
         .attachment {
             .attachment__image {
@@ -1545,6 +1542,7 @@
         top: 60px;
         width: calc(100% - 30px);
     }
+
     .post {
         .attachment {
             .attachment__image {
@@ -1557,6 +1555,19 @@
 }
 
 @media screen and (max-width: 480px) {
+    .nav-tabs {
+        margin-top: 1em;
+
+        > li {
+            margin-right: 0;
+
+            a {
+                font-size: .9em;
+                padding: 6px 11px;
+            }
+        }
+    }
+
     .sidebar--right {
         .post {
             &.post--compact {

@@ -12,6 +12,7 @@
         "ReadTimeout": 300,
         "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
+        "GoroutineHealthThreshold": -1,
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
@@ -124,7 +125,8 @@
         "AmazonS3Bucket": "",
         "AmazonS3Region": "us-east-1",
         "AmazonS3Endpoint": "s3.amazonaws.com",
-        "AmazonS3SSL": true
+        "AmazonS3SSL": true,
+        "AmazonS3SignV2": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
