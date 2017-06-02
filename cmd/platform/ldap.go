@@ -27,6 +27,10 @@ func init() {
 }
 
 func ldapSyncCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
 		if err := ldapI.Syncronize(); err != nil {
 			CommandPrintErrorln("ERROR: AD/LDAP Synchronization Failed")
