@@ -4,14 +4,14 @@
     background-color: darken($primary-color, 5%);
     color: $white;
     padding: 5px 30px;
-    position: absolute;
+    position: fixed;
     text-align: center;
     top: 0;
     width: 100%;
     z-index: 9999;
 
     &.error-bar--fixed {
-        padding: 2px 30px;
+        padding: 1px 30px;
     }
 
     a {
