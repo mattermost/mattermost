@@ -21,8 +21,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/minio/minio-go/pkg/s3utils"
 )
 
 // BucketExists verify if bucket exists and you have permission to access it.
@@ -126,12 +124,13 @@ func (c Client) statObject(bucketName, objectName string, reqHeaders RequestHead
 	md5sum := strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
 	md5sum = strings.TrimSuffix(md5sum, "\"")
 
-	// Content-Length is not valid for Google Cloud Storage, do not verify.
+	// Parse content length is exists
 	var size int64 = -1
-	if !s3utils.IsGoogleEndpoint(c.endpointURL) {
-		// Parse content length.
-		size, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
+	contentLengthStr := resp.Header.Get("Content-Length")
+	if contentLengthStr != "" {
+		size, err = strconv.ParseInt(contentLengthStr, 10, 64)
 		if err != nil {
+			// Content-Length is not valid
 			return ObjectInfo{}, ErrorResponse{
 				Code:       "InternalError",
 				Message:    "Content-Length is invalid. " + reportIssue,

@@ -1962,6 +1962,7 @@ func TestEncryptionPutGet(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Test %d, error: %v %v %v", i+1, err, bucketName, objectName)
 		}
+		defer r.Close()
 
 		// Compare the sent object with the received one
 		recvBuffer := bytes.NewBuffer([]byte{})

@@ -28,9 +28,9 @@ import (
 	"github.com/minio/minio-go/pkg/encrypt"
 )
 
-// GetEncryptedObject deciphers and streams data stored in the server after applying a specifed encryption materiels
-func (c Client) GetEncryptedObject(bucketName, objectName string, encryptMaterials encrypt.Materials) (io.Reader, error) {
-
+// GetEncryptedObject deciphers and streams data stored in the server after applying a specifed encryption materials,
+// returned stream should be closed by the caller.
+func (c Client) GetEncryptedObject(bucketName, objectName string, encryptMaterials encrypt.Materials) (io.ReadCloser, error) {
 	if encryptMaterials == nil {
 		return nil, ErrInvalidArgument("Unable to recognize empty encryption properties")
 	}
@@ -328,14 +328,14 @@ func (o *Object) setOffset(bytesRead int64) error {
 	// Update the currentOffset.
 	o.currOffset += bytesRead
 
-	if o.currOffset >= o.objectInfo.Size {
+	if o.objectInfo.Size > -1 && o.currOffset >= o.objectInfo.Size {
 		return io.EOF
 	}
 	return nil
 }
 
 // Read reads up to len(b) bytes into b. It returns the number of
-// bytes read (0 <= n <= len(p)) and any error encountered. Returns
+// bytes read (0 <= n <= len(b)) and any error encountered. Returns
 // io.EOF upon end of file.
 func (o *Object) Read(b []byte) (n int, err error) {
 	if o == nil {
@@ -442,7 +442,7 @@ func (o *Object) ReadAt(b []byte, offset int64) (n int, err error) {
 	if o.objectInfoSet {
 		// If offset is negative than we return io.EOF.
 		// If offset is greater than or equal to object size we return io.EOF.
-		if offset >= o.objectInfo.Size || offset < 0 {
+		if (o.objectInfo.Size > -1 && offset >= o.objectInfo.Size) || offset < 0 {
 			return 0, io.EOF
 		}
 	}
@@ -542,16 +542,20 @@ func (o *Object) Seek(offset int64, whence int) (n int64, err error) {
 	default:
 		return 0, ErrInvalidArgument(fmt.Sprintf("Invalid whence %d", whence))
 	case 0:
-		if offset > o.objectInfo.Size {
+		if o.objectInfo.Size > -1 && offset > o.objectInfo.Size {
 			return 0, io.EOF
 		}
 		o.currOffset = offset
 	case 1:
-		if o.currOffset+offset > o.objectInfo.Size {
+		if o.objectInfo.Size > -1 && o.currOffset+offset > o.objectInfo.Size {
 			return 0, io.EOF
 		}
 		o.currOffset += offset
 	case 2:
+		// If we don't know the object size return an error for io.SeekEnd
+		if o.objectInfo.Size < 0 {
+			return 0, ErrInvalidArgument("Whence END is not supported when the object size is unknown")
+		}
 		// Seeking to positive offset is valid for whence '2', but
 		// since we are backing a Reader we have reached 'EOF' if
 		// offset is positive.
