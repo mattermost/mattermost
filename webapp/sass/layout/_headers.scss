@@ -299,6 +299,7 @@
 
         a {
             text-decoration: none;
+            @include flex-grow(1);
         }
 
         .sidebar-header-dropdown,
