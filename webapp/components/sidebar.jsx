@@ -798,9 +798,11 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        let quickSwitchText = 'sidebar.switch_channels';
+        const quickSwitchText = 'channel_switch_modal.title';
+
+        let quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.windows';
         if (Utils.isMac()) {
-            quickSwitchText += '.mac';
+            quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.mac';
         }
 
         return (
@@ -903,16 +905,21 @@ export default class Sidebar extends React.Component {
                         {directMessageMore}
                     </ul>
                 </div>
-                <div style={{height: '20px', width: '100%'}}>
+                <div className='sidebar__switcher'>
                     <a
                         href='#'
-                        className='sidebar__switcher'
                         onClick={this.openQuickSwitcher}
                     >
                         <FormattedMessage
                             id={quickSwitchText}
-                            defaultMessage='Switch Channels (CTRL + K)'
+                            defaultMessage='Switch Channels'
                         />
+                        <span className='switch__shortcut'>
+                            <FormattedMessage
+                                id={quickSwitchTextShortcut}
+                                defaultMessage='(⌘ + K)'
+                            />
+                        </span>
                     </a>
                 </div>
             </div>
