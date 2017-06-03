@@ -2,11 +2,12 @@
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 class BootstrapSpan extends React.PureComponent {
 
     static propTypes = {
-        children: React.PropTypes.element
+        children: PropTypes.element
     }
 
     render() {

@@ -3,30 +3,27 @@
 
 import React from 'react';
 import {Dropdown} from 'react-bootstrap';
-import StatusIcon from './status_icon.jsx';
-import * as ChannelActions from 'actions/channel_actions.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
+import StatusIcon from 'components/status_icon.jsx';
+import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
-import PreferenceStore from 'stores/preference_store.jsx';
-import {UserStatuses} from '../utils/constants.jsx';
-import BootstrapSpan from './bootstrap_span.jsx';
+import {UserStatuses} from 'utils/constants.jsx';
+import BootstrapSpan from 'components/bootstrap_span.jsx';
 
 export default class StatusDropdown extends React.Component {
 
     static propTypes = {
-        status: React.PropTypes.string,
-        profilePicture: React.PropTypes.element,
-        style: React.PropTypes.object
+        style: PropTypes.object,
+        status: PropTypes.string,
+        userId: PropTypes.string.isRequired,
+        profilePicture: PropTypes.string,
+        actions: PropTypes.shape({
+            setStatus: PropTypes.func.isRequired
+        }).isRequired
     }
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            showDropdown: false,
-            mouseOver: false
-        };
+    state = {
+        showDropdown: false,
+        mouseOver: false
     }
 
     onMouseEnter = () => {
@@ -45,6 +42,14 @@ export default class StatusDropdown extends React.Component {
         this.setState({showDropdown: false});
     }
 
+    setStatus = (status) => {
+        this.props.actions.setStatus({
+            user_id: this.props.userId,
+            status
+        });
+        this.closeDropdown();
+    }
+
     setOnline = (event) => {
         event.preventDefault();
         this.setStatus(UserStatuses.ONLINE);
@@ -60,19 +65,6 @@ export default class StatusDropdown extends React.Component {
         this.setStatus(UserStatuses.AWAY);
     }
 
-    setStatus = (status) => {
-        const channel = ChannelStore.getCurrent();
-        const channelId = channel.id;
-        const args = {channel_id: channelId};
-
-        ChannelActions.executeCommand(
-            `/${status}`,
-            args,
-            this.closeDropdown,
-            this.closeDropdown
-        );
-    }
-
     renderStatusOnlineAction = () => {
         return this.renderStatusAction(UserStatuses.ONLINE, this.setOnline);
     }
@@ -83,6 +75,18 @@ export default class StatusDropdown extends React.Component {
 
     renderStatusOfflineAction = () => {
         return this.renderStatusAction(UserStatuses.OFFLINE, this.setOffline);
+    }
+
+    renderProfilePicture = () => {
+        if (!this.props.profilePicture) {
+            return null;
+        }
+        return (
+            <img
+                className='user__picture'
+                src={this.props.profilePicture}
+            />
+        );
     }
 
     renderStatusAction = (status, onClick) => {
@@ -103,14 +107,10 @@ export default class StatusDropdown extends React.Component {
 
     renderStatusIcon = () => {
         if (this.state.mouseOver) {
-            const team = TeamStore.getCurrent();
-            const theme = PreferenceStore.getTheme(team.id);
-            const iconStyle = {color: theme.sidebarHeaderTextColor};
             return (
                 <span className={'status status-edit'}>
                     <i
                         className={'fa fa-caret-down'}
-                        style={iconStyle}
                     />
                 </span>
             );
@@ -124,6 +124,7 @@ export default class StatusDropdown extends React.Component {
 
     render() {
         const statusIcon = this.renderStatusIcon();
+        const profilePicture = this.renderProfilePicture();
         const actions = [
             this.renderStatusOnlineAction(),
             this.renderStatusAwayAction(),
@@ -142,7 +143,7 @@ export default class StatusDropdown extends React.Component {
                     onMouseLeave={this.onMouseLeave}
                 >
                     <div className='status-wrapper'>
-                        {this.props.profilePicture}
+                        {profilePicture}
                         <div className='status_dropdown__toggle'>
                             {statusIcon}
                         </div>

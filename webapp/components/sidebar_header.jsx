@@ -5,9 +5,7 @@ import PropTypes from 'prop-types';
 
 import React from 'react';
 
-import Client from 'client/web_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SidebarHeaderDropdown from './sidebar_header_dropdown.jsx';
@@ -15,7 +13,7 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {Preferences, TutorialSteps, Constants} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
-import StatusDropdown from './status_dropdown.jsx';
+import StatusDropdown from 'components/status_dropdown/index.jsx';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
@@ -26,13 +24,11 @@ export default class SidebarHeader extends React.Component {
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        UserStore.addStatusesChangeListener(this.onStatusChange);
         window.addEventListener('resize', this.handleResize);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        UserStore.removeStatusesChangeListener(this.onStatusChange);
         window.removeEventListener('resize', this.handleResize);
     }
 
@@ -51,26 +47,14 @@ export default class SidebarHeader extends React.Component {
         return {showTutorialTip};
     }
 
-    getCurrentUserStatus = () => {
-        if (!this.props.currentUser) {
-            return null;
-        }
-        return UserStore.getStatus(this.props.currentUser.id);
-    }
-
     getStateFromStores = () => {
         const preferences = this.getPreferences();
-        const status = this.getCurrentUserStatus();
         const isMobile = Utils.isMobile();
-        return {...preferences, status, isMobile};
+        return {...preferences, isMobile};
     }
 
     onPreferenceChange = () => {
         this.setState(this.getPreferences());
-    }
-
-    onStatusChange = () => {
-        this.setState({status: this.getCurrentUserStatus()});
     }
 
     toggleDropdown = (e) => {
@@ -79,31 +63,12 @@ export default class SidebarHeader extends React.Component {
         this.refs.dropdown.toggleDropdown();
     }
 
-    renderProfilePicture = () => {
-        var user = this.props.currentUser;
-        if (!user) {
-            return null;
-        }
-        const profilePictureSrc = Client.getProfilePictureUrl(
-            user.id, user.last_picture_update);
-        return (
-            <img
-                className='user__picture'
-                src={profilePictureSrc}
-            />
-        );
-    }
-
     renderStatusDropdown = () => {
         if (this.state.isMobile) {
             return null;
         }
-        const profilePicture = this.renderProfilePicture();
         return (
-            <StatusDropdown
-                status={this.state.status}
-                profilePicture={profilePicture}
-            />
+            <StatusDropdown/>
         );
     }
 
