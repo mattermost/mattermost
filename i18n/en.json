@@ -536,6 +536,38 @@
     "translation": "echo"
   },
   {
+    "id": "api.command_channel_header.desc",
+    "translation": "Edit the channel header."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "header"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "A message must be provided with the /header command."
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Only [Channel, Team and System Admins / Team and System Admins / System Admins] are allowed to edit the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Channel header successfully updated."
+  },
+  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },

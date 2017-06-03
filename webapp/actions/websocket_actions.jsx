@@ -230,8 +230,16 @@ function handleEvent(msg) {
         handleReactionRemovedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_UPDATED:
+        handleChannelUpdatedEvent(msg);
+        break;
+
     default:
     }
+}
+
+function handleChannelUpdatedEvent(msg) {
+    loadChannelsForCurrentUser(msg.broadcast.channel_id);
 }
 
 function handleNewPostEvent(msg) {
