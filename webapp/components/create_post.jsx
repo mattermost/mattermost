@@ -240,6 +240,12 @@ export default class CreatePost extends React.Component {
             return;
         }
 
+        if (!isDirectOrGroup && this.state.message.trimRight() === '/rename') {
+            GlobalActions.showChannelNameUpdateModal(updateChannel);
+            this.setState({message: ''});
+            return;
+        }
+
         this.doSubmit(e);
     }
 
