@@ -233,6 +233,12 @@ export default class CreatePost extends React.Component {
             return;
         }
 
+        if (this.state.message.endsWith('/purpose ')) {
+            GlobalActions.showChannelPurposeUpdateModal(updateChannel);
+            this.setState({message: ''});
+            return;
+        }
+
         this.doSubmit(e);
     }
 
