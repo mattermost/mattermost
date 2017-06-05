@@ -68,6 +68,7 @@ export default class Sidebar extends React.Component {
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
         this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
         this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
+        this.handleOpenMoreDirectChannelsModal = this.handleOpenMoreDirectChannelsModal.bind(this);
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
@@ -200,6 +201,11 @@ export default class Sidebar extends React.Component {
         this.showMoreDirectChannelsModal(args.startingUsers);
     }
 
+    handleOpenMoreDirectChannelsModal(e) {
+        e.preventDefault();
+        this.showMoreDirectChannelsModal();
+    }
+
     onChange() {
         if (this.state.currentTeam.id !== TeamStore.getCurrentId()) {
             ChannelStore.clear();
@@ -301,6 +307,8 @@ export default class Sidebar extends React.Component {
             ChannelActions.goToChannel(nextChannel);
             this.updateScrollbarOnChannelChange(nextChannel);
             this.isSwitchingChannel = false;
+        } else if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
+            this.handleOpenMoreDirectChannelsModal(e);
         }
     }
 
@@ -681,10 +689,7 @@ export default class Sidebar extends React.Component {
             <li key='more'>
                 <a
                     href='#'
-                    onClick={(e) => {
-                        e.preventDefault();
-                        this.showMoreDirectChannelsModal();
-                    }}
+                    onClick={this.handleOpenMoreDirectChannelsModal}
                 >
                     <FormattedMessage
                         id='sidebar.moreElips'

@@ -800,6 +800,10 @@
     "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
   },
   {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+  },
+  {
     "id": "api.command_shortcuts.nav.unread_next",
     "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
   },

@@ -1349,3 +1349,16 @@ export function isEmptyObject(object) {
 export function updateWindowDimensions(component) {
     component.setState({width: window.innerWidth, height: window.innerHeight});
 }
+
+export function removePrefixFromLocalStorage(prefix) {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        if (localStorage.key(i).startsWith(prefix)) {
+            keys.push(localStorage.key(i));
+        }
+    }
+
+    for (let i = 0; i < keys.length; i++) {
+        localStorage.removeItem(keys[i]);
+    }
+}

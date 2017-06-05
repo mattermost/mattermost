@@ -4792,7 +4792,7 @@ lodash.unset@^4.5.2:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/lodash.unset/-/lodash.unset-4.5.2.tgz#370d1d3e85b72a7e1b0cdf2d272121306f23e4ed"
 
-lodash@^4.0.0, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0:
+lodash@^4.0.0, lodash@^4.0.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.15.0, lodash@^4.17.2, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -4873,6 +4873,10 @@ marked@mattermost/marked#8f5902fff9bad793cd6c66e0c44002c9e79e1317:
 match-at@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/match-at/-/match-at-0.1.0.tgz#f561e7709ff9a105b85cc62c6b8ee7c15bf24f31"
+
+material-colors@^1.2.1:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/material-colors/-/material-colors-1.2.5.tgz#5292593e6754cb1bcc2b98030e4e0d6a3afc9ea1"
 
 math-expression-evaluator@^1.2.14:
   version "1.2.16"
@@ -6044,6 +6048,16 @@ react-bootstrap@0.31.0:
     uncontrollable "^4.1.0"
     warning "^3.0.0"
 
+react-color@^2.11.7:
+  version "2.11.7"
+  resolved "https://registry.yarnpkg.com/react-color/-/react-color-2.11.7.tgz#746465b75feda63c2567607dfbcb276fc954a5b7"
+  dependencies:
+    lodash "^4.0.1"
+    material-colors "^1.2.1"
+    prop-types "^15.5.4"
+    reactcss "^1.2.0"
+    tinycolor2 "^1.1.2"
+
 react-custom-scrollbars@4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/react-custom-scrollbars/-/react-custom-scrollbars-4.1.2.tgz#0e60c4a46c4a61f9e4994a7663e2b9cbbc5187a3"
@@ -6136,6 +6150,12 @@ react@15.5.4:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
     prop-types "^15.5.7"
+
+reactcss@^1.2.0:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/reactcss/-/reactcss-1.2.2.tgz#41b0ef43e01d54880357c34b11ac1531209350ef"
+  dependencies:
+    lodash "^4.0.1"
 
 read-all-stream@^3.0.0:
   version "3.1.0"
@@ -6280,7 +6300,7 @@ redux-persist-transform-filter@0.0.9:
     lodash.set "^4.3.2"
     lodash.unset "^4.5.2"
 
-redux-persist@4.6.0, redux-persist@^4.5.0:
+redux-persist@4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-4.6.0.tgz#3994793d5f2f38bf02591c9e693e16bf8eae2728"
   dependencies:
@@ -6288,7 +6308,7 @@ redux-persist@4.6.0, redux-persist@^4.5.0:
     lodash "^4.17.4"
     lodash-es "^4.17.4"
 
-redux-persist@4.8.0:
+redux-persist@4.8.0, redux-persist@^4.5.0:
   version "4.8.0"
   resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-4.8.0.tgz#17fd998949bdeef9275e4cf60ad5bbe1c73675fc"
   dependencies:
@@ -7256,6 +7276,10 @@ timers-browserify@^2.0.2:
   resolved "https://registry.yarnpkg.com/timers-browserify/-/timers-browserify-2.0.2.tgz#ab4883cf597dcd50af211349a00fbca56ac86b86"
   dependencies:
     setimmediate "^1.0.4"
+
+tinycolor2@^1.1.2:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/tinycolor2/-/tinycolor2-1.4.1.tgz#f4fad333447bc0b07d4dc8e9209d8f39a8ac77e8"
 
 tmp@^0.0.29:
   version "0.0.29"
