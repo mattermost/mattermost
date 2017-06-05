@@ -50,6 +50,7 @@ type Features struct {
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
 	ElasticSearch        *bool `json:"elastic_search"`
+	Announcement         *bool `json:"announcement"`
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
 }
@@ -141,6 +142,11 @@ func (f *Features) SetDefaults() {
 	if f.ElasticSearch == nil {
 		f.ElasticSearch = new(bool)
 		*f.ElasticSearch = *f.FutureFeatures
+	}
+
+	if f.Announcement == nil {
+		f.Announcement = new(bool)
+		*f.Announcement = true
 	}
 }
 
