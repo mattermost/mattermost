@@ -17,6 +17,7 @@ import Constants from 'utils/constants.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 import {Overlay} from 'react-bootstrap';
 import EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
 import PropTypes from 'prop-types';
 
@@ -351,6 +352,7 @@ export default class PostInfo extends React.Component {
                     idCount={idCount}
                     handleCommentClick={this.props.handleCommentClick}
                     commentCount={this.props.commentCount}
+                    channelId={ChannelStore.getCurrentId()}
                 />
             );
 
