@@ -756,6 +756,10 @@
     "translation": "ESC: Пометить все сообщения в текущем канале как прочитанные\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+ВНИЗ (в пустом поле ввода): Ввести следующее сообщение или команду\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "комбинации клавиш"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -789,6 +797,10 @@
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Открыть диалог переключения между каналами\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
     "translation": "{{.CmdOrCtrl}}+K: Открыть диалог переключения между каналами\n"
   },
   {
@@ -1632,10 +1644,6 @@
     "translation": " опубликовано в "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Посылаем push-уведомление пользователю %v с сообщением '%v'"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Не удалось отправить push-уведомление device_id={{.DeviceId}}, err={{.Error}}"
   },
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Пользователь не найден"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не удалось декодировать конфигурацию изображения профиля."
+    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4134,6 +4146,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Неверное значение максимального количества открытых соединений в настройках SQL. Число должно быть положительным."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Неверная высота профиля в настройках файлов. Число должно быть положительным."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -6013,7 +6029,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Не удалось добавить из адреса электронной почты"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6045,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Не удалось добавить адрес электронной почты"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",
