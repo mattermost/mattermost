@@ -249,10 +249,13 @@ export default class Sidebar extends React.Component {
         var showTopUnread = false;
         var showBottomUnread = false;
 
+        // Consider partially obscured channels as above/below
+        const unreadMargin = 15;
+
         if (this.firstUnreadChannel) {
             var firstUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.firstUnreadChannel]));
 
-            if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
+            if (firstUnreadElement.position().top + firstUnreadElement.height() < unreadMargin) {
                 showTopUnread = true;
             }
         }
@@ -260,7 +263,7 @@ export default class Sidebar extends React.Component {
         if (this.lastUnreadChannel) {
             var lastUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.lastUnreadChannel]));
 
-            if (lastUnreadElement.position().top > container.height()) {
+            if (lastUnreadElement.position().top > container.height() - unreadMargin) {
                 showBottomUnread = true;
             }
         }
