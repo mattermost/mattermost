@@ -24,7 +24,9 @@
         .app__body & {
             color: $white;
 
-            &:hover {
+            &:hover,
+            &:active,
+            &:focus {
                 color: $white;
             }
         }
