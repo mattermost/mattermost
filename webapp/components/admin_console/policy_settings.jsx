@@ -8,6 +8,9 @@ import SettingsGroup from './settings_group.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
 import RadioSetting from './radio_setting.jsx';
 import PostEditSetting from './post_edit_setting.jsx';
+import BooleanSetting from './boolean_setting.jsx';
+import TextSetting from './text_setting.jsx';
+import ColorSetting from './color_setting.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -35,6 +38,11 @@ export default class PolicySettings extends AdminSettings {
         config.TeamSettings.RestrictPublicChannelDeletion = this.state.restrictPublicChannelDeletion;
         config.TeamSettings.RestrictPrivateChannelDeletion = this.state.restrictPrivateChannelDeletion;
         config.TeamSettings.RestrictPrivateChannelManageMembers = this.state.restrictPrivateChannelManageMembers;
+        config.AnnouncementSettings.EnableBanner = this.state.enableBanner;
+        config.AnnouncementSettings.BannerText = this.state.bannerText;
+        config.AnnouncementSettings.BannerColor = this.state.bannerColor;
+        config.AnnouncementSettings.BannerTextColor = this.state.bannerTextColor;
+        config.AnnouncementSettings.AllowBannerDismissal = this.state.allowBannerDismissal;
 
         return config;
     }
@@ -51,7 +59,12 @@ export default class PolicySettings extends AdminSettings {
             restrictPrivateChannelManagement: config.TeamSettings.RestrictPrivateChannelManagement,
             restrictPublicChannelDeletion: config.TeamSettings.RestrictPublicChannelDeletion,
             restrictPrivateChannelDeletion: config.TeamSettings.RestrictPrivateChannelDeletion,
-            restrictPrivateChannelManageMembers: config.TeamSettings.RestrictPrivateChannelManageMembers
+            restrictPrivateChannelManageMembers: config.TeamSettings.RestrictPrivateChannelManageMembers,
+            enableBanner: config.AnnouncementSettings.EnableBanner,
+            bannerText: config.AnnouncementSettings.BannerText,
+            bannerColor: config.AnnouncementSettings.BannerColor,
+            bannerTextColor: config.AnnouncementSettings.BannerTextColor,
+            allowBannerDismissal: config.AnnouncementSettings.AllowBannerDismissal
         };
     }
 
@@ -316,6 +329,83 @@ export default class PolicySettings extends AdminSettings {
                             defaultMessage='Set policy on the length of time authors have to edit their messages after posting.'
                         />
                     }
+                />
+                <BooleanSetting
+                    id='enableBanner'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.enableBannerTitle'
+                            defaultMessage='Enable Announcement Banner:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.general.policy.enableBannerDesc'
+                            defaultMessage='Enable an announcement banner across all teams.'
+                        />
+                    }
+                    value={this.state.enableBanner}
+                    onChange={this.handleChange}
+                />
+                <TextSetting
+                    id='bannerText'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.bannerTextTitle'
+                            defaultMessage='Banner Text:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.general.policy.bannerTextDesc'
+                            defaultMessage='Text that will appear in the announcement banner.'
+                        />
+                    }
+                    value={this.state.bannerText}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
+                />
+                <ColorSetting
+                    id='bannerColor'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.bannerColorTitle'
+                            defaultMessage='Banner Color:'
+                        />
+                    }
+                    value={this.state.bannerColor}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
+                />
+                <ColorSetting
+                    id='bannerTextColor'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.bannerTextColorTitle'
+                            defaultMessage='Banner Text Color:'
+                        />
+                    }
+                    value={this.state.bannerTextColor}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
+                />
+                <BooleanSetting
+                    id='allowBannerDismissal'
+                    label={
+                        <FormattedMessage
+                            id='admin.general.policy.allowBannerDismissalTitle'
+                            defaultMessage='Allow Banner Dismissal:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.general.policy.allowBannerDismissalDesc'
+                            defaultMessage='When true, users can dismiss the banner until its next update. When false, the banner is permanently visible until it is turned off by the System Admin.'
+                        />
+                    }
+                    value={this.state.allowBannerDismissal}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableBanner}
                 />
             </SettingsGroup>
         );

@@ -25,9 +25,11 @@ import 'katex/dist/katex.min.css';
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {viewChannel} from 'mattermost-redux/actions/channels';
-import {getClientConfig, getLicenseConfig, setUrl} from 'mattermost-redux/actions/general';
+import {getClientConfig, getLicenseConfig, setUrl, setServerVersion as setServerVersionRedux} from 'mattermost-redux/actions/general';
+import {General} from 'mattermost-redux/constants';
 
 // Import the root of our routing tree
 import rRoot from 'routes/route_root.jsx';
@@ -128,15 +130,19 @@ function renderRootComponent() {
 
 let serverVersion = '';
 
-store.subscribe(() => {
-    const newServerVersion = getState().entities.general.serverVersion;
+EventEmitter.on(General.CONFIG_CHANGED, setServerVersion);
+
+function setServerVersion(newServerVersion) {
     if (serverVersion && serverVersion !== newServerVersion) {
         console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
         window.location.reload(true);
     }
 
-    serverVersion = newServerVersion;
-});
+    if (serverVersion !== newServerVersion) {
+        serverVersion = newServerVersion;
+        setServerVersionRedux(newServerVersion)(dispatch, getState);
+    }
+}
 
 global.window.setup_root = () => {
     // Do the pre-render setup and call renderRootComponent when done
