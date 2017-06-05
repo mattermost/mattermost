@@ -501,7 +501,7 @@ func (o *Config) SetDefaults() {
 			o.FileSettings.ClientSideEncryptionKey = new(string)
 			*o.FileSettings.ClientSideEncryptionKey = NewRandomString(32)
 		}
-	} else {
+	} else if o.FileSettings.ClientSideEncryptionKey == nil {
 		o.FileSettings.ClientSideEncryptionKey = new(string)
 		*o.FileSettings.ClientSideEncryptionKey = ""
 	}
