@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestTeamStoreSave(t *testing.T) {
@@ -549,6 +550,48 @@ func TestTeamMembers(t *testing.T) {
 		if len(ms) != 0 {
 			t.Fatal()
 		}
+	}
+}
+
+func TestSaveTeamMemberMaxMembers(t *testing.T) {
+	Setup()
+
+	MaxUsersPerTeam := utils.Cfg.TeamSettings.MaxUsersPerTeam
+	defer func() {
+		utils.Cfg.TeamSettings.MaxUsersPerTeam = MaxUsersPerTeam
+	}()
+	utils.Cfg.TeamSettings.MaxUsersPerTeam = 6
+
+	teamId := model.NewId()
+
+	userId := model.NewId()
+	Must(store.Team().SaveMember(&model.TeamMember{
+		TeamId: teamId,
+		UserId: userId,
+	}))
+
+	for i := 0; i < 5; i++ {
+		Must(store.Team().SaveMember(&model.TeamMember{
+			TeamId: teamId,
+			UserId: model.NewId(),
+		}))
+	}
+
+	userId2 := model.NewId()
+
+	if result := <-store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: userId2}); result.Err != nil {
+		t.Fatal("shouldn't be able to save member when at maximum members per team")
+	}
+
+	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
+	Must(store.Team().UpdateMember(&model.TeamMember{
+		TeamId:   teamId,
+		UserId:   userId,
+		DeleteAt: 1234,
+	}))
+
+	if result := <-store.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: userId2}); result.Err != nil {
+		t.Fatal("should've been able to save new member after deleting one")
 	}
 }
 
