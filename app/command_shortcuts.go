@@ -37,7 +37,7 @@ func (me *ShortcutsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	shortcutIds := [29]string{
+	shortcutIds := [...]string{
 		"api.command_shortcuts.header",
 		// Nav shortcuts
 		"api.command_shortcuts.nav.header",
