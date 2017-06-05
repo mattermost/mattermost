@@ -501,7 +501,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 			storeChannel <- result
 			close(storeChannel)
 			return
-		} else if int(count) > utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		} else if int(count) >= utils.Cfg.TeamSettings.MaxUsersPerTeam {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId)
 			storeChannel <- result
 			close(storeChannel)
