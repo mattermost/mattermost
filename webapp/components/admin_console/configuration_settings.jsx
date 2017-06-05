@@ -105,7 +105,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage="The URL that users will use to access Mattermost. Include the port number if it's a non-standard port such as 80 or 443. For example http://mattermost.example.com:8065. This setting is required."
+                            defaultMessage="The URL that users will use to access Mattermost. Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required. For example: http://mattermost.example.com:8065. This setting is required."
                         />
                     }
                     value={this.state.siteURL}
