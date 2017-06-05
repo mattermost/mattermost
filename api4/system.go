@@ -54,8 +54,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
-		c.SetInvalidParam("config")
-		return
+		cfg = utils.Cfg
 	}
 
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
