@@ -4685,6 +4685,11 @@ SOFTWARE.
 
 ## Elastic
 
+* HOMEPAGE
+  * https://github.com/olivere/elastic
+
+* LICENSE
+
 This product contains a modified portion of Elastic, an Elasticsearch client for the Go programming language by Oliver Eilhard.
 
 The MIT License (MIT)
