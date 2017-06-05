@@ -756,6 +756,10 @@
     "translation": "ESC: Marca todas as mensagens no canal atual como lida\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+CIMA (campo de entrada vazio): Responde a mais recente mensagem no canal atual\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+BAIXO (no campo de entrada vazio): Reimprime a próxima mensagem ou o comando slash inserido\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "atalhos"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: Abra uma janela de troca rápida de canal\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Abra uma janela de troca rápida de equipe\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1632,10 +1644,6 @@
     "translation": " postado em "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Enviar notificação push para %v com msg de '%v'"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Falha ao enviar notificação device_id={{.DeviceId}}, err={{.Error}}"
   },
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Usuário não localizado"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "O número de goroutines rodando é maior que o limite configurado %v de %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Não foi possível decodificar a configuração da imagem do perfil."
+    "translation": "Não foi possível salvar a imagem. Arquivo não parecer ser de uma imagem valida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4134,6 +4146,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválido máximo de conexões abertas em configurações SQL.  Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Configuração do tempo de execução da consulta de SQL inválida.  Deve ser um número positivo."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -6013,7 +6029,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Falha ao adicionar endereço de remetente de email"
+    "translation": "Endereço de remetente de email para notificação está faltando ou é inválido."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6045,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Falha ao adicionar o endereço de email"
+    "translation": "Endereço de email para notificação está faltando ou é inválido."
   },
   {
     "id": "utils.mail.test.configured.error",
