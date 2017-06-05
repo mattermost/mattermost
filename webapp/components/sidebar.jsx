@@ -68,6 +68,7 @@ export default class Sidebar extends React.Component {
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
         this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
         this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
+        this.handleOpenMoreDirectChannelsModal = this.handleOpenMoreDirectChannelsModal.bind(this);
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
@@ -105,11 +106,12 @@ export default class Sidebar extends React.Component {
         const preferences = getMyPreferences(store.getState());
         const profiles = getUsers(store.getState());
         let displayableChannels = {};
-        if (channels !== this.oldChannels ||
-            preferences !== this.oldPreferences ||
-            profiles !== this.oldProfiles) {
+        if (!Utils.areObjectsEqual(channels, this.oldChannels) ||
+                !Utils.areObjectsEqual(preferences, this.oldPreferences) ||
+                !Utils.areObjectsEqual(profiles, this.oldProfiles)) {
             const channelsArray = channels.map((channel) => Object.assign({}, channel));
             displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
+            displayableChannels.favoriteChannels.sort(sortTeamsByDisplayName);
         }
         this.oldChannels = channels;
         this.oldPreferences = preferences;
@@ -197,6 +199,11 @@ export default class Sidebar extends React.Component {
 
     onModalChange(value, args) {
         this.showMoreDirectChannelsModal(args.startingUsers);
+    }
+
+    handleOpenMoreDirectChannelsModal(e) {
+        e.preventDefault();
+        this.showMoreDirectChannelsModal();
     }
 
     onChange() {
@@ -300,6 +307,8 @@ export default class Sidebar extends React.Component {
             ChannelActions.goToChannel(nextChannel);
             this.updateScrollbarOnChannelChange(nextChannel);
             this.isSwitchingChannel = false;
+        } else if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
+            this.handleOpenMoreDirectChannelsModal(e);
         }
     }
 
@@ -641,7 +650,6 @@ export default class Sidebar extends React.Component {
 
         // create elements for all 4 types of channels
         const favoriteItems = this.state.favoriteChannels.
-            sort(sortTeamsByDisplayName).
             map((channel, index, arr) => {
                 if (channel.type === Constants.DM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
@@ -681,10 +689,7 @@ export default class Sidebar extends React.Component {
             <li key='more'>
                 <a
                     href='#'
-                    onClick={(e) => {
-                        e.preventDefault();
-                        this.showMoreDirectChannelsModal();
-                    }}
+                    onClick={this.handleOpenMoreDirectChannelsModal}
                 >
                     <FormattedMessage
                         id='sidebar.moreElips'
