@@ -34,7 +34,6 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3Bucket = this.state.amazonS3Bucket;
         config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
         config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
-        config.FileSettings.AmazonS3SignV2 = this.state.amazonS3SignV2;
 
         return config;
     }
@@ -49,8 +48,7 @@ export default class StorageSettings extends AdminSettings {
             amazonS3SecretAccessKey: config.FileSettings.AmazonS3SecretAccessKey,
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
             amazonS3Endpoint: config.FileSettings.AmazonS3Endpoint,
-            amazonS3SSL: config.FileSettings.AmazonS3SSL,
-            amazonS3SignV2: config.FileSettings.AmazonS3SignV2
+            amazonS3SSL: config.FileSettings.AmazonS3SSL
         };
     }
 
@@ -200,25 +198,6 @@ export default class StorageSettings extends AdminSettings {
                         />
                     }
                     value={this.state.amazonS3SSL}
-                    onChange={this.handleChange}
-                    disabled={this.state.driverName !== DRIVER_S3}
-                />
-                <BooleanSetting
-                    id='amazonS3SignV2'
-                    label={
-                        <FormattedMessage
-                            id='admin.image.amazonS3SignV2Title'
-                            defaultMessage='Enable Legacy Signature V2 for S3 Connections:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.image.amazonS3SignV2Example', 'Ex "false"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.image.amazonS3SignV2Desc'
-                            defaultMessage='When true, allow legacy signature V2 to Amazon S3.'
-                        />
-                    }
-                    value={this.state.amazonS3SignV2}
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
