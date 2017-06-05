@@ -164,7 +164,7 @@ describe('TextFormatting.Hashtags', function() {
         };
         assert.equal(
             TextFormatting.formatText('#@test', options).trim(),
-            '<p>#<span data-mention="test">@test</a></p>'
+            '<p>#<span data-mention="test">@test</span></p>'
         );
 
         assert.equal(
