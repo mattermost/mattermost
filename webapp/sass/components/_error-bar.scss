@@ -23,6 +23,10 @@
 
         .app__body & {
             color: $white;
+
+            &:hover {
+                color: $white;
+            }
         }
 
         &.error-bar__close {
