@@ -23,6 +23,12 @@
 
         .app__body & {
             color: $white;
+
+            &:hover,
+            &:active,
+            &:focus {
+                color: $white;
+            }
         }
 
         &.error-bar__close {
