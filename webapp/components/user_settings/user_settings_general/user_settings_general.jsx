@@ -50,6 +50,10 @@ const holders = defineMessages({
         id: 'user.settings.general.uploadImage',
         defaultMessage: "Click 'Edit' to upload an image."
     },
+    uploadImageMobile: {
+        id: 'user.settings.general.mobile.uploadImage',
+        defaultMessage: 'Click to upload an image.'
+    },
     fullName: {
         id: 'user.settings.general.fullName',
         defaultMessage: 'Full Name'
@@ -822,6 +826,14 @@ class UserSettingsGeneralTab extends React.Component {
                         defaultMessage="Click 'Edit' to add your full name"
                     />
                 );
+                if (Utils.isMobile()) {
+                    describe = (
+                        <FormattedMessage
+                            id='user.settings.general.mobile.emptyName'
+                            defaultMessage='Click to add your full name'
+                        />
+                    );
+                }
             }
 
             nameSection = (
@@ -916,6 +928,14 @@ class UserSettingsGeneralTab extends React.Component {
                         defaultMessage="Click 'Edit' to add a nickname"
                     />
                 );
+                if (Utils.isMobile()) {
+                    describe = (
+                        <FormattedMessage
+                            id='user.settings.general.mobile.emptyNickname'
+                            defaultMessage='Click to add a nickname'
+                        />
+                    );
+                }
             }
 
             nicknameSection = (
@@ -1092,6 +1112,14 @@ class UserSettingsGeneralTab extends React.Component {
                         defaultMessage="Click 'Edit' to add your job title / position"
                     />
                 );
+                if (Utils.isMobile()) {
+                    describe = (
+                        <FormattedMessage
+                            id='user.settings.general.mobile.emptyPosition'
+                            defaultMessage='Click to add your job title / position'
+                        />
+                    );
+                }
             }
 
             positionSection = (
@@ -1128,6 +1156,9 @@ class UserSettingsGeneralTab extends React.Component {
             );
         } else {
             let minMessage = formatMessage(holders.uploadImage);
+            if (Utils.isMobile()) {
+                minMessage = formatMessage(holders.uploadImageMobile);
+            }
             if (user.last_picture_update) {
                 minMessage = (
                     <FormattedMessage
