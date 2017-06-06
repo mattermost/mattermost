@@ -22,9 +22,7 @@ export default class ConfirmModal extends React.Component {
     }
 
     componentWillUnmount() {
-        if (!this.props.show) {
-            document.removeEventListener('keypress', this.handleKeypress);
-        }
+        document.removeEventListener('keypress', this.handleKeypress);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -37,7 +35,7 @@ export default class ConfirmModal extends React.Component {
 
     handleKeypress(e) {
         if (e.key === 'Enter' && this.props.show) {
-            this.props.onConfirm();
+            this.props.onConfirm(e);
         }
     }
 

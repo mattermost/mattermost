@@ -4136,6 +4136,10 @@
     "translation": "Ongeldig maximaal aantal open verbindingen bij SQL instellingen. Moet een getal groter dan 0 zijn."
   },
   {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
@@ -6013,7 +6017,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Toevoegen vanuit een e-mailadres is mislukt"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6033,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Kan e-mailadres niet toevoegen"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",

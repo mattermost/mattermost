@@ -141,6 +141,8 @@ func init() {
 
 	deleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
+	migrateAuthCmd.Flags().Bool("force", false, "Force the migration to occour even if there are duplicates on the LDAP server. Duplicates will not be migrated.")
+
 	userCmd.AddCommand(
 		userActivateCmd,
 		userDeactivateCmd,
@@ -444,8 +446,10 @@ func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Invalid match_field argument")
 	}
 
+	forceFlag, _ := cmd.Flags().GetBool("force")
+
 	if migrate := einterfaces.GetAccountMigrationInterface(); migrate != nil {
-		if err := migrate.MigrateToLdap(fromAuth, matchField); err != nil {
+		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Sucessfully migrated accounts.")

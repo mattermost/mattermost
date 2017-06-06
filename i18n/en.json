@@ -800,6 +800,10 @@
     "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
   },
   {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+  },
+  {
     "id": "api.command_shortcuts.nav.unread_next",
     "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
   },
@@ -4136,12 +4140,12 @@
     "translation": "Invalid maximum idle connection for SQL settings.  Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
-  },
-  {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Invalid maximum open connection for SQL settings.  Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",

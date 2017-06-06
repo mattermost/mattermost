@@ -4136,6 +4136,10 @@
     "translation": "Nieprawidłowy maksymalny czas otwarcia połączenia dla ustawień SQL. Musi być liczbą większą od 0."
   },
   {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "Czas pomiędzy aktualizacjami podczas wprowadzania tekstu przez użytkownika nie może być mniejszy niż 1000 milisekund."
   },
@@ -6013,7 +6017,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Failed to add from email address"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6033,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Failed to add to email address"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",

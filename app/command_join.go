@@ -40,8 +40,12 @@ func (me *JoinProvider) DoCommand(args *model.CommandArgs, message string) *mode
 		channel := result.Data.(*model.Channel)
 
 		if channel.Name == message {
+			allowed := false
+			if (channel.Type == model.CHANNEL_PRIVATE && SessionHasPermissionToChannel(args.Session, channel.Id, model.PERMISSION_READ_CHANNEL)) || channel.Type == model.CHANNEL_OPEN {
+				allowed = true
+			}
 
-			if channel.Type != model.CHANNEL_OPEN {
+			if !allowed {
 				return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
