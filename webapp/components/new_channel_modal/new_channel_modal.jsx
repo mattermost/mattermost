@@ -264,6 +264,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 </label>
                                 <div className='col-sm-9'>
                                     <input
+                                        id='displayNameField'
                                         onChange={this.handleChange}
                                         type='text'
                                         ref='display_name'
@@ -307,6 +308,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 </div>
                                 <div className='col-sm-9'>
                                     <textarea
+                                        id='channelPurposeField'
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
@@ -341,6 +343,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 </div>
                                 <div className='col-sm-9'>
                                     <textarea
+                                        id='channelHeaderField'
                                         className='form-control no-resize'
                                         ref='channel_header'
                                         rows='4'
@@ -362,6 +365,7 @@ export default class NewChannelModal extends React.PureComponent {
                         </Modal.Body>
                         <Modal.Footer>
                             <button
+                                id='cancelCreateNewChannel'
                                 type='button'
                                 className='btn btn-default'
                                 onClick={this.props.onModalDismissed}
@@ -372,6 +376,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 />
                             </button>
                             <button
+                                id='createNewChannel'
                                 onClick={this.handleSubmit}
                                 type='submit'
                                 className='btn btn-primary'
