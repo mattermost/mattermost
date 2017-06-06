@@ -360,7 +360,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
-		CommandPrettyPrintln("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
+		CommandPrettyPrintln("Are you sure you want to delete the users specified?  All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
