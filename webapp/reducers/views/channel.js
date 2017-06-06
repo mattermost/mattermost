@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 import {ActionTypes, Constants} from 'utils/constants.jsx';
-import {ChannelTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes} from 'mattermost-redux/action_types';
 
 function postVisibility(state = {}, action) {
     switch (action.type) {
@@ -14,8 +14,16 @@ function postVisibility(state = {}, action) {
     }
     case ActionTypes.INCREASE_POST_VISIBILITY: {
         const nextState = {...state};
-        nextState[action.data] += Constants.POST_CHUNK_SIZE / 2;
+        nextState[action.data] += action.amount;
         return nextState;
+    }
+    case PostTypes.RECEIVED_POST: {
+        if (action.data && state[action.data.channel_id]) {
+            const nextState = {...state};
+            nextState[action.data.channel_id] += 1;
+            return nextState;
+        }
+        return state;
     }
     default:
         return state;
@@ -37,7 +45,20 @@ function lastChannelViewTime(state = {}, action) {
     }
 }
 
+function loadingPosts(state = {}, action) {
+    switch (action.type) {
+    case ActionTypes.LOADING_POSTS: {
+        const nextState = {...state};
+        nextState[action.channelId] = action.data;
+        return nextState;
+    }
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     postVisibility,
-    lastChannelViewTime
+    lastChannelViewTime,
+    loadingPosts
 });

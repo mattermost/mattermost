@@ -29,7 +29,7 @@ export default class PostMessageView extends React.PureComponent {
         emojis: PropTypes.object.isRequired,
 
         /*
-         *
+         * The team the post was made in
          */
         team: PropTypes.object.isRequired,
 

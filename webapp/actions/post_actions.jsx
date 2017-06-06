@@ -35,6 +35,7 @@ import {
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {PostTypes} from 'mattermost-redux/action_types';
 import * as Selectors from 'mattermost-redux/selectors/entities/posts';
+import {batchActions} from 'redux-batched-actions';
 
 export function handleNewPost(post, msg) {
     let websocketMessageProps = {};
@@ -303,27 +304,39 @@ export function performSearch(terms, isMentionSearch, success, error) {
     );
 }
 
-let loadingMorePosts = false;
+const POST_INCREASE_AMOUNT = 10;
+const POST_INITIAL_VISIBILITY = Constants.POST_CHUNK_SIZE / 2;
 
-// Returns true if there are no more posts to load
+// Returns true if there are more posts to load
 export function increasePostVisibility(channelId) {
     return async (doDispatch, doGetState) => {
-        if (loadingMorePosts) {
+        if (doGetState().views.channel.loadingPosts[channelId]) {
             return false;
         }
 
-        loadingMorePosts = true;
+        const currentPostVisibility = doGetState().views.channel.postVisibility[channelId];
 
+        doDispatch(batchActions([
+            {
+                type: ActionTypes.LOADING_POSTS,
+                data: true,
+                channelId
+            },
+            {
+                type: ActionTypes.INCREASE_POST_VISIBILITY,
+                data: channelId,
+                amount: POST_INCREASE_AMOUNT
+            }
+        ]));
+
+        const page = Math.floor((POST_INITIAL_VISIBILITY + currentPostVisibility) / POST_INCREASE_AMOUNT);
+        const posts = await getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
         doDispatch({
-            type: ActionTypes.INCREASE_POST_VISIBILITY,
-            data: channelId
+            type: ActionTypes.LOADING_POSTS,
+            data: false,
+            channelId
         });
 
-        const currentPostVisibility = doGetState().views.channel.postVisibility[channelId];
-        const page = Math.floor(currentPostVisibility / (Constants.POST_CHUNK_SIZE / 2));
-        const posts = await getPosts(channelId, page, Constants.POST_CHUNK_SIZE / 2)(doDispatch, doGetState);
-        loadingMorePosts = false;
-
-        return posts.order.length < Constants.POST_CHUNK_SIZE / 2;
+        return posts.order.length >= POST_INCREASE_AMOUNT;
     };
 }

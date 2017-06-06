@@ -5,7 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import {Posts} from 'mattermost-redux/constants';
 
-import CommentedOnFilesMessageContainer from 'components/post_view/commented_on_files_message_container';
+import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content.jsx';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -101,7 +101,7 @@ export default class PostBody extends React.PureComponent {
                 message = Utils.replaceHtmlEntities(parentPost.message);
             } else if (parentPost.file_ids && parentPost.file_ids.length > 0) {
                 message = (
-                    <CommentedOnFilesMessageContainer
+                    <CommentedOnFilesMessage
                         parentPostId={parentPost.id}
                     />
                 );
