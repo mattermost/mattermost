@@ -756,6 +756,10 @@
     "translation": "ESC: 現在のチャンネルの全てのメッセージを既読にする\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (空白の入力欄で): 現在のチャンネルの最新のメッセージに返信する\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: 高速チャンネル切り替えダイアログボックスを開く\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: 高速チーム切り替えダイアログを開く\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1632,10 +1644,6 @@
     "translation": " posted in "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "%vにメッセージ'%v'のプッシュ通知を送っています。"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "プッシュ通知を送信出来ませんでした device_id={{.DeviceId}}, err={{.Error}}"
   },
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "ユーザーが見付かりません"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "動作中のgoroutineの数が正常動作の上限を超えています %v / %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "プロフィール画像の設定をデコードできませんでした。"
+    "translation": "プロフィール画像を保存できませんでした。ファイルは有効な画像として表示されません。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4137,7 +4149,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "SQL設定の問い合わせタイムアウトが不正です。  ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",

@@ -77,11 +77,11 @@
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Veritabanı bağlantısının geri dönüşümü bitti"
+    "translation": "Veritabanı bağlantısının geri dönüşümü tamamlandı."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Veritabanı bağlantısını geri dönüştürülmeye çalışılıyor"
+    "translation": "Veritabanı bağlantısı yeniden kurulmaya çalışılıyor."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -257,7 +257,7 @@
   },
   {
     "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "\\Giden web bağlantısı silinirken bir sorun çıktı. Kod: %v"
+    "translation": "Giden web bağlantısı silinirken bir sorun çıktı. Kod: %v"
   },
   {
     "id": "api.channel.delete_channel.permissions.app_error",
@@ -413,7 +413,7 @@
   },
   {
     "id": "api.command.execute_command.debug",
-    "translation": "%v komutu %c kullanıcı kodu ile yürütülüyor"
+    "translation": "Şimdi %v komutu %c kullanıcı kodu ile yürütülüyor"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -756,6 +756,10 @@
     "translation": "ESC: Geçerli kanaldaki tüm iletileri okunmuş olarak işaretle\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (boş giriş alanında): Geçerli kanalda son gönderilen iletiyi yanıtla\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+AŞAĞI (boş giriş alanında): Sonraki iletiyi ya da yazdığım bölü komutunu yeniden yaz\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "kısayollar"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: Hızlı kanal değiştirme penceresini aç\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Hızlı takım değiştirme penceresini aç\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1632,10 +1644,6 @@
     "translation": " şuraya gönderildi "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "%v kullanıcısına '%v' iletisi ile push bildirimi gönderiliyor"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Aygıta ileti gönderilemedi. Aygıt Kodu: {{.DeviceId}}, Hata Kodu: {{.Error}}"
   },
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "Çalışan yordamlar %v/%v sağlıklı eşiğin üzerinde "
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Profil görseli yapılandırmasının kodu çözülemedi."
+    "translation": "Profil görseli kaydedilemedi. Dosya geçerli bir görsel gibi görünmüyor."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4137,7 +4149,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "SQL ayarlarında sorgu zaman aşımı değeri geçersiz. Sıfır ya da pozitif bir sayı olmalı."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
