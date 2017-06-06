@@ -93,16 +93,12 @@ export default class Post extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.handleCommentClick = this.handleCommentClick.bind(this);
-        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
-        this.forceUpdateInfo = this.forceUpdateInfo.bind(this);
-
         this.state = {
             dropdownOpened: false
         };
     }
 
-    handleCommentClick(e) {
+    handleCommentClick = (e) => {
         e.preventDefault();
 
         AppDispatcher.handleServerAction({
@@ -116,13 +112,13 @@ export default class Post extends React.PureComponent {
         });
     }
 
-    handleDropdownOpened(opened) {
+    handleDropdownOpened = (opened) => {
         this.setState({
             dropdownOpened: opened
         });
     }
 
-    forceUpdateInfo() {
+    forceUpdateInfo = () => {
         this.refs.info.forceUpdate();
         this.refs.header.forceUpdate();
     }

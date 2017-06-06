@@ -5,7 +5,7 @@ import React from 'react';
 
 import * as Utils from 'utils/utils.jsx';
 
-export default class CommentedOnFilesMessageContainer extends React.PureComponent {
+export default class CommentedOnFilesMessage extends React.PureComponent {
     static propTypes = {
 
         /*
@@ -23,13 +23,13 @@ export default class CommentedOnFilesMessageContainer extends React.PureComponen
             /*
              * Function to get file metadata for a post
              */
-            getFileInfosForPost: React.PropTypes.func.isRequired
+            getFilesForPost: React.PropTypes.func.isRequired
         }).isRequired
     }
 
     componentDidMount() {
         if (!this.props.fileInfos || this.props.fileInfos.length === 0) {
-            this.props.actions.getFileInfosForPost(this.props.parentPostId);
+            this.props.actions.getFilesForPost(this.props.parentPostId);
         }
     }
 
