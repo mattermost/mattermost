@@ -4,14 +4,13 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
-import {handleNewPost, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
+import {handleNewPost} from 'actions/post_actions.jsx';
 import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
@@ -105,10 +104,15 @@ export function doFocusPost(channelId, postId, data) {
         channelId,
         post_list: data
     });
+
+    dispatch({
+        type: ActionTypes.RECEIVED_FOCUSED_POST,
+        data: postId,
+        channelId
+    });
+
     loadChannelsForCurrentUser();
     getChannelStats(channelId)(dispatch, getState);
-    loadPostsBefore(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
-    loadPostsAfter(postId, 0, Constants.POST_FOCUS_CONTEXT_RADIUS, true);
 }
 
 export function emitPostFocusEvent(postId, onSuccess) {
@@ -187,29 +191,6 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
 
 export function emitLeaveTeam() {
     removeUserFromTeam(TeamStore.getCurrentId(), UserStore.getCurrentId())(dispatch, getState);
-}
-
-export function emitLoadMorePostsEvent() {
-    const id = ChannelStore.getCurrentId();
-    loadMorePostsTop(id, false);
-}
-
-export function emitLoadMorePostsFocusedTopEvent() {
-    const id = PostStore.getFocusedPostId();
-    loadMorePostsTop(id, true);
-}
-
-export function loadMorePostsTop(id, isFocusPost) {
-    const earliestPostId = PostStore.getEarliestPostFromPage(id).id;
-    if (PostStore.requestVisibilityIncrease(id, Constants.POST_CHUNK_SIZE)) {
-        loadPostsBefore(earliestPostId, 0, Constants.POST_CHUNK_SIZE, isFocusPost);
-    }
-}
-
-export function emitLoadMorePostsFocusedBottomEvent() {
-    const id = PostStore.getFocusedPostId();
-    const latestPostId = PostStore.getLatestPost(id).id;
-    loadPostsAfter(latestPostId, 0, Constants.POST_CHUNK_SIZE, Boolean(id));
 }
 
 export function emitUserPostedEvent(post) {

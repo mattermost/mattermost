@@ -17,6 +17,11 @@ function postVisibility(state = {}, action) {
         nextState[action.data] += action.amount;
         return nextState;
     }
+    case ActionTypes.RECEIVED_FOCUSED_POST: {
+        const nextState = {...state};
+        nextState[action.channelId] = Constants.POST_CHUNK_SIZE;
+        return nextState;
+    }
     case PostTypes.RECEIVED_POST: {
         if (action.data && state[action.data.channel_id]) {
             const nextState = {...state};
