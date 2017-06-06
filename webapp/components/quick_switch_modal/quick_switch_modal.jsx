@@ -301,7 +301,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                 <Modal.Header closeButton={true}/>
                 <Modal.Body>
                     {header}
-                    <div className='modal__hint'>
+                    <div className='modal__hint hidden-xs'>
                         {help}
                     </div>
                     <SuggestionBox
