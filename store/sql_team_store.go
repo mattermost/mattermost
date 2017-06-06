@@ -489,12 +489,19 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 			return
 		}
 
-		if count, err := s.GetMaster().SelectInt("SELECT COUNT(0) FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": member.TeamId}); err != nil {
+		if count, err := s.GetMaster().SelectInt(
+			`SELECT
+				COUNT(0)
+			FROM
+				TeamMembers
+			WHERE
+				TeamId = :TeamId
+				AND DeleteAt = 0`, map[string]interface{}{"TeamId": member.TeamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+member.TeamId+", "+err.Error())
 			storeChannel <- result
 			close(storeChannel)
 			return
-		} else if int(count) > utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		} else if int(count) >= utils.Cfg.TeamSettings.MaxUsersPerTeam {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId)
 			storeChannel <- result
 			close(storeChannel)
