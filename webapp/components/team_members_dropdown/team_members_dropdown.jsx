@@ -357,7 +357,7 @@ export default class TeamMembersDropdown extends React.Component {
                     show={this.state.showDemoteModal}
                     title={title}
                     message={message}
-                    confirmButton={confirmButton}
+                    confirmButtonText={confirmButton}
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
                 />
