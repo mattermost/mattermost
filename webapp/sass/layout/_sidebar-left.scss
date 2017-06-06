@@ -46,13 +46,13 @@
         position: absolute;
         width: 100%;
 
-        a {
+        button {
             @include single-transition(all, .15s, ease-in);
             display: block;
             height: 42px;
-            line-height: 42px;
             text-align: center;
             text-decoration: none;
+            width: 100%;
 
             > span {
                 @include single-transition(all, .15s, ease-in);
@@ -118,7 +118,7 @@
     }
 
     .nav-pills__unread-indicator-bottom {
-        bottom: 60px;
+        bottom: 50px;
     }
 
     .nav {

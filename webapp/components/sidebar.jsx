@@ -906,8 +906,8 @@ export default class Sidebar extends React.Component {
                     </ul>
                 </div>
                 <div className='sidebar__switcher'>
-                    <a
-                        href='#'
+                    <button
+                        className='btn btn-link'
                         onClick={this.openQuickSwitcher}
                     >
                         <FormattedMessage
@@ -920,7 +920,7 @@ export default class Sidebar extends React.Component {
                                 defaultMessage='(⌘ + K)'
                             />
                         </span>
-                    </a>
+                    </button>
                 </div>
             </div>
         );
