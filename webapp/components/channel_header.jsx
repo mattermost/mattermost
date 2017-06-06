@@ -272,7 +272,7 @@ export default class ChannelHeader extends React.Component {
                 title={title}
                 message={message}
                 confirmButtonClass={buttonClass}
-                confirmButton={button}
+                confirmButtonText={button}
                 onConfirm={() => ChannelActions.leaveChannel(this.state.channel.id)}
                 onCancel={this.hideLeaveChannelModal}
             />

@@ -1,5 +1,12 @@
 @charset 'UTF-8';
 
+.radio,
+.checkbox {
+    &.margin-bottom--none {
+        margin-bottom: 0;
+    }
+}
+
 .form-horizontal {
     .modal-intro {
         margin: -10px 0 30px;
