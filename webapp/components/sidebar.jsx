@@ -804,8 +804,10 @@ export default class Sidebar extends React.Component {
         }
 
         let quickSwitchText = 'sidebar.switch_channels';
+        let quickSwitchDefault = 'Switch Channels (CTRL + K)';
         if (Utils.isMac()) {
             quickSwitchText += '.mac';
+            quickSwitchDefault = 'Switch Channels (CMD + K)';
         }
 
         return (
@@ -916,7 +918,7 @@ export default class Sidebar extends React.Component {
                     >
                         <FormattedMessage
                             id={quickSwitchText}
-                            defaultMessage='Switch Channels (CTRL + K)'
+                            defaultMessage={quickSwitchDefault}
                         />
                     </a>
                 </div>
