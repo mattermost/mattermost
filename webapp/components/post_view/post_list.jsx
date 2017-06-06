@@ -15,6 +15,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
+const CLOSE_TO_END_SCROLL_TOP = 100;
+
 export default class PostList extends React.PureComponent {
     static propTypes = {
 
@@ -37,6 +39,11 @@ export default class PostList extends React.PureComponent {
          * The last time the channel was viewed, sets the new message separator
          */
         lastViewedAt: PropTypes.number,
+
+        /**
+         * Set if more posts are being loaded
+         */
+        loadingPosts: PropTypes.bool,
 
         /**
          * The user id of the logged in user
@@ -89,8 +96,11 @@ export default class PostList extends React.PureComponent {
         this.handleScroll = this.handleScroll.bind(this);
         this.loadPosts = this.loadPosts.bind(this);
 
+        this.previousScrollTop = Number.MAX_SAFE_INTEGER;
+        this.previousScrollHeight = 0;
+
         this.state = {
-            atEnd: this.props.posts && this.props.posts.length < Constants.POST_CHUNK_SIZE
+            atEnd: false
         };
     }
 
@@ -121,6 +131,13 @@ export default class PostList extends React.PureComponent {
         }
     }
 
+    componentWillUpdate() {
+        if (this.refs.postlist) {
+            this.previousScrollTop = this.refs.postlist.scrollTop;
+            this.previousScrollHeight = this.refs.postlist.scrollHeight;
+        }
+    }
+
     componentDidUpdate() {
         // Scroll to focused post on first load
         const focusedPost = this.refs[this.props.focusedPostId];
@@ -137,6 +154,10 @@ export default class PostList extends React.PureComponent {
         if (messageSeparator && !this.hasScrolledToNewMessageSeparator) {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
+        }
+
+        if (this.refs.postlist && this.previousScrollTop < CLOSE_TO_END_SCROLL_TOP) {
+            this.refs.postlist.scrollTop = this.previousScrollTop + (this.refs.postlist.scrollHeight - this.previousScrollHeight);
         }
     }
 
@@ -166,10 +187,10 @@ export default class PostList extends React.PureComponent {
         this.hasScrolledToFocusedPost = true;
 
         // Show and load more posts if user scrolls halfway through the list
-        if (this.refs.postlist.scrollTop < this.refs.postlist.scrollHeight / 2 &&
+        if (this.refs.postlist.scrollTop < this.refs.postlist.scrollHeight / 8 &&
                 !this.state.atEnd) {
-            this.props.actions.increasePostVisibility(this.props.channel.id).then((noMoreToLoad) => {
-                this.setState({atEnd: noMoreToLoad && this.props.posts.length <= this.props.postVisibility});
+            this.props.actions.increasePostVisibility(this.props.channel.id).then((moreToLoad) => {
+                this.setState({atEnd: !moreToLoad && this.props.posts.length <= this.props.postVisibility});
             });
         }
     }
@@ -278,6 +299,13 @@ export default class PostList extends React.PureComponent {
         let topRow;
         if (this.state.atEnd) {
             topRow = createChannelIntroMessage(channel, this.props.fullWidth);
+        } else if (this.props.loadingPosts) {
+            topRow = (
+                <FormattedMessage
+                    id='posts_view.loadingMore'
+                    defaultMessage='Loading more messages...'
+                />
+            );
         }
 
         return (

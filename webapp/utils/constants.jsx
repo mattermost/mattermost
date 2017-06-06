@@ -94,6 +94,7 @@ export const ActionTypes = keyMirror({
     RECEIVED_POST_PINNED: null,
     RECEIVED_POST_UNPINNED: null,
     INCREASE_POST_VISIBILITY: null,
+    LOADING_POSTS: null,
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
