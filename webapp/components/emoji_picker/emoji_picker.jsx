@@ -247,20 +247,26 @@ class EmojiPicker extends React.Component {
                 // This is a custom emoji that matches the model on the server
                 name = selected.name;
                 aliases = [selected.name];
-                previewImage = (<img
-                    className='emoji-picker__preview-image'
-                    align='absmiddle'
-                    src={EmojiStore.getEmojiImageUrl(selected)}
-                                />);
+                previewImage = (
+                    <img
+                        className='emoji-picker__preview-image'
+                        align='absmiddle'
+                        src={EmojiStore.getEmojiImageUrl(selected)}
+                    />
+                );
             } else {
                 // This is a system emoji which only has a list of aliases
                 name = selected.aliases[0];
                 aliases = selected.aliases;
-                previewImage = (<span ><img
-                    src='/static/emoji/img_trans.gif'
-                    className={'  emojisprite-preview emoji-' + selected.filename + ' '}
-                    align='absmiddle'
-                                       /></span>);
+                previewImage = (
+                    <span>
+                        <img
+                            src='/static/emoji/img_trans.gif'
+                            className={'  emojisprite-preview emoji-' + selected.filename + ' '}
+                            align='absmiddle'
+                        />
+                    </span>
+                );
             }
 
             return (

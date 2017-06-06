@@ -142,7 +142,6 @@
 .post-right__scroll {
     -webkit-overflow-scrolling: touch;
     @include flex(1 1 auto);
-    overflow: auto;
     padding-top: 10px;
     position: relative;
 
