@@ -154,6 +154,7 @@ export default class PostList extends React.PureComponent {
         if (messageSeparator && !this.hasScrolledToNewMessageSeparator) {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
+            return;
         }
 
         if (this.refs.postlist && this.previousScrollTop < CLOSE_TO_END_SCROLL_TOP) {
