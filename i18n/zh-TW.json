@@ -756,6 +756,10 @@
     "translation": "ESC：將當前頻道所有訊息設為已讀\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (在空的輸入欄)：回覆當前頻道最新的訊息\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷鍵"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K：開啟快速切換頻道對話框\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K：開啟快速切換團隊對話框\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1451,7 +1463,7 @@
   },
   {
     "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
+    "translation": "初始化 Open Graph 協定 API 路徑"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1630,10 +1642,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " 張貼於 "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "正在傳送推播通知至 %v，訊息為 '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1972,6 +1980,10 @@
     "translation": "找不到使用者"
   },
   {
+    "id": "api.system.go_routines",
+    "translation": "執行中的 Goroutine 數量超過健康界線 %v (%v)"
+  },
+  {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
     "translation": "無效的資料。"
   },
@@ -2277,7 +2289,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}]  密碼已更新"
+    "translation": "[{{ .SiteName }}]  登入方式已更新"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2469,11 +2481,11 @@
   },
   {
     "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
+    "translation": "缺少雜湊或 URL 查詢資料。"
   },
   {
     "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Missing Invite Id."
+    "translation": "缺少邀請 ID。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "無法解碼個人頭像設定"
+    "translation": "無法儲存個人資訊圖片。檔案不是有效圖片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3029,7 +3041,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "如果有提供訊息建立時間，該值不能為 0。"
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3309,35 +3321,35 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "ElasticSearch 搜尋在此伺服器上為停用"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "無法完成搜尋"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "無法解碼搜尋結果"
   },
   {
     "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
+    "translation": "設定 ElasticSearch 用戶端時失敗"
   },
   {
     "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "建立 ElasticSearch 索引時失敗"
   },
   {
     "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
+    "translation": "確認 ElasticSearch 索引是否存在時失敗"
   },
   {
     "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
+    "translation": "設定 ElasticSearch 索引映射時失敗"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "設定 ElasticSearch 索引設定時失敗"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3897,19 +3909,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch ConnectionUrl。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch IndexingEnabled 為啟用。"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch 密碼。"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch 使用者名稱。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4137,7 +4149,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "SQL 設定中的查詢時限無效。必須為正數。"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5101,27 +5113,27 @@
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
-    "translation": "無法儲存檔案訊息"
+    "translation": "無法儲存或更新檔案訊息"
   },
   {
     "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "無法刪除訊息"
+    "translation": "無法刪除工作狀態"
   },
   {
     "id": "store.sql_job_status.get.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得工作狀態"
   },
   {
     "id": "store.sql_job_status.get_all.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得全部的工作狀態"
   },
   {
     "id": "store.sql_job_status.save.app_error",
-    "translation": "無法儲存訊息"
+    "translation": "無法儲存工作狀態"
   },
   {
     "id": "store.sql_job_status.update.app_error",
-    "translation": "無法更新訊息"
+    "translation": "無法更新工作狀態"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5989,7 +6001,7 @@
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
+    "translation": "設定 HELO 時失敗"
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
@@ -6005,7 +6017,7 @@
   },
   {
     "id": "utils.mail.new_client.helo.error",
-    "translation": "Failed to to set the HELO to SMTP server %v"
+    "translation": "對 SMTP 伺服器 %v 設定 HELO時失敗"
   },
   {
     "id": "utils.mail.new_client.open.error",
@@ -6017,7 +6029,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Notification From Address setting is missing or invalid."
+    "translation": "缺少通知信寄件人地址設定或是該設定無效。"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6033,7 +6045,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Notification To Address setting is missing or invalid."
+    "translation": "缺少通知信收件人地址設定或是該設定無效。"
   },
   {
     "id": "utils.mail.test.configured.error",
