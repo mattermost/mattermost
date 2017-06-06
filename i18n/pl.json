@@ -61,7 +61,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Błąd podczas wczytywania pliku dziennika"
+    "translation": "Błąd podczas odczytywania pliku dziennika."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
@@ -756,6 +756,10 @@
     "translation": "ESC: Oznacz wszystkie wiadomości w aktualnym kanale jako przeczytane\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+STRZAŁKA W DÓŁ (w pustym polu wprowadzania): Ponownie wyświetl następną wprowadzoną przez Ciebie wiadomość lub komendę w polu wprowadzania\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "skróty"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -789,6 +797,10 @@
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Otwórz okienko szybkiej zmiany kanału\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
     "translation": "{{.CmdOrCtrl}}+K: Otwórz okienko szybkiej zmiany kanału\n"
   },
   {
@@ -1632,10 +1644,6 @@
     "translation": "opublikował w"
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Wysyłanie aktywnego powiadomienia do %v o treści '%v'"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Nie udało się wysłać push na device_id={{.DeviceId}}, err={{.Error}}"
   },
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Nie znaleziono użytkownika"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Nie można było zdekodować ustawień obrazu profilu."
+    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4137,7 +4149,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "Nieprawidłowa wysokość profilu dla ustawień plików. Musi być liczbą większą od 0."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",

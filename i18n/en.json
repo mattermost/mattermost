@@ -748,16 +748,16 @@
     "translation": "UP (in empty input field): Edit your last message in the current channel\n"
   },
   {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
-  },
-  {
     "id": "api.command_shortcuts.msgs.header",
     "translation": "#### Messages\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs.mark_as_read",
     "translation": "ESC: Mark all messages in the current channel as read\n"
+  },
+  {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_next",
@@ -770,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "shortcuts"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -798,10 +802,6 @@
   {
     "id": "api.command_shortcuts.nav.switcher_team",
     "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1978,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "User not found"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -6242,9 +6246,5 @@
   {
     "id": "wsapi.webrtc.init.debug",
     "translation": "Initializing webrtc WebSocket API routes"
-  },
-  {
-    "id": "api.system.go_routines",
-    "translation": "The number of running goroutines is over the health threshold %v of %v"
   }
 ]

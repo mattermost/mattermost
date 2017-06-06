@@ -756,6 +756,10 @@
     "translation": "ECHAP: Marque tous les messages du canal en cours comme lus\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+BAS (dans le champ de saisie vide): Affiche à nouveau le message ou la commande slash suivants que vous avez saisis\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "raccourcis clavier"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -789,6 +797,10 @@
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
+    "translation": "{{.CmdOrCtrl}}+K: Ouvre une une boite de dialogue permettant de passer rapidement d'un canal à l'autre\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
     "translation": "{{.CmdOrCtrl}}+K: Ouvre une une boite de dialogue permettant de passer rapidement d'un canal à l'autre\n"
   },
   {
@@ -1632,10 +1644,6 @@
     "translation": " publié dans "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Envoi d'une notification push à %v wi msg of '%v'"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Impossible d'envoyer la notification push device_id={{.DeviceId}}, err={{.Error}}"
   },
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Utilisateur introuvable"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible d'analyser les paramètres de la photo de profil."
+    "translation": "Could not save profile image. File does not appear to be a valid image."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -4137,7 +4149,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "Hauteur du profil invalide dans les paramètres de fichiers. Doit être un entier positif."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
