@@ -2469,7 +2469,7 @@
   },
   {
     "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
+    "translation": "Fehlender Hash oder URL Anfrage-Daten."
   },
   {
     "id": "api.user.create_user.missing_invite_id.app_error",
@@ -2985,7 +2985,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Fehlende erforderliche Kanaleigenschaft: display_name."
+    "translation": "Fehlende erforderliche Kanaleigenschaft: display_name"
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -3065,7 +3065,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Fehlende erforderliche Teameigenschaft: display_name"
+    "translation": "Fehlende erforderliche Teameigenschaft: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -3089,7 +3089,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Fehlende erforderliche Teameigenschaft: type"
+    "translation": "Fehlende erforderliche Teameigenschaft: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3309,35 +3309,35 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Suche konnte nicht abgeschlossen werden"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
     "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
+    "translation": "Fehler beim Einrichten des ElasticSearch-Client"
   },
   {
     "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "Konnte ElasticSearch-Index nicht erstellen"
   },
   {
     "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
+    "translation": "Konnte nicht bestimmen, ob der ElasticSearch-Index existiert"
   },
   {
     "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
+    "translation": "Konnte ElasticSearch-Index-Mapping nicht einrichten"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "Konnte ElasticSearch-Index-Einstellungen nicht setzen"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3897,19 +3897,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "ElasticSearch-Einstellung ConnectionUrl muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "ElasticSearch-Einstellung IndexingEnabled muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "ElasticSearch-Einstellung Passwort muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "ElasticSearch-Einstellung Benutzername muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4134,6 +4134,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Ungültige maximale Anzahl an offenen Verbindungen in SQL Einstellungen.  Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4713,7 +4717,7 @@
   },
   {
     "id": "store.sql.schema_out_of_date.warn",
-    "translation": "Das Datenbankschema der Version %v scheint veralten zu sein"
+    "translation": "Das Datenbankschema der Version %v scheint veraltet zu sein"
   },
   {
     "id": "store.sql.schema_set.info",
@@ -5097,27 +5101,27 @@
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
-    "translation": "Die Dateiinformationen konnten nicht gespeichert werden"
+    "translation": "Die Dateiinformationen konnten nicht gespeichert oder aktualisiert werden"
   },
   {
     "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "Die Nachricht konnte nicht gelöscht werden"
+    "translation": "Der Job-Status konnte nicht gelöscht werden"
   },
   {
     "id": "store.sql_job_status.get.app_error",
-    "translation": "Die Nachricht konnte nicht abgerufen werden"
+    "translation": "Der Job-Status konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_job_status.get_all.app_error",
-    "translation": "Die Nachricht konnte nicht abgerufen werden"
+    "translation": "Wir konnten nicht den Status aller Jobs abrufen"
   },
   {
     "id": "store.sql_job_status.save.app_error",
-    "translation": "Die Nachricht konnte nicht gespeichert werden"
+    "translation": "Der Job-Status konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_job_status.update.app_error",
-    "translation": "Die Nachricht konnte nicht aktualisiert werden"
+    "translation": "Der Job-Status konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5269,7 +5273,7 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Die Nachricht konnte nicht abgerufen werden"
+    "translation": "Die Nachrichten konnten nicht abgerufen werden."
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -6013,7 +6017,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fehler beim Hinzufügen der Absender E-Mail-Adresse"
+    "translation": "Benachrichtigungseinstellung Absenderadresse fehlt oder ist ungültig."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6033,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fehler beim Hinzufügen der E-Mail Adresse"
+    "translation": "Benachrichtigungseinstellung Empfängeradresse fehlt oder ist ungültig."
   },
   {
     "id": "utils.mail.test.configured.error",

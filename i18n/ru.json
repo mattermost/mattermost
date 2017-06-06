@@ -4136,6 +4136,10 @@
     "translation": "Неверное значение максимального количества открытых соединений в настройках SQL. Число должно быть положительным."
   },
   {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "Обновления статуса набора текста пользователем не могут быть чаще, чем раз в 1000 миллисекунд."
   },
@@ -6013,7 +6017,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Не удалось добавить из адреса электронной почты"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6033,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Не удалось добавить адрес электронной почты"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",
