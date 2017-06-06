@@ -274,18 +274,20 @@ export default class QuickSwitchModal extends React.PureComponent {
         }
 
         let help;
-        if (this.props.showTeamSwitcher) {
+        if (Utils.isMobile()) {
+            help = null;
+        } else if (this.props.showTeamSwitcher) {
             help = (
                 <FormattedMessage
                     id='quick_switch_modal.help'
-                    defaultMessage='Use TAB to toggle between teams/channels, ↑↓ to browse, ↵ to confirm, ESC to dismiss'
+                    defaultMessage='Start typing then use TAB to toggle channels/teams, ↑↓ to browse, ↵ to select, and ESC to dismiss.'
                 />
             );
         } else {
             help = (
                 <FormattedMessage
                     id='quick_switch_modal.help_no_team'
-                    defaultMessage='Type a channel name. Use ↑↓ to browse, ↵ to confirm, ESC to dismiss'
+                    defaultMessage='Start typing then use ↑↓ to browse, ↵ to select, and ESC to dismiss.'
                 />
             );
         }
