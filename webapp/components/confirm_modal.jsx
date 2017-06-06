@@ -35,7 +35,7 @@ export default class ConfirmModal extends React.Component {
 
     handleKeypress(e) {
         if (e.key === 'Enter' && this.props.show) {
-            this.props.onConfirm();
+            this.props.onConfirm(e);
         }
     }
 
