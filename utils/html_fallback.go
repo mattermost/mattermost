@@ -1,7 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-// +build !solaris
+// +build solaris
+
+// Implementation of 'html.go' for OS'es that are not supported by fsnotify. This implementation does not support
+// hot-swapping of templates and will only load them at the startup of mattermost.
+
+// Solaris FEN support is something that is currently being integrated in to fsnotify. However FEN support
+// does not support cross compilation.
 
 package utils
 
@@ -11,7 +17,6 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/fsnotify/fsnotify"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -35,38 +40,11 @@ func InitHTMLWithDir(dir string) {
 		return
 	}
 
-	templatesDir, _ := FindDir(dir)
+	templatesDir := FindDir(dir)
 	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
 	var err error
 	if htmlTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
 		l4g.Error(T("api.api.init.parsing_templates.error"), err)
-	}
-
-	// Watch the templates folder for changes.
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		l4g.Error(T("web.create_dir.error"), err)
-	}
-
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					l4g.Info(T("web.reparse_templates.info"), event.Name)
-					if htmlTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
-						l4g.Error(T("web.parsing_templates.error"), err)
-					}
-				}
-			case err := <-watcher.Errors:
-				l4g.Error(T("web.dir_fail.error"), err)
-			}
-		}
-	}()
-
-	err = watcher.Add(templatesDir)
-	if err != nil {
-		l4g.Error(T("web.watcher_fail.error"), err)
 	}
 }
 

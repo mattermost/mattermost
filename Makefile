@@ -331,7 +331,11 @@ build-windows: .prebuild prepare-enterprise
 	@echo Build Windows amd64
 	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
 
-build: build-linux build-windows build-osx
+build-solaris: .prebuild prepare-enterprise
+	@echo Build Solaris amd64
+	env GOOS=solaris GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
+
+build: build-linux build-windows build-osx build-solaris
 
 build-client:
 	@echo Building mattermost web app
@@ -404,6 +408,18 @@ endif
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/platform
+
+	@# Make solaris package
+	@# Copy binary
+ifeq ($(BUILDER_GOOS_GOARCH),"solaris_amd64")
+	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+else
+	cp $(GOPATH)/bin/solaris_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
+endif
+	@# Package
+	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-solaris-amd64.tar.gz mattermost
+	@# Don't clean up native package so dev machines will have an unzipped package available
+	@#rm -f $(DIST_PATH)/bin/platform
 
 	@# Make windows package
 	@# Copy binary
