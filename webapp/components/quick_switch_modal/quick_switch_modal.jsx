@@ -22,7 +22,6 @@ import store from 'stores/redux_store.jsx';
 const getState = store.getState;
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 
 const CHANNEL_MODE = 'channel';
 const TEAM_MODE = 'team';
@@ -141,24 +140,22 @@ export default class QuickSwitchModal extends React.PureComponent {
         if (this.state.mode === CHANNEL_MODE) {
             const selectedChannel = selected.channel;
             if (selectedChannel.type === Constants.DM_CHANNEL) {
-                const user = getUserByUsername(getState(), selectedChannel.name);
-
-                if (user) {
-                    openDirectChannelToUser(
-                        user.id,
-                        (ch) => {
-                            channel = ch;
-                            this.switchToChannel(channel);
-                        },
-                        () => {
-                            channel = null;
-                            this.switchToChannel(channel);
-                        }
-                    );
-                }
-            } else {
+                openDirectChannelToUser(
+                    selectedChannel.id,
+                    (ch) => {
+                        channel = ch;
+                        this.switchToChannel(channel);
+                    },
+                    () => {
+                        channel = null;
+                        this.switchToChannel(channel);
+                    }
+                );
+            } else if (selectedChannel.type === Constants.GM_CHANNEL) {
                 channel = getChannel(getState(), selectedChannel.id);
                 this.switchToChannel(channel);
+            } else {
+                this.switchToChannel(selectedChannel);
             }
         } else {
             browserHistory.push('/' + selected.name);
