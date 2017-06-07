@@ -51,6 +51,7 @@ export default class OAuthToEmail extends React.Component {
         this.setState(state);
 
         oauthToEmail(
+            this.props.currentType,
             this.props.email,
             password,
             null,

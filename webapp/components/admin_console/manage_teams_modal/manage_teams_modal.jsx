@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 
 import * as TeamActions from 'actions/team_actions.jsx';
 
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import LoadingScreen from 'components/loading_screen.jsx';
 
@@ -184,7 +184,7 @@ export default class ManageTeamsModal extends React.Component {
                 <div className='manage-teams__user'>
                     <img
                         className='manage-teams__profile-picture'
-                        src={Client.getProfilePictureUrl(user.id, user.last_picture_update)}
+                        src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                     />
                     <div className='manage-teams__info'>
                         <div className='manage-teams__name'>
