@@ -775,7 +775,7 @@ export default class CreatePost extends React.Component {
                 <ConfirmModal
                     title={notifyAllTitle}
                     message={notifyAllMessage}
-                    confirmButton={notifyAllConfirm}
+                    confirmButtonText={notifyAllConfirm}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleNotifyAllConfirmation}
                     onCancel={this.handleNotifyModalCancel}
