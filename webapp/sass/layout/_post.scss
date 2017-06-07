@@ -237,9 +237,6 @@
     }
 
     .post-list-holder-by-time {
-        flex: 1;
-        display: flex;
-        flex-direction: column-reverse;
         -webkit-overflow-scrolling: touch;
         background: #ffffff;
         height: 100%;
@@ -594,16 +591,11 @@
 }
 
 .post-list__table {
-    display: table;
-    height: 100%;
-    min-height: 350px;
-    table-layout: fixed;
-    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    flex-grow: 1;
 
     .post-list__content {
-        display: table-cell;
-        vertical-align: bottom;
-
         .dropdown-menu {
             &.bottom {
                 bottom: 19px;
