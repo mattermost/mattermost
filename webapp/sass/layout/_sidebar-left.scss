@@ -243,7 +243,12 @@
         }
     }
 
-    @import "../components/status-icon";
+    .status-wrapper {
+        .status {
+            bottom: -8px;
+            right: -4px;
+        }
+    }
 }
 
 .channel-loading-gif {
