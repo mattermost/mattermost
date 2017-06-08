@@ -122,6 +122,12 @@ export default class PostList extends React.Component {
         return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
     }
 
+    isAtTop() {
+        const atTopMargin = 10;
+
+        return this.refs.postlist.scrollTop <= atTopMargin;
+    }
+
     handleScroll() {
         // HACK FOR RHS -- REMOVE WHEN RHS DIES
         const childNodes = this.refs.postlistcontent.childNodes;
@@ -155,6 +161,13 @@ export default class PostList extends React.Component {
             this.props.postListScrolled(this.isAtBottom());
             this.prevScrollHeight = this.refs.postlist.scrollHeight;
             this.prevOffsetTop = this.jumpToPostNode.offsetTop;
+            if (this.isAtBottom() && this.props.showMoreMessagesBottom) {
+                this.loadMorePostsBottom();
+            }
+
+            if (this.isAtTop() && this.props.showMoreMessagesTop) {
+                this.loadMorePostsTop();
+            }
         }, 0);
 
         this.scrollStopAction.fireAfter(Constants.SCROLL_DELAY);
@@ -201,9 +214,7 @@ export default class PostList extends React.Component {
         }
     }
 
-    loadMorePostsTop(e) {
-        e.preventDefault();
-
+    loadMorePostsTop() {
         if (this.props.isFocusPost) {
             return GlobalActions.emitLoadMorePostsFocusedTopEvent();
         }
@@ -521,7 +532,7 @@ export default class PostList extends React.Component {
     }
 
     checkAndUpdateScrolling() {
-        if (this.props.postList != null && this.refs.postlist) {
+        if (this.props.postList != null && this.refs.postlist && !this.state.isScrolling) {
             this.updateScrolling();
         }
     }
@@ -567,17 +578,12 @@ export default class PostList extends React.Component {
         let moreMessagesTop;
         if (this.props.showMoreMessagesTop) {
             moreMessagesTop = (
-                <a
-                    ref='loadmoretop'
-                    className='more-messages-text theme'
-                    href='#'
-                    onClick={this.loadMorePostsTop}
-                >
+                <div className='more-messages-text theme'>
                     <FormattedMessage
                         id='posts_view.loadMore'
-                        defaultMessage='Load more messages'
+                        defaultMessage='Loading more messages...'
                     />
-                </a>
+                </div>
             );
         } else {
             moreMessagesTop = this.introText;
@@ -587,14 +593,12 @@ export default class PostList extends React.Component {
         let moreMessagesBottom;
         if (this.props.showMoreMessagesBottom) {
             moreMessagesBottom = (
-                <a
-                    ref='loadmorebottom'
-                    className='more-messages-text theme'
-                    href='#'
-                    onClick={this.loadMorePostsBottom}
-                >
-                    <FormattedMessage id='posts_view.loadMore'/>
-                </a>
+                <div className='more-messages-text theme'>
+                    <FormattedMessage
+                        id='posts_view.loadMore'
+                        defaultMessage='Loading more messages...'
+                    />
+                </div>
             );
         }
 
