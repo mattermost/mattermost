@@ -124,6 +124,10 @@ export default class CreatePost extends React.Component {
             e.preventDefault();
         }
 
+        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
+            return;
+        }
+
         const post = {};
         post.file_ids = [];
         post.message = this.state.message;
