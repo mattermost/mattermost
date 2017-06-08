@@ -49,8 +49,9 @@ endif
 clean:
 	@echo Cleaning Webapp
 
+	yarn cache clean --mutex file:/tmp/.yarn-mutex
+
 	rm -rf dist
 	rm -rf node_modules
 	rm -f .yarninstall
-
-	yarn cache clean --mutex file:/tmp/.yarn-mutex
+	rm -f /tmp/.yarn-mutex
