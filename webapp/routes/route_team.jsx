@@ -28,7 +28,26 @@ const getState = store.getState;
 import {fetchMyChannelsAndMembers, joinChannel} from 'mattermost-redux/actions/channels';
 
 function onChannelEnter(nextState, replace, callback) {
-    doChannelChange(nextState, replace, callback);
+    const channelUrl = nextState.params.channelUrl;
+
+    // redirect for channel_id
+    if (channelUrl.length === 26) {
+        const channel = ChannelStore.get(channelUrl);
+        if (!channel) {
+            handleError(nextState, replace, callback);
+            return;
+        }
+        replace('/' + state.params.team + '/channels/' + channel.name);
+        callback();
+
+    // redirect for genereted_id of GM
+    } else if (channelUrl.length === 40) {
+        replace('/' + state.params.team + '/messages/' + channelUrl);
+        callback();
+
+    } else {
+        doChannelChange(nextState, replace, callback);
+    }
 }
 
 function doChannelChange(state, replace, callback) {
@@ -40,7 +59,7 @@ function doChannelChange(state, replace, callback) {
 
         if (channel && channel.type === Constants.DM_CHANNEL) {
             loadNewDMIfNeeded(channel.id);
-            
+
             replace('/' + state.params.team + '/messages/@' + channel.display_name);
             callback();
             return;
@@ -54,14 +73,10 @@ function doChannelChange(state, replace, callback) {
                 (data) => {
                     if (data) {
                         GlobalActions.emitChannelClickEvent(data.channel);
-                    } else if (data == null) {
-                        if (state.params.team) {
-                            replace('/' + state.params.team + '/channels/town-square');
-                        } else {
-                            replace('/');
-                        }
+                        callback();
+                    } else {
+                        handleError(state, replace, callback);
                     }
-                    callback();
                 }
             );
             return;
