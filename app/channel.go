@@ -281,8 +281,14 @@ func UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 		return nil, result.Err
 	} else {
 		InvalidateCacheForChannel(channel)
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, channel.TeamId, "", "", nil)
+		message.Add("channel_id", channel.Id)
+
+		Publish(message)
 		return channel, nil
 	}
+
 }
 
 func RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
