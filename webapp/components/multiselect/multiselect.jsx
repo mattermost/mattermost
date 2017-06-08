@@ -204,6 +204,20 @@ export default class MultiSelect extends React.Component {
             optionsToDisplay = options;
         }
 
+        let memberCountText;
+        if (this.props.totalOptions && optionsToDisplay) {
+            memberCountText = (
+                <FormattedMessage
+                    id='multiselect.numRemaining'
+                    defaultMessage='{currentCount, number} of {totalCount, number} members'
+                    values={{
+                        currentCount: optionsToDisplay.length,
+                        totalCount: this.props.totalOptions
+                    }}
+                />
+            );
+        }
+
         return (
             <div className='filtered-user-list'>
                 <div className='filter-row filter-row--full'>
@@ -236,6 +250,7 @@ export default class MultiSelect extends React.Component {
                     <div className='multi-select__help'>
                         {numRemainingText}
                         {noteTextContainer}
+                        {memberCountText}
                     </div>
                 </div>
                 <MultiSelectList
@@ -259,6 +274,7 @@ export default class MultiSelect extends React.Component {
 
 MultiSelect.propTypes = {
     options: PropTypes.arrayOf(PropTypes.object),
+    totalOptions: PropTypes.number,
     optionRenderer: PropTypes.func,
     values: PropTypes.arrayOf(PropTypes.object),
     valueRenderer: PropTypes.func,

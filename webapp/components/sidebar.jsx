@@ -46,12 +46,15 @@ const getState = store.getState;
 
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
+import {getUsersStats} from 'mattermost-redux/actions/users';
+import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 export default class Sidebar extends React.Component {
     constructor(props) {
         super(props);
 
+        this.listType = global.window.mm_config.RestrictDirectMessage;
         this.badgesActive = false;
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
@@ -150,6 +153,12 @@ export default class Sidebar extends React.Component {
         TeamStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
         ModalStore.addModalListener(ActionTypes.TOGGLE_DM_MODAL, this.onModalChange);
+
+        if (this.listType === 'any') {
+            getUsersStats()(dispatch);
+        } else {
+            getTeamStats(TeamStore.getCurrentId());
+        }
 
         this.updateTitle();
         this.updateUnreadIndicators();
@@ -793,10 +802,18 @@ export default class Sidebar extends React.Component {
 
         let moreDirectChannelsModal;
         if (this.state.showDirectChannelsModal) {
+            let totalOptions = 0;
+            if (this.listType === 'any') {
+                totalOptions = UserStore.getUsersStats().total_user_count;
+            } else {
+                totalOptions = TeamStore.getStats(TeamStore.getCurrentId()).total_member_count;
+            }
+
             moreDirectChannelsModal = (
                 <MoreDirectChannels
                     onModalDismissed={this.hideMoreDirectChannelsModal}
                     startingUsers={this.state.startingUsers}
+                    totalOptions={totalOptions}
                 />
             );
         }

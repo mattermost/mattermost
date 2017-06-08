@@ -1521,3 +1521,16 @@ func UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterf
 
 	return nil
 }
+
+func GetUsersStats() (*model.UsersStats, *model.AppError) {
+	tchan := Srv.Store.User().GetTotalUsersCount()
+	stats := &model.UsersStats{}
+
+	if result := <-tchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		stats.TotalUserCount = result.Data.(int64)
+	}
+
+	return stats, nil
+}

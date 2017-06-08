@@ -191,6 +191,19 @@ class UserStoreClass extends EventEmitter {
         return Selectors.getUsers(store.getState());
     }
 
+    getUsersStats() {
+        let stats = Selectors.getUsersStats(store.getState());
+
+        if (stats) {
+            // create a defensive copy
+            stats = Object.assign({}, stats);
+        } else {
+            stats = {total_user_count: 0};
+        }
+
+        return stats;
+    }
+
     getProfile(userId) {
         return Selectors.getUser(store.getState(), userId);
     }
