@@ -40,6 +40,11 @@ function doChannelChange(state, replace, callback) {
 
         if (channel && channel.type === Constants.DM_CHANNEL) {
             loadNewDMIfNeeded(channel.id);
+            
+            replace('/' + state.params.team + '/messages/@' + channel.display_name);
+            callback();
+            return;
+
         } else if (channel && channel.type === Constants.GM_CHANNEL) {
             loadNewGMIfNeeded(channel.id);
         }
