@@ -21,16 +21,18 @@ export default function CommentIcon(props) {
         iconStyle = iconStyle + ' ' + props.searchStyle;
     }
 
-    let commentIconId = props.channelId + props.idPrefix;
+    let selectorId = props.idPrefix;
     if (props.idCount > -1) {
-        commentIconId += props.idCount;
+        selectorId += props.idCount;
     }
+
+    const id = Utils.createSafeId(props.idPrefix + '_' + props.id);
 
     return (
         <a
-            id={Utils.createSafeId(commentIconId)}
+            id={id}
             href='#'
-            className={iconStyle}
+            className={iconStyle + ' ' + selectorId}
             onClick={props.handleCommentClick}
         >
             <span
@@ -48,12 +50,12 @@ CommentIcon.propTypes = {
     handleCommentClick: PropTypes.func.isRequired,
     searchStyle: PropTypes.string,
     commentCount: PropTypes.number,
-    channelId: PropTypes.string
+    id: PropTypes.string
 };
 
 CommentIcon.defaultProps = {
     idCount: -1,
     searchStyle: '',
     commentCount: 0,
-    channelId: ''
+    id: ''
 };

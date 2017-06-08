@@ -352,7 +352,7 @@ export default class PostInfo extends React.Component {
                     idCount={idCount}
                     handleCommentClick={this.props.handleCommentClick}
                     commentCount={this.props.commentCount}
-                    channelId={ChannelStore.getCurrentId()}
+                    id={ChannelStore.getCurrentId() + '_' + post.id}
                 />
             );
 
