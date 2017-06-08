@@ -287,6 +287,7 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
         Reflect.deleteProperty(props, 'onItemSelected');
+        Reflect.deleteProperty(props, 'completeOnTab');
 
         const childProps = {
             ref: 'textbox',
