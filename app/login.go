@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mattermost/platform/einterfaces"
@@ -88,6 +89,10 @@ func DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId 
 	bname, bversion := ua.Browser()
 	if bname == "" {
 		bname = "unknown"
+	}
+
+	if strings.Contains(r.UserAgent(), "Mattermost") {
+		bname = "Desktop App"
 	}
 
 	if bversion == "" {
