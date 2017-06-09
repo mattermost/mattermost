@@ -243,7 +243,39 @@
         }
     }
 
-    @import "../components/status-icon";
+    .status-wrapper {
+        .status {
+            bottom: -9px;
+            height: 18px;
+            right: -5px;
+            width: 18px;
+
+            svg {
+                top: 3px;
+                max-height: 12px;
+            }
+
+            .icon__container {
+                position: relative;
+                top: 3px;
+
+                &:after {
+                    border-radius: 20px;
+                    content: '';
+                    height: 9px;
+                    left: 5px;
+                    position: absolute;
+                    top: 2px;
+                    width: 9px;
+                }
+
+                svg {
+                    top: 0;
+                    z-index: 1;
+                }
+            }
+        }
+    }
 }
 
 .channel-loading-gif {
