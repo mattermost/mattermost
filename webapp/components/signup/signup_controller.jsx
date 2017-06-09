@@ -169,7 +169,7 @@ export default class SignupController extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='signup.gitlab'
-                                defaultMessage='GitLab Single-Sign-On'
+                                defaultMessage='GitLab Single Sign-On'
                             />
                         </span>
                     </span>
