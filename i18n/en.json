@@ -693,7 +693,7 @@
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "Leave current channel"
+    "translation": "Leave the current channel."
   },
   {
     "id": "api.command_leave.fail.app_error",
@@ -705,7 +705,7 @@
   },
   {
     "id": "api.command_leave.missing.app_error",
-    "translation": "We couldn't find the channel"
+    "translation": "We couldn't find the channel."
   },
   {
     "id": "api.command_leave.name",
@@ -713,7 +713,7 @@
   },
   {
     "id": "api.command_leave.success",
-    "translation": "Left channel."
+    "translation": "Left the channel."
   },
   {
     "id": "api.command_logout.desc",
