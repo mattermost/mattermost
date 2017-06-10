@@ -396,7 +396,7 @@ export function createPost(post, doLoadPost, success, error) {
             if (doLoadPost) {
                 loadPosts(post.channel_id);
             } else {
-                PostStore.removePendingPost(post.pending_post_id);
+                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
             }
 
             AppDispatcher.handleServerAction({
@@ -411,7 +411,7 @@ export function createPost(post, doLoadPost, success, error) {
 
         (err) => {
             if (err.id === 'api.post.create_post.root_id.app_error') {
-                PostStore.removePendingPost(post.pending_post_id);
+                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
             } else {
                 post.state = Constants.POST_FAILED;
                 PostStore.updatePendingPost(post);
