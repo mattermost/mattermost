@@ -15,6 +15,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
+import WebSocketClient from 'client/web_websocket_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -391,37 +392,42 @@ function sendNextPostInQueue() {
 }
 
 export function createPost(post, doLoadPost, success, error) {
-    Client.createPost(post,
-        (data) => {
-            if (doLoadPost) {
-                loadPosts(post.channel_id);
-            } else {
-                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
-            }
+    if (WebSocketClient.isOpen()) {
+        Client.createPost(post,
+            (data) => {
+                if (doLoadPost) {
+                    loadPosts(post.channel_id);
+                } else {
+                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
+                }
 
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POST,
-                post: data
-            });
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_POST,
+                    post: data
+                });
 
-            if (success) {
-                success(data);
-            }
-        },
+                if (success) {
+                    success(data);
+                }
+            },
 
-        (err) => {
-            if (err.id === 'api.post.create_post.root_id.app_error') {
-                PostStore.removePendingPost(post.channel_id, post.pending_post_id);
-            } else {
-                post.state = Constants.POST_FAILED;
-                PostStore.updatePendingPost(post);
-            }
+            (err) => {
+                if (err.id === 'api.post.create_post.root_id.app_error') {
+                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
+                } else {
+                    post.state = Constants.POST_FAILED;
+                    PostStore.updatePendingPost(post);
+                }
 
-            if (error) {
-                error(err);
+                if (error) {
+                    error(err);
+                }
             }
-        }
-    );
+        );
+    } else {
+        post.state = Constants.POST_FAILED;
+        PostStore.updatePendingPost(post);
+    }
 }
 
 export function updatePost(post, success, isPost) {

@@ -2,15 +2,12 @@
 // See License.txt for license information.
 
 import PostStore from 'stores/post_store.jsx';
-
 import {queuePost} from 'actions/post_actions.jsx';
-
 import Constants from 'utils/constants.jsx';
+import WebSocketClient from 'client/web_websocket_client.jsx';
 
 import {FormattedMessage} from 'react-intl';
-
 import PropTypes from 'prop-types';
-
 import React from 'react';
 
 export default class PendingPostOptions extends React.Component {
@@ -27,7 +24,7 @@ export default class PendingPostOptions extends React.Component {
     retryPost(e) {
         e.preventDefault();
 
-        if (this.submitting) {
+        if (this.submitting || !WebSocketClient.isOpen()) {
             return;
         }
 
