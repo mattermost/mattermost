@@ -7,7 +7,7 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {Preferences} from 'utils/constants.jsx';
 
 import PostBody from './post_body.jsx';
 
@@ -23,7 +23,7 @@ function mapStateToProps(state, ownProps) {
         ...ownProps,
         parentPost,
         parentPostUser,
-        previewsCollapsed: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false')
+        previewCollapsed: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, 'false')
     };
 }
 

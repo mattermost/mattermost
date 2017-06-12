@@ -15,7 +15,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-const CLOSE_TO_END_SCROLL_TOP = 100;
+const CLOSE_TO_BOTTOM_SCROLL_MARGIN = 10;
 
 export default class PostList extends React.PureComponent {
     static propTypes = {
@@ -98,6 +98,7 @@ export default class PostList extends React.PureComponent {
 
         this.previousScrollTop = Number.MAX_SAFE_INTEGER;
         this.previousScrollHeight = 0;
+        this.previousClientHeight = 0;
 
         this.state = {
             atEnd: false
@@ -106,12 +107,19 @@ export default class PostList extends React.PureComponent {
 
     componentDidMount() {
         this.loadPosts(this.props.channel.id, this.props.focusedPostId);
+
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.handleResize);
     }
 
     componentWillReceiveProps(nextProps) {
         // Focusing on a new post so load posts around it
         if (nextProps.focusedPostId && this.props.focusedPostId !== nextProps.focusedPostId) {
             this.hasScrolledToFocusedPost = false;
+            this.hasScrolledToNewMessageSeparator = false;
             this.setState({atEnd: false});
             this.loadPosts(nextProps.channel.id, nextProps.focusedPostId);
             return;
@@ -122,6 +130,7 @@ export default class PostList extends React.PureComponent {
 
         // Channel changed so load posts for new channel
         if (channel.id !== nextChannel.id && nextProps.focusedPostId == null) {
+            this.hasScrolledToFocusedPost = false;
             this.hasScrolledToNewMessageSeparator = false;
             this.setState({atEnd: false});
 
@@ -135,30 +144,84 @@ export default class PostList extends React.PureComponent {
         if (this.refs.postlist) {
             this.previousScrollTop = this.refs.postlist.scrollTop;
             this.previousScrollHeight = this.refs.postlist.scrollHeight;
+            this.previousClientHeight = this.refs.postlist.clientHeight;
         }
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         // Scroll to focused post on first load
         const focusedPost = this.refs[this.props.focusedPostId];
-        if (focusedPost && !this.hasScrolledToFocusedPost && this.props.posts) {
-            const element = ReactDOM.findDOMNode(focusedPost);
-            const rect = element.getBoundingClientRect();
-            const listHeight = this.refs.postlist.clientHeight / 2;
-            this.refs.postlist.scrollTop = this.refs.postlist.scrollTop + (rect.top - listHeight);
+        if (focusedPost) {
+            if (!this.hasScrolledToFocusedPost && this.props.posts) {
+                const element = ReactDOM.findDOMNode(focusedPost);
+                const rect = element.getBoundingClientRect();
+                const listHeight = this.refs.postlist.clientHeight / 2;
+                this.refs.postlist.scrollTop = this.refs.postlist.scrollTop + (rect.top - listHeight);
+            }
             return;
         }
 
-        // Scroll to new message indicator on first load
+        // Scroll to new message indicator or bottom on first load
         const messageSeparator = this.refs.newMessageSeparator;
         if (messageSeparator && !this.hasScrolledToNewMessageSeparator) {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
             return;
+        } else if (this.refs.postlist && !this.hasScrolledToNewMessageSeparator) {
+            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+            return;
         }
 
-        if (this.refs.postlist && this.previousScrollTop < CLOSE_TO_END_SCROLL_TOP) {
-            this.refs.postlist.scrollTop = this.previousScrollTop + (this.refs.postlist.scrollHeight - this.previousScrollHeight);
+        const prevPosts = prevProps.posts;
+        const posts = this.props.posts;
+        const postList = this.refs.postlist;
+
+        if (postList && prevPosts && posts && posts[0] && prevPosts[0]) {
+            // A new message was posted, so scroll to bottom if it was from current user
+            // or if user was already scrolled close to bottom
+            let doScrollToBottom = false;
+            if (posts[0].id !== prevPosts[0].id && posts[0].pending_post_id !== prevPosts[0].pending_post_id) {
+                // If already scrolled to bottom
+                if (this.wasAtBottom()) {
+                    doScrollToBottom = true;
+                }
+
+                // If new post was by current user
+                if (posts[0].user_id === this.props.currentUserId) {
+                    doScrollToBottom = true;
+                }
+
+                // If new post was ephemeral
+                if (Utils.isPostEphemeral(posts[0])) {
+                    doScrollToBottom = true;
+                }
+            }
+
+            if (doScrollToBottom) {
+                postList.scrollTop = postList.scrollHeight;
+                return;
+            }
+
+            // New posts added at the top, maintain scroll position
+            if (this.previousScrollHeight !== this.refs.postlist.scrollHeight && posts[0].id === prevPosts[0].id) {
+                this.refs.postlist.scrollTop = this.previousScrollTop + (this.refs.postlist.scrollHeight - this.previousScrollHeight);
+            }
+        }
+    }
+
+    wasAtBottom = () => {
+        return this.previousClientHeight + this.previousScrollTop >= this.previousScrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
+    }
+
+    handleResize = () => {
+        const postList = this.refs.postlist;
+
+        if (postList && this.wasAtBottom()) {
+            postList.scrollTop = postList.scrollHeight;
+
+            this.previousScrollHeight = postList.scrollHeight;
+            this.previousScrollTop = postList.scrollTop;
+            this.previousClientHeight = postList.clientHeight;
         }
     }
 
@@ -186,6 +249,7 @@ export default class PostList extends React.PureComponent {
 
     handleScroll() {
         this.hasScrolledToFocusedPost = true;
+        this.previousScrollTop = this.refs.postlist.scrollTop;
 
         // Show and load more posts if user scrolls halfway through the list
         if (this.refs.postlist.scrollTop < this.refs.postlist.scrollHeight / 8 &&
