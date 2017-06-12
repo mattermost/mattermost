@@ -225,7 +225,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Gruppennachrichtenkanäle müssen aus mindestens 3 und nicht mehr als 8 Benutzer bestehen"
+    "translation": "Gruppennachrichtenkanäle müssen aus mindestens 3 und nicht mehr als 8 Benutzern bestehen"
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
@@ -2345,7 +2345,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Für das beste Erlebnis laden Sie die Anwendungen für PC, macOS, iOS und Android herunter:"
+    "translation": "Für das beste Erlebnis laden Sie die Apps für PC, macOS, iOS und Android herunter:"
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -5217,7 +5217,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "Es muss Update für existierende Anwendung aufgerufen werden"
+    "translation": "Es muss Update für existierende App aufgerufen werden"
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",

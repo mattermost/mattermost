@@ -801,7 +801,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+K: Otwórz okienko szybkiej zmiany kanału\n"
+    "translation": "{{.CmdOrCtrl}}+K: Otwórz okienko szybkiej zmiany zespołu\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1067,7 +1067,7 @@
   },
   {
     "id": "api.file.get_info_for_request.storage.app_error",
-    "translation": "Nie można pobrać informacji o pliku. Przechowywanie obrazów nie jest skonfigurowane."
+    "translation": "Nie można pobrać informacji o pliku. Przechowywanie plików nie jest skonfigurowane."
   },
   {
     "id": "api.file.get_public_file_old.storage.app_error",
@@ -2289,7 +2289,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Twoje hasło zostało zaktualizowane"
+    "translation": "[{{ .SiteName }}] Twoja metoda logowania została zaktualizowana"
   },
   {
     "id": "api.templates.signup_team_body.button",
