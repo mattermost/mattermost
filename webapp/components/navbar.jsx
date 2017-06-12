@@ -220,14 +220,9 @@ export default class Navbar extends React.Component {
     }
 
     handleQuickSwitchKeyPress(e) {
-        if (Utils.cmdOrCtrlPressed(e, true) && !e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
-            e.preventDefault();
-            if (e.altKey) {
-                if (getMyTeams(store.getState()).length <= 1) {
-                    return;
-                }
-                this.toggleQuickSwitchModal('team');
-            } else {
+        if (Utils.cmdOrCtrlPressed(e) && !e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
+            if (!e.altKey) {
+                e.preventDefault();
                 this.toggleQuickSwitchModal('channel');
             }
         }

@@ -284,7 +284,7 @@ export default class QuickSwitchModal extends React.PureComponent {
             help = (
                 <FormattedMessage
                     id='quick_switch_modal.help_no_team'
-                    defaultMessage='Start typing then use ↑↓ to browse, ↵ to select, and ESC to dismiss.'
+                    defaultMessage='Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.'
                 />
             );
         }
