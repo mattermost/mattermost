@@ -89,7 +89,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     <div className='banner__content'>
                         <FormattedMessage
                             id='admin.rate.noteDescription'
-                            defaultMessage='Changing properties in this section will require a server restart before taking effect.'
+                            defaultMessage='Changing properties other than Site URL in this section will require a server restart before taking effect.'
                         />
                     </div>
                 </div>
