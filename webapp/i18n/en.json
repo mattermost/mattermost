@@ -1170,7 +1170,7 @@
   "channel_switch_modal.dm": "(Direct Message)",
   "channel_switch_modal.failed_to_open": "Failed to open channel.",
   "quick_switch_modal.help": "Start typing then use TAB to toggle channels/teams, ↑↓ to browse, ↵ to select, and ESC to dismiss.",
-  "quick_switch_modal.help_no_team": "Start typing then use ↑↓ to browse, ↵ to select, and ESC to dismiss.",
+  "quick_switch_modal.help_no_team": "Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.",
   "quick_switch_modal.channels": "Channels",
   "quick_switch_modal.teams": "Teams",
   "quick_switch_modal.teamsShortcut.mac": "- ⌘⌥K",
