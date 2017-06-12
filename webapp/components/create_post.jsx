@@ -510,7 +510,8 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        const latestNonEphemeralPostId = PostStore.getLatestNonEphemeralPost(this.state.channelId).id;
+        const latestNonEphemeralPost = PostStore.getLatestNonEphemeralPost(this.state.channelId);
+        const latestNonEphemeralPostId = latestNonEphemeralPost == null ? '' : latestNonEphemeralPost.id;
         const lastPostEl = document.getElementById(`commentIcon_${this.state.channelId}_${latestNonEphemeralPostId}`);
 
         if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
