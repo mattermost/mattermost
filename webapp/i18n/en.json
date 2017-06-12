@@ -609,7 +609,7 @@
   "admin.rate.memoryDescription": "Maximum number of users sessions connected to the system as determined by \"Vary rate limit by remote address\" and \"Vary rate limit by HTTP header\" settings below.",
   "admin.rate.memoryExample": "E.g.: \"10000\"",
   "admin.rate.memoryTitle": "Memory Store Size:",
-  "admin.rate.noteDescription": "Changing properties in this section will require a server restart before taking effect.",
+  "admin.rate.noteDescription": "Changing properties other than Site URL in this section will require a server restart before taking effect.",
   "admin.rate.noteTitle": "Note:",
   "admin.rate.queriesDescription": "Throttles API at this number of requests per second.",
   "admin.rate.queriesExample": "E.g.: \"10\"",
