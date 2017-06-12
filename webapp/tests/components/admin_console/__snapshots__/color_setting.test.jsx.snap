@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ColorSetting should match snapshot, all 1`] = `
+<Settings
+  helpText="helptext"
+  inputId="id"
+  label="label"
+>
+  <div
+    className="input-group color-picker colorpicker-element"
+  >
+    <input
+      className="form-control"
+      disabled={false}
+      onChange={[Function]}
+      type="text"
+      value="#fff"
+    />
+    <span
+      className="input-group-addon picker-id"
+      onClick={[Function]}
+    >
+      <i
+        style={
+          Object {
+            "backgroundColor": "#fff",
+          }
+        }
+      />
+    </span>
+  </div>
+</Settings>
+`;
+
+exports[`components/ColorSetting should match snapshot, disabled 1`] = `
+<Settings
+  inputId="id"
+  label="label"
+>
+  <div
+    className="input-group color-picker colorpicker-element"
+  >
+    <input
+      className="form-control"
+      disabled={true}
+      onChange={[Function]}
+      type="text"
+      value="#fff"
+    />
+    <span
+      className="input-group-addon picker-id"
+      onClick={[Function]}
+    >
+      <i
+        style={
+          Object {
+            "backgroundColor": "#fff",
+          }
+        }
+      />
+    </span>
+  </div>
+</Settings>
+`;
+
+exports[`components/ColorSetting should match snapshot, no help text 1`] = `
+<Settings
+  inputId="id"
+  label="label"
+>
+  <div
+    className="input-group color-picker colorpicker-element"
+  >
+    <input
+      className="form-control"
+      disabled={false}
+      onChange={[Function]}
+      type="text"
+      value="#fff"
+    />
+    <span
+      className="input-group-addon picker-id"
+      onClick={[Function]}
+    >
+      <i
+        style={
+          Object {
+            "backgroundColor": "#fff",
+          }
+        }
+      />
+    </span>
+  </div>
+</Settings>
+`;

@@ -42,6 +42,7 @@ export default class RhsRootPost extends React.Component {
         this.pinPost = this.pinPost.bind(this);
         this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -52,7 +53,8 @@ export default class RhsRootPost extends React.Component {
             width: '',
             height: '',
             showEmojiPicker: false,
-            testStateObj: true
+            testStateObj: true,
+            dropdownOpened: false
         };
     }
 
@@ -118,6 +120,10 @@ export default class RhsRootPost extends React.Component {
             return true;
         }
 
+        if (this.state.dropdownOpened !== nextState.dropdownOpened) {
+            return true;
+        }
+
         return false;
     }
 
@@ -167,7 +173,12 @@ export default class RhsRootPost extends React.Component {
     }
 
     toggleEmojiPicker = () => {
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        const showEmojiPicker = !this.state.showEmojiPicker;
+
+        this.setState({
+            showEmojiPicker,
+            dropdownOpened: showEmojiPicker
+        });
     }
 
     reactEmojiClick(emoji) {
@@ -194,7 +205,17 @@ export default class RhsRootPost extends React.Component {
             className += ' post--pinned';
         }
 
+        if (this.state.dropdownOpened) {
+            className += ' post--hovered';
+        }
+
         return className;
+    }
+
+    handleDropdownOpened(isOpened) {
+        this.setState({
+            dropdownOpened: isOpened
+        });
     }
 
     render() {
@@ -398,7 +419,10 @@ export default class RhsRootPost extends React.Component {
         var rootOptions = '';
         if (dropdownContents.length > 0) {
             rootOptions = (
-                <RhsDropdown dropdownContents={dropdownContents}/>
+                <RhsDropdown
+                    dropdownContents={dropdownContents}
+                    handleDropdownOpened={this.handleDropdownOpened}
+                />
             );
         }
 

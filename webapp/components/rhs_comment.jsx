@@ -43,6 +43,7 @@ export default class RhsComment extends React.Component {
         this.pinPost = this.pinPost.bind(this);
         this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
+        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
 
         this.canEdit = false;
         this.canDelete = false;
@@ -52,7 +53,8 @@ export default class RhsComment extends React.Component {
             currentTeamDisplayName: TeamStore.getCurrent().name,
             width: '',
             height: '',
-            showEmojiPicker: false
+            showEmojiPicker: false,
+            dropdownOpened: false
         };
     }
 
@@ -128,6 +130,10 @@ export default class RhsComment extends React.Component {
         }
 
         if (nextProps.lastPostCount !== this.props.lastPostCount) {
+            return true;
+        }
+
+        if (this.state.dropdownOpened !== nextState.dropdownOpened) {
             return true;
         }
 
@@ -314,7 +320,10 @@ export default class RhsComment extends React.Component {
         }
 
         return (
-            <RhsDropdown dropdownContents={dropdownContents}/>
+            <RhsDropdown
+                dropdownContents={dropdownContents}
+                handleDropdownOpened={this.handleDropdownOpened}
+            />
         );
     }
 
@@ -344,7 +353,12 @@ export default class RhsComment extends React.Component {
     }
 
     toggleEmojiPicker = () => {
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        const showEmojiPicker = !this.state.showEmojiPicker;
+
+        this.setState({
+            showEmojiPicker,
+            dropdownOpened: showEmojiPicker
+        });
     }
 
     reactEmojiClick(emoji) {
@@ -372,7 +386,17 @@ export default class RhsComment extends React.Component {
             className += ' post--pinned';
         }
 
+        if (this.state.dropdownOpened) {
+            className += ' post--hovered';
+        }
+
         return className;
+    }
+
+    handleDropdownOpened(isOpened) {
+        this.setState({
+            dropdownOpened: isOpened
+        });
     }
 
     render() {

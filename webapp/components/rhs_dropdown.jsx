@@ -13,7 +13,8 @@ import * as Agent from 'utils/user_agent.jsx';
 
 export default class RhsDropdown extends Component {
     static propTypes = {
-        dropdownContents: PropTypes.array.isRequired
+        dropdownContents: PropTypes.array.isRequired,
+        handleDropdownOpened: PropTypes.func
     }
 
     constructor(props) {
@@ -26,6 +27,9 @@ export default class RhsDropdown extends Component {
 
     toggleDropdown = () => {
         const showDropdown = !this.state.showDropdown;
+        if (this.props.handleDropdownOpened) {
+            this.props.handleDropdownOpened(showDropdown);
+        }
         if (Agent.isMobile() || Agent.isMobileApp()) {
             const scroll = document.querySelector('.scrollbar--view');
             if (showDropdown) {
@@ -56,4 +60,3 @@ export default class RhsDropdown extends Component {
         );
     }
 }
-

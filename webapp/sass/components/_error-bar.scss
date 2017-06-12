@@ -4,15 +4,32 @@
     background-color: darken($primary-color, 5%);
     color: $white;
     padding: 5px 30px;
-    position: absolute;
+    position: fixed;
     text-align: center;
     top: 0;
     width: 100%;
     z-index: 9999;
 
+    &.error-bar--fixed {
+        overflow: hidden;
+        padding: 1px 30px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     a {
-        color: $white !important;
+        color: $white;
         text-decoration: underline;
+
+        .app__body & {
+            color: $white;
+
+            &:hover,
+            &:active,
+            &:focus {
+                color: $white;
+            }
+        }
 
         &.error-bar__close {
             color: $white;

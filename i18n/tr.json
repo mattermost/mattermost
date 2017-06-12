@@ -77,11 +77,11 @@
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Veritabanı bağlantısının geri dönüşümü bitti"
+    "translation": "Veritabanı bağlantısının geri dönüşümü tamamlandı."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Veritabanı bağlantısını geri dönüştürülmeye çalışılıyor"
+    "translation": "Veritabanı bağlantısı yeniden kurulmaya çalışılıyor."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -257,7 +257,7 @@
   },
   {
     "id": "api.channel.delete_channel.outgoing_webhook.error",
-    "translation": "\\Giden web bağlantısı silinirken bir sorun çıktı. Kod: %v"
+    "translation": "Giden web bağlantısı silinirken bir sorun çıktı. Kod: %v"
   },
   {
     "id": "api.channel.delete_channel.permissions.app_error",
@@ -413,7 +413,7 @@
   },
   {
     "id": "api.command.execute_command.debug",
-    "translation": "%v komutu %c kullanıcı kodu ile yürütülüyor"
+    "translation": "Şimdi %v komutu %c kullanıcı kodu ile yürütülüyor"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -756,6 +756,10 @@
     "translation": "ESC: Geçerli kanaldaki tüm iletileri okunmuş olarak işaretle\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (boş giriş alanında): Geçerli kanalda son gönderilen iletiyi yanıtla\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+AŞAĞI (boş giriş alanında): Sonraki iletiyi ya da yazdığım bölü komutunu yeniden yaz\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "kısayollar"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: Hızlı kanal değiştirme penceresini aç\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Hızlı takım değiştirme penceresini aç\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1450,6 +1462,10 @@
     "translation": "Hesap açma bağlantısı geçersiz görünüyor"
   },
   {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} ve {{.LastUsername}} anıldı, ancak bu kanalın üyesi olmadıklarından bildirimleri almayacaklar."
   },
@@ -1628,10 +1644,6 @@
     "translation": " şuraya gönderildi "
   },
   {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "%v kullanıcısına '%v' iletisi ile push bildirimi gönderiliyor"
-  },
-  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Aygıta ileti gönderilemedi. Aygıt Kodu: {{.DeviceId}}, Hata Kodu: {{.Error}}"
   },
@@ -1698,10 +1710,6 @@
   {
     "id": "api.reaction.init.debug",
     "translation": "Tepki API rotaları hazırlanıyor"
-  },
-  {
-    "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "Çalışan yordamlar %v/%v sağlıklı eşiğin üzerinde "
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2468,6 +2480,14 @@
     "translation": "Varsayılan kanallara katılırken bir sorun çıktı. Kullanıcı Kodu: %v, Takım Kodu: %v, Hata: %v"
   },
   {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Missing Invite Id."
+  },
+  {
     "id": "api.user.create_user.no_open_server",
     "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen bir çağrı almak için yönetici ile görüşün."
   },
@@ -2478,14 +2498,6 @@
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
     "translation": "E-posta ile kullanıcı hesabı açma özelliği devre dışı bırakılmış."
-  },
-  {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Missing Invite Id."
-  },
-  {
-    "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Profil görseli yapılandırmasının kodu çözülemedi."
+    "translation": "Profil görseli kaydedilemedi. Dosya geçerli bir görsel gibi görünmüyor."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3308,26 +3320,6 @@
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk verme işlemi başlatıldı"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch searching is disabled on this server"
   },
@@ -3338,6 +3330,26 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3892,24 +3904,24 @@
     "translation": "Bitiş, başlangıç zamanından büyük olmalıdır"
   },
   {
+    "id": "model.config.is_valid.cluster_email_batching.app_error",
+    "translation": "Küme özelliği etkinleştirilmişken toplu e-posta etkinleştirilemez."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
   },
   {
-    "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Küme özelliği etkinleştirilmişken toplu e-posta etkinleştirilemez."
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4134,6 +4146,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "En fazla açık bağlantı SQL ayarı geçersiz. Pozitif bir sayı olmalı."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "SQL ayarlarında sorgu zaman aşımı değeri geçersiz. Sıfır ya da pozitif bir sayı olmalı."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5252,10 +5268,6 @@
     "translation": "İleti alınamadı"
   },
   {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "We couldn't get the posts"
-  },
-  {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Kanalın üst iletisi alınamadı"
   },
@@ -5270,6 +5282,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Kanalın üst iletileri alınamadı"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "We couldn't get the posts"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5984,6 +6000,10 @@
     "translation": "Lisans imzalanırken sorun çıktı. Hata: %v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Failed to set HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Bağlantı açılamadı"
   },
@@ -5992,20 +6012,16 @@
     "translation": "TLS bağlantısı açılamadı"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
-  },
-  {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "SMTP sunucusu üzerinde kimlik doğrulanamadı"
   },
   {
-    "id": "utils.mail.new_client.open.error",
-    "translation": "%v SMTP sunucusu üzerinde bağlantı açılamadı"
-  },
-  {
     "id": "utils.mail.new_client.helo.error",
     "translation": "Failed to to set the HELO to SMTP server %v"
+  },
+  {
+    "id": "utils.mail.new_client.open.error",
+    "translation": "%v SMTP sunucusu üzerinde bağlantı açılamadı"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",

@@ -1,12 +1,6 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
-    #post-list {
-        .markdown-inline-img {
-            max-width: 100%;
-        }
-    }
-
     .member-role .member-menu,
     .member-drop .member-menu {
         right: 0;

@@ -18,7 +18,7 @@ import {addUserToTeamFromInvite, getInviteInfo} from 'actions/team_actions.jsx';
 import {loadMe} from 'actions/user_actions.jsx';
 
 import logoImage from 'images/logo.png';
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 
 import {FormattedMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
@@ -169,7 +169,7 @@ export default class SignupController extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='signup.gitlab'
-                                defaultMessage='GitLab Single-Sign-On'
+                                defaultMessage='GitLab Single Sign-On'
                             />
                         </span>
                     </span>
@@ -319,7 +319,7 @@ export default class SignupController extends React.Component {
 
         return (
             <div>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <div className='signup-header'>
                     <Link to='/'>
                         <span className='fa fa-chevron-left'/>
