@@ -24,6 +24,22 @@ body {
         scrollbar-shadow-color: #2D2C4D;
         scrollbar-track-color: rgba(0, 0, 0, .1);
     }
+
+    .ps {
+        > .ps__scrollbar-y-rail {
+            > .ps__scrollbar-y {
+                width: 6px !important;
+            }
+        }
+
+        &:hover {
+            > .ps__scrollbar-y-rail {
+                &:hover {
+                    background: transparent;
+                }
+            }
+        }
+    }
 }
 
 .scrollbar--horizontal,
