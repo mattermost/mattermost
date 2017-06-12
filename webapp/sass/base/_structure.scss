@@ -52,6 +52,7 @@ body {
     @include legacy-pie-clearfix;
     height: 100%;
     position: relative;
+    -webkit-overflow-scrolling: touch;
 }
 
 .channel-view {
