@@ -690,6 +690,15 @@ func GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUn
 	}
 }
 
+func PermanentDeleteTeamId(teamId string) *model.AppError {
+	team, err := GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	return PermanentDeleteTeam(team)
+}
+
 func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	if result := <-Srv.Store.Team().Update(team); result.Err != nil {
