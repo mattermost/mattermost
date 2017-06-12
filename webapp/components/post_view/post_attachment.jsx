@@ -56,10 +56,10 @@ export default class PostAttachment extends React.PureComponent {
     toggleCollapseState(e) {
         e.preventDefault();
 
-        const state = this.state;
-        state.text = state.collapsed ? state.uncollapsedText : state.collapsedText;
-        state.collapsed = !state.collapsed;
-        this.setState(state);
+        this.setState({
+            text: this.state.collapsed ? this.state.uncollapsedText : this.state.collapsedText,
+            collapsed: !this.state.collapsed
+        });
     }
 
     shouldCollapse() {
