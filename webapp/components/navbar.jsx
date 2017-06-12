@@ -45,8 +45,6 @@ import {Link} from 'react-router/es6';
 import PropTypes from 'prop-types';
 
 import React from 'react';
-import store from 'stores/redux_store.jsx';
-import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 export default class Navbar extends React.Component {
     constructor(props) {
