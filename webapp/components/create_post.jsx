@@ -28,6 +28,7 @@ import ConfirmModal from './confirm_modal.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
+import {RootCloseWrapper} from 'react-overlays';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -67,9 +68,7 @@ export default class CreatePost extends React.Component {
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
-        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
-        this.closeEmoji = this.closeEmoji.bind(this);
         this.hideNotifyAllModal = this.hideNotifyAllModal.bind(this);
         this.showNotifyAllModal = this.showNotifyAllModal.bind(this);
         this.handleNotifyModalCancel = this.handleNotifyModalCancel.bind(this);
@@ -107,16 +106,8 @@ export default class CreatePost extends React.Component {
         this.setState({postError});
     }
 
-    closeEmoji(clickEvent) {
-        /*
-         if the user clicked something outside the component, except the main emojipicker icon
-         and the picker is open, then close it
-         */
-        if (clickEvent && clickEvent.srcElement &&
-            clickEvent.srcElement.className.indexOf('emoji-main') === -1 &&
-            this.state.showEmojiPicker) {
-            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-        }
+    toggleEmojiPicker = () => {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
     }
 
     doSubmit(e) {
@@ -446,10 +437,6 @@ export default class CreatePost extends React.Component {
     }
 
     showShortcuts(e) {
-        if (e.which === Constants.KeyCodes.ESCAPE && this.state.showEmojiPicker === true) {
-            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-        }
-
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
             const args = {};
@@ -580,20 +567,18 @@ export default class CreatePost extends React.Component {
         }
 
         if (this.state.message === '') {
-            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+            this.setState({message: ':' + emojiAlias + ': '});
         } else {
             //check whether there is already a blank at the end of the current message
             const newMessage = (/\s+$/.test(this.state.message)) ?
                 this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
 
-            this.setState({message: newMessage, showEmojiPicker: false});
+            this.setState({message: newMessage});
         }
 
-        this.focusTextbox();
-    }
+        this.setState({showEmojiPicker: false});
 
-    handleEmojiPickerClick() {
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        this.focusTextbox();
     }
 
     createTutorialTip() {
@@ -692,15 +677,16 @@ export default class CreatePost extends React.Component {
         if (!this.state.enableSendButton) {
             sendButtonClass += ' disabled';
         }
+
         let emojiPicker = null;
         if (this.state.showEmojiPicker) {
             emojiPicker = (
-                <EmojiPicker
-                    onEmojiClick={this.handleEmojiClick}
-                    pickerLocation='top'
-                    outsideClick={this.closeEmoji}
-
-                />
+                <RootCloseWrapper onRootClose={this.toggleEmojiPicker}>
+                    <EmojiPicker
+                        onHide={this.toggleEmojiPicker}
+                        onEmojiClick={this.handleEmojiClick}
+                    />
+                </RootCloseWrapper>
             );
         }
 
@@ -743,7 +729,7 @@ export default class CreatePost extends React.Component {
                                 onUploadError={this.handleUploadError}
                                 postType='post'
                                 channelId=''
-                                onEmojiClick={this.handleEmojiPickerClick}
+                                onEmojiClick={this.toggleEmojiPicker}
                                 emojiEnabled={this.state.emojiPickerEnabled}
                                 navBarName='main'
                             />
