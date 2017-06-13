@@ -199,13 +199,17 @@ export default class QuickSwitchModal extends React.PureComponent {
         let renderDividers = true;
 
         let channelShortcut = 'quick_switch_modal.channelsShortcut.windows';
+        let defaultChannelShortcut = 'CTRL+K';
         if (Utils.isMac()) {
             channelShortcut = 'quick_switch_modal.channelsShortcut.mac';
+            defaultChannelShortcut = 'CMD+K';
         }
 
         let teamShortcut = 'quick_switch_modal.teamsShortcut.windows';
+        let defaultTeamShortcut = 'CTRL+ALT+K';
         if (Utils.isMac()) {
             teamShortcut = 'quick_switch_modal.teamsShortcut.mac';
+            defaultTeamShortcut = 'CMD+ALT+K';
         }
 
         if (this.props.showTeamSwitcher) {
@@ -238,7 +242,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                             <span className='small'>
                                 <FormattedMessage
                                     id={channelShortcut}
-                                    defaultMessage='CTRL+K'
+                                    defaultMessage={defaultChannelShortcut}
                                 />
                             </span>
                         </a>
@@ -260,7 +264,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                             <span className='small'>
                                 <FormattedMessage
                                     id={teamShortcut}
-                                    defaultMessage='CTRL+ALT+K'
+                                    defaultMessage={defaultTeamShortcut}
                                 />
                             </span>
                         </a>
@@ -270,18 +274,20 @@ export default class QuickSwitchModal extends React.PureComponent {
         }
 
         let help;
-        if (this.props.showTeamSwitcher) {
+        if (Utils.isMobile()) {
+            help = null;
+        } else if (this.props.showTeamSwitcher) {
             help = (
                 <FormattedMessage
                     id='quick_switch_modal.help'
-                    defaultMessage='Use TAB to toggle between teams/channels, ↑↓ to browse, ↵ to confirm, ESC to dismiss'
+                    defaultMessage='Start typing then use TAB to toggle channels/teams, ↑↓ to browse, ↵ to select, and ESC to dismiss.'
                 />
             );
         } else {
             help = (
                 <FormattedMessage
                     id='quick_switch_modal.help_no_team'
-                    defaultMessage='Type a channel name. Use ↑↓ to browse, ↵ to confirm, ESC to dismiss'
+                    defaultMessage='Start typing then use ↑↓ to browse, ↵ to select, and ESC to dismiss.'
                 />
             );
         }
@@ -297,7 +303,7 @@ export default class QuickSwitchModal extends React.PureComponent {
                 <Modal.Header closeButton={true}/>
                 <Modal.Body>
                     {header}
-                    <div className='modal__hint'>
+                    <div className='modal__hint hidden-xs'>
                         {help}
                     </div>
                     <SuggestionBox

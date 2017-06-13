@@ -56,7 +56,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.allowSignupDescription'
-                            defaultMessage='When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single-sign-on service like OAuth or AD/LDAP.'
+                            defaultMessage='When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single sign-on service like OAuth or AD/LDAP.'
                         />
                     }
                     value={this.state.enableSignUpWithEmail}

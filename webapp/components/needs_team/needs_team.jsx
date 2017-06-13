@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import $ from 'jquery';
 
@@ -23,7 +22,7 @@ import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 import SidebarRight from 'components/sidebar_right.jsx';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
@@ -42,6 +41,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal.jsx';
 import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
+import ResetStatusModal from 'components/reset_status_modal';
 
 import iNoBounce from 'inobounce';
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -119,12 +119,12 @@ export default class NeedsTeam extends React.Component {
 
         // Set up tracking for whether the window is active
         window.isActive = true;
-        $(window).on('focus', () => {
-            this.props.actions.viewChannel(ChannelStore.getCurrentId());
+        $(window).on('focus', async () => {
             ChannelStore.resetCounts([ChannelStore.getCurrentId()]);
             ChannelStore.emitChange();
-
             window.isActive = true;
+
+            await this.props.actions.viewChannel(ChannelStore.getCurrentId());
             if (new Date().getTime() - this.blurTime > UNREAD_CHECK_TIME_MILLISECONDS) {
                 this.props.actions.getMyChannelMembers(TeamStore.getCurrentId()).then(loadProfilesForSidebar);
             }
@@ -211,7 +211,7 @@ export default class NeedsTeam extends React.Component {
 
         return (
             <div className='channel-view'>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <WebrtcNotification/>
                 <div className='container-fluid'>
                     <SidebarRight channel={channel}/>
@@ -229,6 +229,7 @@ export default class NeedsTeam extends React.Component {
                     <EditPostModal/>
                     <DeletePostModal/>
                     <RemovedFromChannelModal/>
+                    <ResetStatusModal/>
                 </div>
             </div>
         );

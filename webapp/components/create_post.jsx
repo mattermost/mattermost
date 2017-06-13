@@ -120,7 +120,9 @@ export default class CreatePost extends React.Component {
     }
 
     doSubmit(e) {
-        e.preventDefault();
+        if (e) {
+            e.preventDefault();
+        }
 
         const post = {};
         post.file_ids = [];
@@ -504,11 +506,12 @@ export default class CreatePost extends React.Component {
             return;
         }
 
+        const lastPostEl = document.getElementById(this.state.channelId + 'commentIcon0');
+
         if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();
 
-            const channelId = ChannelStore.getCurrentId();
-            const lastPost = PostStore.getCurrentUsersLatestPost(channelId);
+            const lastPost = PostStore.getCurrentUsersLatestPost(this.state.channelId);
             if (!lastPost) {
                 return;
             }
@@ -529,15 +532,15 @@ export default class CreatePost extends React.Component {
                 channelId: lastPost.channel_id,
                 comments: PostStore.getCommentCount(lastPost)
             });
-        } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
+        } else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '' && lastPostEl) {
             e.preventDefault();
             if (document.createEvent) {
-                var evt = document.createEvent('MouseEvents');
+                const evt = document.createEvent('MouseEvents');
                 evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                document.getElementById('commentIcon0').dispatchEvent(evt);
+                lastPostEl.dispatchEvent(evt);
             } else if (document.createEventObject) {
-                var evObj = document.createEventObject();
-                document.getElementById('commentIcon0').fireEvent('onclick', evObj);
+                const evObj = document.createEventObject();
+                lastPostEl.fireEvent('onclick', evObj);
             }
         }
 

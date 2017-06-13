@@ -297,6 +297,14 @@ type SupportSettings struct {
 	SupportEmail             *string
 }
 
+type AnnouncementSettings struct {
+	EnableBanner         *bool
+	BannerText           *string
+	BannerColor          *string
+	BannerTextColor      *string
+	AllowBannerDismissal *bool
+}
+
 type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     int
@@ -434,6 +442,7 @@ type Config struct {
 	RateLimitSettings     RateLimitSettings
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings
+	AnnouncementSettings  AnnouncementSettings
 	GitLabSettings        SSOSettings
 	GoogleSettings        SSOSettings
 	Office365Settings     SSOSettings
@@ -828,6 +837,31 @@ func (o *Config) SetDefaults() {
 	if o.SupportSettings.SupportEmail == nil {
 		o.SupportSettings.SupportEmail = new(string)
 		*o.SupportSettings.SupportEmail = SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL
+	}
+
+	if o.AnnouncementSettings.EnableBanner == nil {
+		o.AnnouncementSettings.EnableBanner = new(bool)
+		*o.AnnouncementSettings.EnableBanner = false
+	}
+
+	if o.AnnouncementSettings.BannerText == nil {
+		o.AnnouncementSettings.BannerText = new(string)
+		*o.AnnouncementSettings.BannerText = ""
+	}
+
+	if o.AnnouncementSettings.BannerColor == nil {
+		o.AnnouncementSettings.BannerColor = new(string)
+		*o.AnnouncementSettings.BannerColor = "#f2a93b"
+	}
+
+	if o.AnnouncementSettings.BannerTextColor == nil {
+		o.AnnouncementSettings.BannerTextColor = new(string)
+		*o.AnnouncementSettings.BannerTextColor = "#333333"
+	}
+
+	if o.AnnouncementSettings.AllowBannerDismissal == nil {
+		o.AnnouncementSettings.AllowBannerDismissal = new(bool)
+		*o.AnnouncementSettings.AllowBannerDismissal = true
 	}
 
 	if o.LdapSettings.Enable == nil {

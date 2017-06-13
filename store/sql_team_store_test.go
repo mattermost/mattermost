@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestTeamStoreSave(t *testing.T) {
@@ -549,6 +550,101 @@ func TestTeamMembers(t *testing.T) {
 		if len(ms) != 0 {
 			t.Fatal()
 		}
+	}
+}
+
+func TestSaveTeamMemberMaxMembers(t *testing.T) {
+	Setup()
+
+	MaxUsersPerTeam := utils.Cfg.TeamSettings.MaxUsersPerTeam
+	defer func() {
+		utils.Cfg.TeamSettings.MaxUsersPerTeam = MaxUsersPerTeam
+	}()
+	utils.Cfg.TeamSettings.MaxUsersPerTeam = 5
+
+	team := Must(store.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "z-z-z" + model.NewId() + "b",
+		Type:        model.TEAM_OPEN,
+	})).(*model.Team)
+	defer func() {
+		<-store.Team().PermanentDelete(team.Id)
+	}()
+
+	userIds := make([]string, utils.Cfg.TeamSettings.MaxUsersPerTeam)
+
+	for i := 0; i < utils.Cfg.TeamSettings.MaxUsersPerTeam; i++ {
+		userIds[i] = Must(store.User().Save(&model.User{
+			Username: model.NewId(),
+			Email:    model.NewId(),
+		})).(*model.User).Id
+
+		defer func(userId string) {
+			<-store.User().PermanentDelete(userId)
+		}(userIds[i])
+
+		Must(store.Team().SaveMember(&model.TeamMember{
+			TeamId: team.Id,
+			UserId: userIds[i],
+		}))
+
+		defer func(userId string) {
+			<-store.Team().RemoveMember(team.Id, userId)
+		}(userIds[i])
+	}
+
+	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		t.Fatalf("should start with 5 team members, had %v instead", count)
+	}
+
+	newUserId := Must(store.User().Save(&model.User{
+		Username: model.NewId(),
+		Email:    model.NewId(),
+	})).(*model.User).Id
+	defer func() {
+		<-store.User().PermanentDelete(newUserId)
+	}()
+
+	if result := <-store.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: newUserId,
+	}); result.Err == nil {
+		t.Fatal("shouldn't be able to save member when at maximum members per team")
+	}
+
+	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		t.Fatalf("should still have 5 team members, had %v instead", count)
+	}
+
+	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
+	Must(store.Team().UpdateMember(&model.TeamMember{
+		TeamId:   team.Id,
+		UserId:   userIds[0],
+		DeleteAt: 1234,
+	}))
+
+	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam-1 {
+		t.Fatalf("should now only have 4 team members, had %v instead", count)
+	}
+
+	if result := <-store.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}); result.Err != nil {
+		t.Fatal("should've been able to save new member after deleting one", result.Err)
+	} else {
+		defer func(userId string) {
+			<-store.Team().RemoveMember(team.Id, userId)
+		}(newUserId)
+	}
+
+	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		t.Fatalf("should still have 5 team members again, had %v instead", count)
 	}
 }
 
