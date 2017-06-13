@@ -137,6 +137,7 @@
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
         "FeedbackOrganization": "",
+        "EnableSMTPAuth": false,
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "dockerhost",

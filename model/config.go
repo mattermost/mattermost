@@ -251,6 +251,7 @@ type EmailSettings struct {
 	FeedbackName                      string
 	FeedbackEmail                     string
 	FeedbackOrganization              *string
+	EnableSMTPAuth                    *bool
 	SMTPUsername                      string
 	SMTPPassword                      string
 	SMTPServer                        string
@@ -750,6 +751,18 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.EmailBatchingInterval == nil {
 		o.EmailSettings.EmailBatchingInterval = new(int)
 		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
+	}
+
+	if o.EmailSettings.EnableSMTPAuth == nil {
+		o.EmailSettings.EnableSMTPAuth = new(bool)
+		if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE {
+			*o.EmailSettings.EnableSMTPAuth = false
+		} else {
+			*o.EmailSettings.EnableSMTPAuth = true
+		}
+		if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN {
+			o.EmailSettings.ConnectionSecurity = CONN_SECURITY_NONE
+		}
 	}
 
 	if o.EmailSettings.SkipServerCertificateVerification == nil {

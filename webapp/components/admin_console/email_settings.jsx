@@ -32,6 +32,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.FeedbackName = this.state.feedbackName;
         config.EmailSettings.FeedbackEmail = this.state.feedbackEmail;
         config.EmailSettings.FeedbackOrganization = this.state.feedbackOrganization;
+        config.EmailSettings.EnableSMTPAuth = this.state.enableSMTPAuth;
         config.EmailSettings.SMTPUsername = this.state.smtpUsername;
         config.EmailSettings.SMTPPassword = this.state.smtpPassword;
         config.EmailSettings.SMTPServer = this.state.smtpServer;
@@ -56,6 +57,7 @@ export default class EmailSettings extends AdminSettings {
             feedbackName: config.EmailSettings.FeedbackName,
             feedbackEmail: config.EmailSettings.FeedbackEmail,
             feedbackOrganization: config.EmailSettings.FeedbackOrganization,
+            enableSMTPAuth: config.EmailSettings.EnableSMTPAuth,
             smtpUsername: config.EmailSettings.SMTPUsername,
             smtpPassword: config.EmailSettings.SMTPPassword,
             smtpServer: config.EmailSettings.SMTPServer,
@@ -201,6 +203,25 @@ export default class EmailSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications}
                 />
+                <BooleanSetting
+                    id='enableSMTPAuth'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.enableSMTPAuthTitle'
+                            defaultMessage='Enable SMTP Authentication: '
+                        />
+                    }
+                    helpText={[
+                        <FormattedHTMLMessage
+                            key='admin.email.enableSMTPAuthDesc'
+                            id='admin.email.enableSMTPAuthDesc'
+                            defaultMessage='When true, SMTP Authentication is enabled.'
+                        />
+                    ]}
+                    value={this.state.enableSMTPAuth}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                />
                 <TextSetting
                     id='smtpUsername'
                     label={
@@ -218,7 +239,7 @@ export default class EmailSettings extends AdminSettings {
                     }
                     value={this.state.smtpUsername}
                     onChange={this.handleChange}
-                    disabled={!this.state.sendEmailNotifications}
+                    disabled={!this.state.sendEmailNotifications || !this.state.enableSMTPAuth}
                 />
                 <TextSetting
                     id='smtpPassword'
@@ -237,7 +258,7 @@ export default class EmailSettings extends AdminSettings {
                     }
                     value={this.state.smtpPassword}
                     onChange={this.handleChange}
-                    disabled={!this.state.sendEmailNotifications}
+                    disabled={!this.state.sendEmailNotifications || !this.state.enableSMTPAuth}
                 />
                 <TextSetting
                     id='smtpServer'

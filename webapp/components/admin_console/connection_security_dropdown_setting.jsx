@@ -84,7 +84,6 @@ const CONNECTION_SECURITY_HELP_TEXT_EMAIL = (
     >
         <tbody>
             {SECTION_NONE}
-            {SECTION_PLAIN}
             {SECTION_TLS}
             {SECTION_STARTTLS}
         </tbody>
@@ -122,7 +121,6 @@ export function ConnectionSecurityDropdownSettingEmail(props) {
             id='connectionSecurity'
             values={[
                 {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
-                {value: 'PLAIN', text: Utils.localizeMessage('admin.connectionSecurityPlain')},
                 {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
                 {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
             ]}
