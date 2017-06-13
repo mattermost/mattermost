@@ -336,7 +336,8 @@ func LoadConfig(fileName string) {
 	if needSave {
 		cfgMutex.Unlock()
 		if err := SaveConfig(CfgFileName, &config); err != nil {
-			l4g.Warn(T(err.Id))
+			err.Translate(T)
+			l4g.Warn(err.Error())
 		}
 		cfgMutex.Lock()
 	}
