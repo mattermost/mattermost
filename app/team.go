@@ -656,7 +656,7 @@ func GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUn
 		return nil, result.Err
 	} else {
 		data := result.Data.([]*model.ChannelUnread)
-		var members []*model.TeamUnread
+		members := []*model.TeamUnread{}
 		membersMap := make(map[string]*model.TeamUnread)
 
 		unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
