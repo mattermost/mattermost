@@ -29,6 +29,7 @@ import {
     editPost,
     deletePost as deletePostRedux,
     getPosts,
+    getPostsBefore,
     addReaction as addReactionRedux,
     removeReaction as removeReactionRedux
 } from 'mattermost-redux/actions/posts';
@@ -308,13 +309,17 @@ const POST_INCREASE_AMOUNT = 10;
 const POST_INITIAL_VISIBILITY = Constants.POST_CHUNK_SIZE / 2;
 
 // Returns true if there are more posts to load
-export function increasePostVisibility(channelId) {
+export function increasePostVisibility(channelId, focusedPostId) {
     return async (doDispatch, doGetState) => {
         if (doGetState().views.channel.loadingPosts[channelId]) {
             return false;
         }
 
         const currentPostVisibility = doGetState().views.channel.postVisibility[channelId];
+
+        if (currentPostVisibility >= Constants.MAX_POST_VISIBILITY) {
+            return true;
+        }
 
         doDispatch(batchActions([
             {
@@ -330,7 +335,13 @@ export function increasePostVisibility(channelId) {
         ]));
 
         const page = Math.floor((POST_INITIAL_VISIBILITY + currentPostVisibility) / POST_INCREASE_AMOUNT);
-        const posts = await getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
+
+        let posts;
+        if (focusedPostId) {
+            posts = await getPostsBefore(channelId, focusedPostId, page, POST_INCREASE_AMOUNT)(dispatch, getState);
+        } else {
+            posts = await getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
+        }
         doDispatch({
             type: ActionTypes.LOADING_POSTS,
             data: false,

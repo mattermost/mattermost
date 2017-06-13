@@ -19,7 +19,7 @@ function postVisibility(state = {}, action) {
     }
     case ActionTypes.RECEIVED_FOCUSED_POST: {
         const nextState = {...state};
-        nextState[action.channelId] = Constants.POST_CHUNK_SIZE;
+        nextState[action.channelId] = Constants.POST_CHUNK_SIZE / 2;
         return nextState;
     }
     case PostTypes.RECEIVED_POST: {
