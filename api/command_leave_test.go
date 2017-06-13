@@ -42,10 +42,10 @@ func TestLeaveCommands(t *testing.T) {
 		t.Fatal("should not have left direct message channel")
 	}
 
-	c1 := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
+	cdata := Client.Must(Client.GetChannels("")).Data.(*model.ChannelList)
 
 	found := false
-	for _, c := range *c1 {
+	for _, c := range *cdata {
 		if c.Id == channel1.Id || c.Id == channel2.Id {
 			found = true
 		}
@@ -53,5 +53,14 @@ func TestLeaveCommands(t *testing.T) {
 
 	if found {
 		t.Fatal("did not leave right channels")
+	}
+
+	for _, c := range *cdata {
+		if c.Name == model.DEFAULT_CHANNEL {
+			if _, err := Client.LeaveChannel(c.Id); err == nil {
+				t.Fatal("should have errored on leaving default channel")
+			}
+			break
+		}
 	}
 }
