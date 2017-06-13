@@ -431,7 +431,6 @@ export default class PostList extends React.PureComponent {
 
     render() {
         const posts = this.props.posts;
-        const postVisibility = this.props.postVisibility;
         const channel = this.props.channel;
 
         if (posts == null || channel == null) {
@@ -455,9 +454,23 @@ export default class PostList extends React.PureComponent {
                     defaultMessage='Loading more messages...'
                 />
             );
+        } else if (this.props.postVisibility >= Constants.MAX_POST_VISIBILITY) {
+            topRow = (
+                <FormattedMessage
+                    id='posts_view.maxLoaded'
+                    defaultMessage='Looking for a specific message? Try searching for it'
+                />
+            );
         }
 
         const topPostCreateAt = this.state.topPost ? this.state.topPost.create_at : 0;
+
+        let postVisibility = this.props.postVisibility;
+
+        // In focus mode there's an extra (Constants.POST_CHUNK_SIZE / 2) posts to show
+        if (this.props.focusedPostId) {
+            postVisibility += Constants.POST_CHUNK_SIZE / 2;
+        }
 
         return (
             <div id='post-list'>
