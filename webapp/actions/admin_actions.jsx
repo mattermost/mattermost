@@ -4,34 +4,15 @@
 import Client from 'client/web_client.jsx';
 import {browserHistory} from 'react-router/es6';
 
-// Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
 import {updateUserMfa, updateUserPassword} from 'mattermost-redux/actions/users';
-import {
-    getConfig,
-    updateConfig,
-    uploadBrandImage as uploadBrandImageRedux,
-    reloadConfig as reloadConfigRedux,
-    getClusterStatus as getClusterStatusRedux,
-    testEmail as testEmailRedux,
-    invalidateCaches,
-    recycleDatabase,
-    testLdap,
-    syncLdap,
-    getSamlCertificateStatus,
-    uploadPublicSamlCertificate as uploadPublicSamlCertificateRedux,
-    uploadPrivateSamlCertificate as uploadPrivateSamlCertificateRedux,
-    uploadIdpSamlCertificate as uploadIdpSamlCertificateRedux,
-    removePublicSamlCertificate as removePublicSamlCertificateRedux,
-    removePrivateSamlCertificate as removePrivateSamlCertificateRedux,
-    removeIdpSamlCertificate as removeIdpSamlCertificateRedux
-} from 'mattermost-redux/actions/admin';
+import * as AdminActions from 'mattermost-redux/actions/admin';
 
 export function saveConfig(config, success, error) {
-    updateConfig(config)(dispatch, getState).then(
+    AdminActions.updateConfig(config)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -44,10 +25,10 @@ export function saveConfig(config, success, error) {
 }
 
 export function reloadConfig(success, error) {
-    reloadConfigRedux()(dispatch, getState).then(
+    AdminActions.reloadConfig()(dispatch, getState).then(
         (data) => {
             if (data && success) {
-                getConfig()(dispatch, getState);
+                AdminActions.getConfig()(dispatch, getState);
                 success(data);
             } else if (data == null && error) {
                 const serverError = getState().requests.admin.reloadConfig.error;
@@ -71,7 +52,7 @@ export function adminResetMfa(userId, success, error) {
 }
 
 export function getClusterStatus(success, error) {
-    getClusterStatusRedux()(dispatch, getState).then(
+    AdminActions.getClusterStatus()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -84,7 +65,7 @@ export function getClusterStatus(success, error) {
 }
 
 export function testEmail(config, success, error) {
-    testEmailRedux(config)(dispatch, getState).then(
+    AdminActions.testEmail(config)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -97,7 +78,7 @@ export function testEmail(config, success, error) {
 }
 
 export function ldapTest(success, error) {
-    testLdap()(dispatch, getState).then(
+    AdminActions.testLdap()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -110,7 +91,7 @@ export function ldapTest(success, error) {
 }
 
 export function invalidateAllCaches(success, error) {
-    invalidateCaches()(dispatch, getState).then(
+    AdminActions.invalidateCaches()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -123,7 +104,7 @@ export function invalidateAllCaches(success, error) {
 }
 
 export function recycleDatabaseConnection(success, error) {
-    recycleDatabase()(dispatch, getState).then(
+    AdminActions.recycleDatabase()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -149,7 +130,7 @@ export function adminResetPassword(userId, password, success, error) {
 }
 
 export function samlCertificateStatus(success, error) {
-    getSamlCertificateStatus()(dispatch, getState).then(
+    AdminActions.getSamlCertificateStatus()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -162,7 +143,7 @@ export function samlCertificateStatus(success, error) {
 }
 
 export function ldapSyncNow(success, error) {
-    syncLdap()(dispatch, getState).then(
+    AdminActions.syncLdap()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -288,7 +269,7 @@ export function regenerateOAuthAppSecret(oauthAppId, success, error) {
 }
 
 export function uploadBrandImage(brandImage, success, error) {
-    uploadBrandImageRedux(brandImage)(dispatch, getState).then(
+    AdminActions.uploadBrandImage(brandImage)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -332,7 +313,7 @@ export function removeLicenseFile(success, error) {
 }
 
 export function uploadPublicSamlCertificate(file, success, error) {
-    uploadPublicSamlCertificateRedux(file)(dispatch, getState).then(
+    AdminActions.uploadPublicSamlCertificate(file)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -345,7 +326,7 @@ export function uploadPublicSamlCertificate(file, success, error) {
 }
 
 export function uploadPrivateSamlCertificate(file, success, error) {
-    uploadPrivateSamlCertificateRedux(file)(dispatch, getState).then(
+    AdminActions.uploadPrivateSamlCertificate(file)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -358,7 +339,7 @@ export function uploadPrivateSamlCertificate(file, success, error) {
 }
 
 export function uploadIdpSamlCertificate(file, success, error) {
-    uploadIdpSamlCertificateRedux(file)(dispatch, getState).then(
+    AdminActions.uploadIdpSamlCertificate(file)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -371,7 +352,7 @@ export function uploadIdpSamlCertificate(file, success, error) {
 }
 
 export function removePublicSamlCertificate(success, error) {
-    removePublicSamlCertificateRedux()(dispatch, getState).then(
+    AdminActions.removePublicSamlCertificate()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -384,7 +365,7 @@ export function removePublicSamlCertificate(success, error) {
 }
 
 export function removePrivateSamlCertificate(success, error) {
-    removePrivateSamlCertificateRedux()(dispatch, getState).then(
+    AdminActions.removePrivateSamlCertificate()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -397,7 +378,7 @@ export function removePrivateSamlCertificate(success, error) {
 }
 
 export function removeIdpSamlCertificate(success, error) {
-    removeIdpSamlCertificateRedux()(dispatch, getState).then(
+    AdminActions.removeIdpSamlCertificate()(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);

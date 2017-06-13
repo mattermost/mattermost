@@ -40,7 +40,7 @@ export default class BrandImageSetting extends React.PureComponent {
     }
 
     componentWillMount() {
-        fetch(`${Client4.getBrandRoute()}/image?t=${this.state.brandImageTimestamp}`).then(
+        fetch(Client4.getBrandImageUrl(this.state.brandImageTimestamp)).then(
             (resp) => {
                 if (resp.status === HTTP_STATUS_OK) {
                     this.setState({brandImageExists: true});
@@ -139,7 +139,7 @@ export default class BrandImageSetting extends React.PureComponent {
             img = (
                 <img
                     className='brand-img'
-                    src={`${Client4.getBrandRoute()}/image?t=${this.state.brandImageTimestamp}`}
+                    src={Client4.getBrandImageUrl(this.state.brandImageTimestamp)}
                 />
             );
         } else {
