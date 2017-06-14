@@ -23,6 +23,7 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
 	if img, err := app.GetBrandImage(); err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
 	} else {
 		w.Header().Set("Content-Type", "image/png")

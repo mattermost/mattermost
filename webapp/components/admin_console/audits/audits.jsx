@@ -1,68 +1,66 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import LoadingScreen from '../loading_screen.jsx';
-import AuditTable from '../audit_table.jsx';
-import ComplianceReports from './compliance_reports.jsx';
-
-import AdminStore from 'stores/admin_store.jsx';
-
-import * as AsyncClient from 'utils/async_client.jsx';
-
-import {FormattedMessage} from 'react-intl';
+import LoadingScreen from 'components/loading_screen.jsx';
+import AuditTable from 'components/audit_table.jsx';
+import ComplianceReports from 'components/admin_console/compliance_reports';
 
 import React from 'react';
+import PropTypes from 'prop-types';
+import {FormattedMessage} from 'react-intl';
 
-export default class Audits extends React.Component {
+export default class Audits extends React.PureComponent {
+    static propTypes = {
+
+        /*
+         * Array of audits to render
+         */
+        audits: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+        actions: PropTypes.shape({
+
+            /*
+             * Function to fetch audits
+             */
+            getAudits: PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
-        this.onAuditListenerChange = this.onAuditListenerChange.bind(this);
-        this.reload = this.reload.bind(this);
-
         this.state = {
-            audits: AdminStore.getAudits()
+            loadingAudits: true
         };
     }
 
     componentDidMount() {
-        AdminStore.addAuditChangeListener(this.onAuditListenerChange);
-        AsyncClient.getServerAudits();
+        this.props.actions.getAudits().then(
+            () => this.setState({loadingAudits: false})
+        );
     }
 
-    componentWillUnmount() {
-        AdminStore.removeAuditChangeListener(this.onAuditListenerChange);
-    }
-
-    onAuditListenerChange() {
-        this.setState({
-            audits: AdminStore.getAudits()
-        });
-    }
-
-    reload() {
-        AdminStore.saveAudits(null);
-        this.setState({
-            audits: null
-        });
-
-        AsyncClient.getServerAudits();
+    reload = () => {
+        this.setState({loadingAudits: true});
+        this.props.actions.getAudits().then(
+            () => this.setState({loadingAudits: false})
+        );
     }
 
     render() {
-        var content = null;
+        let content = null;
 
         if (global.window.mm_license.IsLicensed !== 'true') {
             return <div/>;
         }
 
-        if (this.state.audits === null) {
+        if (this.state.loadingAudits) {
             content = <LoadingScreen/>;
         } else {
             content = (
                 <div style={{margin: '10px'}}>
                     <AuditTable
-                        audits={this.state.audits}
+                        audits={this.props.audits}
                         showUserId={true}
                         showIp={true}
                         showSession={true}
