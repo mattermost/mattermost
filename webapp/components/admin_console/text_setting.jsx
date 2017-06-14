@@ -68,6 +68,7 @@ export default class TextSetting extends React.Component {
                     rows='5'
                     placeholder={this.props.placeholder}
                     value={this.props.value}
+                    maxLength={this.props.maxLength}
                     onChange={this.handleChange}
                     disabled={this.props.disabled}
                 />
