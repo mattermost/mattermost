@@ -7,8 +7,9 @@ import PendingPostOptions from 'components/post_view/components/pending_post_opt
 import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
-import RhsDropdown from 'components/rhs_dropdown.jsx';
 import PostFlagIcon from 'components/common/post_flag_icon.jsx';
+import DotMenu from 'components/dot_menu/dot_menu.jsx';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
@@ -17,19 +18,13 @@ import TeamStore from 'stores/team_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
-
 import Constants from 'utils/constants.jsx';
-import DelayedAction from 'utils/delayed_action.jsx';
-
-import {FormattedMessage} from 'react-intl';
-
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
 import loadingGif from 'images/load.gif';
 
-import PropTypes from 'prop-types';
-
 import React from 'react';
+import PropTypes from 'prop-types';
+import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
 export default class RhsComment extends React.Component {
@@ -44,10 +39,6 @@ export default class RhsComment extends React.Component {
         this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
         this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
-
-        this.canEdit = false;
-        this.canDelete = false;
-        this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
         this.state = {
             currentTeamDisplayName: TeamStore.getCurrent().name,
@@ -73,10 +64,6 @@ export default class RhsComment extends React.Component {
     handlePermalink(e) {
         e.preventDefault();
         GlobalActions.showGetPostLinkModal(this.props.post);
-    }
-
-    handleEditDisable() {
-        this.canEdit = false;
     }
 
     removePost() {
@@ -158,173 +145,6 @@ export default class RhsComment extends React.Component {
     unpinPost(e) {
         e.preventDefault();
         unpinPost(this.props.post.channel_id, this.props.post.id);
-    }
-
-    createDropdown(isSystemMessage) {
-        const post = this.props.post;
-
-        if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
-            return '';
-        }
-
-        this.canDelete = PostUtils.canDeletePost(post);
-        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
-
-        var dropdownContents = [];
-
-        if (Utils.isMobile()) {
-            if (this.props.isFlagged) {
-                dropdownContents.push(
-                    <li
-                        key='mobileFlag'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.unflagPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.mobile.unflag'
-                                defaultMessage='Unflag'
-                            />
-                        </a>
-                    </li>
-                );
-            } else {
-                dropdownContents.push(
-                    <li
-                        key='mobileFlag'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.flagPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.mobile.flag'
-                                defaultMessage='Flag'
-                            />
-                        </a>
-                    </li>
-                );
-            }
-        }
-
-        if (!isSystemMessage) {
-            dropdownContents.push(
-                <li
-                    key='rhs-root-permalink'
-                    role='presentation'
-                >
-                    <a
-                        href='#'
-                        onClick={this.handlePermalink}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.permalink'
-                            defaultMessage='Permalink'
-                        />
-                    </a>
-                </li>
-            );
-
-            if (post.is_pinned) {
-                dropdownContents.push(
-                    <li
-                        key='rhs-comment-unpin'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.unpinPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.unpin'
-                                defaultMessage='Un-pin from channel'
-                            />
-                        </a>
-                    </li>
-                );
-            } else {
-                dropdownContents.push(
-                    <li
-                        key='rhs-comment-pin'
-                        role='presentation'
-                    >
-                        <a
-                            href='#'
-                            onClick={this.pinPost}
-                        >
-                            <FormattedMessage
-                                id='rhs_root.pin'
-                                defaultMessage='Pin to channel'
-                            />
-                        </a>
-                    </li>
-                );
-            }
-        }
-
-        if (this.canDelete) {
-            dropdownContents.push(
-                <li
-                    role='presentation'
-                    key='delete-button'
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        onClick={(e) => {
-                            e.preventDefault();
-                            GlobalActions.showDeletePostModal(post, 0);
-                        }}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.del'
-                            defaultMessage='Delete'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        if (this.canEdit) {
-            dropdownContents.push(
-                <li
-                    role='presentation'
-                    key='edit-button'
-                    className={this.canEdit ? '' : 'hide'}
-                >
-                    <a
-                        href='#'
-                        role='menuitem'
-                        data-toggle='modal'
-                        data-target='#edit_post'
-                        data-refocusid='#reply_textbox'
-                        data-title={Utils.localizeMessage('rhs_comment.comment', 'Comment')}
-                        data-message={post.message}
-                        data-postid={post.id}
-                        data-channelid={post.channel_id}
-                    >
-                        <FormattedMessage
-                            id='rhs_comment.edit'
-                            defaultMessage='Edit'
-                        />
-                    </a>
-                </li>
-            );
-        }
-
-        if (dropdownContents.length === 0) {
-            return '';
-        }
-
-        return (
-            <RhsDropdown
-                dropdownContents={dropdownContents}
-                handleDropdownOpened={this.handleDropdownOpened}
-            />
-        );
     }
 
     timeTag(post, timeOptions) {
@@ -575,12 +395,22 @@ export default class RhsComment extends React.Component {
                 </div>
             );
         } else if (!isSystemMessage) {
+            const dotMenu = (
+                <DotMenu
+                    idPrefix={Constants.RHS}
+                    idCount={idCount}
+                    post={this.props.post}
+                    isFlagged={this.props.isFlagged}
+                    handleDropdownOpened={this.handleDropdownOpened}
+                />
+            );
+
             options = (
                 <div
                     ref='dotMenu'
                     className='col col__reply'
                 >
-                    {this.createDropdown(isSystemMessage)}
+                    {dotMenu}
                     {react}
                 </div>
             );
