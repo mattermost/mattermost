@@ -105,6 +105,7 @@ export default class PostList extends React.PureComponent {
         this.state = {
             atEnd: false,
             unViewedCount: 0,
+            isScrolling: false,
             lastViewed: Number.MAX_SAFE_INTEGER
         };
     }

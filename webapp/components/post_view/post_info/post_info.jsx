@@ -380,12 +380,12 @@ export default class PostInfo extends React.PureComponent {
 
     pinPost(e) {
         e.preventDefault();
-        this.props.actions.pinPost(this.props.post.channel_id, this.props.post.id);
+        this.props.actions.pinPost(this.props.post.id);
     }
 
     unpinPost(e) {
         e.preventDefault();
-        this.props.actions.unpinPost(this.props.post.channel_id, this.props.post.id);
+        this.props.actions.unpinPost(this.props.post.id);
     }
 
     flagPost(e) {
