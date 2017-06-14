@@ -152,33 +152,44 @@ function onPermalinkEnter(nextState, replace, callback) {
     );
 }
 
+/**
+* identifier may either be:
+* - A username that starts with an @ sign
+* - An email containing an @ sign
+**/
 function onChannelByIdentifierEnter(state, replace, callback) {
     if (state.params.identifier.indexOf('@') === -1) {
         handleError(state, replace, callback);
     } else {
-        let username = state.params.identifier;
-        if (username.indexOf('@') === 0) {
-            username = username.slice(1, username.length);
-        } else if (username.indexOf('@') > 0) {
-            username = username.slice(0, username.indexOf('@'));
+        function success(profile) {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_PROFILE,
+                profile
+            });
+            directChannelToUser(profile, state, replace, callback);
         }
-        const teammate = UserStore.getProfileByUsername(username);
-        if (teammate) {
-            directChannelToUser(teammate, state, replace, callback);
-        } else {
-            Client.getByUsername(
-                username,
-                (profile) => {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_PROFILE,
-                        profile
-                    });
-                    directChannelToUser(profile, state, replace, callback);
-                },
-                () => {
-                    handleError(state, replace, callback);
-                }
-            );
+
+        function error() {
+            handleError(state, replace, callback);
+        }
+
+        const {identifier} = state.params;
+        if (identifier.indexOf('@') === 0) {
+            const username = identifier.slice(1, identifier.length);
+            const teammate = UserStore.getProfileByUsername(username);
+            if (teammate) {
+                directChannelToUser(teammate, state, replace, callback);
+            } else {
+                Client.getByUsername(username, success, error);
+            }
+        } else if (identifier.indexOf('@') > 0) {
+            const email = identifier;
+            const teammate = UserStore.getProfileByEmail(email);
+            if (teammate) {
+                directChannelToUser(teammate, state, replace, callback);
+            } else {
+                Client.getByEmail(email, success, error);
+            }
         }
     }
 }
