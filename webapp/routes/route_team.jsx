@@ -18,6 +18,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 import emojiRoute from 'routes/route_emoji.jsx';
 import integrationsRoute from 'routes/route_integrations.jsx';
@@ -154,12 +155,35 @@ function onPermalinkEnter(nextState, replace, callback) {
 
 /**
 * identifier may either be:
+* - A DM user_id length 26 chars
+* - A DM channel_id (id1_id2) length 54 chars
 * - A username that starts with an @ sign
 * - An email containing an @ sign
 **/
 function onChannelByIdentifierEnter(state, replace, callback) {
-    if (state.params.identifier.indexOf('@') === -1) {
-        handleError(state, replace, callback);
+    const {identifier} = state.params;
+    if (identifier.indexOf('@') === -1) {
+        // DM user_id or id1_id2 identifier
+        if (identifier.length === 26 || identifier.length === 54) {
+            const userId = (identifier.length === 26) ? identifier : Utils.getUserIdFromChannelId(identifier);
+            const teammate = UserStore.getProfile(userId);
+            if (teammate) {
+                replace(`/${state.params.team}/messages/@${teammate.username}`);
+                callback();
+            } else {
+                Client.getUser(
+                    userId,
+                    (profile) => {
+                        replace(`/${state.params.team}/messages/@${profile.username}`);
+                        callback();
+                    }, () => {
+                        handleError(state, replace, callback);
+                    }
+                );
+            }
+        } else {
+            handleError(state, replace, callback);
+        }
     } else {
         function success(profile) {
             AppDispatcher.handleServerAction({
@@ -173,8 +197,7 @@ function onChannelByIdentifierEnter(state, replace, callback) {
             handleError(state, replace, callback);
         }
 
-        const {identifier} = state.params;
-        if (identifier.indexOf('@') === 0) {
+        if (identifier.indexOf('@') === 0) { // @username identifier
             const username = identifier.slice(1, identifier.length);
             const teammate = UserStore.getProfileByUsername(username);
             if (teammate) {
@@ -182,7 +205,7 @@ function onChannelByIdentifierEnter(state, replace, callback) {
             } else {
                 Client.getByUsername(username, success, error);
             }
-        } else if (identifier.indexOf('@') > 0) {
+        } else if (identifier.indexOf('@') > 0) { // email identifier
             const email = identifier;
             const teammate = UserStore.getProfileByEmail(email);
             if (teammate) {
