@@ -3,7 +3,6 @@
 package utils
 
 import (
-	"context"
 	"testing"
 	"time"
 )
@@ -36,15 +35,15 @@ func TestLogRecord_String(t *testing.T) {
 		Created time.Time
 		Source  string
 		Message string
-		Context context.Context
+		Context map[string]string
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		want   string
 	}{
-		// TODO: this is broken. not sure if a null context even makes sense. Docs say never to pass nil in place of a Context object
-		{"Nil context test", fields{INFO, nowUtc, "Some test source", "This is a test message", nil}, "{\"level\":\"INFO\",\"timestamp\":\"" + nowUtcIso8601 + "\",\"source\":\"Some test source\",\"message\":\"This is a test message\"}"},
+		{"Empty context test", fields{INFO, nowUtc, "Some test source", "This is a test message", make(map[string]string)}, "{\"level\":\"INFO\",\"timestamp\":\"" + nowUtcIso8601 + "\",\"source\":\"Some test source\",\"message\":\"This is a test message\",\"context\":{}}"},
+		{"Populated context test", fields{INFO, nowUtc, "Some test source", "This is a test message", map[string]string{"foo": "bar"}}, "{\"level\":\"INFO\",\"timestamp\":\"" + nowUtcIso8601 + "\",\"source\":\"Some test source\",\"message\":\"This is a test message\",\"context\":{\"foo\":\"bar\"}}"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
