@@ -956,7 +956,10 @@ export const Constants = {
     ANIMATION_TIMEOUT: 1000,
     SEARCH_TIMEOUT_MILLISECONDS: 100,
     DIAGNOSTICS_SEGMENT_KEY: 'fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok',
-    TEST_ID_COUNT: 10
+    TEST_ID_COUNT: 10,
+    CENTER: 'center',
+    RHS: 'rhs',
+    RHS_ROOT: 'rhsroot'
 };
 
 export default Constants;
