@@ -157,6 +157,7 @@ function onPermalinkEnter(nextState, replace, callback) {
 * identifier may either be:
 * - A DM user_id length 26 chars
 * - A DM channel_id (id1_id2) length 54 chars
+* - A GM generated_id length 40 chars
 * - A username that starts with an @ sign
 * - An email containing an @ sign
 **/
@@ -178,6 +179,26 @@ function onChannelByIdentifierEnter(state, replace, callback) {
                         callback();
                     }, () => {
                         handleError(state, replace, callback);
+                    }
+                );
+            }
+
+        // GM generated_id identifier
+        } else if (identifier.length === 40) {
+            const channel = ChannelStore.getByName(identifier);
+            if (channel) {
+                loadNewGMIfNeeded(channel.id);
+                GlobalActions.emitChannelClickEvent(channel);
+                callback();
+            } else {
+                joinChannel(UserStore.getCurrentId(), TeamStore.getCurrentId(), null, identifier)(dispatch, getState).then(
+                    (data) => {
+                        if (data) {
+                            GlobalActions.emitChannelClickEvent(data.channel);
+                            callback();
+                        } else if (data == null) {
+                            handleError(state, replace, callback);
+                        }
                     }
                 );
             }

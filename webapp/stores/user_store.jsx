@@ -233,7 +233,7 @@ class UserStoreClass extends EventEmitter {
     }
 
     getProfileByEmail(email) {
-        return Selectors.getUsersByUsername(store.getState())[email];
+        return Selectors.getUsersByEmail(store.getState())[email];
     }
 
     getActiveOnlyProfiles(skipCurrent) {
