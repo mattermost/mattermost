@@ -5,8 +5,8 @@ package api
 
 import (
 	"github.com/mattermost/platform/model"
-	"testing"
 	"github.com/mattermost/platform/utils"
+	"testing"
 )
 
 func TestHelpCommand(t *testing.T) {
