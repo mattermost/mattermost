@@ -4884,7 +4884,7 @@ math-expression-evaluator@^1.2.14:
 
 mattermost-redux@mattermost/mattermost-redux#webapp-master:
   version "0.0.1"
-  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/dc9c164de3153a4c33922a8a3f996490e8949e02"
+  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/1ba6245017789943d286443b95fd75d651437df7"
   dependencies:
     deep-equal "1.0.1"
     harmony-reflect "1.5.1"
@@ -6048,7 +6048,7 @@ react-bootstrap@0.31.0:
     uncontrollable "^4.1.0"
     warning "^3.0.0"
 
-react-color@^2.11.7:
+react-color@2.11.7:
   version "2.11.7"
   resolved "https://registry.yarnpkg.com/react-color/-/react-color-2.11.7.tgz#746465b75feda63c2567607dfbcb276fc954a5b7"
   dependencies:

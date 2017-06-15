@@ -2,14 +2,15 @@
 // See License.txt for license information.
 
 import Client from 'client/web_client.jsx';
-import {browserHistory} from 'react-router/es6';
+
+import {clientLogout} from 'actions/global_actions.jsx';
 
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-import {updateUserMfa, updateUserPassword} from 'mattermost-redux/actions/users';
 import * as AdminActions from 'mattermost-redux/actions/admin';
+import * as UserActions from 'mattermost-redux/actions/users';
 
 export function saveConfig(config, success, error) {
     AdminActions.updateConfig(config)(dispatch, getState).then(
@@ -39,7 +40,7 @@ export function reloadConfig(success, error) {
 }
 
 export function adminResetMfa(userId, success, error) {
-    updateUserMfa(userId, false)(dispatch, getState).then(
+    UserActions.updateUserMfa(userId, false)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -117,7 +118,7 @@ export function recycleDatabaseConnection(success, error) {
 }
 
 export function adminResetPassword(userId, password, success, error) {
-    updateUserPassword(userId, '', password)(dispatch, getState).then(
+    UserActions.updateUserPassword(userId, '', password)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -193,60 +194,44 @@ export function allowOAuth2(params, success, error) {
 }
 
 export function emailToLdap(loginId, password, token, ldapId, ldapPassword, success, error) {
-    Client.emailToLdap(
-        loginId,
-        password,
-        token,
-        ldapId,
-        ldapPassword,
+    UserActions.switchEmailToLdap(loginId, password, ldapId, ldapPassword, token)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function emailToOAuth(loginId, password, token, newType, success, error) {
-    Client.emailToOAuth(
-        loginId,
-        password,
-        token,
-        newType,
+    UserActions.switchEmailToOAuth(newType, loginId, password, token)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function oauthToEmail(email, password, success, error) {
-    Client.oauthToEmail(
-        email,
-        password,
+export function oauthToEmail(currentService, email, password, success, error) {
+    UserActions.switchOAuthToEmail(currentService, email, password)(dispatch, getState).then(
         (data) => {
-            if (data.follow_link) {
-                browserHistory.push(data.follow_link);
-            }
-
-            if (success) {
-                success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            if (data) {
+                if (data.follow_link) {
+                    clientLogout(data.follow_link);
+                }
+                if (success) {
+                    success(data);
+                }
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
