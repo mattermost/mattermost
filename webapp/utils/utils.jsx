@@ -1099,7 +1099,12 @@ export function getDirectChannelName(id, otherId) {
 
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
-    var ids = channel.name.split('__');
+    return getUserIdFromChannelId(channel.name);
+}
+
+// Used to get the id of the other user from a DM channel id (id1_id2)
+export function getUserIdFromChannelId(channelId) {
+    var ids = channelId.split('__');
     var otherUserId = '';
     if (ids[0] === UserStore.getCurrentId()) {
         otherUserId = ids[1];
