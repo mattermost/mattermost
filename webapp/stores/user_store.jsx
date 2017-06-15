@@ -232,6 +232,10 @@ class UserStoreClass extends EventEmitter {
         return Selectors.getUsersByUsername(store.getState());
     }
 
+    getProfileByEmail(email) {
+        return Selectors.getUsersByEmail(store.getState())[email];
+    }
+
     getActiveOnlyProfiles(skipCurrent) {
         const active = {};
         const profiles = this.getProfiles();
