@@ -14,8 +14,15 @@ func TestHelpCommand(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	rs := Client.Must(Client.Command(channel.Id, "/help ")).Data.(*model.CommandResponse)
-	if *utils.Cfg.SupportSettings.HelpLink != rs.GotoLocation {
-		t.Fatal("failed to get help link")
+	*utils.Cfg.SupportSettings.HelpLink = ""
+	rs1 := Client.Must(Client.Command(channel.Id, "/help ")).Data.(*model.CommandResponse)
+	if rs1.GotoLocation != model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK {
+		t.Fatal("failed to default help link")
+	}
+
+	*utils.Cfg.SupportSettings.HelpLink = "https://docs.mattermost.com/guides/user.html"
+	rs2 := Client.Must(Client.Command(channel.Id, "/help ")).Data.(*model.CommandResponse)
+	if rs2.GotoLocation != "https://docs.mattermost.com/guides/user.html" {
+		t.Fatal("failed to help link")
 	}
 }
