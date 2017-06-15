@@ -49,23 +49,23 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Нет файла 'certificate' в запросе"
+    "translation": "Нет файла под атрибутом 'certificate' в запросе."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Невозможно открыть файл сертификата"
+    "translation": "Невозможно открыть файл сертификата."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Невозможно сохранить файл сертификата"
+    "translation": "Невозможно сохранить файл сертификата."
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Ошибка чтения лог файла"
+    "translation": "Ошибка чтения лог файла."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "Фирменная символика не настроена или не поддерживается на этом сервере"
+    "translation": "Фирменная символика не настроена или не поддерживается на этом сервере."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Инициализация административных маршрутов API"
+    "translation": "Инициализация административных маршрутов API."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Завершение переподключения к базе данных"
+    "translation": "Переподключение к базе данных завершено."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Попытка восстановления соединения с базой данных"
+    "translation": "Попытка восстановления соединения с базой данных."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -757,7 +757,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+    "translation": "SHIFT+ВВЕРХ (в пустом поле ввода): Ответить на последнее сообщение в канале\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_next",
@@ -773,7 +773,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Открыть меню личных сообщений\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+K: Открыть диалог переключения между каналами\n"
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Открыть диалог быстрого переключения между каналами\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -2289,7 +2289,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Ваш пароль обновлён"
+    "translation": "[{{ .SiteName }}] Ваш метод входа обновлён"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2749,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "translation": "Не удалось сохранить изображения профиля. Файл должен быть картинкой."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3101,7 +3101,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Пропущено необходимое свойство team: type"
+    "translation": "Пропущено необходимое свойство team: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3337,7 +3337,7 @@
   },
   {
     "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "Ошибка создания индекса ElasticSearch"
   },
   {
     "id": "ent.elasticsearch.start.index_exists_failed",
@@ -5113,7 +5113,7 @@
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
-    "translation": "Мы не смогли сохранить информацию о файле"
+    "translation": "Не удалсоь сохранить информацию о файле"
   },
   {
     "id": "store.sql_job_status.delete_by_type.app_error",
@@ -5285,7 +5285,7 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Не удалось получить пост"
+    "translation": "Не удалось получить сообщения"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5333,7 +5333,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+    "translation": "Поиск на этом сервере отключен. Пожалуйста, обратитесь к администратору."
   },
   {
     "id": "store.sql_post.search.warn",
@@ -6001,7 +6001,7 @@
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
+    "translation": "Не удалось установить HELO"
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",

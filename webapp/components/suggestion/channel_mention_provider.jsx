@@ -54,6 +54,7 @@ export default class ChannelMentionProvider extends Provider {
     constructor() {
         super();
 
+        this.lastTermWithNoResults = '';
         this.lastCompletedWord = '';
     }
 
@@ -62,6 +63,11 @@ export default class ChannelMentionProvider extends Provider {
 
         if (!captured) {
             // Not a channel mention
+            return false;
+        }
+
+        if (this.lastTermWithNoResults && pretext.startsWith(this.lastTermWithNoResults)) {
+            // Just give up since we know it won't return any results
             return false;
         }
 
@@ -79,12 +85,14 @@ export default class ChannelMentionProvider extends Provider {
 
         autocompleteChannels(
             prefix,
-            (data) => {
+            (channels) => {
                 if (this.shouldCancelDispatch(prefix)) {
                     return;
                 }
 
-                const channels = data;
+                if (channels.length === 0) {
+                    this.lastTermWithNoResults = pretext;
+                }
 
                 // Wrap channels in an outer object to avoid overwriting the 'type' property.
                 const wrappedChannels = [];

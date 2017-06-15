@@ -1046,6 +1046,17 @@ func (c *Client4) SoftDeleteTeam(teamId string) (bool, *Response) {
 	}
 }
 
+// PermanentDeleteTeam deletes the team, should only be used when needed for
+// compliance and the like
+func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamRoute(teamId) + "?permanent=true"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

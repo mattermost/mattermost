@@ -258,6 +258,11 @@ func SetDefaultRolesBasedOnConfig() {
 				model.ROLE_CHANNEL_USER.Permissions,
 				model.PERMISSION_DELETE_POST.Id,
 			)
+			model.ROLE_CHANNEL_ADMIN.Permissions = append(
+				model.ROLE_CHANNEL_ADMIN.Permissions,
+				model.PERMISSION_DELETE_POST.Id,
+				model.PERMISSION_DELETE_OTHERS_POSTS.Id,
+			)
 			model.ROLE_TEAM_ADMIN.Permissions = append(
 				model.ROLE_TEAM_ADMIN.Permissions,
 				model.PERMISSION_DELETE_POST.Id,

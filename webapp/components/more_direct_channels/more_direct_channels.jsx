@@ -12,7 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import {displayUsernameForUser} from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import PropTypes from 'prop-types';
 
@@ -227,7 +227,7 @@ export default class MoreDirectChannels extends React.Component {
                 onClick={() => onAdd(option)}
             >
                 <ProfilePicture
-                    src={`${Client.getUsersRoute()}/${option.id}/image?time=${option.last_picture_update}`}
+                    src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}
                     status={`${UserStore.getStatus(option.id)}`}
                     width='32'
                     height='32'

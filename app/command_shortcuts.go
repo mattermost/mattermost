@@ -46,7 +46,6 @@ func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) 
 		"api.command_shortcuts.nav.unread_prev",
 		"api.command_shortcuts.nav.unread_next",
 		"api.command_shortcuts.nav.switcher",
-		"api.command_shortcuts.nav.switcher_team",
 		"api.command_shortcuts.nav.direct_messages_menu",
 		"api.command_shortcuts.nav.settings",
 		"api.command_shortcuts.nav.recent_mentions",
