@@ -1549,6 +1549,12 @@
 }
 
 @media screen and (max-width: 480px) {
+    .post {
+        .img-div {
+            max-width: 100%;
+        }
+    }
+
     .nav-tabs {
         margin-top: 1em;
 
