@@ -1,30 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AdminStore from 'stores/admin_store.jsx';
-import LoadingScreen from '../loading_screen.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-
-import {FormattedMessage} from 'react-intl';
+import LoadingScreen from 'components/loading_screen.jsx';
 
 import React from 'react';
+import PropTypes from 'prop-types';
+import {FormattedMessage} from 'react-intl';
 
-export default class Logs extends React.Component {
+export default class Logs extends React.PureComponent {
+    static propTypes = {
+
+        /*
+         * Array of logs to render
+         */
+        logs: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+        actions: PropTypes.shape({
+
+            /*
+             * Function to fetch logs
+             */
+            getLogs: PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
-        this.onLogListenerChange = this.onLogListenerChange.bind(this);
-        this.reload = this.reload.bind(this);
-
         this.state = {
-            logs: AdminStore.getLogs()
+            loadingLogs: true
         };
     }
 
     componentDidMount() {
-        AdminStore.addLogChangeListener(this.onLogListenerChange);
-        AsyncClient.getLogs();
         this.refs.logPanel.focus();
+
+        this.props.actions.getLogs().then(
+            () => this.setState({loadingLogs: false})
+        );
     }
 
     componentDidUpdate() {
@@ -34,40 +47,28 @@ export default class Logs extends React.Component {
         node.focus();
     }
 
-    componentWillUnmount() {
-        AdminStore.removeLogChangeListener(this.onLogListenerChange);
-    }
-
-    onLogListenerChange() {
-        this.setState({
-            logs: AdminStore.getLogs()
-        });
-    }
-
-    reload() {
-        AdminStore.saveLogs(null);
-        this.setState({
-            logs: null
-        });
-
-        AsyncClient.getLogs();
+    reload = () => {
+        this.setState({loadingLogs: true});
+        this.props.actions.getLogs().then(
+            () => this.setState({loadingLogs: false})
+        );
     }
 
     render() {
-        var content = null;
+        let content = null;
 
-        if (this.state.logs === null) {
+        if (this.state.loadingLogs) {
             content = <LoadingScreen/>;
         } else {
             content = [];
 
-            for (var i = 0; i < this.state.logs.length; i++) {
-                var style = {
+            for (let i = 0; i < this.props.logs.length; i++) {
+                const style = {
                     whiteSpace: 'nowrap',
                     fontFamily: 'monospace'
                 };
 
-                if (this.state.logs[i].indexOf('[EROR]') > 0) {
+                if (this.props.logs[i].indexOf('[EROR]') > 0) {
                     style.color = 'red';
                 }
 
@@ -77,7 +78,7 @@ export default class Logs extends React.Component {
                         key={'log_' + i}
                         style={style}
                     >
-                        {this.state.logs[i]}
+                        {this.props.logs[i]}
                     </span>
                 );
             }

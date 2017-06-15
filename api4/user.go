@@ -27,7 +27,7 @@ func InitUser() {
 	BaseRoutes.Users.Handle("/autocomplete", ApiSessionRequired(autocompleteUsers)).Methods("GET")
 
 	BaseRoutes.User.Handle("", ApiSessionRequired(getUser)).Methods("GET")
-	BaseRoutes.User.Handle("/image", ApiSessionRequired(getProfileImage)).Methods("GET")
+	BaseRoutes.User.Handle("/image", ApiSessionRequiredTrustRequester(getProfileImage)).Methods("GET")
 	BaseRoutes.User.Handle("/image", ApiSessionRequired(setProfileImage)).Methods("POST")
 	BaseRoutes.User.Handle("", ApiSessionRequired(updateUser)).Methods("PUT")
 	BaseRoutes.User.Handle("/patch", ApiSessionRequired(patchUser)).Methods("PUT")

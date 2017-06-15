@@ -20,7 +20,7 @@ func InitCompliance() {
 	BaseRoutes.Compliance.Handle("/reports", ApiSessionRequired(createComplianceReport)).Methods("POST")
 	BaseRoutes.Compliance.Handle("/reports", ApiSessionRequired(getComplianceReports)).Methods("GET")
 	BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", ApiSessionRequired(getComplianceReport)).Methods("GET")
-	BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", ApiSessionRequired(downloadComplianceReport)).Methods("GET")
+	BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", ApiSessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {

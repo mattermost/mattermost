@@ -1,92 +1,96 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import LoadingScreen from '../loading_screen.jsx';
-import * as Utils from '../../utils/utils.jsx';
-import AdminStore from '../../stores/admin_store.jsx';
-import UserStore from '../../stores/user_store.jsx';
+import LoadingScreen from 'components/loading_screen.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from '../../utils/async_client.jsx';
-import {saveComplianceReports} from 'actions/admin_actions.jsx';
-
-import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
+import * as Utils from 'utils/utils.jsx';
+import UserStore from 'stores/user_store.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
+import {FormattedMessage, FormattedDate, FormattedTime} from 'react-intl';
 
-export default class ComplianceReports extends React.Component {
+export default class ComplianceReports extends React.PureComponent {
+    static propTypes = {
+
+        /*
+         * Set if compliance reports are enabled in the config
+         */
+        enabled: PropTypes.bool.isRequired,
+
+        /*
+         * Array of reports to render
+         */
+        reports: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+        /*
+         * Error message to display
+         */
+        serverError: PropTypes.string,
+
+        actions: PropTypes.shape({
+
+            /*
+             * Function to get compliance reports
+             */
+            getComplianceReports: PropTypes.func.isRequired,
+
+            /*
+             * Function to save compliance reports
+             */
+            createComplianceReport: PropTypes.func.isRequired
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
 
-        this.onComplianceReportsListenerChange = this.onComplianceReportsListenerChange.bind(this);
-        this.reload = this.reload.bind(this);
-        this.runReport = this.runReport.bind(this);
-        this.getDateTime = this.getDateTime.bind(this);
-
         this.state = {
-            enabled: AdminStore.getConfig().ComplianceSettings.Enable,
-            reports: AdminStore.getComplianceReports(),
-            serverError: null
+            loadingReports: true
         };
     }
 
     componentDidMount() {
-        AdminStore.addComplianceReportsChangeListener(this.onComplianceReportsListenerChange);
-
-        if (global.window.mm_license.IsLicensed !== 'true' || !this.state.enabled) {
+        if (global.window.mm_license.IsLicensed !== 'true' || !this.props.enabled) {
             return;
         }
 
-        AsyncClient.getComplianceReports();
+        this.props.actions.getComplianceReports().then(
+            () => this.setState({loadingReports: false})
+        );
     }
 
-    componentWillUnmount() {
-        AdminStore.removeComplianceReportsChangeListener(this.onComplianceReportsListenerChange);
+    reload = () => {
+        this.setState({loadingReports: true});
+
+        this.props.actions.getComplianceReports().then(
+            () => this.setState({loadingReports: false})
+        );
     }
 
-    onComplianceReportsListenerChange() {
-        this.setState({
-            reports: AdminStore.getComplianceReports()
-        });
-    }
-
-    reload() {
-        AdminStore.saveComplianceReports(null);
-        this.setState({
-            reports: null,
-            serverError: null
-        });
-
-        AsyncClient.getComplianceReports();
-    }
-
-    runReport(e) {
+    runReport = (e) => {
         e.preventDefault();
-        $('#run-button').button('loading');
 
-        var job = {};
-        job.desc = ReactDOM.findDOMNode(this.refs.desc).value;
-        job.emails = ReactDOM.findDOMNode(this.refs.emails).value;
-        job.keywords = ReactDOM.findDOMNode(this.refs.keywords).value;
-        job.start_at = Date.parse(ReactDOM.findDOMNode(this.refs.from).value);
-        job.end_at = Date.parse(ReactDOM.findDOMNode(this.refs.to).value);
+        this.setState({runningReport: true});
 
-        saveComplianceReports(
-            job,
-            () => {
-                ReactDOM.findDOMNode(this.refs.emails).value = '';
-                ReactDOM.findDOMNode(this.refs.keywords).value = '';
-                ReactDOM.findDOMNode(this.refs.desc).value = '';
-                ReactDOM.findDOMNode(this.refs.from).value = '';
-                ReactDOM.findDOMNode(this.refs.to).value = '';
-                this.reload();
-                $('#run-button').button('reset');
-            },
-            (err) => {
-                this.setState({serverError: err.message});
-                $('#run-button').button('reset');
+        const job = {};
+        job.desc = this.refs.desc.value;
+        job.emails = this.refs.emails.value;
+        job.keywords = this.refs.keywords.value;
+        job.start_at = Date.parse(this.refs.from.value);
+        job.end_at = Date.parse(this.refs.to.value);
+
+        this.props.actions.createComplianceReport(job).then(
+            (data) => {
+                if (data) {
+                    this.refs.emails.value = '';
+                    this.refs.keywords.value = '';
+                    this.refs.desc.value = '';
+                    this.refs.from.value = '';
+                    this.refs.to.value = '';
+                }
+                this.setState({runningReport: false});
             }
         );
     }
@@ -112,21 +116,20 @@ export default class ComplianceReports extends React.Component {
     }
 
     render() {
-        var content = null;
-
-        if (global.window.mm_license.IsLicensed !== 'true' || !this.state.enabled) {
+        if (global.window.mm_license.IsLicensed !== 'true' || !this.props.enabled) {
             return <div/>;
         }
 
-        if (this.state.reports === null) {
+        let content = null;
+        if (this.state.loadingReports) {
             content = <LoadingScreen/>;
         } else {
             var list = [];
 
-            for (var i = 0; i < this.state.reports.length; i++) {
-                const report = this.state.reports[i];
+            for (var i = 0; i < this.props.reports.length; i++) {
+                const report = this.props.reports[i];
 
-                var params = '';
+                let params = '';
                 if (report.type === 'adhoc') {
                     params = (
                         <span>
@@ -152,10 +155,10 @@ export default class ComplianceReports extends React.Component {
                         </span>);
                 }
 
-                var download = '';
+                let download = '';
                 if (report.status === 'finished') {
                     download = (
-                        <a href={Client.getAdminRoute() + '/download_compliance_report/' + report.id}>
+                        <a href={`${Client4.getBaseRoute()}/compliance/reports/${report.id}/download`}>
                             <FormattedMessage
                                 id='admin.compliance_table.download'
                                 defaultMessage='Download'
@@ -164,7 +167,7 @@ export default class ComplianceReports extends React.Component {
                     );
                 }
 
-                var status = report.status;
+                let status = report.status;
                 if (report.status === 'finished') {
                     status = (
                         <span style={{color: 'green'}}>{report.status}</span>
@@ -177,8 +180,8 @@ export default class ComplianceReports extends React.Component {
                     );
                 }
 
-                var user = report.user_id;
-                var profile = UserStore.getProfile(report.user_id);
+                let user = report.user_id;
+                const profile = UserStore.getProfile(report.user_id);
                 if (profile) {
                     user = profile.email;
                 }
@@ -256,13 +259,13 @@ export default class ComplianceReports extends React.Component {
         }
 
         let serverError = '';
-        if (this.state.serverError) {
+        if (this.props.serverError) {
             serverError = (
                 <div
                     className='form-group has-error'
                     style={{marginTop: '10px'}}
                 >
-                    <label className='control-label'>{this.state.serverError}</label>
+                    <label className='control-label'>{this.props.serverError}</label>
                 </div>
             );
         }
@@ -372,6 +375,7 @@ export default class ComplianceReports extends React.Component {
                     <button
                         type='submit'
                         className='btn btn-link'
+                        disabled={this.state.runningReport}
                         onClick={this.reload}
                     >
                         <i className='fa fa-refresh'/>

@@ -11,8 +11,9 @@ import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import ClusterTableContainer from './cluster_table_container.jsx';
 
-import AdminStore from 'stores/admin_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+
+import {Client4} from 'mattermost-redux/client';
 
 export default class ClusterSettings extends AdminSettings {
     constructor(props) {
@@ -76,7 +77,7 @@ export default class ClusterSettings extends AdminSettings {
 
         var configLoadedFromCluster = null;
 
-        if (AdminStore.getClusterId()) {
+        if (Client4.clusterId) {
             configLoadedFromCluster = (
                 <div
                     style={{marginBottom: '10px'}}
@@ -87,7 +88,7 @@ export default class ClusterSettings extends AdminSettings {
                         id='admin.cluster.loadedFrom'
                         defaultMessage='This configuration file was loaded from Node ID {clusterId}. Please see the Troubleshooting Guide in our <a href="http://docs.mattermost.com/deployment/cluster.html" target="_blank">documentation</a> if you are accessing the System Console through a load balancer and experiencing issues.'
                         values={{
-                            clusterId: AdminStore.getClusterId()
+                            clusterId: Client4.clusterId
                         }}
                     />
                 </div>
