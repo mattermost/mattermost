@@ -102,14 +102,14 @@ export default class SettingPicture extends Component {
         }
 
         return (
-            <ul className='section-max'>
+            <ul className='section-max form-horizontal'>
                 <li className='col-xs-12 section-title'>{this.props.title}</li>
                 <li className='col-xs-offset-3 col-xs-8'>
                     <ul className='setting-list'>
                         <li className='setting-list-item'>
                             {img}
                         </li>
-                        <li className='setting-list-item'>
+                        <li className='setting-list-item padding-top x2'>
                             <FormattedMessage
                                 id='setting_picture.help'
                                 defaultMessage='Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.'
@@ -120,7 +120,11 @@ export default class SettingPicture extends Component {
                             />
                         </li>
                         <li className='setting-list-item'>
-                            <FormError errors={[this.props.clientError, this.props.serverError]}/>
+                            <hr/>
+                            <FormError
+                                errors={[this.props.clientError, this.props.serverError]}
+                                type={'modal'}
+                            />
                             <span className='btn btn-sm btn-primary btn-file sel-btn'>
                                 <FormattedMessage
                                     id='setting_picture.select'
