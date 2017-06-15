@@ -239,7 +239,8 @@ function handleEvent(msg) {
 }
 
 function handleChannelUpdatedEvent(msg) {
-    loadChannelsForCurrentUser(msg.broadcast.channel_id);
+    const channel = JSON.parse(msg.data.channel);
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
 }
 
 function handleNewPostEvent(msg) {

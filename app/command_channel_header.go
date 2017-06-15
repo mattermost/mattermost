@@ -62,7 +62,7 @@ func (me *HeaderProvider) DoCommand(args *model.CommandArgs, message string) *mo
 	}
 
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
-	messageWs.Add("channel_id", channel.Id)
+	messageWs.Add("channel", channel.ToJson())
 	Publish(messageWs)
 
 	if err := PostUpdateChannelHeaderMessage(args.Session.UserId, channel.Id, args.TeamId, oldChannelHeader, updateChannel.Header); err != nil {

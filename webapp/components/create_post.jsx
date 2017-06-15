@@ -9,6 +9,7 @@ import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 import EmojiPicker from './emoji_picker/emoji_picker.jsx';
+import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -74,16 +75,19 @@ export default class CreatePost extends React.Component {
         this.handleNotifyModalCancel = this.handleNotifyModalCancel.bind(this);
         this.handleNotifyAllConfirmation = this.handleNotifyAllConfirmation.bind(this);
 
+        this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
+
         PostStore.clearDraftUploads();
 
-        const channelId = ChannelStore.getCurrentId();
-        const draft = PostStore.getDraft(channelId);
-
+        const channel = ChannelStore.getCurrent();
+        const channelId = channel.id;
+        const draft = PostStore.getPostDraft(channelId);
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
 
         this.state = {
             channelId,
+            channel,
             message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
@@ -96,7 +100,8 @@ export default class CreatePost extends React.Component {
             showEmojiPicker: false,
             emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW),
             showConfirmModal: false,
-            totalMembers: members
+            totalMembers: members,
+            showEditChannelHeaderModal: false
         };
 
         this.lastBlurAt = 0;
@@ -108,6 +113,13 @@ export default class CreatePost extends React.Component {
 
     toggleEmojiPicker = () => {
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
+    showEditChannelHeaderModal(value) {
+        this.setState({
+            message: '',
+            showEditChannelHeaderModal: value
+        });
     }
 
     doSubmit(e) {
@@ -213,12 +225,20 @@ export default class CreatePost extends React.Component {
     handleSubmit(e) {
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
+        const updateChannel = ChannelStore.getCurrent();
 
         if ((this.state.message.includes('@all') || this.state.message.includes('@channel')) && members >= Constants.NOTIFY_ALL_MEMBERS) {
             this.setState({totalMembers: members});
             this.showNotifyAllModal();
             return;
         }
+
+        if (this.state.message.endsWith('/header ')) {
+            this.setState({channel: updateChannel});
+            this.showEditChannelHeaderModal(true);
+            return;
+        }
+
         this.doSubmit(e);
     }
 
@@ -700,6 +720,16 @@ export default class CreatePost extends React.Component {
             attachmentsDisabled = ' post-create--attachment-disabled';
         }
 
+        var editChannelHeaderModal = null;
+        if (this.state.showEditChannelHeaderModal) {
+            editChannelHeaderModal = (
+                <EditChannelHeaderModal
+                    onHide={() => this.setState({showEditChannelHeaderModal: false})}
+                    channel={this.state.channel}
+                />
+            );
+        }
+
         return (
             <form
                 id='create_post'
@@ -771,6 +801,7 @@ export default class CreatePost extends React.Component {
                     onConfirm={this.handleNotifyAllConfirmation}
                     onCancel={this.handleNotifyModalCancel}
                 />
+                {editChannelHeaderModal}
             </form>
         );
     }
