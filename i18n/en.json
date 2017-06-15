@@ -824,6 +824,14 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_help.desc",
+    "translation": "Open the Mattermost help page"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "help"
+  },
+  {
     "id": "api.compliance.init.debug",
     "translation": "Initializing compliance API routes"
   },
