@@ -109,7 +109,7 @@ export default class SwitchChannelProvider extends Provider {
 
             // Dispatch suggestions for local data
             const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState()));
-            const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), true);
+            const users = Object.assign([], searchProfiles(getState(), channelPrefix, true));
             this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users, true);
 
             // Fetch data from the server and dispatch
@@ -141,7 +141,7 @@ export default class SwitchChannelProvider extends Provider {
             return;
         }
 
-        const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), usersFromServer);
+        const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), usersFromServer.users);
         const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState())).concat(channelsFromServer);
         this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users);
     }

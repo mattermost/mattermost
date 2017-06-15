@@ -142,11 +142,7 @@ export default class CreateComment extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        if (this.state.uploadsInProgress.length > 0) {
-            return;
-        }
-
-        if (this.state.submitting) {
+        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
             return;
         }
 

@@ -5,7 +5,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   cancelButtonText={
     <FormattedMessage
       defaultMessage="No, keep it as \\"{status}\\""
-      id="modal.manual_status.cancel"
+      id="modal.manaul_status.cancel"
       values={
         Object {
           "status": "",
@@ -16,7 +16,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   checkboxText={
     <FormattedMessage
       defaultMessage="Do not ask me again"
-      id="modal.manual_status.ask"
+      id="modal.manaul_status.ask"
       values={Object {}}
     />
   }
@@ -24,14 +24,14 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   confirmButtonText={
     <FormattedMessage
       defaultMessage="Yes, set my status to \\"Online\\""
-      id="modal.manual_status.button"
+      id="modal.manaul_status.button"
       values={Object {}}
     />
   }
   message={
     <FormattedMessage
       defaultMessage="Would you like to switch your status to \\"Online\\"?"
-      id="modal.manual_status.message"
+      id="modal.manaul_status.message"
       values={Object {}}
     />
   }
@@ -42,7 +42,7 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   title={
     <FormattedMessage
       defaultMessage="Your status is set to \\"{status}\\""
-      id="modal.manual_status.title"
+      id="modal.manaul_status.title"
       values={
         Object {
           "status": "",

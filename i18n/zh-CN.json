@@ -757,7 +757,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+    "translation": "SHIFT+UP (在空输入栏)：回复当前频道最新的消息\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_next",
@@ -773,7 +773,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K：打开私信菜单\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -801,7 +801,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+K：打开频道快速切换对话框\n"
+    "translation": "{{.CmdOrCtrl}}+ALT+K：打开团队快速切换对话框\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1463,7 +1463,7 @@
   },
   {
     "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
+    "translation": "正在初始化 open graph 协议 api 路由"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1981,7 +1981,7 @@
   },
   {
     "id": "api.system.go_routines",
-    "translation": "The number of running goroutines is over the health threshold %v of %v"
+    "translation": "运行中的 goroutine 数量 %v 已经超过健康界限 %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2749,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "translation": "无法保存个人资料图片。文件不是有效的图片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3909,19 +3909,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是。"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search 密码设定。"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search 用户名设定。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -6029,7 +6029,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Notification From Address setting is missing or invalid."
+    "translation": "缺少或无效的从寄件人地址通知设定。"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6045,7 +6045,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Notification To Address setting is missing or invalid."
+    "translation": "缺少或无效的通知到收件人地址设定。"
   },
   {
     "id": "utils.mail.test.configured.error",
