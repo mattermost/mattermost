@@ -115,6 +115,10 @@ export default class CreatePost extends React.Component {
             e.preventDefault();
         }
 
+        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
+            return;
+        }
+
         const post = {};
         post.file_ids = [];
         post.message = this.state.message;
@@ -493,7 +497,9 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        const lastPostEl = document.getElementById(this.state.channelId + 'commentIcon0');
+        const latestNonEphemeralPost = PostStore.getLatestNonEphemeralPost(this.state.channelId);
+        const latestNonEphemeralPostId = latestNonEphemeralPost == null ? '' : latestNonEphemeralPost.id;
+        const lastPostEl = document.getElementById(`commentIcon_${this.state.channelId}_${latestNonEphemeralPostId}`);
 
         if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();
@@ -761,7 +767,7 @@ export default class CreatePost extends React.Component {
                 <ConfirmModal
                     title={notifyAllTitle}
                     message={notifyAllMessage}
-                    confirmButton={notifyAllConfirm}
+                    confirmButtonText={notifyAllConfirm}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleNotifyAllConfirmation}
                     onCancel={this.handleNotifyModalCancel}

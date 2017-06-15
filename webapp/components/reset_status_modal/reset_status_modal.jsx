@@ -86,7 +86,7 @@ export default class ResetStatusModal extends React.PureComponent {
         const userStatus = toTitleCase(this.state.currentUserStatus.status || '');
         const manualStatusTitle = (
             <FormattedMessage
-                id='modal.manual_status.title'
+                id='modal.manaul_status.title'
                 defaultMessage='Your status is set to "{status}"'
                 values={{
                     status: userStatus
@@ -96,21 +96,21 @@ export default class ResetStatusModal extends React.PureComponent {
 
         const manualStatusMessage = (
             <FormattedMessage
-                id='modal.manual_status.message'
+                id='modal.manaul_status.message'
                 defaultMessage='Would you like to switch your status to "Online"?'
             />
         );
 
         const manualStatusButton = (
             <FormattedMessage
-                id='modal.manual_status.button'
+                id='modal.manaul_status.button'
                 defaultMessage='Yes, set my status to "Online"'
             />
         );
 
         const manualStatusCancel = (
             <FormattedMessage
-                id='modal.manual_status.cancel'
+                id='modal.manaul_status.cancel'
                 defaultMessage='No, keep it as "{status}"'
                 values={{
                     status: userStatus
@@ -120,7 +120,7 @@ export default class ResetStatusModal extends React.PureComponent {
 
         const manualStatusCheckbox = (
             <FormattedMessage
-                id='modal.manual_status.ask'
+                id='modal.manaul_status.ask'
                 defaultMessage='Do not ask me again'
             />
         );
