@@ -34,5 +34,11 @@ func (h *HelpProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (h *HelpProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	return &model.CommandResponse{GotoLocation: *utils.Cfg.SupportSettings.HelpLink}
+	helpLink := *utils.Cfg.SupportSettings.HelpLink
+
+	if helpLink == "" {
+		helpLink = model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK
+	}
+
+	return &model.CommandResponse{GotoLocation: helpLink}
 }
