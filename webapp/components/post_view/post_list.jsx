@@ -450,17 +450,21 @@ export default class PostList extends React.PureComponent {
             topRow = createChannelIntroMessage(channel, this.props.fullWidth);
         } else if (this.props.loadingPosts) {
             topRow = (
-                <FormattedMessage
-                    id='posts_view.loadingMore'
-                    defaultMessage='Loading more messages...'
-                />
+                <div className='post-list__loading'>
+                    <FormattedMessage
+                        id='posts_view.loadingMore'
+                        defaultMessage='Loading more messages...'
+                    />
+                </div>
             );
         } else if (this.props.postVisibility >= Constants.MAX_POST_VISIBILITY) {
             topRow = (
-                <FormattedMessage
-                    id='posts_view.maxLoaded'
-                    defaultMessage='Looking for a specific message? Try searching for it'
-                />
+                <div className='post-list__loading post-list__loading-search'>
+                    <FormattedMessage
+                        id='posts_view.maxLoaded'
+                        defaultMessage='Looking for a specific message? Try searching for it'
+                    />
+                </div>
             );
         }
 
