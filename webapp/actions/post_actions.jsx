@@ -305,14 +305,13 @@ export function performSearch(terms, isMentionSearch, success, error) {
     );
 }
 
-const POST_INCREASE_AMOUNT = 10;
-const POST_INITIAL_VISIBILITY = Constants.POST_CHUNK_SIZE / 2;
+const POST_INCREASE_AMOUNT = Constants.POST_CHUNK_SIZE / 2;
 
 // Returns true if there are more posts to load
 export function increasePostVisibility(channelId, focusedPostId) {
     return async (doDispatch, doGetState) => {
         if (doGetState().views.channel.loadingPosts[channelId]) {
-            return false;
+            return true;
         }
 
         const currentPostVisibility = doGetState().views.channel.postVisibility[channelId];
@@ -334,7 +333,7 @@ export function increasePostVisibility(channelId, focusedPostId) {
             }
         ]));
 
-        const page = Math.floor((POST_INITIAL_VISIBILITY + currentPostVisibility) / POST_INCREASE_AMOUNT);
+        const page = Math.floor(currentPostVisibility / POST_INCREASE_AMOUNT);
 
         let posts;
         if (focusedPostId) {
@@ -342,6 +341,7 @@ export function increasePostVisibility(channelId, focusedPostId) {
         } else {
             posts = await getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
         }
+
         doDispatch({
             type: ActionTypes.LOADING_POSTS,
             data: false,

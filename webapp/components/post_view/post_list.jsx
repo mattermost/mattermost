@@ -20,6 +20,8 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
 const CLOSE_TO_BOTTOM_SCROLL_MARGIN = 10;
+const CLOSE_TO_TOP_SCROLL_MARGIN = 10;
+const POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2;
 
 export default class PostList extends React.PureComponent {
     static propTypes = {
@@ -256,8 +258,8 @@ export default class PostList extends React.PureComponent {
         let posts;
         if (focusedPostId) {
             const getPostThreadAsync = this.props.actions.getPostThread(focusedPostId);
-            const getPostsBeforeAsync = this.props.actions.getPostsBefore(channelId, focusedPostId);
-            const getPostsAfterAsync = this.props.actions.getPostsAfter(channelId, focusedPostId, 0, Constants.POST_CHUNK_SIZE / 2);
+            const getPostsBeforeAsync = this.props.actions.getPostsBefore(channelId, focusedPostId, 0, POSTS_PER_PAGE);
+            const getPostsAfterAsync = this.props.actions.getPostsAfter(channelId, focusedPostId, 0, POSTS_PER_PAGE);
 
             posts = await getPostsBeforeAsync;
             await getPostsAfterAsync;
@@ -265,11 +267,11 @@ export default class PostList extends React.PureComponent {
 
             this.hasScrolledToFocusedPost = true;
         } else {
-            posts = await this.props.actions.getPosts(channelId);
+            posts = await this.props.actions.getPosts(channelId, 0, POSTS_PER_PAGE);
             this.hasScrolledToNewMessageSeparator = true;
         }
 
-        if (posts && posts.order.length < Constants.POST_CHUNK_SIZE) {
+        if (posts && posts.order.length < POSTS_PER_PAGE) {
             this.setState({atEnd: true});
         }
     }
@@ -280,10 +282,10 @@ export default class PostList extends React.PureComponent {
         this.previousScrollTop = this.refs.postlist.scrollTop;
 
         // Show and load more posts if user scrolls halfway through the list
-        if (this.refs.postlist.scrollTop < this.refs.postlist.scrollHeight / 8 &&
+        if (this.refs.postlist.scrollTop < CLOSE_TO_TOP_SCROLL_MARGIN &&
                 !this.state.atEnd) {
             this.props.actions.increasePostVisibility(this.props.channel.id, this.props.focusedPostId).then((moreToLoad) => {
-                this.setState({atEnd: !moreToLoad && this.props.posts.length <= this.props.postVisibility});
+                this.setState({atEnd: !moreToLoad && this.props.posts.length < this.props.postVisibility});
             });
         }
 
@@ -448,21 +450,21 @@ export default class PostList extends React.PureComponent {
         let topRow;
         if (this.state.atEnd) {
             topRow = createChannelIntroMessage(channel, this.props.fullWidth);
-        } else if (this.props.loadingPosts) {
-            topRow = (
-                <div className='post-list__loading'>
-                    <FormattedMessage
-                        id='posts_view.loadingMore'
-                        defaultMessage='Loading more messages...'
-                    />
-                </div>
-            );
         } else if (this.props.postVisibility >= Constants.MAX_POST_VISIBILITY) {
             topRow = (
                 <div className='post-list__loading post-list__loading-search'>
                     <FormattedMessage
                         id='posts_view.maxLoaded'
                         defaultMessage='Looking for a specific message? Try searching for it'
+                    />
+                </div>
+            );
+        } else {
+            topRow = (
+                <div className='post-list__loading'>
+                    <FormattedMessage
+                        id='posts_view.loadingMore'
+                        defaultMessage='Loading more messages...'
                     />
                 </div>
             );
