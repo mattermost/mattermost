@@ -12,7 +12,7 @@ type SwitchRequest struct {
 	CurrentService string `json:"current_service"`
 	NewService     string `json:"new_service"`
 	Email          string `json:"email"`
-	Password       string `json:"current_password"`
+	Password       string `json:"password"`
 	NewPassword    string `json:"new_password"`
 	MfaCode        string `json:"mfa_code"`
 	LdapId         string `json:"ldap_id"`
