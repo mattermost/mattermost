@@ -773,7 +773,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Doğrudan iletiler menüsünü açar\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -2253,7 +2253,7 @@
   },
   {
     "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SenderDisplayName}} kullanıcısından {{.SubjectText}} iletisi {{.Month}} {{.Day}}, {{.Year}} tarihinde"
+    "translation": "{{.SenderDisplayName}} kullanıcısından {{.Day}} {{.Month}} {{.Year}} tarihinde {{.SubjectText}}"
   },
   {
     "id": "api.templates.post_subject_in_group_message",

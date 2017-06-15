@@ -12,7 +12,7 @@ import (
 
 const (
 	connectTimeout = 3 * time.Second
-	requestTimeout = 5 * time.Second
+	requestTimeout = 30 * time.Second
 )
 
 // HttpClient returns a variation the default implementation of Client.
