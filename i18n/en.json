@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Edit the channel header."
+    "translation": "Edit the channel header"
   },
   {
     "id": "api.command_channel_header.hint",
@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "A message must be provided with the /header command."
+    "translation": "Text must be provided with the /header command."
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -557,7 +557,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "Only [Channel, Team and System Admins / Team and System Admins / System Admins] are allowed to edit the channel header."
+    "translation": "You do not have the appropriate permissions to edit the channel header."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",

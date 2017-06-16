@@ -55,6 +55,7 @@ export default class Navbar extends React.Component {
         this.showSearch = this.showSearch.bind(this);
 
         this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
+        this.hideEditChannelHeaderModal = this.hideEditChannelHeaderModal.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.isStateValid = this.isStateValid.bind(this);
@@ -110,6 +111,7 @@ export default class Navbar extends React.Component {
         UserStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
         ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL, this.showEditChannelHeaderModal);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
@@ -121,6 +123,7 @@ export default class Navbar extends React.Component {
         UserStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
         ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL, this.hideEditChannelHeaderModal);
         document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
@@ -190,6 +193,12 @@ export default class Navbar extends React.Component {
 
         this.setState({
             showEditChannelHeaderModal: true
+        });
+    }
+
+    hideEditChannelHeaderModal() {
+        this.setState({
+            showEditChannelHeaderModal: false
         });
     }
 

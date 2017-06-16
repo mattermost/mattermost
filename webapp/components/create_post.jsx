@@ -9,7 +9,6 @@ import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 import EmojiPicker from './emoji_picker/emoji_picker.jsx';
-import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -75,8 +74,6 @@ export default class CreatePost extends React.Component {
         this.handleNotifyModalCancel = this.handleNotifyModalCancel.bind(this);
         this.handleNotifyAllConfirmation = this.handleNotifyAllConfirmation.bind(this);
 
-        this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
-
         PostStore.clearDraftUploads();
 
         const channel = ChannelStore.getCurrent();
@@ -100,8 +97,7 @@ export default class CreatePost extends React.Component {
             showEmojiPicker: false,
             emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW),
             showConfirmModal: false,
-            totalMembers: members,
-            showEditChannelHeaderModal: false
+            totalMembers: members
         };
 
         this.lastBlurAt = 0;
@@ -113,13 +109,6 @@ export default class CreatePost extends React.Component {
 
     toggleEmojiPicker = () => {
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-    }
-
-    showEditChannelHeaderModal(value) {
-        this.setState({
-            message: '',
-            showEditChannelHeaderModal: value
-        });
     }
 
     doSubmit(e) {
@@ -234,8 +223,8 @@ export default class CreatePost extends React.Component {
         }
 
         if (this.state.message.endsWith('/header ')) {
-            this.setState({channel: updateChannel});
-            this.showEditChannelHeaderModal(true);
+            GlobalActions.showChannelHeaderUpdateModal(updateChannel);
+            this.setState({message: ''});
             return;
         }
 
@@ -720,16 +709,6 @@ export default class CreatePost extends React.Component {
             attachmentsDisabled = ' post-create--attachment-disabled';
         }
 
-        var editChannelHeaderModal = null;
-        if (this.state.showEditChannelHeaderModal) {
-            editChannelHeaderModal = (
-                <EditChannelHeaderModal
-                    onHide={() => this.setState({showEditChannelHeaderModal: false})}
-                    channel={this.state.channel}
-                />
-            );
-        }
-
         return (
             <form
                 id='create_post'
@@ -801,7 +780,6 @@ export default class CreatePost extends React.Component {
                     onConfirm={this.handleNotifyAllConfirmation}
                     onCancel={this.handleNotifyModalCancel}
                 />
-                {editChannelHeaderModal}
             </form>
         );
     }

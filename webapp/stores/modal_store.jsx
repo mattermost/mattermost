@@ -40,6 +40,7 @@ class ModalStoreClass extends EventEmitter {
         case ActionTypes.TOGGLE_GET_PUBLIC_LINK_MODAL:
         case ActionTypes.TOGGLE_DM_MODAL:
         case ActionTypes.TOGGLE_QUICK_SWITCH_MODAL:
+        case ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL:
             this.emit(type, value, args);
             break;
         }

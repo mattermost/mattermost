@@ -205,6 +205,14 @@ export function showDeletePostModal(post, commentCount = 0) {
     });
 }
 
+export function showChannelHeaderUpdateModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL,
+        value: true,
+        channel
+    });
+}
+
 export function showGetPostLinkModal(post) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_GET_POST_LINK_MODAL,

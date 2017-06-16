@@ -36,7 +36,6 @@ class EditChannelHeaderModal extends React.Component {
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.onShow = this.onShow.bind(this);
-        this.showModal = this.showModal.bind(this);
         this.onHide = this.onHide.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
@@ -101,12 +100,6 @@ class EditChannelHeaderModal extends React.Component {
 
     onShow() {
         this.submitted = false;
-    }
-
-    showModal() {
-        this.setState({show: true});
-        this.onShow();
-        this.focusTextbox();
     }
 
     onHide() {
