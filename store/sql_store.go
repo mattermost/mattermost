@@ -4,6 +4,7 @@
 package store
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -35,6 +36,8 @@ const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
 	MAX_DB_CONN_LIFETIME = 60
+	DB_PING_ATTEMPTS     = 18
+	DB_PING_TIMEOUT_SECS = 10
 )
 
 const (
@@ -197,12 +200,22 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 		os.Exit(EXIT_DB_OPEN)
 	}
 
-	l4g.Info(utils.T("store.sql.pinging.info"), con_type)
-	err = db.Ping()
-	if err != nil {
-		l4g.Critical(utils.T("store.sql.ping.critical"), err)
-		time.Sleep(time.Second)
-		os.Exit(EXIT_PING)
+	for i := 0; i < DB_PING_ATTEMPTS; i++ {
+		l4g.Info("Pinging SQL %v database", con_type)
+		ctx, _ := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		err = db.PingContext(ctx)
+		if err == nil {
+			break
+		} else {
+			if i == DB_PING_ATTEMPTS-1 {
+				l4g.Critical("Failed to ping DB, server will exit err=%v", err)
+				time.Sleep(time.Second)
+				os.Exit(EXIT_PING)
+			} else {
+				l4g.Error("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err)
+				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
+			}
+		}
 	}
 
 	db.SetMaxIdleConns(maxIdle)
