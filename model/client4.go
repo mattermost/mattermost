@@ -1878,7 +1878,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	}
 }
 
-// RemoveLicenseFile will remove the server license if it existing. Note that this will
+// RemoveLicenseFile will remove the server license it exists. Note that this will
 // disable all enterprise features.
 func (c *Client4) RemoveLicenseFile() (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetLicenseRoute()); err != nil {
