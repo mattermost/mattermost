@@ -92,6 +92,7 @@ class ReactionStore extends EventEmitter {
             this.emitChange(action.postId);
             break;
         case ActionTypes.POST_DELETED:
+        case ActionTypes.REMOVE_POST:
             this.removeReactionsFor(action.post.id);
             this.emitChange(action.post.id);
             break;
