@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import FormError from 'components/form_error.jsx';
 
@@ -55,8 +54,7 @@ export default class InstalledOAuthApp extends React.Component {
 
         regenerateOAuthAppSecret(
             this.props.oauthApp.id,
-            (data) => {
-                this.props.oauthApp.client_secret = data.client_secret;
+            () => {
                 this.handleShowClientSecret(e);
             },
             (err) => {

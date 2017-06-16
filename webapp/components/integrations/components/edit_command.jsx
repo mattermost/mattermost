@@ -1,16 +1,14 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {loadTeamCommands} from 'actions/integration_actions.jsx';
+import {loadTeamCommands, editCommand} from 'actions/integration_actions.jsx';
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
@@ -98,7 +96,7 @@ export default class EditCommand extends React.Component {
     }
 
     submitCommand() {
-        AsyncClient.editCommand(
+        editCommand(
             this.newCmd,
             browserHistory.push('/' + this.props.team.name + '/integrations/commands'),
             (err) => {

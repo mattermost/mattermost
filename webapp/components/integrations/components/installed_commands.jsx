@@ -4,7 +4,7 @@
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
 import InstalledCommand from './installed_command.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
+import {regenCommandToken, deleteCommand} from 'actions/integration_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import PropTypes from 'prop-types';
@@ -32,11 +32,11 @@ export default class InstalledCommands extends React.Component {
     }
 
     regenCommandToken(command) {
-        AsyncClient.regenCommandToken(command.id);
+        regenCommandToken(command.id);
     }
 
     deleteCommand(command) {
-        AsyncClient.deleteCommand(command.id);
+        deleteCommand(command.id);
     }
 
     commandCompare(a, b) {
