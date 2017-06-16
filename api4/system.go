@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -24,6 +26,8 @@ func InitSystem() {
 	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
 	BaseRoutes.ApiRoot.Handle("/config/client", ApiHandler(getClientConfig)).Methods("GET")
 
+	BaseRoutes.ApiRoot.Handle("/license", ApiSessionRequired(addLicense)).Methods("POST")
+	BaseRoutes.ApiRoot.Handle("/license", ApiSessionRequired(removeLicense)).Methods("DELETE")
 	BaseRoutes.ApiRoot.Handle("/license/client", ApiHandler(getClientLicense)).Methods("GET")
 
 	BaseRoutes.ApiRoot.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
@@ -259,4 +263,76 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(model.MapToJson(clientLicense)))
+}
+
+func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.LogAudit("attempt")
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	m := r.MultipartForm
+
+	fileArray, ok := m.File["license"]
+	if !ok {
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(fileArray) <= 0 {
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	fileData := fileArray[0]
+
+	file, err := fileData.Open()
+	defer file.Close()
+	if err != nil {
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	io.Copy(buf, file)
+
+	if license, err := app.SaveLicense(buf.Bytes()); err != nil {
+		if err.Id == model.EXPIRED_LICENSE_ERROR {
+			c.LogAudit("failed - expired or non-started license")
+		} else if err.Id == model.INVALID_LICENSE_ERROR {
+			c.LogAudit("failed - invalid license")
+		} else {
+			c.LogAudit("failed - unable to save license")
+		}
+		c.Err = err
+		return
+	} else {
+		c.LogAudit("success")
+		w.Write([]byte(license.ToJson()))
+	}
+}
+
+func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.LogAudit("attempt")
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := app.RemoveLicense(); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
 }
