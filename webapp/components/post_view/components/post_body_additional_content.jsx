@@ -23,19 +23,20 @@ export default class PostBodyAdditionalContent extends React.Component {
         this.toggleEmbedVisibility = this.toggleEmbedVisibility.bind(this);
         this.isLinkToggleable = this.isLinkToggleable.bind(this);
         this.handleLinkLoadError = this.handleLinkLoadError.bind(this);
+        this.handleLinkLoaded = this.handleLinkLoaded.bind(this);
 
         this.state = {
             embedVisible: props.previewCollapsed.startsWith('false'),
             link: Utils.extractFirstLink(props.post.message),
-            linkLoadError: false
+            linkLoadError: false,
+            linkLoaded: false
         };
     }
 
     componentWillReceiveProps(nextProps) {
         this.setState({
             embedVisible: nextProps.previewCollapsed.startsWith('false'),
-            link: Utils.extractFirstLink(nextProps.post.message),
-            linkLoadError: false
+            link: Utils.extractFirstLink(nextProps.post.message)
         });
     }
 
@@ -50,6 +51,9 @@ export default class PostBodyAdditionalContent extends React.Component {
             return true;
         }
         if (nextState.linkLoadError !== this.state.linkLoadError) {
+            return true;
+        }
+        if (nextState.linkLoaded !== this.state.linkLoaded) {
             return true;
         }
         return false;
@@ -105,6 +109,12 @@ export default class PostBodyAdditionalContent extends React.Component {
         });
     }
 
+    handleLinkLoaded() {
+        this.setState({
+            linkLoaded: true
+        });
+    }
+
     generateToggleableEmbed() {
         const link = this.state.link;
         if (!link) {
@@ -127,6 +137,8 @@ export default class PostBodyAdditionalContent extends React.Component {
                     channelId={this.props.post.channel_id}
                     link={link}
                     onLinkLoadError={this.handleLinkLoadError}
+                    onLinkLoaded={this.handleLinkLoaded}
+                    childComponentDidUpdateFunction={this.props.childComponentDidUpdateFunction}
                 />
             );
         }
@@ -174,11 +186,13 @@ export default class PostBodyAdditionalContent extends React.Component {
                 </div>
             );
 
-            let contents;
-            if (prependToggle) {
-                contents = [toggle, message];
-            } else {
-                contents = [message, toggle];
+            const contents = [message];
+            if (this.state.linkLoaded) {
+                if (prependToggle) {
+                    contents.unshift(toggle);
+                } else {
+                    contents.push(toggle);
+                }
             }
 
             if (this.state.embedVisible) {
