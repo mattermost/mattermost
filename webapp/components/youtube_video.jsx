@@ -156,7 +156,13 @@ export default class YoutubeVideo extends React.Component {
 
     render() {
         if (!this.state.loaded) {
-            return <div className='video-loading'/>;
+            return (
+                <div
+                    className='post__embed-container'
+                >
+                    <div className='video-loading'/>
+                </div>
+            );
         }
 
         let header;
@@ -217,13 +223,17 @@ export default class YoutubeVideo extends React.Component {
         }
 
         return (
-            <div>
-                {header}
-                <div
-                    className='video-div embed-responsive-item'
-                    onClick={this.play}
-                >
-                    {content}
+            <div
+                className='post__embed-container'
+            >
+                <div>
+                    {header}
+                    <div
+                        className='video-div embed-responsive-item'
+                        onClick={this.play}
+                    >
+                        {content}
+                    </div>
                 </div>
             </div>
         );

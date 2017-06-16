@@ -1644,6 +1644,10 @@
     "translation": " posted in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },

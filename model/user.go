@@ -340,7 +340,6 @@ func (u *User) ClearNonProfileFields() {
 	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
-	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
 }
 
