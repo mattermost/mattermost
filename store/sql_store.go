@@ -204,7 +204,8 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 
 	for i := 0; i < DB_PING_ATTEMPTS; i++ {
 		l4g.Info("Pinging SQL %v database", con_type)
-		ctx, _ := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		defer cancel()
 		err = db.PingContext(ctx)
 		if err == nil {
 			break
