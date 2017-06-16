@@ -83,18 +83,7 @@ export default class SignupController extends React.Component {
                             }
                         );
                     },
-                    () => {
-                        this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                            noOpenServerError: true,
-                            loading: false,
-                            serverError: (
-                                <FormattedMessage
-                                    id='signup_user_completed.invalid_invite'
-                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                />
-                            )
-                        });
-                    }
+                    this.handleInvalidInvite
                 );
 
                 return;
@@ -113,18 +102,7 @@ export default class SignupController extends React.Component {
                             loading: false
                         });
                     },
-                    () => {
-                        this.setState({ // eslint-disable-line react/no-did-mount-set-state
-                            noOpenServerError: true,
-                            loading: false,
-                            serverError: (
-                                <FormattedMessage
-                                    id='signup_user_completed.invalid_invite'
-                                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                                />
-                            )
-                        });
-                    }
+                    this.handleInvalidInvite
                 );
 
                 return;
@@ -134,6 +112,26 @@ export default class SignupController extends React.Component {
                 GlobalActions.redirectUserToDefaultTeam();
             }
         }
+    }
+
+    handleInvalidInvite = (err) => {
+        let serverError;
+        if (err.id === 'store.sql_user.save.max_accounts.app_error') {
+            serverError = err.message;
+        } else {
+            serverError = (
+                <FormattedMessage
+                    id='signup_user_completed.invalid_invite'
+                    defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                />
+            );
+        }
+
+        this.setState({
+            noOpenServerError: true,
+            loading: false,
+            serverError
+        });
     }
 
     renderSignupControls() {
