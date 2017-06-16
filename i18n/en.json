@@ -4712,14 +4712,6 @@
     "translation": "Failed to open SQL connection %v"
   },
   {
-    "id": "store.sql.ping.critical",
-    "translation": "Failed to ping DB err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Pinging SQL %v database"
-  },
-  {
     "id": "store.sql.read_replicas_not_licensed.critical",
     "translation": "More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
