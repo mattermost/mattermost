@@ -123,6 +123,8 @@ export default class InstalledOAuthApps extends React.Component {
                                     />
                                 </a>
                             )
+                        },
+                            {
                             link2: (
                                 <a
                                     target='_blank'
