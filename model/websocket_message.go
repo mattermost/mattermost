@@ -15,6 +15,7 @@ const (
 	WEBSOCKET_EVENT_POST_DELETED        = "post_deleted"
 	WEBSOCKET_EVENT_CHANNEL_DELETED     = "channel_deleted"
 	WEBSOCKET_EVENT_CHANNEL_CREATED     = "channel_created"
+	WEBSOCKET_EVENT_CHANNEL_UPDATED     = "channel_updated"
 	WEBSOCKET_EVENT_DIRECT_ADDED        = "direct_added"
 	WEBSOCKET_EVENT_GROUP_ADDED         = "group_added"
 	WEBSOCKET_EVENT_NEW_USER            = "new_user"
