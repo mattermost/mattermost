@@ -155,6 +155,8 @@ export default class InstalledIncomingWebhooks extends React.Component {
                                     />
                                 </a>
                             )
+                        },
+                            {
                             link2: (
                                 <a
                                     target='_blank'
