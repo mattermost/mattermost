@@ -140,7 +140,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
                 }
                 helpText={
                     <FormattedMessage
-                        id='installed_incoming_webhooks.help'Use incoming webhooks to connect external tools to Mattermost. Build your own or visit the App Directory to find self-hosted, third-party apps and integrations.
+                        id='installed_incoming_webhooks.help'
                         defaultMessage='Use incoming webhooks to connect external tools to Mattermost. {link} or visit the {link2} to find self-hosted, third-party apps and integrations.'
                         values={{
                             link: (
