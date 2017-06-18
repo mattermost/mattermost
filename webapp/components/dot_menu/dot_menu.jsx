@@ -22,7 +22,30 @@ export default class DotMenu extends Component {
         commentCount: PropTypes.number,
         isFlagged: PropTypes.bool,
         handleCommentClick: PropTypes.func,
-        handleDropdownOpened: PropTypes.func
+        handleDropdownOpened: PropTypes.func,
+
+        actions: PropTypes.shape({
+
+            /*
+             * Function flag the post
+             */
+            flagPost: PropTypes.func.isRequired,
+
+            /*
+             * Function to unflag the post
+             */
+            unflagPost: PropTypes.func.isRequired,
+
+            /*
+             * Function to pin the post
+             */
+            pinPost: PropTypes.func.isRequired,
+
+            /*
+             * Function to unpin the post
+             */
+            unpinPost: PropTypes.func.isRequired
+        }).isRequired
     }
 
     static defaultProps = {
@@ -90,6 +113,10 @@ export default class DotMenu extends Component {
                     idCount={this.props.idCount}
                     postId={this.props.post.id}
                     isFlagged={this.props.isFlagged}
+                    actions={{
+                        flagPost: this.props.actions.flagPost,
+                        unflagPost: this.props.actions.unflagPost
+                    }}
                 />
             );
         }
@@ -121,6 +148,10 @@ export default class DotMenu extends Component {
                     idPrefix={idPrefix + 'Pin'}
                     idCount={this.props.idCount}
                     post={this.props.post}
+                    actions={{
+                        pinPost: this.props.actions.pinPost,
+                        unpinPost: this.props.actions.unpinPost
+                    }}
                 />
             );
         }

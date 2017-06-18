@@ -6,6 +6,7 @@ node_modules
 /webapp/dist
 jobserver
 npm-debug.log
+webapp/yarn-error.log
 mattermost.mattermost-license
 config/mattermost.mattermost-license
 

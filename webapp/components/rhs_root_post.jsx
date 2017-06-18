@@ -2,49 +2,37 @@
 // See License.txt for license information.
 
 import UserProfile from './user_profile.jsx';
-import PostBodyAdditionalContent from 'components/post_view/components/post_body_additional_content.jsx';
-import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
-import FileAttachmentListContainer from './file_attachment_list_container.jsx';
+import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content.jsx';
+import PostMessageContainer from 'components/post_view/post_message_view';
+import FileAttachmentListContainer from 'components/file_attachment_list';
 import ProfilePicture from 'components/profile_picture.jsx';
-import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
-import PostFlagIcon from 'components/common/post_flag_icon.jsx';
-import DotMenu from 'components/dot_menu/dot_menu.jsx';
+import ReactionListContainer from 'components/post_view/reaction_list';
+import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
+import DotMenu from 'components/dot_menu';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
-import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
+import {addReaction} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
-
 import Constants from 'utils/constants.jsx';
-import DelayedAction from 'utils/delayed_action.jsx';
-
-import {FormattedMessage} from 'react-intl';
-
-import PropTypes from 'prop-types';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Link} from 'react-router/es6';
+import {FormattedMessage} from 'react-intl';
 
 export default class RhsRootPost extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handlePermalink = this.handlePermalink.bind(this);
-        this.flagPost = this.flagPost.bind(this);
-        this.unflagPost = this.unflagPost.bind(this);
-        this.pinPost = this.pinPost.bind(this);
-        this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
         this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
-
-        this.editDisableAction = new DelayedAction(this.handleEditDisable);
 
         this.state = {
             currentTeamDisplayName: TeamStore.getCurrent().name,
@@ -66,11 +54,6 @@ export default class RhsRootPost extends React.Component {
         window.removeEventListener('resize', () => {
             Utils.updateWindowDimensions(this);
         });
-    }
-
-    handlePermalink(e) {
-        e.preventDefault();
-        GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -121,16 +104,6 @@ export default class RhsRootPost extends React.Component {
         return false;
     }
 
-    flagPost(e) {
-        e.preventDefault();
-        flagPost(this.props.post.id);
-    }
-
-    unflagPost(e) {
-        e.preventDefault();
-        unflagPost(this.props.post.id);
-    }
-
     timeTag(post, timeOptions) {
         return (
             <time
@@ -154,16 +127,6 @@ export default class RhsRootPost extends React.Component {
                     {this.timeTag(post, timeOptions)}
                 </Link>
             );
-    }
-
-    pinPost(e) {
-        e.preventDefault();
-        pinPost(this.props.post.channel_id, this.props.post.id);
-    }
-
-    unpinPost(e) {
-        e.preventDefault();
-        unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
     toggleEmojiPicker = () => {
@@ -220,7 +183,6 @@ export default class RhsRootPost extends React.Component {
         var channel = ChannelStore.get(post.channel_id);
 
         const isEphemeral = Utils.isPostEphemeral(post);
-        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
         const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var channelName;
@@ -238,7 +200,8 @@ export default class RhsRootPost extends React.Component {
         }
 
         let react;
-        if (!isEphemeral && !isPending && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+
+        if (!isEphemeral && !post.failed && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
             react = (
                 <span>
                     <EmojiPickerOverlay
@@ -454,10 +417,8 @@ RhsRootPost.defaultProps = {
 };
 RhsRootPost.propTypes = {
     post: PropTypes.object.isRequired,
-    lastPostCount: PropTypes.number,
     user: PropTypes.object.isRequired,
     currentUser: PropTypes.object.isRequired,
-    commentCount: PropTypes.number,
     compactDisplay: PropTypes.bool,
     useMilitaryTime: PropTypes.bool.isRequired,
     isFlagged: PropTypes.bool,

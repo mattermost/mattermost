@@ -2,41 +2,35 @@
 // See License.txt for license information.
 
 import UserProfile from './user_profile.jsx';
-import FileAttachmentListContainer from './file_attachment_list_container.jsx';
-import PendingPostOptions from 'components/post_view/components/pending_post_options.jsx';
-import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
+import FileAttachmentListContainer from 'components/file_attachment_list';
+import PostMessageContainer from 'components/post_view/post_message_view';
 import ProfilePicture from 'components/profile_picture.jsx';
-import ReactionListContainer from 'components/post_view/components/reaction_list_container.jsx';
-import PostFlagIcon from 'components/common/post_flag_icon.jsx';
-import DotMenu from 'components/dot_menu/dot_menu.jsx';
+import ReactionListContainer from 'components/post_view/reaction_list';
+import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
+import FailedPostOptions from 'components/post_view/failed_post_options';
+import DotMenu from 'components/dot_menu';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {flagPost, unflagPost, pinPost, unpinPost, addReaction} from 'actions/post_actions.jsx';
+import {addReaction} from 'actions/post_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
-import Constants from 'utils/constants.jsx';
 
-import loadingGif from 'images/load.gif';
+import Constants from 'utils/constants.jsx';
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
+import {FormattedMessage} from 'react-intl';
 
 export default class RhsComment extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handlePermalink = this.handlePermalink.bind(this);
         this.removePost = this.removePost.bind(this);
-        this.flagPost = this.flagPost.bind(this);
-        this.unflagPost = this.unflagPost.bind(this);
-        this.pinPost = this.pinPost.bind(this);
-        this.unpinPost = this.unpinPost.bind(this);
         this.reactEmojiClick = this.reactEmojiClick.bind(this);
         this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
 
@@ -59,11 +53,6 @@ export default class RhsComment extends React.Component {
         window.removeEventListener('resize', () => {
             Utils.updateWindowDimensions(this);
         });
-    }
-
-    handlePermalink(e) {
-        e.preventDefault();
-        GlobalActions.showGetPostLinkModal(this.props.post);
     }
 
     removePost() {
@@ -125,26 +114,6 @@ export default class RhsComment extends React.Component {
         }
 
         return false;
-    }
-
-    flagPost(e) {
-        e.preventDefault();
-        flagPost(this.props.post.id);
-    }
-
-    unflagPost(e) {
-        e.preventDefault();
-        unflagPost(this.props.post.id);
-    }
-
-    pinPost(e) {
-        e.preventDefault();
-        pinPost(this.props.post.channel_id, this.props.post.id);
-    }
-
-    unpinPost(e) {
-        e.preventDefault();
-        unpinPost(this.props.post.channel_id, this.props.post.id);
     }
 
     timeTag(post, timeOptions) {
@@ -229,7 +198,6 @@ export default class RhsComment extends React.Component {
         }
 
         const isEphemeral = Utils.isPostEphemeral(post);
-        const isPending = post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING;
         const isSystemMessage = PostUtils.isSystemMessage(post);
 
         var timestamp = this.props.currentUser.last_picture_update;
@@ -283,20 +251,12 @@ export default class RhsComment extends React.Component {
             );
         }
 
-        let loading;
+        let failedPostOptions;
         let postClass = '';
 
-        if (post.state === Constants.POST_FAILED) {
-            postClass += ' post-fail';
-            loading = <PendingPostOptions post={this.props.post}/>;
-        } else if (post.state === Constants.POST_LOADING) {
-            postClass += ' post-waiting';
-            loading = (
-                <img
-                    className='post-loading-gif pull-right'
-                    src={loadingGif}
-                />
-            );
+        if (post.failed) {
+            postClass += ' post-failed';
+            failedPostOptions = <FailedPostOptions post={this.props.post}/>;
         }
 
         if (PostUtils.isEdited(this.props.post)) {
@@ -365,7 +325,8 @@ export default class RhsComment extends React.Component {
         }
 
         let react;
-        if (!isEphemeral && !isPending && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+
+        if (!isEphemeral && !post.failed && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
             react = (
                 <span>
                     <EmojiPickerOverlay
@@ -462,7 +423,7 @@ export default class RhsComment extends React.Component {
                         </div>
                         <div className='post__body' >
                             <div className={postClass}>
-                                {loading}
+                                {failedPostOptions}
                                 <PostMessageContainer post={post}/>
                             </div>
                             {fileAttachment}

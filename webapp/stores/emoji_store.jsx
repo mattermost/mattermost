@@ -15,7 +15,7 @@ const MAXIMUM_RECENT_EMOJI = 27;
 // Wrap the contents of the store so that we don't need to construct an ES6 map where most of the content
 // (the system emojis) will never change. It provides the get/has functions of a map and an iterator so
 // that it can be used in for..of loops
-class EmojiMap {
+export class EmojiMap {
     constructor(customEmojis) {
         this.customEmojis = customEmojis;
 

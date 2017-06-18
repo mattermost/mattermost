@@ -87,12 +87,14 @@ export const ActionTypes = keyMirror({
     RECEIVED_EDIT_POST: null,
     RECEIVED_SEARCH: null,
     RECEIVED_SEARCH_TERM: null,
+    SELECT_POST: null,
     RECEIVED_POST_SELECTED: null,
     RECEIVED_MENTION_DATA: null,
     RECEIVED_ADD_MENTION: null,
     RECEIVED_POST_PINNED: null,
     RECEIVED_POST_UNPINNED: null,
-    POST_DRAFT_CHANGED: null,
+    INCREASE_POST_VISIBILITY: null,
+    LOADING_POSTS: null,
 
     RECEIVED_PROFILES: null,
     RECEIVED_PROFILES_IN_TEAM: null,
@@ -308,6 +310,8 @@ export const Constants = {
     PostTypes,
     ErrorPageTypes,
     ErrorBarTypes,
+
+    MAX_POST_VISIBILITY: 1000000,
 
     IGNORE_POST_TYPES: [PostTypes.JOIN_LEAVE, PostTypes.JOIN_CHANNEL, PostTypes.LEAVE_CHANNEL, PostTypes.REMOVE_FROM_CHANNEL, PostTypes.ADD_TO_CHANNEL, PostTypes.ADD_REMOVE],
 

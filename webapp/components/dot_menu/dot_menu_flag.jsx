@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import PropTypes from 'prop-types';
 
-import {flagPost, unflagPost} from 'actions/post_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -21,12 +20,12 @@ function formatMessage(isFlagged) {
 export default function DotMenuFlag(props) {
     function onFlagPost(e) {
         e.preventDefault();
-        flagPost(props.postId);
+        props.actions.flagPost(props.postId);
     }
 
     function onUnflagPost(e) {
         e.preventDefault();
-        unflagPost(props.postId);
+        props.actions.unflagPost(props.postId);
     }
 
     const flagFunc = props.isFlagged ? onUnflagPost : onFlagPost;
@@ -60,7 +59,21 @@ DotMenuFlag.propTypes = {
     idCount: PropTypes.number,
     idPrefix: PropTypes.string.isRequired,
     postId: PropTypes.string.isRequired,
-    isFlagged: PropTypes.bool.isRequired
+    isFlagged: PropTypes.bool.isRequired,
+
+    actions: PropTypes.shape({
+
+        /*
+         * Function flag the post
+         */
+        flagPost: PropTypes.func.isRequired,
+
+        /*
+         * Function to unflag the post
+         */
+        unflagPost: PropTypes.func.isRequired
+
+    }).isRequired
 };
 
 DotMenuFlag.defaultProps = {
