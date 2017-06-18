@@ -14,7 +14,7 @@ class ScrollStoreClass extends EventEmitter {
         this.on(UPDATE_POST_SCROLL_EVENT, callback);
     }
 
-    removePostScrollLisener(callback) {
+    removePostScrollListener(callback) {
         this.removeListener(UPDATE_POST_SCROLL_EVENT, callback);
     }
 }
