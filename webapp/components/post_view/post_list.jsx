@@ -20,7 +20,6 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
 const CLOSE_TO_BOTTOM_SCROLL_MARGIN = 10;
-const CLOSE_TO_TOP_SCROLL_MARGIN = 10;
 const POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2;
 
 export default class PostList extends React.PureComponent {
@@ -276,18 +275,20 @@ export default class PostList extends React.PureComponent {
         }
     }
 
+    loadMorePosts = (e) => {
+        if (e) {
+            e.preventDefault();
+        }
+
+        this.props.actions.increasePostVisibility(this.props.channel.id, this.props.focusedPostId).then((moreToLoad) => {
+            this.setState({atEnd: !moreToLoad && this.props.posts.length < this.props.postVisibility});
+        });
+    }
+
     handleScroll = () => {
         this.hasScrolledToFocusedPost = true;
         this.hasScrolled = true;
         this.previousScrollTop = this.refs.postlist.scrollTop;
-
-        // Show and load more posts if user scrolls halfway through the list
-        if (this.refs.postlist.scrollTop < CLOSE_TO_TOP_SCROLL_MARGIN &&
-                !this.state.atEnd) {
-            this.props.actions.increasePostVisibility(this.props.channel.id, this.props.focusedPostId).then((moreToLoad) => {
-                this.setState({atEnd: !moreToLoad && this.props.posts.length < this.props.postVisibility});
-            });
-        }
 
         this.updateFloatingTimestamp();
 
@@ -461,12 +462,17 @@ export default class PostList extends React.PureComponent {
             );
         } else {
             topRow = (
-                <div className='post-list__loading'>
+                <a
+                    ref='loadmoretop'
+                    className='more-messages-text theme'
+                    href='#'
+                    onClick={this.loadMorePosts}
+                >
                     <FormattedMessage
-                        id='posts_view.loadingMore'
-                        defaultMessage='Loading more messages...'
+                        id='posts_view.loadMore'
+                        defaultMessage='Load more messages'
                     />
-                </div>
+                </a>
             );
         }
 
