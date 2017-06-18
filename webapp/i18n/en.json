@@ -1887,6 +1887,7 @@
   "post_info.unpin": "Un-pin from channel",
   "post_message_view.edited": "(edited)",
   "posts_view.loadMore": "Load more messages",
+  "posts_view.loadingMore": "Loading more messages...",
   "posts_view.newMsg": "New Messages",
   "posts_view.newMsgBelow": "New {count, plural, one {message} other {messages}} below",
   "quick_switch_modal.channels": "Channels",

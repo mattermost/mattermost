@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import PropTypes from 'prop-types';
 
-import {unpinPost, pinPost} from 'actions/post_actions.jsx';
 import {showGetPostLinkModal, showDeletePostModal} from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -18,12 +17,12 @@ export default function DotMenuItem(props) {
 
     function handleUnpinPost(e) {
         e.preventDefault();
-        unpinPost(props.post.channel_id, props.post.id);
+        props.actions.unpinPost(props.post.id);
     }
 
     function handlePinPost(e) {
         e.preventDefault();
-        pinPost(props.post.channel_id, props.post.id);
+        props.actions.pinPost(props.post.id);
     }
 
     function handleDeletePost(e) {
@@ -98,7 +97,20 @@ DotMenuItem.propTypes = {
     post: PropTypes.object,
     handleOnClick: PropTypes.func,
     type: PropTypes.string,
-    commentCount: PropTypes.number
+    commentCount: PropTypes.number,
+
+    actions: PropTypes.shape({
+
+        /*
+         * Function to pin the post
+         */
+        pinPost: PropTypes.func,
+
+        /*
+         * Function to unpin the post
+         */
+        unpinPost: PropTypes.func
+    })
 };
 
 DotMenuItem.defaultProps = {

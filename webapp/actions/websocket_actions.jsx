@@ -5,7 +5,6 @@ import $ from 'jquery';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
-import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
@@ -21,7 +20,7 @@ import * as AsyncClient from 'utils/async_client.jsx';
 import {getSiteURL} from 'utils/url.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {handleNewPost, loadPosts, loadProfilesForPosts} from 'actions/post_actions.jsx';
+import {handleNewPost, loadProfilesForPosts} from 'actions/post_actions.jsx';
 import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
@@ -36,8 +35,9 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 import {batchActions} from 'redux-batched-actions';
 import {viewChannel, getChannelAndMyMember, getChannelStats} from 'mattermost-redux/actions/channels';
+import {getPosts} from 'mattermost-redux/actions/posts';
 import {setServerVersion} from 'mattermost-redux/actions/general';
-import {ChannelTypes, TeamTypes, UserTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, TeamTypes, UserTypes, PostTypes} from 'mattermost-redux/action_types';
 
 const MAX_WEBSOCKET_FAILS = 7;
 
@@ -97,7 +97,7 @@ export function reconnect(includeWebSocket = true) {
 
     if (Client.teamId) {
         loadChannelsForCurrentUser();
-        loadPosts(ChannelStore.getCurrentId());
+        getPosts(ChannelStore.getCurrentId())(dispatch, getState);
         StatusActions.loadStatusesForChannelAndSidebar();
     }
 
@@ -246,8 +246,7 @@ function handleNewPostEvent(msg) {
 function handlePostEditEvent(msg) {
     // Store post
     const post = JSON.parse(msg.data.post);
-    PostStore.storePost(post, false);
-    PostStore.emitChange();
+    dispatch({type: PostTypes.RECEIVED_POST, data: post});
 
     // Update channel state
     if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
@@ -259,7 +258,7 @@ function handlePostEditEvent(msg) {
 
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.data.post);
-    GlobalActions.emitPostDeletedEvent(post);
+    dispatch({type: PostTypes.POST_DELETED, data: post});
 }
 
 function handleTeamAddedEvent(msg) {
@@ -424,19 +423,17 @@ function handleWebrtc(msg) {
 function handleReactionAddedEvent(msg) {
     const reaction = JSON.parse(msg.data.reaction);
 
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.ADDED_REACTION,
-        postId: reaction.post_id,
-        reaction
+    dispatch({
+        type: PostTypes.RECEIVED_REACTION,
+        data: reaction
     });
 }
 
 function handleReactionRemovedEvent(msg) {
     const reaction = JSON.parse(msg.data.reaction);
 
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.REMOVED_REACTION,
-        postId: reaction.post_id,
-        reaction
+    dispatch({
+        type: PostTypes.REACTION_DELETED,
+        data: reaction
     });
 }
