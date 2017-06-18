@@ -65,6 +65,12 @@ class ReactionStore extends EventEmitter {
         this.setReactions(postId, reactions);
     }
 
+    removeReactionsFor(postId) {
+        if (this.reactions.has(postId)) {
+            this.setReactions(postId, []);
+        }
+    }
+
     getReactions(postId) {
         return this.reactions.get(postId);
     }
@@ -84,6 +90,11 @@ class ReactionStore extends EventEmitter {
         case ActionTypes.REMOVED_REACTION:
             this.removeReaction(action.postId, action.reaction);
             this.emitChange(action.postId);
+            break;
+        case ActionTypes.POST_DELETED:
+        case ActionTypes.REMOVE_POST:
+            this.removeReactionsFor(action.post.id);
+            this.emitChange(action.post.id);
             break;
         }
     }
