@@ -37,7 +37,9 @@ import {Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 export function loadMe(callback) {
     UserActions.loadMe()(dispatch, getState).then(
         () => {
-            loadCurrentLocale();
+            if (window.mm_config) {
+                loadCurrentLocale();
+            }
 
             if (callback) {
                 callback();
@@ -67,6 +69,8 @@ export function loadMeAndConfig(callback) {
                         anonymousId: '00000000000000000000000000'
                     });
                 }
+
+                loadCurrentLocale();
 
                 getLicenseConfig()(store.dispatch, store.getState).then(
                     (license) => { // eslint-disable-line max-nested-callbacks
@@ -471,7 +475,7 @@ export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), op
 export function autocompleteUsersInChannel(username, channelId, success) {
     const channel = ChannelStore.get(channelId);
     const teamId = channel ? channel.team_id : TeamStore.getCurrentId();
-    UserActions.autocompleteRedux(username, teamId, channelId)(dispatch, getState).then(
+    UserActions.autocomplete(username, teamId, channelId)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -481,7 +485,7 @@ export function autocompleteUsersInChannel(username, channelId, success) {
 }
 
 export function autocompleteUsersInTeam(username, success) {
-    UserActions.autocompleteRedux(username, TeamStore.getCurrentId())(dispatch, getState).then(
+    UserActions.autocomplete(username, TeamStore.getCurrentId())(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -491,7 +495,7 @@ export function autocompleteUsersInTeam(username, success) {
 }
 
 export function autocompleteUsers(username, success) {
-    UserActions.autocompleteRedux(username)(dispatch, getState).then(
+    UserActions.autocomplete(username)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -540,7 +544,7 @@ export function updateUserNotifyProps(props, success, error) {
 }
 
 export function updateUserRoles(userId, newRoles, success, error) {
-    UserActions.updateUserRolesRedux(userId, newRoles)(dispatch, getState).then(
+    UserActions.updateUserRoles(userId, newRoles)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -584,7 +588,7 @@ export function checkMfa(loginId, success, error) {
         return;
     }
 
-    UserActions.checkMfaRedux(loginId)(dispatch, getState).then(
+    UserActions.checkMfa(loginId)(dispatch, getState).then(
         (data) => {
             if (data != null && success) {
                 success(data);
