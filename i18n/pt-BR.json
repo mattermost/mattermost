@@ -1628,6 +1628,10 @@
     "translation": "Nova Mensagem Direta"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Enviados um ou mais arquivos "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " em "
   },
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "Falha ao abrir a conexão SQL %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "Falha ao pingar no DB err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Pingando banco de dados SQL %v"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",

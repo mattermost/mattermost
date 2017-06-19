@@ -185,23 +185,23 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Özel kanal oluşturma ve yönetim işlemlerini yalnız Sistem Yöneticileri yapabilir."
+    "translation": "Özel kanal ekleme ve yönetim işlemlerini yalnız Sistem Yöneticileri yapabilir."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Özel kanal oluşturma ve yönetim işlemlerini yalnız Takım ve Sistem Yöneticileri yapabilir."
+    "translation": "Özel kanal ekleme ve yönetim işlemlerini yalnız Takım ve Sistem Yöneticileri yapabilir."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
-    "translation": "Herkese açık kanal oluşturma ve yönetim işlemlerini yalnız Sistem Yöneticileri yapabilir."
+    "translation": "Herkese açık kanal ekleme ve yönetim işlemlerini yalnız Sistem Yöneticileri yapabilir."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "Herkese açık kanal oluşturma ve yönetim işlemlerini yalnız Takım ve Sistem Yöneticileri yapabilir."
+    "translation": "Herkese açık kanal ekleme ve yönetim işlemlerini yalnız Takım ve Sistem Yöneticileri yapabilir."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Doğrudan ileti kanalı oluşturmak için createDirectChannel API hizmeti kullanılmalıdır"
+    "translation": "Doğrudan ileti kanalı eklemek için createDirectChannel API hizmeti kullanılmalıdır"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Geçerli takım için en fazla {{.MaxChannelsPerTeam}} kanal oluşturulabilir"
+    "translation": "Geçerli takıma en fazla {{.MaxChannelsPerTeam}} kanal eklenebilir"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -221,7 +221,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Doğrudan kanal oluşturma için kullanıcı kodu geçersiz"
+    "translation": "Doğrudan kanal ekleme için kullanıcı kodu geçersiz"
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
@@ -975,19 +975,19 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Emoji oluşturulamadı. Aynı adlı başka bir emoji zaten var."
+    "translation": "Emoji eklenemedi. Aynı adlı başka bir emoji zaten var."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Emoji oluşturulamadı. İstek anlaşılamadı."
+    "translation": "Emoji eklenemedi. İstek anlaşılamadı."
   },
   {
     "id": "api.emoji.create.permissions.app_error",
-    "translation": "Emoji oluşturumak için izinleriniz yeterli değil."
+    "translation": "Emoji eklemek için izinleriniz yeterli değil."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Emoji oluşturulamadı. Görsel boyutu 1 MB değerinden küçük olmalıdır."
+    "translation": "Emoji eklenemedi. Görsel boyutu 1 MB değerinden küçük olmalıdır."
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
@@ -1023,23 +1023,23 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Emoji oluşturulamadı. Dosya PNG, JPEG ya da GIF türünde olmalıdır."
+    "translation": "Emoji eklenemedi. Dosya PNG, JPEG ya da GIF türünde olmalıdır."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Emoji oluşturulamadı. Görsel kodu çözülürken bir sorun çıktı."
+    "translation": "Emoji eklenemedi. Görsel kodu çözülürken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Emoji oluşturulamadı. Görsel kodu çözülürken bir sorun çıktı."
+    "translation": "Emoji eklenemedi. Görsel kodu çözülürken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Emoji oluşturulamadı. GIF görselinin kodu çözülürken bir sorun çıktı."
+    "translation": "Emoji eklenemedi. GIF görselinin kodu çözülürken bir sorun çıktı."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Emoji oluşturulamadı. GIF görselinin kodlanırken bir sorun çıktı."
+    "translation": "Emoji eklenemedi. GIF görselinin kodlanırken bir sorun çıktı."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1187,7 +1187,7 @@
   },
   {
     "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Yeni dosya için klasör oluşturulurken bir sorun çıktı"
+    "translation": "Yeni dosya için klasör eklenirken bir sorun çıktı"
   },
   {
     "id": "api.file.open_file_write_stream.local_server.app_error",
@@ -1235,7 +1235,7 @@
   },
   {
     "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Yeni dosya için klasör oluşturulurken bir sorun çıktı"
+    "translation": "Yeni dosya için klasör eklenirken bir sorun çıktı"
   },
   {
     "id": "api.file.write_file_locally.writing.app_error",
@@ -1626,6 +1626,10 @@
   {
     "id": "api.post.send_notifications_and_forget.message_subject",
     "translation": "Yeni Doğrudan İleti"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2089,7 +2093,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Takım oluşturma devre dışı bırakılmış. Lütfen bilgi almak için sistem yöneticinizle görüşün."
+    "translation": "Takım ekleme devre dışı bırakılmış. Lütfen bilgi almak için sistem yöneticinizle görüşün."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -2301,7 +2305,7 @@
   },
   {
     "id": "api.templates.signup_team_body.title",
-    "translation": "Takımınızı oluşturduğunuz için teşekkürler!"
+    "translation": "Bir takım eklediğiniz için teşekkürler!"
   },
   {
     "id": "api.templates.signup_team_subject",
@@ -2473,7 +2477,7 @@
   },
   {
     "id": "api.user.create_user.disabled.app_error",
-    "translation": "Kullanıcı oluşturma özelliği devre dışı bırakılmış."
+    "translation": "Kullanıcı ekleme özelliği devre dışı bırakılmış."
   },
   {
     "id": "api.user.create_user.joining.error",
@@ -2825,11 +2829,11 @@
   },
   {
     "id": "api.webhook.create_outgoing.not_open.app_error",
-    "translation": "Giden web bağlantıları yalnız herkese açık kanallar için oluşturulabilir."
+    "translation": "Giden web bağlantıları yalnız herkese açık kanallara eklenebilir."
   },
   {
     "id": "api.webhook.create_outgoing.permissions.app_error",
-    "translation": "Giden web bağlantısı oluşturmak için izinleriniz yetersiz."
+    "translation": "Giden web bağlantısı eklemek için izinleriniz yetersiz."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -2865,7 +2869,7 @@
   },
   {
     "id": "api.webhook.regen_outgoing_token.permissions.app_error",
-    "translation": "Giden web bağlantısı kodu oluşturmak için izinleriniz yetersiz"
+    "translation": "Giden web bağlantısı kodu eklemek için izinleriniz yetersiz"
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -2921,7 +2925,7 @@
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "Bir kanal oluşturmak için takım kodu belirtilmelidir"
+    "translation": "Bir kanal eklemek için takım kodu belirtilmelidir"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3181,7 +3185,7 @@
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Yeni grup iletisi kanalları oluşturma izni"
+    "translation": "Yeni grup iletisi kanalları ekleme izni"
   },
   {
     "id": "authentication.permissions.create_group_channel.name",
@@ -3189,11 +3193,11 @@
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
-    "translation": "Yeni takımlar oluşturma izni"
+    "translation": "Yeni takımlar ekleme izni"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
-    "translation": "Takım Oluşturma"
+    "translation": "Takım Ekleme"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
@@ -3357,7 +3361,7 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "LDAP kullanıcısı oluşturulamadı."
+    "translation": "LDAP kullanıcısı eklenemedi."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -3389,7 +3393,7 @@
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
-    "translation": "Kimlik doğrulama bilgileri geçerli ancak kullanıcı oluşturulamadı."
+    "translation": "Kimlik doğrulama bilgileri geçerli ancak kullanıcı eklenemedi."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -3573,7 +3577,7 @@
   },
   {
     "id": "manaultesting.manual_test.create.info",
-    "translation": "Kullanıcı ve takım oluşturuluyor"
+    "translation": "Kullanıcı ve takım ekleniyor"
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3709,7 +3713,7 @@
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Oluşturucu kodu geçersiz"
+    "translation": "Ekleyen kodu geçersiz"
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
@@ -4197,7 +4201,7 @@
   },
   {
     "id": "model.emoji.creator_id.app_error",
-    "translation": "Oluşturucu kodu geçersiz"
+    "translation": "Ekleyen kodu geçersiz"
   },
   {
     "id": "model.emoji.id.app_error",
@@ -4265,7 +4269,7 @@
   },
   {
     "id": "model.oauth.is_valid.creator_id.app_error",
-    "translation": "Oluşturucu kodu geçersiz"
+    "translation": "Ekleyen kodu geçersiz"
   },
   {
     "id": "model.oauth.is_valid.description.app_error",
@@ -4708,14 +4712,6 @@
     "translation": "SQL bağlantısı açılamadı %v"
   },
   {
-    "id": "store.sql.ping.critical",
-    "translation": "Veritabanına ulaşılamadı. Hata: %v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "SQL %v veritabanına ulaşılıyor"
-  },
-  {
     "id": "store.sql.read_replicas_not_licensed.critical",
     "translation": "Bu lisans ile 1 okuma kopyasından fazlası desteklenmez. Lütfen lisansınızı yükseltmek için sistem yöneticinizle görüşün."
   },
@@ -4929,7 +4925,7 @@
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "Bir doğrudan kanal oluşturmak için DoğrudanKanalıKaydet kullanın"
+    "translation": "Bir doğrudan kanal eklemek için DoğrudanKanalıKaydet kullanın"
   },
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
@@ -4953,7 +4949,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Aynı adresi kullanan bir kanal daha önce oluşturulmuş"
+    "translation": "Aynı adresi kullanan bir kanal daha önce eklenmiş"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
@@ -4969,7 +4965,7 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": "SaveDirectChannel ile doğrudan bir kanal oluşturulmaya çalışılmadı"
+    "translation": "SaveDirectChannel ile doğrudan bir kanal eklenmeye çalışılmadı"
   },
   {
     "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
@@ -5009,7 +5005,7 @@
   },
   {
     "id": "store.sql_channel.update.previously.app_error",
-    "translation": "Daha önce bu kısaltmayı kullanan bir kanal oluşturulmuş"
+    "translation": "Daha önce bu kısaltmayı kullanan bir kanal eklenmiş"
   },
   {
     "id": "store.sql_channel.update.updating.app_error",
@@ -6081,7 +6077,7 @@
   },
   {
     "id": "web.create_dir.error",
-    "translation": "Klasör izleyici oluşturulamadı %v"
+    "translation": "Klasör izleyici eklenemedi %v"
   },
   {
     "id": "web.dir_fail.error",

@@ -1628,6 +1628,10 @@
     "translation": "Новое личное сообщение"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " в "
   },
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "Не удалось открыть SQL соединение %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "Не удалось проверить соединение с базой данных err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Проверка соединения c базой данных %v"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",

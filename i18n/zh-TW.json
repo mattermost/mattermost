@@ -1628,6 +1628,10 @@
     "translation": "新的直接訊息"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " 於 "
   },
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "開啟 SQL 連線失敗 %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "偵測資料庫失敗 err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "正在偵測 sql %v 資料庫"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
