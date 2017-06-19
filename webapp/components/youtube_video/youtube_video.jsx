@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import WebClient from 'client/web_client.jsx';
+import {getYoutubeVideoInfo} from 'actions/integration_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 const ytRegex = /(?:http|https):\/\/(?:www\.|m\.)?(?:(?:youtube\.com\/(?:(?:v\/)|(?:(?:watch|embed\/watch)(?:\/|.*v=))|(?:embed\/)|(?:user\/[^/]+\/u\/[0-9]\/)))|(?:youtu\.be\/))([^#&?]*)/;
@@ -98,7 +98,7 @@ export default class YoutubeVideo extends React.PureComponent {
     componentDidMount() {
         const key = global.window.mm_config.GoogleDeveloperKey;
         if (key) {
-            WebClient.getYoutubeVideoInfo(key, this.state.videoId,
+            getYoutubeVideoInfo(key, this.state.videoId,
                 this.handleReceivedMetadata, this.handleMetadataError);
         } else {
             this.loadWithoutKey();

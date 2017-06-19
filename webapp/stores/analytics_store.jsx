@@ -1,19 +1,31 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import EventEmitter from 'events';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
-
 const CHANGE_EVENT = 'change';
+
+import store from 'stores/redux_store.jsx';
 
 class AnalyticsStoreClass extends EventEmitter {
     constructor() {
         super();
-        this.systemStats = {};
-        this.teamStats = {};
+
+        this.entities = {};
+
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.admin;
+
+            if (newEntities.analytics !== this.entities.analytics) {
+                this.emitChange();
+            }
+
+            if (newEntities.teamAnalytics !== this.entities.teamAnalytics) {
+                this.emitChange();
+            }
+
+            this.entities = newEntities;
+        });
     }
 
     emitChange() {
@@ -29,57 +41,18 @@ class AnalyticsStoreClass extends EventEmitter {
     }
 
     getAllSystem() {
-        return JSON.parse(JSON.stringify(this.systemStats));
+        return JSON.parse(JSON.stringify(store.getState().entities.admin.analytics));
     }
 
     getAllTeam(id) {
-        if (id in this.teamStats) {
-            return JSON.parse(JSON.stringify(this.teamStats[id]));
+        const teamStats = store.getState().entities.admin.teamAnalytics[id];
+        if (teamStats) {
+            return JSON.parse(JSON.stringify(teamStats));
         }
 
         return {};
     }
-
-    storeSystemStats(newStats) {
-        for (const stat in newStats) {
-            if (!newStats.hasOwnProperty(stat)) {
-                continue;
-            }
-            this.systemStats[stat] = newStats[stat];
-        }
-    }
-
-    storeTeamStats(id, newStats) {
-        if (!(id in this.teamStats)) {
-            this.teamStats[id] = {};
-        }
-
-        for (const stat in newStats) {
-            if (!newStats.hasOwnProperty(stat)) {
-                continue;
-            }
-            this.teamStats[id][stat] = newStats[stat];
-        }
-    }
-
 }
 
 var AnalyticsStore = new AnalyticsStoreClass();
-
-AnalyticsStore.dispatchToken = AppDispatcher.register((payload) => {
-    var action = payload.action;
-
-    switch (action.type) {
-    case ActionTypes.RECEIVED_ANALYTICS:
-        if (action.teamId == null) {
-            AnalyticsStore.storeSystemStats(action.stats);
-        } else {
-            AnalyticsStore.storeTeamStats(action.teamId, action.stats);
-        }
-        AnalyticsStore.emitChange();
-        break;
-    default:
-    }
-});
-
 export default AnalyticsStore;

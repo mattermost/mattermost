@@ -7,11 +7,11 @@ import SettingItemMax from '../setting_item_max.jsx';
 import ManageLanguages from './manage_languages.jsx';
 import ThemeSetting from './user_settings_theme.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as I18n from 'i18n/i18n.jsx';
+import {savePreferences} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
@@ -29,9 +29,8 @@ function getDisplayStateFromStores() {
     };
 }
 
-import PropTypes from 'prop-types';
-
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class UserSettingsDisplay extends React.Component {
     constructor(props) {
@@ -92,7 +91,7 @@ export default class UserSettingsDisplay extends React.Component {
             value: this.state.collapseDisplay
         };
 
-        AsyncClient.savePreferences([timePreference, namePreference, fontPreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
+        savePreferences([timePreference, namePreference, fontPreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
             () => {
                 this.updateSection('');
             },

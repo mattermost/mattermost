@@ -11,13 +11,9 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-import Client from 'client/web_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import {getSiteURL} from 'utils/url.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadProfilesForPosts} from 'actions/post_actions.jsx';
@@ -25,19 +21,22 @@ import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
-import {ActionTypes, Constants, Preferences, SocketEvents, UserStatuses} from 'utils/constants.jsx';
+import {Constants, Preferences, SocketEvents, UserStatuses} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
-// Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+
 import {batchActions} from 'redux-batched-actions';
+import {Client4} from 'mattermost-redux/client';
+
+import * as TeamActions from 'mattermost-redux/actions/teams';
 import {viewChannel, getChannelAndMyMember, getChannelStats} from 'mattermost-redux/actions/channels';
 import {getPosts} from 'mattermost-redux/actions/posts';
 import {setServerVersion} from 'mattermost-redux/actions/general';
-import {ChannelTypes, TeamTypes, UserTypes, PostTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, TeamTypes, UserTypes, PostTypes, EmojiTypes} from 'mattermost-redux/action_types';
 
 const MAX_WEBSOCKET_FAILS = 7;
 
@@ -47,7 +46,7 @@ export function initialize() {
         return;
     }
 
-    let connUrl = getSiteURL();
+    let connUrl = Client4.getWebSocketUrl();
 
     // replace the protocol with a websocket one
     if (connUrl.startsWith('https:')) {
@@ -57,7 +56,7 @@ export function initialize() {
     }
 
     // append a port number if one isn't already specified
-    if (!(/:\d+$/).test(connUrl)) {
+    if (!(/:\d+/).test(connUrl)) {
         if (connUrl.startsWith('wss:')) {
             connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
         } else {
@@ -65,18 +64,10 @@ export function initialize() {
         }
     }
 
-    // append the websocket api path
-    connUrl += Client.getUsersRoute() + '/websocket';
-
     WebSocketClient.setEventCallback(handleEvent);
     WebSocketClient.setFirstConnectCallback(handleFirstConnect);
     WebSocketClient.setReconnectCallback(() => reconnect(false));
-    WebSocketClient.setMissedEventCallback(() => {
-        if (global.window.mm_config.EnableDeveloper === 'true') {
-            Client.logClientError('missed websocket event seq=' + WebSocketClient.eventSequence);
-        }
-        reconnect(false);
-    });
+    WebSocketClient.setMissedEventCallback(() => reconnect(false));
     WebSocketClient.setCloseCallback(handleClose);
     WebSocketClient.initialize(connUrl);
 }
@@ -95,11 +86,9 @@ export function reconnect(includeWebSocket = true) {
         reconnectWebSocket();
     }
 
-    if (Client.teamId) {
-        loadChannelsForCurrentUser();
-        getPosts(ChannelStore.getCurrentId())(dispatch, getState);
-        StatusActions.loadStatusesForChannelAndSidebar();
-    }
+    loadChannelsForCurrentUser();
+    getPosts(ChannelStore.getCurrentId())(dispatch, getState);
+    StatusActions.loadStatusesForChannelAndSidebar();
 
     ErrorStore.clearLastError();
     ErrorStore.emitChange();
@@ -269,25 +258,10 @@ function handlePostDeleteEvent(msg) {
     dispatch({type: PostTypes.POST_DELETED, data: post});
 }
 
-function handleTeamAddedEvent(msg) {
-    Client.getTeam(msg.data.team_id, (team) => {
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_TEAM,
-            team
-        });
-
-        Client.getMyTeamMembers((data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_MY_TEAM_MEMBERS,
-                team_members: data
-            });
-            AsyncClient.getMyTeamsUnread();
-        }, (err) => {
-            AsyncClient.dispatchError(err, 'getMyTeamMembers');
-        });
-    }, (err) => {
-        AsyncClient.dispatchError(err, 'getTeam');
-    });
+async function handleTeamAddedEvent(msg) {
+    await TeamActions.getTeam(msg.data.team_id)(dispatch, getState);
+    await TeamActions.getMyTeamMembers()(dispatch, getState);
+    await TeamActions.getMyTeamUnreads()(dispatch, getState);
 }
 
 function handleLeaveTeamEvent(msg) {
@@ -296,7 +270,6 @@ function handleLeaveTeamEvent(msg) {
 
         // if they are on the team being removed redirect them to default team
         if (TeamStore.getCurrentId() === msg.data.team_id) {
-            Client.setTeamId('');
             BrowserStore.removeGlobalItem('team');
             BrowserStore.removeGlobalItem(msg.data.team_id);
 
@@ -424,7 +397,6 @@ function handleStatusChangedEvent(msg) {
 }
 
 function handleHelloEvent(msg) {
-    Client.serverVersion = msg.data.server_version;
     setServerVersion(msg.data.server_version)(dispatch, getState);
 }
 
@@ -445,9 +417,9 @@ function handleReactionAddedEvent(msg) {
 function handleAddEmoji(msg) {
     const data = JSON.parse(msg.data.emoji);
 
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.RECEIVED_CUSTOM_EMOJI,
-        emoji: data
+    dispatch({
+        type: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
+        data
     });
 }
 

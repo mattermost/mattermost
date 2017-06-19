@@ -1,11 +1,10 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
-import * as AsyncClient from 'utils/async_client.jsx';
+import * as EmojiActions from 'actions/emoji_actions.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
@@ -115,7 +114,7 @@ export default class AddEmoji extends React.Component {
             return;
         }
 
-        AsyncClient.addEmoji(
+        EmojiActions.addEmoji(
             emoji,
             this.state.image,
             () => {

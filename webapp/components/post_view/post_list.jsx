@@ -40,7 +40,7 @@ export default class PostList extends React.PureComponent {
         /**
          * The channel the posts are in
          */
-        channel: PropTypes.object,
+        channel: PropTypes.object.isRequired,
 
         /**
          * The last time the channel was viewed, sets the new message separator

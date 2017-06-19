@@ -5,6 +5,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {uploadFile as uploadFileRedux} from 'mattermost-redux/actions/files';
+import {Client4} from 'mattermost-redux/client';
 
 export function uploadFile(file, name, channelId, clientId, success, error) {
     const fileFormData = new FormData();
@@ -21,5 +22,17 @@ export function uploadFile(file, name, channelId, clientId, success, error) {
                 error({id: serverError.server_error_id, ...serverError});
             }
         }
+    );
+}
+
+export async function getPublicLink(fileId, success) {
+    Client4.getFilePublicLink(fileId).then(
+        (data) => {
+            if (data && success) {
+                success(data.link);
+            }
+        }
+    ).catch(
+        () => {} //eslint-disable-line no-empty-function
     );
 }

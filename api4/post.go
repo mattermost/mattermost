@@ -167,15 +167,32 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	var post *model.Post
+	var err *model.AppError
+	if post, err = app.GetSinglePost(c.Params.PostId); err != nil {
+		c.Err = err
 		return
 	}
 
-	if post, err := app.GetSinglePost(c.Params.PostId); err != nil {
+	var channel *model.Channel
+	if channel, err = app.GetChannel(post.ChannelId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(post.Etag(), "Get Post", w, r) {
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		if channel.Type == model.CHANNEL_OPEN {
+			if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
+				return
+			}
+		} else {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+	}
+
+	if HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
@@ -208,15 +225,40 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	var list *model.PostList
+	var err *model.AppError
+	if list, err = app.GetPostThread(c.Params.PostId); err != nil {
+		c.Err = err
 		return
 	}
 
-	if list, err := app.GetPostThread(c.Params.PostId); err != nil {
+	var post *model.Post
+	if val, ok := list.Posts[c.Params.PostId]; ok {
+		post = val
+	} else {
+		c.SetInvalidUrlParam("post_id")
+		return
+	}
+
+	var channel *model.Channel
+	if channel, err = app.GetChannel(post.ChannelId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(list.Etag(), "Get Post Thread", w, r) {
+	}
+
+	if !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		if channel.Type == model.CHANNEL_OPEN {
+			if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
+				return
+			}
+		} else {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+	}
+
+	if HandleEtag(list.Etag(), "Get Post Thread", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())

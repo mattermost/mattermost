@@ -9,7 +9,7 @@ import SettingPicture from 'components/setting_picture.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -1141,7 +1141,7 @@ class UserSettingsGeneralTab extends React.Component {
                 <SettingPicture
                     title={formatMessage(holders.profilePicture)}
                     submit={this.submitPicture}
-                    src={Client.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
+                    src={Client4.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
                     serverError={serverError}
                     clientError={clientError}
                     updateSection={(e) => {
