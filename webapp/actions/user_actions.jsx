@@ -12,8 +12,6 @@ import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/s
 
 import {getDirectChannelName, getUserIdFromChannelName} from 'utils/utils.jsx';
 
-import Client from 'client/web_client.jsx';
-
 import {Constants, ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
 
@@ -26,6 +24,7 @@ import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as UserActions from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getTeamMembersByIds, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
@@ -739,32 +738,35 @@ export function webLoginByLdap(loginId, password, token, success, error) {
 }
 
 export function getAuthorizedApps(success, error) {
-    Client.getAuthorizedApps(
+    Client4.getAuthorizedOAuthApps(getState().entities.users.currentUserId).then(
         (authorizedApps) => {
             if (success) {
                 success(authorizedApps);
             }
-        },
+        }
+    ).catch(
         (err) => {
             if (error) {
                 error(err);
             }
-        });
+        }
+    );
 }
 
 export function deauthorizeOAuthApp(appId, success, error) {
-    Client.deauthorizeOAuthApp(
-        appId,
+    Client4.deauthorizeOAuthApp(appId).then(
         () => {
             if (success) {
                 success();
             }
-        },
+        }
+    ).catch(
         (err) => {
             if (error) {
                 error(err);
             }
-        });
+        }
+    );
 }
 
 export function uploadProfileImage(userPicture, success, error) {

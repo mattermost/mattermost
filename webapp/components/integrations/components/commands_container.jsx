@@ -40,7 +40,7 @@ export default class CommandsContainer extends React.Component {
         UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableCommands === 'true') {
-            loadTeamCommands();
+            loadTeamCommands((() => this.setState({loading: false})));
         }
     }
 
@@ -53,8 +53,7 @@ export default class CommandsContainer extends React.Component {
         const teamId = this.props.team.id;
 
         this.setState({
-            commands: IntegrationStore.getCommands(teamId),
-            loading: !IntegrationStore.hasReceivedCommands(teamId)
+            commands: IntegrationStore.getCommands(teamId)
         });
     }
 

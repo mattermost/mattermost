@@ -1,60 +1,44 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'client/web_client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from 'utils/constants.jsx';
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
 
-const ActionTypes = Constants.ActionTypes;
+import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 
-export function listOAuthApps(userId, onSuccess, onError) {
-    Client.listOAuthApps(
+export function listOAuthApps(complete) {
+    IntegrationActions.getOAuthApps(0, 10000)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_OAUTHAPPS,
-                userId,
-                oauthApps: data
-            });
-
-            if (onSuccess) {
-                onSuccess(data);
+            if (complete) {
+                complete(data);
             }
-        },
-        onError
+        }
     );
 }
 
-export function deleteOAuthApp(id, userId, onSuccess, onError) {
-    Client.deleteOAuthApp(
-        id,
-        () => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.REMOVED_OAUTHAPP,
-                userId,
-                id
-            });
-
-            if (onSuccess) {
-                onSuccess();
+export function deleteOAuthApp(id, success, error) {
+    IntegrationActions.deleteOAuthApp(id)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.deleteOAuthApp.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-        },
-        onError
+        }
     );
 }
 
-export function registerOAuthApp(app, onSuccess, onError) {
-    Client.registerOAuthApp(
-        app,
+export function registerOAuthApp(app, success, error) {
+    IntegrationActions.addOAuthApp(app)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_OAUTHAPP,
-                oauthApp: data
-            });
-
-            if (onSuccess) {
-                onSuccess(data);
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.addOAuthApp.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-        },
-        onError
+        }
     );
 }
