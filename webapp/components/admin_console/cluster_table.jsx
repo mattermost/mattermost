@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import * as Utils from 'utils/utils.jsx';
 
 import statusGreen from 'images/status_green.png';
-import statusRed from 'images/status_red.png';
+import statusYellow from 'images/status_yellow.png';
 
 export default class ClusterTable extends React.Component {
     static propTypes = {
@@ -34,10 +34,12 @@ export default class ClusterTable extends React.Component {
 
         var version = '';
         var configHash = '';
+        var singleItem = false;
 
         if (this.props.clusterInfos.length) {
             version = this.props.clusterInfos[0].version;
             configHash = this.props.clusterInfos[0].config_hash;
+            singleItem = this.props.clusterInfos.length === 1;
         }
 
         this.props.clusterInfos.map((clusterInfo) => {
@@ -45,7 +47,7 @@ export default class ClusterTable extends React.Component {
                 versionMismatch = (
                     <img
                         className='cluster-status'
-                        src={statusRed}
+                        src={statusYellow}
                     />
                 );
             }
@@ -54,7 +56,7 @@ export default class ClusterTable extends React.Component {
                 configMismatch = (
                     <img
                         className='cluster-status'
-                        src={statusRed}
+                        src={statusYellow}
                     />
                 );
             }
@@ -77,34 +79,29 @@ export default class ClusterTable extends React.Component {
                 clusterInfo.config_hash = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
             }
 
-            if (clusterInfo.id === '') {
-                clusterInfo.id = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
-            }
-
-            if (clusterInfo.is_alive > 0) {
+            if (singleItem) {
                 status = (
                     <img
                         className='cluster-status'
-                        src={statusGreen}
+                        src={statusYellow}
                     />
                 );
             } else {
                 status = (
                     <img
                         className='cluster-status'
-                        src={statusRed}
+                        src={statusGreen}
                     />
                 );
             }
 
             return (
-                <tr key={clusterInfo.id}>
+                <tr key={clusterInfo.ipaddress}>
                     <td style={{whiteSpace: 'nowrap'}}>{status}</td>
                     <td style={{whiteSpace: 'nowrap'}}>{clusterInfo.hostname}</td>
                     <td style={{whiteSpace: 'nowrap'}}>{versionMismatch} {clusterInfo.version}</td>
                     <td style={{whiteSpace: 'nowrap'}}><div className='config-hash'>{configMismatch} {clusterInfo.config_hash}</div></td>
-                    <td style={{whiteSpace: 'nowrap'}}>{clusterInfo.internode_url}</td>
-                    <td style={{whiteSpace: 'nowrap'}}><div className='config-hash'>{clusterInfo.id}</div></td>
+                    <td style={{whiteSpace: 'nowrap'}}>{clusterInfo.ipaddress}</td>
                 </tr>
             );
         });
@@ -160,13 +157,7 @@ export default class ClusterTable extends React.Component {
                             <th>
                                 <FormattedMessage
                                     id='admin.cluster.status_table.url'
-                                    defaultMessage='Inter-Node URL'
-                                />
-                            </th>
-                            <th>
-                                <FormattedMessage
-                                    id='admin.cluster.status_table.id'
-                                    defaultMessage='Node ID'
+                                    defaultMessage='Gossip Address'
                                 />
                             </th>
                         </tr>

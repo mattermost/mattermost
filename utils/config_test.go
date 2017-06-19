@@ -6,6 +6,7 @@ package utils
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/model"
 )
@@ -59,7 +60,25 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	if Cfg.TeamSettings.SiteName != "Mattermost" {
 		t.Fatal("should have been reset")
 	}
+}
 
+func TestRedirectStdLog(t *testing.T) {
+	TranslationsPreInit()
+	LoadConfig("config.json")
+	InitTranslations(Cfg.LocalizationSettings)
+
+	log := NewRedirectStdLog("test", false)
+
+	log.Println("[DEBUG] this is a message")
+	log.Println("[DEBG] this is a message")
+	log.Println("[WARN] this is a message")
+	log.Println("[ERROR] this is a message")
+	log.Println("[EROR] this is a message")
+	log.Println("[ERR] this is a message")
+	log.Println("[INFO] this is a message")
+	log.Println("this is a message")
+
+	time.Sleep(time.Second * 1)
 }
 
 func TestAddRemoveConfigListener(t *testing.T) {

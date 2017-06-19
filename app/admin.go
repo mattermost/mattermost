@@ -19,12 +19,23 @@ import (
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
-	lines, err := GetLogsSkipSend(page, perPage)
+	var lines []string
+	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
+		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		lines = append(lines, einterfaces.GetClusterInterface().GetClusterId())
+		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+	}
+
+	melines, err := GetLogsSkipSend(page, perPage)
 	if err != nil {
 		return nil, err
 	}
 
-	if einterfaces.GetClusterInterface() != nil {
+	lines = append(lines, melines...)
+
+	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
 		clines, err := einterfaces.GetClusterInterface().GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -84,10 +95,14 @@ func InvalidateAllCaches() *model.AppError {
 	InvalidateAllCachesSkipSend()
 
 	if einterfaces.GetClusterInterface() != nil {
-		err := einterfaces.GetClusterInterface().InvalidateAllCaches()
-		if err != nil {
-			return err
+
+		msg := &model.ClusterMessage{
+			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
+			SendType:         model.CLUSTER_SEND_RELIABLE,
+			WaitForAllToSend: true,
 		}
+
+		einterfaces.GetClusterInterface().SendClusterMessage(msg)
 	}
 
 	return nil
@@ -120,7 +135,8 @@ func ReloadConfig() {
 	InitEmailBatching()
 }
 
-func SaveConfig(cfg *model.Config) *model.AppError {
+func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg := utils.Cfg
 	cfg.SetDefaults()
 	utils.Desanitize(cfg)
 
@@ -132,7 +148,7 @@ func SaveConfig(cfg *model.Config) *model.AppError {
 		return err
 	}
 
-	if *utils.Cfg.ClusterSettings.Enable {
+	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
 		return model.NewLocAppError("saveConfig", "ent.cluster.save_config.error", nil, "")
 	}
 
@@ -149,14 +165,12 @@ func SaveConfig(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	// oldCfg := utils.Cfg
-	// Future feature is to sync the configuration files
-	// if einterfaces.GetClusterInterface() != nil {
-	// 	err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, true)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	if einterfaces.GetClusterInterface() != nil {
+		err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, sendConfigChangeClusterMessage)
+		if err != nil {
+			return err
+		}
+	}
 
 	// start/restart email batching job if necessary
 	InitEmailBatching()

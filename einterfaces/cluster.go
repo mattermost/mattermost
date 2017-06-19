@@ -7,26 +7,19 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
+type ClusterMessageHandler func(msg *model.ClusterMessage)
+
 type ClusterInterface interface {
 	StartInterNodeCommunication()
 	StopInterNodeCommunication()
-	GetClusterInfos() []*model.ClusterInfo
-	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
-	ClearSessionCacheForUser(userId string)
-	InvalidateCacheForUser(userId string)
-	InvalidateCacheForChannel(channelId string)
-	InvalidateCacheForChannelByName(teamId, name string)
-	InvalidateCacheForChannelMembers(channelId string)
-	InvalidateCacheForChannelMembersNotifyProps(channelId string)
-	InvalidateCacheForChannelPosts(channelId string)
-	InvalidateCacheForWebhook(webhookId string)
-	InvalidateCacheForReactions(postId string)
-	Publish(event *model.WebSocketEvent)
-	UpdateStatus(status *model.Status)
-	GetLogs(page, perPage int) ([]string, *model.AppError)
+	RegisterClusterMessageHandler(event string, crm ClusterMessageHandler)
 	GetClusterId() string
+	GetClusterInfos() []*model.ClusterInfo
+	SendClusterMessage(cluster *model.ClusterMessage)
+	NotifyMsg(buf []byte)
+	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
+	GetLogs(page, perPage int) ([]string, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
-	InvalidateAllCaches() *model.AppError
 }
 
 var theClusterInterface ClusterInterface

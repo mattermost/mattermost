@@ -193,6 +193,12 @@ func TestIsValidAlphaNum(t *testing.T) {
 	}
 }
 
+func TestGetServerIpAddress(t *testing.T) {
+	if len(GetServerIpAddress()) == 0 {
+		t.Fatal("Should find local ip address")
+	}
+}
+
 func TestIsValidAlphaNumHyphenUnderscore(t *testing.T) {
 	casesWithFormat := []struct {
 		Input  string
