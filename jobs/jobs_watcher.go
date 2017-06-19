@@ -79,6 +79,13 @@ func (watcher *Watcher) PollAndNotify() {
 					default:
 					}
 				}
+			} else if js.Type == model.JOB_TYPE_SEARCH_INDEXING {
+				if watcher.workers.ElasticsearchIndexing != nil {
+					select {
+					case watcher.workers.ElasticsearchIndexing.JobChannel() <- j:
+					default:
+					}
+				}
 			}
 		}
 	}

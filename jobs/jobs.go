@@ -9,6 +9,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
+	"net/http"
 )
 
 const (
@@ -40,27 +41,15 @@ func ClaimJob(job *model.Job) (bool, *model.AppError) {
 	}
 }
 
-func SetJobProgress(jobId string, progress int64) (bool, *model.AppError) {
-	var job *model.Job
-
-	if result := <-Srv.Store.Job().Get(jobId); result.Err != nil {
-		return false, result.Err
-	} else {
-		job = result.Data.(*model.Job)
-	}
-
+func SetJobProgress(job *model.Job, progress int64) (*model.AppError) {
 	job.Status = model.JOB_STATUS_IN_PROGRESS
 	job.Progress = progress
 
 	if result := <-Srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
-		return false, result.Err
+		return result.Err
 	} else {
-		if !result.Data.(bool) {
-			return false, nil
-		}
+		return nil
 	}
-
-	return true, nil
 }
 
 func SetJobSuccess(job *model.Job) *model.AppError {
@@ -68,9 +57,34 @@ func SetJobSuccess(job *model.Job) *model.AppError {
 	return result.Err
 }
 
-func SetJobError(job *model.Job) *model.AppError {
-	result := <-Srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
-	return result.Err
+func SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
+	if jobError == nil {
+		result := <-Srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
+		return result.Err
+	}
+
+	job.Status = model.JOB_STATUS_ERROR
+	job.Progress = -1
+	if job.Data == nil {
+		job.Data = make(map[string]interface{})
+	}
+	job.Data["error"] = jobError
+
+	if result := <-Srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
+		return result.Err
+	} else {
+		if !result.Data.(bool) {
+			if result := <-Srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_CANCEL_REQUESTED); result.Err != nil {
+				return result.Err
+			} else {
+				if !result.Data.(bool) {
+					return model.NewAppError("Jobs.SetJobError", "jobs.set_job_error.update.error", nil, "id=" + job.Id, http.StatusInternalServerError)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func SetJobCanceled(job *model.Job) *model.AppError {
@@ -91,7 +105,7 @@ func RequestCancellation(job *model.Job) *model.AppError {
 		return nil
 	}
 
-	return model.NewLocAppError("Jobs.RequestCancellation", "jobs.request_cancellation.status.error", nil, "id=" + job.Id)
+	return model.NewAppError("Jobs.RequestCancellation", "jobs.request_cancellation.status.error", nil, "id=" + job.Id, http.StatusInternalServerError)
 }
 
 func CancellationWatcher(ctx context.Context, jobId string, cancelChan chan interface{}) {
