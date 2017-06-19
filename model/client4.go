@@ -258,6 +258,10 @@ func (c *Client4) GetJobsRoute() string {
 	return fmt.Sprintf("/jobs")
 }
 
+func (c *Client4) GetAnalyticsRoute() string {
+	return fmt.Sprintf("/analytics")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -1886,6 +1890,20 @@ func (c *Client4) RemoveLicenseFile() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetAnalyticsOld will retrieve analytics using the old format. New format is not
+// available but the "/analytics" endpoint is reserved for it. The "name" argument is optional
+// and defaults to "standard". The "teamId" argument is optional and will limit results
+// to a specific team.
+func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response) {
+	query := fmt.Sprintf("?name=%v&teamId=%v", name, teamId)
+	if r, err := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return AnalyticsRowsFromJson(r.Body), BuildResponse(r)
 	}
 }
 
