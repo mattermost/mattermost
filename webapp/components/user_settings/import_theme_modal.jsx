@@ -167,7 +167,7 @@ export default class ImportThemeModal extends React.Component {
                             <p>
                                 <FormattedMessage
                                     id='user.settings.import_theme.importBody'
-                                    defaultMessage='To import a theme, go to a Slack team and look for “Preferences -> Sidebar Theme”. Open the custom theme option, copy the theme color values and paste them here:'
+                                    defaultMessage='To import a theme, go to a Slack team and look for "Preferences -> Sidebar Theme". Open the custom theme option, copy the theme color values and paste them here:'
                                 />
                             </p>
                             <div className='form-group less'>
