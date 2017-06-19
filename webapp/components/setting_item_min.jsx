@@ -10,7 +10,22 @@ import React from 'react';
 
 export default function SettingItemMin(props) {
     let editButton = null;
-    if (!props.disableOpen) {
+    let describeSection = null;
+    if (!props.disableOpen && Utils.isMobile()) {
+        editButton = (
+            <li className='col-xs-12 col-sm-3 section-edit'>
+                <a
+                    id={Utils.createSafeId(props.title) + 'Edit'}
+                    className='theme'
+                    href='#'
+                    onClick={props.updateSection}
+                >
+                    <i className='fa fa-pencil'/>
+                    {props.describe}
+                </a>
+            </li>
+        );
+    } else if (!props.disableOpen) {
         editButton = (
             <li className='col-xs-12 col-sm-3 section-edit'>
                 <a
@@ -27,6 +42,15 @@ export default function SettingItemMin(props) {
                 </a>
             </li>
         );
+
+        describeSection = (
+            <li
+                id={Utils.createSafeId(props.title) + 'Desc'}
+                className='col-xs-12 section-describe'
+            >
+                {props.describe}
+            </li>
+        );
     }
 
     return (
@@ -36,12 +60,7 @@ export default function SettingItemMin(props) {
         >
             <li className='col-xs-12 col-sm-9 section-title'>{props.title}</li>
             {editButton}
-            <li
-                id={Utils.createSafeId(props.title) + 'Desc'}
-                className='col-xs-12 section-describe'
-            >
-                {props.describe}
-            </li>
+            {describeSection}
         </ul>
     );
 }
