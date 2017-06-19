@@ -12,7 +12,7 @@ import (
 )
 
 type SqlFileInfoStore struct {
-	*SqlStore
+	SqlStore
 }
 
 const (
@@ -26,7 +26,7 @@ func ClearFileCaches() {
 	fileInfoCache.Purge()
 }
 
-func NewSqlFileInfoStore(sqlStore *SqlStore) FileInfoStore {
+func NewSqlFileInfoStore(sqlStore SqlStore) FileInfoStore {
 	s := &SqlFileInfoStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

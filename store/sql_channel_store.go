@@ -35,7 +35,7 @@ const (
 )
 
 type SqlChannelStore struct {
-	*SqlStore
+	SqlStore
 }
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
@@ -52,7 +52,7 @@ func ClearChannelCaches() {
 	channelByNameCache.Purge()
 }
 
-func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
+func NewSqlChannelStore(sqlStore SqlStore) ChannelStore {
 	s := &SqlChannelStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

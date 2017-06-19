@@ -4,8 +4,9 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestPreferenceSave(t *testing.T) {
@@ -343,10 +344,10 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 
 	Must(store.Preference().Save(&features))
 
-	store.(*SqlStore).preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
+	store.Preference().(*SqlPreferenceStore).DeleteUnusedFeatures()
 
 	//make sure features with value "false" have actually been deleted from the database
-	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+	if val, err := store.Preference().(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
 			FROM Preferences
 		WHERE Category = :Category
 		AND Value = :Val
@@ -357,7 +358,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 	}
 	//
 	// make sure features with value "true" remain saved
-	if val, err := store.(*SqlStore).preference.(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+	if val, err := store.Preference().(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
 			FROM Preferences
 		WHERE Category = :Category
 		AND Value = :Val

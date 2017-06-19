@@ -33,7 +33,6 @@ const (
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
-type EncryptStringMap map[string]string
 
 type AppError struct {
 	Id            string `json:"id"`

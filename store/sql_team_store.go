@@ -17,10 +17,10 @@ const (
 )
 
 type SqlTeamStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlTeamStore(sqlStore *SqlStore) TeamStore {
+func NewSqlTeamStore(sqlStore SqlStore) TeamStore {
 	s := &SqlTeamStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

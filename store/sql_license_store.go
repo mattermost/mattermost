@@ -8,10 +8,10 @@ import (
 )
 
 type SqlLicenseStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlLicenseStore(sqlStore *SqlStore) LicenseStore {
+func NewSqlLicenseStore(sqlStore SqlStore) LicenseStore {
 	ls := &SqlLicenseStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

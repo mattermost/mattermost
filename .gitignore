@@ -89,3 +89,5 @@ webapp/coverage
 .ctags
 tags
 .idea
+
+debug

@@ -11,10 +11,10 @@ import (
 )
 
 type SqlComplianceStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlComplianceStore(sqlStore *SqlStore) ComplianceStore {
+func NewSqlComplianceStore(sqlStore SqlStore) ComplianceStore {
 	s := &SqlComplianceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

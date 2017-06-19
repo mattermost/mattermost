@@ -15,10 +15,10 @@ const (
 )
 
 type SqlStatusStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlStatusStore(sqlStore *SqlStore) StatusStore {
+func NewSqlStatusStore(sqlStore SqlStore) StatusStore {
 	s := &SqlStatusStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
