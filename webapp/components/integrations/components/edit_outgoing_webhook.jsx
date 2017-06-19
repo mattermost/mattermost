@@ -3,11 +3,9 @@
 
 import React from 'react';
 
-import * as AsyncClient from 'utils/async_client.jsx';
-
 import {browserHistory} from 'react-router/es6';
 import IntegrationStore from 'stores/integration_store.jsx';
-import {loadOutgoingHooks} from 'actions/integration_actions.jsx';
+import {loadOutgoingHooks, updateOutgoingHook} from 'actions/integration_actions.jsx';
 
 import AbstractOutgoingWebhook from './abstract_outgoing_webhook.jsx';
 import ConfirmModal from 'components/confirm_modal.jsx';
@@ -131,7 +129,7 @@ export default class EditOutgoingWebhook extends AbstractOutgoingWebhook {
     }
 
     submitCommand() {
-        AsyncClient.updateOutgoingHook(
+        updateOutgoingHook(
             this.newHook,
             () => {
                 browserHistory.push(`/${this.props.team.name}/integrations/outgoing_webhooks`);
