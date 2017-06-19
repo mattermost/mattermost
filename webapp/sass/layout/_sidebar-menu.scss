@@ -70,6 +70,13 @@
                 line-height: 40px;
                 padding: 0 15px;
 
+                svg {
+                    fill-opacity: 0.85;
+                    position: relative;
+                    top: 4px;
+                    width: 18px;
+                }
+
                 .icon {
                     display: inline-block;
                     left: -5px;
