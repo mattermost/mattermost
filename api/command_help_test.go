@@ -14,6 +14,11 @@ func TestHelpCommand(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
+	HelpLink := *utils.Cfg.SupportSettings.HelpLink
+	defer func() {
+		*utils.Cfg.SupportSettings.HelpLink = HelpLink
+	}()
+
 	*utils.Cfg.SupportSettings.HelpLink = ""
 	rs1 := Client.Must(Client.Command(channel.Id, "/help ")).Data.(*model.CommandResponse)
 	if rs1.GotoLocation != model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK {
