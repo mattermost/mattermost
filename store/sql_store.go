@@ -4,6 +4,7 @@
 package store
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -35,6 +36,8 @@ const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
 	MAX_DB_CONN_LIFETIME = 60
+	DB_PING_ATTEMPTS     = 18
+	DB_PING_TIMEOUT_SECS = 10
 )
 
 const (
@@ -66,31 +69,32 @@ const (
 )
 
 type SqlStore struct {
-	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	team           TeamStore
-	channel        ChannelStore
-	post           PostStore
-	user           UserStore
-	audit          AuditStore
-	compliance     ComplianceStore
-	session        SessionStore
-	oauth          OAuthStore
-	system         SystemStore
-	webhook        WebhookStore
-	command        CommandStore
-	preference     PreferenceStore
-	license        LicenseStore
-	token          TokenStore
-	emoji          EmojiStore
-	status         StatusStore
-	fileInfo       FileInfoStore
-	reaction       ReactionStore
-	jobStatus      JobStatusStore
-	SchemaVersion  string
-	rrCounter      int64
-	srCounter      int64
+	master           *gorp.DbMap
+	replicas         []*gorp.DbMap
+	searchReplicas   []*gorp.DbMap
+	team             TeamStore
+	channel          ChannelStore
+	post             PostStore
+	user             UserStore
+	audit            AuditStore
+	clusterDiscovery ClusterDiscoveryStore
+	compliance       ComplianceStore
+	session          SessionStore
+	oauth            OAuthStore
+	system           SystemStore
+	webhook          WebhookStore
+	command          CommandStore
+	preference       PreferenceStore
+	license          LicenseStore
+	token            TokenStore
+	emoji            EmojiStore
+	status           StatusStore
+	fileInfo         FileInfoStore
+	reaction         ReactionStore
+	jobStatus        JobStatusStore
+	SchemaVersion    string
+	rrCounter        int64
+	srCounter        int64
 }
 
 func initConnection() *SqlStore {
@@ -139,6 +143,7 @@ func NewSqlStore() Store {
 	sqlStore.post = NewSqlPostStore(sqlStore)
 	sqlStore.user = NewSqlUserStore(sqlStore)
 	sqlStore.audit = NewSqlAuditStore(sqlStore)
+	sqlStore.clusterDiscovery = NewSqlClusterDiscoveryStore(sqlStore)
 	sqlStore.compliance = NewSqlComplianceStore(sqlStore)
 	sqlStore.session = NewSqlSessionStore(sqlStore)
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
@@ -197,12 +202,23 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 		os.Exit(EXIT_DB_OPEN)
 	}
 
-	l4g.Info(utils.T("store.sql.pinging.info"), con_type)
-	err = db.Ping()
-	if err != nil {
-		l4g.Critical(utils.T("store.sql.ping.critical"), err)
-		time.Sleep(time.Second)
-		os.Exit(EXIT_PING)
+	for i := 0; i < DB_PING_ATTEMPTS; i++ {
+		l4g.Info("Pinging SQL %v database", con_type)
+		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		defer cancel()
+		err = db.PingContext(ctx)
+		if err == nil {
+			break
+		} else {
+			if i == DB_PING_ATTEMPTS-1 {
+				l4g.Critical("Failed to ping DB, server will exit err=%v", err)
+				time.Sleep(time.Second)
+				os.Exit(EXIT_PING)
+			} else {
+				l4g.Error("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err)
+				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
+			}
+		}
 	}
 
 	db.SetMaxIdleConns(maxIdle)
@@ -690,6 +706,10 @@ func (ss *SqlStore) Session() SessionStore {
 
 func (ss *SqlStore) Audit() AuditStore {
 	return ss.audit
+}
+
+func (ss *SqlStore) ClusterDiscovery() ClusterDiscoveryStore {
+	return ss.clusterDiscovery
 }
 
 func (ss *SqlStore) Compliance() ComplianceStore {

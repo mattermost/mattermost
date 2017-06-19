@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"net"
+
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
 )
@@ -262,6 +264,23 @@ func StringFromJson(data io.Reader) string {
 	} else {
 		return s
 	}
+}
+
+func GetServerIpAddress() string {
+	if addrs, err := net.InterfaceAddrs(); err != nil {
+		return ""
+	} else {
+		for _, addr := range addrs {
+
+			if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+				if ip.IP.To4() != nil {
+					return ip.IP.String()
+				}
+			}
+		}
+	}
+
+	return ""
 }
 
 func IsLower(s string) bool {
