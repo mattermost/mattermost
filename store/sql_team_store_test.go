@@ -162,7 +162,7 @@ func TestTeamStoreSearchAll(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "ADisplayName" + model.NewId()
-	o1.Name = "a" + model.NewId() + "a"
+	o1.Name = "zz" + model.NewId() + "a"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 
@@ -216,7 +216,7 @@ func TestTeamStoreSearchOpen(t *testing.T) {
 
 	o1 := model.Team{}
 	o1.DisplayName = "ADisplayName" + model.NewId()
-	o1.Name = "a" + model.NewId() + "a"
+	o1.Name = "zz" + model.NewId() + "a"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
 
@@ -297,7 +297,7 @@ func TestTeamStoreGetByIniviteId(t *testing.T) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "a" + model.NewId() + "b"
+	o2.Name = "zz" + model.NewId() + "b"
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
 
@@ -371,7 +371,7 @@ func TestAllTeamListing(t *testing.T) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "a" + model.NewId() + "b"
+	o2.Name = "zz" + model.NewId() + "b"
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
 	Must(store.Team().Save(&o2))
@@ -400,7 +400,7 @@ func TestDelete(t *testing.T) {
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
-	o2.Name = "a" + model.NewId() + "b"
+	o2.Name = "zz" + model.NewId() + "b"
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
 	Must(store.Team().Save(&o2))
