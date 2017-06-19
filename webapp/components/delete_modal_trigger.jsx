@@ -28,8 +28,8 @@ export default class DeleteModalTrigger extends React.Component {
         });
     }
 
-    handleConfirm(e) {
-        this.props.onDelete(e);
+    handleConfirm() {
+        this.props.onDelete();
     }
 
     handleCancel() {
@@ -57,7 +57,7 @@ export default class DeleteModalTrigger extends React.Component {
                     show={this.state.showDeleteModal}
                     title={this.modalTitle}
                     message={this.modalMessage}
-                    confirmButton={this.modalConfirmButton}
+                    confirmButtonText={this.modalConfirmButton}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancel}
                     onKeyDown={this.handleKeyDown}

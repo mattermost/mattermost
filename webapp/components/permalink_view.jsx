@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import ChannelHeader from 'components/channel_header.jsx';
-import PostFocusViewController from 'components/post_view/post_focus_view_controller.jsx';
+import PostView from 'components/post_view';
 
 import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -14,7 +14,11 @@ import TeamStore from 'stores/team_store.jsx';
 import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
-export default class PermalinkView extends React.Component {
+export default class PermalinkView extends React.PureComponent {
+    static propTypes = {
+        params: PropTypes.object.isRequired
+    }
+
     constructor(props) {
         super(props);
 
@@ -24,6 +28,7 @@ export default class PermalinkView extends React.Component {
 
         this.state = this.getStateFromStores(props);
     }
+
     getStateFromStores(props) {
         const postId = props.params.postid;
         const channel = ChannelStore.getCurrent();
@@ -38,27 +43,33 @@ export default class PermalinkView extends React.Component {
             postId
         };
     }
+
     isStateValid() {
         return this.state.channelId !== '' && this.state.teamName;
     }
+
     updateState() {
         this.setState(this.getStateFromStores(this.props));
     }
+
     componentDidMount() {
         ChannelStore.addChangeListener(this.updateState);
         TeamStore.addChangeListener(this.updateState);
 
         $('body').addClass('app__body');
     }
+
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.updateState);
         TeamStore.removeChangeListener(this.updateState);
 
         $('body').removeClass('app__body');
     }
+
     componentWillReceiveProps(nextProps) {
         this.setState(this.getStateFromStores(nextProps));
     }
+
     render() {
         if (!this.isStateValid()) {
             return null;
@@ -71,7 +82,10 @@ export default class PermalinkView extends React.Component {
                 <ChannelHeader
                     channelId={this.state.channelId}
                 />
-                <PostFocusViewController/>
+                <PostView
+                    channelId={this.state.channelId}
+                    focusedPostId={this.state.postId}
+                />
                 <div
                     id='archive-link-home'
                 >
@@ -89,7 +103,3 @@ export default class PermalinkView extends React.Component {
         );
     }
 }
-
-PermalinkView.propTypes = {
-    params: PropTypes.object.isRequired
-};

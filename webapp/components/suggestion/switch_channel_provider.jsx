@@ -14,10 +14,8 @@ import React from 'react';
 
 import store from 'stores/redux_store.jsx';
 const getState = store.getState;
-const dispatch = store.dispatch;
 
-import {searchChannels} from 'mattermost-redux/actions/channels';
-import {autocompleteUsers} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import {getCurrentUserId, searchProfiles} from 'mattermost-redux/selectors/entities/users';
 import {getChannelsInCurrentTeam, getMyChannelMemberships, getGroupChannels} from 'mattermost-redux/selectors/entities/channels';
@@ -111,7 +109,7 @@ export default class SwitchChannelProvider extends Provider {
 
             // Dispatch suggestions for local data
             const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState()));
-            const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), true);
+            const users = Object.assign([], searchProfiles(getState(), channelPrefix, true));
             this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users, true);
 
             // Fetch data from the server and dispatch
@@ -124,17 +122,27 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     async fetchUsersAndChannels(channelPrefix, suggestionId) {
-        const usersAsync = autocompleteUsers(channelPrefix)(dispatch, getState);
-        const channelsAsync = searchChannels(getCurrentTeamId(getState()), channelPrefix)(dispatch, getState);
-        await usersAsync;
-        await channelsAsync;
+        const usersAsync = Client4.autocompleteUsers(channelPrefix, '', '');
+        const channelsAsync = Client4.searchChannels(getCurrentTeamId(getState()), channelPrefix);
+
+        let usersFromServer = [];
+        let channelsFromServer = [];
+        try {
+            usersFromServer = await usersAsync;
+            channelsFromServer = await channelsAsync;
+        } catch (err) {
+            AppDispatcher.handleServerAction({
+                type: ActionTypes.RECEIVED_ERROR,
+                err
+            });
+        }
 
         if (this.shouldCancelDispatch(channelPrefix)) {
             return;
         }
 
-        const users = Object.assign([], searchProfiles(getState(), channelPrefix, true));
-        const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState()));
+        const users = Object.assign([], searchProfiles(getState(), channelPrefix, true), usersFromServer.users);
+        const channels = getChannelsInCurrentTeam(getState()).concat(getGroupChannels(getState())).concat(channelsFromServer);
         this.formatChannelsAndDispatch(channelPrefix, suggestionId, channels, users);
     }
 
@@ -148,8 +156,15 @@ export default class SwitchChannelProvider extends Provider {
 
         const currentId = getCurrentUserId(getState());
 
+        const completedChannels = {};
+
         for (const id of Object.keys(allChannels)) {
             const channel = allChannels[id];
+
+            if (completedChannels[channel.id]) {
+                continue;
+            }
+
             const member = members[channel.id];
 
             if (channel.display_name.toLowerCase().indexOf(channelPrefix.toLowerCase()) !== -1) {
@@ -171,17 +186,23 @@ export default class SwitchChannelProvider extends Provider {
                     wrappedChannel.type = Constants.MENTION_CHANNELS;
                 } else {
                     wrappedChannel.type = Constants.MENTION_MORE_CHANNELS;
-                    if (skipNotInChannel || !newChannel.display_name.startsWith(channelPrefix)) {
+                    if (skipNotInChannel || !newChannel.display_name.toLowerCase().startsWith(channelPrefix)) {
                         continue;
                     }
                 }
 
+                completedChannels[channel.id] = true;
                 channels.push(wrappedChannel);
             }
         }
 
         for (let i = 0; i < users.length; i++) {
             const user = users[i];
+
+            if (completedChannels[user.id]) {
+                continue;
+            }
+
             const isDMVisible = getBool(getState(), Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, false);
             let displayName = `@${user.username} `;
 
@@ -217,6 +238,7 @@ export default class SwitchChannelProvider extends Provider {
                 }
             }
 
+            completedChannels[user.id] = true;
             channels.push(wrappedChannel);
         }
 

@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/ResetStatusModal should match snapshot 1`] = `
+<ConfirmModal
+  cancelButtonText={
+    <FormattedMessage
+      defaultMessage="No, keep it as \\"{status}\\""
+      id="modal.manaul_status.cancel"
+      values={
+        Object {
+          "status": "",
+        }
+      }
+    />
+  }
+  checkboxText={
+    <FormattedMessage
+      defaultMessage="Do not ask me again"
+      id="modal.manaul_status.ask"
+      values={Object {}}
+    />
+  }
+  confirmButtonClass="btn btn-primary"
+  confirmButtonText={
+    <FormattedMessage
+      defaultMessage="Yes, set my status to \\"Online\\""
+      id="modal.manaul_status.button"
+      values={Object {}}
+    />
+  }
+  message={
+    <FormattedMessage
+      defaultMessage="Would you like to switch your status to \\"Online\\"?"
+      id="modal.manaul_status.message"
+      values={Object {}}
+    />
+  }
+  onCancel={[Function]}
+  onConfirm={[Function]}
+  show={false}
+  showCheckbox={true}
+  title={
+    <FormattedMessage
+      defaultMessage="Your status is set to \\"{status}\\""
+      id="modal.manaul_status.title"
+      values={
+        Object {
+          "status": "",
+        }
+      }
+    />
+  }
+/>
+`;

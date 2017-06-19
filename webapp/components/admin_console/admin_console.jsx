@@ -1,58 +1,48 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import 'bootstrap';
 
-import ErrorBar from 'components/error_bar.jsx';
-import AdminStore from 'stores/admin_store.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-
+import AnnouncementBar from 'components/announcement_bar';
 import AdminSidebar from './admin_sidebar.jsx';
 
 export default class AdminConsole extends React.Component {
-    static get propTypes() {
-        return {
-            children: PropTypes.node.isRequired
-        };
-    }
+    static propTypes = {
 
-    constructor(props) {
-        super(props);
+        /*
+         * Children components to render
+         */
+        children: PropTypes.node.isRequired,
 
-        this.handleConfigChange = this.handleConfigChange.bind(this);
+        /*
+         * Object representing the config file
+         */
+        config: PropTypes.object.isRequired,
 
-        this.state = {
-            config: AdminStore.getConfig()
-        };
+        actions: PropTypes.shape({
+
+            /*
+             * Function to get the config file
+             */
+            getConfig: PropTypes.func.isRequired
+        }).isRequired
     }
 
     componentWillMount() {
-        AdminStore.addConfigChangeListener(this.handleConfigChange);
-        AsyncClient.getConfig();
-    }
-
-    componentWillUnmount() {
-        AdminStore.removeConfigChangeListener(this.handleConfigChange);
-    }
-
-    handleConfigChange() {
-        this.setState({
-            config: AdminStore.getConfig()
-        });
+        this.props.actions.getConfig();
     }
 
     render() {
-        const config = this.state.config;
-        if (!config) {
+        const config = this.props.config;
+        if (Object.keys(config).length === 0) {
             return <div/>;
         }
         if (config && Object.keys(config).length === 0 && config.constructor === 'Object') {
             return (
                 <div className='admin-console__wrapper'>
-                    <ErrorBar/>
+                    <AnnouncementBar/>
                     <div className='admin-console'/>
                 </div>
             );
@@ -60,11 +50,11 @@ export default class AdminConsole extends React.Component {
 
         // not every page in the system console will need the config, but the vast majority will
         const children = React.cloneElement(this.props.children, {
-            config: this.state.config
+            config
         });
         return (
             <div className='admin-console__wrapper'>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <div className='admin-console'>
                     <AdminSidebar/>
                     {children}

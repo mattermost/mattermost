@@ -10,6 +10,10 @@ body {
     height: 100%;
     position: relative;
     width: 100%;
+
+    &.error-bar--fixed {
+        padding-top: 22px;
+    }
 }
 
 .sticky {
@@ -48,6 +52,7 @@ body {
     @include legacy-pie-clearfix;
     height: 100%;
     position: relative;
+    -webkit-overflow-scrolling: touch;
 }
 
 .channel-view {

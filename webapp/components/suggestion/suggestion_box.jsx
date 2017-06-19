@@ -237,7 +237,7 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleKeyDown(e) {
-        if (SuggestionStore.hasSuggestions(this.suggestionId)) {
+        if (this.props.value && SuggestionStore.hasSuggestions(this.suggestionId)) {
             if (e.which === KeyCodes.UP) {
                 GlobalActions.emitSelectPreviousSuggestion(this.suggestionId);
                 e.preventDefault();
@@ -287,6 +287,7 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
         Reflect.deleteProperty(props, 'onItemSelected');
+        Reflect.deleteProperty(props, 'completeOnTab');
 
         const childProps = {
             ref: 'textbox',
@@ -330,12 +331,14 @@ export default class SuggestionBox extends React.Component {
         return (
             <div ref='container'>
                 {textbox}
-                <SuggestionListComponent
-                    suggestionId={this.suggestionId}
-                    location={listStyle}
-                    renderDividers={renderDividers}
-                    onCompleteWord={this.handleCompleteWord}
-                />
+                {this.props.value &&
+                    <SuggestionListComponent
+                        suggestionId={this.suggestionId}
+                        location={listStyle}
+                        renderDividers={renderDividers}
+                        onCompleteWord={this.handleCompleteWord}
+                    />
+                }
             </div>
         );
     }

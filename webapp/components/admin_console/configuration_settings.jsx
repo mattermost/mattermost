@@ -89,7 +89,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     <div className='banner__content'>
                         <FormattedMessage
                             id='admin.rate.noteDescription'
-                            defaultMessage='Changing properties in this section will require a server restart before taking effect.'
+                            defaultMessage='Changing properties other than Site URL in this section will require a server restart before taking effect.'
                         />
                     </div>
                 </div>
@@ -105,7 +105,7 @@ export default class ConfigurationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.siteURLDescription'
-                            defaultMessage='The URL, including port number and protocol, that users will use to access Mattermost. This setting is required.'
+                            defaultMessage='The URL that users will use to access Mattermost. Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required. For example: http://mattermost.example.com:8065. This setting is required.'
                         />
                     }
                     value={this.state.siteURL}

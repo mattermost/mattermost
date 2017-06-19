@@ -2,201 +2,155 @@
 // See License.txt for license information.
 
 import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
-import {browserHistory} from 'react-router/es6';
 
-// Redux actions
+import {clientLogout} from 'actions/global_actions.jsx';
+
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-import {getUser} from 'mattermost-redux/actions/users';
+import * as AdminActions from 'mattermost-redux/actions/admin';
+import * as UserActions from 'mattermost-redux/actions/users';
 
 export function saveConfig(config, success, error) {
-    Client.saveConfig(
-        config,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.updateConfig(config)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.updateConfig.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function reloadConfig(success, error) {
-    Client.reloadConfig(
-        () => {
-            AsyncClient.getConfig();
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.reloadConfig()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                AdminActions.getConfig()(dispatch, getState);
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.reloadConfig.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function adminResetMfa(userId, success, error) {
-    Client.adminResetMfa(
-        userId,
-        () => {
-            getUser(userId)(dispatch, getState);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    UserActions.updateUserMfa(userId, false)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function getClusterStatus(success, error) {
-    Client.getClusterStatus(
+    AdminActions.getClusterStatus()(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getClusterStatus');
-            if (error) {
-                error(err);
-            }
-        }
-    );
-}
-
-export function saveComplianceReports(job, success, error) {
-    Client.saveComplianceReports(
-        job,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.getClusterStatus.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function testEmail(config, success, error) {
-    Client.testEmail(
-        config,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.testEmail(config)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.testEmail.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function ldapTest(success, error) {
-    Client.ldapTest(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.testLdap()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.testLdap.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function invalidateAllCaches(success, error) {
-    Client.invalidateAllCaches(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.invalidateCaches()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.invalidateCaches.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function recycleDatabaseConnection(success, error) {
-    Client.recycleDatabaseConnection(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.recycleDatabase()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.recycleDatabase.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function adminResetPassword(userId, password, success, error) {
-    Client.adminResetPassword(
-        userId,
-        password,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    UserActions.updateUserPassword(userId, '', password)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function samlCertificateStatus(success, error) {
-    Client.samlCertificateStatus(
+    AdminActions.getSamlCertificateStatus()(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.getSamlCertificateStatus.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function ldapSyncNow(success, error) {
-    Client.ldapSyncNow(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.syncLdap()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.syncLdap.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -240,60 +194,44 @@ export function allowOAuth2(params, success, error) {
 }
 
 export function emailToLdap(loginId, password, token, ldapId, ldapPassword, success, error) {
-    Client.emailToLdap(
-        loginId,
-        password,
-        token,
-        ldapId,
-        ldapPassword,
+    UserActions.switchEmailToLdap(loginId, password, ldapId, ldapPassword, token)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function emailToOAuth(loginId, password, token, newType, success, error) {
-    Client.emailToOAuth(
-        loginId,
-        password,
-        token,
-        newType,
+    UserActions.switchEmailToOAuth(newType, loginId, password, token)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function oauthToEmail(email, password, success, error) {
-    Client.oauthToEmail(
-        email,
-        password,
+export function oauthToEmail(currentService, email, password, success, error) {
+    UserActions.switchOAuthToEmail(currentService, email, password)(dispatch, getState).then(
         (data) => {
-            if (data.follow_link) {
-                browserHistory.push(data.follow_link);
-            }
-
-            if (success) {
-                success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            if (data) {
+                if (data.follow_link) {
+                    clientLogout(data.follow_link);
+                }
+                if (success) {
+                    success(data);
+                }
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -316,16 +254,13 @@ export function regenerateOAuthAppSecret(oauthAppId, success, error) {
 }
 
 export function uploadBrandImage(brandImage, success, error) {
-    Client.uploadBrandImage(
-        brandImage,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.uploadBrandImage(brandImage)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadBrandImage.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -362,33 +297,79 @@ export function removeLicenseFile(success, error) {
     );
 }
 
-export function uploadCertificateFile(certificateFile, success, error) {
-    Client.uploadCertificateFile(
-        certificateFile,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+export function uploadPublicSamlCertificate(file, success, error) {
+    AdminActions.uploadPublicSamlCertificate(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadPublicSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
-export function removeCertificateFile(certificateId, success, error) {
-    Client.removeCertificateFile(
-        certificateId,
-        () => {
-            if (success) {
-                success();
+export function uploadPrivateSamlCertificate(file, success, error) {
+    AdminActions.uploadPrivateSamlCertificate(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadPrivateSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+        }
+    );
+}
+
+export function uploadIdpSamlCertificate(file, success, error) {
+    AdminActions.uploadIdpSamlCertificate(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadIdpSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function removePublicSamlCertificate(success, error) {
+    AdminActions.removePublicSamlCertificate()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removePublicSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function removePrivateSamlCertificate(success, error) {
+    AdminActions.removePrivateSamlCertificate()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removePrivateSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function removeIdpSamlCertificate(success, error) {
+    AdminActions.removeIdpSamlCertificate()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removeIdpSamlCertificate.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );

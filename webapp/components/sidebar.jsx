@@ -68,6 +68,7 @@ export default class Sidebar extends React.Component {
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
         this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
         this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
+        this.handleOpenMoreDirectChannelsModal = this.handleOpenMoreDirectChannelsModal.bind(this);
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
@@ -200,6 +201,11 @@ export default class Sidebar extends React.Component {
         this.showMoreDirectChannelsModal(args.startingUsers);
     }
 
+    handleOpenMoreDirectChannelsModal(e) {
+        e.preventDefault();
+        this.showMoreDirectChannelsModal();
+    }
+
     onChange() {
         if (this.state.currentTeam.id !== TeamStore.getCurrentId()) {
             ChannelStore.clear();
@@ -243,10 +249,13 @@ export default class Sidebar extends React.Component {
         var showTopUnread = false;
         var showBottomUnread = false;
 
+        // Consider partially obscured channels as above/below
+        const unreadMargin = 15;
+
         if (this.firstUnreadChannel) {
             var firstUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.firstUnreadChannel]));
 
-            if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
+            if (firstUnreadElement.position().top + firstUnreadElement.height() < unreadMargin) {
                 showTopUnread = true;
             }
         }
@@ -254,7 +263,7 @@ export default class Sidebar extends React.Component {
         if (this.lastUnreadChannel) {
             var lastUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.lastUnreadChannel]));
 
-            if (lastUnreadElement.position().top > container.height()) {
+            if (lastUnreadElement.position().top > container.height() - unreadMargin) {
                 showBottomUnread = true;
             }
         }
@@ -301,6 +310,8 @@ export default class Sidebar extends React.Component {
             ChannelActions.goToChannel(nextChannel);
             this.updateScrollbarOnChannelChange(nextChannel);
             this.isSwitchingChannel = false;
+        } else if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
+            this.handleOpenMoreDirectChannelsModal(e);
         }
     }
 
@@ -681,10 +692,7 @@ export default class Sidebar extends React.Component {
             <li key='more'>
                 <a
                     href='#'
-                    onClick={(e) => {
-                        e.preventDefault();
-                        this.showMoreDirectChannelsModal();
-                    }}
+                    onClick={this.handleOpenMoreDirectChannelsModal}
                 >
                     <FormattedMessage
                         id='sidebar.moreElips'
@@ -798,9 +806,13 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        let quickSwitchText = 'sidebar.switch_channels';
+        const quickSwitchText = 'channel_switch_modal.title';
+
+        let quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.windows';
+        let quickSwitchDefault = '- CTRL+K';
         if (Utils.isMac()) {
-            quickSwitchText += '.mac';
+            quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.mac';
+            quickSwitchDefault = '- ⌘K';
         }
 
         return (
@@ -903,17 +915,22 @@ export default class Sidebar extends React.Component {
                         {directMessageMore}
                     </ul>
                 </div>
-                <div style={{height: '20px', width: '100%'}}>
-                    <a
-                        href='#'
-                        className='sidebar__switcher'
+                <div className='sidebar__switcher'>
+                    <button
+                        className='btn btn-link'
                         onClick={this.openQuickSwitcher}
                     >
                         <FormattedMessage
                             id={quickSwitchText}
-                            defaultMessage='Switch Channels (CTRL + K)'
+                            defaultMessage='Switch Channels'
                         />
-                    </a>
+                        <span className='switch__shortcut'>
+                            <FormattedMessage
+                                id={quickSwitchTextShortcut}
+                                defaultMessage={quickSwitchDefault}
+                            />
+                        </span>
+                    </button>
                 </div>
             </div>
         );

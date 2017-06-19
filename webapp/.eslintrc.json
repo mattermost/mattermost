@@ -251,7 +251,6 @@
         "react/self-closing-comp": 2,
         "react/sort-comp": 0,
         "react/style-prop-object": 2,
-        "require-await": 2,
         "require-yield": 2,
         "rest-spread-spacing": [2, "never"],
         "semi": [2, "always"],

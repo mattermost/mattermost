@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import Constants from 'utils/constants.jsx';
-import FileStore from 'stores/file_store.jsx';
+import {getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 import * as Utils from 'utils/utils.jsx';
 
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
@@ -46,7 +46,7 @@ export default class FileAttachment extends React.Component {
         const fileType = Utils.getFileType(fileInfo.extension);
 
         if (fileType === 'image') {
-            const thumbnailUrl = FileStore.getFileThumbnailUrl(fileInfo.id);
+            const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
 
             const img = new Image();
             img.onload = () => {
@@ -64,7 +64,7 @@ export default class FileAttachment extends React.Component {
     render() {
         const fileInfo = this.props.fileInfo;
         const fileName = fileInfo.name;
-        const fileUrl = FileStore.getFileUrl(fileInfo.id);
+        const fileUrl = getFileUrl(fileInfo.id);
 
         let thumbnail;
         if (this.state.loaded) {
@@ -83,7 +83,7 @@ export default class FileAttachment extends React.Component {
                     <div
                         className={className}
                         style={{
-                            backgroundImage: `url(${FileStore.getFileThumbnailUrl(fileInfo.id)})`
+                            backgroundImage: `url(${getFileThumbnailUrl(fileInfo.id)})`
                         }}
                     />
                 );

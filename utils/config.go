@@ -336,7 +336,8 @@ func LoadConfig(fileName string) {
 	if needSave {
 		cfgMutex.Unlock()
 		if err := SaveConfig(CfgFileName, &config); err != nil {
-			l4g.Warn(T(err.Id))
+			err.Translate(T)
+			l4g.Warn(err.Error())
 		}
 		cfgMutex.Lock()
 	}
@@ -537,6 +538,14 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.ElasticSearch {
 			props["ElasticSearchEnableIndexing"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableIndexing)
 			props["ElasticSearchEnableSearching"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableSearching)
+		}
+
+		if *License.Features.Announcement {
+			props["EnableBanner"] = strconv.FormatBool(*c.AnnouncementSettings.EnableBanner)
+			props["BannerText"] = *c.AnnouncementSettings.BannerText
+			props["BannerColor"] = *c.AnnouncementSettings.BannerColor
+			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
+			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
 		}
 	}
 

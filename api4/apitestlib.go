@@ -105,6 +105,12 @@ func Setup() *TestHelper {
 	return th
 }
 
+func StopServer() {
+	if app.Srv != nil {
+		app.StopServer()
+	}
+}
+
 func TearDown() {
 	utils.DisableDebugLogForTest()
 

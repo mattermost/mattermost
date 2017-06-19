@@ -12,6 +12,7 @@ import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 import Client from 'client/web_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import {Posts} from 'mattermost-redux/constants';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
@@ -66,6 +67,10 @@ export function isInRole(roles, inRole) {
 }
 
 export function isChannelAdmin(roles) {
+    if (global.mm_license.IsLicensed !== 'true') {
+        return false;
+    }
+
     if (isInRole(roles, 'channel_admin')) {
         return true;
     }
@@ -487,10 +492,10 @@ export function applyTheme(theme) {
     if (theme.sidebarText) {
         changeCss('.app__body .ps-container > .ps-scrollbar-y-rail > .ps-scrollbar-y', 'background:' + theme.sidebarText);
         changeCss('.app__body .ps-container:hover .ps-scrollbar-y-rail:hover', 'background:' + changeOpacity(theme.sidebarText, 0.15));
-        changeCss('.sidebar--left .nav-pills__container li>a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a', 'color:' + changeOpacity(theme.sidebarText, 0.6));
+        changeCss('.sidebar--left .nav-pills__container li > a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a', 'color:' + changeOpacity(theme.sidebarText, 0.6));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.8));
-        changeCss('.sidebar--left .nav-pills__container li>h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6));
-        changeCss('.app__body .sidebar--left .sidebar__switcher, .sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
+        changeCss('.sidebar--left .nav-pills__container li > h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6));
+        changeCss('.app__body .sidebar--left .sidebar__switcher button, .sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
         changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText);
         changeCss('.sidebar--left .status.status--group', 'background:' + changeOpacity(theme.sidebarText, 0.3));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
@@ -503,7 +508,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarTextHoverBg) {
-        changeCss('.sidebar--left .nav-pills__container li>a:hover, .app__body .modal .settings-modal .nav-pills>li:hover a', 'background:' + theme.sidebarTextHoverBg);
+        changeCss('.sidebar--left .nav-pills__container li > a:hover, .app__body .modal .settings-modal .nav-pills>li:hover a, .app__body .sidebar__switcher button:hover', 'background:' + theme.sidebarTextHoverBg);
     }
 
     if (theme.sidebarTextActiveBorder) {
@@ -521,7 +526,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarHeaderBg) {
-        changeCss('.sidebar--left .team__header, .app__body .sidebar--menu .team__header, .app__body .post-list__timestamp > div', 'background:' + theme.sidebarHeaderBg);
+        changeCss('.app__body .status-wrapper .status_dropdown__toggle .status, .sidebar--left .team__header, .app__body .sidebar--menu .team__header, .app__body .post-list__timestamp > div', 'background:' + theme.sidebarHeaderBg);
         changeCss('.app__body .modal .modal-header', 'background:' + theme.sidebarHeaderBg);
         changeCss('.app__body .multi-teams .team-sidebar, .app__body #navbar .navbar-default', 'background:' + theme.sidebarHeaderBg);
         changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'background:' + theme.sidebarHeaderBg);
@@ -529,8 +534,8 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarHeaderTextColor) {
-        changeCss('.multi-teams .team-sidebar .team-wrapper .team-container .team-btn, .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor);
-        changeCss('.app__body .sidebar-header-dropdown__icon svg', 'fill:' + theme.sidebarHeaderTextColor);
+        changeCss('.app__body .status-wrapper .status_dropdown__toggle .status-edit, .multi-teams .team-sidebar .team-wrapper .team-container .team-btn, .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor);
+        changeCss('.app__body .sidebar--left .status-wrapper .status_dropdown__toggle .offline--icon, .app__body .sidebar-header-dropdown__icon svg', 'fill:' + theme.sidebarHeaderTextColor);
         changeCss('.sidebar--left .team__header .user__name, .app__body .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8));
         changeCss('.sidebar--left .team__header:hover .user__name, .app__body .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor);
@@ -567,7 +572,7 @@ export function applyTheme(theme) {
     if (theme.centerChannelBg) {
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg);
         changeCss('@media(max-width: 320px){.tutorial-steps__container', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .status-wrapper .status_dropdown__toggle .status .icon__container:after, .app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
         changeCss('#post-list .post-list-holder-by-time, .app__body .post .dropdown-menu a', 'background:' + theme.centerChannelBg);
         changeCss('#post-create', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg);
@@ -584,10 +589,7 @@ export function applyTheme(theme) {
         changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg);
         changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg);
         changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .emoji-picker-react, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .emoji-picker-react-rhs-comment, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
-
-        changeCss('.app__body .nav-tabs, .app__body .nav-tabs > li.active > a, .app__body .emoji-picker-bottom, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .nav-tabs, .app__body .nav-tabs > li.active > a', 'background:' + theme.centerChannelBg);
     }
 
     if (theme.centerChannelColor) {
@@ -665,12 +667,8 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker-react', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker-bottom', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker, .app__body .emoji-picker-react-rhs-comment, .app__body .emoji-picker-react, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__items', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .emoji-picker__categories', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
@@ -689,10 +687,12 @@ export function applyTheme(theme) {
     }
 
     if (theme.linkColor) {
-        changeCss('.app__body .channel-header__links > a.active, .app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover, .app__body .channel-header #member_popover:hover', 'color:' + theme.linkColor);
+        changeCss('.app__body .channel-header__links > a.active, .app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor);
         changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5));
         changeCss('.app__body .channel-header__links .icon:hover, .app__body .channel-header__links > a.active .icon, .app__body .post .flag-icon__container.visible, .app__body .post .reacticon__container, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
-        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply, .app__body .channel-header .pinned-posts-button:hover svg', 'fill:' + theme.linkColor);
+        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
+        changeCss('.app__body .channel-header #member_popover:hover', 'color:' + changeOpacity(theme.linkColor, 0.6));
+        changeCss('.app__body .channel-header .pinned-posts-button:hover svg', 'fill:' + changeOpacity(theme.linkColor, 0.6));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'background:' + changeOpacity(theme.linkColor, 0.1));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'border-color:' + changeOpacity(theme.linkColor, 0.4));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'color:' + theme.linkColor);
@@ -1093,7 +1093,12 @@ export function getDirectChannelName(id, otherId) {
 
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
-    var ids = channel.name.split('__');
+    return getUserIdFromChannelId(channel.name);
+}
+
+// Used to get the id of the other user from a DM channel id (id1_id2)
+export function getUserIdFromChannelId(channelId) {
+    var ids = channelId.split('__');
     var otherUserId = '';
     if (ids[0] === UserStore.getCurrentId()) {
         otherUserId = ids[1];
@@ -1182,7 +1187,7 @@ export function clearFileInput(elm) {
 }
 
 export function isPostEphemeral(post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Constants.POST_DELETED;
+    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
 }
 
 export function getRootId(post) {
@@ -1343,4 +1348,17 @@ export function isEmptyObject(object) {
 
 export function updateWindowDimensions(component) {
     component.setState({width: window.innerWidth, height: window.innerHeight});
+}
+
+export function removePrefixFromLocalStorage(prefix) {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        if (localStorage.key(i).startsWith(prefix)) {
+            keys.push(localStorage.key(i));
+        }
+    }
+
+    for (let i = 0; i < keys.length; i++) {
+        localStorage.removeItem(keys[i]);
+    }
 }

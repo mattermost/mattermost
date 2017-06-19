@@ -756,6 +756,10 @@
     "translation": "ESC：将当前频道所有消息标为已读\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (在空输入栏)：回复当前频道最新的消息\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+向下键 (在空白输入栏)：重显示您输入的下一条消息或斜杠命令\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷键"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K：打开私信菜单\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K：打开频道快速切换对话框\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K：打开团队快速切换对话框\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1451,7 +1463,7 @@
   },
   {
     "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
+    "translation": "正在初始化 open graph 协议 api 路由"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1630,10 +1642,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": "发布在"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "发送拥有信息 '%v' 的推送通知到 %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1970,6 +1978,10 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "未找到用户"
+  },
+  {
+    "id": "api.system.go_routines",
+    "translation": "运行中的 goroutine 数量 %v 已经超过健康界限 %v"
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
@@ -2737,7 +2749,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "无法解码头像设定。"
+    "translation": "无法保存个人资料图片。文件不是有效的图片。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2977,7 +2989,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "如果提供频道 create_at 则不能为 0。"
+    "translation": "如果提供频道 create_at 则不能为零。"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -3029,7 +3041,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "如果提供消息 CreateAt 属性则不能为零。"
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3053,7 +3065,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "如果提供团队 create_at 则不能为 0。"
+    "translation": "如果提供团队 create_at 则不能为零。"
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3065,7 +3077,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "缺少频道必须属性：display_name"
+    "translation": "缺少团队必须属性：display_name。"
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -3313,7 +3325,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "搜索无法完成"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
@@ -3325,19 +3337,19 @@
   },
   {
     "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "创建 ElasticSearch 索引失败"
   },
   {
     "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
+    "translation": "无法确认 ElasticSearch 索引是否存在"
   },
   {
     "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
+    "translation": "无法配置 ElasticSearch 索引映像"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "无法设置 ElasticSearch 索引设定"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3897,19 +3909,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是。"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search 密码设定。"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search 用户名设定。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4134,6 +4146,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL 设置中最大开启连接数无效。必须是正整数。"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "无效 SQL 查询超时设定。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -6001,7 +6017,7 @@
   },
   {
     "id": "utils.mail.new_client.helo.error",
-    "translation": "Failed to to set the HELO to SMTP server %v"
+    "translation": "设置 HELO 给 SMTP 服务器 %v 失败"
   },
   {
     "id": "utils.mail.new_client.open.error",
@@ -6013,7 +6029,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "未能从电子邮件地址添加"
+    "translation": "缺少或无效的从寄件人地址通知设定。"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6029,7 +6045,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "添加邮箱地址失败"
+    "translation": "缺少或无效的通知到收件人地址设定。"
   },
   {
     "id": "utils.mail.test.configured.error",

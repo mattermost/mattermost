@@ -20,6 +20,17 @@
             bottom: -6px;
         }
 
+        &.status-edit {
+            text-align: center;
+
+            i {
+                @include opacity(1);
+                font-size: 10px;
+                position: relative;
+                top: 4px;
+            }
+        }
+
 
         svg {
             max-height: 11px;

@@ -133,7 +133,7 @@ export default {
                         {
                             path: 'admin_console',
                             getComponents: (location, callback) => {
-                                System.import('components/admin_console/admin_console.jsx').then(RouteUtils.importComponentSuccess(callback));
+                                System.import('components/admin_console').then(RouteUtils.importComponentSuccess(callback));
                             },
                             indexRoute: {onEnter: (nextState, replace) => replace('/admin_console/system_analytics')},
                             getChildRoutes: (location, callback) => {

@@ -8,6 +8,10 @@
     width: 220px;
     z-index: 5;
 
+    .error-bar--fixed & {
+        height: calc(100% - 22px);
+    }
+
     &.sidebar--padded {
         padding-top: 44px;
     }
@@ -40,41 +44,37 @@
     }
 
     .sidebar__switcher {
-        border-top: 2px solid;
+        border-top: 1px solid;
         bottom: 0;
         display: block;
-        height: 45px;
-        line-height: 45px;
+        padding-bottom: 0;
         position: absolute;
-        text-align: center;
-        text-decoration: none;
         width: 100%;
 
-        &:after {
+        button {
             @include single-transition(all, .15s, ease-in);
-            background: alpha-color($black, .1);
-            content: '';
-            display: none;
-            height: 100%;
-            left: 0;
-            position: absolute;
-            top: 0;
+            display: block;
+            height: 42px;
+            text-align: center;
+            text-decoration: none;
             width: 100%;
-        }
 
-        span {
-            @include single-transition(all, .15s, ease-in);
-            @include opacity(.8);
-        }
-
-        &:hover {
-            &:after {
-                display: block;
+            > span {
+                @include single-transition(all, .15s, ease-in);
+                @include opacity(.6);
+                position: relative;
+                z-index: 5;
             }
 
-            span {
-                @include opacity(1);
+            &:hover {
+                span {
+                    @include opacity(1);
+                }
             }
+        }
+
+        .switch__shortcut {
+            margin-left: 4px;
         }
     }
 
@@ -101,7 +101,7 @@
 
     .nav-pills__container {
         -webkit-overflow-scrolling: touch;
-        height: calc(100% - 110px);
+        height: calc(100% - 99px);
         overflow: auto;
         position: relative;
     }
@@ -123,7 +123,7 @@
     }
 
     .nav-pills__unread-indicator-bottom {
-        bottom: 60px;
+        bottom: 50px;
     }
 
     .nav {
@@ -244,7 +244,39 @@
         }
     }
 
-    @import "../components/status-icon";
+    .status-wrapper {
+        .status {
+            bottom: -9px;
+            height: 18px;
+            right: -5px;
+            width: 18px;
+
+            svg {
+                top: 3px;
+                max-height: 12px;
+            }
+
+            .icon__container {
+                position: relative;
+                top: 3px;
+
+                &:after {
+                    border-radius: 20px;
+                    content: '';
+                    height: 9px;
+                    left: 5px;
+                    position: absolute;
+                    top: 2px;
+                    width: 9px;
+                }
+
+                svg {
+                    top: 0;
+                    z-index: 1;
+                }
+            }
+        }
+    }
 }
 
 .channel-loading-gif {

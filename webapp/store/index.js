@@ -7,6 +7,11 @@ import {General, RequestStatus} from 'mattermost-redux/constants';
 import reduxInitialState from 'mattermost-redux/store/initial_state';
 import {createTransform, persistStore} from 'redux-persist';
 import localForage from 'localforage';
+import appReducer from 'reducers';
+
+function getAppReducer() {
+    return require('../reducers'); // eslint-disable-line global-require
+}
 
 import {transformSet} from './utils';
 
@@ -99,7 +104,7 @@ export default function configureStore(initialState) {
             autoRehydrate: {
                 log: false
             },
-            blacklist: ['errors', 'offline', 'requests', 'entities'],
+            blacklist: ['errors', 'offline', 'requests', 'entities', 'views'],
             debounce: 500,
             transforms: [
                 setTransformer
@@ -107,6 +112,6 @@ export default function configureStore(initialState) {
         }
     };
 
-    return configureServiceStore({}, {}, offlineOptions, null, false);
+    return configureServiceStore({}, appReducer, offlineOptions, getAppReducer, false);
 }
 

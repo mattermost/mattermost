@@ -58,7 +58,7 @@ class WebClientClass extends Client {
             return;
         }
 
-        if (err.status === HTTP_UNAUTHORIZED && res.req.url !== this.getUsersRoute() + '/login') {
+        if (err.status === HTTP_UNAUTHORIZED && res.req.url !== this.getUsersRoute() + '/login' && !res.req.url.startsWith(this.getUsersRoute() + '/claim')) {
             GlobalActions.emitUserLoggedOutEvent('/login');
         }
 
@@ -136,6 +136,17 @@ class WebClientClass extends Client {
 
             return success(res.body);
         });
+    }
+
+    uploadFileV4(file, filename, channelId, clientId, success, error) {
+        return request.
+            post(`${this.url}/api/v4/files`).
+            set(this.defaultHeaders).
+            attach('files', file, filename).
+            field('channel_id', channelId).
+            field('client_ids', clientId).
+            accept('application/json').
+            end(this.handleResponse.bind(this, 'uploadFile', success, error));
     }
 }
 

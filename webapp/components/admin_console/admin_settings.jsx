@@ -1,11 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
-
-import * as AsyncClient from 'utils/async_client.jsx';
+import PropTypes from 'prop-types';
 
 import FormError from 'components/form_error.jsx';
 import SaveButton from 'components/admin_console/save_button.jsx';
@@ -13,10 +10,12 @@ import SaveButton from 'components/admin_console/save_button.jsx';
 import {saveConfig} from 'actions/admin_actions.jsx';
 
 export default class AdminSettings extends React.Component {
-    static get propTypes() {
-        return {
-            config: PropTypes.object
-        };
+    static propTypes = {
+
+        /*
+         * Object representing the config file
+         */
+        config: PropTypes.object
     }
 
     constructor(props) {
@@ -58,10 +57,8 @@ export default class AdminSettings extends React.Component {
 
         saveConfig(
             config,
-            () => {
-                AsyncClient.getConfig((savedConfig) => {
-                    this.setState(this.getStateFromConfig(savedConfig));
-                });
+            (savedConfig) => {
+                this.setState(this.getStateFromConfig(savedConfig));
 
                 this.setState({
                     saveNeeded: false,

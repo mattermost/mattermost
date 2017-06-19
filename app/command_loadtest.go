@@ -16,50 +16,50 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
-var usage = `Mattermost load testing commands to help configure the system
+var usage = `Mattermost testing commands to help configure the system
 
 	COMMANDS:
 
 	Setup - Creates a testing environment in current team.
-		/loadtest setup [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>
+		/test setup [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>
 
 		Example:
-		/loadtest setup teams fuzz 10 20 50
+		/test setup teams fuzz 10 20 50
 
 	Users - Add a specified number of random users with fuzz text to current team.
-		/loadtest users [fuzz] <Min Users> <Max Users>
+		/test users [fuzz] <Min Users> <Max Users>
 		
 		Example:
-			/loadtest users fuzz 5 10
+			/test users fuzz 5 10
 
 	Channels - Add a specified number of random channels with fuzz text to current team.
-		/loadtest channels [fuzz] <Min Channels> <Max Channels>
+		/test channels [fuzz] <Min Channels> <Max Channels>
 		
 		Example:
-			/loadtest channels fuzz 5 10
+			/test channels fuzz 5 10
 
 	Posts - Add some random posts with fuzz text to current channel.
-		/loadtest posts [fuzz] <Min Posts> <Max Posts> <Max Images>
+		/test posts [fuzz] <Min Posts> <Max Posts> <Max Images>
 		
 		Example:
-			/loadtest posts fuzz 5 10 3
+			/test posts fuzz 5 10 3
 
 	Url - Add a post containing the text from a given url to current channel.
-		/loadtest url
+		/test url
 		
 		Example:
-			/loadtest http://www.example.com/sample_file.md
+			/test http://www.example.com/sample_file.md
 
 	Json - Add a post using the JSON file as payload to the current channel.
-	        /loadtest json url
+	        /test json url
 
 		Example
-		/loadtest json http://www.example.com/sample_body.json
+		/test json http://www.example.com/sample_body.json
 
 `
 
 const (
-	CMD_LOADTEST = "loadtest"
+	CMD_TEST = "test"
 )
 
 type LoadTestProvider struct {
@@ -72,16 +72,16 @@ func init() {
 }
 
 func (me *LoadTestProvider) GetTrigger() string {
-	return CMD_LOADTEST
+	return CMD_TEST
 }
 
 func (me *LoadTestProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_LOADTEST,
+		Trigger:          CMD_TEST,
 		AutoComplete:     false,
 		AutoCompleteDesc: "Debug Load Testing",
 		AutoCompleteHint: "help",
-		DisplayName:      "loadtest",
+		DisplayName:      "test",
 	}
 }
 
