@@ -356,3 +356,39 @@ func TestPostLog(t *testing.T) {
 		t.Fatal("should return the log message")
 	}
 }
+
+func TestUploadLicenseFile(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	ok, resp := Client.UploadLicenseFile([]byte{})
+	CheckForbiddenStatus(t, resp)
+	if ok {
+		t.Fatal("should fail")
+	}
+
+	ok, resp = th.SystemAdminClient.UploadLicenseFile([]byte{})
+	CheckBadRequestStatus(t, resp)
+	if ok {
+		t.Fatal("should fail")
+	}
+}
+
+func TestRemoveLicenseFile(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	ok, resp := Client.RemoveLicenseFile()
+	CheckForbiddenStatus(t, resp)
+	if ok {
+		t.Fatal("should fail")
+	}
+
+	ok, resp = th.SystemAdminClient.RemoveLicenseFile()
+	CheckNoError(t, resp)
+	if !ok {
+		t.Fatal("should pass")
+	}
+}
