@@ -77,7 +77,7 @@ func TestIncomingWebhook(t *testing.T) {
 	app.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.SetTeamId(team.Id)
 
-	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = ApiClient.Must(ApiClient.CreateChannel(channel1)).Data.(*model.Channel)
 
 	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
