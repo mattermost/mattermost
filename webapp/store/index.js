@@ -112,6 +112,6 @@ export default function configureStore(initialState) {
         }
     };
 
-    return configureServiceStore({}, appReducer, offlineOptions, getAppReducer, false);
+    return configureServiceStore({}, appReducer, offlineOptions, getAppReducer, {enableBuffer: false});
 }
 
