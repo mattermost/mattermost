@@ -392,3 +392,45 @@ func TestRemoveLicenseFile(t *testing.T) {
 		t.Fatal("should pass")
 	}
 }
+
+func TestGetAnalyticsOld(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	rows, resp := Client.GetAnalyticsOld("", "")
+	CheckForbiddenStatus(t, resp)
+	if rows != nil {
+		t.Fatal("should be nil")
+	}
+
+	rows, resp = th.SystemAdminClient.GetAnalyticsOld("", "")
+	CheckNoError(t, resp)
+
+	found := false
+	for _, row := range rows {
+		if row.Name == "unique_user_count" {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("should return unique user count")
+	}
+
+	_, resp = th.SystemAdminClient.GetAnalyticsOld("post_counts_day", "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetAnalyticsOld("user_counts_with_posts_day", "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetAnalyticsOld("extra_counts", "")
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetAnalyticsOld("", th.BasicTeam.Id)
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetAnalyticsOld("", th.BasicTeam.Id)
+	CheckUnauthorizedStatus(t, resp)
+}
