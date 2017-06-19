@@ -657,7 +657,8 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.Ap
 		user = result.Data.(*model.User)
 	}
 
-	SendInviteEmails(team, user.GetDisplayName(), emailList, utils.GetSiteURL())
+	nameFormat := *utils.Cfg.TeamSettings.TeammateDisplay
+	SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, utils.GetSiteURL())
 
 	return nil
 }

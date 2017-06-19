@@ -4304,6 +4304,10 @@
     "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.teammate_display.app_error",
+    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+  },
+  {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },

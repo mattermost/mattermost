@@ -1586,7 +1586,6 @@ func TestImportImportUser(t *testing.T) {
 		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 		SelectedFont:       ptrStr("Roboto Slab"),
 		UseMilitaryTime:    ptrStr("true"),
-		NameFormat:         ptrStr("nickname_full_name"),
 		CollapsePreviews:   ptrStr("true"),
 		MessageDisplay:     ptrStr("compact"),
 		ChannelDisplayMode: ptrStr("centered"),
@@ -1625,10 +1624,6 @@ func TestImportImportUser(t *testing.T) {
 				t.Fatalf("Preference does not match.")
 			}
 
-			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
-				t.Fatalf("Preference does not match.")
-			}
-
 			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
 				t.Fatalf("Preference does not match.")
 			}
@@ -1650,7 +1645,6 @@ func TestImportImportUser(t *testing.T) {
 		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 		SelectedFont:       ptrStr("Lato"),
 		UseMilitaryTime:    ptrStr("false"),
-		NameFormat:         ptrStr("full_name"),
 		CollapsePreviews:   ptrStr("false"),
 		MessageDisplay:     ptrStr("clean"),
 		ChannelDisplayMode: ptrStr("full"),
@@ -1681,10 +1675,6 @@ func TestImportImportUser(t *testing.T) {
 			}
 
 			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
 				t.Fatalf("Preference does not match.")
 			}
 
