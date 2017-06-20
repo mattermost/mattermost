@@ -16,7 +16,7 @@ function makeMapStateToProps() {
         let fileCount = 0;
         if (ownProps.post.file_ids) {
             fileCount = ownProps.post.file_ids.length;
-        } else if (this.props.post.filenames) {
+        } else if (ownProps.post.filenames) {
             fileCount = ownProps.post.filenames.length;
         }
 
