@@ -21,6 +21,7 @@ import {Posts} from 'mattermost-redux/constants';
 
 export default class PostBody extends React.PureComponent {
     static propTypes = {
+
         /**
          * The post to render the body of
          */
@@ -30,6 +31,11 @@ export default class PostBody extends React.PureComponent {
          * The parent post of the thread this post is in
          */
         parentPost: PropTypes.object,
+
+        /**
+         * The poster of the parent post, if exists
+         */
+        parentPostUser: PropTypes.object,
 
         /**
          * The function called when the comment icon is clicked
