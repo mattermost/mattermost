@@ -351,3 +351,11 @@ export function increasePostVisibility(channelId, focusedPostId) {
         return posts.order.length >= POST_INCREASE_AMOUNT;
     };
 }
+
+export function searchForTerm(term) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term,
+        do_search: true
+    });
+}

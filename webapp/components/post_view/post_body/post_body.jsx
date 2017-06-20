@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import PropTypes from 'prop-types';
+import React from 'react';
+import {FormattedMessage} from 'react-intl';
+
+import * as PostActions from 'actions/post_actions.jsx';
+
+import FileAttachmentListContainer from 'components/file_attachment_list';
+import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
+import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content.jsx';
+import FailedPostOptions from 'components/post_view/failed_post_options';
+import PostMessageView from 'components/post_view/post_message_view';
+import ReactionListContainer from 'components/post_view/reaction_list';
+
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+
 import {Posts} from 'mattermost-redux/constants';
-
-import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
-import FileAttachmentListContainer from 'components/file_attachment_list';
-import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content.jsx';
-import PostMessageContainer from 'components/post_view/post_message_view';
-import ReactionListContainer from 'components/post_view/reaction_list';
-import FailedPostOptions from 'components/post_view/failed_post_options';
-
-import React from 'react';
-import PropTypes from 'prop-types';
-import {FormattedMessage} from 'react-intl';
 
 export default class PostBody extends React.PureComponent {
     static propTypes = {
@@ -89,7 +92,7 @@ export default class PostBody extends React.PureComponent {
                 name = (
                     <a
                         className='theme'
-                        onClick={Utils.searchForTerm.bind(null, username)}
+                        onClick={PostActions.searchForTerm.bind(null, username)}
                     >
                         {username}
                     </a>
@@ -156,7 +159,7 @@ export default class PostBody extends React.PureComponent {
                 className={postClass}
             >
                 {failedOptions}
-                <PostMessageContainer
+                <PostMessageView
                     lastPostCount={this.props.lastPostCount}
                     post={this.props.post}
                 />
