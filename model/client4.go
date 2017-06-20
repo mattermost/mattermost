@@ -1204,6 +1204,16 @@ func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *
 	}
 }
 
+// GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
+func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamsRoute()+"/invite/"+inviteId, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Channel Section
 
 // CreateChannel creates a channel based on the provided channel struct.
