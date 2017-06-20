@@ -31,7 +31,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
         config.TeamSettings.MaxUsersPerTeam = this.parseIntNonZero(this.state.maxUsersPerTeam, Constants.DEFAULT_MAX_USERS_PER_TEAM);
         config.TeamSettings.RestrictCreationToDomains = this.state.restrictCreationToDomains;
         config.TeamSettings.RestrictDirectMessage = this.state.restrictDirectMessage;
-        config.TeamSettings.TeammateDisplay = this.state.teammateDisplay;
+        config.TeamSettings.TeammateNameDisplay = this.state.teammateNameDisplay;
         config.TeamSettings.MaxChannelsPerTeam = this.parseIntNonZero(this.state.maxChannelsPerTeam, Constants.DEFAULT_MAX_CHANNELS_PER_TEAM);
         config.TeamSettings.MaxNotificationsPerChannel = this.parseIntNonZero(this.state.maxNotificationsPerChannel, Constants.DEFAULT_MAX_NOTIFICATIONS_PER_CHANNEL);
 
@@ -45,7 +45,7 @@ export default class UsersAndTeamsSettings extends AdminSettings {
             maxUsersPerTeam: config.TeamSettings.MaxUsersPerTeam,
             restrictCreationToDomains: config.TeamSettings.RestrictCreationToDomains,
             restrictDirectMessage: config.TeamSettings.RestrictDirectMessage,
-            teammateDisplay: config.TeamSettings.TeammateDisplay,
+            teammateNameDisplay: config.TeamSettings.TeammateNameDisplay,
             maxChannelsPerTeam: config.TeamSettings.MaxChannelsPerTeam,
             maxNotificationsPerChannel: config.TeamSettings.MaxNotificationsPerChannel
         };
@@ -191,25 +191,25 @@ export default class UsersAndTeamsSettings extends AdminSettings {
                     onChange={this.handleChange}
                 />
                 <DropdownSetting
-                    id='teammateDisplay'
+                    id='teammateNameDisplay'
                     values={[
-                        {value: Constants.TEAMMATE_DISPLAY.SHOW_USERNAME, text: Utils.localizeMessage('admin.team.showUsername', 'Show username')},
-                        {value: Constants.TEAMMATE_DISPLAY.SHOW_NICKNAME_FULLNAME, text: Utils.localizeMessage('admin.team.showNickname', 'Show nickname if one exists, otherwise show first and last name')},
-                        {value: Constants.TEAMMATE_DISPLAY.SHOW_FULLNAME, text: Utils.localizeMessage('admin.team.showFullname', 'Show first and last name (default)')}
+                        {value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME, text: Utils.localizeMessage('admin.team.showUsername', 'Show username')},
+                        {value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME, text: Utils.localizeMessage('admin.team.showNickname', 'Show nickname if one exists, otherwise show first and last name')},
+                        {value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME, text: Utils.localizeMessage('admin.team.showFullname', 'Show first and last name (default)')}
                     ]}
                     label={
                         <FormattedMessage
-                            id='admin.team.teammateDisplay'
+                            id='admin.team.teammateNameDisplay'
                             defaultMessage='Teammate Name Display:'
                         />
                     }
                     helpText={
                         <FormattedHTMLMessage
-                            id='admin.team.teammateDisplayDesc'
-                            defaultMessage="Set how to display user's names in posts and the Direct Messages list."
+                            id='admin.team.teammateNameDisplayDesc'
+                            defaultMessage="Set how to display users' names in posts and the Direct Messages list."
                         />
                     }
-                    value={this.state.teammateDisplay}
+                    value={this.state.teammateNameDisplay}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>

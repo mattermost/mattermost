@@ -172,7 +172,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 	}
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
-	displayNameFormat := *utils.Cfg.TeamSettings.TeammateDisplay
+	displayNameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {

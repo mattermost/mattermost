@@ -4304,7 +4304,7 @@
     "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.teammate_display.app_error",
+    "id": "model.config.is_valid.teammate_name_display.app_error",
     "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {

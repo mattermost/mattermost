@@ -969,7 +969,7 @@ export const Constants = {
     CENTER: 'center',
     RHS: 'rhs',
     RHS_ROOT: 'rhsroot',
-    TEAMMATE_DISPLAY: {
+    TEAMMATE_NAME_DISPLAY: {
         SHOW_USERNAME: 'username',
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',
         SHOW_FULLNAME: 'full_name'

@@ -1016,11 +1016,11 @@ export function displayUsername(userId) {
 
 export function displayUsernameForUser(user) {
     if (user) {
-        const nameFormat = global.window.mm_config.TeammateDisplay;
+        const nameFormat = global.window.mm_config.TeammateNameDisplay;
         let name = user.username;
-        if (nameFormat === Constants.TEAMMATE_DISPLAY.SHOW_NICKNAME_FULLNAME && user.nickname && user.nickname !== '') {
+        if (nameFormat === Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME && user.nickname && user.nickname !== '') {
             name = user.nickname;
-        } else if ((user.first_name || user.last_name) && (nameFormat === Constants.TEAMMATE_DISPLAY.SHOW_NICKNAME_FULLNAME || nameFormat === Constants.TEAMMATE_DISPLAY.SHOW_FULLNAME)) {
+        } else if ((user.first_name || user.last_name) && (nameFormat === Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME || nameFormat === Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME)) {
             name = getFullName(user);
         }
 

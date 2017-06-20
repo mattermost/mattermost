@@ -326,7 +326,7 @@ type TeamSettings struct {
 	UserStatusAwayTimeout               *int64
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
-	TeammateDisplay                     *string
+	TeammateNameDisplay                     *string
 }
 
 type LdapSettings struct {
@@ -707,9 +707,9 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
 	}
 
-	if o.TeamSettings.TeammateDisplay == nil {
-		o.TeamSettings.TeammateDisplay = new(string)
-		*o.TeamSettings.TeammateDisplay = SHOW_FULLNAME
+	if o.TeamSettings.TeammateNameDisplay == nil {
+		o.TeamSettings.TeammateNameDisplay = new(string)
+		*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -1404,8 +1404,8 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.restrict_direct_message.app_error", nil, "")
 	}
 
-	if !(*o.TeamSettings.TeammateDisplay == SHOW_FULLNAME || *o.TeamSettings.TeammateDisplay == SHOW_NICKNAME_FULLNAME || *o.TeamSettings.TeammateDisplay == SHOW_USERNAME) {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.teammate_display.app_error", nil, "")
+	if !(*o.TeamSettings.TeammateNameDisplay == SHOW_FULLNAME || *o.TeamSettings.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *o.TeamSettings.TeammateNameDisplay == SHOW_USERNAME) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "")
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) < 32 {
