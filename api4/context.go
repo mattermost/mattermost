@@ -350,6 +350,17 @@ func (c *Context) RequireTeamId() *Context {
 	return c
 }
 
+func (c *Context) RequireInviteId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.InviteId) != 26 {
+		c.SetInvalidUrlParam("invite_id")
+	}
+	return c
+}
+
 func (c *Context) RequireChannelId() *Context {
 	if c.Err != nil {
 		return c

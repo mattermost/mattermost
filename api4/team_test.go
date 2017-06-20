@@ -1453,3 +1453,24 @@ func TestInviteUsersToTeam(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTeamInviteInfo(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	team, resp := Client.GetTeamInviteInfo(team.InviteId)
+	CheckNoError(t, resp)
+
+	if team.DisplayName == "" {
+		t.Fatal("should not be empty")
+	}
+
+	if team.Email != "" {
+		t.Fatal("should be empty")
+	}
+
+	_, resp = Client.GetTeamInviteInfo("junk")
+	CheckBadRequestStatus(t, resp)
+}
