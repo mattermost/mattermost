@@ -290,7 +290,12 @@ export default class SearchResultsItem extends React.Component {
                 <div
                     className={'post post--thread ' + compactClass}
                 >
-                    <div className='search-channel__name'>{channelName}</div>
+                    <div
+                        id={idCount === -1 ? null : Utils.createSafeId('searchChannelName' + idCount)}
+                        className='search-channel__name'
+                    >
+                        {channelName}
+                    </div>
                     <div className='post__content'>
                         {profilePicContainer}
                         <div>
