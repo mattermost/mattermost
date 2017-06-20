@@ -474,7 +474,7 @@ export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), op
 export function autocompleteUsersInChannel(username, channelId, success) {
     const channel = ChannelStore.get(channelId);
     const teamId = channel ? channel.team_id : TeamStore.getCurrentId();
-    UserActions.autocomplete(username, teamId, channelId)(dispatch, getState).then(
+    UserActions.autocompleteUsers(username, teamId, channelId)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -484,7 +484,7 @@ export function autocompleteUsersInChannel(username, channelId, success) {
 }
 
 export function autocompleteUsersInTeam(username, success) {
-    UserActions.autocomplete(username, TeamStore.getCurrentId())(dispatch, getState).then(
+    UserActions.autocompleteUsers(username, TeamStore.getCurrentId())(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -494,7 +494,7 @@ export function autocompleteUsersInTeam(username, success) {
 }
 
 export function autocompleteUsers(username, success) {
-    UserActions.autocomplete(username)(dispatch, getState).then(
+    UserActions.autocompleteUsers(username)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
