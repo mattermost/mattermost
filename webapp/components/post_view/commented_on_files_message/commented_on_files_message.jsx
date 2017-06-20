@@ -2,8 +2,7 @@
 // See License.txt for license information.
 
 import React from 'react';
-
-import * as Utils from 'utils/utils.jsx';
+import {FormattedMessage} from 'react-intl';
 
 export default class CommentedOnFilesMessage extends React.PureComponent {
     static propTypes = {
@@ -34,18 +33,28 @@ export default class CommentedOnFilesMessage extends React.PureComponent {
     }
 
     render() {
-        let message = ' ';
-
-        if (this.props.fileInfos && this.props.fileInfos.length > 0) {
-            message = this.props.fileInfos[0].name;
-
-            if (this.props.fileInfos.length === 2) {
-                message += Utils.localizeMessage('post_body.plusOne', ' plus 1 other file');
-            } else if (this.props.fileInfos.length > 2) {
-                message += Utils.localizeMessage('post_body.plusMore', ' plus {count} other files').replace('{count}', (this.props.fileInfos.length - 1).toString());
-            }
+        if (!this.props.fileInfos || this.props.fileInfos.length === 0) {
+            return null;
         }
 
-        return <span>{message}</span>;
+        let plusMore = null;
+        if (this.props.fileInfos.length > 1) {
+            plusMore = (
+                <FormattedMessage
+                    id='post_body.plusMore'
+                    defaultMessage=' plus {count, number} other {count, plural, one {file} other {files}}'
+                    values={{
+                        count: this.props.fileInfos.length
+                    }}
+                />
+            );
+        }
+
+        return (
+            <span>
+                {this.props.fileInfos[0].name}
+                {plusMore}
+            </span>
+        );
     }
 }
