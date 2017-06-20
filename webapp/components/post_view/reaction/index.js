@@ -20,7 +20,7 @@ function makeMapStateToProps() {
         if (Emoji.EmojiIndicesByAlias.has(ownProps.emojiName)) {
             emoji = Emoji.Emojis[Emoji.EmojiIndicesByAlias.get(ownProps.emojiName)];
         } else {
-            emoji = ownProps.emojis[ownProps.emojiName];
+            emoji = ownProps.emojis.get(ownProps.emojiName);
         }
 
         return {
