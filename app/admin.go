@@ -19,6 +19,9 @@ import (
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
+
+	perPage = 10000
+
 	var lines []string
 	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
