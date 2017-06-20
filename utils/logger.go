@@ -70,28 +70,25 @@ func serializeLogMessage(ctx context.Context, message string) string {
 func Debug(ctx context.Context, message string) {
 	// we need to serialize the message into a JSON object before logging it, but we only want to serialize it if we're
 	// sure that it's going to be written, to avoid the overhead of needless serialization, so do the work in a closure
-	closure := func() string {
+	debug(func() string {
 		return serializeLogMessage(ctx, message)
-	}
-	debug(closure)
+	})
 }
 
 // Info logs an info level message
 func Info(ctx context.Context, message string) {
 	// we need to serialize the message into a JSON object before logging it, but we only want to serialize it if we're
 	// sure that it's going to be written, to avoid the overhead of needless serialization, so do the work in a closure
-	closure := func() string {
+	info(func() string {
 		return serializeLogMessage(ctx, message)
-	}
-	info(closure)
+	})
 }
 
 // Error logs an error level message
 func Error(ctx context.Context, message string) {
 	// we need to serialize the message into a JSON object before logging it, but we only want to serialize it if we're
 	// sure that it's going to be written, to avoid the overhead of needless serialization, so do the work in a closure
-	closure := func() string {
+	err(func() string {
 		return serializeLogMessage(ctx, message)
-	}
-	err(closure)
+	})
 }
