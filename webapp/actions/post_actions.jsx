@@ -4,14 +4,12 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
-import PostStore from 'stores/post_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import PostStore from 'stores/post_store.jsx';
 
-import {loadStatusesForChannel} from 'actions/status_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -25,7 +23,20 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {
+    createPost as createPostRedux,
+    getPostThread,
+    editPost,
+    deletePost as deletePostRedux,
+    getPosts,
+    getPostsBefore,
+    addReaction as addReactionRedux,
+    removeReaction as removeReactionRedux
+} from 'mattermost-redux/actions/posts';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+import {PostTypes} from 'mattermost-redux/action_types';
+import * as Selectors from 'mattermost-redux/selectors/entities/posts';
+import {batchActions} from 'redux-batched-actions';
 
 export function handleNewPost(post, msg) {
     let websocketMessageProps = {};
@@ -54,19 +65,22 @@ export function handleNewPost(post, msg) {
 }
 
 function completePostReceive(post, websocketMessageProps) {
-    if (post.root_id && PostStore.getPost(post.channel_id, post.root_id) == null) {
-        Client.getPost(
-            post.channel_id,
-            post.root_id,
+    if (post.root_id && Selectors.getPost(getState(), post.root_id) != null) {
+        getPostThread(post.root_id)(dispatch, getState).then(
             (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POSTS,
-                    id: post.channel_id,
-                    numRequested: 0,
-                    post_list: data
+                // Need manual dispatch to remove pending post
+                dispatch({
+                    type: PostTypes.RECEIVED_POSTS,
+                    data: {
+                        order: [],
+                        posts: {
+                            [post.id]: post
+                        }
+                    },
+                    channelId: post.channel_id
                 });
 
-                // Required to update order
+                // Still needed to update unreads
                 AppDispatcher.handleServerAction({
                     type: ActionTypes.RECEIVED_POST,
                     post,
@@ -74,17 +88,25 @@ function completePostReceive(post, websocketMessageProps) {
                 });
 
                 sendDesktopNotification(post, websocketMessageProps);
-
                 loadProfilesForPosts(data.posts);
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getPost');
             }
         );
 
         return;
     }
 
+    dispatch({
+        type: PostTypes.RECEIVED_POSTS,
+        data: {
+            order: [],
+            posts: {
+                [post.id]: post
+            }
+        },
+        channelId: post.channel_id
+    });
+
+    // Still needed to update unreads
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_POST,
         post,
@@ -167,138 +189,6 @@ export function getPinnedPosts(channelId = ChannelStore.getCurrentId()) {
     );
 }
 
-export function loadPosts(channelId = ChannelStore.getCurrentId(), isPost = false) {
-    const postList = PostStore.getAllPosts(channelId);
-    const latestPostTime = PostStore.getLatestPostFromPageTime(channelId);
-
-    if (
-        !postList || Object.keys(postList).length === 0 ||
-        (!isPost && postList.order.length < Constants.POST_CHUNK_SIZE) ||
-        latestPostTime === 0
-    ) {
-        loadPostsPage(channelId, Constants.POST_CHUNK_SIZE, isPost);
-        return;
-    }
-
-    Client.getPosts(
-        channelId,
-        latestPostTime,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: true,
-                numRequested: 0,
-                post_list: data,
-                isPost
-            });
-
-            loadProfilesForPosts(data.posts);
-            loadStatusesForChannel(channelId);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'loadPosts');
-        }
-    );
-}
-
-export function loadPostsPage(channelId = ChannelStore.getCurrentId(), max = Constants.POST_CHUNK_SIZE, isPost = false) {
-    const postList = PostStore.getAllPosts(channelId);
-
-    // if we already have more than POST_CHUNK_SIZE posts,
-    //   let's get the amount we have but rounded up to next multiple of POST_CHUNK_SIZE,
-    //   with a max
-    let numPosts = Math.min(max, Constants.POST_CHUNK_SIZE);
-    if (postList && postList.order.length > 0) {
-        numPosts = Math.min(max, Constants.POST_CHUNK_SIZE * Math.ceil(postList.order.length / Constants.POST_CHUNK_SIZE));
-    }
-
-    Client.getPostsPage(
-        channelId,
-        0,
-        numPosts,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: true,
-                numRequested: numPosts,
-                checkLatest: true,
-                checkEarliest: true,
-                post_list: data,
-                isPost
-            });
-
-            loadProfilesForPosts(data.posts);
-            loadStatusesForChannel(channelId);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'loadPostsPage');
-        }
-    );
-}
-
-export function loadPostsBefore(postId, offset, numPost, isPost) {
-    const channelId = ChannelStore.getCurrentId();
-    if (channelId == null) {
-        return;
-    }
-
-    Client.getPostsBefore(
-        channelId,
-        postId,
-        offset,
-        numPost,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: true,
-                checkEarliest: true,
-                numRequested: numPost,
-                post_list: data,
-                isPost
-            });
-
-            loadProfilesForPosts(data.posts);
-            loadStatusesForChannel(channelId);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'loadPostsBefore');
-        }
-    );
-}
-
-export function loadPostsAfter(postId, offset, numPost, isPost) {
-    const channelId = ChannelStore.getCurrentId();
-    if (channelId == null) {
-        return;
-    }
-
-    Client.getPostsAfter(
-        channelId,
-        postId,
-        offset,
-        numPost,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: channelId,
-                before: false,
-                numRequested: numPost,
-                post_list: data,
-                isPost
-            });
-
-            loadProfilesForPosts(data.posts);
-            loadStatusesForChannel(channelId);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'loadPostsAfter');
-        }
-    );
-}
-
 export function loadProfilesForPosts(posts) {
     const profilesToLoad = {};
     for (const pid in posts) {
@@ -321,122 +211,35 @@ export function loadProfilesForPosts(posts) {
 }
 
 export function addReaction(channelId, postId, emojiName) {
-    const reaction = {
-        post_id: postId,
-        user_id: UserStore.getCurrentId(),
-        emoji_name: emojiName
-    };
-    emitEmojiPosted(emojiName);
-
-    AsyncClient.saveReaction(channelId, reaction);
+    addReactionRedux(postId, emojiName)(dispatch, getState);
 }
 
 export function removeReaction(channelId, postId, emojiName) {
-    const reaction = {
-        post_id: postId,
-        user_id: UserStore.getCurrentId(),
-        emoji_name: emojiName
-    };
-
-    AsyncClient.deleteReaction(channelId, reaction);
+    removeReactionRedux(postId, emojiName)(dispatch, getState);
 }
 
-const postQueue = [];
+export function createPost(post, files, success) {
+    createPostRedux(post, files)(dispatch, getState).then(() => {
+        if (post.root_id) {
+            PostStore.storeCommentDraft(post.root_id, null);
+        } else {
+            PostStore.storeDraft(post.channel_id, null);
+        }
 
-export function queuePost(post, doLoadPost, success, error) {
-    postQueue.push(
-        createPost.bind(
-            this,
-            post,
-            doLoadPost,
-            (data) => {
-                if (success) {
-                    success(data);
-                }
-
-                postSendComplete();
-            },
-            (err) => {
-                if (error) {
-                    error(err);
-                }
-
-                postSendComplete();
-            }
-        )
-    );
-
-    sendFirstPostInQueue();
+        if (success) {
+            success();
+        }
+    });
 }
 
-// Remove the completed post from the queue and send the next one
-function postSendComplete() {
-    postQueue.shift();
-    sendNextPostInQueue();
-}
-
-// Start sending posts if a new queue has started
-function sendFirstPostInQueue() {
-    if (postQueue.length === 1) {
-        sendNextPostInQueue();
-    }
-}
-
-// Send the next post in the queue if there is one
-function sendNextPostInQueue() {
-    const nextPostAction = postQueue[0];
-    if (nextPostAction) {
-        nextPostAction();
-    }
-}
-
-export function createPost(post, doLoadPost, success, error) {
-    Client.createPost(post,
+export function updatePost(post, success) {
+    editPost(post)(dispatch, getState).then(
         (data) => {
-            if (doLoadPost) {
-                loadPosts(post.channel_id);
-            } else {
-                PostStore.removePendingPost(post.pending_post_id);
-            }
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POST,
-                post: data
-            });
-
-            if (success) {
-                success(data);
-            }
-        },
-
-        (err) => {
-            if (err.id === 'api.post.create_post.root_id.app_error') {
-                PostStore.removePendingPost(post.pending_post_id);
-            } else {
-                post.state = Constants.POST_FAILED;
-                PostStore.updatePendingPost(post);
-            }
-
-            if (error) {
-                error(err);
+            if (data && success) {
+                success();
             }
         }
     );
-}
-
-export function updatePost(post, success, isPost) {
-    Client.updatePost(
-        post,
-        () => {
-            loadPosts(post.channel_id, isPost);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'updatePost');
-        });
 }
 
 export function emitEmojiPosted(emoji) {
@@ -446,28 +249,30 @@ export function emitEmojiPosted(emoji) {
     });
 }
 
-export function deletePost(channelId, post, success, error) {
-    Client.deletePost(
-        channelId,
-        post.id,
+export function deletePost(channelId, post, success) {
+    const {currentUserId} = getState().entities.users;
+
+    let hardDelete = false;
+    if (post.user_id === currentUserId) {
+        hardDelete = true;
+    }
+
+    deletePostRedux(post, hardDelete)(dispatch, getState).then(
         () => {
-            GlobalActions.emitRemovePost(post);
-            if (post.id === PostStore.getSelectedPostId()) {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST_SELECTED,
-                    postId: null
+            if (post.id === getState().views.rhs.selectedPostId) {
+                dispatch({
+                    type: ActionTypes.SELECT_POST,
+                    postId: ''
                 });
             }
 
+            dispatch({
+                type: PostTypes.REMOVE_POST,
+                data: post
+            });
+
             if (success) {
                 success();
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'deletePost');
-
-            if (error) {
-                error(err);
             }
         }
     );
@@ -500,10 +305,57 @@ export function performSearch(terms, isMentionSearch, success, error) {
     );
 }
 
-export function storePostDraft(channelId, draft) {
-    AppDispatcher.handleViewAction({
-        type: ActionTypes.POST_DRAFT_CHANGED,
-        channelId,
-        draft
+const POST_INCREASE_AMOUNT = Constants.POST_CHUNK_SIZE / 2;
+
+// Returns true if there are more posts to load
+export function increasePostVisibility(channelId, focusedPostId) {
+    return async (doDispatch, doGetState) => {
+        if (doGetState().views.channel.loadingPosts[channelId]) {
+            return true;
+        }
+
+        const currentPostVisibility = doGetState().views.channel.postVisibility[channelId];
+
+        if (currentPostVisibility >= Constants.MAX_POST_VISIBILITY) {
+            return true;
+        }
+
+        doDispatch(batchActions([
+            {
+                type: ActionTypes.LOADING_POSTS,
+                data: true,
+                channelId
+            },
+            {
+                type: ActionTypes.INCREASE_POST_VISIBILITY,
+                data: channelId,
+                amount: POST_INCREASE_AMOUNT
+            }
+        ]));
+
+        const page = Math.floor(currentPostVisibility / POST_INCREASE_AMOUNT);
+
+        let posts;
+        if (focusedPostId) {
+            posts = await getPostsBefore(channelId, focusedPostId, page, POST_INCREASE_AMOUNT)(dispatch, getState);
+        } else {
+            posts = await getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
+        }
+
+        doDispatch({
+            type: ActionTypes.LOADING_POSTS,
+            data: false,
+            channelId
+        });
+
+        return posts.order.length >= POST_INCREASE_AMOUNT;
+    };
+}
+
+export function searchForTerm(term) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term,
+        do_search: true
     });
 }

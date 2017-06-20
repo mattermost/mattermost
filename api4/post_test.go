@@ -55,7 +55,7 @@ func TestCreatePost(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckBadRequestStatus(t, resp)
 
-	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "a" + model.NewId() + "a", CreateAt: 123}
+	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
 	rpost2, resp := Client.CreatePost(post2)
 
 	if rpost2.CreateAt == post2.CreateAt {
@@ -123,7 +123,7 @@ func TestUpdatePost(t *testing.T) {
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()
 
-	post := &model.Post{ChannelId: channel.Id, Message: "a" + model.NewId() + "a"}
+	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
 
@@ -135,7 +135,7 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("Newly created post shouldn't have EditAt set")
 	}
 
-	msg := "a" + model.NewId() + " update post"
+	msg := "zz" + model.NewId() + " update post"
 	rpost.Message = msg
 	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
@@ -156,11 +156,11 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("failed to updates")
 	}
 
-	post2 := &model.Post{ChannelId: channel.Id, Message: "a" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
+	post2 := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
 	rpost2, resp := Client.CreatePost(post2)
 	CheckNoError(t, resp)
 
-	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "a" + model.NewId() + " update post 2"}
+	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 2"}
 	_, resp = Client.UpdatePost(rpost2.Id, up2)
 	CheckBadRequestStatus(t, resp)
 
@@ -360,10 +360,12 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post1 := th.CreatePost()
 	post2 := th.CreatePost()
-	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
 	post3, _ = Client.CreatePost(post3)
 
-	time := model.GetMillis()
+	time.Sleep(300 * time.Millisecond)
+	since := model.GetMillis()
+	time.Sleep(300 * time.Millisecond)
 
 	post4 := th.CreatePost()
 
@@ -420,7 +422,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post5 := th.CreatePost()
 
-	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, time)
+	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, since)
 	CheckNoError(t, resp)
 
 	if len(posts.Posts) != 2 {
@@ -430,7 +432,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	found := make([]bool, 2)
 	for _, p := range posts.Posts {
-		if p.CreateAt < time {
+		if p.CreateAt < since {
 			t.Fatal("bad create at for post returned")
 		}
 		if p.Id == post4.Id {
@@ -803,7 +805,7 @@ func TestGetPostThread(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", RootId: th.BasicPost.Id}
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: th.BasicPost.Id}
 	post, _ = Client.CreatePost(post)
 
 	list, resp := Client.GetPostThread(th.BasicPost.Id, "")
@@ -1071,7 +1073,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 		}
 	}
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "a" + model.NewId() + "a", FileIds: fileIds}
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", FileIds: fileIds}
 	post, _ = Client.CreatePost(post)
 
 	infos, resp := Client.GetFileInfosForPost(post.Id, "")

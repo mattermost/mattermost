@@ -43,6 +43,16 @@ export default class FormError extends React.Component {
             return null;
         }
 
+        if (this.props.type === 'modal') {
+            return (
+                <div className='form-group'>
+                    <label className='col-sm-12 has-error'>
+                        {message}
+                    </label>
+                </div>
+            );
+        }
+
         if (this.props.type === 'backstage') {
             return (
                 <div className='pull-left has-error'>

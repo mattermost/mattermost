@@ -1,27 +1,26 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
-import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
 
-const ActionTypes = Constants.ActionTypes;
-
 const CHANGE_EVENT = 'changed';
+
+import store from 'stores/redux_store.jsx';
 
 class IntegrationStore extends EventEmitter {
     constructor() {
         super();
 
-        this.dispatchToken = AppDispatcher.register(this.handleEventPayload.bind(this));
+        this.entities = {};
 
-        this.incomingWebhooks = new Map();
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.integrations;
+            if (newEntities !== this.entities) {
+                this.emitChange();
+            }
 
-        this.outgoingWebhooks = new Map();
-
-        this.commands = new Map();
-
-        this.oauthApps = new Map();
+            this.entities = newEntities;
+        });
     }
 
     addChangeListener(callback) {
@@ -37,236 +36,97 @@ class IntegrationStore extends EventEmitter {
     }
 
     hasReceivedIncomingWebhooks(teamId) {
-        return this.incomingWebhooks.has(teamId);
+        const hooks = store.getState().entities.integrations.incomingHooks || {};
+
+        let hasTeam = false;
+        Object.values(hooks).forEach((hook) => {
+            if (hook.team_id === teamId) {
+                hasTeam = true;
+            }
+        });
+
+        return hasTeam;
     }
 
     getIncomingWebhooks(teamId) {
-        return this.incomingWebhooks.get(teamId) || [];
-    }
+        const hooks = store.getState().entities.integrations.incomingHooks;
 
-    setIncomingWebhooks(teamId, incomingWebhooks) {
-        this.incomingWebhooks.set(teamId, incomingWebhooks);
-    }
-
-    addIncomingWebhook(incomingWebhook) {
-        const teamId = incomingWebhook.team_id;
-        const incomingWebhooks = this.getIncomingWebhooks(teamId);
-
-        incomingWebhooks.push(incomingWebhook);
-
-        this.setIncomingWebhooks(teamId, incomingWebhooks);
-    }
-
-    updateIncomingWebhook(incomingWebhook) {
-        const teamId = incomingWebhook.team_id;
-        const incomingWebhooks = this.getIncomingWebhooks(teamId);
-
-        for (let i = 0; i < incomingWebhooks.length; i++) {
-            if (incomingWebhooks[i].id === incomingWebhook.id) {
-                incomingWebhooks[i] = incomingWebhook;
-                break;
+        const teamHooks = [];
+        Object.values(hooks).forEach((hook) => {
+            if (hook.team_id === teamId) {
+                teamHooks.push(hook);
             }
-        }
+        });
 
-        this.setIncomingWebhooks(teamId, incomingWebhooks);
-    }
-
-    removeIncomingWebhook(teamId, id) {
-        let incomingWebhooks = this.getIncomingWebhooks(teamId);
-
-        incomingWebhooks = incomingWebhooks.filter((incomingWebhook) => incomingWebhook.id !== id);
-
-        this.setIncomingWebhooks(teamId, incomingWebhooks);
+        return teamHooks;
     }
 
     hasReceivedOutgoingWebhooks(teamId) {
-        return this.outgoingWebhooks.has(teamId);
+        const hooks = store.getState().entities.integrations.outgoingHooks;
+
+        let hasTeam = false;
+        Object.values(hooks).forEach((hook) => {
+            if (hook.team_id === teamId) {
+                hasTeam = true;
+            }
+        });
+
+        return hasTeam;
     }
 
     getOutgoingWebhooks(teamId) {
-        return this.outgoingWebhooks.get(teamId) || [];
+        const hooks = store.getState().entities.integrations.outgoingHooks;
+
+        const teamHooks = [];
+        Object.values(hooks).forEach((hook) => {
+            if (hook.team_id === teamId) {
+                teamHooks.push(hook);
+            }
+        });
+
+        return teamHooks;
     }
 
     getOutgoingWebhook(teamId, id) {
-        return this.getOutgoingWebhooks(teamId).filter((outgoingWebhook) => outgoingWebhook.id === id)[0];
-    }
-
-    setOutgoingWebhooks(teamId, outgoingWebhooks) {
-        this.outgoingWebhooks.set(teamId, outgoingWebhooks);
-    }
-
-    addOutgoingWebhook(outgoingWebhook) {
-        const teamId = outgoingWebhook.team_id;
-        const outgoingWebhooks = this.getOutgoingWebhooks(teamId);
-
-        outgoingWebhooks.push(outgoingWebhook);
-
-        this.setOutgoingWebhooks(teamId, outgoingWebhooks);
-    }
-
-    updateOutgoingWebhook(outgoingWebhook) {
-        const teamId = outgoingWebhook.team_id;
-        const outgoingWebhooks = this.getOutgoingWebhooks(teamId);
-
-        for (let i = 0; i < outgoingWebhooks.length; i++) {
-            if (outgoingWebhooks[i].id === outgoingWebhook.id) {
-                outgoingWebhooks[i] = outgoingWebhook;
-                break;
-            }
-        }
-
-        this.setOutgoingWebhooks(teamId, outgoingWebhooks);
-    }
-
-    removeOutgoingWebhook(teamId, id) {
-        let outgoingWebhooks = this.getOutgoingWebhooks(teamId);
-
-        outgoingWebhooks = outgoingWebhooks.filter((outgoingWebhook) => outgoingWebhook.id !== id);
-
-        this.setOutgoingWebhooks(teamId, outgoingWebhooks);
+        return store.getState().entities.integrations.outgoingHooks[id];
     }
 
     hasReceivedCommands(teamId) {
-        return this.commands.has(teamId);
+        const commands = store.getState().entities.integrations.commands;
+
+        let hasTeam = false;
+        Object.values(commands).forEach((command) => {
+            if (command.team_id === teamId) {
+                hasTeam = true;
+            }
+        });
+
+        return hasTeam;
     }
 
     getCommands(teamId) {
-        return this.commands.get(teamId) || [];
+        const commands = store.getState().entities.integrations.commands;
+
+        const teamCommands = [];
+        Object.values(commands).forEach((command) => {
+            if (command.team_id === teamId) {
+                teamCommands.push(command);
+            }
+        });
+
+        return teamCommands;
     }
 
     getCommand(teamId, id) {
-        return this.getCommands(teamId).filter((command) => command.id === id)[0];
+        return store.getState().entities.integrations.commands[id];
     }
 
-    setCommands(teamId, commands) {
-        this.commands.set(teamId, commands);
+    hasReceivedOAuthApps() {
+        return Object.keys(store.getState().entities.integrations.oauthApps).length > 0;
     }
 
-    addCommand(command) {
-        const teamId = command.team_id;
-        const commands = this.getCommands(teamId);
-
-        commands.push(command);
-
-        this.setCommands(teamId, commands);
-    }
-
-    updateCommand(command) {
-        const teamId = command.team_id;
-        const commands = this.getCommands(teamId);
-
-        for (let i = 0; i < commands.length; i++) {
-            if (commands[i].id === command.id) {
-                commands[i] = command;
-                break;
-            }
-        }
-
-        this.setCommands(teamId, commands);
-    }
-
-    removeCommand(teamId, id) {
-        let commands = this.getCommands(teamId);
-
-        commands = commands.filter((command) => command.id !== id);
-
-        this.setCommands(teamId, commands);
-    }
-
-    hasReceivedOAuthApps(userId) {
-        return this.oauthApps.has(userId);
-    }
-
-    getOAuthApps(userId) {
-        return this.oauthApps.get(userId) || [];
-    }
-
-    setOAuthApps(userId, oauthApps) {
-        this.oauthApps.set(userId, oauthApps);
-    }
-
-    addOAuthApp(oauthApp) {
-        const userId = oauthApp.creator_id;
-        const oauthApps = this.getOAuthApps(userId);
-
-        oauthApps.push(oauthApp);
-
-        this.setOAuthApps(userId, oauthApps);
-    }
-
-    removeOAuthApp(userId, id) {
-        let apps = this.getOAuthApps(userId);
-
-        apps = apps.filter((app) => app.id !== id);
-
-        this.setOAuthApps(userId, apps);
-    }
-
-    handleEventPayload(payload) {
-        const action = payload.action;
-
-        switch (action.type) {
-        case ActionTypes.RECEIVED_INCOMING_WEBHOOKS:
-            this.setIncomingWebhooks(action.teamId, action.incomingWebhooks);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_INCOMING_WEBHOOK:
-            this.addIncomingWebhook(action.incomingWebhook);
-            this.emitChange();
-            break;
-        case ActionTypes.UPDATED_INCOMING_WEBHOOK:
-            this.updateIncomingWebhook(action.incomingWebhook);
-            this.emitChange();
-            break;
-        case ActionTypes.REMOVED_INCOMING_WEBHOOK:
-            this.removeIncomingWebhook(action.teamId, action.id);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_OUTGOING_WEBHOOKS:
-            this.setOutgoingWebhooks(action.teamId, action.outgoingWebhooks);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_OUTGOING_WEBHOOK:
-            this.addOutgoingWebhook(action.outgoingWebhook);
-            this.emitChange();
-            break;
-        case ActionTypes.UPDATED_OUTGOING_WEBHOOK:
-            this.updateOutgoingWebhook(action.outgoingWebhook);
-            this.emitChange();
-            break;
-        case ActionTypes.REMOVED_OUTGOING_WEBHOOK:
-            this.removeOutgoingWebhook(action.teamId, action.id);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_COMMANDS:
-            this.setCommands(action.teamId, action.commands);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_COMMAND:
-            this.addCommand(action.command);
-            this.emitChange();
-            break;
-        case ActionTypes.UPDATED_COMMAND:
-            this.updateCommand(action.command);
-            this.emitChange();
-            break;
-        case ActionTypes.REMOVED_COMMAND:
-            this.removeCommand(action.teamId, action.id);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_OAUTHAPPS:
-            this.setOAuthApps(action.userId, action.oauthApps);
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_OAUTHAPP:
-            this.addOAuthApp(action.oauthApp);
-            this.emitChange();
-            break;
-        case ActionTypes.REMOVED_OAUTHAPP:
-            this.removeOAuthApp(action.userId, action.id);
-            this.emitChange();
-            break;
-        }
+    getOAuthApps() {
+        return Object.values(store.getState().entities.integrations.oauthApps);
     }
 }
 

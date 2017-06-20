@@ -1,21 +1,16 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-
 import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 import {getChannelMembersForUserIds} from 'actions/channel_actions.jsx';
-import {loadCurrentLocale} from 'actions/global_actions.jsx';
+import {loadCurrentLocale, clientLogout} from 'actions/global_actions.jsx';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions.jsx';
 
 import {getDirectChannelName, getUserIdFromChannelName} from 'utils/utils.jsx';
-
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
 
 import {Constants, ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
@@ -28,36 +23,22 @@ const getState = store.getState;
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {
-    getProfiles,
-    getProfilesInChannel,
-    getProfilesInTeam,
-    getProfilesWithoutTeam,
-    getProfilesByIds,
-    getMe,
-    searchProfiles,
-    autocompleteUsers as autocompleteRedux,
-    updateMe,
-    updateUserMfa,
-    checkMfa as checkMfaRedux,
-    updateUserPassword,
-    createUser,
-    login,
-    loadMe as loadMeRedux,
-    updateUserRoles as updateUserRolesRedux,
-    getStatus,
-    setStatus
-} from 'mattermost-redux/actions/users';
+import * as UserActions from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {getTeamMembersByIds, getMyTeamMembers} from 'mattermost-redux/actions/teams';
+import {getTeamMembersByIds, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {getChannelAndMyMember} from 'mattermost-redux/actions/channels';
+import {savePreferences, deletePreferences} from 'mattermost-redux/actions/preferences';
+
 import {Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
 export function loadMe(callback) {
-    loadMeRedux()(dispatch, getState).then(
+    UserActions.loadMe()(dispatch, getState).then(
         () => {
-            loadCurrentLocale();
+            if (window.mm_config) {
+                loadCurrentLocale();
+            }
 
             if (callback) {
                 callback();
@@ -88,6 +69,8 @@ export function loadMeAndConfig(callback) {
                     });
                 }
 
+                loadCurrentLocale();
+
                 getLicenseConfig()(store.dispatch, store.getState).then(
                     (license) => { // eslint-disable-line max-nested-callbacks
                         global.window.mm_license = license;
@@ -102,27 +85,26 @@ export function loadMeAndConfig(callback) {
     });
 }
 
-export function switchFromLdapToEmail(email, password, token, ldapPassword, onSuccess, onError) {
-    Client.ldapToEmail(
-        email,
-        password,
-        token,
-        ldapPassword,
+export function switchFromLdapToEmail(email, password, token, ldapPassword, success, error) {
+    UserActions.switchLdapToEmail(ldapPassword, email, password, token)(dispatch, getState).then(
         (data) => {
-            if (data.follow_link) {
-                window.location.href = data.follow_link;
+            if (data) {
+                if (data.follow_link) {
+                    clientLogout(data.follow_link);
+                }
+                if (success) {
+                    success(data);
+                }
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.switchLogin.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-
-            if (onSuccess) {
-                onSuccess(data);
-            }
-        },
-        onError
+        }
     );
 }
 
 export function loadProfilesAndTeamMembers(page, perPage, teamId = TeamStore.getCurrentId(), success) {
-    getProfilesInTeam(teamId, page, perPage)(dispatch, getState).then(
+    UserActions.getProfilesInTeam(teamId, page, perPage)(dispatch, getState).then(
         (data) => {
             loadTeamMembersForProfilesList(data, teamId, success);
             loadStatusesForProfilesList(data);
@@ -131,7 +113,7 @@ export function loadProfilesAndTeamMembers(page, perPage, teamId = TeamStore.get
 }
 
 export function loadProfilesAndTeamMembersAndChannelMembers(page, perPage, teamId = TeamStore.getCurrentId(), channelId = ChannelStore.getCurrentId(), success, error) {
-    getProfilesInChannel(channelId, page, perPage)(dispatch, getState).then(
+    UserActions.getProfilesInChannel(channelId, page, perPage)(dispatch, getState).then(
         (data) => {
             loadTeamMembersForProfilesList(
                 data,
@@ -167,7 +149,7 @@ export function loadTeamMembersForProfilesList(profiles, teamId = TeamStore.getC
 }
 
 export function loadProfilesWithoutTeam(page, perPage, success) {
-    getProfilesWithoutTeam(page, perPage)(dispatch, getState).then(
+    UserActions.getProfilesWithoutTeam(page, perPage)(dispatch, getState).then(
         (data) => {
             loadStatusesForProfilesMap(data);
 
@@ -272,7 +254,8 @@ export function loadNewDMIfNeeded(channelId) {
         const pref = PreferenceStore.getBool(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
         if (pref === false) {
             PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
-            AsyncClient.savePreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
+            const currentUserId = UserStore.getCurrentId();
+            savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'}])(dispatch, getState);
             loadProfilesForDM();
         }
     }
@@ -296,7 +279,8 @@ export function loadNewGMIfNeeded(channelId) {
         const pref = PreferenceStore.getBool(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, false);
         if (pref === false) {
             PreferenceStore.setPreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
-            AsyncClient.savePreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
+            const currentUserId = UserStore.getCurrentId();
+            savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}])(dispatch, getState);
             loadProfilesForGM();
         }
     }
@@ -348,7 +332,7 @@ export function loadProfilesForGM() {
             });
         }
 
-        getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM)(dispatch, getState).then(
+        UserActions.getProfilesInChannel(channel.id, 0, Constants.MAX_USERS_IN_GM)(dispatch, getState).then(
             (data) => {
                 populateChannelWithProfiles(channel.id, data);
             }
@@ -356,7 +340,8 @@ export function loadProfilesForGM() {
     }
 
     if (newPreferences.length > 0) {
-        AsyncClient.savePreferences(newPreferences);
+        const currentUserId = UserStore.getCurrentId();
+        savePreferences(currentUserId, newPreferences)(dispatch, getState);
     }
 }
 
@@ -396,11 +381,12 @@ export function loadProfilesForDM() {
     }
 
     if (newPreferences.length > 0) {
-        AsyncClient.savePreferences(newPreferences);
+        const currentUserId = UserStore.getCurrentId();
+        savePreferences(currentUserId, newPreferences)(dispatch, getState);
     }
 
     if (profilesToLoad.length > 0) {
-        getProfilesByIds(profilesToLoad)(dispatch, getState).then(
+        UserActions.getProfilesByIds(profilesToLoad)(dispatch, getState).then(
             () => {
                 populateDMChannelsWithProfiles(profileIds);
             },
@@ -411,15 +397,20 @@ export function loadProfilesForDM() {
 }
 
 export function saveTheme(teamId, theme, onSuccess, onError) {
-    AsyncClient.savePreference(
-        Preferences.CATEGORY_THEME,
-        teamId,
-        JSON.stringify(theme),
-        () => {
-            onThemeSaved(teamId, theme, onSuccess);
-        },
-        (err) => {
-            onError(err);
+    const currentUserId = UserStore.getCurrentId();
+    savePreferences(currentUserId, [{
+        user_id: currentUserId,
+        category: Preferences.CATEGORY_THEME,
+        name: teamId,
+        value: JSON.stringify(theme)
+    }])(dispatch, getState).then(
+        (data) => {
+            if (data && onSuccess) {
+                onThemeSaved(teamId, theme, onSuccess);
+            } else if (data == null && onError) {
+                const serverError = getState().requests.users.savePreferences.error;
+                onError({id: serverError.server_error_id, ...serverError});
+            }
         }
     );
 }
@@ -449,20 +440,15 @@ function onThemeSaved(teamId, theme, onSuccess) {
 
     if (toDelete.length > 0) {
         // we're saving a new global theme so delete any team-specific ones
-        AsyncClient.deletePreferences(toDelete);
-
-        // delete them locally before we hear from the server so that the UI flow is smoother
-        AppDispatcher.handleServerAction({
-            type: ActionTypes.DELETED_PREFERENCES,
-            preferences: toDelete
-        });
+        const currentUserId = UserStore.getCurrentId();
+        deletePreferences(currentUserId, toDelete)(dispatch, getState);
     }
 
     onSuccess();
 }
 
 export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {}, success) {
-    searchProfiles(term, {team_id: teamId, ...options})(dispatch, getState).then(
+    UserActions.searchProfiles(term, {team_id: teamId, ...options})(dispatch, getState).then(
         (data) => {
             loadStatusesForProfilesList(data);
 
@@ -474,7 +460,7 @@ export function searchUsers(term, teamId = TeamStore.getCurrentId(), options = {
 }
 
 export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), options = {}, success) {
-    searchProfiles(term, {not_in_team_id: teamId, ...options})(dispatch, getState).then(
+    UserActions.searchProfiles(term, {not_in_team_id: teamId, ...options})(dispatch, getState).then(
         (data) => {
             loadStatusesForProfilesList(data);
 
@@ -488,7 +474,7 @@ export function searchUsersNotInTeam(term, teamId = TeamStore.getCurrentId(), op
 export function autocompleteUsersInChannel(username, channelId, success) {
     const channel = ChannelStore.get(channelId);
     const teamId = channel ? channel.team_id : TeamStore.getCurrentId();
-    autocompleteRedux(username, teamId, channelId)(dispatch, getState).then(
+    UserActions.autocompleteUsers(username, teamId, channelId)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -498,7 +484,7 @@ export function autocompleteUsersInChannel(username, channelId, success) {
 }
 
 export function autocompleteUsersInTeam(username, success) {
-    autocompleteRedux(username, TeamStore.getCurrentId())(dispatch, getState).then(
+    UserActions.autocompleteUsers(username, TeamStore.getCurrentId())(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -508,7 +494,7 @@ export function autocompleteUsersInTeam(username, success) {
 }
 
 export function autocompleteUsers(username, success) {
-    autocompleteRedux(username)(dispatch, getState).then(
+    UserActions.autocompleteUsers(username)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -518,7 +504,7 @@ export function autocompleteUsers(username, success) {
 }
 
 export function updateUser(user, type, success, error) {
-    updateMe(user)(dispatch, getState).then(
+    UserActions.updateMe(user)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -531,24 +517,20 @@ export function updateUser(user, type, success, error) {
 }
 
 export function generateMfaSecret(success, error) {
-    Client.generateMfaSecret(
+    UserActions.generateMfaSecret()(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'generateMfaSecret');
-
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.generateMfaSecret.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function updateUserNotifyProps(props, success, error) {
-    updateMe({notify_props: props})(dispatch, getState).then(
+    UserActions.updateMe({notify_props: props})(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -561,7 +543,7 @@ export function updateUserNotifyProps(props, success, error) {
 }
 
 export function updateUserRoles(userId, newRoles, success, error) {
-    updateUserRolesRedux(userId, newRoles)(dispatch, getState).then(
+    UserActions.updateUserRoles(userId, newRoles)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -574,7 +556,7 @@ export function updateUserRoles(userId, newRoles, success, error) {
 }
 
 export function activateMfa(code, success, error) {
-    updateUserMfa(UserStore.getCurrentId(), true, code)(dispatch, getState).then(
+    UserActions.updateUserMfa(UserStore.getCurrentId(), true, code)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -587,7 +569,7 @@ export function activateMfa(code, success, error) {
 }
 
 export function deactivateMfa(success, error) {
-    updateUserMfa(UserStore.getCurrentId(), false)(dispatch, getState).then(
+    UserActions.updateUserMfa(UserStore.getCurrentId(), false)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -605,7 +587,7 @@ export function checkMfa(loginId, success, error) {
         return;
     }
 
-    checkMfaRedux(loginId)(dispatch, getState).then(
+    UserActions.checkMfa(loginId)(dispatch, getState).then(
         (data) => {
             if (data != null && success) {
                 success(data);
@@ -618,20 +600,20 @@ export function checkMfa(loginId, success, error) {
 }
 
 export function updateActive(userId, active, success, error) {
-    Client.updateActive(userId, active,
+    UserActions.updateUserActive(userId, active)(dispatch, getState).then(
         (data) => {
-            UserStore.saveProfile(data);
-
-            if (success) {
+            if (data && success) {
                 success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
-        },
-        error
+        }
     );
 }
 
 export function updatePassword(userId, currentPassword, newPassword, success, error) {
-    updateUserPassword(userId, currentPassword, newPassword)(dispatch, getState).then(
+    UserActions.updateUserPassword(userId, currentPassword, newPassword)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -644,76 +626,68 @@ export function updatePassword(userId, currentPassword, newPassword, success, er
 }
 
 export function verifyEmail(token, success, error) {
-    Client.verifyEmail(
-        token,
+    UserActions.verifyUserEmail(token)(dispatch, getState).then(
         (data) => {
-            if (success) {
+            if (data && success) {
                 success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.verifyEmail.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function resetPassword(token, password, success, error) {
-    Client.resetPassword(
-        token,
-        password,
-        () => {
-            browserHistory.push('/login?extra=' + ActionTypes.PASSWORD_CHANGE);
-
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    UserActions.resetUserPassword(token, password)(dispatch, getState).then(
+        (data) => {
+            if (data) {
+                browserHistory.push('/login?extra=' + ActionTypes.PASSWORD_CHANGE);
+                if (success) {
+                    success(data);
+                }
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.passwordReset.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function resendVerification(email, success, error) {
-    Client.resendVerification(
-        email,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    UserActions.sendVerificationEmail(email)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.verifyEmail.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function loginById(userId, password, mfaToken, success, error) {
-    Client.loginById(
-        userId,
-        password,
-        mfaToken,
-        () => {
-            if (success) {
+    UserActions.loginById(userId, password, mfaToken)(dispatch, getState).then(
+        (ok) => {
+            if (ok && success) {
                 success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+            } else if (!ok && error) {
+                const serverError = getState().requests.users.login.error;
+                if (serverError.server_error_id === 'api.context.mfa_required.app_error') {
+                    if (success) {
+                        success();
+                    }
+                    return;
+                }
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function createUserWithInvite(user, data, emailHash, inviteId, success, error) {
-    createUser(user, data, emailHash, inviteId)(dispatch, getState).then(
+    UserActions.createUser(user, data, emailHash, inviteId)(dispatch, getState).then(
         (resp) => {
             if (resp && success) {
                 success(resp);
@@ -726,7 +700,7 @@ export function createUserWithInvite(user, data, emailHash, inviteId, success, e
 }
 
 export function webLogin(loginId, password, token, success, error) {
-    login(loginId, password, token)(dispatch, getState).then(
+    UserActions.login(loginId, password, token)(dispatch, getState).then(
         (ok) => {
             if (ok && success) {
                 success();
@@ -745,61 +719,32 @@ export function webLogin(loginId, password, token, success, error) {
 }
 
 export function webLoginByLdap(loginId, password, token, success, error) {
-    Client.webLoginByLdap(
-        loginId,
-        password,
-        token,
-        (data) => {
-            if (success) {
-                success(data);
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    UserActions.login(loginId, password, token, true)(dispatch, getState).then(
+        (ok) => {
+            if (ok && success) {
+                success();
+            } else if (!ok && error) {
+                const serverError = getState().requests.users.login.error;
+                if (serverError.server_error_id === 'api.context.mfa_required.app_error') {
+                    if (success) {
+                        success();
+                    }
+                    return;
+                }
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function getAuthorizedApps(success, error) {
-    Client.getAuthorizedApps(
+    Client4.getAuthorizedOAuthApps(getState().entities.users.currentUserId).then(
         (authorizedApps) => {
             if (success) {
                 success(authorizedApps);
             }
-        },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        });
-}
-
-export function deauthorizeOAuthApp(appId, success, error) {
-    Client.deauthorizeOAuthApp(
-        appId,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
-            }
-        });
-}
-
-export function uploadProfileImage(userPicture, success, error) {
-    Client.uploadProfileImage(
-        userPicture,
-        () => {
-            getMe()(dispatch, getState);
-            if (success) {
-                success();
-            }
-        },
+        }
+    ).catch(
         (err) => {
             if (error) {
                 error(err);
@@ -808,8 +753,37 @@ export function uploadProfileImage(userPicture, success, error) {
     );
 }
 
+export function deauthorizeOAuthApp(appId, success, error) {
+    Client4.deauthorizeOAuthApp(appId).then(
+        () => {
+            if (success) {
+                success();
+            }
+        }
+    ).catch(
+        (err) => {
+            if (error) {
+                error(err);
+            }
+        }
+    );
+}
+
+export function uploadProfileImage(userPicture, success, error) {
+    UserActions.uploadProfileImage(Selectors.getCurrentUserId(getState()), userPicture)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.updateUser.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
 export function loadProfiles(page, perPage, success) {
-    getProfiles(page, perPage)(dispatch, getState).then(
+    UserActions.getProfiles(page, perPage)(dispatch, getState).then(
         (data) => {
             if (success) {
                 success(data);
@@ -825,13 +799,13 @@ export function getMissingProfiles(ids) {
         return;
     }
 
-    getProfilesByIds(missingIds)(dispatch, getState);
+    UserActions.getProfilesByIds(missingIds)(dispatch, getState);
 }
 
 export function loadMyTeamMembers() {
     getMyTeamMembers()(dispatch, getState).then(
         () => {
-            AsyncClient.getMyTeamsUnread();
+            getMyTeamUnreads()(dispatch, getState);
         }
     );
 }
@@ -839,7 +813,7 @@ export function loadMyTeamMembers() {
 export function autoResetStatus() {
     return async (doDispatch, doGetState) => {
         const {currentUserId} = getState().entities.users;
-        const userStatus = await getStatus(currentUserId)(doDispatch, doGetState);
+        const userStatus = await UserActions.getStatus(currentUserId)(doDispatch, doGetState);
 
         if (!userStatus.manual) {
             return userStatus;
@@ -848,7 +822,7 @@ export function autoResetStatus() {
         const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
 
         if (autoReset) {
-            setStatus({user_id: currentUserId, status: 'online'})(doDispatch, doGetState);
+            UserActions.setStatus({user_id: currentUserId, status: 'online'})(doDispatch, doGetState);
             return userStatus;
         }
 

@@ -241,12 +241,12 @@ func TestTestCommand(t *testing.T) {
 	cmd1 := &model.Command{
 		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_POST,
-		Trigger: "test",
+		Trigger: "testcommand",
 	}
 
 	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
 
-	r1 := Client.Must(Client.Command(channel1.Id, "/test")).Data.(*model.CommandResponse)
+	r1 := Client.Must(Client.Command(channel1.Id, "/testcommand")).Data.(*model.CommandResponse)
 	if r1 == nil {
 		t.Fatal("Test command failed to execute")
 	}

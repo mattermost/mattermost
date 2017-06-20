@@ -12,6 +12,7 @@ import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
 import Client from 'client/web_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import {Posts} from 'mattermost-redux/constants';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
@@ -387,14 +388,6 @@ export function insertHtmlEntities(text) {
     return newtext;
 }
 
-export function searchForTerm(term) {
-    AppDispatcher.handleServerAction({
-        type: ActionTypes.RECEIVED_SEARCH_TERM,
-        term,
-        do_search: true
-    });
-}
-
 export function getFileType(extin) {
     var ext = extin.toLowerCase();
     if (Constants.IMAGE_TYPES.indexOf(ext) > -1) {
@@ -503,7 +496,8 @@ export function applyTheme(theme) {
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.8));
         changeCss('.sidebar--left .nav-pills__container li > h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6));
         changeCss('.app__body .sidebar--left .sidebar__switcher button, .sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
-        changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.sidebarText);
+        changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
+        changeCss('.sidebar--left .status .offline--icon, .app__body .sidebar--menu svg', 'fill:' + theme.sidebarText);
         changeCss('.sidebar--left .status.status--group', 'background:' + changeOpacity(theme.sidebarText, 0.3));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
         changeCss('.app__body .sidebar--left .sidebar__switcher', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
@@ -579,7 +573,7 @@ export function applyTheme(theme) {
     if (theme.centerChannelBg) {
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'background:' + theme.centerChannelBg);
         changeCss('@media(max-width: 320px){.tutorial-steps__container', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .status-wrapper .status_dropdown__toggle .status .icon__container:after, .app__body .app__content, .app__body .markdown__table, .app__body .markdown__table tbody tr, .app__body .suggestion-list__content, .app__body .modal .modal-content, .app__body .modal .modal-footer, .app__body .post.post--compact .post-image__column, .app__body .suggestion-list__divider > span, .app__body .status-wrapper .status', 'background:' + theme.centerChannelBg);
         changeCss('#post-list .post-list-holder-by-time, .app__body .post .dropdown-menu a', 'background:' + theme.centerChannelBg);
         changeCss('#post-create', 'background:' + theme.centerChannelBg);
         changeCss('.app__body .date-separator .separator__text, .app__body .new-separator .separator__text', 'background:' + theme.centerChannelBg);
@@ -596,10 +590,7 @@ export function applyTheme(theme) {
         changeCss('body.app__body', 'scrollbar-track-color:' + theme.centerChannelBg);
         changeCss('.app__body .post-list__new-messages-below', 'color:' + theme.centerChannelBg);
         changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .emoji-picker-react, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
-        changeCss('.app__body .emoji-picker-react-rhs-comment, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
-
-        changeCss('.app__body .nav-tabs, .app__body .nav-tabs > li.active > a, .app__body .emoji-picker-bottom, .app__body .emoji-picker__search', 'background:' + theme.centerChannelBg);
+        changeCss('.app__body .nav-tabs, .app__body .nav-tabs > li.active > a', 'background:' + theme.centerChannelBg);
     }
 
     if (theme.centerChannelColor) {
@@ -667,7 +658,6 @@ export function applyTheme(theme) {
         }
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post-create__container .post-create-body .btn-file svg, .app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .post .post__img svg', 'fill:' + theme.centerChannelColor);
-        changeCss('.sidebar--left .status .offline--icon', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .scrollbar--horizontal, .app__body .scrollbar--vertical', 'background:' + changeOpacity(theme.centerChannelColor, 0.5));
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
         changeCss('.app__body .post.post--comment .post__body', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
@@ -678,12 +668,8 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker-react', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker-bottom', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker, .app__body .emoji-picker-react-rhs-comment, .app__body .emoji-picker-react, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker-bottom, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__items', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.05));
         changeCss('.app__body .emoji-picker__categories', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
@@ -702,10 +688,12 @@ export function applyTheme(theme) {
     }
 
     if (theme.linkColor) {
-        changeCss('.app__body .channel-header__links > a.active, .app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover, .app__body .channel-header #member_popover:hover', 'color:' + theme.linkColor);
+        changeCss('.app__body .channel-header__links > a.active, .app__body a, .app__body a:focus, .app__body a:hover, .app__body .btn, .app__body .btn:focus, .app__body .btn:hover', 'color:' + theme.linkColor);
         changeCss('.app__body .attachment .attachment__container', 'border-left-color:' + changeOpacity(theme.linkColor, 0.5));
         changeCss('.app__body .channel-header__links .icon:hover, .app__body .channel-header__links > a.active .icon, .app__body .post .flag-icon__container.visible, .app__body .post .reacticon__container, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
-        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply, .app__body .channel-header .pinned-posts-button:hover svg', 'fill:' + theme.linkColor);
+        changeCss('.app__body .channel-header__links .icon:hover, .app__body .post .flag-icon__container.visible, .app__body .post .comment-icon__container, .app__body .post .post__reply', 'fill:' + theme.linkColor);
+        changeCss('.app__body .channel-header #member_popover:hover', 'color:' + changeOpacity(theme.linkColor, 0.6));
+        changeCss('.app__body .channel-header .pinned-posts-button:hover svg', 'fill:' + changeOpacity(theme.linkColor, 0.6));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'background:' + changeOpacity(theme.linkColor, 0.1));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'border-color:' + changeOpacity(theme.linkColor, 0.4));
         changeCss('.app__body .post-reaction.post-reaction--current-user', 'color:' + theme.linkColor);
@@ -1106,7 +1094,12 @@ export function getDirectChannelName(id, otherId) {
 
 // Used to get the id of the other user from a DM channel
 export function getUserIdFromChannelName(channel) {
-    var ids = channel.name.split('__');
+    return getUserIdFromChannelId(channel.name);
+}
+
+// Used to get the id of the other user from a DM channel id (id1_id2)
+export function getUserIdFromChannelId(channelId) {
+    var ids = channelId.split('__');
     var otherUserId = '';
     if (ids[0] === UserStore.getCurrentId()) {
         otherUserId = ids[1];
@@ -1195,7 +1188,7 @@ export function clearFileInput(elm) {
 }
 
 export function isPostEphemeral(post) {
-    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Constants.POST_DELETED;
+    return post.type === Constants.PostTypes.EPHEMERAL || post.state === Posts.POST_DELETED;
 }
 
 export function getRootId(post) {
@@ -1311,16 +1304,11 @@ export function isValidPassword(password) {
 }
 
 export function handleFormattedTextClick(e) {
-    const mentionAttribute = e.target.getAttributeNode('data-mention');
     const hashtagAttribute = e.target.getAttributeNode('data-hashtag');
     const linkAttribute = e.target.getAttributeNode('data-link');
     const channelMentionAttribute = e.target.getAttributeNode('data-channel-mention');
 
-    if (mentionAttribute) {
-        e.preventDefault();
-
-        searchForTerm(mentionAttribute.value);
-    } else if (hashtagAttribute) {
+    if (hashtagAttribute) {
         e.preventDefault();
 
         searchForTerm(hashtagAttribute.value);
@@ -1336,6 +1324,15 @@ export function handleFormattedTextClick(e) {
         e.preventDefault();
         browserHistory.push('/' + TeamStore.getCurrent().name + '/channels/' + channelMentionAttribute.value);
     }
+}
+
+// This should eventually be removed once everywhere else calls the action
+function searchForTerm(term) {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH_TERM,
+        term,
+        do_search: true
+    });
 }
 
 export function isEmptyObject(object) {

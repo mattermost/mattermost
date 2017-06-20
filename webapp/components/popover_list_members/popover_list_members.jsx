@@ -13,7 +13,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
 
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {canManageMembers} from 'utils/channel_utils.jsx';
@@ -132,7 +132,7 @@ export default class PopoverListMembers extends React.Component {
                             key={'popover-member-' + i}
                         >
                             <ProfilePicture
-                                src={`${Client.getUsersRoute()}/${m.id}/image?time=${m.last_picture_update}`}
+                                src={Client4.getProfilePictureUrl(m.id, m.last_picture_update)}
                                 width='26'
                                 height='26'
                             />

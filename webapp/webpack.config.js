@@ -241,7 +241,8 @@ var config = {
         alias: {
             jquery: 'jquery/dist/jquery',
             superagent: 'node_modules/superagent/lib/client'
-        }
+        },
+        extensions: ['.js', '.jsx']
     },
     performance: {
         hints: 'warning'

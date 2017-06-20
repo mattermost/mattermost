@@ -258,6 +258,10 @@ func (c *Client4) GetJobsRoute() string {
 	return fmt.Sprintf("/jobs")
 }
 
+func (c *Client4) GetAnalyticsRoute() string {
+	return fmt.Sprintf("/analytics")
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -1046,6 +1050,17 @@ func (c *Client4) SoftDeleteTeam(teamId string) (bool, *Response) {
 	}
 }
 
+// PermanentDeleteTeam deletes the team, should only be used when needed for
+// compliance and the like
+func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetTeamRoute(teamId) + "?permanent=true"); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -1186,6 +1201,16 @@ func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
+func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response) {
+	if r, err := c.DoApiGet(c.GetTeamsRoute()+"/invite/"+inviteId, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return TeamFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -1824,13 +1849,71 @@ func (c *Client4) InvalidateCaches() (bool, *Response) {
 	}
 }
 
-// UpdateConfig will update the server configuration
+// UpdateConfig will update the server configuration.
 func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
 	if r, err := c.DoApiPut(c.GetConfigRoute(), config.ToJson()); err != nil {
 		return nil, &Response{StatusCode: r.StatusCode, Error: err}
 	} else {
 		defer closeBody(r)
 		return ConfigFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UploadLicenseFile will add a license file to the system.
+func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("license", "test-license.mattermost-license"); err != nil {
+		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.set_profile_user.no_file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil {
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetLicenseRoute(), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+	} else if rp.StatusCode >= 300 {
+		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+	} else {
+		defer closeBody(rp)
+		return CheckStatusOK(rp), BuildResponse(rp)
+	}
+}
+
+// RemoveLicenseFile will remove the server license it exists. Note that this will
+// disable all enterprise features.
+func (c *Client4) RemoveLicenseFile() (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetLicenseRoute()); err != nil {
+		return false, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetAnalyticsOld will retrieve analytics using the old format. New format is not
+// available but the "/analytics" endpoint is reserved for it. The "name" argument is optional
+// and defaults to "standard". The "teamId" argument is optional and will limit results
+// to a specific team.
+func (c *Client4) GetAnalyticsOld(name, teamId string) (AnalyticsRows, *Response) {
+	query := fmt.Sprintf("?name=%v&teamId=%v", name, teamId)
+	if r, err := c.DoApiGet(c.GetAnalyticsRoute()+"/old"+query, ""); err != nil {
+		return nil, &Response{StatusCode: r.StatusCode, Error: err}
+	} else {
+		defer closeBody(r)
+		return AnalyticsRowsFromJson(r.Body), BuildResponse(r)
 	}
 }
 

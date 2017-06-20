@@ -305,7 +305,7 @@ func TestTeamPermDelete(t *testing.T) {
 	Client.Login(user1.Email, "passwd1")
 	Client.SetTeamId(team.Id)
 
-	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "TestGetPosts", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "search for post1"}

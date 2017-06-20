@@ -773,7 +773,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Abre o menu the mensagens diretas\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",

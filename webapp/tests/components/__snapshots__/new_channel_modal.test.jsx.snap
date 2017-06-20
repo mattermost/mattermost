@@ -92,6 +92,7 @@ exports[`components/NewChannelModal should match snapshot, modal not showing 1`]
             <input
               autoFocus={true}
               className="form-control"
+              id="newPublicChannelName"
               maxLength={22}
               onChange={[Function]}
               placeholder="E.g.: \\"Bugs\\", \\"Marketing\\", \\"客户支持\\""
@@ -147,6 +148,7 @@ exports[`components/NewChannelModal should match snapshot, modal not showing 1`]
           >
             <textarea
               className="form-control no-resize"
+              id="newPublicChannelPurpose"
               maxLength="250"
               onChange={[Function]}
               placeholder="E.g.: \\"A channel to file bugs and improvements\\""
@@ -195,6 +197,7 @@ exports[`components/NewChannelModal should match snapshot, modal not showing 1`]
           >
             <textarea
               className="form-control no-resize"
+              id="newPublicChannelHeader"
               maxLength="1024"
               onChange={[Function]}
               placeholder="E.g.: \\"[Link Title](http://example.com)\\""
@@ -339,6 +342,7 @@ exports[`components/NewChannelModal should match snapshot, modal showing 1`] = `
             <input
               autoFocus={true}
               className="form-control"
+              id="newPublicChannelName"
               maxLength={22}
               onChange={[Function]}
               placeholder="E.g.: \\"Bugs\\", \\"Marketing\\", \\"客户支持\\""
@@ -394,6 +398,7 @@ exports[`components/NewChannelModal should match snapshot, modal showing 1`] = `
           >
             <textarea
               className="form-control no-resize"
+              id="newPublicChannelPurpose"
               maxLength="250"
               onChange={[Function]}
               placeholder="E.g.: \\"A channel to file bugs and improvements\\""
@@ -442,6 +447,7 @@ exports[`components/NewChannelModal should match snapshot, modal showing 1`] = `
           >
             <textarea
               className="form-control no-resize"
+              id="newPublicChannelHeader"
               maxLength="1024"
               onChange={[Function]}
               placeholder="E.g.: \\"[Link Title](http://example.com)\\""
@@ -586,6 +592,7 @@ exports[`components/NewChannelModal should match snapshot, private channel fille
             <input
               autoFocus={true}
               className="form-control"
+              id="newPrivateChannelName"
               maxLength={22}
               onChange={[Function]}
               placeholder="E.g.: \\"Bugs\\", \\"Marketing\\", \\"客户支持\\""
@@ -641,6 +648,7 @@ exports[`components/NewChannelModal should match snapshot, private channel fille
           >
             <textarea
               className="form-control no-resize"
+              id="newPrivateChannelPurpose"
               maxLength="250"
               onChange={[Function]}
               placeholder="E.g.: \\"A channel to file bugs and improvements\\""
@@ -689,6 +697,7 @@ exports[`components/NewChannelModal should match snapshot, private channel fille
           >
             <textarea
               className="form-control no-resize"
+              id="newPrivateChannelHeader"
               maxLength="1024"
               onChange={[Function]}
               placeholder="E.g.: \\"[Link Title](http://example.com)\\""

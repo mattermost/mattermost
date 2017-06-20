@@ -269,7 +269,7 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	}
 
 	if result := <-suchan; result.Err == nil {
-		return nil, model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_used.app_error", map[string]interface{}{"Service": service}, "email="+user.Email)
+		return result.Data.(*model.User), nil
 	}
 
 	if result := <-euchan; result.Err == nil {

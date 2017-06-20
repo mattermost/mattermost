@@ -53,40 +53,40 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
 	}
 
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost2, err := Client.CreatePost(post2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id, ParentId: rpost2.Data.(*model.Post).Id}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id, ParentId: rpost2.Data.(*model.Post).Id}
 	_, err = Client.CreatePost(post3)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	post4 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: "junk"}
+	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: "junk"}
 	_, err = Client.CreatePost(post4)
 	if err.StatusCode != http.StatusBadRequest {
 		t.Fatal("Should have been invalid param")
 	}
 
-	post5 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id, ParentId: "junk"}
+	post5 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id, ParentId: "junk"}
 	_, err = Client.CreatePost(post5)
 	if err.StatusCode != http.StatusBadRequest {
 		t.Fatal("Should have been invalid param")
 	}
 
-	post1c2 := &model.Post{ChannelId: channel2.Id, Message: "a" + model.NewId() + "a"}
+	post1c2 := &model.Post{ChannelId: channel2.Id, Message: "zz" + model.NewId() + "a"}
 	rpost1c2, err := Client.CreatePost(post1c2)
 
-	post2c2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1c2.Data.(*model.Post).Id}
+	post2c2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1c2.Data.(*model.Post).Id}
 	_, err = Client.CreatePost(post2c2)
 	if err.StatusCode != http.StatusBadRequest {
 		t.Fatal("Should have been invalid param")
 	}
 
-	post6 := &model.Post{ChannelId: "junk", Message: "a" + model.NewId() + "a"}
+	post6 := &model.Post{ChannelId: "junk", Message: "zz" + model.NewId() + "a"}
 	_, err = Client.CreatePost(post6)
 	if err.StatusCode != http.StatusForbidden {
 		t.Fatal("Should have been forbidden")
@@ -94,7 +94,7 @@ func TestCreatePost(t *testing.T) {
 
 	th.LoginBasic2()
 
-	post7 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post7 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	_, err = Client.CreatePost(post7)
 	if err.StatusCode != http.StatusForbidden {
 		t.Fatal("Should have been forbidden")
@@ -104,7 +104,7 @@ func TestCreatePost(t *testing.T) {
 	Client.SetTeamId(team2.Id)
 	channel3 := th.CreateChannel(Client, team2)
 
-	post8 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post8 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	_, err = Client.CreatePost(post8)
 	if err.StatusCode != http.StatusForbidden {
 		t.Fatal("Should have been forbidden")
@@ -325,7 +325,7 @@ func TestUpdatePost(t *testing.T) {
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
 		t.Fatal(err)
@@ -335,7 +335,7 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("full name didn't match")
 	}
 
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost2, err := Client.CreatePost(post2)
 	if err != nil {
 		t.Fatal(err)
@@ -345,7 +345,7 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
 	}
 
-	msg2 := "a" + model.NewId() + " update post 1"
+	msg2 := "zz" + model.NewId() + " update post 1"
 	rpost2.Data.(*model.Post).Message = msg2
 	if rupost2, err := Client.UpdatePost(rpost2.Data.(*model.Post)); err != nil {
 		t.Fatal(err)
@@ -368,7 +368,7 @@ func TestUpdatePost(t *testing.T) {
 		}
 	}
 
-	up12 := &model.Post{Id: rpost1.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " updaet post 1 update 2"}
+	up12 := &model.Post{Id: rpost1.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " updaet post 1 update 2"}
 	if rup12, err := Client.UpdatePost(up12); err != nil {
 		t.Fatal(err)
 	} else {
@@ -377,13 +377,13 @@ func TestUpdatePost(t *testing.T) {
 		}
 	}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
 	rpost3, err := Client.CreatePost(post3)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	up3 := &model.Post{Id: rpost3.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " update post 3"}
+	up3 := &model.Post{Id: rpost3.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
 	if _, err := Client.UpdatePost(up3); err == nil {
 		t.Fatal("shouldn't have been able to update system message")
 	}
@@ -401,13 +401,13 @@ func TestUpdatePost(t *testing.T) {
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
 
-	post4 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost4, err := Client.CreatePost(post4)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	up4 := &model.Post{Id: rpost4.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " update post 4"}
+	up4 := &model.Post{Id: rpost4.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 4"}
 	if _, err := Client.UpdatePost(up4); err == nil {
 		t.Fatal("shouldn't have been able to update a message when not allowed")
 	}
@@ -415,13 +415,13 @@ func TestUpdatePost(t *testing.T) {
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT
 	*utils.Cfg.ServiceSettings.PostEditTimeLimit = 1 //seconds
 
-	post5 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
+	post5 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost5, err := Client.CreatePost(post5)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	msg5 := "a" + model.NewId() + " update post 5"
+	msg5 := "zz" + model.NewId() + " update post 5"
 	up5 := &model.Post{Id: rpost5.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: msg5}
 	if rup5, err := Client.UpdatePost(up5); err != nil {
 		t.Fatal(err)
@@ -433,7 +433,7 @@ func TestUpdatePost(t *testing.T) {
 
 	time.Sleep(1000 * time.Millisecond)
 
-	up6 := &model.Post{Id: rpost5.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "a" + model.NewId() + " update post 5"}
+	up6 := &model.Post{Id: rpost5.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 5"}
 	if _, err := Client.UpdatePost(up6); err == nil {
 		t.Fatal("shouldn't have been able to update a message after time limit")
 	}
@@ -445,23 +445,23 @@ func TestGetPosts(t *testing.T) {
 	channel1 := th.BasicChannel
 
 	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
 	post1a1 = Client.Must(Client.CreatePost(post1a1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post3.Id}
+	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post3.Id}
 	post3a1 = Client.Must(Client.CreatePost(post3a1)).Data.(*model.Post)
 
 	r1 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
@@ -500,27 +500,27 @@ func TestGetPostsSince(t *testing.T) {
 	channel1 := th.BasicChannel
 
 	time.Sleep(10 * time.Millisecond)
-	post0 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post0 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post0 = Client.Must(Client.CreatePost(post0)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
 	post1a1 = Client.Must(Client.CreatePost(post1a1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post3.Id}
+	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post3.Id}
 	post3a1 = Client.Must(Client.CreatePost(post3a1)).Data.(*model.Post)
 
 	r1 := Client.Must(Client.GetPostsSince(channel1.Id, post1.CreateAt)).Data.(*model.PostList)
@@ -560,27 +560,27 @@ func TestGetPostsBeforeAfter(t *testing.T) {
 	channel1 := th.BasicChannel
 
 	time.Sleep(10 * time.Millisecond)
-	post0 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post0 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post0 = Client.Must(Client.CreatePost(post0)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
 	post1a1 = Client.Must(Client.CreatePost(post1a1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post3.Id}
+	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post3.Id}
 	post3a1 = Client.Must(Client.CreatePost(post3a1)).Data.(*model.Post)
 
 	r1 := Client.Must(Client.GetPostsBefore(channel1.Id, post1a1.Id, 0, 10, "")).Data.(*model.PostList)
@@ -698,10 +698,10 @@ func TestSearchPostsInChannel(t *testing.T) {
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "sgtitlereview with space"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
-	channel2 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "TestGetPosts", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 
-	channel3 := &model.Channel{DisplayName: "TestGetPosts", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel3 := &model.Channel{DisplayName: "TestGetPosts", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel3 = Client.Must(Client.CreateChannel(channel3)).Data.(*model.Channel)
 
 	post2 := &model.Post{ChannelId: channel2.Id, Message: "sgtitlereview\n with return"}
@@ -831,15 +831,15 @@ func TestGetPostsCache(t *testing.T) {
 	channel1 := th.BasicChannel
 
 	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
 
 	etag := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Etag
@@ -879,27 +879,27 @@ func TestDeletePosts(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id}
+	post1a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
 	post1a1 = Client.Must(Client.CreatePost(post1a1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post1a2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post1.Id, ParentId: post1a1.Id}
+	post1a2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id, ParentId: post1a1.Id}
 	post1a2 = Client.Must(Client.CreatePost(post1a2)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a", RootId: post3.Id}
+	post3a1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: post3.Id}
 	post3a1 = Client.Must(Client.CreatePost(post3a1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
@@ -912,11 +912,11 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	time.Sleep(10 * time.Millisecond)
-	post4a := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post4a := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post4a = Client.Must(Client.CreatePost(post4a)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post4b := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post4b := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post4b = Client.Must(Client.CreatePost(post4b)).Data.(*model.Post)
 
 	SystemAdminClient := th.SystemAdminClient
@@ -957,11 +957,11 @@ func TestDeletePosts(t *testing.T) {
 	th.LoginBasic()
 
 	time.Sleep(10 * time.Millisecond)
-	post5a := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post5a := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post5a = Client.Must(Client.CreatePost(post5a)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post5b := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post5b := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post5b = Client.Must(Client.CreatePost(post5b)).Data.(*model.Post)
 
 	if _, err := Client.DeletePost(channel1.Id, post5a.Id); err == nil {
@@ -980,7 +980,7 @@ func TestDeletePosts(t *testing.T) {
 	th.LoginBasic()
 
 	time.Sleep(10 * time.Millisecond)
-	post6a := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post6a := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post6a = Client.Must(Client.CreatePost(post6a)).Data.(*model.Post)
 
 	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
@@ -999,7 +999,7 @@ func TestDeletePosts(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
-	post7 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post7 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post7 = Client.Must(Client.CreatePost(post7)).Data.(*model.Post)
 
 	if _, err := Client.DeletePost(channel1.Id, post7.Id); err != nil {
@@ -1274,11 +1274,11 @@ func TestGetPermalinkTmp(t *testing.T) {
 	th.LoginBasic()
 
 	time.Sleep(10 * time.Millisecond)
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
 
 	time.Sleep(10 * time.Millisecond)
-	post2 := &model.Post{ChannelId: channel1.Id, Message: "a" + model.NewId() + "a"}
+	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post2 = Client.Must(Client.CreatePost(post2)).Data.(*model.Post)
 
 	etag := Client.Must(Client.GetPost(channel1.Id, post1.Id, "")).Etag
@@ -1298,10 +1298,10 @@ func TestGetPermalinkTmp(t *testing.T) {
 	}
 
 	// Test permalink to private channels.
-	channel2 := &model.Channel{DisplayName: "TestGetPermalinkPriv", Name: "a" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "TestGetPermalinkPriv", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).Data.(*model.Channel)
 	time.Sleep(10 * time.Millisecond)
-	post3 := &model.Post{ChannelId: channel2.Id, Message: "a" + model.NewId() + "a"}
+	post3 := &model.Post{ChannelId: channel2.Id, Message: "zz" + model.NewId() + "a"}
 	post3 = Client.Must(Client.CreatePost(post3)).Data.(*model.Post)
 
 	if _, md := Client.GetPermalink(channel2.Id, post3.Id, ""); md.Error != nil {
@@ -1318,7 +1318,7 @@ func TestGetPermalinkTmp(t *testing.T) {
 	th.LoginBasic()
 	channel3 := Client.Must(Client.CreateDirectChannel(th.SystemAdminUser.Id)).Data.(*model.Channel)
 	time.Sleep(10 * time.Millisecond)
-	post4 := &model.Post{ChannelId: channel3.Id, Message: "a" + model.NewId() + "a"}
+	post4 := &model.Post{ChannelId: channel3.Id, Message: "zz" + model.NewId() + "a"}
 	post4 = Client.Must(Client.CreatePost(post4)).Data.(*model.Post)
 
 	if _, md := Client.GetPermalink(channel3.Id, post4.Id, ""); md.Error != nil {

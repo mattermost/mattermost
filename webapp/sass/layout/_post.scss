@@ -236,6 +236,26 @@
         display: none;
     }
 
+    .post-list__loading {
+        @include opacity(.5);
+        font-size: .9em;
+        font-style: italic;
+        padding: 1em 0;
+        text-align: center;
+
+        i {
+            margin-right: 2px;
+        }
+
+        &.post-list__loading-search {
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
     .post-list-holder-by-time {
         -webkit-overflow-scrolling: touch;
         background: #ffffff;
@@ -391,6 +411,12 @@
         &.custom-textarea--emoji-picker {
             padding-right: 60px;
         }
+    }
+
+    .emoji-picker {
+        position: absolute;
+        top: -361px;
+        right: 0px;
     }
 
     .post-create.scroll {
@@ -876,6 +902,10 @@
             @include opacity(.6);
             font-size: .87em;
         }
+    }
+
+    .emoticon {
+        vertical-align: top;
     }
 
     p {

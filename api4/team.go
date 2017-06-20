@@ -30,7 +30,7 @@ func InitTeam() {
 
 	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
 	BaseRoutes.Team.Handle("", ApiSessionRequired(updateTeam)).Methods("PUT")
-	BaseRoutes.Team.Handle("", ApiSessionRequired(softDeleteTeam)).Methods("DELETE")
+	BaseRoutes.Team.Handle("", ApiSessionRequired(deleteTeam)).Methods("DELETE")
 	BaseRoutes.Team.Handle("/patch", ApiSessionRequired(patchTeam)).Methods("PUT")
 	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
@@ -49,6 +49,7 @@ func InitTeam() {
 
 	BaseRoutes.Team.Handle("/import", ApiSessionRequired(importTeam)).Methods("POST")
 	BaseRoutes.Team.Handle("/invite/email", ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
+	BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", ApiHandler(getInviteInfo)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -172,7 +173,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(patchedTeam.ToJson()))
 }
 
-func softDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -183,7 +184,13 @@ func softDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.SoftDeleteTeam(c.Params.TeamId)
+	var err *model.AppError
+	if c.Params.Permanent {
+		err = app.PermanentDeleteTeamId(c.Params.TeamId)
+	} else {
+		err = app.SoftDeleteTeam(c.Params.TeamId)
+	}
+
 	if err != nil {
 		c.Err = err
 		return
@@ -680,4 +687,28 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireInviteId()
+	if c.Err != nil {
+		return
+	}
+
+	if team, err := app.GetTeamByInviteId(c.Params.InviteId); err != nil {
+		c.Err = err
+		return
+	} else {
+		if !(team.Type == model.TEAM_OPEN) {
+			c.Err = model.NewAppError("getInviteInfo", "api.team.get_invite_info.not_open_team", nil, "id="+c.Params.InviteId, http.StatusForbidden)
+			return
+		}
+
+		result := map[string]string{}
+		result["display_name"] = team.DisplayName
+		result["description"] = team.Description
+		result["name"] = team.Name
+		result["id"] = team.Id
+		w.Write([]byte(model.MapToJson(result)))
+	}
 }

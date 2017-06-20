@@ -112,6 +112,7 @@ func runServer(configFileLocation string) {
 	}
 
 	if einterfaces.GetClusterInterface() != nil {
+		app.RegisterAllClusterMessageHandlers()
 		einterfaces.GetClusterInterface().StartInterNodeCommunication()
 	}
 

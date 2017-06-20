@@ -173,6 +173,7 @@ export default class SidebarRightMenu extends React.Component {
         let joinAnotherTeamLink;
         let isAdmin = false;
         let isSystemAdmin = false;
+        let createTeam = null;
 
         if (currentUser != null) {
             isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
@@ -264,6 +265,25 @@ export default class SidebarRightMenu extends React.Component {
                     </li>
                 );
             }
+
+            if (global.window.mm_config.EnableTeamCreation === 'true' || isSystemAdmin) {
+                createTeam = (
+                    <li key='newTeam_li'>
+                        <Link
+                            id='createTeam'
+                            key='newTeam_a'
+                            to='/create_team'
+                            onClick={this.handleClick}
+                        >
+                            <i className='icon fa fa-plus-square'/>
+                            <FormattedMessage
+                                id='navbar_dropdown.create'
+                                defaultMessage='Create a New Team'
+                            />
+                        </Link>
+                    </li>
+                );
+            }
         }
 
         manageLink = (
@@ -275,6 +295,25 @@ export default class SidebarRightMenu extends React.Component {
                         defaultMessage='View Members'
                     />
                 </ToggleModalButton>
+            </li>
+        );
+
+        const leaveTeam = (
+            <li key='leaveTeam_li'>
+                <a
+                    id='leaveTeam'
+                    href='#'
+                    onClick={GlobalActions.showLeaveTeamModal}
+                >
+                    <span
+                        className='icon'
+                        dangerouslySetInnerHTML={{__html: Constants.LEAVE_TEAM_SVG}}
+                    />
+                    <FormattedMessage
+                        id='navbar_dropdown.leave'
+                        defaultMessage='Leave Team'
+                    />
+                </a>
             </li>
         );
 
@@ -410,7 +449,7 @@ export default class SidebarRightMenu extends React.Component {
         }
 
         let teamDivider = null;
-        if (teamSettingsLink || manageLink || joinAnotherTeamLink) {
+        if (teamSettingsLink || manageLink || joinAnotherTeamLink || createTeam || leaveTeam) {
             teamDivider = <li className='divider'/>;
         }
 
@@ -480,6 +519,8 @@ export default class SidebarRightMenu extends React.Component {
                         {teamDivider}
                         {teamSettingsLink}
                         {manageLink}
+                        {createTeam}
+                        {leaveTeam}
                         {joinAnotherTeamLink}
                         {consoleDivider}
                         {consoleLink}

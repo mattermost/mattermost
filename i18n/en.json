@@ -1644,6 +1644,10 @@
     "translation": " posted in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
     "translation": "Failed to send push device_id={{.DeviceId}}, err={{.Error}}"
   },
@@ -3257,7 +3261,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
+    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3289,7 +3293,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled."
+    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
     "id": "ent.cluster.starting.info",
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "Failed to open SQL connection %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "Failed to ping DB err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Pinging SQL %v database"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",

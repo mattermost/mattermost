@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import FileStore from 'stores/file_store.jsx';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
+import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import PropTypes from 'prop-types';
 
@@ -39,7 +39,7 @@ export default class FilePreview extends React.Component {
                 previewImage = (
                     <img
                         className='file-preview__image'
-                        src={FileStore.getFileUrl(info.id)}
+                        src={getFileUrl(info.id)}
                     />
                 );
             } else {

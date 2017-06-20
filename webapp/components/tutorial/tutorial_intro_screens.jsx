@@ -257,7 +257,7 @@ export default class TutorialIntroScreens extends React.Component {
                 {supportInfo}
                 <FormattedMessage
                     id='tutorial_intro.end'
-                    defaultMessage='Click “Next” to enter {channel}. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'
+                    defaultMessage='Click "Next" to enter {channel}. This is the first channel teammates see when they sign up. Use it for posting updates everyone needs to know.'
                     values={{
                         channel: townSquareDisplayName
                     }}

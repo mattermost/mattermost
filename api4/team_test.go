@@ -363,6 +363,39 @@ func TestSoftDeleteTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPermanentDeleteTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	ok, resp := Client.PermanentDeleteTeam(team.Id)
+	CheckNoError(t, resp)
+
+	if !ok {
+		t.Fatal("should have returned true")
+	}
+
+	// The team is deleted in the background, its only soft deleted at this
+	// time
+	rteam, err := app.GetTeam(team.Id)
+	if err != nil {
+		t.Fatal("should have returned archived team")
+	}
+	if rteam.DeleteAt == 0 {
+		t.Fatal("should have not set to zero")
+	}
+
+	ok, resp = Client.PermanentDeleteTeam("junk")
+	CheckBadRequestStatus(t, resp)
+
+	if ok {
+		t.Fatal("should have returned false")
+	}
+}
+
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -1419,4 +1452,25 @@ func TestInviteUsersToTeam(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestGetTeamInviteInfo(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	team, resp := Client.GetTeamInviteInfo(team.InviteId)
+	CheckNoError(t, resp)
+
+	if team.DisplayName == "" {
+		t.Fatal("should not be empty")
+	}
+
+	if team.Email != "" {
+		t.Fatal("should be empty")
+	}
+
+	_, resp = Client.GetTeamInviteInfo("junk")
+	CheckBadRequestStatus(t, resp)
 }

@@ -19,7 +19,7 @@ func TestPostStoreSave(t *testing.T) {
 	o1 := model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 
 	if err := (<-store.Post().Save(&o1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
@@ -36,7 +36,7 @@ func TestPostStoreGet(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 
 	etag1 := (<-store.Post().GetEtag(o1.ChannelId, false)).Data.(string)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
@@ -73,7 +73,7 @@ func TestPostStoreGetSingle(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
@@ -95,7 +95,7 @@ func TestGetEtagCache(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 
 	etag1 := (<-store.Post().GetEtag(o1.ChannelId, true)).Data.(string)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
@@ -131,13 +131,13 @@ func TestPostStoreUpdate(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "AAAAAAAAAAA"
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "CCCCCCCCC"
+	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -145,7 +145,7 @@ func TestPostStoreUpdate(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "QQQQQQQQQQ"
+	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 
 	ro1 := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
@@ -225,7 +225,7 @@ func TestPostStoreDelete(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 
 	etag1 := (<-store.Post().GetEtag(o1.ChannelId, false)).Data.(string)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
@@ -263,13 +263,13 @@ func TestPostStoreDelete1Level(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -293,13 +293,13 @@ func TestPostStoreDelete2Level(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -307,7 +307,7 @@ func TestPostStoreDelete2Level(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.ParentId = o2.Id
 	o3.RootId = o1.Id
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
@@ -315,7 +315,7 @@ func TestPostStoreDelete2Level(t *testing.T) {
 	o4 := &model.Post{}
 	o4.ChannelId = model.NewId()
 	o4.UserId = model.NewId()
-	o4.Message = "a" + model.NewId() + "b"
+	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 
 	if r2 := <-store.Post().Delete(o1.Id, model.GetMillis()); r2.Err != nil {
@@ -345,13 +345,13 @@ func TestPostStorePermDelete1Level(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -359,7 +359,7 @@ func TestPostStorePermDelete1Level(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = model.NewId()
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 
 	if r2 := <-store.Post().PermanentDeleteByUser(o2.UserId); r2.Err != nil {
@@ -389,13 +389,13 @@ func TestPostStorePermDelete1Level2(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -403,7 +403,7 @@ func TestPostStorePermDelete1Level2(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = model.NewId()
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 
 	if r2 := <-store.Post().PermanentDeleteByUser(o1.UserId); r2.Err != nil {
@@ -429,13 +429,13 @@ func TestPostStoreGetWithChildren(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -443,7 +443,7 @@ func TestPostStoreGetWithChildren(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.ParentId = o2.Id
 	o3.RootId = o1.Id
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
@@ -486,14 +486,14 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -502,7 +502,7 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	o2a := &model.Post{}
 	o2a.ChannelId = o1.ChannelId
 	o2a.UserId = model.NewId()
-	o2a.Message = "a" + model.NewId() + "b"
+	o2a.Message = "zz" + model.NewId() + "b"
 	o2a.ParentId = o1.Id
 	o2a.RootId = o1.Id
 	o2a = (<-store.Post().Save(o2a)).Data.(*model.Post)
@@ -511,7 +511,7 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
@@ -520,14 +520,14 @@ func TestPostStoreGetPostsWtihDetails(t *testing.T) {
 	o4 := &model.Post{}
 	o4.ChannelId = o1.ChannelId
 	o4.UserId = model.NewId()
-	o4.Message = "a" + model.NewId() + "b"
+	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o5 := &model.Post{}
 	o5.ChannelId = o1.ChannelId
 	o5.UserId = model.NewId()
-	o5.Message = "a" + model.NewId() + "b"
+	o5.Message = "zz" + model.NewId() + "b"
 	o5.ParentId = o4.Id
 	o5.RootId = o4.Id
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
@@ -590,21 +590,21 @@ func TestPostStoreGetPostsBeforeAfter(t *testing.T) {
 	o0 := &model.Post{}
 	o0.ChannelId = model.NewId()
 	o0.UserId = model.NewId()
-	o0.Message = "a" + model.NewId() + "b"
+	o0.Message = "zz" + model.NewId() + "b"
 	o0 = (<-store.Post().Save(o0)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -613,7 +613,7 @@ func TestPostStoreGetPostsBeforeAfter(t *testing.T) {
 	o2a := &model.Post{}
 	o2a.ChannelId = o1.ChannelId
 	o2a.UserId = model.NewId()
-	o2a.Message = "a" + model.NewId() + "b"
+	o2a.Message = "zz" + model.NewId() + "b"
 	o2a.ParentId = o1.Id
 	o2a.RootId = o1.Id
 	o2a = (<-store.Post().Save(o2a)).Data.(*model.Post)
@@ -622,7 +622,7 @@ func TestPostStoreGetPostsBeforeAfter(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
@@ -631,14 +631,14 @@ func TestPostStoreGetPostsBeforeAfter(t *testing.T) {
 	o4 := &model.Post{}
 	o4.ChannelId = o1.ChannelId
 	o4.UserId = model.NewId()
-	o4.Message = "a" + model.NewId() + "b"
+	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o5 := &model.Post{}
 	o5.ChannelId = o1.ChannelId
 	o5.UserId = model.NewId()
-	o5.Message = "a" + model.NewId() + "b"
+	o5.Message = "zz" + model.NewId() + "b"
 	o5.ParentId = o4.Id
 	o5.RootId = o4.Id
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
@@ -695,21 +695,21 @@ func TestPostStoreGetPostsSince(t *testing.T) {
 	o0 := &model.Post{}
 	o0.ChannelId = model.NewId()
 	o0.UserId = model.NewId()
-	o0.Message = "a" + model.NewId() + "b"
+	o0.Message = "zz" + model.NewId() + "b"
 	o0 = (<-store.Post().Save(o0)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -718,7 +718,7 @@ func TestPostStoreGetPostsSince(t *testing.T) {
 	o2a := &model.Post{}
 	o2a.ChannelId = o1.ChannelId
 	o2a.UserId = model.NewId()
-	o2a.Message = "a" + model.NewId() + "b"
+	o2a.Message = "zz" + model.NewId() + "b"
 	o2a.ParentId = o1.Id
 	o2a.RootId = o1.Id
 	o2a = (<-store.Post().Save(o2a)).Data.(*model.Post)
@@ -727,7 +727,7 @@ func TestPostStoreGetPostsSince(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
@@ -736,14 +736,14 @@ func TestPostStoreGetPostsSince(t *testing.T) {
 	o4 := &model.Post{}
 	o4.ChannelId = o1.ChannelId
 	o4.UserId = model.NewId()
-	o4.Message = "a" + model.NewId() + "b"
+	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o5 := &model.Post{}
 	o5.ChannelId = o1.ChannelId
 	o5.UserId = model.NewId()
-	o5.Message = "a" + model.NewId() + "b"
+	o5.Message = "zz" + model.NewId() + "b"
 	o5.ParentId = o4.Id
 	o5.RootId = o4.Id
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
@@ -790,7 +790,7 @@ func TestPostStoreSearch(t *testing.T) {
 	c1 := &model.Channel{}
 	c1.TeamId = teamId
 	c1.DisplayName = "Channel1"
-	c1.Name = "a" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = (<-store.Channel().Save(c1)).Data.(*model.Channel)
 
@@ -803,7 +803,7 @@ func TestPostStoreSearch(t *testing.T) {
 	c2 := &model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Channel1"
-	c2.Name = "a" + model.NewId() + "b"
+	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
 	c2 = (<-store.Channel().Save(c2)).Data.(*model.Channel)
 
@@ -916,7 +916,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
-	t1.Name = "a" + model.NewId() + "b"
+	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = model.NewId() + "@nowhere.com"
 	t1.Type = model.TEAM_OPEN
 	t1 = Must(store.Team().Save(t1)).(*model.Team)
@@ -924,7 +924,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = "a" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
 
@@ -932,28 +932,28 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
 	o1.CreateAt = utils.MillisFromTime(utils.Yesterday())
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = Must(store.Post().Save(o1)).(*model.Post)
 
 	o1a := &model.Post{}
 	o1a.ChannelId = c1.Id
 	o1a.UserId = model.NewId()
 	o1a.CreateAt = o1.CreateAt
-	o1a.Message = "a" + model.NewId() + "b"
+	o1a.Message = "zz" + model.NewId() + "b"
 	o1a = Must(store.Post().Save(o1a)).(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = model.NewId()
 	o2.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24)
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2 = Must(store.Post().Save(o2)).(*model.Post)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
 	o2a.UserId = o2.UserId
 	o2a.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24)
-	o2a.Message = "a" + model.NewId() + "b"
+	o2a.Message = "zz" + model.NewId() + "b"
 	o2a = Must(store.Post().Save(o2a)).(*model.Post)
 
 	if r1 := <-store.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); r1.Err != nil {
@@ -976,7 +976,7 @@ func TestPostCountsByDay(t *testing.T) {
 
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
-	t1.Name = "a" + model.NewId() + "b"
+	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = model.NewId() + "@nowhere.com"
 	t1.Type = model.TEAM_OPEN
 	t1 = Must(store.Team().Save(t1)).(*model.Team)
@@ -984,7 +984,7 @@ func TestPostCountsByDay(t *testing.T) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = "a" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
 
@@ -992,28 +992,28 @@ func TestPostCountsByDay(t *testing.T) {
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
 	o1.CreateAt = utils.MillisFromTime(utils.Yesterday())
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = Must(store.Post().Save(o1)).(*model.Post)
 
 	o1a := &model.Post{}
 	o1a.ChannelId = c1.Id
 	o1a.UserId = model.NewId()
 	o1a.CreateAt = o1.CreateAt
-	o1a.Message = "a" + model.NewId() + "b"
+	o1a.Message = "zz" + model.NewId() + "b"
 	o1a = Must(store.Post().Save(o1a)).(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = model.NewId()
 	o2.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2 = Must(store.Post().Save(o2)).(*model.Post)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
 	o2a.UserId = o2.UserId
 	o2a.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
-	o2a.Message = "a" + model.NewId() + "b"
+	o2a.Message = "zz" + model.NewId() + "b"
 	o2a = Must(store.Post().Save(o2a)).(*model.Post)
 
 	time.Sleep(1 * time.Second)
@@ -1047,28 +1047,28 @@ func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
-	c1.Name = "a" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = Must(store.Channel().Save(c1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.DeleteAt = 1
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
@@ -1076,13 +1076,13 @@ func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
 	o4 := &model.Post{}
 	o4.ChannelId = model.NewId()
 	o4.UserId = model.NewId()
-	o4.Message = "a" + model.NewId() + "b"
+	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	c2 := &model.Channel{}
 	c2.DisplayName = "DMChannel1"
-	c2.Name = "a" + model.NewId() + "b"
+	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_DIRECT
 
 	m1 := &model.ChannelMember{}
@@ -1100,7 +1100,7 @@ func TestPostStoreGetFlaggedPostsForTeam(t *testing.T) {
 	o5 := &model.Post{}
 	o5.ChannelId = c2.Id
 	o5.UserId = m2.UserId
-	o5.Message = "a" + model.NewId() + "b"
+	o5.Message = "zz" + model.NewId() + "b"
 	o5 = (<-store.Post().Save(o5)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
@@ -1224,21 +1224,21 @@ func TestPostStoreGetFlaggedPosts(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.DeleteAt = 1
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
@@ -1325,14 +1325,14 @@ func TestPostStoreGetFlaggedPostsForChannel(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
@@ -1340,7 +1340,7 @@ func TestPostStoreGetFlaggedPostsForChannel(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = model.NewId()
 	o3.UserId = o1.ChannelId
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.DeleteAt = 1
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
@@ -1348,7 +1348,7 @@ func TestPostStoreGetFlaggedPostsForChannel(t *testing.T) {
 	o4 := &model.Post{}
 	o4.ChannelId = model.NewId()
 	o4.UserId = model.NewId()
-	o4.Message = "a" + model.NewId() + "b"
+	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-store.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
@@ -1421,14 +1421,14 @@ func TestPostStoreGetPostsCreatedAt(t *testing.T) {
 	o0 := &model.Post{}
 	o0.ChannelId = model.NewId()
 	o0.UserId = model.NewId()
-	o0.Message = "a" + model.NewId() + "b"
+	o0.Message = "zz" + model.NewId() + "b"
 	o0.CreateAt = createTime
 	o0 = (<-store.Post().Save(o0)).Data.(*model.Post)
 
 	o1 := &model.Post{}
 	o1.ChannelId = o0.Id
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "b"
+	o1.Message = "zz" + model.NewId() + "b"
 	o0.CreateAt = createTime
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
@@ -1436,7 +1436,7 @@ func TestPostStoreGetPostsCreatedAt(t *testing.T) {
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "b"
+	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -1445,7 +1445,7 @@ func TestPostStoreGetPostsCreatedAt(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = model.NewId()
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "b"
+	o3.Message = "zz" + model.NewId() + "b"
 	o3.CreateAt = createTime
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
@@ -1463,13 +1463,13 @@ func TestPostStoreOverwrite(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "AAAAAAAAAAA"
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "CCCCCCCCC"
+	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
@@ -1477,7 +1477,7 @@ func TestPostStoreOverwrite(t *testing.T) {
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "QQQQQQQQQQ"
+	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 
 	ro1 := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
@@ -1557,19 +1557,19 @@ func TestPostStoreGetPostsByIds(t *testing.T) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "a" + model.NewId() + "AAAAAAAAAAA"
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
-	o2.Message = "a" + model.NewId() + "CCCCCCCCC"
+	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
 	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
 
 	o3 := &model.Post{}
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
-	o3.Message = "a" + model.NewId() + "QQQQQQQQQQ"
+	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
 
 	ro1 := (<-store.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]

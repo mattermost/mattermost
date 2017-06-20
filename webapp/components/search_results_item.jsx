@@ -2,9 +2,9 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import PostMessageContainer from 'components/post_view/components/post_message_container.jsx';
+import PostMessageContainer from 'components/post_view/post_message_view';
 import UserProfile from './user_profile.jsx';
-import FileAttachmentListContainer from './file_attachment_list_container.jsx';
+import FileAttachmentListContainer from 'components/file_attachment_list';
 import ProfilePicture from './profile_picture.jsx';
 import CommentIcon from 'components/common/comment_icon.jsx';
 
@@ -14,17 +14,17 @@ import UserStore from 'stores/user_store.jsx';
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {flagPost, unflagPost} from 'actions/post_actions.jsx';
-import PostFlagIcon from 'components/common/post_flag_icon.jsx';
+import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-
-import PropTypes from 'prop-types';
+import {Posts} from 'mattermost-redux/constants';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import {FormattedMessage, FormattedDate} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
 
@@ -187,7 +187,7 @@ export default class SearchResultsItem extends React.Component {
         let message;
         let flagContent;
         let rhsControls;
-        if (post.state === Constants.POST_DELETED) {
+        if (post.state === Posts.POST_DELETED) {
             message = (
                 <p>
                     <FormattedMessage
@@ -290,7 +290,12 @@ export default class SearchResultsItem extends React.Component {
                 <div
                     className={'post post--thread ' + compactClass}
                 >
-                    <div className='search-channel__name'>{channelName}</div>
+                    <div
+                        id={idCount === -1 ? null : Utils.createSafeId('searchChannelName' + idCount)}
+                        className='search-channel__name'
+                    >
+                        {channelName}
+                    </div>
                     <div className='post__content'>
                         {profilePicContainer}
                         <div>

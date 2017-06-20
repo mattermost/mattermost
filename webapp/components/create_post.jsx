@@ -28,6 +28,7 @@ import ConfirmModal from './confirm_modal.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
+import {RootCloseWrapper} from 'react-overlays';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -67,9 +68,7 @@ export default class CreatePost extends React.Component {
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.showShortcuts = this.showShortcuts.bind(this);
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
-        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
-        this.closeEmoji = this.closeEmoji.bind(this);
         this.hideNotifyAllModal = this.hideNotifyAllModal.bind(this);
         this.showNotifyAllModal = this.showNotifyAllModal.bind(this);
         this.handleNotifyModalCancel = this.handleNotifyModalCancel.bind(this);
@@ -78,7 +77,7 @@ export default class CreatePost extends React.Component {
         PostStore.clearDraftUploads();
 
         const channelId = ChannelStore.getCurrentId();
-        const draft = PostStore.getPostDraft(channelId);
+        const draft = PostStore.getDraft(channelId);
 
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
@@ -107,21 +106,17 @@ export default class CreatePost extends React.Component {
         this.setState({postError});
     }
 
-    closeEmoji(clickEvent) {
-        /*
-         if the user clicked something outside the component, except the main emojipicker icon
-         and the picker is open, then close it
-         */
-        if (clickEvent && clickEvent.srcElement &&
-            clickEvent.srcElement.className.indexOf('emoji-main') === -1 &&
-            this.state.showEmojiPicker) {
-            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-        }
+    toggleEmojiPicker = () => {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
     }
 
     doSubmit(e) {
         if (e) {
             e.preventDefault();
+        }
+
+        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
+            return;
         }
 
         const post = {};
@@ -146,7 +141,7 @@ export default class CreatePost extends React.Component {
 
         const isReaction = REACTION_PATTERN.exec(post.message);
         if (post.message.indexOf('/') === 0) {
-            PostActions.storePostDraft(this.state.channelId, null);
+            PostStore.storeDraft(this.state.channelId, null);
             this.setState({message: '', postError: null, fileInfos: [], enableSendButton: false});
 
             const args = {};
@@ -233,7 +228,6 @@ export default class CreatePost extends React.Component {
 
     sendMessage(post) {
         post.channel_id = this.state.channelId;
-        post.file_ids = this.state.fileInfos.map((info) => info.id);
 
         const time = Utils.getTimestamp();
         const userId = UserStore.getCurrentId();
@@ -252,7 +246,7 @@ export default class CreatePost extends React.Component {
             });
         }
 
-        PostActions.queuePost(post, false, null,
+        PostActions.createPost(post, this.state.fileInfos, null,
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     // this should never actually happen since you can't reply from this textbox
@@ -272,7 +266,7 @@ export default class CreatePost extends React.Component {
         const action = isReaction[1];
 
         const emojiName = isReaction[2];
-        const postId = PostStore.getLatestNonEphemeralPost(this.state.channelId).id;
+        const postId = PostStore.getLatestPostId(this.state.channelId);
 
         if (postId && action === '+') {
             PostActions.addReaction(this.state.channelId, postId, emojiName);
@@ -280,7 +274,7 @@ export default class CreatePost extends React.Component {
             PostActions.removeReaction(this.state.channelId, postId, emojiName);
         }
 
-        PostActions.storePostDraft(this.state.channelId, null);
+        PostStore.storeDraft(this.state.channelId, null);
     }
 
     focusTextbox(keepFocus = false) {
@@ -310,9 +304,9 @@ export default class CreatePost extends React.Component {
             enableSendButton
         });
 
-        const draft = PostStore.getPostDraft(this.state.channelId);
+        const draft = PostStore.getDraft(this.state.channelId);
         draft.message = message;
-        PostActions.storePostDraft(this.state.channelId, draft);
+        PostStore.storeDraft(this.state.channelId, draft);
     }
 
     handleFileUploadChange() {
@@ -320,10 +314,10 @@ export default class CreatePost extends React.Component {
     }
 
     handleUploadStart(clientIds, channelId) {
-        const draft = PostStore.getPostDraft(channelId);
+        const draft = PostStore.getDraft(channelId);
 
         draft.uploadsInProgress = draft.uploadsInProgress.concat(clientIds);
-        PostActions.storePostDraft(channelId, draft);
+        PostStore.storeDraft(channelId, draft);
 
         this.setState({uploadsInProgress: draft.uploadsInProgress});
 
@@ -333,7 +327,7 @@ export default class CreatePost extends React.Component {
     }
 
     handleFileUploadComplete(fileInfos, clientIds, channelId) {
-        const draft = PostStore.getPostDraft(channelId);
+        const draft = PostStore.getDraft(channelId);
 
         // remove each finished file from uploads
         for (let i = 0; i < clientIds.length; i++) {
@@ -345,7 +339,7 @@ export default class CreatePost extends React.Component {
         }
 
         draft.fileInfos = draft.fileInfos.concat(fileInfos);
-        PostActions.storePostDraft(channelId, draft);
+        PostStore.storeDraft(channelId, draft);
 
         if (channelId === this.state.channelId) {
             this.setState({
@@ -364,14 +358,14 @@ export default class CreatePost extends React.Component {
         }
 
         if (clientId !== -1) {
-            const draft = PostStore.getPostDraft(channelId);
+            const draft = PostStore.getDraft(channelId);
 
             const index = draft.uploadsInProgress.indexOf(clientId);
             if (index !== -1) {
                 draft.uploadsInProgress.splice(index, 1);
             }
 
-            PostActions.storePostDraft(channelId, draft);
+            PostStore.storeDraft(channelId, draft);
 
             if (channelId === this.state.channelId) {
                 this.setState({uploadsInProgress: draft.uploadsInProgress});
@@ -401,10 +395,10 @@ export default class CreatePost extends React.Component {
             fileInfos.splice(index, 1);
         }
 
-        const draft = PostStore.getPostDraft(this.state.channelId);
+        const draft = PostStore.getDraft(this.state.channelId);
         draft.fileInfos = fileInfos;
         draft.uploadsInProgress = uploadsInProgress;
-        PostActions.storePostDraft(this.state.channelId, draft);
+        PostStore.storeDraft(this.state.channelId, draft);
         const enableSendButton = this.handleEnableSendButton(this.state.message, fileInfos);
 
         this.setState({fileInfos, uploadsInProgress, enableSendButton});
@@ -446,10 +440,6 @@ export default class CreatePost extends React.Component {
     }
 
     showShortcuts(e) {
-        if (e.which === Constants.KeyCodes.ESCAPE && this.state.showEmojiPicker === true) {
-            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-        }
-
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
             const args = {};
@@ -471,7 +461,7 @@ export default class CreatePost extends React.Component {
     onChange() {
         const channelId = ChannelStore.getCurrentId();
         if (this.state.channelId !== channelId) {
-            const draft = PostStore.getPostDraft(channelId);
+            const draft = PostStore.getDraft(channelId);
 
             this.setState({channelId, message: draft.message, submitting: false, serverError: null, postError: null, fileInfos: draft.fileInfos, uploadsInProgress: draft.uploadsInProgress});
         }
@@ -492,7 +482,7 @@ export default class CreatePost extends React.Component {
             return this.state.fileInfos.length + this.state.uploadsInProgress.length;
         }
 
-        const draft = PostStore.getPostDraft(channelId);
+        const draft = PostStore.getDraft(channelId);
         return draft.fileInfos.length + draft.uploadsInProgress.length;
     }
 
@@ -506,7 +496,9 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        const lastPostEl = document.getElementById(this.state.channelId + 'commentIcon0');
+        const latestNonEphemeralPost = PostStore.getLatestNonEphemeralPost(this.state.channelId);
+        const latestNonEphemeralPostId = latestNonEphemeralPost == null ? '' : latestNonEphemeralPost.id;
+        const lastPostEl = document.getElementById(`commentIcon_${this.state.channelId}_${latestNonEphemeralPostId}`);
 
         if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();
@@ -580,20 +572,18 @@ export default class CreatePost extends React.Component {
         }
 
         if (this.state.message === '') {
-            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+            this.setState({message: ':' + emojiAlias + ': '});
         } else {
             //check whether there is already a blank at the end of the current message
             const newMessage = (/\s+$/.test(this.state.message)) ?
                 this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
 
-            this.setState({message: newMessage, showEmojiPicker: false});
+            this.setState({message: newMessage});
         }
 
-        this.focusTextbox();
-    }
+        this.setState({showEmojiPicker: false});
 
-    handleEmojiPickerClick() {
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+        this.focusTextbox();
     }
 
     createTutorialTip() {
@@ -692,15 +682,16 @@ export default class CreatePost extends React.Component {
         if (!this.state.enableSendButton) {
             sendButtonClass += ' disabled';
         }
+
         let emojiPicker = null;
         if (this.state.showEmojiPicker) {
             emojiPicker = (
-                <EmojiPicker
-                    onEmojiClick={this.handleEmojiClick}
-                    pickerLocation='top'
-                    outsideClick={this.closeEmoji}
-
-                />
+                <RootCloseWrapper onRootClose={this.toggleEmojiPicker}>
+                    <EmojiPicker
+                        onHide={this.toggleEmojiPicker}
+                        onEmojiClick={this.handleEmojiClick}
+                    />
+                </RootCloseWrapper>
             );
         }
 
@@ -743,7 +734,7 @@ export default class CreatePost extends React.Component {
                                 onUploadError={this.handleUploadError}
                                 postType='post'
                                 channelId=''
-                                onEmojiClick={this.handleEmojiPickerClick}
+                                onEmojiClick={this.toggleEmojiPicker}
                                 emojiEnabled={this.state.emojiPickerEnabled}
                                 navBarName='main'
                             />
@@ -775,7 +766,7 @@ export default class CreatePost extends React.Component {
                 <ConfirmModal
                     title={notifyAllTitle}
                     message={notifyAllMessage}
-                    confirmButton={notifyAllConfirm}
+                    confirmButtonText={notifyAllConfirm}
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleNotifyAllConfirmation}
                     onCancel={this.handleNotifyModalCancel}

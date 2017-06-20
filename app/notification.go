@@ -510,6 +510,11 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	}
 
+	// If the post only has images then push an appropriate message
+	if len(post.Message) == 0 && post.FileIds != nil && len(post.FileIds) > 0 {
+		msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
+	}
+
 	l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
 
 	for _, session := range sessions {

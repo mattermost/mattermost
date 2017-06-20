@@ -656,7 +656,7 @@ func GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUn
 		return nil, result.Err
 	} else {
 		data := result.Data.([]*model.ChannelUnread)
-		var members []*model.TeamUnread
+		members := []*model.TeamUnread{}
 		membersMap := make(map[string]*model.TeamUnread)
 
 		unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
@@ -688,6 +688,15 @@ func GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUn
 
 		return members, nil
 	}
+}
+
+func PermanentDeleteTeamId(teamId string) *model.AppError {
+	team, err := GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	return PermanentDeleteTeam(team)
 }
 
 func PermanentDeleteTeam(team *model.Team) *model.AppError {
