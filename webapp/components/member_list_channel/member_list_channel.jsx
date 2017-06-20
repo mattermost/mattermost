@@ -45,7 +45,7 @@ export default class MemberListChannel extends React.Component {
         const stats = ChannelStore.getCurrentStats();
 
         this.state = {
-            users: UserStore.getProfileListInChannel(),
+            users: UserStore.getProfileListInChannel(ChannelStore.getCurrentId(), false, true),
             teamMembers: Object.assign({}, TeamStore.getMembersInTeam()),
             channelMembers: Object.assign({}, ChannelStore.getMembersInChannel()),
             total: stats.member_count,
@@ -81,7 +81,7 @@ export default class MemberListChannel extends React.Component {
         if (this.term) {
             users = searchProfilesInCurrentChannel(store.getState(), this.term);
         } else {
-            users = UserStore.getProfileListInChannel();
+            users = UserStore.getProfileListInChannel(ChannelStore.getCurrentId(), false, true);
         }
 
         this.setState({
