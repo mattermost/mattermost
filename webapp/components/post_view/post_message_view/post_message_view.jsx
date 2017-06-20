@@ -4,7 +4,6 @@
 import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import PropTypes from 'prop-types';
 import React from 'react';
-import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
 
 import AtMention from 'components/at_mention';
@@ -22,6 +21,7 @@ import {renderSystemMessage} from './system_message_helpers.jsx';
 
 export default class PostMessageView extends React.PureComponent {
     static propTypes = {
+
         /*
          * The post to render the message for
          */
