@@ -36,6 +36,7 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember} from 'mattermost-redux/actions/channels';
+import {getPostThread} from 'mattermost-redux/actions/posts';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -158,17 +159,8 @@ export function emitCloseRightHandSide() {
 }
 
 export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
-    Client.getPost(
-        post.channel_id,
-        post.id,
-        (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POSTS,
-                id: post.channel_id,
-                numRequested: 0,
-                post_list: data
-            });
-
+    getPostThread(post.id)(dispatch, getState).then(
+        () => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_POST_SELECTED,
                 postId: Utils.getRootId(post),
@@ -182,9 +174,6 @@ export function emitPostFocusRightHandSideFromSearch(post, isMentionSearch) {
                 results: null,
                 is_mention_search: isMentionSearch
             });
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getPost');
         }
     );
 }
