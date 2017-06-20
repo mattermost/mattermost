@@ -18,7 +18,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         /**
          * The open graph data to render
          */
-        openGraphData: PropTypes.object.isRequired,
+        openGraphData: PropTypes.object,
 
         /**
          * Set to collapse the preview
