@@ -363,7 +363,9 @@ func TestGetPostsForChannel(t *testing.T) {
 	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
 	post3, _ = Client.CreatePost(post3)
 
-	time := model.GetMillis()
+	time.Sleep(300 * time.Millisecond)
+	since := model.GetMillis()
+	time.Sleep(300 * time.Millisecond)
 
 	post4 := th.CreatePost()
 
@@ -420,7 +422,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post5 := th.CreatePost()
 
-	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, time)
+	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, since)
 	CheckNoError(t, resp)
 
 	if len(posts.Posts) != 2 {
@@ -430,7 +432,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	found := make([]bool, 2)
 	for _, p := range posts.Posts {
-		if p.CreateAt < time {
+		if p.CreateAt < since {
 			t.Fatal("bad create at for post returned")
 		}
 		if p.Id == post4.Id {
