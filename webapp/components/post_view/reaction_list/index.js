@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {makeGetReactionsForPost} from 'mattermost-redux/selectors/entities/posts';
-import {getCustomEmojisAsMap} from 'mattermost-redux/selectors/entities/emojis';
+import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 
 import * as Actions from 'mattermost-redux/actions/posts';
 
@@ -17,7 +17,7 @@ function makeMapStateToProps() {
         return {
             ...ownProps,
             reactions: getReactionsForPost(state, ownProps.post.id),
-            emojis: getCustomEmojisAsMap(state)
+            emojis: getCustomEmojisByName(state)
         };
     };
 }

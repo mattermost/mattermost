@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import {connect} from 'react-redux';
-import {getCustomEmojisAsMap} from 'mattermost-redux/selectors/entities/emojis';
+import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserMentionKeys, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 
@@ -20,7 +20,7 @@ function makeMapStateToProps() {
     let oldCustomEmoji;
 
     return function mapStateToProps(state, ownProps) {
-        const newCustomEmoji = getCustomEmojisAsMap(state);
+        const newCustomEmoji = getCustomEmojisByName(state);
         if (newCustomEmoji !== oldCustomEmoji) {
             emojiMap = new EmojiMap(newCustomEmoji);
         }
