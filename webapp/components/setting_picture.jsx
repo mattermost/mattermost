@@ -114,8 +114,8 @@ export default class SettingPicture extends Component {
                                 id='setting_picture.help'
                                 defaultMessage='Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.'
                                 values={{
-                                    width: global.mm_config.ProfileWidth,
-                                    height: global.mm_config.ProfileHeight
+                                    width: 128,
+                                    height: 128
                                 }}
                             />
                         </li>

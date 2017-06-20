@@ -719,8 +719,8 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}
 
-	width := int(utils.Cfg.FileSettings.ProfileWidth)
-	height := int(utils.Cfg.FileSettings.ProfileHeight)
+	width := 128
+	height := 128
 	color := colors[int64(seed)%int64(len(colors))]
 	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
 	srcImg := image.White
@@ -811,7 +811,8 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	img = makeImageUpright(img, orientation)
 
 	// Scale profile image
-	img = imaging.Fill(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Center, imaging.Lanczos)
+	profileWidthAndHeight := 128
+	img = imaging.Fill(img, profileWidthAndHeight, profileWidthAndHeight, imaging.Center, imaging.Lanczos)
 
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)

@@ -553,18 +553,16 @@ func getImageOrientation(input io.Reader) (int, error) {
 }
 
 func generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
-	thumbWidth := float64(utils.Cfg.FileSettings.ThumbnailWidth)
-	thumbHeight := float64(utils.Cfg.FileSettings.ThumbnailHeight)
-	imgWidth := float64(width)
-	imgHeight := float64(height)
+	thumbWidth := 120
+	thumbHeight := 100
 
 	var thumbnail image.Image
-	if imgHeight < thumbHeight && imgWidth < thumbWidth {
+	if height < thumbHeight && width < thumbWidth {
 		thumbnail = img
-	} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
-		thumbnail = imaging.Resize(img, 0, utils.Cfg.FileSettings.ThumbnailHeight, imaging.Lanczos)
+	} else if height/width < thumbHeight/thumbWidth {
+		thumbnail = imaging.Resize(img, 0, thumbHeight, imaging.Lanczos)
 	} else {
-		thumbnail = imaging.Resize(img, utils.Cfg.FileSettings.ThumbnailWidth, 0, imaging.Lanczos)
+		thumbnail = imaging.Resize(img, thumbWidth, 0, imaging.Lanczos)
 	}
 
 	buf := new(bytes.Buffer)
@@ -581,8 +579,10 @@ func generateThumbnailImage(img image.Image, thumbnailPath string, width int, he
 
 func generatePreviewImage(img image.Image, previewPath string, width int) {
 	var preview image.Image
-	if width > int(utils.Cfg.FileSettings.PreviewWidth) {
-		preview = imaging.Resize(img, utils.Cfg.FileSettings.PreviewWidth, utils.Cfg.FileSettings.PreviewHeight, imaging.Lanczos)
+	previewWidth := 1024
+	previewHeight := 0
+	if width > previewWidth {
+		preview = imaging.Resize(img, previewWidth, previewHeight, imaging.Lanczos)
 	} else {
 		preview = img
 	}

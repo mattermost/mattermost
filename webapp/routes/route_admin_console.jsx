@@ -32,7 +32,6 @@ import ExternalServiceSettings from 'components/admin_console/external_service_s
 import WebrtcSettings from 'components/admin_console/webrtc_settings.jsx';
 import DatabaseSettings from 'components/admin_console/database_settings.jsx';
 import StorageSettings from 'components/admin_console/storage_settings.jsx';
-import ImageSettings from 'components/admin_console/image_settings.jsx';
 import CustomBrandSettings from 'components/admin_console/custom_brand_settings.jsx';
 import CustomEmojiSettings from 'components/admin_console/custom_emoji_settings.jsx';
 import LinkPreviewsSettings from 'components/admin_console/link_previews_settings.jsx';
@@ -165,10 +164,6 @@ export default (
             <Route
                 path='storage'
                 component={StorageSettings}
-            />
-            <Route
-                path='images'
-                component={ImageSettings}
             />
         </Route>
         <Route path='customization'>
