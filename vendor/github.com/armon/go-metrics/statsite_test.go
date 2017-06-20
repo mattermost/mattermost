@@ -3,6 +3,8 @@ package metrics
 import (
 	"bufio"
 	"net"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
@@ -97,5 +99,46 @@ func TestStatsite_Conn(t *testing.T) {
 		s.Shutdown()
 	case <-time.After(3 * time.Second):
 		t.Fatalf("timeout")
+	}
+}
+
+func TestNewStatsiteSinkFromURL(t *testing.T) {
+	for _, tc := range []struct {
+		desc       string
+		input      string
+		expectErr  string
+		expectAddr string
+	}{
+		{
+			desc:       "address is populated",
+			input:      "statsd://statsd.service.consul",
+			expectAddr: "statsd.service.consul",
+		},
+		{
+			desc:       "address includes port",
+			input:      "statsd://statsd.service.consul:1234",
+			expectAddr: "statsd.service.consul:1234",
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			u, err := url.Parse(tc.input)
+			if err != nil {
+				t.Fatalf("error parsing URL: %s", err)
+			}
+			ms, err := NewStatsiteSinkFromURL(u)
+			if tc.expectErr != "" {
+				if !strings.Contains(err.Error(), tc.expectErr) {
+					t.Fatalf("expected err: %q, to contain: %q", err, tc.expectErr)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("unexpected err: %s", err)
+				}
+				is := ms.(*StatsiteSink)
+				if is.addr != tc.expectAddr {
+					t.Fatalf("expected addr %s, got: %s", tc.expectAddr, is.addr)
+				}
+			}
+		})
 	}
 }

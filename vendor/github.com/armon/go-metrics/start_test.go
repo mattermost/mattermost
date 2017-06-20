@@ -1,7 +1,10 @@
 package metrics
 
 import (
+	"io/ioutil"
+	"log"
 	"reflect"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -27,84 +30,70 @@ func TestDefaultConfig(t *testing.T) {
 		t.Fatalf("bad interval")
 	}
 }
-
-func Test_GlobalMetrics_SetGauge(t *testing.T) {
-	m := &MockSink{}
-	globalMetrics = &Metrics{sink: m}
-
-	k := []string{"test"}
-	v := float32(42.0)
-	SetGauge(k, v)
-
-	if !reflect.DeepEqual(m.keys[0], k) {
-		t.Fatalf("key not equal")
+func Test_GlobalMetrics(t *testing.T) {
+	var tests = []struct {
+		desc string
+		key  []string
+		val  float32
+		fn   func([]string, float32)
+	}{
+		{"SetGauge", []string{"test"}, 42, SetGauge},
+		{"EmitKey", []string{"test"}, 42, EmitKey},
+		{"IncrCounter", []string{"test"}, 42, IncrCounter},
+		{"AddSample", []string{"test"}, 42, AddSample},
 	}
-	if !reflect.DeepEqual(m.vals[0], v) {
-		t.Fatalf("val not equal")
-	}
-}
 
-func Test_GlobalMetrics_EmitKey(t *testing.T) {
-	m := &MockSink{}
-	globalMetrics = &Metrics{sink: m}
-
-	k := []string{"test"}
-	v := float32(42.0)
-	EmitKey(k, v)
-
-	if !reflect.DeepEqual(m.keys[0], k) {
-		t.Fatalf("key not equal")
-	}
-	if !reflect.DeepEqual(m.vals[0], v) {
-		t.Fatalf("val not equal")
-	}
-}
-
-func Test_GlobalMetrics_IncrCounter(t *testing.T) {
-	m := &MockSink{}
-	globalMetrics = &Metrics{sink: m}
-
-	k := []string{"test"}
-	v := float32(42.0)
-	IncrCounter(k, v)
-
-	if !reflect.DeepEqual(m.keys[0], k) {
-		t.Fatalf("key not equal")
-	}
-	if !reflect.DeepEqual(m.vals[0], v) {
-		t.Fatalf("val not equal")
-	}
-}
-
-func Test_GlobalMetrics_AddSample(t *testing.T) {
-	m := &MockSink{}
-	globalMetrics = &Metrics{sink: m}
-
-	k := []string{"test"}
-	v := float32(42.0)
-	AddSample(k, v)
-
-	if !reflect.DeepEqual(m.keys[0], k) {
-		t.Fatalf("key not equal")
-	}
-	if !reflect.DeepEqual(m.vals[0], v) {
-		t.Fatalf("val not equal")
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			s := &MockSink{}
+			globalMetrics.Store(&Metrics{sink: s})
+			tt.fn(tt.key, tt.val)
+			if got, want := s.keys[0], tt.key; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got key %s want %s", got, want)
+			}
+			if got, want := s.vals[0], tt.val; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got val %s want %s", got, want)
+			}
+		})
 	}
 }
 
 func Test_GlobalMetrics_MeasureSince(t *testing.T) {
-	m := &MockSink{}
-	globalMetrics = &Metrics{sink: m}
-	globalMetrics.TimerGranularity = time.Millisecond
+	s := &MockSink{}
+	m := &Metrics{sink: s, Config: Config{TimerGranularity: time.Millisecond}}
+	globalMetrics.Store(m)
 
 	k := []string{"test"}
 	now := time.Now()
 	MeasureSince(k, now)
 
-	if !reflect.DeepEqual(m.keys[0], k) {
+	if !reflect.DeepEqual(s.keys[0], k) {
 		t.Fatalf("key not equal")
 	}
-	if m.vals[0] > 0.1 {
-		t.Fatalf("val too large %v", m.vals[0])
+	if s.vals[0] > 0.1 {
+		t.Fatalf("val too large %v", s.vals[0])
 	}
+}
+
+// Benchmark_GlobalMetrics_Direct/direct-8         	 5000000	       278 ns/op
+// Benchmark_GlobalMetrics_Direct/atomic.Value-8   	 5000000	       235 ns/op
+func Benchmark_GlobalMetrics_Direct(b *testing.B) {
+	log.SetOutput(ioutil.Discard)
+	s := &MockSink{}
+	m := &Metrics{sink: s}
+	var v atomic.Value
+	v.Store(m)
+	k := []string{"test"}
+	b.Run("direct", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m.IncrCounter(k, 1)
+		}
+	})
+	b.Run("atomic.Value", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			v.Load().(*Metrics).IncrCounter(k, 1)
+		}
+	})
+	// do something with m so that the compiler does not optimize this away
+	b.Logf("%d", m.lastNumGC)
 }

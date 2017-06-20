@@ -17,64 +17,62 @@ Go-toml provides the following features for using data parsed from TOML document
 
 * Load TOML documents from files and string data
 * Easily navigate TOML structure using Tree
+* Mashaling and unmarshaling to and from data structures
 * Line & column position data for all parsed elements
 * [Query support similar to JSON-Path](query/)
 * Syntax errors contain line and column numbers
 
-Go-toml is designed to help cover use-cases not covered by reflection-based TOML parsing:
-
-* Semantic evaluation of parsed TOML
-* Informing a user of mistakes in the source document, after it has been parsed
-* Programatic handling of default values on a case-by-case basis
-* Using a TOML document as a flexible data-store
-
 ## Import
 
-    import "github.com/pelletier/go-toml"
-
-## Usage
-
-### Example
-
-Say you have a TOML file that looks like this:
-
-```toml
-[postgres]
-user = "pelletier"
-password = "mypassword"
+```go
+import "github.com/pelletier/go-toml"
 ```
 
-Read the username and password like this:
+## Usage example
+
+Read a TOML document:
 
 ```go
-import (
-    "fmt"
-    "github.com/pelletier/go-toml"
-)
+config, _ := toml.LoadString(`
+[postgres]
+user = "pelletier"
+password = "mypassword"`)
+// retrieve data directly
+user := config.Get("postgres.user").(string)
 
-config, err := toml.LoadFile("config.toml")
-if err != nil {
-    fmt.Println("Error ", err.Error())
-} else {
-    // retrieve data directly
-    user := config.Get("postgres.user").(string)
-    password := config.Get("postgres.password").(string)
+// or using an intermediate object
+postgresConfig := config.Get("postgres").(*toml.Tree)
+password = postgresConfig.Get("password").(string)
+```
 
-    // or using an intermediate object
-    configTree := config.Get("postgres").(*toml.Tree)
-    user = configTree.Get("user").(string)
-    password = configTree.Get("password").(string)
-    fmt.Println("User is ", user, ". Password is ", password)
+Or use Unmarshal:
 
-    // show where elements are in the file
-    fmt.Println("User position: %v", configTree.GetPosition("user"))
-    fmt.Println("Password position: %v", configTree.GetPosition("password"))
+```go
+type Postgres struct {
+    User     string
+    Password string
+}
+type Config struct {
+    Postgres Postgres
+}
 
-    // use a query to gather elements without walking the tree
-    results, _ := config.Query("$..[user,password]")
-    for ii, item := range results.Values() {
-      fmt.Println("Query result %d: %v", ii, item)
-    }
+doc := []byte(`
+[postgres]
+user = "pelletier"
+password = "mypassword"`)
+
+config := Config{}
+Unmarshal(doc, &config)
+fmt.Println("user=", config.Postgres.User)
+```
+
+Or use a query:
+
+```go
+// use a query to gather elements without walking the tree
+results, _ := config.Query("$..[user,password]")
+for ii, item := range results.Values() {
+    fmt.Println("Query result %d: %v", ii, item)
 }
 ```
 

@@ -1,10 +1,10 @@
 package query
 
 import (
-"fmt"
-"strconv"
-"unicode"
+	"fmt"
 	"github.com/pelletier/go-toml"
+	"strconv"
+	"unicode"
 )
 
 // Define tokens
@@ -104,4 +104,3 @@ func isHexDigit(r rune) bool {
 		(r >= 'a' && r <= 'f') ||
 		(r >= 'A' && r <= 'F')
 }
-

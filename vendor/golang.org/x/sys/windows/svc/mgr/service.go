@@ -15,8 +15,6 @@ import (
 
 // TODO(brainman): Use EnumDependentServices to enumerate dependent services.
 
-// TODO(brainman): Use EnumServicesStatus to enumerate services in the specified service control manager database.
-
 // Service is used to access Windows service.
 type Service struct {
 	Name   string

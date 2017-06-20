@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -15,6 +16,12 @@ const (
 	// forever.
 	flushInterval = 100 * time.Millisecond
 )
+
+// NewStatsiteSinkFromURL creates an StatsiteSink from a URL. It is used
+// (and tested) from NewMetricSinkFromURL.
+func NewStatsiteSinkFromURL(u *url.URL) (MetricSink, error) {
+	return NewStatsiteSink(u.Host)
+}
 
 // StatsiteSink provides a MetricSink that can be used with a
 // statsite metrics server

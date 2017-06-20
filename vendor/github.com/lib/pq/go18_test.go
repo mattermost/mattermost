@@ -5,6 +5,8 @@ package pq
 import (
 	"context"
 	"database/sql"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -155,6 +157,36 @@ func TestContextCancelQuery(t *testing.T) {
 	}
 }
 
+// TestIssue617 tests that a failed query in QueryContext doesn't lead to a
+// goroutine leak.
+func TestIssue617(t *testing.T) {
+	db := openTestConn(t)
+	defer db.Close()
+
+	const N = 10
+
+	numGoroutineStart := runtime.NumGoroutine()
+	for i := 0; i < N; i++ {
+		func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			_, err := db.QueryContext(ctx, `SELECT * FROM DOESNOTEXIST`)
+			pqErr, _ := err.(*Error)
+			// Expecting "pq: relation \"doesnotexist\" does not exist" error.
+			if err == nil || pqErr == nil || pqErr.Code != "42P01" {
+				t.Fatalf("expected undefined table error, got %v", err)
+			}
+		}()
+	}
+	numGoroutineFinish := runtime.NumGoroutine()
+
+	// We use N/2 and not N because the GC and other actors may increase or
+	// decrease the number of goroutines.
+	if numGoroutineFinish-numGoroutineStart >= N/2 {
+		t.Errorf("goroutine leak detected, was %d, now %d", numGoroutineStart, numGoroutineFinish)
+	}
+}
+
 func TestContextCancelBegin(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()
@@ -206,5 +238,82 @@ func TestContextCancelBegin(t *testing.T) {
 		} else if err := tx.Rollback(); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestTxOptions(t *testing.T) {
+	db := openTestConn(t)
+	defer db.Close()
+	ctx := context.Background()
+
+	tests := []struct {
+		level     sql.IsolationLevel
+		isolation string
+	}{
+		{
+			level:     sql.LevelDefault,
+			isolation: "",
+		},
+		{
+			level:     sql.LevelReadUncommitted,
+			isolation: "read uncommitted",
+		},
+		{
+			level:     sql.LevelReadCommitted,
+			isolation: "read committed",
+		},
+		{
+			level:     sql.LevelRepeatableRead,
+			isolation: "repeatable read",
+		},
+		{
+			level:     sql.LevelSerializable,
+			isolation: "serializable",
+		},
+	}
+
+	for _, test := range tests {
+		for _, ro := range []bool{true, false} {
+			tx, err := db.BeginTx(ctx, &sql.TxOptions{
+				Isolation: test.level,
+				ReadOnly:  ro,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var isolation string
+			err = tx.QueryRow("select current_setting('transaction_isolation')").Scan(&isolation)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if test.isolation != "" && isolation != test.isolation {
+				t.Errorf("wrong isolation level: %s != %s", isolation, test.isolation)
+			}
+
+			var isRO string
+			err = tx.QueryRow("select current_setting('transaction_read_only')").Scan(&isRO)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if ro != (isRO == "on") {
+				t.Errorf("read/[write,only] not set: %t != %s for level %s",
+					ro, isRO, test.isolation)
+			}
+
+			tx.Rollback()
+		}
+	}
+
+	_, err := db.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelLinearizable,
+	})
+	if err == nil {
+		t.Fatal("expected LevelLinearizable to fail")
+	}
+	if !strings.Contains(err.Error(), "isolation level not supported") {
+		t.Errorf("Expected error to mention isolation level, got %q", err)
 	}
 }

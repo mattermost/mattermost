@@ -24,7 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func ExampleNewExpvarCollector() {
+func ExampleExpvarCollector() {
 	expvarCollector := prometheus.NewExpvarCollector(map[string]*prometheus.Desc{
 		"memstats": prometheus.NewDesc(
 			"expvar_memstats",

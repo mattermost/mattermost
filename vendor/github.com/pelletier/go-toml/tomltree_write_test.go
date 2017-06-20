@@ -40,6 +40,30 @@ func assertErrorString(t *testing.T, expected string, err error) {
 	}
 }
 
+func TestTreeWriteToEmptyTable(t *testing.T) {
+	doc := `[[empty-tables]]
+[[empty-tables]]`
+
+	toml, err := Load(doc)
+	if err != nil {
+		t.Fatal("Unexpected Load error:", err)
+	}
+	tomlString, err := toml.ToTomlString()
+	if err != nil {
+		t.Fatal("Unexpected ToTomlString error:", err)
+	}
+
+	expected := `
+[[empty-tables]]
+
+[[empty-tables]]
+`
+
+	if tomlString != expected {
+		t.Fatalf("Expected:\n%s\nGot:\n%s", expected, tomlString)
+	}
+}
+
 func TestTreeWriteToTomlString(t *testing.T) {
 	toml, err := Load(`name = { first = "Tom", last = "Preston-Werner" }
 points = { x = 1, y = 2 }`)
@@ -269,3 +293,66 @@ func TestTreeWriteToMapWithArrayOfInlineTables(t *testing.T) {
 	treeMap := tree.ToMap()
 	testMaps(t, treeMap, expected)
 }
+
+func TestTreeWriteToFloat(t *testing.T) {
+	tree, err := Load(`a = 3.0`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	str, err := tree.ToTomlString()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := `a = 3.0`
+	if strings.TrimSpace(str) != strings.TrimSpace(expected) {
+		t.Fatalf("Expected:\n%s\nGot:\n%s", expected, str)
+	}
+}
+
+func BenchmarkTreeToTomlString(b *testing.B) {
+	toml, err := Load(sampleHard)
+	if err != nil {
+		b.Fatal("Unexpected error:", err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, err := toml.ToTomlString()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+var sampleHard = `# Test file for TOML
+# Only this one tries to emulate a TOML file written by a user of the kind of parser writers probably hate
+# This part you'll really hate
+
+[the]
+test_string = "You'll hate me after this - #"          # " Annoying, isn't it?
+
+    [the.hard]
+    test_array = [ "] ", " # "]      # ] There you go, parse this!
+    test_array2 = [ "Test #11 ]proved that", "Experiment #9 was a success" ]
+    # You didn't think it'd as easy as chucking out the last #, did you?
+    another_test_string = " Same thing, but with a string #"
+    harder_test_string = " And when \"'s are in the string, along with # \""   # "and comments are there too"
+    # Things will get harder
+
+        [the.hard."bit#"]
+        "what?" = "You don't think some user won't do that?"
+        multi_line_array = [
+            "]",
+            # ] Oh yes I did
+            ]
+
+# Each of the following keygroups/key value pairs should produce an error. Uncomment to them to test
+
+#[error]   if you didn't catch this, your parser is broken
+#string = "Anything other than tabs, spaces and newline after a keygroup or key value pair has ended should produce an error unless it is a comment"   like this
+#array = [
+#         "This might most likely happen in multiline arrays",
+#         Like here,
+#         "or here,
+#         and here"
+#         ]     End of array comment, forgot the #
+#number = 3.14  pi <--again forgot the #         `
