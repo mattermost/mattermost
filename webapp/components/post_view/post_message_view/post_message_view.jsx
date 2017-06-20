@@ -1,9 +1,14 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import AtMention from 'components/at_mention';
+
+import store from 'stores/redux_store.jsx';
 
 import * as PostUtils from 'utils/post_utils.jsx';
 import * as TextFormatting from 'utils/text_formatting.jsx';
@@ -11,7 +16,6 @@ import * as Utils from 'utils/utils.jsx';
 
 import {getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
 import {Posts} from 'mattermost-redux/constants';
-import store from 'stores/redux_store.jsx';
 
 import {renderSystemMessage} from './system_message_helpers.jsx';
 
@@ -44,11 +48,6 @@ export default class PostMessageView extends React.PureComponent {
         mentionKeys: PropTypes.arrayOf(PropTypes.string),
 
         /*
-         * Object mapping usernames to users
-         */
-        usernameMap: PropTypes.object,
-
-        /*
          * The URL that the app is hosted on
          */
         siteUrl: PropTypes.string,
@@ -66,8 +65,7 @@ export default class PostMessageView extends React.PureComponent {
 
     static defaultProps = {
         options: {},
-        mentionKeys: [],
-        usernameMap: {}
+        mentionKeys: []
     };
 
     renderDeletedPost() {
@@ -96,6 +94,34 @@ export default class PostMessageView extends React.PureComponent {
         );
     }
 
+    postMessageHtmlToComponent(html) {
+        const parser = new Parser();
+        const attrib = 'data-mention';
+        const processNodeDefinitions = new ProcessNodeDefinitions(React);
+
+        function isValidNode() {
+            return true;
+        }
+
+        const processingInstructions = [
+            {
+                replaceChildren: true,
+                shouldProcessNode: (node) => node.attribs && node.attribs[attrib],
+                processNode: (node) => {
+                    const mentionName = node.attribs[attrib];
+
+                    return <AtMention mentionName={mentionName}/>;
+                }
+            },
+            {
+                shouldProcessNode: () => true,
+                processNode: processNodeDefinitions.processDefaultNode
+            }
+        ];
+
+        return parser.parseWithInstructions(html, isValidNode, processingInstructions);
+    }
+
     render() {
         if (this.props.post.state === Posts.POST_DELETED) {
             return this.renderDeletedPost();
@@ -109,7 +135,7 @@ export default class PostMessageView extends React.PureComponent {
             emojis: this.props.emojis,
             siteURL: this.props.siteUrl,
             mentionKeys: this.props.mentionKeys,
-            usernameMap: this.props.usernameMap,
+            atMentions: true,
             channelNamesMap: getChannelsNameMapInCurrentTeam(store.getState()),
             team: this.props.team
         });
@@ -124,14 +150,18 @@ export default class PostMessageView extends React.PureComponent {
             postId = Utils.createSafeId('lastPostMessageText' + this.props.lastPostCount);
         }
 
+        const htmlFormattedText = TextFormatting.formatText(this.props.post.message, options);
+        const postMessageComponent = this.postMessageHtmlToComponent(htmlFormattedText);
+
         return (
             <div>
                 <span
                     id={postId}
                     className='post-message__text'
                     onClick={Utils.handleFormattedTextClick}
-                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(this.props.post.message, options)}}
-                />
+                >
+                    {postMessageComponent}
+                </span>
                 {this.renderEditedIndicator()}
             </div>
         );
