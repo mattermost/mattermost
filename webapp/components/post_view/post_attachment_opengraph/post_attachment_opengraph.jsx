@@ -18,7 +18,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         /**
          * The open graph data to render
          */
-        openGraphData: PropTypes.object.isRequired,
+        openGraphData: PropTypes.object,
 
         /**
          * Set to collapse the preview
@@ -50,17 +50,16 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         this.smallImageContainer = null;
         this.smallImageElement = null;
 
+        this.IMAGE_LOADED = {
+            LOADING: 'loading',
+            YES: 'yes',
+            ERROR: 'error'
+        };
+
         this.fetchData = this.fetchData.bind(this);
         this.toggleImageVisibility = this.toggleImageVisibility.bind(this);
         this.onImageLoad = this.onImageLoad.bind(this);
         this.onImageError = this.onImageError.bind(this);
-        this.truncateText = this.truncateText.bind(this);
-    }
-
-    IMAGE_LOADED = {
-        LOADING: 'loading',
-        YES: 'yes',
-        ERROR: 'error'
     }
 
     componentWillMount() {
@@ -75,6 +74,11 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     componentWillReceiveProps(nextProps) {
         if (nextProps.link !== this.props.link) {
             this.fetchData(nextProps.link);
+        }
+        if (nextProps.previewCollapsed !== this.props.previewCollapsed) {
+            this.setState({
+                imageVisible: nextProps.previewCollapsed.startsWith('false')
+            });
         }
     }
 
