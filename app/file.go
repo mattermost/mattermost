@@ -53,7 +53,10 @@ const (
 	RotatedCCWMirrored = 7
 	RotatedCW          = 8
 
-	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	MaxImageSize                 = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
+	IMAGE_THUMBNAIL_PIXEL_HEIGTH = 100
+	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
 )
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
@@ -553,16 +556,13 @@ func getImageOrientation(input io.Reader) (int, error) {
 }
 
 func generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
-	thumbWidth := 120
-	thumbHeight := 100
-
 	var thumbnail image.Image
-	if height < thumbHeight && width < thumbWidth {
+	if height < IMAGE_THUMBNAIL_PIXEL_HEIGTH && width < IMAGE_THUMBNAIL_PIXEL_WIDTH {
 		thumbnail = img
-	} else if height/width < thumbHeight/thumbWidth {
-		thumbnail = imaging.Resize(img, 0, thumbHeight, imaging.Lanczos)
+	} else if height/width < IMAGE_THUMBNAIL_PIXEL_HEIGTH/IMAGE_THUMBNAIL_PIXEL_WIDTH {
+		thumbnail = imaging.Resize(img, 0, IMAGE_THUMBNAIL_PIXEL_HEIGTH, imaging.Lanczos)
 	} else {
-		thumbnail = imaging.Resize(img, thumbWidth, 0, imaging.Lanczos)
+		thumbnail = imaging.Resize(img, IMAGE_THUMBNAIL_PIXEL_WIDTH, 0, imaging.Lanczos)
 	}
 
 	buf := new(bytes.Buffer)
@@ -579,10 +579,9 @@ func generateThumbnailImage(img image.Image, thumbnailPath string, width int, he
 
 func generatePreviewImage(img image.Image, previewPath string, width int) {
 	var preview image.Image
-	previewWidth := 1024
-	previewHeight := 0
-	if width > previewWidth {
-		preview = imaging.Resize(img, previewWidth, previewHeight, imaging.Lanczos)
+
+	if width > IMAGE_PREVIEW_PIXEL_WIDTH {
+		preview = imaging.Resize(img, IMAGE_PREVIEW_PIXEL_WIDTH, 0, imaging.Lanczos)
 	} else {
 		preview = img
 	}

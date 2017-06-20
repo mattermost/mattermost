@@ -31,10 +31,11 @@ import (
 )
 
 const (
-	TOKEN_TYPE_PASSWORD_RECOVERY = "password_recovery"
-	TOKEN_TYPE_VERIFY_EMAIL      = "verify_email"
-	PASSWORD_RECOVER_EXPIRY_TIME = 1000 * 60 * 60 // 1 hour
-	VERIFY_EMAIL_EXPIRY_TIME     = 1000 * 60 * 60 // 1 hour
+	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
+	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
+	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60 // 1 hour
+	VERIFY_EMAIL_EXPIRY_TIME      = 1000 * 60 * 60 // 1 hour
+	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
 func CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
@@ -719,13 +720,11 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}
 
-	width := 128
-	height := 128
 	color := colors[int64(seed)%int64(len(colors))]
-	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
+	dstImg := image.NewRGBA(image.Rect(0, 0, IMAGE_PROFILE_PIXEL_DIMENSION, IMAGE_PROFILE_PIXEL_DIMENSION))
 	srcImg := image.White
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
-	size := float64((width + height) / 4)
+	size := float64(IMAGE_PROFILE_PIXEL_DIMENSION / 2)
 
 	c := freetype.NewContext()
 	c.SetFont(font)
@@ -734,7 +733,7 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(width/6, height*2/3)
+	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/6, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error())
