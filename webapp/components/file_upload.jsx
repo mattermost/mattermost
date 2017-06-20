@@ -94,13 +94,13 @@ class FileUpload extends React.Component {
             const clientId = Utils.generateId();
 
             const request = uploadFile(
-                    files[i],
-                    files[i].name,
-                    channelId,
-                    clientId,
-                    this.fileUploadSuccess.bind(this, channelId),
-                    this.fileUploadFail.bind(this, clientId)
-                );
+                files[i],
+                files[i].name,
+                channelId,
+                clientId,
+                this.fileUploadSuccess.bind(this, channelId),
+                this.fileUploadFail.bind(this, clientId)
+            );
 
             const requests = this.state.requests;
             requests[clientId] = request;

@@ -1,6 +1,7 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -10,19 +11,19 @@ export default class CommentedOnFilesMessage extends React.PureComponent {
         /*
          * The id of the post that was commented on
          */
-        parentPostId: React.PropTypes.string.isRequired,
+        parentPostId: PropTypes.string.isRequired,
 
         /*
          * An array of file metadata for the parent post
          */
-        fileInfos: React.PropTypes.arrayOf(React.PropTypes.object),
+        fileInfos: PropTypes.arrayOf(PropTypes.object),
 
-        actions: React.PropTypes.shape({
+        actions: PropTypes.shape({
 
             /*
              * Function to get file metadata for a post
              */
-            getFilesForPost: React.PropTypes.func.isRequired
+            getFilesForPost: PropTypes.func.isRequired
         }).isRequired
     }
 
