@@ -724,8 +724,6 @@ export default class ChannelHeader extends React.Component {
                 if (!ChannelStore.isDefault(channel)) {
                     dropdownContents.push(deleteOption);
                 }
-            } else if (this.state.userCount === 1) {
-                dropdownContents.push(deleteOption);
             }
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
