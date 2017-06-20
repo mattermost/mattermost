@@ -116,7 +116,7 @@ func (s *LayeredStore) FileInfo() FileInfoStore {
 }
 
 func (s *LayeredStore) Reaction() ReactionStore {
-	return s.DatabaseLayer.Reaction()
+	return s.ReactionStore
 }
 
 func (s *LayeredStore) Job() JobStore {

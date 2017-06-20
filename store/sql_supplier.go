@@ -57,11 +57,6 @@ const (
 	EXIT_REMOVE_TABLE                = 134
 )
 
-type SqlSupplierResult struct {
-	Err    model.AppError
-	Result interface{}
-}
-
 type SqlSupplierOldStores struct {
 	team       TeamStore
 	channel    ChannelStore

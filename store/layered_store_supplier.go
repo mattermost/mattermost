@@ -7,15 +7,11 @@ import "github.com/mattermost/platform/model"
 import "context"
 
 type LayeredStoreSupplierResult struct {
-	Result StoreResult
-	Err    *model.AppError
+	*StoreResult
 }
 
 func NewSupplierResult() LayeredStoreSupplierResult {
-	return LayeredStoreSupplierResult{
-		Result: StoreResult{},
-		Err:    nil,
-	}
+	return LayeredStoreSupplierResult{}
 }
 
 type LayeredStoreSupplier interface {
