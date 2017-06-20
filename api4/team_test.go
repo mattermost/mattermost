@@ -1449,6 +1449,22 @@ func TestInviteUsersToTeam(t *testing.T) {
 			}
 		}
 	}
+
+	restrictCreationToDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	defer func() {
+		utils.Cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains
+	}()
+	utils.Cfg.TeamSettings.RestrictCreationToDomains = "@example.com"
+
+	err := app.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+
+	if err == nil {
+		t.Fatal("Adding users with non-restricted domains was allowed")
+	}
+	if err.Where != "InviteNewUsersToTeam" || err.Message != "api.team.invite_members.invalid_email.app_error" {
+		t.Log(err)
+		t.Fatal("Got wrong error message!")
+	}
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {
