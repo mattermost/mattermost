@@ -691,6 +691,7 @@ export default class Sidebar extends React.Component {
         var directMessageMore = (
             <li key='more'>
                 <a
+                    id='moreDirectMessage'
                     href='#'
                     onClick={this.handleOpenMoreDirectChannelsModal}
                 >
@@ -749,6 +750,7 @@ export default class Sidebar extends React.Component {
                 overlay={createChannelTootlip}
             >
                 <a
+                    id='createPublicChannel'
                     className='add-channel-btn'
                     href='#'
                     onClick={this.showNewChannelModal.bind(this, Constants.OPEN_CHANNEL)}
@@ -766,6 +768,7 @@ export default class Sidebar extends React.Component {
                 overlay={createGroupTootlip}
             >
                 <a
+                    id='createPrivateChannel'
                     className='add-channel-btn'
                     href='#'
                     onClick={this.showNewChannelModal.bind(this, Constants.PRIVATE_CHANNEL)}
