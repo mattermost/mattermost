@@ -166,6 +166,7 @@ export const ActionTypes = keyMirror({
 
     USER_TYPING: null,
 
+    TOGGLE_ACCOUNT_SETTINGS_MODAL: null,
     TOGGLE_IMPORT_THEME_MODAL: null,
     TOGGLE_INVITE_MEMBER_MODAL: null,
     TOGGLE_LEAVE_TEAM_MODAL: null,
