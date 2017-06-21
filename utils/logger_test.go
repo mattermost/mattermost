@@ -4,19 +4,35 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 )
 
+// ensures that creating a new instance of Logger properly records the name of the file that created it
+func Test_NewLogger(t *testing.T) {
+	t.Run("Logger name test", func(t *testing.T) {
+		var log = NewLogger()
+		var found = string(log)
+		var expected = "/platform/utils/logger_test.go"
+		if !strings.HasSuffix(found, expected) {
+			t.Errorf("Found logger suffix = %v, want %v", found, expected)
+		}
+	})
+}
+
+// ensures that values can be recorded on a Context object, and that the data in question is serialized as a part of the log message
 func Test_serializeContext(t *testing.T) {
 	t.Run("Context values test", func(t *testing.T) {
 		ctx := context.Background()
+		var log = NewLogger()
 
 		expectedUserID := "some-fake-user-id"
-		ctx = WithUserID(ctx, expectedUserID)
+		ctx = log.WithUserID(ctx, expectedUserID)
 
 		expectedRequestID := "some-fake-request-id"
-		ctx = WithRequestID(ctx, expectedRequestID)
+		ctx = log.WithRequestID(ctx, expectedRequestID)
 
 		serialized := serializeContext(ctx)
 
@@ -38,34 +54,72 @@ func Test_serializeContext(t *testing.T) {
 	})
 }
 
-func Test_serializeLogMessage(t *testing.T) {
+// ensures that an entire log message with an empty context can be properly serialized into a JSON object
+func Test_serializeLogMessage_EmptyContext(t *testing.T) {
 	emptyContext := context.Background()
+	var log = NewLogger()
 
-	populatedContext := context.Background()
-	populatedContext = WithRequestID(populatedContext, "foo")
-	populatedContext = WithUserID(populatedContext, "bar")
+	var logMessage = "This is a log message"
+	var serialized = serializeLogMessage(emptyContext, log, logMessage)
 
-	type args struct {
-		ctx     context.Context
-		message string
+	type LogMessage struct {
+		Context map[string]string
+		Logger  string
+		Message string
 	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{"Empty context test", args{emptyContext, "This is a log message"}, "{\"context\":{},\"message\":\"This is a log message\"}"},
-		{"Populated context test", args{populatedContext, "This is a log message"}, "{\"context\":{\"request-id\":\"foo\",\"user-id\":\"bar\"},\"message\":\"This is a log message\"}"},
+	var deserialized LogMessage
+	json.Unmarshal([]byte(serialized), &deserialized)
+
+	if len(deserialized.Context) != 0 {
+		t.Error("Context is non-empty")
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := serializeLogMessage(tt.args.ctx, tt.args.message); got != tt.want {
-				t.Errorf("serializeLogMessage() = %v, want %v", got, tt.want)
-			}
-		})
+	var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+	if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+		t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+	}
+	if deserialized.Message != logMessage {
+		t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
 	}
 }
 
+// ensures that an entire log message with a populated context can be properly serialized into a JSON object
+func Test_serializeLogMessage_PopulatedContext(t *testing.T) {
+	populatedContext := context.Background()
+	var log = NewLogger()
+
+	populatedContext = log.WithRequestID(populatedContext, "foo")
+	populatedContext = log.WithUserID(populatedContext, "bar")
+
+	var logMessage = "This is a log message"
+	var serialized = serializeLogMessage(populatedContext, log, logMessage)
+
+	type LogMessage struct {
+		Context map[string]string
+		Logger  string
+		Message string
+	}
+	var deserialized LogMessage
+	json.Unmarshal([]byte(serialized), &deserialized)
+
+	if len(deserialized.Context) != 2 {
+		t.Error("Context is non-empty")
+	}
+	if deserialized.Context["request-id"] != "foo" {
+		t.Errorf("Invalid request-id %v. Expected %v", deserialized.Context["request-id"], "foo")
+	}
+	if deserialized.Context["user-id"] != "bar" {
+		t.Errorf("Invalid user-id %v. Expected %v", deserialized.Context["user-id"], "bar")
+	}
+	var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+	if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+		t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+	}
+	if deserialized.Message != logMessage {
+		t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
+	}
+}
+
+// ensures that a debug message is passed through to the underlying logger as expected
 func TestDebug(t *testing.T) {
 	t.Run("Debug test", func(t *testing.T) {
 		// inject a "mocked" debug method that captures the first argument that is passed to it
@@ -84,16 +138,34 @@ func TestDebug(t *testing.T) {
 
 		// log something
 		emptyContext := context.Background()
-		Debug(emptyContext, "Some log message")
+		var log = NewLogger()
+
+		var logMessage = "Some log message"
+		log.Debug(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		want := "{\"context\":{},\"message\":\"Some log message\"}"
-		if capture != want {
-			t.Errorf("Captured message = %v, want %v", capture, want)
+		type LogMessage struct {
+			Context map[string]string
+			Logger  string
+			Message string
+		}
+		var deserialized LogMessage
+		json.Unmarshal([]byte(capture), &deserialized)
+
+		if len(deserialized.Context) != 0 {
+			t.Error("Context is non-empty")
+		}
+		var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		}
+		if deserialized.Message != logMessage {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
 		}
 	})
 }
 
+// ensures that an info message is passed through to the underlying logger as expected
 func TestInfo(t *testing.T) {
 	t.Run("Info test", func(t *testing.T) {
 		// inject a "mocked" info method that captures the first argument that is passed to it
@@ -112,16 +184,34 @@ func TestInfo(t *testing.T) {
 
 		// log something
 		emptyContext := context.Background()
-		Info(emptyContext, "Some log message")
+		var log = NewLogger()
+
+		var logMessage = "Some log message"
+		log.Info(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		want := "{\"context\":{},\"message\":\"Some log message\"}"
-		if capture != want {
-			t.Errorf("Captured message = %v, want %v", capture, want)
+		type LogMessage struct {
+			Context map[string]string
+			Logger  string
+			Message string
+		}
+		var deserialized LogMessage
+		json.Unmarshal([]byte(capture), &deserialized)
+
+		if len(deserialized.Context) != 0 {
+			t.Error("Context is non-empty")
+		}
+		var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		}
+		if deserialized.Message != logMessage {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
 		}
 	})
 }
 
+// ensures that an error message is passed through to the underlying logger as expected
 func TestError(t *testing.T) {
 	t.Run("Error test", func(t *testing.T) {
 		// inject a "mocked" error method that captures the first argument that is passed to it
@@ -143,12 +233,29 @@ func TestError(t *testing.T) {
 
 		// log something
 		emptyContext := context.Background()
-		Error(emptyContext, "Some log message")
+		var log = NewLogger()
+
+		var logMessage = "Some log message"
+		log.Error(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		want := "{\"context\":{},\"message\":\"Some log message\"}"
-		if capture != want {
-			t.Errorf("Captured message = %v, want %v", capture, want)
+		type LogMessage struct {
+			Context map[string]string
+			Logger  string
+			Message string
+		}
+		var deserialized LogMessage
+		json.Unmarshal([]byte(capture), &deserialized)
+
+		if len(deserialized.Context) != 0 {
+			t.Error("Context is non-empty")
+		}
+		var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		}
+		if deserialized.Message != logMessage {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
 		}
 	})
 }
