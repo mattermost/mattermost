@@ -19,11 +19,11 @@ func init() {
 	RegisterCommandProvider(&SettingsProvider{})
 }
 
-func (me *SettingsProvider) GetTrigger() string {
+func (settings *SettingsProvider) GetTrigger() string {
 	return CMD_SETTINGS
 }
 
-func (me *SettingsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (settings *SettingsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SETTINGS,
 		AutoComplete:     true,
@@ -33,7 +33,7 @@ func (me *SettingsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *SettingsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (settings *SettingsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_settings.unsupported.app_error"),
