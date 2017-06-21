@@ -26,23 +26,6 @@ const SECTION_NONE = (
     </tr>
 );
 
-const SECTION_PLAIN = (
-    <tr>
-        <td>
-            <FormattedMessage
-                id='admin.connectionSecurityPlain'
-                defaultMessage='PLAIN'
-            />
-        </td>
-        <td>
-            <FormattedMessage
-                id='admin.connectionSecurityPlainDescription'
-                defaultMessage='Mattermost will connect and authenticate over an insecure connection.'
-            />
-        </td>
-    </tr>
-);
-
 const SECTION_TLS = (
     <tr>
         <td>
