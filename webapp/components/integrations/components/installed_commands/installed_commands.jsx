@@ -1,10 +1,9 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
-import InstalledCommand from './installed_command.jsx';
+import InstalledCommand from '../installed_command.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import PropTypes from 'prop-types';
@@ -43,22 +42,28 @@ export default class InstalledCommands extends React.PureComponent {
         /**
         * Set to allow changes to installed splash commands
         */
-        isAdmin: PropTypes.bool
+        isAdmin: PropTypes.bool,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call when Regenerate Token link is clicked
+            */
+            regenCommandToken: PropTypes.func.isRequired,
+
+            /**
+            * The function to call when Delete link is clicked
+            */
+            deleteCommand: PropTypes.func.isRequired
+        }).isRequired
     }
 
-    constructor(props) {
-        super(props);
-
-        this.regenCommandToken = this.regenCommandToken.bind(this);
-        this.deleteCommand = this.deleteCommand.bind(this);
+    regenCommandToken = (command) => {
+        this.props.actions.regenCommandToken(command.id);
     }
 
-    regenCommandToken(command) {
-        AsyncClient.regenCommandToken(command.id);
-    }
-
-    deleteCommand(command) {
-        AsyncClient.deleteCommand(command.id);
+    deleteCommand = (command) => {
+        this.props.actions.deleteCommand(command.id);
     }
 
     commandCompare(a, b) {
