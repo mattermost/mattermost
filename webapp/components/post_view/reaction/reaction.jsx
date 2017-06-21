@@ -42,6 +42,11 @@ export default class Reaction extends React.PureComponent {
         otherUsersCount: PropTypes.number.isRequired,
 
         /*
+         * Array of reactions by user
+         */
+        reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+        /*
          * The URL of the emoji image
          */
         emojiImageUrl: PropTypes.string.isRequired,
@@ -80,6 +85,11 @@ export default class Reaction extends React.PureComponent {
     removeReaction(e) {
         e.preventDefault();
         this.props.actions.removeReaction(this.props.post.id, this.props.emojiName);
+    }
+
+    loadMissingProfiles = () => {
+        const ids = this.props.reactions.map((reaction) => reaction.user_id);
+        this.props.actions.getMissingProfilesByIds(ids);
     }
 
     render() {
@@ -219,7 +229,7 @@ export default class Reaction extends React.PureComponent {
                         {clickTooltip}
                     </Tooltip>
                 }
-                onEnter={this.props.actions.getMissingProfilesByIds}
+                onEnter={this.loadMissingProfiles}
             >
                 <div
                     className={className}
