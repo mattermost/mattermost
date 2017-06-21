@@ -326,7 +326,7 @@ type TeamSettings struct {
 	UserStatusAwayTimeout               *int64
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
-	TeammateNameDisplay                     *string
+	TeammateNameDisplay                 *string
 }
 
 type LdapSettings struct {
