@@ -156,6 +156,9 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if len(*utils.Cfg.ServiceSettings.AllowFrameFrom) == 0 {
 			w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 			w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+		} else {
+			w.Header().Set("X-Frame-Options", fmt.Sprintf("ALLOW-FROM %s",*utils.Cfg.ServiceSettings.AllowFrameFrom))
+			w.Header().Set("Content-Security-Policy", fmt.Sprintf("frame-ancestors 'self' %s",*utils.Cfg.ServiceSettings.AllowFrameFrom))
 		}
 	} else {
 		// All api response bodies will be JSON formatted by default
