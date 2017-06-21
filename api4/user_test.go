@@ -2020,7 +2020,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	th.LoginBasic()
 
-	fakeAuthData := "1"
+	fakeAuthData := model.NewId()
 	if result := <-app.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
