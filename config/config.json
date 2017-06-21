@@ -29,6 +29,7 @@
         "EnableMultifactorAuthentication": false,
         "EnforceMultifactorAuthentication": false,
         "AllowCorsFrom": "",
+        "AllowFrameFrom": "",
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,

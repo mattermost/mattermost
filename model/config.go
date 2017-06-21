@@ -63,12 +63,13 @@ const (
 
 	SITENAME_MAX_LENGTH = 30
 
-	SERVICE_SETTINGS_DEFAULT_SITE_URL        = ""
-	SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE   = ""
-	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE    = ""
-	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT    = 300
-	SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT   = 300
-	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM = ""
+	SERVICE_SETTINGS_DEFAULT_SITE_URL         = ""
+	SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE    = ""
+	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE     = ""
+	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT     = 300
+	SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT    = 300
+	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM  = ""
+	SERVICE_SETTINGS_DEFAULT_ALLOW_FRAME_FROM = ""
 
 	TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT        = ""
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
@@ -143,6 +144,7 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
 	AllowCorsFrom                            *string
+	AllowFrameFrom                           *string
 	SessionLengthWebInDays                   *int
 	SessionLengthMobileInDays                *int
 	SessionLengthSSOInDays                   *int
@@ -1007,6 +1009,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.AllowCorsFrom == nil {
 		o.ServiceSettings.AllowCorsFrom = new(string)
 		*o.ServiceSettings.AllowCorsFrom = SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM
+	}
+
+	if o.ServiceSettings.AllowFrameFrom == nil {
+		o.ServiceSettings.AllowFrameFrom = new(string)
+		*o.ServiceSettings.AllowFrameFrom = SERVICE_SETTINGS_DEFAULT_ALLOW_FRAME_FROM
 	}
 
 	if o.ServiceSettings.WebserverMode == nil {
