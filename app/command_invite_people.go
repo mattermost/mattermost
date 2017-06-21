@@ -42,6 +42,10 @@ func (me *InvitePeopleProvider) DoCommand(args *model.CommandArgs, message strin
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_off")}
 	}
 
+	if !utils.Cfg.TeamSettings.EnableUserCreation {
+		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.invite_off")}
+	}
+
 	emailList := strings.Fields(message)
 
 	for i := len(emailList) - 1; i >= 0; i-- {
