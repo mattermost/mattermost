@@ -672,6 +672,10 @@
     "translation": "The settings command is not supported on your device"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
   },
