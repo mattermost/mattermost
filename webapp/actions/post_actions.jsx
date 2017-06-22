@@ -65,7 +65,7 @@ export function handleNewPost(post, msg) {
 }
 
 function completePostReceive(post, websocketMessageProps) {
-    if (post.root_id && Selectors.getPost(getState(), post.root_id) != null) {
+    if (post.root_id && Selectors.getPost(getState(), post.root_id) == null) {
         getPostThread(post.root_id)(dispatch, getState).then(
             (data) => {
                 // Need manual dispatch to remove pending post
